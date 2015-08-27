@@ -1,0 +1,619 @@
+# worker-core
+
+---
+
+ This subproject contains the asynchronous microservice worker applcation
+ code and various module implementations that have been designed to work
+ with it.
+ 
+ 
+## Definition of an asynchronous microservice worker
+
+ The application `worker-core` has been written to meet specific requirements.
+ While most workers on a software-as-a-service platform will likely be a good
+ fit, it is worthwhile taking them into consideration to understand the choices
+ made and how it may affect decisions when writing new components for it.
+ 
+ - A worker receives jobs as a single message from a queue
+ - Each worker may handle multiple tasks at once
+ - The input queue is set at start-up time
+ - For each single message in, a worker must emit one message
+ - A worker can output a result message, or another task message
+ - The workers are stateless, and so can be trivially scaled
+ - A worker will not lose requests, and gracefully handle failure
+ - A worker will provide metrics and healthchecks
+ - Input and output messages are wrapped in a fixed container
+ - A worker will not accept any new work if a shutdown is triggered
+ - A worker will attempt to finish current work if a shutdown is triggered
+    
+ One of the key aspects of a microservice is that it can be scaled up or down
+ to meet demand. This is easiest to do when the worker is stateless. In
+ essence, this means a worker should not be aware (or need to be aware) of any
+ other worker or its surrounding system. This way additional "clones" of it
+ can be created or destroyed at will to provide scaling without affecting other
+ workers. Because they may be destroyed, workers should not create any local
+ data with the expectation it will be kept or maintained.
+ 
+ 
+## The worker-core application
+ 
+ This application is effectively managing the flow of data through the various
+ components with some logic checking. To achieve this, it attempts to detect
+ and initialise several modules at runtime which should be present on the
+ classpath. Implementations that *require* to be packaged with `worker-core`
+ are:
+ 
+ - DataStore
+ - WorkerFactory
+ - ConfigurationSource
+ - WorkerQueue
+ - Codec
+    
+ The following components may *optionally* be packaged. If they are not found,
+ a default no-op implementation will be used:
+ 
+ - Cipher
+    
+ Once all the modules are found and instantiated, `worker-core` sets up a
+ callback to register a new task, and passes this to the WorkerQueue along
+ with the input and output queue names. The `WorkerQueue` implementation is
+ then expected to handle incoming messages and refer them to the supplied
+ callback, at which point the `WorkerFactory` will be required to provide a
+ new instances of a `Worker` to handle the message. The `Worker` itself is
+ wrapped in a `WorkerWrapper` and executed in a thread pool. Upon completion,
+ be it success or failure, the application will then route the result message
+ back to the `WorkerQueue` for publishing. Messages that cannot be passed to
+ a `Worker` are rejected back to the `WorkerQueue`. Each application itself
+ has a backlog of messages with an upper bound. The number of threads (in other
+ words, the number of simultaneous tasks to perform) is dictated by the
+ `WorkerFactory` supplied to the application.
+ 
+ The `worker-core` application exposes health checks and metrics from itself
+ and dependent modules to the Dropwizard admin port (default 8081).
+ 
+ At time of writing, `worker-core` has no operations available on the REST
+ port (default 8080).
+ 
+### Configuration
+
+ The application does not require any environment variables to be set. However,
+ if you are not running on the Marathon platform you will likely need to set the
+ `caf.appname` variable to provide a `ServicePath` to `worker-core`.
+    
+### Starting the application
+
+ The following command-line should start the application:
+ 
+ ```
+ java -cp "*" com.hp.caf.worker.core.WorkerApplication server
+ ```
+    
+### The DataStore component
+
+ The following classes and interfaces are relevant to the `DataStore` component:
+ 
+ - DataStore: abstract class that acts as a base implementation.
+ - DataStoreException: or any DataStore specific errors.
+ - DataStoreMetricsReporter: interface for reporting back metrics to the core.
+ - DataStoreProvider: interface for acquiring a DataStore.
+    
+ A `DataStore` itself is used to the archiving and retrieval of arbitrary data.
+ This data may be required by a `Worker` to perform its task, or the `Worker`
+ may wish to store a result directly to a storage component if the data is too
+ large to fit within a queue. It is not used interally by `worker-core`.
+ 
+### The WorkerQueue component
+
+ The following classes and interfaces are relevant to the `WorkerQueue`
+ component:
+ 
+ - QueueException: for any WorkerQueue specific errors.
+ - WorkerQueue : abstract class that acts as a base implementation.
+ - WorkerQueueMetricsReporter: interface for reporting metrics back to the
+  core.
+ - WorkerQueueProvider: interface for acquiring a WorkerQueue.
+ - NewTaskCallback: interface for representing a callback used by a
+  WorkerQueue when it wishes to register the arrival of a new task with the
+  application.
+    
+ A `WorkerQueue` is responsible for receiving messages from a queue and sending
+ them to `worker-core`, and will receive results from `worker-core` to publish.
+ It must also handle rejection of messages.
+ 
+### The Worker and WorkerFactory components
+
+ The following classes and interfaces are relevant to the `Worker` component:
+ 
+ - WorkerException: for any Worker specific errors.
+ - Worker: abstract class that acts as a base implementation for something that
+  does useful work, and returns a WorkerResponse.
+ - WorkerFactory: abstract class that implementations are responsible for
+  creating a worker given message data.
+ - WorkerFactoryProvider: interface for acquiring a WorkerFactory.
+ - TaskStatus: an enumeration that represents the possible states of a
+  message.
+ - TaskMessage: class that wraps all messages in and out of a worker.
+  The task specific result data from the `Worker` will be contained within.
+ - WorkerResponse: represents the requested action of a `Worker` after its
+  work has been performed, typically indicating the core to return a result.
+    
+ A `WorkerFactory` creates instances of a `Worker` class that will perform
+ actions upon message data it is given (which represents a task to do). The
+ `WorkerFactory` is free to create the `Worker` however it wishes, but the
+ `Worker` must be able to return a WorkerResponse which contains the
+ serialised result data once it has completed. Implementations of `Worker`
+ should use the utility methods `createSuccessResult(byte[])` or
+ `createFailureResult(byte[])` to return results. Serialisation can be done
+ using a `Codec` from the `WorkerFactory`, which is passed through from the
+ application itself, or alternatively a `Worker` may use its own method of
+ serialisation if it knows the inner message format. A `Worker` can also
+ provide some "default" result data in case an unhandled exception is
+ encountered.
+ 
+ 
+## Creatng a container for a worker
+ 
+ A container for a worker is generally made as a new subproject in Maven (or
+ your preferred build system). It will have no code itself, but will have 
+ dependencies upon `worker-core` and an implementation of all the required
+ components, together with any start scripts. Fixed configuration parameters
+ required at startup can be safely added as Java properties in the command
+ line for starting the application. Configuration parameters that need to be
+ variable should be left to be set by environment variables in your container
+ deployment template. You will need the following dependencies in your project
+ to create a fully functioning container:
+ 
+ - worker-core
+ - caf-api
+ - An implementation of ConfigurationSource
+ - An implementation of WorkerFactory
+ - An implementation of DataStore
+ - An implementation of WorkerQueue
+ - An implementation of Codec
+ - An implementation of Cipher (optional)
+ 
+ 
+## Available metrics
+
+ The following metrics are exposed on the Dropwizard admin port:
+ 
+ - core.taskTimer: timer/histogram that gives timing data on the tasks it is
+  performing.
+ - core.backlogSize: the current number of tasks this worker instance has
+  accepted but are not currently being worked upon (due to the threadpool
+  being full).
+ - core.uptime: the time in milliseconds since initialisation.
+ - core.tasksReceived: the number of tasks registered by the WorkerQueue with
+  the application.
+ - core.taskRejected: the number of tasks rejected from the application. This
+  typically implies no Worker could be instantiated to handle the message.
+ - core.tasksSucceeded: the number of tasks that completed with a successful
+  TaskResultStatus.
+ - core.tasksFailed: the number of tasks that failed with an unsuccessful
+  TaskResultStatus.
+ - core.currentIdleTime: the time in milliseconds since the worker was doing
+  anything useful.
+ - config.lookups: the number of configuration lookups performed by the
+  ConfigurationSource.
+ - config.errors: the number of failures reported by the ConfigurationSource.
+ - store.writes: the number of write requests to the DataStore.
+ - store.reads: the number of read requests to the DataStore.
+ - store.errors: the number of errors encounted by the DataStore.
+ - store.bytesRx: the number of bytes downloaded from the DataStore.
+ - store.bytesTx: the number of bytes uploaded to the DataStore.
+ - queue.received: the number of messages received by the WorkerQueue.
+ - queue.published: the number of messages published by the WorkerQueue.
+ - queue.rejected: the number of messages rejected by the WorkerQueue.
+ - queue.dropped: the number of messages dropped by the WorkerQueue. This
+  typically implies messages that were already rejected at least once and could
+  still not be handled. Whether they were actually dropped or just routed
+  elsewhere will depend upon the implementation.
+ - queue.errors: the number of errors encountered by the WorkerQueue.
+
+
+## Tutorial: creating a new Worker backend
+
+ This will briefly go over the step-by-step process involved for creating a new
+ `Worker` backend implementation. It is assumed you will be using supplied
+ implementations of the other components (`WorkerQueue` etc).
+
+ For this example implementation, we will use three subprojects. The first will
+ be the actual code for the backend module itself. The second will be data that
+ is shared between the consumer and producer, namely the Java classes that will
+ represent the incoming task and the outgoing result. The thid will be a
+ subproject to package the whole worker as a service to be deployed.
+
+ In this trivial example, we will make a `Worker` that performs some text
+ manipulation and also simulate some load by delaying the processing.
+
+### The messages: input and output
+
+ A good way to start thinking about a `Worker` is by what message it receives
+ and produces. Since we are doing some text manipulation, we will need the
+ text we want to manipulate, so this is an input. The only output we are
+ generating is the manipulated text, so that is the sole member of the result
+ message.
+
+ It is important to understand the difference between what data should be in
+ the incoming message and what should be in your worker configuration.
+ Generally speaking, configuration should contain options that need to be
+ modified that will change the operation of workers, but does not affect each
+ individual worker between each run. In our example, the string we are going
+ to manipulate is clearly task data, as each string may be different, but we
+ will make the load simulation a configuration parameter so that each worker
+ run will simulate the same sort of load.
+
+ Input and output data represented by Java classes needs to be easily
+ serialisable by implementations of Codec, so each member variable should have
+ an appropriate getter and setter according to Java standards. For most Codecs,
+ it will also need a no-argument constructor. Our input message will look a
+ bit like this:
+
+```
+ package com.hp.caf.test.worker.shared;
+
+
+ public class TestWorkerTask
+ {
+    private String taskString;
+
+
+    public TestWorkerTask() { }
+
+
+    public String getTaskString()
+    {
+        return taskString;
+    }
+
+
+    public void setTaskString(final String input)
+    {
+        this.taskString = input;
+    }
+ }
+```
+
+ Equivalently, our output message will be something like:
+
+```
+ package com.hp.caf.test.worker.shared;
+
+
+ public class TestWorkerResult
+ {
+    private String resultString;
+
+
+    public TestWorkerResult() { }
+
+
+    public String getResultString()
+    {
+        return resultString;
+    }
+
+
+    public void setResultString(final String output)
+    {
+        this.resultString = output;
+    }
+ }
+```
+
+### Worker configuration
+
+ With the messages complete, we should also make our configuration object for
+ our worker. We only have one thing here, but again since the configuration
+ objects that come from a `ConfigurationSource` need to be deserialised, they
+ should have a no-argument constructor and getters and setters just like the
+ message objects we created before. Here is our configuration class:
+
+```
+ package com.hp.caf.test.worker;
+
+ import javax.validation.constraints.NotNull;
+ import javax.validation.constraints.Size;
+
+
+ public class TestWorkerConfiguration
+ {
+    private long sleepTime;
+    @NotNull
+    @Size(min = 1)
+    private String resultQueue;
+
+
+    public TestWorkerConfiguration() { }
+
+
+    public long getSleepTime()
+    {
+        return sleepTime;
+    }
+
+
+    public void setSleepTime(final long time)
+    {
+        this.sleepTime = Math.max(0, time);
+    }
+
+
+    public String getResultQueue()
+    {
+        return resultQueue;
+    }
+
+
+    public void setResultQueue(final String queue)
+    {
+        this.resultQueue = queue;
+    }
+ }
+```
+
+ It's probably worth creating an actual serialised configuration file now, as
+ we'll need this to run our worker. This is actually a trivial case, and you
+ could work it out yourself, or use the `util-tools` package. Let's say we're
+ going to use JSON for configuration files in our application. If we grab the
+ `util-tools` jar file, and put the `codec-json` jar with it along with our
+ freshly compiled `test-worker-shared` jar, we can do this:
+
+```
+ java -cp "*" com.hp.caf.util.GenerateConfig
+    com.hp.caf.test.worker.shared.TestWorkerConfiguration
+```
+
+### Creating the factory and provider
+
+ The job of a `WorkerFactory` is to produce a `Worker` given some serailised
+ task data which has originated from a `WorkerQueue` of some nature. The base
+ class of `WorkerFactory` only enforces we create a `getWorker(TaskMessage)`
+ method implementation, which leaves us free to design our own constructor.
+ Since we already have the task data passed in for each task via the
+ `getWorker(TaskMessage)` method, the only other things we need is our
+ configured sleep time, and also something (a `Codec`) with which to
+ serialise our result to return. So we will make the `WorkerFactory` look like
+ this:
+
+```
+ package com.hp.caf.test.worker;
+
+ import com.hp.caf.api.Codec;
+ import com.hp.caf.api.worker.WorkerException;
+ import com.hp.caf.api.worker.WorkerFactory;
+
+ import java.util.Objects;
+
+
+ public class TestWorkerFactory extends WorkerFactory
+ {
+    private final Codec codec;
+    private final long sleepTime;
+    private final String resultQueue;
+
+
+    public TestWorkerFactory(final Codec codec, final long sleepTime, final String resultQueue)
+    {
+        this.codec = Objects.requireNonNull(codec);
+        this.sleepTime = sleepTime;
+        this.resultQueue = Objects.requireNonNull(resultQueue);
+    }
+
+
+    @Override
+    public Worker getWorker(String classifier, int version, TaskStatus status,
+                            byte[] data, byte[] context)
+        throws WorkerException
+    {
+        return new TestWorker(data, codec, sleepTime, resultQueue);
+    }
+
+ }
+```
+
+ We haven't made the TestWorker yet, but we already know what it needs. This
+ helps us define how our `Worker` will function. But we need one more small
+ class, which is effectively boilerplate, for `worker-core` itself to acquire
+ our TestWorkerFactory - which is an implementation of `WorkerFactoryProvider`.
+ A provider must have a no-argument constructor, so it can be instantiated by
+ anything using `ComponentLoader`. The separation of `WorkerFactory` from a
+ `WorkerFactoryProvider` allows us to keep constructor safety with our actual
+ `WorkerFactory` while still allowing the plug-in nature of the components with
+ the worker application itself. The provider must also give some basic data
+ on identifying the worker.
+
+```
+ package com.hp.caf.test.worker;
+
+ import com.hp.caf.api.Codec;
+ import com.hp.caf.api.ConfigurationException;
+ import com.hp.caf.api.ConfigurationSource;
+ import com.hp.caf.api.worker.DataSource;
+ import com.hp.caf.api.worker.WorkerException;
+ import com.hp.caf.api.worker.WorkerFactoryProvider;
+
+ import java.util.Objects;
+
+
+ public class TestWorkerFactoryProvider implements WorkerFactoryProvider
+ {
+    @Override
+    public WorkerFactory getWorkerFactory(final ConfigurationSource config,
+        final DataStore store, final Codec codec) throws WorkerException
+    {
+        try {
+            Objects.requireNonNull(config);
+            TestWorkerConfiguration testConfig =
+                config.getConfiguration(TestWorkerConfiguration.class);
+            long sleepTime = config.getSleepTime();
+            String resultQueue = config.getResultQueue();
+            return new TestWorkerFactory(codec, testConfig, sleepTime, resultQueue);
+        } catch ( ConfigurationException e ) {
+            throw new WorkerException("Failed to create factory", e);
+        }
+    }
+
+
+    @Override
+    public int getWorkerThreads()
+    {
+        return 1;
+    }
+
+ }
+```
+
+ Note that our crude example worker isn't using a `DataStore` so we effectively
+ throw it away here. We also follow good encapsulation logic and only pass in
+ the data the TestWorkerFactory actually needs rather than the whole instance
+ of TestWorkerConfiguration.
+
+ For this example we are just going to use a single thread in our worker, but
+ this effectively controls how many simultaneous jobs a worker service can
+ perform.
+
+### Creating the Worker
+
+ We actually already know what the implementation of `Worker` should mostly
+ look like - we've defined what it does, what the input and output should be,
+ and even what the constructor should look like. In addition, the `Worker` base
+ class enforces us to provide some methods. In essence the main part is that
+ the method `doWork()` will return a `TaskResultStatus`, and that our worker
+ will set its result using `setResultData(byte[])` before returning from the
+ `doWork()` method. So here is our worker:
+
+```
+ package com.hp.caf.test.worker;
+
+ import com.hp.caf.api.Codec;
+ import com.hp.caf.api.CodecException;
+ import com.hp.caf.api.worker.Worker;
+ import com.hp.caf.api.worker.WorkerException;
+ import com.hp.caf.test.worker.shared.TestWorkerTask;
+ import com.hp.caf.test.worker.shared.TestWorkerResult;
+
+ import java.nio.charset.StandardCharsets;
+ import java.util.Objects;
+
+
+ public class TestWorker extends Worker
+ {
+    private final long sleepTime;
+    private final String input;
+    private final Codec codec;
+    private final byte[] failedResult;
+
+
+    public TestWorker(final byte[] taskData, final Codec codec, final long sleepTime,
+                      final String resultQueue)
+        throws WorkerException
+    {
+        super(resultQueue);
+        this.codec = Objects.requireNonNull(codec);
+        this.sleepTime = sleepTime;
+        try {
+            TestWorkerTask task =
+                codec.deserialise(taskData, TestWorkerTask.class);
+            this.input = Objects.requireNonNull(task.getTaskString());
+            this.failedResult = codec.serialise(createResultObject("failed"));
+        } catch ( CodecException e ) {
+            throw new WorkerException("Cannot create TestWorker", e);
+        }
+    }
+
+
+    /**
+     * Transform the input String from the task data to upper case and sleep
+     * for a while.
+    **/
+    @Override
+    public WorkerResponse doWork()
+        throws WorkerException
+    {
+        try {
+            String output = input.toUpperCase();
+            byte[] data = codec.serialise(createResultObject(output));
+            Thread.sleep(sleepTime);
+            return createSuccessResult(data);
+        } catch ( InterruptedException | CodecException e) {
+            Thread.currentThread().interrupt();
+            throw new WorkerException("Failed to perform work", e);
+        }
+    }
+
+
+    @Override
+    public String getWorkerIdentifier()
+    {
+        return "TestWorker";
+    }
+
+
+    @Override
+    public int getWorkerApiVersion()
+    {
+        return 1;
+    }
+
+
+    @Override
+    protected byte[] getGeneralFailureData()
+    {
+        return this.failedResult;
+    }
+
+
+    private TestWorkerResult createResultObject(final String str)
+    {
+        TestWorkerResult res = new TestWorkerResult();
+        res.setResultString(str);
+        return res;
+    }
+ }
+```
+
+ Our API verison is obviously 1, but if we changed the format of the
+ input or output messages that we handle, we should increase this number.
+
+ The main point here is that we create everything we possibly can to ensure
+ sensible operation of our `Worker` in the constructor. This includes the
+ result to be sent back in case our `doWork()` operation fails in some
+ unexpected way.
+
+### Advertising your new Worker to the core microservice application
+
+ Now you've made everything, you need to announce it. Just putting your new
+ TestWorker and factories on the classpath isn't sufficient. You'll need to
+ make a services identifier that the Java ServiceLoader will pick up on.
+ How you made an entry in `META-INF/services` may vary upon your build
+ system, but in Maven, you need to make a `src/main/resources` directory,
+ and then make a `META-INF` directory underneath that. The file you need to
+ make will have the fully qualified class name of the interface (or base
+ class) that the Java ServiceLoader will be looking for, in this case it will
+ be `WorkerFactoryProvider`, and the file contents will be a single line which
+ consists of the fully qualified class name of your implementation. So in this
+ case, the file will be called
+ `META-INF/services/com.hp.caf.api.worker.WorkerFactoryProvider` and will
+ have the line `com.hp.caf.test.worker.TestWorkerFactoryProvider`.
+
+### Putting it all together
+
+ Now we have our complete implementation, all we have to do is package it
+ all together. You may just be packaging a complete jar, or perhaps a tar
+ file using a Maven assembly, or a Docker container. Either way, you will want
+ to include the following dependencies in your container subproject and
+ make sure it is all packaged together:
+
+ - The test worker code subproject
+ - The test worker shared objects subproject (task and result message classes)
+ - The `worker-core` application itself
+ - A `WorkerQueue` module
+ - A `DataStore` module - even though we are not using it here
+ - A `ConfigurationSource` module
+
+ You will also need to put the serialised configuration somewhere sensible
+ which will depend upon your `ConfigurationSource`. Finally, don't forget to
+ set the necessary environment variables for your worker container. You'll need
+ an application name, input queue, and output queue. See the documentation on
+ `worker-core` for more details.

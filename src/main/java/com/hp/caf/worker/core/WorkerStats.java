@@ -1,0 +1,92 @@
+package com.hp.caf.worker.core;
+
+
+import java.util.concurrent.atomic.AtomicLong;
+
+
+/**
+ * Container for all statistics provided by WorkerCore.
+ */
+class WorkerStats
+{
+    private final AtomicLong tasksReceived = new AtomicLong(0);
+    private final AtomicLong tasksRejected = new AtomicLong(0);
+    private final AtomicLong tasksSucceeded = new AtomicLong(0);
+    private final AtomicLong tasksFailed = new AtomicLong(0);
+    private final AtomicLong lastTaskFinished = new AtomicLong(System.currentTimeMillis());
+
+
+    /**
+     * @return the number of tasks that a WorkerQueue has handed off to WorkerCore
+     */
+    public long getTasksReceived()
+    {
+        return tasksReceived.get();
+    }
+
+
+    public void incrementTasksReceived()
+    {
+        tasksReceived.incrementAndGet();
+    }
+
+
+    /**
+     * @return the number of tasks WorkerCore has rejected back to a WorkerQueue
+     */
+    public long getTasksRejected()
+    {
+        return tasksRejected.get();
+    }
+
+
+    public void incrementTasksRejected()
+    {
+        tasksRejected.incrementAndGet();
+    }
+
+
+    /**
+     * @return the number of completed tasks returned to WorkerCore that were marked successful by a Worker
+     */
+    public long getTasksSucceeded()
+    {
+        return tasksSucceeded.get();
+    }
+
+
+    public void incrementTasksSucceeded()
+    {
+        tasksSucceeded.incrementAndGet();
+    }
+
+
+    /**
+     * @return the number of completed tasks returned to WorkerCore that were marked failed by a Worker
+     */
+    public long getTasksFailed()
+    {
+        return tasksFailed.get();
+    }
+
+
+    public void incrementTasksFailed()
+    {
+        tasksFailed.incrementAndGet();
+    }
+
+
+    /**
+     * @return the time (in milliseconds) the most recent task completed (or the startup time, if no task has been done yet)
+     */
+    public long getLastTaskFinishedTime()
+    {
+        return lastTaskFinished.get();
+    }
+
+
+    public void updatedLastTaskFinishedTime()
+    {
+        lastTaskFinished.set(System.currentTimeMillis());
+    }
+}
