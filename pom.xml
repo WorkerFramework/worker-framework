@@ -6,7 +6,7 @@
 
     <groupId>com.hp.caf.worker</groupId>
     <artifactId>worker-queue-rabbit</artifactId>
-    <version>6.4</version>
+    <version>6.5-SNAPSHOT</version>
     
     <parent>
         <groupId>com.hp.caf</groupId>
