@@ -39,6 +39,12 @@ public class RabbitConfiguration
     @Size(min = 1)
     private String rabbitHost;
     /**
+     * The port exposed on the host to access RabbitMQ by.
+     */
+    @Min(1024)
+    @Max(65535)
+    private int rabbitPort;
+    /**
      * The username to access the RabbitMQ server with.
      */
     @NotNull
@@ -110,6 +116,18 @@ public class RabbitConfiguration
     public void setRabbitHost(final String rabbitHost)
     {
         this.rabbitHost = rabbitHost;
+    }
+
+
+    public int getRabbitPort()
+    {
+        return rabbitPort;
+    }
+
+
+    public void setRabbitPort(final int rabbitPort)
+    {
+        this.rabbitPort = rabbitPort;
     }
 
 

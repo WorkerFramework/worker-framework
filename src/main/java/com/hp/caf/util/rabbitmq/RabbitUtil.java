@@ -35,8 +35,8 @@ public final class RabbitUtil
         RecoveryPolicy policy =
             new RecoveryPolicy().withBackoff(Duration.seconds(conf.getBackoffInterval()), Duration.seconds(conf.getMaxBackoffInterval()));
         Config config = new Config().withRecoveryPolicy(policy.withMaxAttempts(conf.getMaxAttempts()));
-        ConnectionOptions opt =
-            new ConnectionOptions().withHost(conf.getRabbitHost()).withUsername(conf.getRabbitUser()).withPassword(conf.getRabbitPassword());
+        ConnectionOptions opt = new ConnectionOptions().withHost(conf.getRabbitHost()).
+            withPort(conf.getRabbitPort()).withUsername(conf.getRabbitUser()).withPassword(conf.getRabbitPassword());
         return Connections.create(opt, config);
     }
 
