@@ -76,7 +76,7 @@ class WorkerWrapper implements Runnable
     {
         Map<String, byte[]> contextMap = message.getContext();
         if ( response.getContext() != null ) {
-            contextMap.put(servicePath.getPath(), response.getContext());
+            contextMap.put(servicePath.toString(), response.getContext());
         }
         TaskMessage tm = new TaskMessage(message.getTaskId(), response.getMessageType(), response.getApiVersion(),
                                          response.getData(), response.getTaskStatus(), contextMap);

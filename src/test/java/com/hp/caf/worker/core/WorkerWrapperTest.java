@@ -49,8 +49,8 @@ public class WorkerWrapperTest
         Assert.assertArrayEquals(SUCCESS_BYTES, callback.getResultData());
         Assert.assertEquals(TASK_ID, callback.getTaskId());
         Assert.assertEquals(QUEUE_OUT, callback.getQueue());
-        Assert.assertTrue(callback.getContext().containsKey(path.getPath()));
-        Assert.assertArrayEquals(SUCCESS_BYTES, callback.getContext().get(path.getPath()));
+        Assert.assertTrue(callback.getContext().containsKey(path.toString()));
+        Assert.assertArrayEquals(SUCCESS_BYTES, callback.getContext().get(path.toString()));
     }
 
 
@@ -88,7 +88,7 @@ public class WorkerWrapperTest
         TaskMessage m = new TaskMessage();
         ServicePath path = new ServicePath(SERVICE_NAME);
         Map<String, byte[]> contextMap = new HashMap<>();
-        contextMap.put(path.getPath(), EXCEPTION_BYTES);
+        contextMap.put(path.toString(), EXCEPTION_BYTES);
         m.setTaskId(TASK_ID);
         m.setContext(contextMap);
         WorkerWrapper wrapper = new WorkerWrapper(m, queueMsgId, happyWorker, callback, path);
@@ -100,8 +100,8 @@ public class WorkerWrapperTest
         Assert.assertEquals(EXCEPTION_BYTES, callback.getResultData());
         Assert.assertEquals(TASK_ID, callback.getTaskId());
         Assert.assertEquals(QUEUE_OUT, callback.getQueue());
-        Assert.assertTrue(callback.getContext().containsKey(path.getPath()));
-        Assert.assertArrayEquals(EXCEPTION_BYTES, callback.getContext().get(path.getPath()));
+        Assert.assertTrue(callback.getContext().containsKey(path.toString()));
+        Assert.assertArrayEquals(EXCEPTION_BYTES, callback.getContext().get(path.toString()));
     }
 
 
