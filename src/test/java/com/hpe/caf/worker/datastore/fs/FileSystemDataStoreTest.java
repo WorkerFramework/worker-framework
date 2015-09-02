@@ -1,9 +1,9 @@
-package com.hp.caf.worker.datastore.fs;
+package com.hpe.caf.worker.datastore.fs;
 
 
-import com.hp.caf.api.ConfigurationException;
-import com.hp.caf.api.worker.DataStore;
-import com.hp.caf.api.worker.DataStoreException;
+import com.hpe.caf.api.ConfigurationException;
+import com.hpe.caf.api.worker.DataStore;
+import com.hpe.caf.api.worker.DataStoreException;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Rule;

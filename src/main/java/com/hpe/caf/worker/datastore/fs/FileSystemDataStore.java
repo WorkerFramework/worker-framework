@@ -1,10 +1,10 @@
-package com.hp.caf.worker.datastore.fs;
+package com.hpe.caf.worker.datastore.fs;
 
 
-import com.hp.caf.api.HealthResult;
-import com.hp.caf.api.worker.DataStore;
-import com.hp.caf.api.worker.DataStoreException;
-import com.hp.caf.api.worker.DataStoreMetricsReporter;
+import com.hpe.caf.api.HealthResult;
+import com.hpe.caf.api.worker.DataStore;
+import com.hpe.caf.api.worker.DataStoreException;
+import com.hpe.caf.api.worker.DataStoreMetricsReporter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
