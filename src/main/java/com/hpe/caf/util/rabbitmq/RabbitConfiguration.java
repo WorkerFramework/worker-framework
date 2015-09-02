@@ -1,7 +1,7 @@
-package com.hp.caf.util.rabbitmq;
+package com.hpe.caf.util.rabbitmq;
 
 
-import com.hp.caf.api.Encrypted;
+import com.hpe.caf.api.Encrypted;
 
 import javax.validation.constraints.Max;
 import javax.validation.constraints.Min;

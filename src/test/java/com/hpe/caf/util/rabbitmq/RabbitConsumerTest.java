@@ -1,6 +1,9 @@
-package com.hp.caf.util.rabbitmq;
+package com.hpe.caf.util.rabbitmq;
 
 
+import com.hpe.caf.util.rabbitmq.ConsumerEventType;
+import com.hpe.caf.util.rabbitmq.ConsumerQueueEvent;
+import com.hpe.caf.util.rabbitmq.RabbitConsumer;
 import com.rabbitmq.client.AMQP;
 import com.rabbitmq.client.Channel;
 import com.rabbitmq.client.Envelope;

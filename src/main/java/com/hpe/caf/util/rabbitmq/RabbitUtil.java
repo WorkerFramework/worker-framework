@@ -1,4 +1,4 @@
-package com.hp.caf.util.rabbitmq;
+package com.hpe.caf.util.rabbitmq;
 
 
 import com.rabbitmq.client.Channel;

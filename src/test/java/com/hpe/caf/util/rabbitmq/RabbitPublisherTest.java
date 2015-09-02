@@ -1,6 +1,9 @@
-package com.hp.caf.util.rabbitmq;
+package com.hpe.caf.util.rabbitmq;
 
 
+import com.hpe.caf.util.rabbitmq.PublishEventType;
+import com.hpe.caf.util.rabbitmq.PublishQueueEvent;
+import com.hpe.caf.util.rabbitmq.RabbitPublisher;
 import com.rabbitmq.client.Channel;
 import org.junit.Assert;
 import org.junit.Test;
