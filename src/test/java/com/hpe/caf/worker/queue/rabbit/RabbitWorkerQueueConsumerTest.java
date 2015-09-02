@@ -1,10 +1,10 @@
-package com.hp.caf.worker.queue.rabbit;
+package com.hpe.caf.worker.queue.rabbit;
 
 
-import com.hp.caf.api.worker.NewTaskCallback;
-import com.hp.caf.api.worker.WorkerException;
-import com.hp.caf.util.rabbitmq.ConsumerEventType;
-import com.hp.caf.util.rabbitmq.ConsumerQueueEvent;
+import com.hpe.caf.api.worker.NewTaskCallback;
+import com.hpe.caf.api.worker.WorkerException;
+import com.hpe.caf.util.rabbitmq.ConsumerEventType;
+import com.hpe.caf.util.rabbitmq.ConsumerQueueEvent;
 import com.rabbitmq.client.Channel;
 import com.rabbitmq.client.Envelope;
 import com.rabbitmq.client.QueueingConsumer;

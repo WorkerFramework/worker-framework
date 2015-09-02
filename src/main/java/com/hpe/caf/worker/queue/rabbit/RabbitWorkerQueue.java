@@ -1,17 +1,17 @@
-package com.hp.caf.worker.queue.rabbit;
+package com.hpe.caf.worker.queue.rabbit;
 
 
-import com.hp.caf.api.HealthResult;
-import com.hp.caf.api.HealthStatus;
-import com.hp.caf.api.worker.NewTaskCallback;
-import com.hp.caf.api.worker.QueueException;
-import com.hp.caf.api.worker.WorkerQueue;
-import com.hp.caf.api.worker.WorkerQueueMetricsReporter;
-import com.hp.caf.util.rabbitmq.ConsumerEventType;
-import com.hp.caf.util.rabbitmq.ConsumerQueueEvent;
-import com.hp.caf.util.rabbitmq.PublishEventType;
-import com.hp.caf.util.rabbitmq.PublishQueueEvent;
-import com.hp.caf.util.rabbitmq.RabbitUtil;
+import com.hpe.caf.api.HealthResult;
+import com.hpe.caf.api.HealthStatus;
+import com.hpe.caf.api.worker.NewTaskCallback;
+import com.hpe.caf.api.worker.QueueException;
+import com.hpe.caf.api.worker.WorkerQueue;
+import com.hpe.caf.api.worker.WorkerQueueMetricsReporter;
+import com.hpe.caf.util.rabbitmq.ConsumerEventType;
+import com.hpe.caf.util.rabbitmq.ConsumerQueueEvent;
+import com.hpe.caf.util.rabbitmq.PublishEventType;
+import com.hpe.caf.util.rabbitmq.PublishQueueEvent;
+import com.hpe.caf.util.rabbitmq.RabbitUtil;
 import com.rabbitmq.client.Channel;
 import com.rabbitmq.client.Connection;
 import org.slf4j.Logger;

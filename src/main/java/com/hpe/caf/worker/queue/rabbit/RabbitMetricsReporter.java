@@ -1,7 +1,7 @@
-package com.hp.caf.worker.queue.rabbit;
+package com.hpe.caf.worker.queue.rabbit;
 
 
-import com.hp.caf.api.worker.WorkerQueueMetricsReporter;
+import com.hpe.caf.api.worker.WorkerQueueMetricsReporter;
 
 import java.util.concurrent.atomic.AtomicInteger;
 

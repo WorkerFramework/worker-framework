@@ -1,11 +1,11 @@
-package com.hp.caf.worker.queue.rabbit;
+package com.hpe.caf.worker.queue.rabbit;
 
 
-import com.hp.caf.api.ConfigurationException;
-import com.hp.caf.api.ConfigurationSource;
-import com.hp.caf.api.worker.QueueException;
-import com.hp.caf.api.worker.WorkerQueue;
-import com.hp.caf.api.worker.WorkerQueueProvider;
+import com.hpe.caf.api.ConfigurationException;
+import com.hpe.caf.api.ConfigurationSource;
+import com.hpe.caf.api.worker.QueueException;
+import com.hpe.caf.api.worker.WorkerQueue;
+import com.hpe.caf.api.worker.WorkerQueueProvider;
 
 
 /**

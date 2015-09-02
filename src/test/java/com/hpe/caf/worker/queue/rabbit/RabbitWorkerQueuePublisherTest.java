@@ -1,10 +1,10 @@
-package com.hp.caf.worker.queue.rabbit;
+package com.hpe.caf.worker.queue.rabbit;
 
 
-import com.hp.caf.util.rabbitmq.ConsumerEventType;
-import com.hp.caf.util.rabbitmq.ConsumerQueueEvent;
-import com.hp.caf.util.rabbitmq.PublishEventType;
-import com.hp.caf.util.rabbitmq.PublishQueueEvent;
+import com.hpe.caf.util.rabbitmq.ConsumerEventType;
+import com.hpe.caf.util.rabbitmq.ConsumerQueueEvent;
+import com.hpe.caf.util.rabbitmq.PublishEventType;
+import com.hpe.caf.util.rabbitmq.PublishQueueEvent;
 import com.rabbitmq.client.Channel;
 import org.junit.Assert;
 import org.junit.Test;
