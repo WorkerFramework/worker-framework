@@ -85,7 +85,7 @@
  The following command-line should start the application:
  
  ```
- java -cp "*" com.hp.caf.worker.core.WorkerApplication server
+ java -cp "*" com.hpe.caf.worker.core.WorkerApplication server
  ```
     
 ### The DataStore component
@@ -250,7 +250,7 @@
  bit like this:
 
 ```
- package com.hp.caf.test.worker.shared;
+ package com.hpe.caf.test.worker.shared;
 
 
  public class TestWorkerTask
@@ -277,7 +277,7 @@
  Equivalently, our output message will be something like:
 
 ```
- package com.hp.caf.test.worker.shared;
+ package com.hpe.caf.test.worker.shared;
 
 
  public class TestWorkerResult
@@ -310,7 +310,7 @@
  message objects we created before. Here is our configuration class:
 
 ```
- package com.hp.caf.test.worker;
+ package com.hpe.caf.test.worker;
 
  import javax.validation.constraints.NotNull;
  import javax.validation.constraints.Size;
@@ -360,8 +360,8 @@
  freshly compiled `test-worker-shared` jar, we can do this:
 
 ```
- java -cp "*" com.hp.caf.util.GenerateConfig
-    com.hp.caf.test.worker.shared.TestWorkerConfiguration
+ java -cp "*" com.hpe.caf.util.GenerateConfig
+    com.hpe.caf.test.worker.shared.TestWorkerConfiguration
 ```
 
 ### Creating the factory and provider
@@ -377,11 +377,11 @@
  this:
 
 ```
- package com.hp.caf.test.worker;
+ package com.hpe.caf.test.worker;
 
- import com.hp.caf.api.Codec;
- import com.hp.caf.api.worker.WorkerException;
- import com.hp.caf.api.worker.WorkerFactory;
+ import com.hpe.caf.api.Codec;
+ import com.hpe.caf.api.worker.WorkerException;
+ import com.hpe.caf.api.worker.WorkerFactory;
 
  import java.util.Objects;
 
@@ -424,14 +424,14 @@
  on identifying the worker.
 
 ```
- package com.hp.caf.test.worker;
+ package com.hpe.caf.test.worker;
 
- import com.hp.caf.api.Codec;
- import com.hp.caf.api.ConfigurationException;
- import com.hp.caf.api.ConfigurationSource;
- import com.hp.caf.api.worker.DataSource;
- import com.hp.caf.api.worker.WorkerException;
- import com.hp.caf.api.worker.WorkerFactoryProvider;
+ import com.hpe.caf.api.Codec;
+ import com.hpe.caf.api.ConfigurationException;
+ import com.hpe.caf.api.ConfigurationSource;
+ import com.hpe.caf.api.worker.DataSource;
+ import com.hpe.caf.api.worker.WorkerException;
+ import com.hpe.caf.api.worker.WorkerFactoryProvider;
 
  import java.util.Objects;
 
@@ -484,14 +484,14 @@
  `doWork()` method. So here is our worker:
 
 ```
- package com.hp.caf.test.worker;
+ package com.hpe.caf.test.worker;
 
- import com.hp.caf.api.Codec;
- import com.hp.caf.api.CodecException;
- import com.hp.caf.api.worker.Worker;
- import com.hp.caf.api.worker.WorkerException;
- import com.hp.caf.test.worker.shared.TestWorkerTask;
- import com.hp.caf.test.worker.shared.TestWorkerResult;
+ import com.hpe.caf.api.Codec;
+ import com.hpe.caf.api.CodecException;
+ import com.hpe.caf.api.worker.Worker;
+ import com.hpe.caf.api.worker.WorkerException;
+ import com.hpe.caf.test.worker.shared.TestWorkerTask;
+ import com.hpe.caf.test.worker.shared.TestWorkerResult;
 
  import java.nio.charset.StandardCharsets;
  import java.util.Objects;
@@ -594,8 +594,8 @@
  be `WorkerFactoryProvider`, and the file contents will be a single line which
  consists of the fully qualified class name of your implementation. So in this
  case, the file will be called
- `META-INF/services/com.hp.caf.api.worker.WorkerFactoryProvider` and will
- have the line `com.hp.caf.test.worker.TestWorkerFactoryProvider`.
+ `META-INF/services/com.hpe.caf.api.worker.WorkerFactoryProvider` and will
+ have the line `com.hpe.caf.test.worker.TestWorkerFactoryProvider`.
 
 ### Putting it all together
 
