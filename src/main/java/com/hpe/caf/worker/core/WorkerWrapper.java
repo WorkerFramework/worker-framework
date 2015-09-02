@@ -1,11 +1,11 @@
-package com.hp.caf.worker.core;
+package com.hpe.caf.worker.core;
 
 
 import com.codahale.metrics.Timer;
-import com.hp.caf.api.ServicePath;
-import com.hp.caf.api.worker.TaskMessage;
-import com.hp.caf.api.worker.Worker;
-import com.hp.caf.api.worker.WorkerResponse;
+import com.hpe.caf.api.ServicePath;
+import com.hpe.caf.api.worker.TaskMessage;
+import com.hpe.caf.api.worker.Worker;
+import com.hpe.caf.api.worker.WorkerResponse;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

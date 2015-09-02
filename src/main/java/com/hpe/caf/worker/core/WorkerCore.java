@@ -1,17 +1,17 @@
-package com.hp.caf.worker.core;
+package com.hpe.caf.worker.core;
 
 
-import com.hp.caf.api.Codec;
-import com.hp.caf.api.CodecException;
-import com.hp.caf.api.ServicePath;
-import com.hp.caf.api.worker.NewTaskCallback;
-import com.hp.caf.api.worker.QueueException;
-import com.hp.caf.api.worker.TaskMessage;
-import com.hp.caf.api.worker.TaskStatus;
-import com.hp.caf.api.worker.Worker;
-import com.hp.caf.api.worker.WorkerException;
-import com.hp.caf.api.worker.WorkerFactory;
-import com.hp.caf.api.worker.WorkerQueue;
+import com.hpe.caf.api.Codec;
+import com.hpe.caf.api.CodecException;
+import com.hpe.caf.api.ServicePath;
+import com.hpe.caf.api.worker.NewTaskCallback;
+import com.hpe.caf.api.worker.QueueException;
+import com.hpe.caf.api.worker.TaskMessage;
+import com.hpe.caf.api.worker.TaskStatus;
+import com.hpe.caf.api.worker.Worker;
+import com.hpe.caf.api.worker.WorkerException;
+import com.hpe.caf.api.worker.WorkerFactory;
+import com.hpe.caf.api.worker.WorkerQueue;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

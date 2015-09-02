@@ -1,7 +1,7 @@
-package com.hp.caf.worker.core;
+package com.hpe.caf.worker.core;
 
 
-import com.hp.caf.api.worker.TaskMessage;
+import com.hpe.caf.api.worker.TaskMessage;
 
 
 /**
