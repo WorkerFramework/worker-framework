@@ -6,6 +6,11 @@ import com.hpe.caf.api.HealthReporter;
 
 /**
  * A general representation of a queue for the purposes of a worker service.
+ *
+ * A WorkerQueue should configure itself in the constructor but not start accepting messages
+ * until the start() method has been called by the worker-core framework. An implementation
+ * should also support rejecting messages back onto the queue to be handled by other targets.
+ * The number of retries (if at all) is implementation specific.
  */
 public abstract class WorkerQueue implements HealthReporter
 {
@@ -63,9 +68,15 @@ public abstract class WorkerQueue implements HealthReporter
     public abstract void shutdown();
 
 
+    /**
+     * @return the metrics implementation for this WorkerQueue
+     */
     public abstract WorkerQueueMetricsReporter getMetrics();
 
 
+    /**
+     * @return the maximum number of tasks the worker-core framework indicated it could handle at once
+     */
     protected int getMaxTasks()
     {
         return this.maxTasks;

@@ -6,6 +6,31 @@ import java.util.Objects;
 
 /**
  * An actual worker that does useful operations upon task specific data.
+ *
+ * A Worker can be constructed in any way as per suits the developer, but should only perform the bare
+ * minimum of tasks in the constructor to set itself up to perform the computational work. At some point
+ * after construction, the worker-core framework will call through to doWork(), at which point this Worker
+ * will be on its own separately managed thread and can start performing useful operations. If the Worker
+ * throws an exception from the constructor, this task will be rejected back onto the queue (and eventually
+ * it may be dropped, depending upon the WorkerQueue implementation).
+ *
+ * There are no limits upon time taken for the Worker to perform its task, but it must at some point
+ * terminate either via throwing an exception returning from doWork() by returning a WorkerResponse object.
+ * The Worker base class has various utility methods for returning a WorkerResponse,
+ * such as createSuccessResult, createFailureResult, and createTaskSubmission. Preferably a Worker will
+ * always return one of these as opposed to throwing a WorkerException out of the object.
+ *
+ * A Worker also has the option of returning serialised byte data to be put onto the result message if
+ * the Worker throws an unhandled exception. This is effectively a "fallback" response because if
+ * doWork() has failed to complete there has not yet been any generated task-specific generated response.
+ * If your application workflow is fine with simply knowing the task failed without any specific data it
+ * is fine to return an empty byte array from getGeneralFailureResult(), but under no circumstance should
+ * that method throw an exception. Hence, it is recommended you construct your "failure" result byte data
+ * in the constructor of your Worker.
+ *
+ * Finally, a Worker has methods to classify the type of work it is performing (an "identifier") and another
+ * method that returns the integer API version of the task data. These are typically defined in your shareed
+ * package that contains the task and result classes, but are used here for constructing a WorkerResponse.
  */
 public abstract class Worker
 {
