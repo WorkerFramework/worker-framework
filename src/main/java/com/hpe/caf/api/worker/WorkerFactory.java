@@ -1,10 +1,13 @@
 package com.hpe.caf.api.worker;
 
 
+import com.hpe.caf.api.HealthReporter;
+
+
 /**
  * Instantiates a new instance of a Worker given task-specific data.
  */
-public abstract class WorkerFactory
+public abstract class WorkerFactory implements HealthReporter
 {
     /**
      * Instantiate a new worker for given task data
