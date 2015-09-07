@@ -409,6 +409,12 @@
         return new TestWorker(data, codec, sleepTime, resultQueue);
     }
 
+
+    @Override
+    public HealthResult healthCheck()
+    {
+        return HealthCheck.RESULT_HEALTY;
+    }
  }
 ```
 
@@ -421,7 +427,10 @@
  `WorkerFactoryProvider` allows us to keep constructor safety with our actual
  `WorkerFactory` while still allowing the plug-in nature of the components with
  the worker application itself. The provider must also give some basic data
- on identifying the worker.
+ on identifying the worker. Finally it is worth mentioning that if your Worker
+ depends upon any external resources, then it may be worth adding a health
+ check here so that there is some way to monitor these underlying resources
+ and prompt automated systems or ops teams to take action when necessary.
 
 ```
  package com.hpe.caf.test.worker;

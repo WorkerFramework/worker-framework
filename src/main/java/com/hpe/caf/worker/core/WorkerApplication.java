@@ -115,6 +115,7 @@ public final class WorkerApplication extends Application<WorkerConfiguration>
         environment.healthChecks().register("queue", new WorkerHealthCheck(core.getWorkerQueue()));
         environment.healthChecks().register("configuration", new WorkerHealthCheck(config));
         environment.healthChecks().register("store", new WorkerHealthCheck(store));
+        environment.healthChecks().register("worker", new WorkerHealthCheck(workerFactory));
         core.start();
     }
 
