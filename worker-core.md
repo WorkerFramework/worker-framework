@@ -211,6 +211,59 @@
  - queue.errors: the number of errors encountered by the WorkerQueue.
 
 
+## Health checks within the worker framework
+
+ All Dropwizard applications have support for health checks and the worker
+ framework is no exception. The `caf-api` abstracts this away however so there
+ is no need to know about Dropwizard or directly include its dependencies.
+
+ The following components have health checks:
+
+  - ConfigurationSource
+  - DataStore
+  - WorkerQueue
+  - WorkerFactory
+
+ Each of these classes implements the interface `HealthReporter` which enforces
+ a method called `healthCheck()` which returns a `HealthResult`. Typically, a
+ pre-made "healthy" result can be returned via `HealthResult.RESULT_HEALTHY`
+ but it is possible to construct others. If the status in unhealthy, a
+ message with additional information about the problem should be supplied.
+
+ All of these health checks are exposed via the worker framework to the
+ underlying Dropwizard health checks environment (which under the hood uses
+ the Codahale Metrics library). Thus, the "/healthchecks" URL present on the
+ Dropwizard admin port (default 8081) will output the result of all the
+ health checks in JSON format. This includes the four health checks listed
+ above along with in-built deadlock checks.
+
+ If any of the health checks failed (returning unhealthy) then the HTTP
+ response (along with the JSON) will have status 500, indicating an error. It
+ is possible to utilise this with monitoring systems to look for this status
+ code, so even parsing JSON is not required for basic monitoring.
+ This kind of remote health check can be performed with Marathon by adding an
+ appropriate section to your Marathon task descriptor. See the Marathon
+ documentation for more information on how to do this. As a general
+ reference, a single "unhealthy" return is unlikely to destroy the container
+ in a reasonable Marathon descriptor. Typically, multiple consecutive
+ failures are required to trigger destruction of the container instance, but
+ this is entirely up to the developer. If you are producing a container that
+ may be re-used by other applications, it may be worth investigating and
+ advising in your documentation about the general behaviour of your health
+ checks and how many consecutive failures would likely indicate beyond all
+ doubt that the container is unhealthy.
+
+ Note that a call to `healthCheck()` is expected to be trivial and take a
+ negligible amount of time. As such, if a health check is of a much heavier
+ nature, it is preferred to have a thread that periodically performs this and
+ then the `healthCheck()` call merely returns the latest value available.
+
+ Finally, health checks should not be relied upon to deal with startup error
+ conditions. If a containerised application cannot initialise, it should
+ fail-fast and terminate immediately, rather than wait for health checks to
+ report unhealthy several times and eventually be forcibly terminated.
+
+
 ## Tutorial: creating a new Worker backend
 
  This will briefly go over the step-by-step process involved for creating a new
