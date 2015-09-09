@@ -1,10 +1,11 @@
 package com.hpe.caf.worker.queue.rabbit;
 
 
-import com.hpe.caf.util.rabbitmq.ConsumerEventType;
-import com.hpe.caf.util.rabbitmq.ConsumerQueueEvent;
-import com.hpe.caf.util.rabbitmq.PublishEventType;
-import com.hpe.caf.util.rabbitmq.PublishQueueEvent;
+import com.hpe.caf.util.rabbitmq.EventPoller;
+import com.hpe.caf.util.rabbitmq.QueueConsumer;
+import com.hpe.caf.util.rabbitmq.ConsumerAckEvent;
+import com.hpe.caf.util.rabbitmq.ConsumerRejectEvent;
+import com.hpe.caf.util.rabbitmq.Event;
 import com.rabbitmq.client.Channel;
 import org.junit.Assert;
 import org.junit.Test;
@@ -29,17 +30,18 @@ public class RabbitWorkerQueuePublisherTest
     public void testHandlePublish()
             throws IOException, InterruptedException
     {
-        BlockingQueue<ConsumerQueueEvent> consumerEvents = new LinkedBlockingQueue<>();
-        BlockingQueue<PublishQueueEvent> publisherEvents = new LinkedBlockingQueue<>();
+        BlockingQueue<Event<QueueConsumer>> consumerEvents = new LinkedBlockingQueue<>();
+        BlockingQueue<Event<WorkerPublisher>> publisherEvents = new LinkedBlockingQueue<>();
         Channel channel = Mockito.mock(Channel.class);
-        RabbitWorkerQueuePublisher publisher = new RabbitWorkerQueuePublisher(publisherEvents, consumerEvents, channel, metrics);
+        WorkerPublisher impl = new WorkerPublisherImpl(channel, metrics, consumerEvents);
+        EventPoller<WorkerPublisher> publisher = new EventPoller<>(2, publisherEvents, impl);
         Thread t = new Thread(publisher);
         t.start();
-        publisherEvents.add(new PublishQueueEvent(PublishEventType.PUBLISH, id, data, testQueue));
-        ConsumerQueueEvent event = consumerEvents.poll(5000, TimeUnit.MILLISECONDS);
+        publisherEvents.add(new WorkerPublishQueueEvent(data, testQueue, id));
+        Event<QueueConsumer> event = consumerEvents.poll(5000, TimeUnit.MILLISECONDS);
         Assert.assertNotNull(event);
-        Assert.assertEquals(ConsumerEventType.ACK, event.getEventType());
-        Assert.assertEquals(id, event.getMessageTag());
+        Assert.assertTrue(event instanceof ConsumerAckEvent);
+        Assert.assertEquals(id, ((ConsumerAckEvent) event).getTag());
         Mockito.verify(channel, Mockito.times(1)).basicPublish(Mockito.any(), Mockito.eq(testQueue), Mockito.any(), Mockito.eq(data));
         publisher.shutdown();
         Assert.assertEquals(0, publisherEvents.size());
@@ -51,18 +53,19 @@ public class RabbitWorkerQueuePublisherTest
     public void testHandlePublishFail()
             throws IOException, InterruptedException
     {
-        BlockingQueue<ConsumerQueueEvent> consumerEvents = new LinkedBlockingQueue<>();
-        BlockingQueue<PublishQueueEvent> publisherEvents = new LinkedBlockingQueue<>();
+        BlockingQueue<Event<QueueConsumer>> consumerEvents = new LinkedBlockingQueue<>();
+        BlockingQueue<Event<WorkerPublisher>> publisherEvents = new LinkedBlockingQueue<>();
         Channel channel = Mockito.mock(Channel.class);
         Mockito.doThrow(IOException.class).when(channel).basicPublish(Mockito.any(), Mockito.eq(testQueue), Mockito.any(), Mockito.eq(data));
-        RabbitWorkerQueuePublisher publisher = new RabbitWorkerQueuePublisher(publisherEvents, consumerEvents, channel, metrics);
+        WorkerPublisher impl = new WorkerPublisherImpl(channel, metrics, consumerEvents);
+        EventPoller<WorkerPublisher> publisher = new EventPoller<>(2, publisherEvents, impl);
         Thread t = new Thread(publisher);
         t.start();
-        publisherEvents.add(new PublishQueueEvent(PublishEventType.PUBLISH, id, data, testQueue));
-        ConsumerQueueEvent event = consumerEvents.poll(5000, TimeUnit.MILLISECONDS);
+        publisherEvents.add(new WorkerPublishQueueEvent(data, testQueue, id));
+        Event<QueueConsumer> event = consumerEvents.poll(5000, TimeUnit.MILLISECONDS);
         Assert.assertNotNull(event);
-        Assert.assertEquals(ConsumerEventType.REJECT, event.getEventType());
-        Assert.assertEquals(id, event.getMessageTag());
+        Assert.assertTrue(event instanceof ConsumerRejectEvent);
+        Assert.assertEquals(id, ((ConsumerRejectEvent) event).getTag());
         Mockito.verify(channel, Mockito.times(1)).basicPublish(Mockito.any(), Mockito.eq(testQueue), Mockito.any(), Mockito.eq(data));
         publisher.shutdown();
         Assert.assertEquals(0, publisherEvents.size());

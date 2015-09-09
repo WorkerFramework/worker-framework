@@ -3,11 +3,14 @@ package com.hpe.caf.worker.queue.rabbit;
 
 import com.hpe.caf.api.worker.NewTaskCallback;
 import com.hpe.caf.api.worker.WorkerException;
-import com.hpe.caf.util.rabbitmq.ConsumerEventType;
-import com.hpe.caf.util.rabbitmq.ConsumerQueueEvent;
+import com.hpe.caf.util.rabbitmq.DefaultRabbitConsumer;
+import com.hpe.caf.util.rabbitmq.QueueConsumer;
+import com.hpe.caf.util.rabbitmq.ConsumerAckEvent;
+import com.hpe.caf.util.rabbitmq.ConsumerDropEvent;
+import com.hpe.caf.util.rabbitmq.ConsumerRejectEvent;
+import com.hpe.caf.util.rabbitmq.Event;
 import com.rabbitmq.client.Channel;
 import com.rabbitmq.client.Envelope;
-import com.rabbitmq.client.QueueingConsumer;
 import org.junit.Assert;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -33,8 +36,6 @@ public class RabbitWorkerQueueConsumerTest
     private Envelope env = new Envelope(id, false, "", testQueue);
     private RabbitMetricsReporter metrics = new RabbitMetricsReporter();
     @Mock
-    private LinkedBlockingQueue<QueueingConsumer.Delivery> mockDeliveryQueue;
-    @Mock
     private NewTaskCallback mockCallback;
 
 
@@ -42,16 +43,14 @@ public class RabbitWorkerQueueConsumerTest
     public void testHandleDelivery()
             throws IOException, InterruptedException, WorkerException
     {
-        BlockingQueue<ConsumerQueueEvent> consumerEvents = new LinkedBlockingQueue<>();
-        BlockingQueue<QueueingConsumer.Delivery> deliveries = new LinkedBlockingQueue<>();
-        QueueingConsumer.Delivery del = new QueueingConsumer.Delivery(env, null, data);
+        BlockingQueue<Event<QueueConsumer>> consumerEvents = new LinkedBlockingQueue<>();
         Channel channel = Mockito.mock(Channel.class);
         CountDownLatch latch = new CountDownLatch(1);
         NewTaskCallback callback = new TestCallback(latch, false);
-        RabbitWorkerQueueConsumer consumer = new RabbitWorkerQueueConsumer(deliveries, consumerEvents, channel, callback, metrics);
+        WorkerQueueConsumerImpl impl = new WorkerQueueConsumerImpl(callback, metrics, consumerEvents, channel);
+        DefaultRabbitConsumer consumer = new DefaultRabbitConsumer(consumerEvents, impl);
         Thread t = new Thread(consumer);
         t.start();
-        deliveries.add(del);
         consumer.handleDelivery("consumer", env, null, data);
         Assert.assertTrue(latch.await(1000, TimeUnit.MILLISECONDS));
         consumer.shutdown();
@@ -62,11 +61,9 @@ public class RabbitWorkerQueueConsumerTest
     public void testHandleDeliveryFail()
             throws IOException, InterruptedException, WorkerException
     {
-        BlockingQueue<ConsumerQueueEvent> consumerEvents = new LinkedBlockingQueue<>();
-        BlockingQueue<QueueingConsumer.Delivery> deliveries = new LinkedBlockingQueue<>();
+        BlockingQueue<Event<QueueConsumer>> consumerEvents = new LinkedBlockingQueue<>();
         CountDownLatch deliverLatch = new CountDownLatch(1);
         CountDownLatch channelLatch = new CountDownLatch(1);
-        QueueingConsumer.Delivery del = new QueueingConsumer.Delivery(env, null, data);
         Channel channel = Mockito.mock(Channel.class);
         Answer<Void> a = invocationOnMock -> {
             channelLatch.countDown();
@@ -74,10 +71,10 @@ public class RabbitWorkerQueueConsumerTest
         };
         Mockito.doAnswer(a).when(channel).basicReject(Mockito.eq(id), Mockito.anyBoolean());
         NewTaskCallback callback = new TestCallback(deliverLatch, true);
-        RabbitWorkerQueueConsumer consumer = new RabbitWorkerQueueConsumer(deliveries, consumerEvents, channel, callback, metrics);
+        WorkerQueueConsumerImpl impl = new WorkerQueueConsumerImpl(callback, metrics, consumerEvents, channel);
+        DefaultRabbitConsumer consumer = new DefaultRabbitConsumer(consumerEvents, impl);
         Thread t = new Thread(consumer);
         t.start();
-        deliveries.add(del);
         consumer.handleDelivery("consumer", env, null, data);
         Assert.assertTrue(deliverLatch.await(1000, TimeUnit.MILLISECONDS));
         Assert.assertTrue(channelLatch.await(1000, TimeUnit.MILLISECONDS));
@@ -89,7 +86,7 @@ public class RabbitWorkerQueueConsumerTest
     public void testHandleDeliveryAck()
             throws IOException, InterruptedException, WorkerException
     {
-        BlockingQueue<ConsumerQueueEvent> consumerEvents = new LinkedBlockingQueue<>();
+        BlockingQueue<Event<QueueConsumer>> consumerEvents = new LinkedBlockingQueue<>();
         CountDownLatch channelLatch = new CountDownLatch(1);
         Channel channel = Mockito.mock(Channel.class);
         Answer<Void> a = invocationOnMock -> {
@@ -97,11 +94,11 @@ public class RabbitWorkerQueueConsumerTest
             return null;
         };
         Mockito.doAnswer(a).when(channel).basicAck(Mockito.eq(id), Mockito.anyBoolean());
-        RabbitWorkerQueueConsumer consumer =
-                new RabbitWorkerQueueConsumer(mockDeliveryQueue, consumerEvents, channel, mockCallback, metrics);
+        WorkerQueueConsumerImpl impl = new WorkerQueueConsumerImpl(mockCallback, metrics, consumerEvents, channel);
+        DefaultRabbitConsumer consumer = new DefaultRabbitConsumer(consumerEvents, impl);
         Thread t = new Thread(consumer);
         t.start();
-        consumerEvents.add(new ConsumerQueueEvent(ConsumerEventType.ACK, id));
+        consumerEvents.add(new ConsumerAckEvent(id));
         Assert.assertTrue(channelLatch.await(30000, TimeUnit.MILLISECONDS));
         consumer.shutdown();
     }
@@ -111,7 +108,7 @@ public class RabbitWorkerQueueConsumerTest
     public void testHandleDeliveryReject()
             throws IOException, InterruptedException, WorkerException
     {
-        BlockingQueue<ConsumerQueueEvent> consumerEvents = new LinkedBlockingQueue<>();
+        BlockingQueue<Event<QueueConsumer>> consumerEvents = new LinkedBlockingQueue<>();
         CountDownLatch channelLatch = new CountDownLatch(1);
         Channel channel = Mockito.mock(Channel.class);
         Answer<Void> a = invocationOnMock -> {
@@ -119,10 +116,11 @@ public class RabbitWorkerQueueConsumerTest
             return null;
         };
         Mockito.doAnswer(a).when(channel).basicReject(Mockito.eq(id), Mockito.eq(true));
-        RabbitWorkerQueueConsumer consumer = new RabbitWorkerQueueConsumer(mockDeliveryQueue, consumerEvents, channel, mockCallback, metrics);
+        WorkerQueueConsumerImpl impl = new WorkerQueueConsumerImpl(mockCallback, metrics, consumerEvents, channel);
+        DefaultRabbitConsumer consumer = new DefaultRabbitConsumer(consumerEvents, impl);
         Thread t = new Thread(consumer);
         t.start();
-        consumerEvents.add(new ConsumerQueueEvent(ConsumerEventType.REJECT, id));
+        consumerEvents.add(new ConsumerRejectEvent(id));
         Assert.assertTrue(channelLatch.await(1000, TimeUnit.MILLISECONDS));
         consumer.shutdown();
     }
@@ -132,7 +130,7 @@ public class RabbitWorkerQueueConsumerTest
     public void testHandleDeliveryDrop()
             throws IOException, InterruptedException, WorkerException
     {
-        BlockingQueue<ConsumerQueueEvent> consumerEvents = new LinkedBlockingQueue<>();
+        BlockingQueue<Event<QueueConsumer>> consumerEvents = new LinkedBlockingQueue<>();
         CountDownLatch channelLatch = new CountDownLatch(1);
         Channel channel = Mockito.mock(Channel.class);
         Answer<Void> a = invocationOnMock -> {
@@ -140,10 +138,11 @@ public class RabbitWorkerQueueConsumerTest
             return null;
         };
         Mockito.doAnswer(a).when(channel).basicReject(id, false);
-        RabbitWorkerQueueConsumer consumer = new RabbitWorkerQueueConsumer(mockDeliveryQueue, consumerEvents, channel, mockCallback, metrics);
+        WorkerQueueConsumerImpl impl = new WorkerQueueConsumerImpl(mockCallback, metrics, consumerEvents, channel);
+        DefaultRabbitConsumer consumer = new DefaultRabbitConsumer(consumerEvents, impl);
         Thread t = new Thread(consumer);
         t.start();
-        consumerEvents.add(new ConsumerQueueEvent(ConsumerEventType.DROP, id));
+        consumerEvents.add(new ConsumerDropEvent(id));
         Assert.assertTrue(channelLatch.await(1000, TimeUnit.MILLISECONDS));
         consumer.shutdown();
     }

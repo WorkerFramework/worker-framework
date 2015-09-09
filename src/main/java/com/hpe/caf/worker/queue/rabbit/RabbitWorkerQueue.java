@@ -7,10 +7,11 @@ import com.hpe.caf.api.worker.NewTaskCallback;
 import com.hpe.caf.api.worker.QueueException;
 import com.hpe.caf.api.worker.WorkerQueue;
 import com.hpe.caf.api.worker.WorkerQueueMetricsReporter;
-import com.hpe.caf.util.rabbitmq.ConsumerEventType;
-import com.hpe.caf.util.rabbitmq.ConsumerQueueEvent;
-import com.hpe.caf.util.rabbitmq.PublishEventType;
-import com.hpe.caf.util.rabbitmq.PublishQueueEvent;
+import com.hpe.caf.util.rabbitmq.ConsumerRejectEvent;
+import com.hpe.caf.util.rabbitmq.DefaultRabbitConsumer;
+import com.hpe.caf.util.rabbitmq.Event;
+import com.hpe.caf.util.rabbitmq.EventPoller;
+import com.hpe.caf.util.rabbitmq.QueueConsumer;
 import com.hpe.caf.util.rabbitmq.RabbitUtil;
 import com.rabbitmq.client.Channel;
 import com.rabbitmq.client.Connection;
@@ -38,16 +39,16 @@ import java.util.concurrent.TimeoutException;
  */
 public final class RabbitWorkerQueue extends WorkerQueue
 {
-    private RabbitWorkerQueueConsumer consumer;
-    private RabbitWorkerQueuePublisher publisher;
+    private DefaultRabbitConsumer consumer;
+    private EventPoller<WorkerPublisher> publisher;
     private final String inputQueue;
     private final Channel incomingChannel;
     private final Channel outgoingChannel;
     private final Connection conn;
     private final List<String> consumerTags = new LinkedList<>();
     private final Set<String> declaredQueues = new HashSet<>();
-    private final BlockingQueue<ConsumerQueueEvent> consumerQueue = new LinkedBlockingQueue<>();
-    private final BlockingQueue<PublishQueueEvent> publisherQueue = new LinkedBlockingQueue<>();
+    private final BlockingQueue<Event<QueueConsumer>> consumerQueue = new LinkedBlockingQueue<>();
+    private final BlockingQueue<Event<WorkerPublisher>> publisherQueue = new LinkedBlockingQueue<>();
     private final RabbitMetricsReporter metrics = new RabbitMetricsReporter();
     private static final Logger LOG = LoggerFactory.getLogger(RabbitWorkerQueue.class);
 
@@ -88,8 +89,10 @@ public final class RabbitWorkerQueue extends WorkerQueue
         throws QueueException
     {
         try {
-            consumer = new RabbitWorkerQueueConsumer(new LinkedBlockingQueue<>(), consumerQueue, incomingChannel, callback, metrics);
-            publisher = new RabbitWorkerQueuePublisher(publisherQueue, consumerQueue, outgoingChannel, metrics);
+            WorkerQueueConsumerImpl consumerImpl = new WorkerQueueConsumerImpl(callback, metrics, consumerQueue, incomingChannel);
+            consumer = new DefaultRabbitConsumer(consumerQueue, consumerImpl);
+            WorkerPublisherImpl publisherImpl = new WorkerPublisherImpl(outgoingChannel, metrics, consumerQueue);
+            publisher = new EventPoller<>(2, publisherQueue, publisherImpl);
             declareWorkerQueue(incomingChannel, inputQueue);
             consumerTags.add(incomingChannel.basicConsume(inputQueue, consumer));
         } catch (IOException e) {
@@ -114,7 +117,7 @@ public final class RabbitWorkerQueue extends WorkerQueue
         } catch (IOException e) {
             throw new QueueException("Failed to submit task", e);
         }
-        publisherQueue.add(new PublishQueueEvent(PublishEventType.PUBLISH, Long.parseLong(acknowledgeId), taskMessage, targetQueue));
+        publisherQueue.add(new WorkerPublishQueueEvent(taskMessage, targetQueue, Long.parseLong(acknowledgeId)));
     }
 
 
@@ -128,7 +131,7 @@ public final class RabbitWorkerQueue extends WorkerQueue
     {
         Objects.requireNonNull(messageId);
         LOG.debug("Generating reject event for task {}", messageId);
-        consumerQueue.add(new ConsumerQueueEvent(ConsumerEventType.REJECT, Long.parseLong(messageId)));
+        consumerQueue.add(new ConsumerRejectEvent(Long.parseLong(messageId)));
     }
 
 
