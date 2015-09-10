@@ -32,12 +32,51 @@ public final class RabbitUtil
     public static Connection createRabbitConnection(final RabbitConfiguration conf)
         throws IOException, TimeoutException
     {
+        return createRabbitConnection(createLyraConnectionOptions(conf), createLyraConfig(conf));
+    }
+
+
+    /**
+     * Create a new Lyra managed RabbitMQ connection with custom settings.
+     * @param opts the Lyra ConnectionOptions
+     * @param config the Lyra Config
+     * @return a valid connection to RabbitMQ, managed by Lyra
+     * @throws IOException if the connection fails to establish
+     * @throws TimeoutException if the connection fails to establish
+     */
+    public static Connection createRabbitConnection(final ConnectionOptions opts, final Config config)
+        throws IOException, TimeoutException
+    {
+        return Connections.create(opts, config);
+    }
+
+
+    /**
+     * Generate a pre-populated Lyra ConnectionOptions object which can be used together with a
+     * Lyra Config object to establish a RabbitMQ connection. If you wish to use defaults, just
+     * call the createRabbitConnection(RabbitConfiguration) method.
+     * @param conf contains the necessary Lyra and RabbitMQ configuration
+     * @return a Lyra ConnectionOptions object with settings configured from the RabbitConfiguration specified
+     */
+    public static ConnectionOptions createLyraConnectionOptions(final RabbitConfiguration conf)
+    {
+        return new ConnectionOptions().withHost(conf.getRabbitHost()).withPort(conf.getRabbitPort())
+                                      .withUsername(conf.getRabbitUser()).withPassword(conf.getRabbitPassword());
+    }
+
+
+    /**
+     * Generate a pre-populated Lyra Config object which can be used together with a Lyra
+     * ConnectionOptions object to establish a RabbitMQ connection. If you wish to use defaults, just
+     * call the createRabbitConnection(RabbitConfiguration) method.
+     * @param conf contains the necessary Lyra and RabbitMQ configuration
+     * @return a Lyra Config object with settings configured from the RabbitConfiguration specified
+     */
+    public static Config createLyraConfig(final RabbitConfiguration conf)
+    {
         RecoveryPolicy policy =
             new RecoveryPolicy().withBackoff(Duration.seconds(conf.getBackoffInterval()), Duration.seconds(conf.getMaxBackoffInterval()));
-        Config config = new Config().withRecoveryPolicy(policy.withMaxAttempts(conf.getMaxAttempts()));
-        ConnectionOptions opt = new ConnectionOptions().withHost(conf.getRabbitHost()).
-            withPort(conf.getRabbitPort()).withUsername(conf.getRabbitUser()).withPassword(conf.getRabbitPassword());
-        return Connections.create(opt, config);
+        return new Config().withRecoveryPolicy(policy.withMaxAttempts(conf.getMaxAttempts()));
     }
 
 
