@@ -8,7 +8,6 @@ import com.hpe.caf.api.worker.NewTaskCallback;
 import com.hpe.caf.api.worker.QueueException;
 import com.hpe.caf.api.worker.TaskMessage;
 import com.hpe.caf.api.worker.TaskStatus;
-import com.hpe.caf.api.worker.Worker;
 import com.hpe.caf.api.worker.WorkerException;
 import com.hpe.caf.api.worker.WorkerFactory;
 import com.hpe.caf.api.worker.WorkerQueue;
@@ -39,7 +38,7 @@ public class WorkerCore
     {
         CompleteTaskCallback taskCallback =  new ApplicationTaskCallback(codec, queue, stats);
         this.threadPool = Objects.requireNonNull(pool);
-        this.callback = new ApplicationQueueCallback(codec, taskCallback, factory, stats, threadPool, path);
+        this.callback = new ApplicationQueueCallback(codec, stats, threadPool, new WorkerWrapperFactory(path, taskCallback, factory));
         this.workerQueue = Objects.requireNonNull(queue);
     }
 
@@ -116,22 +115,17 @@ public class WorkerCore
     private static class ApplicationQueueCallback implements NewTaskCallback
     {
         private final Codec codec;
-        private final CompleteTaskCallback taskCallback;
-        private final WorkerFactory factory;
         private final WorkerStats stats;
         private final ThreadPoolExecutor threadPool;
-        private final ServicePath servicePath;
+        private final WorkerWrapperFactory wrapperFactory;
 
 
-        public ApplicationQueueCallback(final Codec codec, final CompleteTaskCallback callback, final WorkerFactory factory, final WorkerStats stats,
-                                        final ThreadPoolExecutor pool, final ServicePath path)
+        public ApplicationQueueCallback(final Codec codec, final WorkerStats stats, final ThreadPoolExecutor pool, final WorkerWrapperFactory factory)
         {
             this.codec = Objects.requireNonNull(codec);
-            this.taskCallback = Objects.requireNonNull(callback);
-            this.factory = Objects.requireNonNull(factory);
             this.stats = Objects.requireNonNull(stats);
             this.threadPool = Objects.requireNonNull(pool);
-            this.servicePath = Objects.requireNonNull(path);
+            this.wrapperFactory = Objects.requireNonNull(factory);
         }
 
 
@@ -150,7 +144,7 @@ public class WorkerCore
                 stats.incrementTasksReceived();
                 TaskMessage tm = codec.deserialise(taskMessage, TaskMessage.class);
                 LOG.debug("Received task {} (message id: {})", tm.getTaskId(), queueMsgId);
-                execute(getWorkerWrapper(tm, queueMsgId, taskCallback));
+                execute(wrapperFactory.getWorkerWrapper(tm, queueMsgId));
             } catch (WorkerException e) {
                 stats.incrementTasksRejected();
                 throw e;
@@ -158,29 +152,6 @@ public class WorkerCore
                 stats.incrementTasksRejected();
                 throw new WorkerException("Queue data did not deserialise to a TaskMessage", e);
             }
-        }
-
-
-        /**
-         * Get an appropriate WorkerWrapper for the given TaskMessage.
-         * @param tm the message to get an appropriately wrapped Worker for
-         * @param queueMessageId the queue message ID, used to keep track of this individual message
-         * @param callback the callback the WorkerWrapper will call when the Worker is done
-         * @return a WorkerWrapper for the given TaskMessage
-         * @throws WorkerException if there is no WorkerFactory to handle the message, or the Worker cannot be instantiated
-         */
-        private WorkerWrapper getWorkerWrapper(final TaskMessage tm, final String queueMessageId, final CompleteTaskCallback callback)
-            throws WorkerException
-        {
-            return new WorkerWrapper(tm, queueMessageId, getWorker(tm), callback, servicePath);
-        }
-
-
-        private Worker getWorker(final TaskMessage tm)
-            throws WorkerException
-        {
-            byte[] context = tm.getContext().get(servicePath.toString());
-            return factory.getWorker(tm.getTaskClassifier(), tm.getTaskApiVersion(), tm.getTaskStatus(), tm.getTaskData(), context);
         }
 
 
