@@ -179,7 +179,7 @@ public class WorkerCore
         private Worker getWorker(final TaskMessage tm)
             throws WorkerException
         {
-            byte[] context = tm.getContext().get(servicePath.getPath());
+            byte[] context = tm.getContext().get(servicePath.toString());
             return factory.getWorker(tm.getTaskClassifier(), tm.getTaskApiVersion(), tm.getTaskStatus(), tm.getTaskData(), context);
         }
 
