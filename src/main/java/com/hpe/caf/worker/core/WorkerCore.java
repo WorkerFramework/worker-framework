@@ -4,11 +4,12 @@ package com.hpe.caf.worker.core;
 import com.hpe.caf.api.Codec;
 import com.hpe.caf.api.CodecException;
 import com.hpe.caf.api.ServicePath;
+import com.hpe.caf.api.worker.InvalidTaskException;
 import com.hpe.caf.api.worker.QueueException;
 import com.hpe.caf.api.worker.TaskCallback;
 import com.hpe.caf.api.worker.TaskMessage;
+import com.hpe.caf.api.worker.TaskRejectedException;
 import com.hpe.caf.api.worker.TaskStatus;
-import com.hpe.caf.api.worker.WorkerException;
 import com.hpe.caf.api.worker.WorkerFactory;
 import com.hpe.caf.api.worker.WorkerQueue;
 import org.slf4j.Logger;
@@ -144,7 +145,7 @@ public class WorkerCore
          */
         @Override
         public void registerNewTask(final String queueMsgId, final byte[] taskMessage)
-            throws WorkerException
+            throws InvalidTaskException, TaskRejectedException
         {
             Objects.requireNonNull(queueMsgId);
             try {
@@ -152,12 +153,9 @@ public class WorkerCore
                 TaskMessage tm = codec.deserialise(taskMessage, TaskMessage.class);
                 LOG.debug("Received task {} (message id: {})", tm.getTaskId(), queueMsgId);
                 execute(wrapperFactory.getWorkerWrapper(tm, queueMsgId), queueMsgId);
-            } catch (WorkerException e) {
-                stats.incrementTasksRejected();
-                throw e;
             } catch (CodecException e) {
                 stats.incrementTasksRejected();
-                throw new WorkerException("Queue data did not deserialise to a TaskMessage", e);
+                throw new InvalidTaskException("Queue data did not deserialise to a TaskMessage", e);
             }
         }
 
@@ -183,15 +181,15 @@ public class WorkerCore
          * Pass off a runnable task to the backend, considering a hard upper bound to the internal backlog.
          * @param wrapper the new task to run
          * @param id a unique task id
-         * @throws WorkerException if no more tasks can be added to the internal backlog
+         * @throws TaskRejectedException if no more tasks can be added to the internal backlog
          */
         private void execute(final Runnable wrapper, final String id)
-            throws WorkerException
+            throws TaskRejectedException
         {
             if ( threadPool.getQueue().size() < threadPool.getCorePoolSize() * 10 ) {
                 taskMap.put(id, threadPool.submit(wrapper));
             } else {
-                throw new WorkerException("Maximum internal task backlog exceeded");
+                throw new TaskRejectedException("Maximum internal task backlog exceeded");
             }
         }
     }

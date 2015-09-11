@@ -2,9 +2,10 @@ package com.hpe.caf.worker.core;
 
 
 import com.hpe.caf.api.ServicePath;
+import com.hpe.caf.api.worker.InvalidTaskException;
 import com.hpe.caf.api.worker.TaskMessage;
+import com.hpe.caf.api.worker.TaskRejectedException;
 import com.hpe.caf.api.worker.Worker;
-import com.hpe.caf.api.worker.WorkerException;
 import com.hpe.caf.api.worker.WorkerFactory;
 
 import java.util.Objects;
@@ -39,17 +40,16 @@ public class WorkerWrapperFactory
      * @param tm the message to get an appropriately wrapped Worker for
      * @param queueMessageId the queue message ID, used to keep track of this individual message
      * @return a WorkerWrapper for the given TaskMessage
-     * @throws WorkerException if there is no WorkerFactory to handle the message, or the Worker cannot be instantiated
      */
     public WorkerWrapper getWorkerWrapper(final TaskMessage tm, final String queueMessageId)
-        throws WorkerException
+        throws InvalidTaskException, TaskRejectedException
     {
         return new WorkerWrapper(tm, queueMessageId, getWorker(tm), callback, servicePath);
     }
 
 
     private Worker getWorker(final TaskMessage tm)
-        throws WorkerException
+        throws InvalidTaskException, TaskRejectedException
     {
         byte[] context = tm.getContext().get(servicePath.toString());
         return factory.getWorker(tm.getTaskClassifier(), tm.getTaskApiVersion(), tm.getTaskStatus(), tm.getTaskData(), context);
