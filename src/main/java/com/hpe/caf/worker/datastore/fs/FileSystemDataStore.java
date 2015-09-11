@@ -9,6 +9,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
+import java.io.InputStream;
 import java.nio.file.FileSystems;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -65,16 +66,14 @@ public class FileSystemDataStore extends DataStore
     /**
      * Read a file from disk in the data directory.
      */
-    public byte[] getData(final String reference)
+    public InputStream getData(final String reference)
             throws DataStoreException
     {
         Objects.requireNonNull(reference);
         try {
             numRx.incrementAndGet();
             LOG.debug("Requesting {}", reference);
-            byte[] ret = Files.readAllBytes(dataStorePath.resolve(reference));
-            bytesRx.addAndGet(ret.length);
-            return ret;
+            return Files.newInputStream(dataStorePath.resolve(reference));
         } catch (IOException e) {
             errors.incrementAndGet();
             throw new DataStoreException("Failed to retrieve data", e);
@@ -86,7 +85,7 @@ public class FileSystemDataStore extends DataStore
     /**
      * Write a file to disk in the data directory.
      */
-    public String putData(final String reference, final byte[] data)
+    public String putData(final String reference, final InputStream data)
             throws DataStoreException
     {
         Objects.requireNonNull(reference);
@@ -94,9 +93,9 @@ public class FileSystemDataStore extends DataStore
         try {
             numTx.incrementAndGet();
             LOG.debug("Storing {}", reference);
-            String ret = Files.write(dataStorePath.resolve(reference), data).toString();
-            bytesTx.addAndGet(data.length);
-            return ret;
+            Path target = dataStorePath.resolve(reference);
+            Files.copy(data, target);
+            return target.toString();
         } catch (IOException e) {
             errors.incrementAndGet();
             throw new DataStoreException("Failed to store data", e);

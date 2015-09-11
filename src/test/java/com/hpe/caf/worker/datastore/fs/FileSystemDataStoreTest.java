@@ -10,8 +10,11 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
 
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.IOException;
+import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
 
 
@@ -34,14 +37,21 @@ public class FileSystemDataStoreTest
 
     @Test
     public void testDataStore()
-        throws ConfigurationException, DataStoreException
+        throws ConfigurationException, DataStoreException, IOException
     {
         FileSystemDataStoreConfiguration conf = new FileSystemDataStoreConfiguration();
         conf.setDataDir(temp.getAbsolutePath());
         DataStore store = new FileSystemDataStore(conf);
         final byte[] data = testData.getBytes(StandardCharsets.UTF_8);
-        store.putData(reference, data);
-        final byte[] res = store.getData(reference);
-        Assert.assertArrayEquals(data, res);
+        store.putData(reference, new ByteArrayInputStream(data));
+        InputStream stream = store.getData(reference);
+        ByteArrayOutputStream bos = new ByteArrayOutputStream();
+        int nRead;
+        while ((nRead = stream.read(data, 0, data.length)) != -1) {
+            bos.write(data, 0, nRead);
+        }
+
+        bos.flush();
+        Assert.assertArrayEquals(data, bos.toByteArray());
     }
 }
