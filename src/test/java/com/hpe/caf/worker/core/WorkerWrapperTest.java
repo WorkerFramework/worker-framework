@@ -15,6 +15,9 @@ import javax.naming.InvalidNameException;
 import java.nio.charset.StandardCharsets;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Objects;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.TimeUnit;
 
 
 public class WorkerWrapperTest
@@ -36,14 +39,15 @@ public class WorkerWrapperTest
     {
         Worker happyWorker = getWorker();
         String queueMsgId = "success";
-        TestCallback callback = new TestCallback();
+        CountDownLatch latch = new CountDownLatch(1);
+        TestCallback callback = new TestCallback(latch);
         TaskMessage m = new TaskMessage();
         m.setTaskId(TASK_ID);
         ServicePath path = new ServicePath(SERVICE_NAME);
         WorkerWrapper wrapper = new WorkerWrapper(m, queueMsgId, happyWorker, callback, path);
         Thread t = new Thread(wrapper);
         t.start();
-        t.join(5000);
+        latch.await(5, TimeUnit.SECONDS);
         Assert.assertEquals(queueMsgId, callback.getQueueMsgId());
         Assert.assertEquals(TaskStatus.RESULT_SUCCESS, callback.getStatus());
         Assert.assertArrayEquals(SUCCESS_BYTES, callback.getResultData());
@@ -60,14 +64,15 @@ public class WorkerWrapperTest
     {
         Worker happyWorker = getRedirectWorker();
         String queueMsgId = "success";
-        TestCallback callback = new TestCallback();
+        CountDownLatch latch = new CountDownLatch(1);
+        TestCallback callback = new TestCallback(latch);
         TaskMessage m = new TaskMessage();
         m.setTaskId(TASK_ID);
         ServicePath path = new ServicePath(SERVICE_NAME);
         WorkerWrapper wrapper = new WorkerWrapper(m, queueMsgId, happyWorker, callback, path);
         Thread t = new Thread(wrapper);
         t.start();
-        t.join(5000);
+        latch.await(5, TimeUnit.SECONDS);
         Assert.assertEquals(queueMsgId, callback.getQueueMsgId());
         Assert.assertEquals(TaskStatus.NEW_TASK, callback.getStatus());
         Assert.assertArrayEquals(SUCCESS_BYTES, callback.getResultData());
@@ -84,7 +89,8 @@ public class WorkerWrapperTest
         Worker happyWorker = Mockito.spy(getWorker());
         Mockito.when(happyWorker.doWork()).thenThrow(WorkerException.class);
         String queueMsgId = "exception";
-        TestCallback callback = new TestCallback();
+        CountDownLatch latch = new CountDownLatch(1);
+        TestCallback callback = new TestCallback(latch);
         TaskMessage m = new TaskMessage();
         ServicePath path = new ServicePath(SERVICE_NAME);
         Map<String, byte[]> contextMap = new HashMap<>();
@@ -94,7 +100,7 @@ public class WorkerWrapperTest
         WorkerWrapper wrapper = new WorkerWrapper(m, queueMsgId, happyWorker, callback, path);
         Thread t = new Thread(wrapper);
         t.start();
-        t.join(5000);
+        latch.await(5, TimeUnit.SECONDS);
         Assert.assertEquals(queueMsgId, callback.getQueueMsgId());
         Assert.assertEquals(TaskStatus.RESULT_EXCEPTION, callback.getStatus());
         Assert.assertEquals(EXCEPTION_BYTES, callback.getResultData());
@@ -102,6 +108,30 @@ public class WorkerWrapperTest
         Assert.assertEquals(QUEUE_OUT, callback.getQueue());
         Assert.assertTrue(callback.getContext().containsKey(path.toString()));
         Assert.assertArrayEquals(EXCEPTION_BYTES, callback.getContext().get(path.toString()));
+    }
+
+
+    @Test
+    public void testInterrupt()
+        throws WorkerException, InterruptedException, InvalidNameException
+    {
+        Worker happyWorker = Mockito.spy(getWorker());
+        Mockito.when(happyWorker.doWork()).thenAnswer(invocationOnMock -> {
+            throw new InterruptedException("interrupting!");
+        });
+        String queueMsgId = "interrupt";
+        CompleteTaskCallback callback = Mockito.mock(CompleteTaskCallback.class);
+        TaskMessage m = new TaskMessage();
+        ServicePath path = new ServicePath(SERVICE_NAME);
+        Map<String, byte[]> contextMap = new HashMap<>();
+        contextMap.put(path.toString(), EXCEPTION_BYTES);
+        m.setTaskId(TASK_ID);
+        m.setContext(contextMap);
+        WorkerWrapper wrapper = new WorkerWrapper(m, queueMsgId, happyWorker, callback, path);
+        Thread t = new Thread(wrapper);
+        t.start();
+        Thread.sleep(1000);
+        Mockito.verify(callback, Mockito.times(0)).complete(Mockito.any(), Mockito.any(), Mockito.any());
     }
 
 
@@ -182,6 +212,13 @@ public class WorkerWrapperTest
         private String queue;
         private String classifier;
         private Map<String, byte[]> context;
+        private final CountDownLatch latch;
+
+
+        public TestCallback(final CountDownLatch latch)
+        {
+            this.latch = Objects.requireNonNull(latch);
+        }
 
 
         @Override
@@ -194,7 +231,7 @@ public class WorkerWrapperTest
             this.queue = queue;
             this.context = tm.getContext();
             this.classifier = tm.getTaskClassifier();
-
+            latch.countDown();
         }
 
 

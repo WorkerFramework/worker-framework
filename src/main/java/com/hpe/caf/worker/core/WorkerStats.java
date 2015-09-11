@@ -13,6 +13,7 @@ class WorkerStats
     private final AtomicLong tasksRejected = new AtomicLong(0);
     private final AtomicLong tasksSucceeded = new AtomicLong(0);
     private final AtomicLong tasksFailed = new AtomicLong(0);
+    private final AtomicLong tasksAborted = new AtomicLong(0);
     private final AtomicLong lastTaskFinished = new AtomicLong(System.currentTimeMillis());
 
 
@@ -73,6 +74,21 @@ class WorkerStats
     public void incrementTasksFailed()
     {
         tasksFailed.incrementAndGet();
+    }
+
+
+    /**
+     * @return the number of tasks that were aborted (but requeued) due to connection errors or other abnormalities
+     */
+    public long getTasksAborted()
+    {
+        return tasksAborted.get();
+    }
+
+
+    public void incrementTasksAborted()
+    {
+        tasksAborted.incrementAndGet();
     }
 
 

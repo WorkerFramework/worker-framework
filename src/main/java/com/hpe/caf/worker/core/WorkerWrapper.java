@@ -43,6 +43,8 @@ class WorkerWrapper implements Runnable
     /**
      * Trigger the worker to perform its necessary computations and handle the result. The wrapper will
      * ensure some manner of result returns, whether the worker succeeds, fails explicitly, or otherwise.
+     * However, if the Thread is interrupted (signalling the Worker is being cancelled entirely) no callback
+     * is performed.
      */
     @Override
     public void run()
@@ -52,6 +54,8 @@ class WorkerWrapper implements Runnable
             WorkerResponse response = worker.doWork();
             t.stop();
             doCallback(response);
+        } catch (InterruptedException e) {
+            LOG.warn("Worker interrupt signalled, not performing callback for task {} (message id: {})", message.getTaskId(), queueMsgId, e);
         } catch (Exception e) {
             LOG.warn("Worker threw unhandled exception", e);
             doCallback(worker.getGeneralFailureResult());

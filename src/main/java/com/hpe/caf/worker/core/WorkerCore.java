@@ -4,8 +4,8 @@ package com.hpe.caf.worker.core;
 import com.hpe.caf.api.Codec;
 import com.hpe.caf.api.CodecException;
 import com.hpe.caf.api.ServicePath;
-import com.hpe.caf.api.worker.NewTaskCallback;
 import com.hpe.caf.api.worker.QueueException;
+import com.hpe.caf.api.worker.TaskCallback;
 import com.hpe.caf.api.worker.TaskMessage;
 import com.hpe.caf.api.worker.TaskStatus;
 import com.hpe.caf.api.worker.WorkerException;
@@ -15,6 +15,9 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.Objects;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentMap;
+import java.util.concurrent.Future;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 
@@ -30,15 +33,16 @@ public class WorkerCore
     private final ThreadPoolExecutor threadPool;
     private final WorkerQueue workerQueue;
     private final WorkerStats stats = new WorkerStats();
-    private final NewTaskCallback callback;
+    private final TaskCallback callback;
+    private final ConcurrentMap<String, Future<?>> tasks = new ConcurrentHashMap<>();
     private static final Logger LOG = LoggerFactory.getLogger(WorkerCore.class);
 
 
     public WorkerCore(final Codec codec, final ThreadPoolExecutor pool, final WorkerQueue queue, final WorkerFactory factory, final ServicePath path)
     {
-        CompleteTaskCallback taskCallback =  new ApplicationTaskCallback(codec, queue, stats);
+        CompleteTaskCallback taskCallback =  new ApplicationTaskCallback(codec, queue, stats, tasks);
         this.threadPool = Objects.requireNonNull(pool);
-        this.callback = new ApplicationQueueCallback(codec, stats, threadPool, new WorkerWrapperFactory(path, taskCallback, factory));
+        this.callback = new ApplicationQueueCallback(codec, stats, threadPool, new WorkerWrapperFactory(path, taskCallback, factory), tasks);
         this.workerQueue = Objects.requireNonNull(queue);
     }
 
@@ -112,20 +116,23 @@ public class WorkerCore
     /**
      * Called by the queue component to register a new task incoming.
      */
-    private static class ApplicationQueueCallback implements NewTaskCallback
+    private static class ApplicationQueueCallback implements TaskCallback
     {
         private final Codec codec;
         private final WorkerStats stats;
         private final ThreadPoolExecutor threadPool;
         private final WorkerWrapperFactory wrapperFactory;
+        private final ConcurrentMap<String, Future<?>> taskMap;
 
 
-        public ApplicationQueueCallback(final Codec codec, final WorkerStats stats, final ThreadPoolExecutor pool, final WorkerWrapperFactory factory)
+        public ApplicationQueueCallback(final Codec codec, final WorkerStats stats, final ThreadPoolExecutor pool, final WorkerWrapperFactory factory,
+                                        final ConcurrentMap<String, Future<?>> tasks)
         {
             this.codec = Objects.requireNonNull(codec);
             this.stats = Objects.requireNonNull(stats);
             this.threadPool = Objects.requireNonNull(pool);
             this.wrapperFactory = Objects.requireNonNull(factory);
+            this.taskMap = Objects.requireNonNull(tasks);
         }
 
 
@@ -144,7 +151,7 @@ public class WorkerCore
                 stats.incrementTasksReceived();
                 TaskMessage tm = codec.deserialise(taskMessage, TaskMessage.class);
                 LOG.debug("Received task {} (message id: {})", tm.getTaskId(), queueMsgId);
-                execute(wrapperFactory.getWorkerWrapper(tm, queueMsgId));
+                execute(wrapperFactory.getWorkerWrapper(tm, queueMsgId), queueMsgId);
             } catch (WorkerException e) {
                 stats.incrementTasksRejected();
                 throw e;
@@ -156,15 +163,33 @@ public class WorkerCore
 
 
         /**
+         * Cancel all the Future objects in our Map of running tasks. If the task is not yet
+         * running it will just be thrown out of the queue. If it has completed this has no
+         * effect. If it is running the Thread will be interrupted.
+         */
+        @Override
+        public void abortTasks()
+        {
+            LOG.warn("Aborting all current queued and in-progress tasks");
+            taskMap.forEach((key, value) -> {
+                value.cancel(true);
+                stats.incrementTasksAborted();
+            });
+            taskMap.clear();
+        }
+
+
+        /**
          * Pass off a runnable task to the backend, considering a hard upper bound to the internal backlog.
          * @param wrapper the new task to run
+         * @param id a unique task id
          * @throws WorkerException if no more tasks can be added to the internal backlog
          */
-        private void execute(final Runnable wrapper)
+        private void execute(final Runnable wrapper, final String id)
             throws WorkerException
         {
             if ( threadPool.getQueue().size() < threadPool.getCorePoolSize() * 10 ) {
-                threadPool.execute(wrapper);
+                taskMap.put(id, threadPool.submit(wrapper));
             } else {
                 throw new WorkerException("Maximum internal task backlog exceeded");
             }
@@ -180,13 +205,15 @@ public class WorkerCore
         private final Codec codec;
         private final WorkerQueue workerQueue;
         private final WorkerStats stats;
+        private final ConcurrentMap<String, Future<?>> taskMap;
 
 
-        public ApplicationTaskCallback(final Codec codec, final WorkerQueue queue, final WorkerStats stats)
+        public ApplicationTaskCallback(final Codec codec, final WorkerQueue queue, final WorkerStats stats, final ConcurrentMap<String, Future<?>> tasks)
         {
             this.codec = Objects.requireNonNull(codec);
             this.workerQueue = Objects.requireNonNull(queue);
             this.stats = Objects.requireNonNull(stats);
+            this.taskMap = Objects.requireNonNull(tasks);
         }
 
 
@@ -202,6 +229,7 @@ public class WorkerCore
             Objects.requireNonNull(queueMsgId);
             Objects.requireNonNull(queue);
             Objects.requireNonNull(responseMessage);
+            taskMap.remove(queueMsgId);
             LOG.debug("Task {} complete (message id: {})", responseMessage.getTaskId(), queueMsgId);
             try {
                 workerQueue.publish(queueMsgId, codec.serialise(responseMessage), queue);

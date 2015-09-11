@@ -191,6 +191,8 @@
   TaskResultStatus.
  - core.tasksFailed: the number of tasks that failed with an unsuccessful
   TaskResultStatus.
+ - core.tasksAborted: the number of tasks that were aborted because they were
+  indicated as requeued by the WorkerQueue
  - core.currentIdleTime: the time in milliseconds since the worker was doing
   anything useful.
  - config.lookups: the number of configuration lookups performed by the
@@ -591,15 +593,14 @@
     **/
     @Override
     public WorkerResponse doWork()
-        throws WorkerException
+        throws WorkerException, InterruptedException
     {
         try {
             String output = input.toUpperCase();
             byte[] data = codec.serialise(createResultObject(output));
             Thread.sleep(sleepTime);
             return createSuccessResult(data);
-        } catch ( InterruptedException | CodecException e) {
-            Thread.currentThread().interrupt();
+        } catch ( CodecException e) {
             throw new WorkerException("Failed to perform work", e);
         }
     }
@@ -642,6 +643,15 @@
  sensible operation of our `Worker` in the constructor. This includes the
  result to be sent back in case our `doWork()` operation fails in some
  unexpected way.
+
+ All Workers should be mindful for the Thread interrupt flag. If the Worker
+ receives an `InterruptedException` it should propagate this. Periodically,
+ particularly in long-lived loops, Worker implementations should also check
+ the state of the current Thread's intterupt flag via the use of
+ `Thread.currentThread().isInterrupted()`. If this is true, it should throw
+ an `InterruptedException` as soon as possible. Failure to do this may lead
+ to duplicate messages and results being return from the Worker in the case
+ of non-standard events such as queue connection abnormalities.
 
 ### Advertising your new Worker to the core microservice application
 
