@@ -3,6 +3,8 @@ package com.hpe.caf.api.worker;
 
 import com.hpe.caf.api.HealthReporter;
 
+import java.io.InputStream;
+
 
 /**
  * A representation of a generic data store, for reading and writing data
@@ -22,7 +24,7 @@ public abstract class DataStore implements HealthReporter
      * @return the raw data referred to
      * @throws DataStoreException if the data store cannot service the request
      */
-    public abstract byte[] getData(final String reference)
+    public abstract InputStream getData(final String reference)
         throws DataStoreException;
 
 
@@ -33,7 +35,7 @@ public abstract class DataStore implements HealthReporter
      * @return reference to the stored data, which can be used to retrieve
      * @throws DataStoreException if the data store cannot service the request
      */
-    public abstract String putData(final String reference, final byte[] data)
+    public abstract String putData(final String reference, final InputStream data)
         throws DataStoreException;
 
 
