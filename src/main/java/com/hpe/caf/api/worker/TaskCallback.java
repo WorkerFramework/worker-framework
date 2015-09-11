@@ -13,10 +13,11 @@ public interface TaskCallback
      * processing.
      * @param taskId an arbitrary task reference
      * @param taskData the task data that is specific to the workers hosted
-     * @throws WorkerException if the task is rejected or cannot be handed off to the core
+     * @throws TaskRejectedException if the worker framework rejected execution of the task at this time
+     * @throws InvalidTaskException if the worker framework indicates this task is invalid and cannot possibly be executed
      */
     void registerNewTask(final String taskId, final byte[] taskData)
-            throws WorkerException;
+        throws TaskRejectedException, InvalidTaskException;
 
 
     /**

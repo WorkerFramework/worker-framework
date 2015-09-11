@@ -17,9 +17,10 @@ public abstract class WorkerFactory implements HealthReporter
      * @param data the raw serialised task data
      * @param context provides access to task specific context, may be null
      * @return a new Worker instance that will perform work upon the taskData
-     * @throws WorkerException if a new Worker could not be created
+     * @throws TaskRejectedException if a Worker cannot be created to handle this task currently
+     * @throws InvalidTaskException if it appears this task cannot possibly be handled by a Worker of this type
      */
     public abstract Worker getWorker(final String classifier, final int version, final TaskStatus status,
                                      final byte[] data, final byte[] context)
-        throws WorkerException;
+        throws TaskRejectedException, InvalidTaskException;
 }
