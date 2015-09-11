@@ -3,9 +3,10 @@ package com.hpe.caf.api.worker;
 
 /**
  * A callback interface used to announce the arrival of a new task for a worker
- * to process. Generally called from a WorkerQueue implementation.
+ * to process or signal that the core should cancel its tasks. Generally called
+ * from a WorkerQueue implementation.
  */
-public interface NewTaskCallback
+public interface TaskCallback
 {
     /**
      * Announce to the worker core that a new task has been picked off the queue for
@@ -16,4 +17,12 @@ public interface NewTaskCallback
      */
     void registerNewTask(final String taskId, final byte[] taskData)
             throws WorkerException;
+
+
+    /**
+     * Signal that any tasks queued or in operation should be aborted. This usually
+     * means there was a problem with the queue and any accepted messages should be
+     * considered void.
+     */
+    void abortTasks();
 }

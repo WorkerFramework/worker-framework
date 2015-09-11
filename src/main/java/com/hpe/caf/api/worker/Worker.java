@@ -51,9 +51,10 @@ public abstract class Worker
      * Start the work on a task.
      * @return the result of the worker operation, and appropriate result data
      * @throws WorkerException if the worker cannot continue with this task for any reason
+     * @throws InterruptedException if the worker is interrupted
      */
      public abstract WorkerResponse doWork()
-        throws WorkerException;
+        throws WorkerException, InterruptedException;
 
 
     /**
