@@ -3,8 +3,8 @@ package com.hpe.caf.worker.queue.rabbit;
 
 import com.hpe.caf.api.HealthResult;
 import com.hpe.caf.api.HealthStatus;
-import com.hpe.caf.api.worker.NewTaskCallback;
 import com.hpe.caf.api.worker.QueueException;
+import com.hpe.caf.api.worker.TaskCallback;
 import com.hpe.caf.api.worker.WorkerQueue;
 import com.hpe.caf.api.worker.WorkerQueueMetricsReporter;
 import com.hpe.caf.util.rabbitmq.ConsumerRejectEvent;
@@ -15,6 +15,8 @@ import com.hpe.caf.util.rabbitmq.QueueConsumer;
 import com.hpe.caf.util.rabbitmq.RabbitUtil;
 import com.rabbitmq.client.Channel;
 import com.rabbitmq.client.Connection;
+import net.jodah.lyra.ConnectionOptions;
+import net.jodah.lyra.config.Config;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -31,7 +33,7 @@ import java.util.concurrent.TimeoutException;
 
 /**
  * This implementation uses a separate thread for a consumer and producer, each with their own Channel.
- * These threads handle operations via a BlockingQueue of QueueEvent objects. In all scenarios where the
+ * These threads handle operations via a BlockingQueue of Event objects. In all scenarios where the
  * tasks triggered by the message take significantly longer than the handling of the messages themselves
  * (which should hopefully be true of all microservices), this implementation should work. The complexity
  * comes from the fact each thread should have its own Channel object (they are not thread-safe) but the
@@ -41,40 +43,26 @@ public final class RabbitWorkerQueue extends WorkerQueue
 {
     private DefaultRabbitConsumer consumer;
     private EventPoller<WorkerPublisher> publisher;
-    private final String inputQueue;
-    private final Channel incomingChannel;
-    private final Channel outgoingChannel;
-    private final Connection conn;
+    private Connection conn;
+    private Channel incomingChannel;
+    private Channel outgoingChannel;
     private final List<String> consumerTags = new LinkedList<>();
     private final Set<String> declaredQueues = new HashSet<>();
     private final BlockingQueue<Event<QueueConsumer>> consumerQueue = new LinkedBlockingQueue<>();
     private final BlockingQueue<Event<WorkerPublisher>> publisherQueue = new LinkedBlockingQueue<>();
     private final RabbitMetricsReporter metrics = new RabbitMetricsReporter();
+    private final RabbitWorkerQueueConfiguration config;
     private static final Logger LOG = LoggerFactory.getLogger(RabbitWorkerQueue.class);
 
 
     /**
      * {@inheritDoc}
-     *
-     * Create a RabbitMQ connection, and separate incoming and outgoing channels. The connection and channels are managed by Lyra, so
-     * will attempt to re-establish should they drop. A dead letter exchange is declared.
+     * Setup a new RabbitWorkerQueue.
      */
     public RabbitWorkerQueue(final RabbitWorkerQueueConfiguration config, final int maxTasks)
-        throws QueueException
     {
         super(maxTasks);
-        int prefetch = Math.max(1, maxTasks + config.getPrefetchBuffer());
-        try {
-            conn = RabbitUtil.createRabbitConnection(config.getRabbitConfiguration());
-            incomingChannel = conn.createChannel();
-            LOG.debug("Prefetch is {}", prefetch);
-            incomingChannel.basicQos(prefetch);
-            incomingChannel.exchangeDeclare(config.getDeadLetterExchange(), "direct");
-            inputQueue = config.getInputQueue();
-            outgoingChannel = conn.createChannel();
-        } catch (IOException | TimeoutException e) {
-            throw new QueueException("Failed to create queue server connection", e);
-        }
+        this.config = Objects.requireNonNull(config);
         LOG.debug("Initialised");
     }
 
@@ -82,20 +70,33 @@ public final class RabbitWorkerQueue extends WorkerQueue
     /**
      * {@inheritDoc}
      *
+     * Create a RabbitMQ connection, and separate incoming and outgoing channels. The connection and channels are managed by Lyra, so
+     * will attempt to re-establish should they drop. A dead letter exchange is declared.
      * Declare the queues on the appropriate channels and kick off the publisher and consumer threads to handle messages.
      */
     @Override
-    public void start(final NewTaskCallback callback)
+    public void start(final TaskCallback callback)
         throws QueueException
     {
+        if ( conn != null ) {
+            throw new IllegalStateException("Already started");
+        }
         try {
+            ConnectionOptions lyraOpts = RabbitUtil.createLyraConnectionOptions(config.getRabbitConfiguration());
+            Config lyraConfig = RabbitUtil.createLyraConfig(config.getRabbitConfiguration()).withConnectionListeners(new WorkerConnectionListener(callback));
+            conn = RabbitUtil.createRabbitConnection(lyraOpts, lyraConfig);
+            incomingChannel = conn.createChannel();
+            int prefetch = Math.max(1, getMaxTasks() + config.getPrefetchBuffer());
+            incomingChannel.basicQos(prefetch);
+            incomingChannel.exchangeDeclare(config.getDeadLetterExchange(), "direct");
+            outgoingChannel = conn.createChannel();
             WorkerQueueConsumerImpl consumerImpl = new WorkerQueueConsumerImpl(callback, metrics, consumerQueue, incomingChannel);
             consumer = new DefaultRabbitConsumer(consumerQueue, consumerImpl);
             WorkerPublisherImpl publisherImpl = new WorkerPublisherImpl(outgoingChannel, metrics, consumerQueue);
             publisher = new EventPoller<>(2, publisherQueue, publisherImpl);
-            declareWorkerQueue(incomingChannel, inputQueue);
-            consumerTags.add(incomingChannel.basicConsume(inputQueue, consumer));
-        } catch (IOException e) {
+            declareWorkerQueue(incomingChannel, config.getInputQueue());
+            consumerTags.add(incomingChannel.basicConsume(config.getInputQueue(), consumer));
+        } catch (IOException | TimeoutException e) {
             throw new QueueException("Failed to establish queues", e);
         }
         new Thread(publisher).start();
@@ -166,9 +167,11 @@ public final class RabbitWorkerQueue extends WorkerQueue
             if ( consumer != null ) {
                 consumer.shutdown();
             }
-            incomingChannel.close();
-            outgoingChannel.close();
-            conn.close();
+            if ( conn != null ) {
+                incomingChannel.close();
+                outgoingChannel.close();
+                conn.close();
+            }
         } catch (IOException | TimeoutException e) {
             metrics.incremementErrors();
             LOG.warn("Failed to close rabbit connections", e);

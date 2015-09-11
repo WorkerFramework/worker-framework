@@ -1,14 +1,14 @@
 package com.hpe.caf.worker.queue.rabbit;
 
 
-import com.hpe.caf.api.worker.NewTaskCallback;
+import com.hpe.caf.api.worker.TaskCallback;
 import com.hpe.caf.api.worker.WorkerException;
-import com.hpe.caf.util.rabbitmq.DefaultRabbitConsumer;
-import com.hpe.caf.util.rabbitmq.QueueConsumer;
 import com.hpe.caf.util.rabbitmq.ConsumerAckEvent;
 import com.hpe.caf.util.rabbitmq.ConsumerDropEvent;
 import com.hpe.caf.util.rabbitmq.ConsumerRejectEvent;
+import com.hpe.caf.util.rabbitmq.DefaultRabbitConsumer;
 import com.hpe.caf.util.rabbitmq.Event;
+import com.hpe.caf.util.rabbitmq.QueueConsumer;
 import com.rabbitmq.client.Channel;
 import com.rabbitmq.client.Envelope;
 import org.junit.Assert;
@@ -36,7 +36,7 @@ public class RabbitWorkerQueueConsumerTest
     private Envelope env = new Envelope(id, false, "", testQueue);
     private RabbitMetricsReporter metrics = new RabbitMetricsReporter();
     @Mock
-    private NewTaskCallback mockCallback;
+    private TaskCallback mockCallback;
 
 
     @Test
@@ -46,7 +46,7 @@ public class RabbitWorkerQueueConsumerTest
         BlockingQueue<Event<QueueConsumer>> consumerEvents = new LinkedBlockingQueue<>();
         Channel channel = Mockito.mock(Channel.class);
         CountDownLatch latch = new CountDownLatch(1);
-        NewTaskCallback callback = new TestCallback(latch, false);
+        TaskCallback callback = new TestCallback(latch, false);
         WorkerQueueConsumerImpl impl = new WorkerQueueConsumerImpl(callback, metrics, consumerEvents, channel);
         DefaultRabbitConsumer consumer = new DefaultRabbitConsumer(consumerEvents, impl);
         Thread t = new Thread(consumer);
@@ -70,7 +70,7 @@ public class RabbitWorkerQueueConsumerTest
             return null;
         };
         Mockito.doAnswer(a).when(channel).basicReject(Mockito.eq(id), Mockito.anyBoolean());
-        NewTaskCallback callback = new TestCallback(deliverLatch, true);
+        TaskCallback callback = new TestCallback(deliverLatch, true);
         WorkerQueueConsumerImpl impl = new WorkerQueueConsumerImpl(callback, metrics, consumerEvents, channel);
         DefaultRabbitConsumer consumer = new DefaultRabbitConsumer(consumerEvents, impl);
         Thread t = new Thread(consumer);
@@ -148,7 +148,7 @@ public class RabbitWorkerQueueConsumerTest
     }
 
 
-    private class TestCallback implements NewTaskCallback
+    private class TestCallback implements TaskCallback
     {
         private final CountDownLatch latch;
         private final boolean throwException;
@@ -169,6 +169,12 @@ public class RabbitWorkerQueueConsumerTest
             if ( throwException ) {
                 throw new WorkerException("test exception");
             }
+        }
+
+
+        @Override
+        public void abortTasks()
+        {
         }
     }
 

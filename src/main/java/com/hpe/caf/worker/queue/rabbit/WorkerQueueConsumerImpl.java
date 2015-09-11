@@ -1,7 +1,7 @@
 package com.hpe.caf.worker.queue.rabbit;
 
 
-import com.hpe.caf.api.worker.NewTaskCallback;
+import com.hpe.caf.api.worker.TaskCallback;
 import com.hpe.caf.api.worker.WorkerException;
 import com.hpe.caf.util.rabbitmq.ConsumerAckEvent;
 import com.hpe.caf.util.rabbitmq.ConsumerDropEvent;
@@ -25,14 +25,14 @@ import java.util.concurrent.BlockingQueue;
  */
 public class WorkerQueueConsumerImpl implements QueueConsumer
 {
-    private final NewTaskCallback callback;
+    private final TaskCallback callback;
     private final RabbitMetricsReporter metrics;
     private final BlockingQueue<Event<QueueConsumer>> consumerEventQueue;
     private final Channel channel;
     private static final Logger LOG = LoggerFactory.getLogger(WorkerQueueConsumerImpl.class);
 
 
-    public WorkerQueueConsumerImpl(final NewTaskCallback callback, final RabbitMetricsReporter metrics, final BlockingQueue<Event<QueueConsumer>> queue, final Channel ch)
+    public WorkerQueueConsumerImpl(final TaskCallback callback, final RabbitMetricsReporter metrics, final BlockingQueue<Event<QueueConsumer>> queue, final Channel ch)
     {
         this.callback = Objects.requireNonNull(callback);
         this.metrics = Objects.requireNonNull(metrics);
