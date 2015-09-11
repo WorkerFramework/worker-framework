@@ -1,8 +1,9 @@
 package com.hpe.caf.worker.queue.rabbit;
 
 
+import com.hpe.caf.api.worker.InvalidTaskException;
 import com.hpe.caf.api.worker.TaskCallback;
-import com.hpe.caf.api.worker.WorkerException;
+import com.hpe.caf.api.worker.TaskRejectedException;
 import com.hpe.caf.util.rabbitmq.ConsumerAckEvent;
 import com.hpe.caf.util.rabbitmq.ConsumerDropEvent;
 import com.hpe.caf.util.rabbitmq.ConsumerRejectEvent;
@@ -41,6 +42,12 @@ public class WorkerQueueConsumerImpl implements QueueConsumer
     }
 
 
+    /**
+     * {@inheritDoc}
+     *
+     * If a task is rejected it is always put back on the queue. If the task is invalid,
+     * it will be retried once and then dropped onto the dead letters exchange.
+     */
     @Override
     public void processDelivery(final Delivery delivery)
     {
@@ -49,13 +56,16 @@ public class WorkerQueueConsumerImpl implements QueueConsumer
             metrics.incrementReceived();
             LOG.debug("Registering new message {}", tag);
             callback.registerNewTask(String.valueOf(tag), delivery.getMessageData());
-        } catch (WorkerException e) {
+        } catch (InvalidTaskException e) {
             LOG.error("Cannot register new message, rejecting {}", tag, e);
             if ( delivery.getEnvelope().isRedeliver() ) {
                 consumerEventQueue.add(new ConsumerDropEvent(tag));
             } else {
                 consumerEventQueue.add(new ConsumerRejectEvent(tag));
             }
+        } catch (TaskRejectedException e) {
+            LOG.warn("Task {} rejected at this time, returning to queue", tag, e);
+            consumerEventQueue.add(new ConsumerRejectEvent(tag));
         }
     }
 

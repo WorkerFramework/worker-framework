@@ -1,7 +1,9 @@
 package com.hpe.caf.worker.queue.rabbit;
 
 
+import com.hpe.caf.api.worker.InvalidTaskException;
 import com.hpe.caf.api.worker.TaskCallback;
+import com.hpe.caf.api.worker.TaskRejectedException;
 import com.hpe.caf.api.worker.WorkerException;
 import com.hpe.caf.util.rabbitmq.ConsumerAckEvent;
 import com.hpe.caf.util.rabbitmq.ConsumerDropEvent;
@@ -33,7 +35,9 @@ public class RabbitWorkerQueueConsumerTest
     private String testQueue = "testQueue";
     private long id = 101L;
     private byte[] data = "test123".getBytes(StandardCharsets.UTF_8);
-    private Envelope env = new Envelope(id, false, "", testQueue);
+    private Envelope newEnv = new Envelope(id, false, "", testQueue);
+    private Envelope redeliveredEnv = new Envelope(id, true, "", testQueue);
+
     private RabbitMetricsReporter metrics = new RabbitMetricsReporter();
     @Mock
     private TaskCallback mockCallback;
@@ -46,37 +50,113 @@ public class RabbitWorkerQueueConsumerTest
         BlockingQueue<Event<QueueConsumer>> consumerEvents = new LinkedBlockingQueue<>();
         Channel channel = Mockito.mock(Channel.class);
         CountDownLatch latch = new CountDownLatch(1);
-        TaskCallback callback = new TestCallback(latch, false);
+        TaskCallback callback = Mockito.mock(TaskCallback.class);
+        Answer<Void> a = invocationOnMock -> {
+            latch.countDown();
+            return null;
+        };
+        Mockito.doAnswer(a).when(callback).registerNewTask(Mockito.any(), Mockito.any());
         WorkerQueueConsumerImpl impl = new WorkerQueueConsumerImpl(callback, metrics, consumerEvents, channel);
         DefaultRabbitConsumer consumer = new DefaultRabbitConsumer(consumerEvents, impl);
         Thread t = new Thread(consumer);
         t.start();
-        consumer.handleDelivery("consumer", env, null, data);
+        consumer.handleDelivery("consumer", newEnv, null, data);
         Assert.assertTrue(latch.await(1000, TimeUnit.MILLISECONDS));
         consumer.shutdown();
     }
 
 
     @Test
-    public void testHandleDeliveryFail()
+    public void testTaskRejectedNew()
             throws IOException, InterruptedException, WorkerException
     {
         BlockingQueue<Event<QueueConsumer>> consumerEvents = new LinkedBlockingQueue<>();
-        CountDownLatch deliverLatch = new CountDownLatch(1);
         CountDownLatch channelLatch = new CountDownLatch(1);
         Channel channel = Mockito.mock(Channel.class);
         Answer<Void> a = invocationOnMock -> {
             channelLatch.countDown();
             return null;
         };
-        Mockito.doAnswer(a).when(channel).basicReject(Mockito.eq(id), Mockito.anyBoolean());
-        TaskCallback callback = new TestCallback(deliverLatch, true);
+        Mockito.doAnswer(a).when(channel).basicReject(Mockito.eq(id), Mockito.eq(true));
+        TaskCallback callback = Mockito.mock(TaskCallback.class);
+        Mockito.doThrow(TaskRejectedException.class).when(callback).registerNewTask(Mockito.any(), Mockito.any());
         WorkerQueueConsumerImpl impl = new WorkerQueueConsumerImpl(callback, metrics, consumerEvents, channel);
         DefaultRabbitConsumer consumer = new DefaultRabbitConsumer(consumerEvents, impl);
         Thread t = new Thread(consumer);
         t.start();
-        consumer.handleDelivery("consumer", env, null, data);
-        Assert.assertTrue(deliverLatch.await(1000, TimeUnit.MILLISECONDS));
+        consumer.handleDelivery("consumer", newEnv, null, data);
+        Assert.assertTrue(channelLatch.await(1000, TimeUnit.MILLISECONDS));
+        consumer.shutdown();
+    }
+
+
+    @Test
+    public void testTaskRejectedRedelivered()
+        throws IOException, InterruptedException, WorkerException
+    {
+        BlockingQueue<Event<QueueConsumer>> consumerEvents = new LinkedBlockingQueue<>();
+        CountDownLatch channelLatch = new CountDownLatch(1);
+        Channel channel = Mockito.mock(Channel.class);
+        Answer<Void> a = invocationOnMock -> {
+            channelLatch.countDown();
+            return null;
+        };
+        Mockito.doAnswer(a).when(channel).basicReject(Mockito.eq(id), Mockito.eq(true));
+        TaskCallback callback = Mockito.mock(TaskCallback.class);
+        Mockito.doThrow(TaskRejectedException.class).when(callback).registerNewTask(Mockito.any(), Mockito.any());
+        WorkerQueueConsumerImpl impl = new WorkerQueueConsumerImpl(callback, metrics, consumerEvents, channel);
+        DefaultRabbitConsumer consumer = new DefaultRabbitConsumer(consumerEvents, impl);
+        Thread t = new Thread(consumer);
+        t.start();
+        consumer.handleDelivery("consumer", redeliveredEnv, null, data);
+        Assert.assertTrue(channelLatch.await(1000, TimeUnit.MILLISECONDS));
+        consumer.shutdown();
+    }
+
+
+    @Test
+    public void testInvalidTaskNew()
+        throws IOException, InterruptedException, WorkerException
+    {
+        BlockingQueue<Event<QueueConsumer>> consumerEvents = new LinkedBlockingQueue<>();
+        CountDownLatch channelLatch = new CountDownLatch(1);
+        Channel channel = Mockito.mock(Channel.class);
+        Answer<Void> a = invocationOnMock -> {
+            channelLatch.countDown();
+            return null;
+        };
+        Mockito.doAnswer(a).when(channel).basicReject(Mockito.eq(id), Mockito.eq(true));
+        TaskCallback callback = Mockito.mock(TaskCallback.class);
+        Mockito.doThrow(InvalidTaskException.class).when(callback).registerNewTask(Mockito.any(), Mockito.any());
+        WorkerQueueConsumerImpl impl = new WorkerQueueConsumerImpl(callback, metrics, consumerEvents, channel);
+        DefaultRabbitConsumer consumer = new DefaultRabbitConsumer(consumerEvents, impl);
+        Thread t = new Thread(consumer);
+        t.start();
+        consumer.handleDelivery("consumer", newEnv, null, data);
+        Assert.assertTrue(channelLatch.await(1000, TimeUnit.MILLISECONDS));
+        consumer.shutdown();
+    }
+
+
+    @Test
+    public void testInvalidTaskRedelivered()
+        throws IOException, InterruptedException, WorkerException
+    {
+        BlockingQueue<Event<QueueConsumer>> consumerEvents = new LinkedBlockingQueue<>();
+        CountDownLatch channelLatch = new CountDownLatch(1);
+        Channel channel = Mockito.mock(Channel.class);
+        Answer<Void> a = invocationOnMock -> {
+            channelLatch.countDown();
+            return null;
+        };
+        Mockito.doAnswer(a).when(channel).basicReject(Mockito.eq(id), Mockito.eq(false));
+        TaskCallback callback = Mockito.mock(TaskCallback.class);
+        Mockito.doThrow(InvalidTaskException.class).when(callback).registerNewTask(Mockito.any(), Mockito.any());
+        WorkerQueueConsumerImpl impl = new WorkerQueueConsumerImpl(callback, metrics, consumerEvents, channel);
+        DefaultRabbitConsumer consumer = new DefaultRabbitConsumer(consumerEvents, impl);
+        Thread t = new Thread(consumer);
+        t.start();
+        consumer.handleDelivery("consumer", redeliveredEnv, null, data);
         Assert.assertTrue(channelLatch.await(1000, TimeUnit.MILLISECONDS));
         consumer.shutdown();
     }
@@ -145,37 +225,6 @@ public class RabbitWorkerQueueConsumerTest
         consumerEvents.add(new ConsumerDropEvent(id));
         Assert.assertTrue(channelLatch.await(1000, TimeUnit.MILLISECONDS));
         consumer.shutdown();
-    }
-
-
-    private class TestCallback implements TaskCallback
-    {
-        private final CountDownLatch latch;
-        private final boolean throwException;
-
-
-        public TestCallback(final CountDownLatch latch, final boolean throwException)
-        {
-            this.latch = latch;
-            this.throwException = throwException;
-        }
-
-
-        @Override
-        public void registerNewTask(final String taskId, final byte[] taskData)
-                throws WorkerException
-        {
-            latch.countDown();
-            if ( throwException ) {
-                throw new WorkerException("test exception");
-            }
-        }
-
-
-        @Override
-        public void abortTasks()
-        {
-        }
     }
 
 }
