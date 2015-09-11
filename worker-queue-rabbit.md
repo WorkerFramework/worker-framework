@@ -48,9 +48,10 @@
  (that don't take a long time to process) and you wish to reduce the amount
  of I/O chatter between workers and the RabbitMQ host.
 
- Messages that get rejected will be put back on the queue. A subsequent
- failure to begin work on a message that already failed will be put into the
- dead letter exchange.
+ Messages rejected with a `RejectedTaskException` will always be returned to
+ the queue. Messages rejected with an `InvalidTaskException` will be only
+ returned to the queue once. If the same task redelivered encounters this
+ exception again it will be dropped on to the dead letter exchange.
 
  Consumed messages will only be acknowledged once the result has been published
  to the output queue.
