@@ -58,7 +58,7 @@ class WorkerWrapper implements Runnable
             LOG.warn("Worker interrupt signalled, not performing callback for task {} (message id: {})", message.getTaskId(), queueMsgId, e);
         } catch (Exception e) {
             LOG.warn("Worker threw unhandled exception", e);
-            doCallback(worker.getGeneralFailureResult());
+            doCallback(worker.getGeneralFailureResult(e));
         }
     }
 

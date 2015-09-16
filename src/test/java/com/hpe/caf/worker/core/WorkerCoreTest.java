@@ -39,8 +39,7 @@ import java.util.concurrent.TimeUnit;
 
 public class WorkerCoreTest
 {
-    private static final byte[] SUCCESS_BYTES = "success".getBytes(StandardCharsets.UTF_8);
-    private static final byte[] EXCEPTION_BYTES = "exception".getBytes(StandardCharsets.UTF_8);
+    private static final String SUCCESS = "success";
     private static final String WORKER_NAME = "testWorker";
     private static final int WORKER_API_VER = 1;
     private static final String QUEUE_MSG_ID = "test1";
@@ -58,12 +57,13 @@ public class WorkerCoreTest
         ThreadPoolExecutor tpe = WorkerApplication.getDefaultThreadPoolExecutor(5);
         ConfigurationSource config = Mockito.mock(ConfigurationSource.class);
         ServicePath path = new ServicePath(SERVICE_PATH);
+        TestWorkerTask task = new TestWorkerTask();
         TestWorkerQueue queue = new TestWorkerQueueProvider(q).getWorkerQueue(config, 50);
-        WorkerCore core = new WorkerCore(codec, tpe, queue, getWorkerFactory(), path);
+        WorkerCore core = new WorkerCore(codec, tpe, queue, getWorkerFactory(task, codec), path);
         core.start();
         // at this point, the queue should hand off the task to the app, the app should get a worker from the mocked WorkerFactory,
         // and the Worker itself is a mock wrapped in a WorkerWrapper, which should return success and the appropriate result data
-        byte[] stuff = codec.serialise(getTaskMessage(codec, WORKER_NAME));
+        byte[] stuff = codec.serialise(getTaskMessage(task, codec, WORKER_NAME));
         queue.submitTask(QUEUE_MSG_ID, stuff);
         // the worker's task result should eventually be passed back to our dummy WorkerQueue and onto our blocking queue
         byte[] result = q.poll(5000, TimeUnit.MILLISECONDS);
@@ -74,12 +74,14 @@ public class WorkerCoreTest
         Assert.assertEquals(TaskStatus.RESULT_SUCCESS, taskMessage.getTaskStatus());
         Assert.assertEquals(WORKER_NAME, taskMessage.getTaskClassifier());
         Assert.assertEquals(WORKER_API_VER, taskMessage.getTaskApiVersion());
-        Assert.assertArrayEquals(SUCCESS_BYTES, taskMessage.getTaskData());
+        TestWorkerResult workerResult = codec.deserialise(taskMessage.getTaskData(), TestWorkerResult.class);
+        Assert.assertEquals(SUCCESS, workerResult.getResultString());
         Assert.assertTrue(taskMessage.getContext().containsKey(path.toString()));
-        Assert.assertArrayEquals(SUCCESS_BYTES, taskMessage.getContext().get(path.toString()));
+        Assert.assertArrayEquals(SUCCESS.getBytes(StandardCharsets.UTF_8), taskMessage.getContext().get(path.toString()));
     }
 
 
+    /** Test WorkerCore when the input message doesn't even decode to a TaskWrapper - should be an InvalidTaskException **/
     @Test(expected = InvalidTaskException.class)
     public void testInvalidWrapper()
         throws InvalidNameException, WorkerException, QueueException, CodecException
@@ -89,14 +91,16 @@ public class WorkerCoreTest
         ThreadPoolExecutor tpe = WorkerApplication.getDefaultThreadPoolExecutor(5);
         ConfigurationSource config = Mockito.mock(ConfigurationSource.class);
         ServicePath path = new ServicePath(SERVICE_PATH);
+        TestWorkerTask task = new TestWorkerTask();
         TestWorkerQueue queue = new TestWorkerQueueProvider(q).getWorkerQueue(config, 50);
-        WorkerCore core = new WorkerCore(codec, tpe, queue, getWorkerFactory(), path);
+        WorkerCore core = new WorkerCore(codec, tpe, queue, getWorkerFactory(task, codec), path);
         core.start();
         byte[] stuff = codec.serialise("nonsense");
         queue.submitTask(QUEUE_MSG_ID, stuff);
     }
 
 
+    /** Send in a TaskMessage put with an inner task-specific message that cannot be decoded, this should be an INVALID_TASK response **/
     @Test
     public void testInvalidTask()
         throws QueueException, InvalidNameException, WorkerException, CodecException, InterruptedException
@@ -106,10 +110,11 @@ public class WorkerCoreTest
         ThreadPoolExecutor tpe = WorkerApplication.getDefaultThreadPoolExecutor(5);
         ConfigurationSource config = Mockito.mock(ConfigurationSource.class);
         ServicePath path = new ServicePath(SERVICE_PATH);
+        TestWorkerTask task = new TestWorkerTask();
         TestWorkerQueue queue = new TestWorkerQueueProvider(q).getWorkerQueue(config, 50);
         WorkerCore core = new WorkerCore(codec, tpe, queue, getInvalidTaskWorkerFactory(), path);
         core.start();
-        TaskMessage tm = getTaskMessage(codec, WORKER_NAME);
+        TaskMessage tm = getTaskMessage(task, codec, WORKER_NAME);
         tm.setTaskData(codec.serialise("invalid task data"));
         Map<String, byte[]> context = new HashMap<>();
         String testContext = "test";
@@ -140,13 +145,14 @@ public class WorkerCoreTest
         ThreadPoolExecutor tpe = WorkerApplication.getDefaultThreadPoolExecutor(2);
         ConfigurationSource config = Mockito.mock(ConfigurationSource.class);
         ServicePath path = new ServicePath(SERVICE_PATH);
+        TestWorkerTask task = new TestWorkerTask();
         CountDownLatch latch = new CountDownLatch(2);
         TestWorkerQueue queue = new TestWorkerQueueProvider(q).getWorkerQueue(config, 20);
-        WorkerCore core = new WorkerCore(codec, tpe, queue, getSlowWorkerFactory(latch), path);
+        WorkerCore core = new WorkerCore(codec, tpe, queue, getSlowWorkerFactory(latch, task, codec), path);
         core.start();
-        byte[] task1 = codec.serialise(getTaskMessage(codec, UUID.randomUUID().toString()));
-        byte[] task2 = codec.serialise(getTaskMessage(codec, UUID.randomUUID().toString()));
-        byte[] task3 = codec.serialise(getTaskMessage(codec, UUID.randomUUID().toString()));
+        byte[] task1 = codec.serialise(getTaskMessage(task, codec, UUID.randomUUID().toString()));
+        byte[] task2 = codec.serialise(getTaskMessage(task, codec, UUID.randomUUID().toString()));
+        byte[] task3 = codec.serialise(getTaskMessage(task, codec, UUID.randomUUID().toString()));
         queue.submitTask("task1", task1);
         queue.submitTask("task2", task2);
         queue.submitTask("task3", task3);   // there are only 2 threads, so this task should not even start
@@ -160,7 +166,7 @@ public class WorkerCoreTest
     }
 
 
-    private TaskMessage getTaskMessage(final Codec codec, final String taskId)
+    private TaskMessage getTaskMessage(final TestWorkerTask task, final Codec codec, final String taskId)
         throws CodecException
     {
         TaskMessage tm = new TaskMessage();
@@ -168,16 +174,16 @@ public class WorkerCoreTest
         tm.setTaskStatus(TaskStatus.NEW_TASK);
         tm.setTaskClassifier(WORKER_NAME);
         tm.setTaskApiVersion(WORKER_API_VER);
-        tm.setTaskData(codec.serialise(new TestWorkerJob()));
+        tm.setTaskData(codec.serialise(task));
         return tm;
     }
 
 
-    private WorkerFactory getWorkerFactory()
+    private WorkerFactory getWorkerFactory(final TestWorkerTask task, final Codec codec)
             throws WorkerException
     {
         WorkerFactory factory = Mockito.mock(WorkerFactory.class);
-        Worker mockWorker = getWorker();
+        Worker mockWorker = getWorker(task, codec);
         Mockito.when(factory.getWorker(Mockito.any(), Mockito.anyInt(), Mockito.any(), Mockito.any(), Mockito.any())).thenReturn(mockWorker);
         return factory;
     }
@@ -192,24 +198,31 @@ public class WorkerCoreTest
     }
 
 
-    private WorkerFactory getSlowWorkerFactory(final CountDownLatch latch)
+    private WorkerFactory getSlowWorkerFactory(final CountDownLatch latch, final TestWorkerTask task, final Codec codec)
         throws WorkerException
     {
         WorkerFactory factory = Mockito.mock(WorkerFactory.class);
-        Worker mockWorker = new SlowWorker(QUEUE_OUT, latch);
+        Worker mockWorker = new SlowWorker(task, QUEUE_OUT, codec, latch);
         Mockito.when(factory.getWorker(Mockito.any(), Mockito.anyInt(), Mockito.any(), Mockito.any(), Mockito.any())).thenReturn(mockWorker);
         return factory;
     }
 
 
-    private Worker getWorker()
+    private Worker getWorker(final TestWorkerTask task, final Codec codec)
     {
-        return new Worker(QUEUE_OUT)
+        return new Worker<TestWorkerTask, TestWorkerResult>(task, QUEUE_OUT, codec)
         {
             @Override
             public WorkerResponse doWork()
+                throws WorkerException
             {
-                return createSuccessResult(SUCCESS_BYTES, SUCCESS_BYTES);
+                try {
+                    TestWorkerResult result = new TestWorkerResult();
+                    result.setResultString(SUCCESS);
+                    return createSuccessResult(result, SUCCESS.getBytes(StandardCharsets.UTF_8));
+                } catch (CodecException e) {
+                    throw new WorkerException("Failed to create result", e);
+                }
             }
 
 
@@ -224,13 +237,6 @@ public class WorkerCoreTest
             public int getWorkerApiVersion()
             {
                 return WORKER_API_VER;
-            }
-
-
-            @Override
-            protected byte[] getGeneralFailureData()
-            {
-                return EXCEPTION_BYTES;
             }
         };
     }
@@ -340,41 +346,15 @@ public class WorkerCoreTest
     }
 
 
-    private class TestWorkerJob
-    {
-        private String data = "test123";
 
-
-        public TestWorkerJob() { }
-
-
-        public TestWorkerJob(final String input)
-        {
-            this.data = input;
-        }
-
-
-        public String getData()
-        {
-            return data;
-        }
-
-
-        public void setData(final String data)
-        {
-            this.data = data;
-        }
-    }
-
-
-    private static class SlowWorker extends Worker
+    private class SlowWorker extends Worker<TestWorkerTask, TestWorkerResult>
     {
         private final CountDownLatch latch;
 
 
-        public SlowWorker(final String resultQueue, final CountDownLatch latch)
+        public SlowWorker(final TestWorkerTask task, final String resultQueue, final Codec codec, final CountDownLatch latch)
         {
-            super(resultQueue);
+            super(task, resultQueue, codec);
             this.latch = Objects.requireNonNull(latch);
         }
 
@@ -386,11 +366,15 @@ public class WorkerCoreTest
             try {
                 System.out.println("Starting test work");
                 Thread.sleep(10000);
-                return createSuccessResult(SUCCESS_BYTES, SUCCESS_BYTES);
+                TestWorkerResult result = new TestWorkerResult();
+                result.setResultString(SUCCESS);
+                return createSuccessResult(result);
             } catch (InterruptedException e) {
                 System.out.println("Test work interrupted");
                 latch.countDown();
                 throw e;
+            } catch (CodecException e) {
+                throw new WorkerException("Failed to create result", e);
             }
         }
 
@@ -406,13 +390,6 @@ public class WorkerCoreTest
         public int getWorkerApiVersion()
         {
             return WORKER_API_VER;
-        }
-
-
-        @Override
-        protected byte[] getGeneralFailureData()
-        {
-            return EXCEPTION_BYTES;
         }
     }
 }

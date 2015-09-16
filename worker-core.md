@@ -459,9 +459,14 @@
     @Override
     public Worker getWorker(String classifier, int version, TaskStatus status,
                             byte[] data, byte[] context)
-        throws WorkerException
+        throws InvalidTaskException
     {
-        return new TestWorker(data, codec, sleepTime, resultQueue);
+        try {
+            TestWorkerTask task = codec.deserialise(data, TestWorkerTask.class);
+            return new TestWorker(task, codec, sleepTime, resultQueue);
+        } catch (CodecException e) {
+            throw new InvalidTaskException("Invalid task data", e);
+        }
     }
 
 
@@ -543,9 +548,8 @@
  look like - we've defined what it does, what the input and output should be,
  and even what the constructor should look like. In addition, the `Worker` base
  class enforces us to provide some methods. In essence the main part is that
- the method `doWork()` will return a `TaskResultStatus`, and that our worker
- will set its result using `setResultData(byte[])` before returning from the
- `doWork()` method. So here is our worker:
+ the method `doWork()` will return a `WorkerResponse`. There are various
+ utility methods to aid in creating these responses, as demonstrated here:
 
 ```
  package com.hpe.caf.test.worker;
@@ -561,29 +565,19 @@
  import java.util.Objects;
 
 
- public class TestWorker extends Worker
+ public class TestWorker extends Worker<TestWorkerTask, TestWorkerResult>
  {
     private final long sleepTime;
     private final String input;
-    private final Codec codec;
-    private final byte[] failedResult;
 
 
-    public TestWorker(final byte[] taskData, final Codec codec, final long sleepTime,
+    public TestWorker(final TestWorkerTask task, final Codec codec, final long sleepTime,
                       final String resultQueue)
         throws WorkerException
     {
-        super(resultQueue);
-        this.codec = Objects.requireNonNull(codec);
+        super(task, resultQueue, codec);
         this.sleepTime = sleepTime;
-        try {
-            TestWorkerTask task =
-                codec.deserialise(taskData, TestWorkerTask.class);
-            this.input = Objects.requireNonNull(task.getTaskString());
-            this.failedResult = codec.serialise(createResultObject("failed"));
-        } catch ( CodecException e ) {
-            throw new WorkerException("Cannot create TestWorker", e);
-        }
+        this.input = Objects.requireNonNull(getTask().getTaskString());
     }
 
 
@@ -597,11 +591,10 @@
     {
         try {
             String output = input.toUpperCase();
-            byte[] data = codec.serialise(createResultObject(output));
             Thread.sleep(sleepTime);
-            return createSuccessResult(data);
-        } catch ( CodecException e) {
-            throw new WorkerException("Failed to perform work", e);
+            return createSuccessResult(createResultObject(output));
+        } catch (CodecException e) {
+            throw new WorkerException("Failed to create result", e);
         }
     }
 
@@ -620,13 +613,6 @@
     }
 
 
-    @Override
-    protected byte[] getGeneralFailureData()
-    {
-        return this.failedResult;
-    }
-
-
     private TestWorkerResult createResultObject(final String str)
     {
         TestWorkerResult res = new TestWorkerResult();
@@ -640,9 +626,7 @@
  input or output messages that we handle, we should increase this number.
 
  The main point here is that we create everything we possibly can to ensure
- sensible operation of our `Worker` in the constructor. This includes the
- result to be sent back in case our `doWork()` operation fails in some
- unexpected way.
+ sensible operation of our `Worker` in the constructor.
 
  All Workers should be mindful for the Thread interrupt flag. If the Worker
  receives an `InterruptedException` it should propagate this. Periodically,

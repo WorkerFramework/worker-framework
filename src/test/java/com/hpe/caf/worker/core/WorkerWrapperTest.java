@@ -1,12 +1,15 @@
 package com.hpe.caf.worker.core;
 
 
+import com.hpe.caf.api.Codec;
+import com.hpe.caf.api.CodecException;
 import com.hpe.caf.api.ServicePath;
 import com.hpe.caf.api.worker.TaskMessage;
 import com.hpe.caf.api.worker.TaskStatus;
 import com.hpe.caf.api.worker.Worker;
 import com.hpe.caf.api.worker.WorkerException;
 import com.hpe.caf.api.worker.WorkerResponse;
+import com.hpe.caf.codec.JsonCodec;
 import org.junit.Assert;
 import org.junit.Test;
 import org.mockito.Mockito;
@@ -22,8 +25,8 @@ import java.util.concurrent.TimeUnit;
 
 public class WorkerWrapperTest
 {
-    private static final byte[] SUCCESS_BYTES = "success".getBytes(StandardCharsets.UTF_8);
-    private static final byte[] EXCEPTION_BYTES = "exception".getBytes(StandardCharsets.UTF_8);
+    private static final String SUCCESS = "success";
+    private static final byte[] SUCCESS_BYTES = SUCCESS.getBytes(StandardCharsets.UTF_8);
     private static final String QUEUE_OUT = "out";
     private static final String QUEUE_REDIRECT = "redirect";
     private static final String WORKER_NAME = "unitTest";
@@ -35,9 +38,10 @@ public class WorkerWrapperTest
 
     @Test
     public void testSuccess()
-        throws WorkerException, InterruptedException, InvalidNameException
+        throws WorkerException, InterruptedException, InvalidNameException, CodecException
     {
-        Worker happyWorker = getWorker();
+        Codec codec = new JsonCodec();
+        Worker happyWorker = getWorker(new TestWorkerTask(), codec);
         String queueMsgId = "success";
         CountDownLatch latch = new CountDownLatch(1);
         TestCallback callback = new TestCallback(latch);
@@ -50,7 +54,8 @@ public class WorkerWrapperTest
         latch.await(5, TimeUnit.SECONDS);
         Assert.assertEquals(queueMsgId, callback.getQueueMsgId());
         Assert.assertEquals(TaskStatus.RESULT_SUCCESS, callback.getStatus());
-        Assert.assertArrayEquals(SUCCESS_BYTES, callback.getResultData());
+        TestWorkerResult res = codec.deserialise(callback.getResultData(), TestWorkerResult.class);
+        Assert.assertEquals(SUCCESS, res.getResultString());
         Assert.assertEquals(TASK_ID, callback.getTaskId());
         Assert.assertEquals(QUEUE_OUT, callback.getQueue());
         Assert.assertTrue(callback.getContext().containsKey(path.toString()));
@@ -62,7 +67,8 @@ public class WorkerWrapperTest
     public void testNewTask()
         throws WorkerException, InterruptedException, InvalidNameException
     {
-        Worker happyWorker = getRedirectWorker();
+        Codec codec = new JsonCodec();
+        Worker happyWorker = getRedirectWorker(new TestWorkerTask(), codec);
         String queueMsgId = "success";
         CountDownLatch latch = new CountDownLatch(1);
         TestCallback callback = new TestCallback(latch);
@@ -82,11 +88,12 @@ public class WorkerWrapperTest
     }
 
 
-    @Test
+    @Test(expected = WorkerException.class)
     public void testException()
-        throws WorkerException, InterruptedException, InvalidNameException
+        throws WorkerException, InterruptedException, InvalidNameException, CodecException
     {
-        Worker happyWorker = Mockito.spy(getWorker());
+        Codec codec = new JsonCodec();
+        Worker happyWorker = Mockito.spy(getWorker(new TestWorkerTask(), codec));
         Mockito.when(happyWorker.doWork()).thenThrow(WorkerException.class);
         String queueMsgId = "exception";
         CountDownLatch latch = new CountDownLatch(1);
@@ -94,7 +101,7 @@ public class WorkerWrapperTest
         TaskMessage m = new TaskMessage();
         ServicePath path = new ServicePath(SERVICE_NAME);
         Map<String, byte[]> contextMap = new HashMap<>();
-        contextMap.put(path.toString(), EXCEPTION_BYTES);
+        contextMap.put(path.toString(), SUCCESS_BYTES);
         m.setTaskId(TASK_ID);
         m.setContext(contextMap);
         WorkerWrapper wrapper = new WorkerWrapper(m, queueMsgId, happyWorker, callback, path);
@@ -103,11 +110,11 @@ public class WorkerWrapperTest
         latch.await(5, TimeUnit.SECONDS);
         Assert.assertEquals(queueMsgId, callback.getQueueMsgId());
         Assert.assertEquals(TaskStatus.RESULT_EXCEPTION, callback.getStatus());
-        Assert.assertEquals(EXCEPTION_BYTES, callback.getResultData());
         Assert.assertEquals(TASK_ID, callback.getTaskId());
         Assert.assertEquals(QUEUE_OUT, callback.getQueue());
         Assert.assertTrue(callback.getContext().containsKey(path.toString()));
-        Assert.assertArrayEquals(EXCEPTION_BYTES, callback.getContext().get(path.toString()));
+        Assert.assertArrayEquals(SUCCESS_BYTES, callback.getContext().get(path.toString()));
+        throw codec.deserialise(callback.getResultData(), WorkerException.class);
     }
 
 
@@ -115,7 +122,8 @@ public class WorkerWrapperTest
     public void testInterrupt()
         throws WorkerException, InterruptedException, InvalidNameException
     {
-        Worker happyWorker = Mockito.spy(getWorker());
+        Codec codec = new JsonCodec();
+        Worker happyWorker = Mockito.spy(getWorker(new TestWorkerTask(), codec));
         Mockito.when(happyWorker.doWork()).thenAnswer(invocationOnMock -> {
             throw new InterruptedException("interrupting!");
         });
@@ -123,10 +131,7 @@ public class WorkerWrapperTest
         CompleteTaskCallback callback = Mockito.mock(CompleteTaskCallback.class);
         TaskMessage m = new TaskMessage();
         ServicePath path = new ServicePath(SERVICE_NAME);
-        Map<String, byte[]> contextMap = new HashMap<>();
-        contextMap.put(path.toString(), EXCEPTION_BYTES);
         m.setTaskId(TASK_ID);
-        m.setContext(contextMap);
         WorkerWrapper wrapper = new WorkerWrapper(m, queueMsgId, happyWorker, callback, path);
         Thread t = new Thread(wrapper);
         t.start();
@@ -135,14 +140,21 @@ public class WorkerWrapperTest
     }
 
 
-    private Worker getWorker()
+    private Worker getWorker(final TestWorkerTask task, final Codec codec)
     {
-        return new Worker(QUEUE_OUT)
+        return new Worker<TestWorkerTask, TestWorkerResult>(task, QUEUE_OUT, codec)
         {
             @Override
             public WorkerResponse doWork()
+                throws WorkerException
             {
-                return createSuccessResult(SUCCESS_BYTES, SUCCESS_BYTES);
+                try {
+                    TestWorkerResult result = new TestWorkerResult();
+                    result.setResultString(SUCCESS);
+                    return createSuccessResult(result, SUCCESS_BYTES);
+                } catch (CodecException e) {
+                    throw new WorkerException("Failed to create result", e);
+                }
             }
 
 
@@ -158,20 +170,13 @@ public class WorkerWrapperTest
             {
                 return WORKER_API_VER;
             }
-
-
-            @Override
-            protected byte[] getGeneralFailureData()
-            {
-                return EXCEPTION_BYTES;
-            }
         };
     }
 
 
-    private Worker getRedirectWorker()
+    private Worker getRedirectWorker(final TestWorkerTask task, final Codec codec)
     {
-        return new Worker(QUEUE_OUT)
+        return new Worker<TestWorkerTask, TestWorkerResult>(task, QUEUE_OUT, codec)
         {
             @Override
             public WorkerResponse doWork()
@@ -191,13 +196,6 @@ public class WorkerWrapperTest
             public int getWorkerApiVersion()
             {
                 return WORKER_API_VER;
-            }
-
-
-            @Override
-            protected byte[] getGeneralFailureData()
-            {
-                return EXCEPTION_BYTES;
             }
         };
     }
