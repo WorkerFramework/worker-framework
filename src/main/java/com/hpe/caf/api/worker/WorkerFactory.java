@@ -23,4 +23,10 @@ public abstract class WorkerFactory implements HealthReporter
     public abstract Worker getWorker(final String classifier, final int version, final TaskStatus status,
                                      final byte[] data, final byte[] context)
         throws TaskRejectedException, InvalidTaskException;
+
+
+    /**
+     * @return the queue to put responses to invalid tasks upon, may be the same as the Worker's result queue
+     */
+    public abstract String getInvalidTaskQueue();
 }

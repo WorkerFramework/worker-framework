@@ -15,6 +15,10 @@ public enum TaskStatus
      */
     NEW_TASK,
     /**
+     * The task data failed validation or could not be understood.
+     */
+    INVALID_TASK,
+    /**
      * The worker succeeded at performing a task.
      */
     RESULT_SUCCESS,
