@@ -7,6 +7,7 @@ import com.hpe.caf.api.ConfigurationException;
 import com.hpe.caf.api.ConfigurationSource;
 import com.hpe.caf.api.HealthResult;
 import com.hpe.caf.api.ServicePath;
+import com.hpe.caf.api.worker.InvalidTaskException;
 import com.hpe.caf.api.worker.QueueException;
 import com.hpe.caf.api.worker.TaskCallback;
 import com.hpe.caf.api.worker.TaskMessage;
@@ -25,6 +26,8 @@ import org.mockito.Mockito;
 
 import javax.naming.InvalidNameException;
 import java.nio.charset.StandardCharsets;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Objects;
 import java.util.UUID;
 import java.util.concurrent.BlockingQueue;
@@ -77,6 +80,56 @@ public class WorkerCoreTest
     }
 
 
+    @Test(expected = InvalidTaskException.class)
+    public void testInvalidWrapper()
+        throws InvalidNameException, WorkerException, QueueException, CodecException
+    {
+        BlockingQueue<byte[]> q = new LinkedBlockingQueue<>();
+        Codec codec = new JsonCodec();
+        ThreadPoolExecutor tpe = WorkerApplication.getDefaultThreadPoolExecutor(5);
+        ConfigurationSource config = Mockito.mock(ConfigurationSource.class);
+        ServicePath path = new ServicePath(SERVICE_PATH);
+        TestWorkerQueue queue = new TestWorkerQueueProvider(q).getWorkerQueue(config, 50);
+        WorkerCore core = new WorkerCore(codec, tpe, queue, getWorkerFactory(), path);
+        core.start();
+        byte[] stuff = codec.serialise("nonsense");
+        queue.submitTask(QUEUE_MSG_ID, stuff);
+    }
+
+
+    @Test
+    public void testInvalidTask()
+        throws QueueException, InvalidNameException, WorkerException, CodecException, InterruptedException
+    {
+        BlockingQueue<byte[]> q = new LinkedBlockingQueue<>();
+        Codec codec = new JsonCodec();
+        ThreadPoolExecutor tpe = WorkerApplication.getDefaultThreadPoolExecutor(5);
+        ConfigurationSource config = Mockito.mock(ConfigurationSource.class);
+        ServicePath path = new ServicePath(SERVICE_PATH);
+        TestWorkerQueue queue = new TestWorkerQueueProvider(q).getWorkerQueue(config, 50);
+        WorkerCore core = new WorkerCore(codec, tpe, queue, getInvalidTaskWorkerFactory(), path);
+        core.start();
+        TaskMessage tm = getTaskMessage(codec, WORKER_NAME);
+        tm.setTaskData(codec.serialise("invalid task data"));
+        Map<String, byte[]> context = new HashMap<>();
+        String testContext = "test";
+        byte[] testContextData = testContext.getBytes(StandardCharsets.UTF_8);
+        context.put(testContext, testContextData);
+        tm.setContext(context);
+        byte[] stuff = codec.serialise(tm);
+        queue.submitTask(QUEUE_MSG_ID, stuff);
+        byte[] result = q.poll(5000, TimeUnit.MILLISECONDS);
+        Assert.assertNotNull(result);
+        TaskMessage taskMessage = codec.deserialise(result, TaskMessage.class);
+        Assert.assertEquals(TaskStatus.INVALID_TASK, taskMessage.getTaskStatus());
+        Assert.assertEquals(WORKER_NAME, taskMessage.getTaskClassifier());
+        Assert.assertEquals(WORKER_API_VER, taskMessage.getTaskApiVersion());
+        Assert.assertTrue(taskMessage.getContext().containsKey(testContext));
+        Assert.assertArrayEquals(testContextData, taskMessage.getContext().get(testContext));
+        Assert.assertEquals(QUEUE_OUT, queue.getLastQueue());
+    }
+
+
     /** Send three tasks into a WorkerCore with only two threads, abort them all, check the running ones are interrupted and the other one never starts **/
     @Test
     public void testAbortTasks()
@@ -126,6 +179,15 @@ public class WorkerCoreTest
         WorkerFactory factory = Mockito.mock(WorkerFactory.class);
         Worker mockWorker = getWorker();
         Mockito.when(factory.getWorker(Mockito.any(), Mockito.anyInt(), Mockito.any(), Mockito.any(), Mockito.any())).thenReturn(mockWorker);
+        return factory;
+    }
+
+    private WorkerFactory getInvalidTaskWorkerFactory()
+        throws WorkerException
+    {
+        WorkerFactory factory = Mockito.mock(WorkerFactory.class);
+        Mockito.when(factory.getWorker(Mockito.any(), Mockito.anyInt(), Mockito.any(), Mockito.any(), Mockito.any())).thenThrow(InvalidTaskException.class);
+        Mockito.when(factory.getInvalidTaskQueue()).thenReturn(QUEUE_OUT);
         return factory;
     }
 
@@ -197,6 +259,7 @@ public class WorkerCoreTest
     {
         private TaskCallback callback;
         private final BlockingQueue<byte[]> results;
+        private String lastQueue;
 
 
 
@@ -219,6 +282,7 @@ public class WorkerCoreTest
         public void publish(String acknowledgeId, byte[] taskMessage, String targetQueue)
             throws QueueException
         {
+            this.lastQueue = targetQueue;
             results.offer(taskMessage);
         }
 
@@ -252,6 +316,12 @@ public class WorkerCoreTest
         public HealthResult healthCheck()
         {
             return HealthResult.RESULT_HEALTHY;
+        }
+
+
+        public String getLastQueue()
+        {
+            return lastQueue;
         }
 
 

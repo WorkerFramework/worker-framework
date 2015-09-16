@@ -15,6 +15,7 @@ import com.hpe.caf.api.worker.WorkerQueue;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.util.Map;
 import java.util.Objects;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
@@ -43,7 +44,7 @@ public class WorkerCore
     {
         CompleteTaskCallback taskCallback =  new ApplicationTaskCallback(codec, queue, stats, tasks);
         this.threadPool = Objects.requireNonNull(pool);
-        this.callback = new ApplicationQueueCallback(codec, stats, threadPool, new WorkerWrapperFactory(path, taskCallback, factory), tasks);
+        this.callback = new ApplicationQueueCallback(codec, stats, new WorkerExecutor(path, taskCallback, factory, tasks, threadPool), tasks);
         this.workerQueue = Objects.requireNonNull(queue);
     }
 
@@ -121,17 +122,15 @@ public class WorkerCore
     {
         private final Codec codec;
         private final WorkerStats stats;
-        private final ThreadPoolExecutor threadPool;
-        private final WorkerWrapperFactory wrapperFactory;
-        private final ConcurrentMap<String, Future<?>> taskMap;
+        private final WorkerExecutor wrapperFactory;
+        private final Map<String, Future<?>> taskMap;
 
 
-        public ApplicationQueueCallback(final Codec codec, final WorkerStats stats, final ThreadPoolExecutor pool, final WorkerWrapperFactory factory,
-                                        final ConcurrentMap<String, Future<?>> tasks)
+        public ApplicationQueueCallback(final Codec codec, final WorkerStats stats, final WorkerExecutor factory, final Map<String, Future<?>> tasks)
         {
             this.codec = Objects.requireNonNull(codec);
             this.stats = Objects.requireNonNull(stats);
-            this.threadPool = Objects.requireNonNull(pool);
+
             this.wrapperFactory = Objects.requireNonNull(factory);
             this.taskMap = Objects.requireNonNull(tasks);
         }
@@ -152,7 +151,7 @@ public class WorkerCore
                 stats.incrementTasksReceived();
                 TaskMessage tm = codec.deserialise(taskMessage, TaskMessage.class);
                 LOG.debug("Received task {} (message id: {})", tm.getTaskId(), queueMsgId);
-                execute(wrapperFactory.getWorkerWrapper(tm, queueMsgId), queueMsgId);
+                wrapperFactory.executeTask(tm, queueMsgId);
             } catch (CodecException e) {
                 stats.incrementTasksRejected();
                 throw new InvalidTaskException("Queue data did not deserialise to a TaskMessage", e);
@@ -174,23 +173,6 @@ public class WorkerCore
                 stats.incrementTasksAborted();
             });
             taskMap.clear();
-        }
-
-
-        /**
-         * Pass off a runnable task to the backend, considering a hard upper bound to the internal backlog.
-         * @param wrapper the new task to run
-         * @param id a unique task id
-         * @throws TaskRejectedException if no more tasks can be added to the internal backlog
-         */
-        private void execute(final Runnable wrapper, final String id)
-            throws TaskRejectedException
-        {
-            if ( threadPool.getQueue().size() < threadPool.getCorePoolSize() * 10 ) {
-                taskMap.put(id, threadPool.submit(wrapper));
-            } else {
-                throw new TaskRejectedException("Maximum internal task backlog exceeded");
-            }
         }
     }
 
