@@ -214,6 +214,19 @@ public abstract class Worker<T,V>
 
 
     /**
+     * Utility method to check the interrupted flag of the current Thread and throw InterruptedException if true.
+     * @throws InterruptedException if the current Thread is interrupted
+     */
+    protected final void checkIfInterrupted()
+        throws InterruptedException
+    {
+        if ( Thread.currentThread().isInterrupted() ) {
+            throw new InterruptedException("Worker interrupted");
+        }
+    }
+
+
+    /**
      * @param t the Throwable to attempt to serialise
      * @return a byte array that is either the serialised Throwable or empty
      */
