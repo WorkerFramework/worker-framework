@@ -15,7 +15,6 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Objects;
 import java.util.concurrent.atomic.AtomicInteger;
-import java.util.concurrent.atomic.AtomicLong;
 
 
 /**
@@ -29,8 +28,6 @@ public class FileSystemDataStore extends DataStore
     private final AtomicInteger errors = new AtomicInteger(0);
     private final AtomicInteger numRx = new AtomicInteger(0);
     private final AtomicInteger numTx = new AtomicInteger(0);
-    private final AtomicLong bytesRx = new AtomicLong(0);
-    private final AtomicLong bytesTx = new AtomicLong(0);
     private final DataStoreMetricsReporter metrics = new FileSystemDataStoreMetricsReporter();
     private static final Logger LOG = LoggerFactory.getLogger(FileSystemDataStore.class);
 
@@ -137,20 +134,6 @@ public class FileSystemDataStore extends DataStore
         public int getErrors()
         {
             return errors.get();
-        }
-
-
-        @Override
-        public long getBytesStored()
-        {
-            return bytesTx.get();
-        }
-
-
-        @Override
-        public long getBytesRetrieved()
-        {
-            return bytesRx.get();
         }
     }
 }
