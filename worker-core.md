@@ -301,14 +301,16 @@
  Input and output data represented by Java classes needs to be easily
  serialisable by implementations of Codec, so each member variable should have
  an appropriate getter and setter according to Java standards. For most Codecs,
- it will also need a no-argument constructor. Our input message will look a
- bit like this:
+ it will also need a no-argument constructor. Because of the serialisation,
+ the input and output messages should not extend other classes, and to ensure
+ this, the classes should also be declared final. Hence the input message
+ will look a bit like this:
 
 ```
  package com.hpe.caf.test.worker.shared;
 
 
- public class TestWorkerTask
+ public final class TestWorkerTask
  {
     private String taskString;
 
@@ -335,7 +337,7 @@
  package com.hpe.caf.test.worker.shared;
 
 
- public class TestWorkerResult
+ public final class TestWorkerResult
  {
     private String resultString;
 
@@ -362,7 +364,8 @@
  our worker. We only have one thing here, but again since the configuration
  objects that come from a `ConfigurationSource` need to be deserialised, they
  should have a no-argument constructor and getters and setters just like the
- message objects we created before. Here is our configuration class:
+ message objects we created before. Here is our configuration class, note this
+ is also final as they are typically serialised:
 
 ```
  package com.hpe.caf.test.worker;
@@ -371,7 +374,7 @@
  import javax.validation.constraints.Size;
 
 
- public class TestWorkerConfiguration
+ public final class TestWorkerConfiguration
  {
     private long sleepTime;
     @NotNull
@@ -448,7 +451,8 @@
     private final String resultQueue;
 
 
-    public TestWorkerFactory(final Codec codec, final long sleepTime, final String resultQueue)
+    public TestWorkerFactory(final Codec codec, final long sleepTime,
+                             final String resultQueue)
     {
         this.codec = Objects.requireNonNull(codec);
         this.sleepTime = sleepTime;
@@ -517,7 +521,8 @@
                 config.getConfiguration(TestWorkerConfiguration.class);
             long sleepTime = config.getSleepTime();
             String resultQueue = config.getResultQueue();
-            return new TestWorkerFactory(codec, testConfig, sleepTime, resultQueue);
+            return new TestWorkerFactory(codec, testConfig,
+                                         sleepTime, resultQueue);
         } catch ( ConfigurationException e ) {
             throw new WorkerException("Failed to create factory", e);
         }
@@ -571,8 +576,8 @@
     private final String input;
 
 
-    public TestWorker(final TestWorkerTask task, final Codec codec, final long sleepTime,
-                      final String resultQueue)
+    public TestWorker(final TestWorkerTask task, final Codec codec,
+                      final long sleepTime, final String resultQueue)
         throws WorkerException
     {
         super(task, resultQueue, codec);
