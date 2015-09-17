@@ -142,8 +142,6 @@ public final class WorkerApplication extends Application<WorkerConfiguration>
             metrics.register(MetricRegistry.name("store.writes"), (Gauge<Integer>) store.getMetrics()::getStoreRequests);
             metrics.register(MetricRegistry.name("store.reads"), (Gauge<Integer>) store.getMetrics()::getRetrieveRequests);
             metrics.register(MetricRegistry.name("store.errors"), (Gauge<Integer>) store.getMetrics()::getErrors);
-            metrics.register(MetricRegistry.name("store.bytesRx"), (Gauge<Long>) store.getMetrics()::getBytesRetrieved);
-            metrics.register(MetricRegistry.name("store.bytesTx"), (Gauge<Long>) store.getMetrics()::getBytesStored);
         }
         if ( core.getWorkerQueue().getMetrics() != null ) {
             metrics.register(MetricRegistry.name("queue.receieved"), (Gauge<Integer>) core.getWorkerQueue().getMetrics()::getMessagesReceived);
