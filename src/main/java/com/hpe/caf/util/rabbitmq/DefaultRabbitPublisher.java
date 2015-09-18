@@ -16,6 +16,7 @@ public class DefaultRabbitPublisher extends EventPoller<QueuePublisher>
     /**
      * Create a new DefaultRabbitPublisher
      * @param events the internal queue of events to handle
+     * @param pubImpl the implementation of the QueuePublisher
      */
     public DefaultRabbitPublisher(final BlockingQueue<Event<QueuePublisher>> events, final QueuePublisher pubImpl)
     {

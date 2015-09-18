@@ -18,6 +18,7 @@ public class DefaultRabbitConsumer extends RabbitConsumer<QueueConsumer>
     /**
      * Create a new DefaultRabbitConsumer.
      * @param events the queue of events to handle
+     * @param consumer the implementation of the QueueConsumer
      */
     public DefaultRabbitConsumer(final BlockingQueue<Event<QueueConsumer>> events, final QueueConsumer consumer)
     {
