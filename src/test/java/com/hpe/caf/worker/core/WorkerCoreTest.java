@@ -209,6 +209,7 @@ public class WorkerCoreTest
 
 
     private Worker getWorker(final TestWorkerTask task, final Codec codec)
+        throws InvalidTaskException
     {
         return new Worker<TestWorkerTask, TestWorkerResult>(task, QUEUE_OUT, codec)
         {
@@ -353,6 +354,7 @@ public class WorkerCoreTest
 
 
         public SlowWorker(final TestWorkerTask task, final String resultQueue, final Codec codec, final CountDownLatch latch)
+            throws WorkerException
         {
             super(task, resultQueue, codec);
             this.latch = Objects.requireNonNull(latch);

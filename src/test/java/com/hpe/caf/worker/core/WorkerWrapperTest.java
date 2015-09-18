@@ -4,6 +4,7 @@ package com.hpe.caf.worker.core;
 import com.hpe.caf.api.Codec;
 import com.hpe.caf.api.CodecException;
 import com.hpe.caf.api.ServicePath;
+import com.hpe.caf.api.worker.InvalidTaskException;
 import com.hpe.caf.api.worker.TaskMessage;
 import com.hpe.caf.api.worker.TaskStatus;
 import com.hpe.caf.api.worker.Worker;
@@ -141,6 +142,7 @@ public class WorkerWrapperTest
 
 
     private Worker getWorker(final TestWorkerTask task, final Codec codec)
+        throws InvalidTaskException
     {
         return new Worker<TestWorkerTask, TestWorkerResult>(task, QUEUE_OUT, codec)
         {
@@ -175,6 +177,7 @@ public class WorkerWrapperTest
 
 
     private Worker getRedirectWorker(final TestWorkerTask task, final Codec codec)
+        throws InvalidTaskException
     {
         return new Worker<TestWorkerTask, TestWorkerResult>(task, QUEUE_OUT, codec)
         {
