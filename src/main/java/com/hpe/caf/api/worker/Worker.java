@@ -6,7 +6,11 @@ import com.hpe.caf.api.CodecException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import javax.validation.ConstraintViolation;
+import javax.validation.Validation;
+import javax.validation.Validator;
 import java.util.Objects;
+import java.util.Set;
 
 
 /**
@@ -48,16 +52,24 @@ public abstract class Worker<T,V>
 
 
     /**
-     * Create a Worker.
+     * Create a Worker. The input task will be validated.
      * @param task the input task for this Worker to operate on
      * @param resultQueue the reference to the queue that should take results from this type of Worker
      * @param codec used to serialising result data
+     * @throws InvalidTaskException if the input task does not validate successfully
      */
     public Worker(final T task, final String resultQueue, final Codec codec)
+        throws InvalidTaskException
     {
         this.task = Objects.requireNonNull(task);
         this.resultQueue = Objects.requireNonNull(resultQueue);
         this.codec = Objects.requireNonNull(codec);
+        Validator validator = Validation.buildDefaultValidatorFactory().getValidator();
+        Set<ConstraintViolation<T>> violations = validator.validate(task);
+        if ( violations.size() > 0 ) {
+            LOG.error("Task of type {} failed validation due to: {}", task.getClass().getSimpleName(), violations);
+            throw new InvalidTaskException("Task failed validation");
+        }
     }
 
 
