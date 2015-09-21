@@ -77,10 +77,11 @@ public abstract class Worker<T,V>
      * Start the work on a task.
      * @return the result of the worker operation, and appropriate result data
      * @throws WorkerException if the worker cannot continue with this task for any reason
+     * @throws CodecException if the Worker-specific result data cannot be serialised
      * @throws InterruptedException if the worker is interrupted
      */
      public abstract WorkerResponse doWork()
-        throws WorkerException, InterruptedException;
+        throws WorkerException, CodecException, InterruptedException;
 
 
     /**
