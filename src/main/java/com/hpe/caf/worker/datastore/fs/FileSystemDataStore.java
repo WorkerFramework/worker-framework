@@ -10,6 +10,7 @@ import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.OutputStream;
 import java.nio.file.FileSystems;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -63,7 +64,7 @@ public class FileSystemDataStore extends DataStore
     /**
      * Read a file from disk in the data directory.
      */
-    public InputStream getData(final String reference)
+    public InputStream getInputStream(final String reference)
             throws DataStoreException
     {
         Objects.requireNonNull(reference);
@@ -93,31 +94,23 @@ public class FileSystemDataStore extends DataStore
 
 
     @Override
-    /**
-     * Write a file to disk in the data directory.
-     */
-    public String putData(final String reference, final InputStream data)
-            throws DataStoreException
+    public DataStoreMetricsReporter getMetrics()
     {
-        Objects.requireNonNull(reference);
-        Objects.requireNonNull(data);
-        try {
-            numTx.incrementAndGet();
-            LOG.debug("Storing {}", reference);
-            Path target = dataStorePath.resolve(reference);
-            Files.copy(data, target);
-            return target.toString();
-        } catch (IOException e) {
-            errors.incrementAndGet();
-            throw new DataStoreException("Failed to store data", e);
-        }
+        return metrics;
     }
 
 
     @Override
-    public DataStoreMetricsReporter getMetrics()
+    public OutputStream getOutputStream(final String reference)
+        throws DataStoreException
     {
-        return metrics;
+        Path target = dataStorePath.resolve(reference);
+        try {
+            return Files.newOutputStream(target);
+        } catch (IOException e) {
+            errors.incrementAndGet();
+            throw new DataStoreException("Failed to get output stream for store", e);
+        }
     }
 
 
