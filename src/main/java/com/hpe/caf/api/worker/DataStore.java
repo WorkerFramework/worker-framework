@@ -13,12 +13,6 @@ import java.io.InputStream;
 public abstract class DataStore implements HealthReporter
 {
     /**
-     * Perform necessary shut down operations.
-     */
-    public abstract void shutdown();
-
-
-    /**
      * Get data by reference
      * @param reference the arbitrary string reference to a piece of data
      * @return the raw data referred to
@@ -26,6 +20,22 @@ public abstract class DataStore implements HealthReporter
      */
     public abstract InputStream getData(final String reference)
         throws DataStoreException;
+
+
+    /**
+     * Get the byte size of some data in the DataStore by reference
+     * @param reference the arbitrary string reference to a piece of data
+     * @return the size in bytes of the data being referred to
+     * @throws DataStoreException if the data store cannot service the requeste
+     */
+    public abstract long getDataSize(final String reference)
+        throws DataStoreException;
+
+
+    /**
+     * @return metrics for the data store
+     */
+    public abstract DataStoreMetricsReporter getMetrics();
 
 
     /**
@@ -40,7 +50,7 @@ public abstract class DataStore implements HealthReporter
 
 
     /**
-     * @return metrics for the data store
+     * Perform necessary shut down operations.
      */
-    public abstract DataStoreMetricsReporter getMetrics();
+    public abstract void shutdown();
 }
