@@ -53,5 +53,6 @@ public class FileSystemDataStoreTest
 
         bos.flush();
         Assert.assertArrayEquals(data, bos.toByteArray());
+        Assert.assertEquals(testData.length(), store.getDataSize(reference));
     }
 }

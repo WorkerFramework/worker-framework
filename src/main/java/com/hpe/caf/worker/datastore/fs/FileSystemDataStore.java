@@ -79,6 +79,20 @@ public class FileSystemDataStore extends DataStore
 
 
     @Override
+    public long getDataSize(final String reference)
+        throws DataStoreException
+    {
+        Objects.requireNonNull(reference);
+        try {
+            return Files.size(dataStorePath.resolve(reference));
+        } catch (IOException e) {
+            errors.incrementAndGet();
+            throw new DataStoreException("Failed to get data size", e);
+        }
+    }
+
+
+    @Override
     /**
      * Write a file to disk in the data directory.
      */
