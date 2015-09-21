@@ -14,7 +14,7 @@ public class FutureEventTest
 {
     @Test
     public void testAsk()
-        throws InterruptedException, ExecutionException, TimeoutException
+        throws Exception
     {
         FutureEvent<TestInterface, Boolean> t = new DummyFutureEvent();
         TestInterface it = Mockito.mock(TestInterface.class);
@@ -33,10 +33,23 @@ public class FutureEventTest
     }
 
 
+    @Test(expected = ExecutionException.class)
+    public void testException()
+        throws Exception
+    {
+        FutureEvent<TestInterface, Boolean> t = new DummyFutureEvent();
+        TestInterface it = Mockito.mock(TestInterface.class);
+        Mockito.when(it.test()).thenThrow(Exception.class);
+        t.handleEvent(it);
+        t.ask().get(1, TimeUnit.SECONDS);
+    }
+
+
     public static class DummyFutureEvent extends FutureEvent<TestInterface, Boolean>
     {
         @Override
         public Boolean getEventResult(final TestInterface target)
+            throws Exception
         {
             return target.test();
         }
@@ -45,6 +58,7 @@ public class FutureEventTest
 
     public interface TestInterface
     {
-        boolean test();
+        boolean test()
+            throws Exception;
     }
 }

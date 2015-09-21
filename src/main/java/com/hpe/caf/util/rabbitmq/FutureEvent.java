@@ -1,6 +1,9 @@
 package com.hpe.caf.util.rabbitmq;
 
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import java.util.concurrent.CompletableFuture;
 
 
@@ -12,6 +15,7 @@ import java.util.concurrent.CompletableFuture;
 public abstract class FutureEvent<T,V> implements Event<T>
 {
     private final CompletableFuture<V> future = new CompletableFuture<>();
+    private static final Logger LOG = LoggerFactory.getLogger(FutureEvent.class);
 
 
     /**
@@ -27,12 +31,18 @@ public abstract class FutureEvent<T,V> implements Event<T>
      * {@inheritDoc}
      *
      * The Event will be marked as complete with the value from getEventResult(T). This can be interrogated
-     * with the CompletableFuture accessible via ask().
+     * with the CompletableFuture accessible via ask(). Any exceptions will also trigger completion of the
+     * Future with completeExceptionally.
      */
     @Override
     public final void handleEvent(final T target)
     {
-        future.complete(getEventResult(target));
+        try {
+            future.complete(getEventResult(target));
+        } catch (Exception e) {
+            LOG.warn("Propagating exception from FutureEvent {}", getClass().getSimpleName(), e);
+            future.completeExceptionally(e);
+        }
     }
 
 
@@ -41,5 +51,6 @@ public abstract class FutureEvent<T,V> implements Event<T>
      * @param target the class to perform an action on
      * @return a result from the triggering of the Event
      */
-    protected abstract V getEventResult(final T target);
+    protected abstract V getEventResult(final T target)
+        throws Exception;
 }
