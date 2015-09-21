@@ -121,7 +121,7 @@ public class WorkerWrapperTest
 
     @Test
     public void testInterrupt()
-        throws WorkerException, InterruptedException, InvalidNameException
+        throws WorkerException, InterruptedException, InvalidNameException, CodecException
     {
         Codec codec = new JsonCodec();
         Worker happyWorker = Mockito.spy(getWorker(new TestWorkerTask(), codec));
