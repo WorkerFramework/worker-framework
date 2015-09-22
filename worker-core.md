@@ -12,18 +12,18 @@
  fit, it is worthwhile taking them into consideration to understand the choices
  made and how it may affect decisions when writing new components for it.
  
- - A worker receives jobs as a single message from a queue
+ - A worker receives a task as a single message from a queue
  - Each worker may handle multiple tasks at once
  - The input queue is set at start-up time
- - For each single message in, a worker must emit one message
+ - For each single task completed, a worker must emit one message
  - A worker can output a result message, or another task message
  - The workers are stateless, and so can be trivially scaled
  - A worker will not lose requests, and gracefully handle failure
  - A worker will provide metrics and healthchecks
  - Input and output messages are wrapped in a fixed container
  - A worker will not accept any new work if a shutdown is triggered
- - A worker will attempt to finish current work if a shutdown is triggered
-    
+ - A worker will abort its current work if interrupted
+
  One of the key aspects of a microservice is that it can be scaled up or down
  to meet demand. This is easiest to do when the worker is stateless. In
  essence, this means a worker should not be aware (or need to be aware) of any
@@ -83,7 +83,7 @@
  The following command-line should start the application:
  
  ```
- java -cp "*" com.hpe.caf.worker.core.WorkerApplication server
+ java -cp "*" com.hpe.caf.worker.core.WorkerApplication server [settings.yaml]
  ```
     
 ### The DataStore component
@@ -110,7 +110,7 @@
  - WorkerQueueMetricsReporter: interface for reporting metrics back to the
   core.
  - WorkerQueueProvider: interface for acquiring a WorkerQueue.
- - NewTaskCallback: interface for representing a callback used by a
+ - TaskCallback: interface for representing a callback used by a
   WorkerQueue when it wishes to register the arrival of a new task with the
   application.
     
@@ -122,7 +122,6 @@
 
  The following classes and interfaces are relevant to the `Worker` component:
  
- - WorkerException: for any Worker specific errors.
  - Worker: abstract class that acts as a base implementation for something that
   does useful work, and returns a WorkerResponse.
  - WorkerFactory: abstract class that implementations are responsible for
@@ -140,14 +139,54 @@
  `WorkerFactory` is free to create the `Worker` however it wishes, but the
  `Worker` must be able to return a WorkerResponse which contains the
  serialised result data once it has completed. Implementations of `Worker`
- should use the utility methods `createSuccessResult(byte[])` or
- `createFailureResult(byte[])` to return results. Serialisation can be done
+ should use the utility methods `createSuccessResult(...)` or
+ `createFailureResult(...)` to return results. Serialisation can be done
  using a `Codec` from the `WorkerFactory`, which is passed through from the
  application itself, or alternatively a `Worker` may use its own method of
  serialisation if it knows the inner message format. A `Worker` can also
  provide some "default" result data in case an unhandled exception is
  encountered.
- 
+
+### Handling errors with workers implementations
+
+ The general following rules should be followed by all Worker implementations:
+
+ - For any explicit failure, prefer to return a failure result, not exceptions
+ - If the input message is not parseable, throw InvalidTaskException
+ - If the task cannot be accepted right now, throw TaskRejectedException
+ - If the Worker receives an InterruptedException, propagate it
+ - If there is a transient error in processing, throw TaskRejectedException
+ - If there is a catastrophic error in processing, throw TaskFailedException
+
+ The `WorkerFactory` should identify whether the task message data is
+ parseable and this is the first opportunity to throw an InvalidTaskException.
+ Once a Worker is created with a task object, the framework will verify the
+ object's constraints (if there are any), which is the second chance to throw
+ InvalidTaskException. The last chance is in the constructor of the `Worker`
+ itself. Any complicated task verficiation rules should be checked there.
+
+ While InvalidTaskException is a non-retryable case, there may be retryable
+ scenarios such as temporary disconnection from a temporary resources such as
+ a database. If you have a health check in your `WorkerFactory` and this is
+ currently failing, you may wish to throw TaskRejectedException, which will
+ push the task back onto the queue. Once inside a `Worker` itself, either the
+ code or the libraries used should be able to tolerate some amount of transient
+ failures in connected resources, but if this still cannot be rectified in a
+ reasonable timeframe then it is also valid to throw TaskRejectedException from
+ inside the `Worker`, with the understanding that any amount of work done so
+ far will be abandoned.
+
+ Throwing TaskFailedException should be a last resort, for situations that
+ should not occur and are not recoverable. Most times, any checked exceptions
+ that are caught and are a valid failure case should log (but not propagate)
+ the exception and then called `createFailureResult(...)` perhaps using a
+ sensible enumeration status code for your task.
+
+ You do not need to handle the following, as the framework will handle it:
+
+ - The input wrapper not being parseable
+ - Connections to the queue dropping
+
  
 ## Creatng a container for a worker
  
