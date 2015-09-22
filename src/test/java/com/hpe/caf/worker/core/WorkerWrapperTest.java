@@ -148,15 +148,10 @@ public class WorkerWrapperTest
         {
             @Override
             public WorkerResponse doWork()
-                throws WorkerException
             {
-                try {
-                    TestWorkerResult result = new TestWorkerResult();
-                    result.setResultString(SUCCESS);
-                    return createSuccessResult(result, SUCCESS_BYTES);
-                } catch (CodecException e) {
-                    throw new WorkerException("Failed to create result", e);
-                }
+                TestWorkerResult result = new TestWorkerResult();
+                result.setResultString(SUCCESS);
+                return createSuccessResult(result, SUCCESS_BYTES);
             }
 
 

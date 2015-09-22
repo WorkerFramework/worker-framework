@@ -215,15 +215,10 @@ public class WorkerCoreTest
         {
             @Override
             public WorkerResponse doWork()
-                throws WorkerException
             {
-                try {
-                    TestWorkerResult result = new TestWorkerResult();
-                    result.setResultString(SUCCESS);
-                    return createSuccessResult(result, SUCCESS.getBytes(StandardCharsets.UTF_8));
-                } catch (CodecException e) {
-                    throw new WorkerException("Failed to create result", e);
-                }
+                TestWorkerResult result = new TestWorkerResult();
+                result.setResultString(SUCCESS);
+                return createSuccessResult(result, SUCCESS.getBytes(StandardCharsets.UTF_8));
             }
 
 
@@ -363,7 +358,7 @@ public class WorkerCoreTest
 
         @Override
         public WorkerResponse doWork()
-            throws WorkerException, InterruptedException
+            throws InterruptedException
         {
             try {
                 System.out.println("Starting test work");
@@ -375,8 +370,6 @@ public class WorkerCoreTest
                 System.out.println("Test work interrupted");
                 latch.countDown();
                 throw e;
-            } catch (CodecException e) {
-                throw new WorkerException("Failed to create result", e);
             }
         }
 
