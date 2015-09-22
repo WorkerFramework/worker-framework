@@ -1,7 +1,5 @@
 # worker-core
 
----
-
  This subproject contains the asynchronous microservice worker applcation
  code and various module implementations that have been designed to work
  with it.
@@ -201,8 +199,6 @@
  - store.writes: the number of write requests to the DataStore.
  - store.reads: the number of read requests to the DataStore.
  - store.errors: the number of errors encounted by the DataStore.
- - store.bytesRx: the number of bytes downloaded from the DataStore.
- - store.bytesTx: the number of bytes uploaded to the DataStore.
  - queue.received: the number of messages received by the WorkerQueue.
  - queue.published: the number of messages published by the WorkerQueue.
  - queue.rejected: the number of messages rejected by the WorkerQueue.
@@ -370,10 +366,13 @@
 ```
  package com.hpe.caf.test.worker;
 
+ import com.hpe.caf.api.Configuration;
+
  import javax.validation.constraints.NotNull;
  import javax.validation.constraints.Size;
 
 
+ @Configuration
  public final class TestWorkerConfiguration
  {
     private long sleepTime;
@@ -425,14 +424,13 @@
 ### Creating the factory and provider
 
  The job of a `WorkerFactory` is to produce a `Worker` given some serailised
- task data which has originated from a `WorkerQueue` of some nature. The base
- class of `WorkerFactory` only enforces we create a `getWorker(TaskMessage)`
- method implementation, which leaves us free to design our own constructor.
+ task data which has originated from a `WorkerQueue` of some nature.
  Since we already have the task data passed in for each task via the
- `getWorker(TaskMessage)` method, the only other things we need is our
+ `getWorker(...)` method, the only other things we need is our
  configured sleep time, and also something (a `Codec`) with which to
- serialise our result to return. So we will make the `WorkerFactory` look like
- this:
+ serialise our result to return. For the purposes of this tutorial, the health
+ check will always return successful, and the invalid task respones will be put
+ onto the same result queue. So the `WorkerFactory` looks like this:
 
 ```
  package com.hpe.caf.test.worker;
@@ -471,6 +469,13 @@
         } catch (CodecException e) {
             throw new InvalidTaskException("Invalid task data", e);
         }
+    }
+
+
+    @Override
+    public String getInvalidTaskQueue()
+    {
+        return resultQueue;
     }
 
 
@@ -592,15 +597,11 @@
     **/
     @Override
     public WorkerResponse doWork()
-        throws WorkerException, InterruptedException
+        throws InterruptedException
     {
-        try {
-            String output = input.toUpperCase();
-            Thread.sleep(sleepTime);
-            return createSuccessResult(createResultObject(output));
-        } catch (CodecException e) {
-            throw new WorkerException("Failed to create result", e);
-        }
+        String output = input.toUpperCase();
+        Thread.sleep(sleepTime);
+        return createSuccessResult(createResultObject(output));
     }
 
 
@@ -637,10 +638,10 @@
  receives an `InterruptedException` it should propagate this. Periodically,
  particularly in long-lived loops, Worker implementations should also check
  the state of the current Thread's intterupt flag via the use of
- `Thread.currentThread().isInterrupted()`. If this is true, it should throw
- an `InterruptedException` as soon as possible. Failure to do this may lead
- to duplicate messages and results being return from the Worker in the case
- of non-standard events such as queue connection abnormalities.
+ `checkIfInterrupted()`, which will throw the necessary exception if required.
+ Failure to do this may lead to duplicate messages and results being return
+ from the Worker in the case of non-standard events such as queue
+ connection abnormalities.
 
 ### Advertising your new Worker to the core microservice application
 
