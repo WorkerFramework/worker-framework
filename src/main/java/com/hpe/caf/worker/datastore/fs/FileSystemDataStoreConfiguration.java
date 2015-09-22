@@ -1,10 +1,13 @@
 package com.hpe.caf.worker.datastore.fs;
 
 
+import com.hpe.caf.api.Configuration;
+
 import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Size;
 
 
+@Configuration
 public class FileSystemDataStoreConfiguration
 {
     /**
