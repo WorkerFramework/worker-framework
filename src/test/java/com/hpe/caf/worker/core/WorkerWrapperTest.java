@@ -6,6 +6,7 @@ import com.hpe.caf.api.CodecException;
 import com.hpe.caf.api.ServicePath;
 import com.hpe.caf.api.worker.InvalidTaskException;
 import com.hpe.caf.api.worker.TaskMessage;
+import com.hpe.caf.api.worker.TaskRejectedException;
 import com.hpe.caf.api.worker.TaskStatus;
 import com.hpe.caf.api.worker.Worker;
 import com.hpe.caf.api.worker.WorkerException;
@@ -129,7 +130,7 @@ public class WorkerWrapperTest
             throw new InterruptedException("interrupting!");
         });
         String queueMsgId = "interrupt";
-        CompleteTaskCallback callback = Mockito.mock(CompleteTaskCallback.class);
+        WorkerCallback callback = Mockito.mock(WorkerCallback.class);
         TaskMessage m = new TaskMessage();
         ServicePath path = new ServicePath(SERVICE_NAME);
         m.setTaskId(TASK_ID);
@@ -138,6 +139,29 @@ public class WorkerWrapperTest
         t.start();
         Thread.sleep(1000);
         Mockito.verify(callback, Mockito.times(0)).complete(Mockito.any(), Mockito.any(), Mockito.any());
+    }
+
+
+    @Test
+    public void testAbandon()
+        throws InvalidTaskException, TaskRejectedException, InterruptedException, InvalidNameException
+    {
+        Codec codec = new JsonCodec();
+        Worker happyWorker = Mockito.spy(getWorker(new TestWorkerTask(), codec));
+        Mockito.when(happyWorker.doWork()).thenAnswer(invocationOnMock -> {
+            throw new TaskRejectedException("bye!");
+        });
+        String queueMsgId = "abandon";
+        CountDownLatch latch = new CountDownLatch(1);
+        TestCallback callback = new TestCallback(latch);
+        TaskMessage m = new TaskMessage();
+        ServicePath path = new ServicePath(SERVICE_NAME);
+        m.setTaskId(TASK_ID);
+        WorkerWrapper wrapper = new WorkerWrapper(m, queueMsgId, happyWorker, callback, path);
+        Thread t = new Thread(wrapper);
+        t.start();
+        latch.await(5, TimeUnit.SECONDS);
+        Assert.assertEquals(queueMsgId, callback.getQueueMsgId());
     }
 
 
@@ -199,7 +223,7 @@ public class WorkerWrapperTest
     }
 
 
-    private final class TestCallback implements CompleteTaskCallback
+    private final class TestCallback implements WorkerCallback
     {
         private String queueMsgId;
         private String taskId;
@@ -227,6 +251,14 @@ public class WorkerWrapperTest
             this.queue = queue;
             this.context = tm.getContext();
             this.classifier = tm.getTaskClassifier();
+            latch.countDown();
+        }
+
+
+        @Override
+        public void abandon(final String queueMsgId)
+        {
+            this.queueMsgId = queueMsgId;
             latch.countDown();
         }
 

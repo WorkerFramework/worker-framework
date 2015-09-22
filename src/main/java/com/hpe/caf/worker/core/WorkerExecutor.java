@@ -23,7 +23,7 @@ import java.util.concurrent.ThreadPoolExecutor;
 public class WorkerExecutor
 {
     private final ServicePath servicePath;
-    private final CompleteTaskCallback callback;
+    private final WorkerCallback callback;
     private final WorkerFactory factory;
     private final Map<String, Future<?>> tasks;
     private final ThreadPoolExecutor threadPool;
@@ -37,7 +37,7 @@ public class WorkerExecutor
      * @param callback the callback the wrappers use when a task completes
      * @param workerFactory the origin of the Worker objects themselves
      */
-    public WorkerExecutor(final ServicePath path, final CompleteTaskCallback callback, final WorkerFactory workerFactory, final Map<String, Future<?>> taskMap,
+    public WorkerExecutor(final ServicePath path, final WorkerCallback callback, final WorkerFactory workerFactory, final Map<String, Future<?>> taskMap,
                           final ThreadPoolExecutor pool)
     {
         this.servicePath = Objects.requireNonNull(path);

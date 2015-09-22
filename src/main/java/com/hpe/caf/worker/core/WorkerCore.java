@@ -42,9 +42,9 @@ public class WorkerCore
 
     public WorkerCore(final Codec codec, final ThreadPoolExecutor pool, final WorkerQueue queue, final WorkerFactory factory, final ServicePath path)
     {
-        CompleteTaskCallback taskCallback =  new ApplicationTaskCallback(codec, queue, stats, tasks);
+        WorkerCallback taskCallback =  new CoreWorkerCallback(codec, queue, stats, tasks);
         this.threadPool = Objects.requireNonNull(pool);
-        this.callback = new ApplicationQueueCallback(codec, stats, new WorkerExecutor(path, taskCallback, factory, tasks, threadPool), tasks);
+        this.callback = new CoreTaskCallback(codec, stats, new WorkerExecutor(path, taskCallback, factory, tasks, threadPool), tasks);
         this.workerQueue = Objects.requireNonNull(queue);
     }
 
@@ -118,7 +118,7 @@ public class WorkerCore
     /**
      * Called by the queue component to register a new task incoming.
      */
-    private static class ApplicationQueueCallback implements TaskCallback
+    private static class CoreTaskCallback implements TaskCallback
     {
         private final Codec codec;
         private final WorkerStats stats;
@@ -126,7 +126,7 @@ public class WorkerCore
         private final Map<String, Future<?>> taskMap;
 
 
-        public ApplicationQueueCallback(final Codec codec, final WorkerStats stats, final WorkerExecutor factory, final Map<String, Future<?>> tasks)
+        public CoreTaskCallback(final Codec codec, final WorkerStats stats, final WorkerExecutor factory, final Map<String, Future<?>> tasks)
         {
             this.codec = Objects.requireNonNull(codec);
             this.stats = Objects.requireNonNull(stats);
@@ -180,7 +180,7 @@ public class WorkerCore
     /**
      * Called by a WorkerWrapper to indicate a task was completed by a worker.
      */
-    private static class ApplicationTaskCallback implements CompleteTaskCallback
+    private static class CoreWorkerCallback implements WorkerCallback
     {
         private final Codec codec;
         private final WorkerQueue workerQueue;
@@ -188,7 +188,7 @@ public class WorkerCore
         private final ConcurrentMap<String, Future<?>> taskMap;
 
 
-        public ApplicationTaskCallback(final Codec codec, final WorkerQueue queue, final WorkerStats stats, final ConcurrentMap<String, Future<?>> tasks)
+        public CoreWorkerCallback(final Codec codec, final WorkerQueue queue, final WorkerStats stats, final ConcurrentMap<String, Future<?>> tasks)
         {
             this.codec = Objects.requireNonNull(codec);
             this.workerQueue = Objects.requireNonNull(queue);
@@ -220,10 +220,18 @@ public class WorkerCore
                     stats.incrementTasksFailed();
                 }
             } catch (CodecException | QueueException e) {
-                LOG.error("Cannot publish data for task {} (message id: {}), rejecting", responseMessage.getTaskId(), queueMsgId, e);
-                workerQueue.rejectTask(queueMsgId);
-                stats.incrementTasksRejected();
+                LOG.error("Cannot publish data for task {}, rejecting", responseMessage.getTaskId(), e);
+                abandon(queueMsgId);
             }
+        }
+
+
+        @Override
+        public void abandon(final String queueMsgId)
+        {
+            LOG.debug("Rejecting message id {}", queueMsgId);
+            workerQueue.rejectTask(queueMsgId);
+            stats.incrementTasksRejected();
         }
     }
 }

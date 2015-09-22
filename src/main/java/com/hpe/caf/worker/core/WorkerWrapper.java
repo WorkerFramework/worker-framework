@@ -4,6 +4,7 @@ package com.hpe.caf.worker.core;
 import com.codahale.metrics.Timer;
 import com.hpe.caf.api.ServicePath;
 import com.hpe.caf.api.worker.TaskMessage;
+import com.hpe.caf.api.worker.TaskRejectedException;
 import com.hpe.caf.api.worker.Worker;
 import com.hpe.caf.api.worker.WorkerResponse;
 import org.slf4j.Logger;
@@ -22,7 +23,7 @@ import java.util.Objects;
 class WorkerWrapper implements Runnable
 {
     private final Worker worker;
-    private final CompleteTaskCallback callback;
+    private final WorkerCallback callback;
     private final TaskMessage message;
     private final String queueMsgId;
     private final ServicePath servicePath;
@@ -30,7 +31,7 @@ class WorkerWrapper implements Runnable
     private static final Logger LOG = LoggerFactory.getLogger(WorkerWrapper.class);
 
 
-    public WorkerWrapper(final TaskMessage message, final String queueMsgId, final Worker worker, final CompleteTaskCallback callback, final ServicePath path)
+    public WorkerWrapper(final TaskMessage message, final String queueMsgId, final Worker worker, final WorkerCallback callback, final ServicePath path)
     {
         this.message = Objects.requireNonNull(message);
         this.queueMsgId = Objects.requireNonNull(queueMsgId);
@@ -54,6 +55,9 @@ class WorkerWrapper implements Runnable
             WorkerResponse response = worker.doWork();
             t.stop();
             doCallback(response);
+        } catch (TaskRejectedException e) {
+            LOG.info("Worker requested to abandon task {} (message id: {})", message.getTaskId(), queueMsgId, e);
+            callback.abandon(queueMsgId);
         } catch (InterruptedException e) {
             LOG.warn("Worker interrupt signalled, not performing callback for task {} (message id: {})", message.getTaskId(), queueMsgId, e);
         } catch (Exception e) {
