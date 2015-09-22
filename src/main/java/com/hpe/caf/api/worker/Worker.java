@@ -76,12 +76,12 @@ public abstract class Worker<T,V>
     /**
      * Start the work on a task.
      * @return the result of the worker operation, and appropriate result data
-     * @throws WorkerException if the worker cannot continue with this task for any reason
-     * @throws CodecException if the Worker-specific result data cannot be serialised
-     * @throws InterruptedException if the worker is interrupted
+     * @throws InterruptedException indicates that the task is being aborted as requested by the framework
+     * @throws TaskRejectedException indicates this Worker wishes to abandon this task and defer its execution
+     * @throws TaskFailedException if the Worker fails in an unrecoverable fashion
      */
      public abstract WorkerResponse doWork()
-        throws WorkerException, CodecException, InterruptedException;
+        throws InterruptedException, TaskRejectedException;
 
 
     /**
@@ -142,10 +142,8 @@ public abstract class Worker<T,V>
      * Utility method for creating a WorkerReponse that represents a successful result.
      * @param result the result from the Worker
      * @return a WorkerResponse that represents a successful result containing the specified task-specific serialised message
-     * @throws CodecException if the result cannot be serialised
      */
     protected final WorkerResponse createSuccessResult(final V result)
-        throws CodecException
     {
         return createSuccessResult(result, null);
     }
@@ -156,13 +154,15 @@ public abstract class Worker<T,V>
      * @param result the result from the Worker
      * @param context the context entries to add to the published message
      * @return a WorkerResponse that represents a successful result containing the specified task-specific serialised message
-     * @throws CodecException if the result cannot be serialised
      */
     protected final WorkerResponse createSuccessResult(final V result, final byte[] context)
-        throws CodecException
     {
-        byte[] data = ( result != null ? getCodec().serialise(result) : new byte[]{} );
-        return new WorkerResponse(getResultQueue(), TaskStatus.RESULT_SUCCESS, data, getWorkerIdentifier(), getWorkerApiVersion(), context);
+        try {
+            byte[] data = ( result != null ? getCodec().serialise(result) : new byte[]{} );
+            return new WorkerResponse(getResultQueue(), TaskStatus.RESULT_SUCCESS, data, getWorkerIdentifier(), getWorkerApiVersion(), context);
+        } catch (CodecException e) {
+            throw new TaskFailedException("Failed to serialise result", e);
+        }
     }
 
 
@@ -170,10 +170,8 @@ public abstract class Worker<T,V>
      * Utility method for creating a WorkerReponse that represents a failed result.
      * @param result the result from the Worker
      * @return a WorkerResponse that represents a failed result containing the specified task-specific serialised message
-     * @throws CodecException if the result cannot be serialised
      */
     protected final WorkerResponse createFailureResult(final V result)
-        throws CodecException
     {
         return createFailureResult(result, null);
     }
@@ -184,13 +182,15 @@ public abstract class Worker<T,V>
      * @param result the result from the Worker
      * @param context the context entries to add to the published message
      * @return a WorkerResponse that represents a failed result containing the specified task-specific serialised message
-     * @throws CodecException if the result cannot be serialised
      */
     protected  final WorkerResponse createFailureResult(final V result, final byte[] context)
-        throws CodecException
     {
-        byte[] data = ( result != null ? getCodec().serialise(result) : new byte[]{} );
-        return new WorkerResponse(getResultQueue(), TaskStatus.RESULT_FAILURE, data, getWorkerIdentifier(), getWorkerApiVersion(), context);
+        try {
+            byte[] data = ( result != null ? getCodec().serialise(result) : new byte[]{} );
+            return new WorkerResponse(getResultQueue(), TaskStatus.RESULT_FAILURE, data, getWorkerIdentifier(), getWorkerApiVersion(), context);
+        } catch (CodecException e) {
+            throw new TaskFailedException("Failed to serialise result", e);
+        }
     }
 
 
