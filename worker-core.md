@@ -147,7 +147,7 @@
  provide some "default" result data in case an unhandled exception is
  encountered.
 
-### Handling errors with workers implementations
+### Handling errors with worker implementations
 
  The general following rules should be followed by all Worker implementations:
 
@@ -179,7 +179,7 @@
  Throwing TaskFailedException should be a last resort, for situations that
  should not occur and are not recoverable. Most times, any checked exceptions
  that are caught and are a valid failure case should log (but not propagate)
- the exception and then called `createFailureResult(...)` perhaps using a
+ the exception and then call `createFailureResult(...)` perhaps using a
  sensible enumeration status code for your task.
 
  You do not need to handle the following, as the framework will handle it:
