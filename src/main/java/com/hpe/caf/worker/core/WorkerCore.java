@@ -123,16 +123,15 @@ public class WorkerCore
     {
         private final Codec codec;
         private final WorkerStats stats;
-        private final WorkerExecutor wrapperFactory;
+        private final WorkerExecutor executor;
         private final Map<String, Future<?>> taskMap;
 
 
-        public CoreTaskCallback(final Codec codec, final WorkerStats stats, final WorkerExecutor factory, final Map<String, Future<?>> tasks)
+        public CoreTaskCallback(final Codec codec, final WorkerStats stats, final WorkerExecutor executor, final Map<String, Future<?>> tasks)
         {
             this.codec = Objects.requireNonNull(codec);
             this.stats = Objects.requireNonNull(stats);
-
-            this.wrapperFactory = Objects.requireNonNull(factory);
+            this.executor = Objects.requireNonNull(executor);
             this.taskMap = Objects.requireNonNull(tasks);
         }
 
@@ -152,7 +151,7 @@ public class WorkerCore
                 stats.incrementTasksReceived();
                 TaskMessage tm = codec.deserialise(taskMessage, TaskMessage.class, DecodeMethod.LENIENT);
                 LOG.debug("Received task {} (message id: {})", tm.getTaskId(), queueMsgId);
-                wrapperFactory.executeTask(tm, queueMsgId);
+                executor.executeTask(tm, queueMsgId);
             } catch (CodecException e) {
                 stats.incrementTasksRejected();
                 throw new InvalidTaskException("Queue data did not deserialise to a TaskMessage", e);
