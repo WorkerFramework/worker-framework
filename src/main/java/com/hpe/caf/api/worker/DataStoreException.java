@@ -6,6 +6,12 @@ package com.hpe.caf.api.worker;
  */
 public class DataStoreException extends Exception
 {
+    public DataStoreException(final String message)
+    {
+        super(message);
+    }
+
+
     public DataStoreException(final String message, final Throwable cause)
     {
         super(message, cause);
