@@ -12,8 +12,13 @@ import java.util.Objects;
  */
 public final class TaskMessage
 {
+    public static final int TASK_MESSAGE_VERSION = 1;
     /**
-     * Unique id for this message chain.
+     * The version of this TaskMessage wrapper.
+     */
+    private int version = TASK_MESSAGE_VERSION;
+    /**
+     * Unique id for this task chain.
      */
     private String taskId;
     /**
@@ -50,6 +55,18 @@ public final class TaskMessage
         this.taskData = Objects.requireNonNull(taskData);
         this.taskStatus = Objects.requireNonNull(taskStatus);
         this.context = Objects.requireNonNull(context);
+    }
+
+
+    public int getVersion()
+    {
+        return version;
+    }
+
+
+    public void setVersion(final int version)
+    {
+        this.version = version;
     }
 
 
