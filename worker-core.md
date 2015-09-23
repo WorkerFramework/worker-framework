@@ -147,6 +147,22 @@
  provide some "default" result data in case an unhandled exception is
  encountered.
 
+ Depending on the application configuration, different versions of the Worker
+ message API may be shared on the same queue during an upgrade. This means that
+ a Worker may receive incoming tasks of verisons `n` and `n+1` during this
+ period. If a Worker cannot tolerate this it should be documented. To make a
+ Worker tolerant, one approach is to have multiple task and result classes in
+ the package and the correct one (de)serialised depending upon the message API
+ version. This can be done in the `WorkerFactory`. Alternatively, to use the
+ same task/result class, field types must *never* be modified (but new fields
+ can be added). A `Codec` can tolerate unknown fields by using
+ `DecodeMethod.LENIENT` and passing this to the `deserialise` method. In
+ practice however, if a queue shares message versions, it may make sense to
+ allow newer Workers to accept older tasks with some necessary logic in the
+ WorkerFactory, but for older Workers to reject newer tasks back onto the
+ queue in the assumption that newer Workers will be deployed to handle these
+ in a reasonable timeframe.
+
 ### Handling errors with worker implementations
 
  The general following rules should be followed by all Worker implementations:
@@ -338,8 +354,12 @@
  an appropriate getter and setter according to Java standards. For most Codecs,
  it will also need a no-argument constructor. Because of the serialisation,
  the input and output messages should not extend other classes, and to ensure
- this, the classes should also be declared final. Hence the input message
- will look a bit like this:
+ this, the classes should also be declared final.
+
+ Because these input and output messages define how to communicate with the
+ Worker, should they change then the worker API version should be incremented.
+
+ The input message will look a bit like this:
 
 ```
  package com.hpe.caf.test.worker.shared;
@@ -348,6 +368,8 @@
  public final class TestWorkerTask
  {
     private String taskString;
+    private static final String WORKER_ID = "TestWorker";
+    private static final int WORKER_API_VER = 1;
 
 
     public TestWorkerTask() { }
@@ -491,37 +513,62 @@
     public TestWorkerFactory(final Codec codec, final long sleepTime,
                              final String resultQueue)
     {
-        this.codec = Objects.requireNonNull(codec);
-        this.sleepTime = sleepTime;
-        this.resultQueue = Objects.requireNonNull(resultQueue);
+      this.codec = Objects.requireNonNull(codec);
+      this.sleepTime = sleepTime;
+      this.resultQueue = Objects.requireNonNull(resultQueue);
     }
 
 
     @Override
     public Worker getWorker(String classifier, int version, TaskStatus status,
                             byte[] data, byte[] context)
-        throws InvalidTaskException
+      throws InvalidTaskException
     {
-        try {
-            TestWorkerTask task = codec.deserialise(data, TestWorkerTask.class);
-            return new TestWorker(task, codec, sleepTime, resultQueue);
-        } catch (CodecException e) {
-            throw new InvalidTaskException("Invalid task data", e);
-        }
+       try {
+         TestWorkerTask task = verifyTask(classifier, version);
+         return new TestWorker(task, codec, sleepTime, resultQueue);
+       } catch (CodecException e) {
+         throw new InvalidTaskException("Invalid task data", e);
+       }
     }
 
 
     @Override
     public String getInvalidTaskQueue()
     {
-        return resultQueue;
+      return resultQueue;
     }
 
 
     @Override
     public HealthResult healthCheck()
     {
-        return HealthCheck.RESULT_HEALTY;
+      return HealthCheck.RESULT_HEALTY;
+    }
+
+
+    /**
+     * Only accept tasks with this Worker's classifier. Other tasks must be
+     * on the wrong queue and the app is badly misconfigured so they can only
+     * be marked as invalid. For demo purposes, tasks that match the message
+     * API version or are older are accepted. Incoming tasks that are newer
+     * than this Worker code supports are not marked as invalid but just
+     * rejected - because in this case it appears the queue is being shared
+     * across versions, and likely newer Workers will be created to handle
+     * these tasks.
+    **/
+    private TestWorkerTask verifyTask(final String workerId, final int ver)
+      throws CodecException, InvalidTaskException, TaskRejectedException
+    {
+      if (TestWorkerTask.WORKER_ID.equals(workerId)) {
+        if (TestWorkerTask.WORKER_API_VER >= ver) {
+          return codec.deserialise(data, TestWorkerTask.class);
+        } else {
+          throw new TaskRejectedException("Task version newer than allowed");
+        }
+      } else {
+        throw new InvalidTaskException("Cannot handle task");
+      }
     }
  }
 ```
@@ -647,14 +694,14 @@
     @Override
     public String getWorkerIdentifier()
     {
-        return "TestWorker";
+        return TestWorkerTask.WORKER_ID;
     }
 
 
     @Override
     public int getWorkerApiVersion()
     {
-        return 1;
+        return TestWorkerTask.WORKER_API_VER;
     }
 
 
