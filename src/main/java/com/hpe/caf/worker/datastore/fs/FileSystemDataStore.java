@@ -72,7 +72,7 @@ public class FileSystemDataStore extends DataStore
         try {
             numRx.incrementAndGet();
             LOG.debug("Requesting {}", reference);
-            return Files.newInputStream(dataStorePath.resolve(reference));
+            return Files.newInputStream(verifyReference(reference));
         } catch (IOException e) {
             errors.incrementAndGet();
             throw new DataStoreException("Failed to retrieve data", e);
@@ -86,7 +86,7 @@ public class FileSystemDataStore extends DataStore
     {
         Objects.requireNonNull(reference);
         try {
-            return Files.size(dataStorePath.resolve(reference));
+            return Files.size(verifyReference(reference));
         } catch (IOException e) {
             errors.incrementAndGet();
             throw new DataStoreException("Failed to get data size", e);
@@ -106,8 +106,7 @@ public class FileSystemDataStore extends DataStore
         throws DataStoreException
     {
         try {
-            Path target = dataStorePath.resolve(reference);
-            return Files.newOutputStream(target);
+            return Files.newOutputStream(verifyReference(reference));
         } catch (IOException e) {
             errors.incrementAndGet();
             throw new DataStoreException("Failed to get output stream for store", e);
@@ -126,6 +125,24 @@ public class FileSystemDataStore extends DataStore
     public HealthResult healthCheck()
     {
         return HealthResult.RESULT_HEALTHY;
+    }
+
+
+    /**
+     * Prevent a caller trying to "break out" of the root dataStorePath by performing
+     * a full path resolution of the reference.
+     * @param reference the data store reference relative to dataStorePath to resolve
+     * @return the resolved path, if valid
+     * @throws DataStoreException if the reference is invalid or cannot be resolved
+     */
+    private Path verifyReference(final String reference)
+        throws DataStoreException
+    {
+        Path p = dataStorePath.resolve(reference).normalize();
+        if ( !p.startsWith(dataStorePath) ) {
+            throw new DataStoreException("Invalid reference");
+        }
+        return p;
     }
 
 

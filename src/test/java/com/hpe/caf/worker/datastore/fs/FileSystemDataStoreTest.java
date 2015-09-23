@@ -71,4 +71,22 @@ public class FileSystemDataStoreTest
         String reference = store.resolve(a, b);
         Assert.assertEquals(Paths.get(a).resolve(b).toString(), reference);
     }
+
+
+    @Test(expected = DataStoreException.class)
+    public void testInvalidReference()
+        throws DataStoreException, IOException
+    {
+        FileSystemDataStoreConfiguration conf = new FileSystemDataStoreConfiguration();
+        conf.setDataDir(temp.getAbsolutePath());
+        DataStore store = new FileSystemDataStore(conf);
+        final byte[] data = testData.getBytes(StandardCharsets.UTF_8);
+        String newRef = "..";
+        for ( int i = 0; i < 5; i++ ) {
+            newRef = store.resolve(newRef, "..");
+        }
+        OutputStream outStr = store.getOutputStream(newRef);
+        outStr.write(data);
+        outStr.close();
+    }
 }
