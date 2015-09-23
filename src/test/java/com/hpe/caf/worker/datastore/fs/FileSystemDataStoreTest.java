@@ -16,6 +16,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.nio.charset.StandardCharsets;
+import java.nio.file.Paths;
 
 
 public class FileSystemDataStoreTest
@@ -55,5 +56,19 @@ public class FileSystemDataStoreTest
         bos.flush();
         Assert.assertArrayEquals(data, bos.toByteArray());
         Assert.assertEquals(testData.length(), store.getDataSize(reference));
+    }
+
+
+    @Test
+    public void testResolve()
+        throws DataStoreException
+    {
+        FileSystemDataStoreConfiguration conf = new FileSystemDataStoreConfiguration();
+        conf.setDataDir(temp.getAbsolutePath());
+        DataStore store = new FileSystemDataStore(conf);
+        String a = "directory";
+        String b = "file";
+        String reference = store.resolve(a, b);
+        Assert.assertEquals(Paths.get(a).resolve(b).toString(), reference);
     }
 }

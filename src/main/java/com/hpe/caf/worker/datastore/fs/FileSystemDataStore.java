@@ -14,6 +14,7 @@ import java.io.OutputStream;
 import java.nio.file.FileSystems;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.Objects;
 import java.util.concurrent.atomic.AtomicInteger;
 
@@ -104,13 +105,20 @@ public class FileSystemDataStore extends DataStore
     public OutputStream getOutputStream(final String reference)
         throws DataStoreException
     {
-        Path target = dataStorePath.resolve(reference);
         try {
+            Path target = dataStorePath.resolve(reference);
             return Files.newOutputStream(target);
         } catch (IOException e) {
             errors.incrementAndGet();
             throw new DataStoreException("Failed to get output stream for store", e);
         }
+    }
+
+
+    @Override
+    public String resolve(final String baseReference, final String reference)
+    {
+        return Paths.get(baseReference).resolve(reference).toString();
     }
 
 
