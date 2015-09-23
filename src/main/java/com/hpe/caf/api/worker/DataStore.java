@@ -50,6 +50,18 @@ public abstract class DataStore implements HealthReporter
 
 
     /**
+     * Combine two partial references, returning the resolved reference. The returned
+     * reference may be, but is not required to be an absolute reference.
+     * @param baseReference the initial reference, of which the next parameter is a child of
+     * @param reference a reference to an endpoint in the data store contained within baseReference
+     * @return the combined, resolved reference pointing to the reference contained within baseReference
+     * @throws DataStoreException if the reference cannot be resolved
+     */
+    public abstract String resolve(final String baseReference, final String reference)
+        throws DataStoreException;
+
+
+    /**
      * Perform necessary shut down operations.
      */
     public abstract void shutdown();
