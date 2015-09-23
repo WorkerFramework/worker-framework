@@ -3,6 +3,7 @@ package com.hpe.caf.worker.core;
 
 import com.hpe.caf.api.Codec;
 import com.hpe.caf.api.CodecException;
+import com.hpe.caf.api.DecodeMethod;
 import com.hpe.caf.api.ServicePath;
 import com.hpe.caf.api.worker.InvalidTaskException;
 import com.hpe.caf.api.worker.QueueException;
@@ -149,7 +150,7 @@ public class WorkerCore
             Objects.requireNonNull(queueMsgId);
             try {
                 stats.incrementTasksReceived();
-                TaskMessage tm = codec.deserialise(taskMessage, TaskMessage.class);
+                TaskMessage tm = codec.deserialise(taskMessage, TaskMessage.class, DecodeMethod.LENIENT);
                 LOG.debug("Received task {} (message id: {})", tm.getTaskId(), queueMsgId);
                 wrapperFactory.executeTask(tm, queueMsgId);
             } catch (CodecException e) {
