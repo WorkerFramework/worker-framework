@@ -173,6 +173,41 @@
  ```
 
 
+ ## Using `FutureEvent`
+
+ Sometimes code that produces events wishes to know when it was triggered and
+ if it was completed successfully. A common case is an API layer that wishes to
+ put a message onto a queue and return to the caller that the operation either
+ completed or is in progress. The `FutureEvent` class is an aid for this.
+
+ A `FutureEvent` implements the `Event` interface but has two generic types as
+ opposed to a single one. The first generic type `T` is the `Event` target
+ interface as with a normal `Event`, and the second type `V` is the type of
+ some return the caller is waiting for. Exceptions can also be used with a
+ `FutureEvent` but the target `Event` interface must also have these exceptions
+ declared for it to be useful.
+
+ When creating a new `FutureEvent`, the subclass must implement the
+ `getEventResult` method (not the `handleEvent` method), which takes an input
+ of type `T` and returns a value of type `V`. The caller creates this new
+ implementation of `FutureEvent` and submits it to the appropriate queue, and
+ then calls the `ask` method to return a `CompletableFuture<V>`. This exposes
+ methods such as `get` which will block up to a certain time and then either
+ return the value of type `V` or throw a `TimeoutException`. If the method
+ `getEventResult` inside the `FutureEvent` throws an exception, calls to `get`
+ will throw an `ExecutionException` which wraps the exception thrown from
+ the `FutueEvent` itself. For example:
+
+ ```
+ try {
+   String returnValue = event.ask().get(10, TimeUnit.SECONDS);
+   // success...
+ } catch (TimeoutException | ExecutionException e) {
+   // failed!
+ }
+ ```
+
+
 ## Maintainers
 
  The following people are contacts for developing and maintaining this module:
