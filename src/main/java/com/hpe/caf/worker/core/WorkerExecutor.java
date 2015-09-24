@@ -62,7 +62,7 @@ public class WorkerExecutor
             WorkerWrapper wrapper = getWorkerWrapper(tm, queueMessageId);
             submitToThreadPool(wrapper, queueMessageId);
         } catch (InvalidTaskException e) {
-            LOG.error("Task data is invalid for {}, returning status {}", tm.getTaskId(), TaskStatus.INVALID_TASK);
+            LOG.error("Task data is invalid for {}, returning status {}", tm.getTaskId(), TaskStatus.INVALID_TASK, e);
             TaskMessage invalidResponse =
                 new TaskMessage(tm.getTaskId(), tm.getTaskClassifier(), tm.getTaskApiVersion(), new byte[]{}, TaskStatus.INVALID_TASK, tm.getContext());
             callback.complete(queueMessageId, factory.getInvalidTaskQueue(), invalidResponse);
