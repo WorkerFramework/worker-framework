@@ -8,6 +8,7 @@ import java.util.Objects;
 
 /**
  * Structure that contains data and metadata from a RabbitMQ queue delivery.
+ * @since 6.0
  */
 public class Delivery
 {

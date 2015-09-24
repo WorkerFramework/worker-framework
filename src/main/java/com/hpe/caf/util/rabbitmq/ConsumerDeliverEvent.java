@@ -6,6 +6,7 @@ import java.util.Objects;
 
 /**
  * A deliver Event for a Consumer.
+ * @since 7.0
  */
 public class ConsumerDeliverEvent implements Event<QueueConsumer>
 {

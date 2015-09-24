@@ -16,6 +16,7 @@ import java.util.concurrent.TimeoutException;
 
 /**
  * Utility wrapper methods for interacting with RabbitMQ.
+ * @since 6.0
  */
 public final class RabbitUtil
 {
@@ -43,6 +44,7 @@ public final class RabbitUtil
      * @return a valid connection to RabbitMQ, managed by Lyra
      * @throws IOException if the connection fails to establish
      * @throws TimeoutException if the connection fails to establish
+     * @since 7.0
      */
     public static Connection createRabbitConnection(final ConnectionOptions opts, final Config config)
         throws IOException, TimeoutException
@@ -57,6 +59,7 @@ public final class RabbitUtil
      * call the createRabbitConnection(RabbitConfiguration) method.
      * @param conf contains the necessary Lyra and RabbitMQ configuration
      * @return a Lyra ConnectionOptions object with settings configured from the RabbitConfiguration specified
+     * @since 7.0
      */
     public static ConnectionOptions createLyraConnectionOptions(final RabbitConfiguration conf)
     {
@@ -71,6 +74,7 @@ public final class RabbitUtil
      * call the createRabbitConnection(RabbitConfiguration) method.
      * @param conf contains the necessary Lyra and RabbitMQ configuration
      * @return a Lyra Config object with settings configured from the RabbitConfiguration specified
+     * @since 7.0
      */
     public static Config createLyraConfig(final RabbitConfiguration conf)
     {

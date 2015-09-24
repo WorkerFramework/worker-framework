@@ -9,6 +9,7 @@ import java.util.concurrent.BlockingQueue;
 /**
  * Default RabbitConsumer that uses QueueConsumer Event objects.
  * Most implementations of a RabbitConsumer should extends this class.
+ * @since 7.0
  */
 public class DefaultRabbitConsumer extends RabbitConsumer<QueueConsumer>
 {

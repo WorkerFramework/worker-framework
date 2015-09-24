@@ -6,6 +6,7 @@ import java.util.Objects;
 
 /**
  * A publish event for a class implementing the Publisher interface.
+ * @since 7.0
  */
 public class PublisherPublishEvent implements Event<QueuePublisher>
 {

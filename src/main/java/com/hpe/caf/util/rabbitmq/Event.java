@@ -4,6 +4,7 @@ package com.hpe.caf.util.rabbitmq;
 /**
  * A general event trigger with a target.
  * @param <T> the class or interface of the target the Event applies to
+ * @since 7.0
  */
 @FunctionalInterface
 public interface Event<T>

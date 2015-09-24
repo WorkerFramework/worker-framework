@@ -7,6 +7,7 @@ import java.util.concurrent.BlockingQueue;
 /**
  * Default RabbitPublisher that uses QueuePublisher Event objects.
  * Most implementations that wish to publish basic messages to RabbitMQ should extends this class.
+ * @since 7.0
  */
 public class DefaultRabbitPublisher extends EventPoller<QueuePublisher>
 {

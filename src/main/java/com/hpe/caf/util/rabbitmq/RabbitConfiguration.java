@@ -11,6 +11,7 @@ import javax.validation.constraints.Size;
 
 /**
  * General configuration for a Lyra-managed RabbitMQ server connection from a client.
+ * @since 6.0
  */
 public class RabbitConfiguration
 {
