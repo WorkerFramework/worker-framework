@@ -3,6 +3,7 @@ package com.hpe.caf.api.worker;
 
 /**
  * Provides metrics for a DataStore.
+ * @since 4.0
  */
 public interface DataStoreMetricsReporter
 {

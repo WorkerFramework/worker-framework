@@ -11,6 +11,7 @@ import com.hpe.caf.api.HealthReporter;
  * until the start() method has been called by the worker-core framework. An implementation
  * should also support rejecting messages back onto the queue to be handled by other targets.
  * The number of retries (if at all) is implementation specific.
+ * @since 4.0
  */
 public abstract class WorkerQueue implements HealthReporter
 {
@@ -21,6 +22,7 @@ public abstract class WorkerQueue implements HealthReporter
      * Initialise the worker queue, setting up any necessary connections. Until the start() method is called it is expected
      * that the WorkerQueue will not receive or publish any messages.
      * @param maxTasks the maximum number of tasks the backend can process at once
+     * @since 6.0
      */
     public WorkerQueue(final int maxTasks)
     {
@@ -32,6 +34,7 @@ public abstract class WorkerQueue implements HealthReporter
      * Open queues to start accepting tasks and results.
      * @param callback the callback to use when registering or aborting tasks
      * @throws QueueException if the queue cannot be started
+     * @since 6.0
      */
     public abstract void start(final TaskCallback callback)
         throws QueueException;
@@ -43,6 +46,7 @@ public abstract class WorkerQueue implements HealthReporter
      * @param taskMessage the message to publish
      * @param targetQueue the queue to put the message upon
      * @throws QueueException if the message cannot be submitted
+     * @since 6.0
      */
     public abstract void publish(final String acknowledgeId, final byte[] taskMessage, final String targetQueue)
         throws QueueException;

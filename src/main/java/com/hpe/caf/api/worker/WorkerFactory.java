@@ -6,6 +6,7 @@ import com.hpe.caf.api.HealthReporter;
 
 /**
  * Instantiates a new instance of a Worker given task-specific data.
+ * @since 4.0
  */
 public abstract class WorkerFactory implements HealthReporter
 {
@@ -19,6 +20,7 @@ public abstract class WorkerFactory implements HealthReporter
      * @return a new Worker instance that will perform work upon the taskData
      * @throws TaskRejectedException if a Worker cannot be created to handle this task currently
      * @throws InvalidTaskException if it appears this task cannot possibly be handled by a Worker of this type
+     * @since 6.0
      */
     public abstract Worker getWorker(final String classifier, final int version, final TaskStatus status,
                                      final byte[] data, final byte[] context)
@@ -27,6 +29,7 @@ public abstract class WorkerFactory implements HealthReporter
 
     /**
      * @return the queue to put responses to invalid tasks upon, may be the same as the Worker's result queue
+     * @since 8.0
      */
     public abstract String getInvalidTaskQueue();
 }

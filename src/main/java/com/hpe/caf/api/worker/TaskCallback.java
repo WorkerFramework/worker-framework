@@ -5,6 +5,7 @@ package com.hpe.caf.api.worker;
  * A callback interface used to announce the arrival of a new task for a worker
  * to process or signal that the core should cancel its tasks. Generally called
  * from a WorkerQueue implementation.
+ * @since 7.0
  */
 public interface TaskCallback
 {

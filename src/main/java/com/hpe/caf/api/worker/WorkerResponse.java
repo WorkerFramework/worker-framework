@@ -6,6 +6,7 @@ import java.util.Objects;
 
 /**
  * Object to represent a response from a Worker, to be interpreted by the core worker framework.
+ * @since 6.0
  */
 public class WorkerResponse
 {

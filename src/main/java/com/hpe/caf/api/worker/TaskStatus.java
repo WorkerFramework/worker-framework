@@ -7,6 +7,7 @@ import java.util.Set;
 
 /**
  * The state of a worker thread upon termination.
+ * @since 6.0
  */
 public enum TaskStatus
 {
@@ -16,6 +17,7 @@ public enum TaskStatus
     NEW_TASK,
     /**
      * The task data failed validation or could not be understood.
+     * @since 7.0
      */
     INVALID_TASK,
     /**

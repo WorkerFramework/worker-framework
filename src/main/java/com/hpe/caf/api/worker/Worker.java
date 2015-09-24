@@ -42,6 +42,7 @@ import java.util.Set;
  * package that contains the task and result classes, but are used here for constructing a WorkerResponse.
  * @param <T> the task class for this Worker
  * @param <V> the result class for this Worker
+ * @since 4.0
  */
 public abstract class Worker<T,V>
 {
@@ -57,6 +58,7 @@ public abstract class Worker<T,V>
      * @param resultQueue the reference to the queue that should take results from this type of Worker
      * @param codec used to serialising result data
      * @throws InvalidTaskException if the input task does not validate successfully
+     * @since 8.0
      */
     public Worker(final T task, final String resultQueue, final Codec codec)
         throws InvalidTaskException
@@ -79,6 +81,7 @@ public abstract class Worker<T,V>
      * @throws InterruptedException indicates that the task is being aborted as requested by the framework
      * @throws TaskRejectedException indicates this Worker wishes to abandon this task and defer its execution
      * @throws TaskFailedException if the Worker fails in an unrecoverable fashion
+     * @since 8.0
      */
      public abstract WorkerResponse doWork()
         throws InterruptedException, TaskRejectedException;
@@ -86,6 +89,7 @@ public abstract class Worker<T,V>
 
     /**
      * @return a string to uniquely identify the sort of tasks this worker will do
+     * @since 6.0
      */
     public abstract String getWorkerIdentifier();
 
@@ -95,6 +99,7 @@ public abstract class Worker<T,V>
      * be incremented when the format of the task data (or result data) changes. Internal code-logic
      * changes should not affect the API version.
      * @return a numeral that identifies the API version of the worker
+     * @since 6.0
      */
     public abstract int getWorkerApiVersion();
 
@@ -104,6 +109,7 @@ public abstract class Worker<T,V>
      * Worker should be able to return a general result. This method should only return a static
      * object in order to avoid throwing any more exceptions.
      * @return a response in case of a general unhandled exception failure scenario
+     * @since 8.0
      */
     public final WorkerResponse getGeneralFailureResult(final Throwable t)
     {
