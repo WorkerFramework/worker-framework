@@ -11,7 +11,7 @@
     <parent>
         <groupId>com.hpe.caf</groupId>
         <artifactId>caf-maven</artifactId>
-        <version>4</version>
+        <version>7</version>
     </parent>
 
     <dependencies>
