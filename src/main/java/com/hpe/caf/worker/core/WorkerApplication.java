@@ -23,8 +23,8 @@ import com.hpe.caf.api.worker.WorkerQueue;
 import com.hpe.caf.api.worker.WorkerQueueProvider;
 import com.hpe.caf.cipher.NullCipherProvider;
 import com.hpe.caf.config.system.SystemBootstrapConfiguration;
-import com.hpe.caf.util.ComponentLoader;
-import com.hpe.caf.util.ComponentLoaderException;
+import com.hpe.caf.util.ModuleLoader;
+import com.hpe.caf.util.ModuleLoaderException;
 import io.dropwizard.Application;
 import io.dropwizard.setup.Environment;
 import org.slf4j.Logger;
@@ -84,17 +84,17 @@ public final class WorkerApplication extends Application<WorkerConfiguration>
      */
     @Override
     public void run(final WorkerConfiguration workerConfiguration, final Environment environment)
-        throws QueueException, ComponentLoaderException, CipherException, ConfigurationException, DataStoreException, WorkerException
+        throws QueueException, ModuleLoaderException, CipherException, ConfigurationException, DataStoreException, WorkerException
     {
         LOG.debug("Starting up");
         BootstrapConfiguration bootstrap = new SystemBootstrapConfiguration();
-        Cipher cipher = ComponentLoader.getService(CipherProvider.class, NullCipherProvider.class).getCipher(bootstrap);
+        Cipher cipher = ModuleLoader.getService(CipherProvider.class, NullCipherProvider.class).getCipher(bootstrap);
         ServicePath path = bootstrap.getServicePath();
-        Codec codec = ComponentLoader.getService(Codec.class);
-        ConfigurationSource config = ComponentLoader.getService(ConfigurationSourceProvider.class).getConfigurationSource(bootstrap, cipher, path, codec);
-        WorkerFactoryProvider workerProvider = ComponentLoader.getService(WorkerFactoryProvider.class);
-        WorkerQueueProvider queueProvider = ComponentLoader.getService(WorkerQueueProvider.class);
-        DataStore store = ComponentLoader.getService(DataStoreProvider.class).getDataStore(config);
+        Codec codec = ModuleLoader.getService(Codec.class);
+        ConfigurationSource config = ModuleLoader.getService(ConfigurationSourceProvider.class).getConfigurationSource(bootstrap, cipher, path, codec);
+        WorkerFactoryProvider workerProvider = ModuleLoader.getService(WorkerFactoryProvider.class);
+        WorkerQueueProvider queueProvider = ModuleLoader.getService(WorkerQueueProvider.class);
+        DataStore store = ModuleLoader.getService(DataStoreProvider.class).getDataStore(config);
         final int nThreads = Math.max(1, workerProvider.getWorkerThreads());
         ThreadPoolExecutor tpe = getDefaultThreadPoolExecutor(nThreads);
         WorkerQueue workerQueue = queueProvider.getWorkerQueue(config, nThreads);
