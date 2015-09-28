@@ -13,6 +13,7 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.nio.file.FileSystems;
 import java.nio.file.Files;
+import java.nio.file.InvalidPathException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Objects;
@@ -61,10 +62,12 @@ public class FileSystemDataStore extends DataStore
     }
 
 
-    @Override
     /**
+     * {@inheritDoc}
      * Read a file from disk in the data directory.
+     * @throws InvalidPathException if the reference cannot be converted to a Path
      */
+    @Override
     public InputStream getInputStream(final String reference)
             throws DataStoreException
     {
@@ -80,6 +83,10 @@ public class FileSystemDataStore extends DataStore
     }
 
 
+    /**
+     * {@inheritDoc}
+     * @throws InvalidPathException if the reference cannot be converted to a Path
+     */
     @Override
     public long getDataSize(final String reference)
         throws DataStoreException
@@ -101,6 +108,10 @@ public class FileSystemDataStore extends DataStore
     }
 
 
+    /**
+     * {@inheritDoc}
+     * @throws InvalidPathException if the reference cannot be converted to a Path
+     */
     @Override
     public OutputStream getOutputStream(final String reference)
         throws DataStoreException
@@ -114,6 +125,10 @@ public class FileSystemDataStore extends DataStore
     }
 
 
+    /**
+     * {@inheritDoc}
+     * @throws InvalidPathException if the baseReference cannot be converted to a Path
+     */
     @Override
     public String resolve(final String baseReference, final String reference)
     {
@@ -134,6 +149,7 @@ public class FileSystemDataStore extends DataStore
      * @param reference the data store reference relative to dataStorePath to resolve
      * @return the resolved path, if valid
      * @throws DataStoreException if the reference is invalid or cannot be resolved
+     * @throws InvalidPathException if the reference cannot be converted to a Path
      */
     private Path verifyReference(final String reference)
         throws DataStoreException
