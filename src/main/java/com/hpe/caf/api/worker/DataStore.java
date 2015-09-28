@@ -29,7 +29,7 @@ public abstract class DataStore implements HealthReporter
      * Get the byte size of some data in the DataStore by reference
      * @param reference the arbitrary string reference to a piece of data
      * @return the size in bytes of the data being referred to
-     * @throws DataStoreException if the data store cannot service the requeste
+     * @throws DataStoreException if the data store cannot service the request
      * @since 8.0
      */
     public abstract long getDataSize(final String reference)

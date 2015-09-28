@@ -108,6 +108,7 @@ public abstract class Worker<T,V>
      * In case of a Worker's doWork() method failing with an unhandled exception, it is expected a
      * Worker should be able to return a general result. This method should only return a static
      * object in order to avoid throwing any more exceptions.
+     * @param t the throwable that caused the unhandled Worker failure
      * @return a response in case of a general unhandled exception failure scenario
      * @since 8.0
      */

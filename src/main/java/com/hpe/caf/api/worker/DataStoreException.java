@@ -7,7 +7,10 @@ package com.hpe.caf.api.worker;
  */
 public class DataStoreException extends Exception
 {
-    /** @since 8.0 **/
+    /**
+     * {@inheritDoc}
+     * @since 8.0
+     */
     public DataStoreException(final String message)
     {
         super(message);
