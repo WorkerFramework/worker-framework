@@ -24,16 +24,19 @@ public final class RabbitUtil
 
 
     /**
-     * Create a new Lyra managed RabbitMQ connection.
-     * @param conf contains the necessary Lyra and RabbitMQ configuration
+     * Create a new Lyra managed RabbitMQ connection with a default Lyra configuration.
+     * @param host the host or IP running RabbitMQ
+     * @param port the port that the RabbitMQ server is exposed on
+     * @param user the username to use when authenticating with RabbitMQ
+     * @param pass the password to use when autenticating with RabbitMQ
      * @return a valid connection to RabbitMQ, managed by Lyra
      * @throws IOException if the connection fails to establish
      * @throws TimeoutException if the connection fails to establish
      */
-    public static Connection createRabbitConnection(final RabbitConfiguration conf)
+    public static Connection createRabbitConnection(final String host, final int port, final String user, final String pass)
         throws IOException, TimeoutException
     {
-        return createRabbitConnection(createLyraConnectionOptions(conf), createLyraConfig(conf));
+        return createRabbitConnection(createLyraConnectionOptions(host, port, user, pass), createLyraConfig(1, 30, 20));
     }
 
 
@@ -57,14 +60,16 @@ public final class RabbitUtil
      * Generate a pre-populated Lyra ConnectionOptions object which can be used together with a
      * Lyra Config object to establish a RabbitMQ connection. If you wish to use defaults, just
      * call the createRabbitConnection(RabbitConfiguration) method.
-     * @param conf contains the necessary Lyra and RabbitMQ configuration
+     * @param host the host or IP running RabbitMQ
+     * @param port the port that the RabbitMQ server is exposed on
+     * @param user the username to use when authenticating with RabbitMQ
+     * @param pass the password to use when autenticating with RabbitMQ
      * @return a Lyra ConnectionOptions object with settings configured from the RabbitConfiguration specified
      * @since 7.0
      */
-    public static ConnectionOptions createLyraConnectionOptions(final RabbitConfiguration conf)
+    public static ConnectionOptions createLyraConnectionOptions(final String host, final int port, final String user, final String pass)
     {
-        return new ConnectionOptions().withHost(conf.getRabbitHost()).withPort(conf.getRabbitPort())
-                                      .withUsername(conf.getRabbitUser()).withPassword(conf.getRabbitPassword());
+        return new ConnectionOptions().withHost(host).withPort(port).withUsername(user).withPassword(pass);
     }
 
 
@@ -72,15 +77,17 @@ public final class RabbitUtil
      * Generate a pre-populated Lyra Config object which can be used together with a Lyra
      * ConnectionOptions object to establish a RabbitMQ connection. If you wish to use defaults, just
      * call the createRabbitConnection(RabbitConfiguration) method.
-     * @param conf contains the necessary Lyra and RabbitMQ configuration
+     * @param backoffInterval the initial interval, in seconds, between re-attempts upon failed RabbitMQ operations
+     * @param maxBackoffInterval the maximum interval, in seconds, between re-attempts upon failed RabbitMQ operations
+     * @param maxAttempts the maximum number of attempts to retry failed RabbitMQ operations
      * @return a Lyra Config object with settings configured from the RabbitConfiguration specified
      * @since 7.0
      */
-    public static Config createLyraConfig(final RabbitConfiguration conf)
+    public static Config createLyraConfig(final int backoffInterval, final int maxBackoffInterval, final int maxAttempts)
     {
         RecoveryPolicy policy =
-            new RecoveryPolicy().withBackoff(Duration.seconds(conf.getBackoffInterval()), Duration.seconds(conf.getMaxBackoffInterval()));
-        return new Config().withRecoveryPolicy(policy.withMaxAttempts(conf.getMaxAttempts()));
+            new RecoveryPolicy().withBackoff(Duration.seconds(backoffInterval), Duration.seconds(maxBackoffInterval));
+        return new Config().withRecoveryPolicy(policy.withMaxAttempts(maxAttempts));
     }
 
 
