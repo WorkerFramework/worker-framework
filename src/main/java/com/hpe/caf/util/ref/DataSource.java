@@ -8,7 +8,7 @@ import java.io.InputStream;
  * Interface for defining how to retrieve objects or streams from a reference.
  * @since 1.0
  */
-public interface DataSource
+public abstract class DataSource
 {
     /**
      * Retrieve an object of the specified class identified by a specific reference.
@@ -18,7 +18,7 @@ public interface DataSource
      * @return the object instance of the specified class identified by the specified reference
      * @throws DataSourceException if the object instance cannot be acquired
      */
-    <T> T getObject(final String ref, final Class<T> clazz)
+    public abstract <T> T getObject(final String ref, final Class<T> clazz)
         throws DataSourceException;
 
 
@@ -28,6 +28,6 @@ public interface DataSource
      * @return a stream of data identified by the specified reference
      * @throws DataSourceException if the data stream cannot be acquired
      */
-    InputStream getStream(final String ref)
+    public abstract InputStream getStream(final String ref)
         throws DataSourceException;
 }
