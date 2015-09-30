@@ -2,7 +2,7 @@ package com.hpe.caf.worker.queue.rabbit;
 
 
 import com.hpe.caf.api.Configuration;
-import com.hpe.caf.util.rabbitmq.RabbitConfiguration;
+import com.hpe.caf.configs.RabbitConfiguration;
 
 import javax.validation.Valid;
 import javax.validation.constraints.Max;

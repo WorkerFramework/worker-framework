@@ -7,6 +7,7 @@ import com.hpe.caf.api.worker.QueueException;
 import com.hpe.caf.api.worker.TaskCallback;
 import com.hpe.caf.api.worker.WorkerQueue;
 import com.hpe.caf.api.worker.WorkerQueueMetricsReporter;
+import com.hpe.caf.configs.RabbitConfiguration;
 import com.hpe.caf.util.rabbitmq.ConsumerRejectEvent;
 import com.hpe.caf.util.rabbitmq.DefaultRabbitConsumer;
 import com.hpe.caf.util.rabbitmq.Event;
@@ -82,9 +83,7 @@ public final class RabbitWorkerQueue extends WorkerQueue
             throw new IllegalStateException("Already started");
         }
         try {
-            ConnectionOptions lyraOpts = RabbitUtil.createLyraConnectionOptions(config.getRabbitConfiguration());
-            Config lyraConfig = RabbitUtil.createLyraConfig(config.getRabbitConfiguration()).withConnectionListeners(new WorkerConnectionListener(callback));
-            conn = RabbitUtil.createRabbitConnection(lyraOpts, lyraConfig);
+            createConnection(callback);
             incomingChannel = conn.createChannel();
             int prefetch = Math.max(1, getMaxTasks() + config.getPrefetchBuffer());
             incomingChannel.basicQos(prefetch);
@@ -198,6 +197,17 @@ public final class RabbitWorkerQueue extends WorkerQueue
         } else {
             return HealthResult.RESULT_HEALTHY;
         }
+    }
+
+
+    private void createConnection(final TaskCallback callback)
+        throws IOException, TimeoutException
+    {
+        RabbitConfiguration rc = config.getRabbitConfiguration();
+        ConnectionOptions lyraOpts = RabbitUtil.createLyraConnectionOptions(rc.getRabbitHost(), rc.getRabbitPort(), rc.getRabbitUser(), rc.getRabbitPassword());
+        Config lyraConfig = RabbitUtil.createLyraConfig(rc.getBackoffInterval(), rc.getMaxBackoffInterval(), rc.getMaxAttempts());
+        lyraConfig.withConnectionListeners(new WorkerConnectionListener(callback));
+        conn = RabbitUtil.createRabbitConnection(lyraOpts, lyraConfig);
     }
 
 
