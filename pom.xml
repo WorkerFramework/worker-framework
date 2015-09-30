@@ -6,19 +6,19 @@
 
     <groupId>com.hpe.caf.worker</groupId>
     <artifactId>worker-store-fs</artifactId>
-    <version>8.2-SNAPSHOT</version>
+    <version>9.2-SNAPSHOT</version>
     
     <parent>
         <groupId>com.hpe.caf</groupId>
         <artifactId>caf-maven</artifactId>
-        <version>7</version>
+        <version>8</version>
     </parent>
 
     <dependencies>
         <dependency>
             <groupId>com.hpe.caf</groupId>
             <artifactId>caf-api</artifactId>
-            <version>8.0-SNAPSHOT</version>
+            <version>9.0-SNAPSHOT</version>
             <scope>provided</scope>
         </dependency>
         <dependency>
