@@ -4,6 +4,7 @@ package com.hpe.caf.worker.datastore.fs;
 import com.hpe.caf.api.ConfigurationException;
 import com.hpe.caf.api.worker.DataStore;
 import com.hpe.caf.api.worker.DataStoreException;
+import com.hpe.caf.api.worker.ReferenceNotFoundException;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Rule;
@@ -17,6 +18,7 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Paths;
+import java.util.UUID;
 
 
 public class FileSystemDataStoreTest
@@ -88,5 +90,16 @@ public class FileSystemDataStoreTest
         OutputStream outStr = store.getOutputStream(newRef);
         outStr.write(data);
         outStr.close();
+    }
+
+
+    @Test(expected = ReferenceNotFoundException.class)
+    public void testMissingRef()
+        throws DataStoreException
+    {
+        FileSystemDataStoreConfiguration conf = new FileSystemDataStoreConfiguration();
+        conf.setDataDir(temp.getAbsolutePath());
+        DataStore store = new FileSystemDataStore(conf);
+        store.getInputStream(UUID.randomUUID().toString());
     }
 }

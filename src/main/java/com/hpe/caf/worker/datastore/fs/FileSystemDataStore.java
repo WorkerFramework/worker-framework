@@ -5,6 +5,7 @@ import com.hpe.caf.api.HealthResult;
 import com.hpe.caf.api.worker.DataStore;
 import com.hpe.caf.api.worker.DataStoreException;
 import com.hpe.caf.api.worker.DataStoreMetricsReporter;
+import com.hpe.caf.api.worker.ReferenceNotFoundException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -75,7 +76,7 @@ public class FileSystemDataStore extends DataStore
         try {
             numRx.incrementAndGet();
             LOG.debug("Requesting {}", reference);
-            return Files.newInputStream(verifyReference(reference));
+            return Files.newInputStream(checkReferenceExists(verifyReference(reference)));
         } catch (IOException e) {
             errors.incrementAndGet();
             throw new DataStoreException("Failed to retrieve data", e);
@@ -93,7 +94,7 @@ public class FileSystemDataStore extends DataStore
     {
         Objects.requireNonNull(reference);
         try {
-            return Files.size(verifyReference(reference));
+            return Files.size(checkReferenceExists(verifyReference(reference)));
         } catch (IOException e) {
             errors.incrementAndGet();
             throw new DataStoreException("Failed to get data size", e);
@@ -159,6 +160,22 @@ public class FileSystemDataStore extends DataStore
             throw new DataStoreException("Invalid reference");
         }
         return p;
+    }
+
+
+    /**
+     * Take a Path, verify it exists. If it does, return it, else throw ReferenceNotFoundException.
+     * @param reference the reference Path to check
+     * @return the Path, if it exists
+     * @throws ReferenceNotFoundException if the Path does not exist
+     */
+    private Path checkReferenceExists(final Path reference)
+        throws ReferenceNotFoundException
+    {
+        if ( !Files.exists(reference) ) {
+            throw new ReferenceNotFoundException("Reference not found: "+ reference);
+        }
+        return reference;
     }
 
 
