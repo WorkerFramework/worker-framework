@@ -6,6 +6,7 @@ import com.hpe.caf.api.CodecException;
 import com.hpe.caf.api.QuietResource;
 import com.hpe.caf.util.ref.DataSource;
 import com.hpe.caf.util.ref.DataSourceException;
+import com.hpe.caf.util.ref.SourceNotFoundException;
 
 import java.io.InputStream;
 import java.util.Objects;
@@ -53,6 +54,8 @@ public class DataStoreSource extends DataSource
     {
         try {
             return store.getInputStream(ref);
+        } catch (ReferenceNotFoundException e) {
+            throw new SourceNotFoundException("Reference not found: " + ref, e);
         } catch (DataStoreException e) {
             throw new DataSourceException("Failed to get data stream", e);
         }
