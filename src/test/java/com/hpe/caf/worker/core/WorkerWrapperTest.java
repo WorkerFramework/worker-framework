@@ -5,6 +5,7 @@ import com.hpe.caf.api.Codec;
 import com.hpe.caf.api.CodecException;
 import com.hpe.caf.api.ServicePath;
 import com.hpe.caf.api.worker.InvalidTaskException;
+import com.hpe.caf.api.worker.TaskFailedException;
 import com.hpe.caf.api.worker.TaskMessage;
 import com.hpe.caf.api.worker.TaskRejectedException;
 import com.hpe.caf.api.worker.TaskStatus;
@@ -90,13 +91,15 @@ public class WorkerWrapperTest
     }
 
 
-    @Test(expected = WorkerException.class)
+    @Test
     public void testException()
         throws WorkerException, InterruptedException, InvalidNameException, CodecException
     {
         Codec codec = new JsonCodec();
         Worker happyWorker = Mockito.spy(getWorker(new TestWorkerTask(), codec));
-        Mockito.when(happyWorker.doWork()).thenThrow(WorkerException.class);
+        Mockito.when(happyWorker.doWork()).thenAnswer(invocationOnMock -> {
+            throw new TaskFailedException("whoops");
+        });
         String queueMsgId = "exception";
         CountDownLatch latch = new CountDownLatch(1);
         TestCallback callback = new TestCallback(latch);
@@ -116,7 +119,8 @@ public class WorkerWrapperTest
         Assert.assertEquals(QUEUE_OUT, callback.getQueue());
         Assert.assertTrue(callback.getContext().containsKey(path.toString()));
         Assert.assertArrayEquals(SUCCESS_BYTES, callback.getContext().get(path.toString()));
-        throw codec.deserialise(callback.getResultData(), WorkerException.class);
+        Class s = codec.deserialise(callback.getResultData(), Class.class);
+        Assert.assertEquals(TaskFailedException.class.getName(), s.getName());
     }
 
 
