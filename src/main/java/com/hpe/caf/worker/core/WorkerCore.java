@@ -71,7 +71,7 @@ public class WorkerCore
         workerQueue.shutdownIncoming();
         threadPool.shutdown();
         try {
-            threadPool.awaitTermination(300_000, TimeUnit.MILLISECONDS);
+            threadPool.awaitTermination(10_000, TimeUnit.MILLISECONDS);
         } catch (InterruptedException e) {
             LOG.warn("Shutdown interrupted", e);
             Thread.currentThread().interrupt();
