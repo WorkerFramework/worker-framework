@@ -247,13 +247,13 @@ public abstract class Worker<T,V>
 
 
     /**
-     * @param t the Throwable to attempt to serialise
-     * @return a byte array that is either the serialised Throwable or empty
+     * @param t the Throwable from the Worker
+     * @return a byte array that is either the serialised Class of the Throwable or empty
      */
     private byte[] getExceptionData(final Throwable t)
     {
         try {
-            return getCodec().serialise(t);
+            return getCodec().serialise(t.getClass());
         } catch (CodecException e) {
             LOG.warn("Failed to serialise exception, continuing", e);
             return new byte[]{};
