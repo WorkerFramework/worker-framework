@@ -67,7 +67,7 @@ public final class WorkerApplication extends Application<WorkerConfiguration>
      */
     public static ThreadPoolExecutor getDefaultThreadPoolExecutor(final int nThreads)
     {
-        return new ThreadPoolExecutor(nThreads, nThreads, 0L, TimeUnit.MILLISECONDS, new LinkedBlockingQueue<>());
+        return new WorkerThreadPoolExecutor(nThreads, nThreads, 0L, TimeUnit.MILLISECONDS, new LinkedBlockingQueue<>(), () -> System.exit(1));
     }
 
 
