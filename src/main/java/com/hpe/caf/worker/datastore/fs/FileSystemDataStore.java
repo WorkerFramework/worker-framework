@@ -66,6 +66,8 @@ public class FileSystemDataStore extends DataStore
     /**
      * {@inheritDoc}
      * Read a file from disk in the data directory.
+     * @throws ReferenceNotFoundException if the requested reference does not exist in the file system
+     * @throws DataStoreException if the reference is found but cannot be accessed or retrieved
      * @throws InvalidPathException if the reference cannot be converted to a Path
      */
     @Override
@@ -86,6 +88,8 @@ public class FileSystemDataStore extends DataStore
 
     /**
      * {@inheritDoc}
+     * @throws ReferenceNotFoundException if the requested reference does not exist in the file system
+     * @throws DataStoreException if the reference is found but cannot be accessed or retrieved
      * @throws InvalidPathException if the reference cannot be converted to a Path
      */
     @Override
@@ -111,6 +115,7 @@ public class FileSystemDataStore extends DataStore
 
     /**
      * {@inheritDoc}
+     * @throws DataStoreException if the reference is found but cannot be accessed or retrieved
      * @throws InvalidPathException if the reference cannot be converted to a Path
      */
     @Override
