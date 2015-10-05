@@ -30,4 +30,14 @@ public abstract class DataSource
      */
     public abstract InputStream getStream(final String ref)
         throws DataSourceException;
+
+
+    /**
+     * Determine the size of the data abstracted.
+     * @param ref the reference that points to the data
+     * @return the size of the data, in bytes
+     * @throws DataSourceException
+     */
+    public abstract long getDataSize(final String ref)
+        throws DataSourceException;
 }

@@ -69,6 +69,27 @@ public class ReferencedData
 
 
     /**
+     * Determine the size of the data.
+     * @param source the implementation that provides object instances given the provided references
+     * @return the size of the abstracted data, in bytes
+     * @throws DataSourceException if the size information cannot be acquired
+     */
+    public synchronized long size(final DataSource source)
+        throws DataSourceException
+    {
+        if ( data == null ) {
+            if ( getReference() == null ) {
+                throw new IllegalStateException("No data or reference present");
+            } else {
+                return source.getDataSize(getReference());
+            }
+        } else {
+            return data.length;
+        }
+    }
+
+
+    /**
      * Create a ReferencedData object that uses a remote reference to data present in an ObjectSource.
      * @param ref the reference to be interpreted by the DataStore
      * @return a new ReferencedData instance that relates to data in an ObjectSource via reference
