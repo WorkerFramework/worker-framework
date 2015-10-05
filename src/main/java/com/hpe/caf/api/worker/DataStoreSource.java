@@ -60,4 +60,18 @@ public class DataStoreSource extends DataSource
             throw new DataSourceException("Failed to get data stream", e);
         }
     }
+
+
+    @Override
+    public long getDataSize(final String ref)
+        throws DataSourceException
+    {
+        try {
+            return store.getDataSize(ref);
+        } catch (ReferenceNotFoundException e) {
+            throw new SourceNotFoundException("Reference not found: " + ref, e);
+        } catch (DataStoreException e) {
+            throw new DataSourceException("Failed to get data stream", e);
+        }
+    }
 }
