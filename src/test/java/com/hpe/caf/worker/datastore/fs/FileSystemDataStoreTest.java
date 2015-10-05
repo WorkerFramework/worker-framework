@@ -11,12 +11,13 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
 
+import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.OutputStream;
 import java.nio.charset.StandardCharsets;
+import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.UUID;
 
@@ -27,7 +28,6 @@ public class FileSystemDataStoreTest
     public TemporaryFolder tempDir = new TemporaryFolder();
     private File temp;
     private final String testData = "test123";
-    private final String reference = "myRef.dat";
 
 
     @Before
@@ -46,10 +46,8 @@ public class FileSystemDataStoreTest
         conf.setDataDir(temp.getAbsolutePath());
         DataStore store = new FileSystemDataStore(conf);
         final byte[] data = testData.getBytes(StandardCharsets.UTF_8);
-        OutputStream outStr = store.getOutputStream(reference);
-        outStr.write(data);
-        outStr.close();
-        InputStream inStr = store.getInputStream(reference);
+        String storeRef = store.store(new ByteArrayInputStream(data));
+        InputStream inStr = store.retrieve(storeRef);
         ByteArrayOutputStream bos = new ByteArrayOutputStream();
         int nRead;
         while ((nRead = inStr.read(data, 0, data.length)) != -1) {
@@ -57,21 +55,7 @@ public class FileSystemDataStoreTest
         }
         bos.flush();
         Assert.assertArrayEquals(data, bos.toByteArray());
-        Assert.assertEquals(testData.length(), store.getDataSize(reference));
-    }
-
-
-    @Test
-    public void testResolve()
-        throws DataStoreException
-    {
-        FileSystemDataStoreConfiguration conf = new FileSystemDataStoreConfiguration();
-        conf.setDataDir(temp.getAbsolutePath());
-        DataStore store = new FileSystemDataStore(conf);
-        String a = "directory";
-        String b = "file";
-        String reference = store.resolve(a, b);
-        Assert.assertEquals(Paths.get(a).resolve(b).toString(), reference);
+        Assert.assertEquals(testData.length(), store.getDataSize(storeRef));
     }
 
 
@@ -82,14 +66,11 @@ public class FileSystemDataStoreTest
         FileSystemDataStoreConfiguration conf = new FileSystemDataStoreConfiguration();
         conf.setDataDir(temp.getAbsolutePath());
         DataStore store = new FileSystemDataStore(conf);
-        final byte[] data = testData.getBytes(StandardCharsets.UTF_8);
-        String newRef = "..";
+        Path p = Paths.get(temp.getAbsolutePath());
         for ( int i = 0; i < 5; i++ ) {
-            newRef = store.resolve(newRef, "..");
+            p = p.resolve("..");
         }
-        OutputStream outStr = store.getOutputStream(newRef);
-        outStr.write(data);
-        outStr.close();
+        store.retrieve(p.toString());
     }
 
 
@@ -100,6 +81,6 @@ public class FileSystemDataStoreTest
         FileSystemDataStoreConfiguration conf = new FileSystemDataStoreConfiguration();
         conf.setDataDir(temp.getAbsolutePath());
         DataStore store = new FileSystemDataStore(conf);
-        store.getInputStream(UUID.randomUUID().toString());
+        store.retrieve(UUID.randomUUID().toString());
     }
 }

@@ -11,13 +11,12 @@ import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.OutputStream;
 import java.nio.file.FileSystems;
 import java.nio.file.Files;
 import java.nio.file.InvalidPathException;
 import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.util.Objects;
+import java.util.UUID;
 import java.util.concurrent.atomic.AtomicInteger;
 
 
@@ -71,7 +70,7 @@ public class FileSystemDataStore extends DataStore
      * @throws InvalidPathException if the reference cannot be converted to a Path
      */
     @Override
-    public InputStream getInputStream(final String reference)
+    public InputStream retrieve(final String reference)
             throws DataStoreException
     {
         Objects.requireNonNull(reference);
@@ -119,26 +118,17 @@ public class FileSystemDataStore extends DataStore
      * @throws InvalidPathException if the reference cannot be converted to a Path
      */
     @Override
-    public OutputStream getOutputStream(final String reference)
+    public String store(final InputStream dataStream)
         throws DataStoreException
     {
         try {
-            return Files.newOutputStream(verifyReference(reference));
+            String ref = generateReference();
+            Files.copy(dataStream, verifyReference(ref));
+            return ref;
         } catch (IOException e) {
             errors.incrementAndGet();
             throw new DataStoreException("Failed to get output stream for store", e);
         }
-    }
-
-
-    /**
-     * {@inheritDoc}
-     * @throws InvalidPathException if the baseReference cannot be converted to a Path
-     */
-    @Override
-    public String resolve(final String baseReference, final String reference)
-    {
-        return Paths.get(baseReference).resolve(reference).toString();
     }
 
 
@@ -181,6 +171,15 @@ public class FileSystemDataStore extends DataStore
             throw new ReferenceNotFoundException("Reference not found: "+ reference);
         }
         return reference;
+    }
+
+
+    /**
+     * @return a new reference to store a file by
+     */
+    private String generateReference()
+    {
+        return UUID.randomUUID().toString();
     }
 
 
