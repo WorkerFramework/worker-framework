@@ -4,7 +4,6 @@ package com.hpe.caf.api.worker;
 import com.hpe.caf.api.HealthReporter;
 
 import java.io.InputStream;
-import java.io.OutputStream;
 
 
 /**
@@ -15,13 +14,13 @@ import java.io.OutputStream;
 public abstract class DataStore implements HealthReporter
 {
     /**
-     * Provide a stream to Get data by reference
+     * Provide a stream to get data by reference
      * @param reference the arbitrary string reference to a piece of data
      * @return the raw data referred to
      * @throws DataStoreException if the data store cannot service the request
      * @since 8.0
      */
-    public abstract InputStream getInputStream(final String reference)
+    public abstract InputStream retrieve(final String reference)
         throws DataStoreException;
 
 
@@ -43,26 +42,13 @@ public abstract class DataStore implements HealthReporter
 
 
     /**
-     * Provide a stream to Store data by reference
-     * @param reference the arbitrary string reference to store the data by
+     * Provide a stream to store data, returning the reference it is stored by
+     * @param dataStream the stream of data which will be read and put into the DataStore
      * @return reference to the stored data, which can be used to retrieve
      * @throws DataStoreException if the data store cannot service the request
-     * @since 8.0
+     * @since 9.0
      */
-    public abstract OutputStream getOutputStream(final String reference)
-        throws DataStoreException;
-
-
-    /**
-     * Combine two partial references, returning the resolved reference. The returned
-     * reference may be, but is not required to be an absolute reference.
-     * @param baseReference the initial reference, of which the next parameter is a child of
-     * @param reference a reference to an endpoint in the data store contained within baseReference
-     * @return the combined, resolved reference pointing to the reference contained within baseReference
-     * @throws DataStoreException if the reference cannot be resolved
-     * @since 8.0
-     */
-    public abstract String resolve(final String baseReference, final String reference)
+    public abstract String store(final InputStream dataStream)
         throws DataStoreException;
 
 

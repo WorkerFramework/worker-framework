@@ -53,7 +53,7 @@ public class DataStoreSource extends DataSource
         throws DataSourceException
     {
         try {
-            return store.getInputStream(ref);
+            return store.retrieve(ref);
         } catch (ReferenceNotFoundException e) {
             throw new SourceNotFoundException("Reference not found: " + ref, e);
         } catch (DataStoreException e) {
