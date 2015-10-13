@@ -29,14 +29,6 @@ import java.util.Set;
  * such as createSuccessResult, createFailureResult, and createTaskSubmission. Preferably a Worker will
  * always return one of these as opposed to throwing a WorkerException out of the object.
  *
- * A Worker also has the option of returning serialised byte data to be put onto the result message if
- * the Worker throws an unhandled exception. This is effectively a "fallback" response because if
- * doWork() has failed to complete there has not yet been any generated task-specific generated response.
- * If your application workflow is fine with simply knowing the task failed without any specific data it
- * is fine to return an empty byte array from getGeneralFailureResult(), but under no circumstance should
- * that method throw an exception. Hence, it is recommended you construct your "failure" result byte data
- * in the constructor of your Worker.
- *
  * Finally, a Worker has methods to classify the type of work it is performing (an "identifier") and another
  * method that returns the integer API version of the task data. These are typically defined in your shareed
  * package that contains the task and result classes, but are used here for constructing a WorkerResponse.
