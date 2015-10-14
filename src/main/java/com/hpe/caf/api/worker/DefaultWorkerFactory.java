@@ -50,16 +50,59 @@ public abstract class DefaultWorkerFactory<C, T> extends WorkerFactory
 
 
     @Override
-    public final Worker getWorker(final String classifier, final int version, final TaskStatus status, final byte[] data, final byte[] context)
+    public final Worker getWorker
+    (
+        final String classifier,
+        final int version,
+        final TaskStatus status,
+        final byte[] data,
+        final byte[] context
+    )
         throws TaskRejectedException, InvalidTaskException
     {
+        // Reject tasks of the wrong type and tasks that require a newer version (based on TestWorkerFactory.java)
+        final String workerName = getWorkerName();
+        if (workerName != null)
+        {
+            if (!workerName.equals(classifier)) {
+                throw new InvalidTaskException(
+                    "Task of type " + classifier + " found on queue for " + workerName);
+            }
+
+            final int workerApiVersion = getWorkerApiVersion();
+
+            if (workerApiVersion >= 0 && workerApiVersion < version) {
+                throw new TaskRejectedException(
+                    "Found task version " + version + ", which is newer than " + workerApiVersion);
+            }
+        }
+
+        // Deserialise the task
+        final T task;
         try {
-            return createWorker(codec.deserialise(data, taskClass));
+            task = codec.deserialise(data, taskClass);
         } catch (CodecException e) {
             throw new InvalidTaskException("Invalid input message", e);
         }
+
+        // Construct the worker
+        return createWorker(task);
     }
 
+
+    /**
+     * Returns the name of the worker to use when checking the task type
+     */
+    protected String getWorkerName() {
+        return null;
+    }
+
+    /**
+     * Returns the maximum version of the worker message that is supported
+     */
+    protected int getWorkerApiVersion() {
+        return -1;
+    }
 
     /**
      * Create a Worker instance.
