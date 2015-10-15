@@ -5,6 +5,7 @@ import com.hpe.caf.api.Codec;
 import com.hpe.caf.api.CodecException;
 import com.hpe.caf.api.ConfigurationException;
 import com.hpe.caf.api.ConfigurationSource;
+import com.hpe.caf.api.DecodeMethod;
 
 import java.util.Objects;
 
@@ -49,60 +50,45 @@ public abstract class DefaultWorkerFactory<C, T> extends WorkerFactory
     }
 
 
+    /**
+     * {@inheritDoc}
+     * Verify that the incoming task has the right type and is a version that can be handled.
+     */
     @Override
-    public final Worker getWorker
-    (
-        final String classifier,
-        final int version,
-        final TaskStatus status,
-        final byte[] data,
-        final byte[] context
-    )
+    public final Worker getWorker(final String classifier, final int version, final TaskStatus status, final byte[] data, final byte[] context)
         throws TaskRejectedException, InvalidTaskException
     {
-        // Reject tasks of the wrong type and tasks that require a newer version (based on TestWorkerFactory.java)
+        // Reject tasks of the wrong type and tasks that require a newer version
         final String workerName = getWorkerName();
-        if (workerName != null)
-        {
-            if (!workerName.equals(classifier)) {
-                throw new InvalidTaskException(
-                    "Task of type " + classifier + " found on queue for " + workerName);
-            }
-
-            final int workerApiVersion = getWorkerApiVersion();
-
-            if (workerApiVersion >= 0 && workerApiVersion < version) {
-                throw new TaskRejectedException(
-                    "Found task version " + version + ", which is newer than " + workerApiVersion);
-            }
+        if (!workerName.equals(classifier)) {
+            throw new InvalidTaskException("Task of type " + classifier + " found on queue for " + workerName);
         }
 
-        // Deserialise the task
-        final T task;
+        final int workerApiVersion = getWorkerApiVersion();
+
+        if (workerApiVersion < version) {
+            throw new TaskRejectedException("Found task version " + version + ", which is newer than " + workerApiVersion);
+        }
+
         try {
-            task = codec.deserialise(data, taskClass);
+             return createWorker(codec.deserialise(data, taskClass, DecodeMethod.LENIENT));
         } catch (CodecException e) {
             throw new InvalidTaskException("Invalid input message", e);
         }
-
-        // Construct the worker
-        return createWorker(task);
     }
 
 
     /**
      * Returns the name of the worker to use when checking the task type
      */
-    protected String getWorkerName() {
-        return null;
-    }
+    protected abstract String getWorkerName();
+
 
     /**
      * Returns the maximum version of the worker message that is supported
      */
-    protected int getWorkerApiVersion() {
-        return -1;
-    }
+    protected abstract int getWorkerApiVersion();
+
 
     /**
      * Create a Worker instance.
