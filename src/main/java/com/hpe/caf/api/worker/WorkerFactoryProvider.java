@@ -22,10 +22,4 @@ public interface WorkerFactoryProvider
      */
     WorkerFactory getWorkerFactory(final ConfigurationSource configSource, final DataStore dataStore, final Codec codec)
             throws WorkerException;
-
-
-    /**
-     * @return the number of simultaneous workers that should be in operation on this instance
-     */
-    int getWorkerThreads();
 }
