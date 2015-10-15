@@ -74,10 +74,9 @@
  
 ### Configuration
 
- The application does not require any environment variables to be set. However,
- if you are not running on the Marathon platform you will likely need to set the
- `caf.appname` variable to provide a `ServicePath` to `worker-core`.
-    
+ The following environment variables can optionally be set:
+ - caf.appname: manual service name to be set if not in a Marathon environment
+
 ### Starting the application
 
  The following command-line should start the application:
@@ -440,6 +439,9 @@
     @NotNull
     @Size(min = 1)
     private String resultQueue;
+    @Min(1)
+    @Max(50)
+    private int threads;
 
 
     public TestWorkerConfiguration() { }
@@ -466,6 +468,18 @@
     public void setResultQueue(final String queue)
     {
         this.resultQueue = queue;
+    }
+
+
+    public int getThreads()
+    {
+        return threads;
+    }
+
+
+    public void setThread(final int threadCount)
+    {
+        this.threads = threadCount;
     }
  }
 ```
@@ -503,7 +517,8 @@
  import java.util.Objects;
 
 
- public class TestWorkerFactory extends WorkerFactory
+ public class TestWorkerFactory
+  extends DefaultWorkerFactory<TestWorkerConfiguration, TestWorkerTask>
  {
     private final Codec codec;
     private final long sleepTime;
@@ -520,16 +535,18 @@
 
 
     @Override
-    public Worker getWorker(String classifier, int version, TaskStatus status,
-                            byte[] data, byte[] context)
-      throws InvalidTaskException
+    public Worker createWorker(TestWorkerTask task)
     {
-       try {
-         TestWorkerTask task = verifyTask(classifier, version);
-         return new TestWorker(task, codec, sleepTime, resultQueue);
-       } catch (CodecException e) {
-         throw new InvalidTaskException("Invalid task data", e);
-       }
+      long sleep = getConfiguration().getSleepTime();
+      String queue = getConfiguration().getResultQueue();
+      return new TestWorker(task, getCodec(), sleep, queue);
+    }
+
+
+    @Override
+    public int getWorkerThreads()
+    {
+      return getConfiguration().getThreads();
     }
 
 
@@ -544,31 +561,6 @@
     public HealthResult healthCheck()
     {
       return HealthCheck.RESULT_HEALTY;
-    }
-
-
-    /**
-     * Only accept tasks with this Worker's classifier. Other tasks must be
-     * on the wrong queue and the app is badly misconfigured so they can only
-     * be marked as invalid. For demo purposes, tasks that match the message
-     * API version or are older are accepted. Incoming tasks that are newer
-     * than this Worker code supports are not marked as invalid but just
-     * rejected - because in this case it appears the queue is being shared
-     * across versions, and likely newer Workers will be created to handle
-     * these tasks.
-    **/
-    private TestWorkerTask verifyTask(final String workerId, final int ver)
-      throws CodecException, InvalidTaskException, TaskRejectedException
-    {
-      if (TestWorkerTask.WORKER_ID.equals(workerId)) {
-        if (TestWorkerTask.WORKER_API_VER >= ver) {
-          return codec.deserialise(data, TestWorkerTask.class);
-        } else {
-          throw new TaskRejectedException("Task version newer than allowed");
-        }
-      } else {
-        throw new InvalidTaskException("Cannot handle task");
-      }
     }
  }
 ```
@@ -618,14 +610,6 @@
             throw new WorkerException("Failed to create factory", e);
         }
     }
-
-
-    @Override
-    public int getWorkerThreads()
-    {
-        return 1;
-    }
-
  }
 ```
 
@@ -633,10 +617,6 @@
  throw it away here. We also follow good encapsulation logic and only pass in
  the data the TestWorkerFactory actually needs rather than the whole instance
  of TestWorkerConfiguration.
-
- For this example we are just going to use a single thread in our worker, but
- this effectively controls how many simultaneous jobs a worker service can
- perform.
 
 ### Creating the Worker
 
