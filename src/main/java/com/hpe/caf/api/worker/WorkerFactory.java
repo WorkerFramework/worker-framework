@@ -33,4 +33,10 @@ public abstract class WorkerFactory implements HealthReporter
      * @since 8.0
      */
     public abstract String getInvalidTaskQueue();
+
+
+    /**
+     * @return the number of threads to be used by the framework to host this Worker backend
+     */
+    public abstract int getWorkerThreads();
 }
