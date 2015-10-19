@@ -3,9 +3,9 @@ package com.hpe.caf.worker.queue.rabbit;
 
 import com.hpe.caf.api.HealthResult;
 import com.hpe.caf.api.HealthStatus;
+import com.hpe.caf.api.worker.ManagedWorkerQueue;
 import com.hpe.caf.api.worker.QueueException;
 import com.hpe.caf.api.worker.TaskCallback;
-import com.hpe.caf.api.worker.WorkerQueue;
 import com.hpe.caf.api.worker.WorkerQueueMetricsReporter;
 import com.hpe.caf.configs.RabbitConfiguration;
 import com.hpe.caf.util.rabbitmq.ConsumerRejectEvent;
@@ -40,7 +40,7 @@ import java.util.concurrent.TimeoutException;
  * comes from the fact each thread should have its own Channel object (they are not thread-safe) but the
  * thread that received a message should also be the one to acknowledge it.
  */
-public final class RabbitWorkerQueue extends WorkerQueue
+public final class RabbitWorkerQueue implements ManagedWorkerQueue
 {
     private DefaultRabbitConsumer consumer;
     private EventPoller<WorkerPublisher> publisher;
@@ -53,6 +53,7 @@ public final class RabbitWorkerQueue extends WorkerQueue
     private final BlockingQueue<Event<WorkerPublisher>> publisherQueue = new LinkedBlockingQueue<>();
     private final RabbitMetricsReporter metrics = new RabbitMetricsReporter();
     private final RabbitWorkerQueueConfiguration config;
+    private final int maxTasks;
     private static final Logger LOG = LoggerFactory.getLogger(RabbitWorkerQueue.class);
 
 
@@ -62,8 +63,8 @@ public final class RabbitWorkerQueue extends WorkerQueue
      */
     public RabbitWorkerQueue(final RabbitWorkerQueueConfiguration config, final int maxTasks)
     {
-        super(maxTasks);
         this.config = Objects.requireNonNull(config);
+        this.maxTasks = maxTasks;
         LOG.debug("Initialised");
     }
 
@@ -85,7 +86,7 @@ public final class RabbitWorkerQueue extends WorkerQueue
         try {
             createConnection(callback);
             incomingChannel = conn.createChannel();
-            int prefetch = Math.max(1, getMaxTasks() + config.getPrefetchBuffer());
+            int prefetch = Math.max(1, maxTasks + config.getPrefetchBuffer());
             incomingChannel.basicQos(prefetch);
             incomingChannel.exchangeDeclare(config.getDeadLetterExchange(), "direct");
             outgoingChannel = conn.createChannel();

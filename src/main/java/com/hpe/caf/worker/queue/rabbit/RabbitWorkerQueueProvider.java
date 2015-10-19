@@ -3,8 +3,8 @@ package com.hpe.caf.worker.queue.rabbit;
 
 import com.hpe.caf.api.ConfigurationException;
 import com.hpe.caf.api.ConfigurationSource;
+import com.hpe.caf.api.worker.ManagedWorkerQueue;
 import com.hpe.caf.api.worker.QueueException;
-import com.hpe.caf.api.worker.WorkerQueue;
 import com.hpe.caf.api.worker.WorkerQueueProvider;
 
 
@@ -17,7 +17,7 @@ public class RabbitWorkerQueueProvider implements WorkerQueueProvider
      * {@inheritDoc}
      */
     @Override
-    public WorkerQueue getWorkerQueue(final ConfigurationSource configurationSource, final int maxTasks)
+    public ManagedWorkerQueue getWorkerQueue(final ConfigurationSource configurationSource, final int maxTasks)
             throws QueueException
     {
         try {
