@@ -17,7 +17,7 @@ public interface TaskCallback
      * @throws TaskRejectedException if the worker framework rejected execution of the task at this time
      * @throws InvalidTaskException if the worker framework indicates this task is invalid and cannot possibly be executed
      */
-    void registerNewTask(final String taskId, final byte[] taskData)
+    void registerNewTask(String taskId, byte[] taskData)
         throws TaskRejectedException, InvalidTaskException;
 
 

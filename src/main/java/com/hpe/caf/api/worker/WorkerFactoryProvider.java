@@ -20,6 +20,6 @@ public interface WorkerFactoryProvider
      * @return a new worker
      * @throws WorkerException if a new Worker cannot be generated
      */
-    WorkerFactory getWorkerFactory(final ConfigurationSource configSource, final DataStore dataStore, final Codec codec)
-            throws WorkerException;
+    WorkerFactory getWorkerFactory(ConfigurationSource configSource, DataStore dataStore, Codec codec)
+        throws WorkerException;
 }

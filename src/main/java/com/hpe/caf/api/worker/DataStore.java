@@ -1,26 +1,23 @@
 package com.hpe.caf.api.worker;
 
 
-import com.hpe.caf.api.HealthReporter;
-
 import java.io.InputStream;
 
 
 /**
  * A representation of a generic data store, for reading and writing data
  * typically used by workers in the course of their computation.
- * @since 4.0
+ * @since 9.0
  */
-public abstract class DataStore implements HealthReporter
+public interface DataStore
 {
     /**
      * Provide a stream to get data by reference
      * @param reference the arbitrary string reference to a piece of data
      * @return the raw data referred to
      * @throws DataStoreException if the data store cannot service the request
-     * @since 8.0
      */
-    public abstract InputStream retrieve(final String reference)
+    InputStream retrieve(String reference)
         throws DataStoreException;
 
 
@@ -29,16 +26,9 @@ public abstract class DataStore implements HealthReporter
      * @param reference the arbitrary string reference to a piece of data
      * @return the size in bytes of the data being referred to
      * @throws DataStoreException if the data store cannot service the request
-     * @since 8.0
      */
-    public abstract long getDataSize(final String reference)
+    long getDataSize(String reference)
         throws DataStoreException;
-
-
-    /**
-     * @return metrics for the data store
-     */
-    public abstract DataStoreMetricsReporter getMetrics();
 
 
     /**
@@ -46,14 +36,7 @@ public abstract class DataStore implements HealthReporter
      * @param dataStream the stream of data which will be read and put into the DataStore
      * @return reference to the stored data, which can be used to retrieve
      * @throws DataStoreException if the data store cannot service the request
-     * @since 9.0
      */
-    public abstract String store(final InputStream dataStream)
+    String store(InputStream dataStream)
         throws DataStoreException;
-
-
-    /**
-     * Perform necessary shut down operations.
-     */
-    public abstract void shutdown();
 }

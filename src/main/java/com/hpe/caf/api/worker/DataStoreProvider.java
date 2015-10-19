@@ -10,6 +10,6 @@ import com.hpe.caf.api.ConfigurationSource;
  */
 public interface DataStoreProvider
 {
-    DataStore getDataStore(final ConfigurationSource configurationSource)
+    ManagedDataStore getDataStore(ConfigurationSource configurationSource)
         throws DataStoreException;
 }

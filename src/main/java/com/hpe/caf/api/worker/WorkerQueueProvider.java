@@ -6,7 +6,7 @@ import com.hpe.caf.api.ConfigurationSource;
 
 /**
  * Boilerplate for retrieving a WorkerQueue implementation.
- * @since 4.0
+ * @since 9.0
  */
 public interface WorkerQueueProvider
 {
@@ -17,6 +17,6 @@ public interface WorkerQueueProvider
      * @return a new WorkerQueue instance
      * @throws QueueException if a WorkerQueue could not be created
      */
-    WorkerQueue getWorkerQueue(final ConfigurationSource configurationSource, final int maxTasks)
+    ManagedWorkerQueue getWorkerQueue(ConfigurationSource configurationSource, int maxTasks)
         throws QueueException;
 }
