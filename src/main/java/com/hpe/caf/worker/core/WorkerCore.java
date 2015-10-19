@@ -4,8 +4,8 @@ package com.hpe.caf.worker.core;
 import com.hpe.caf.api.Codec;
 import com.hpe.caf.api.CodecException;
 import com.hpe.caf.api.DecodeMethod;
-import com.hpe.caf.api.ServicePath;
 import com.hpe.caf.api.worker.InvalidTaskException;
+import com.hpe.caf.api.worker.ManagedWorkerQueue;
 import com.hpe.caf.api.worker.QueueException;
 import com.hpe.caf.api.worker.TaskCallback;
 import com.hpe.caf.api.worker.TaskMessage;
@@ -13,6 +13,7 @@ import com.hpe.caf.api.worker.TaskRejectedException;
 import com.hpe.caf.api.worker.TaskStatus;
 import com.hpe.caf.api.worker.WorkerFactory;
 import com.hpe.caf.api.worker.WorkerQueue;
+import com.hpe.caf.naming.ServicePath;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -34,14 +35,14 @@ import java.util.concurrent.TimeUnit;
 public class WorkerCore
 {
     private final ThreadPoolExecutor threadPool;
-    private final WorkerQueue workerQueue;
+    private final ManagedWorkerQueue workerQueue;
     private final WorkerStats stats = new WorkerStats();
     private final TaskCallback callback;
     private final ConcurrentMap<String, Future<?>> tasks = new ConcurrentHashMap<>();
     private static final Logger LOG = LoggerFactory.getLogger(WorkerCore.class);
 
 
-    public WorkerCore(final Codec codec, final ThreadPoolExecutor pool, final WorkerQueue queue, final WorkerFactory factory, final ServicePath path)
+    public WorkerCore(final Codec codec, final ThreadPoolExecutor pool, final ManagedWorkerQueue queue, final WorkerFactory factory, final ServicePath path)
     {
         WorkerCallback taskCallback =  new CoreWorkerCallback(codec, queue, stats, tasks);
         this.threadPool = Objects.requireNonNull(pool);
@@ -95,7 +96,7 @@ public class WorkerCore
     }
 
 
-    public WorkerQueue getWorkerQueue()
+    public ManagedWorkerQueue getWorkerQueue()
     {
         return this.workerQueue;
     }

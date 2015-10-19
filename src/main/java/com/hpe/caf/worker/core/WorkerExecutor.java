@@ -1,13 +1,13 @@
 package com.hpe.caf.worker.core;
 
 
-import com.hpe.caf.api.ServicePath;
 import com.hpe.caf.api.worker.InvalidTaskException;
 import com.hpe.caf.api.worker.TaskMessage;
 import com.hpe.caf.api.worker.TaskRejectedException;
 import com.hpe.caf.api.worker.TaskStatus;
 import com.hpe.caf.api.worker.Worker;
 import com.hpe.caf.api.worker.WorkerFactory;
+import com.hpe.caf.naming.ServicePath;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

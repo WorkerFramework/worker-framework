@@ -3,7 +3,6 @@ package com.hpe.caf.worker.core;
 
 import com.hpe.caf.api.Codec;
 import com.hpe.caf.api.CodecException;
-import com.hpe.caf.api.ServicePath;
 import com.hpe.caf.api.worker.InvalidTaskException;
 import com.hpe.caf.api.worker.TaskFailedException;
 import com.hpe.caf.api.worker.TaskMessage;
@@ -13,6 +12,8 @@ import com.hpe.caf.api.worker.Worker;
 import com.hpe.caf.api.worker.WorkerException;
 import com.hpe.caf.api.worker.WorkerResponse;
 import com.hpe.caf.codec.JsonCodec;
+import com.hpe.caf.naming.ServicePath;
+import com.hpe.caf.worker.AbstractWorker;
 import org.junit.Assert;
 import org.junit.Test;
 import org.mockito.Mockito;
@@ -172,7 +173,7 @@ public class WorkerWrapperTest
     private Worker getWorker(final TestWorkerTask task, final Codec codec)
         throws InvalidTaskException
     {
-        return new Worker<TestWorkerTask, TestWorkerResult>(task, QUEUE_OUT, codec)
+        return new AbstractWorker<TestWorkerTask, TestWorkerResult>(task, QUEUE_OUT, codec)
         {
             @Override
             public WorkerResponse doWork()
@@ -202,7 +203,7 @@ public class WorkerWrapperTest
     private Worker getRedirectWorker(final TestWorkerTask task, final Codec codec)
         throws InvalidTaskException
     {
-        return new Worker<TestWorkerTask, TestWorkerResult>(task, QUEUE_OUT, codec)
+        return new AbstractWorker<TestWorkerTask, TestWorkerResult>(task, QUEUE_OUT, codec)
         {
             @Override
             public WorkerResponse doWork()

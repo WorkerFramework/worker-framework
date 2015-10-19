@@ -641,7 +641,7 @@
  import java.util.Objects;
 
 
- public class TestWorker extends Worker<TestWorkerTask, TestWorkerResult>
+ public class TestWorker extends DefaultWorker<TestWorkerTask,TestWorkerResult>
  {
     private final long sleepTime;
     private final String input;

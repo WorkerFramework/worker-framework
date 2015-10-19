@@ -9,20 +9,20 @@ import com.hpe.caf.api.CipherException;
 import com.hpe.caf.api.CipherProvider;
 import com.hpe.caf.api.Codec;
 import com.hpe.caf.api.ConfigurationException;
-import com.hpe.caf.api.ConfigurationSource;
 import com.hpe.caf.api.ConfigurationSourceProvider;
-import com.hpe.caf.api.ServicePath;
-import com.hpe.caf.api.worker.DataStore;
+import com.hpe.caf.api.ManagedConfigurationSource;
 import com.hpe.caf.api.worker.DataStoreException;
 import com.hpe.caf.api.worker.DataStoreProvider;
+import com.hpe.caf.api.worker.ManagedDataStore;
+import com.hpe.caf.api.worker.ManagedWorkerQueue;
 import com.hpe.caf.api.worker.QueueException;
 import com.hpe.caf.api.worker.WorkerException;
 import com.hpe.caf.api.worker.WorkerFactory;
 import com.hpe.caf.api.worker.WorkerFactoryProvider;
-import com.hpe.caf.api.worker.WorkerQueue;
 import com.hpe.caf.api.worker.WorkerQueueProvider;
 import com.hpe.caf.cipher.NullCipherProvider;
 import com.hpe.caf.config.system.SystemBootstrapConfiguration;
+import com.hpe.caf.naming.ServicePath;
 import com.hpe.caf.util.ModuleLoader;
 import com.hpe.caf.util.ModuleLoaderException;
 import io.dropwizard.Application;
@@ -91,14 +91,14 @@ public final class WorkerApplication extends Application<WorkerConfiguration>
         Cipher cipher = ModuleLoader.getService(CipherProvider.class, NullCipherProvider.class).getCipher(bootstrap);
         ServicePath path = bootstrap.getServicePath();
         Codec codec = ModuleLoader.getService(Codec.class);
-        ConfigurationSource config = ModuleLoader.getService(ConfigurationSourceProvider.class).getConfigurationSource(bootstrap, cipher, path, codec);
+        ManagedConfigurationSource config = ModuleLoader.getService(ConfigurationSourceProvider.class).getConfigurationSource(bootstrap, cipher, path, codec);
         WorkerFactoryProvider workerProvider = ModuleLoader.getService(WorkerFactoryProvider.class);
         WorkerQueueProvider queueProvider = ModuleLoader.getService(WorkerQueueProvider.class);
-        DataStore store = ModuleLoader.getService(DataStoreProvider.class).getDataStore(config);
+        ManagedDataStore store = ModuleLoader.getService(DataStoreProvider.class).getDataStore(config);
         WorkerFactory workerFactory = workerProvider.getWorkerFactory(config, store, codec);
         final int nThreads = workerFactory.getWorkerThreads();
         ThreadPoolExecutor tpe = getDefaultThreadPoolExecutor(nThreads);
-        WorkerQueue workerQueue = queueProvider.getWorkerQueue(config, nThreads);
+        ManagedWorkerQueue workerQueue = queueProvider.getWorkerQueue(config, nThreads);
         WorkerCore core = new WorkerCore(codec, tpe, workerQueue, workerFactory, path);
         Runtime.getRuntime().addShutdownHook(new Thread()
         {
@@ -134,7 +134,7 @@ public final class WorkerApplication extends Application<WorkerConfiguration>
     }
 
 
-    private void initComponentMetrics(final MetricRegistry metrics, final ConfigurationSource config, final DataStore store, final WorkerCore core)
+    private void initComponentMetrics(final MetricRegistry metrics, final ManagedConfigurationSource config, final ManagedDataStore store, final WorkerCore core)
     {
         metrics.register(MetricRegistry.name("config.lookups"), (Gauge<Integer>) config::getConfigurationRequests);
         metrics.register(MetricRegistry.name("config.errors"), (Gauge<Integer>) config::getConfigurationErrors);

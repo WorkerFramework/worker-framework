@@ -6,8 +6,8 @@ import com.hpe.caf.api.CodecException;
 import com.hpe.caf.api.ConfigurationException;
 import com.hpe.caf.api.ConfigurationSource;
 import com.hpe.caf.api.HealthResult;
-import com.hpe.caf.api.ServicePath;
 import com.hpe.caf.api.worker.InvalidTaskException;
+import com.hpe.caf.api.worker.ManagedWorkerQueue;
 import com.hpe.caf.api.worker.QueueException;
 import com.hpe.caf.api.worker.TaskCallback;
 import com.hpe.caf.api.worker.TaskMessage;
@@ -15,11 +15,12 @@ import com.hpe.caf.api.worker.TaskStatus;
 import com.hpe.caf.api.worker.Worker;
 import com.hpe.caf.api.worker.WorkerException;
 import com.hpe.caf.api.worker.WorkerFactory;
-import com.hpe.caf.api.worker.WorkerQueue;
 import com.hpe.caf.api.worker.WorkerQueueMetricsReporter;
 import com.hpe.caf.api.worker.WorkerQueueProvider;
 import com.hpe.caf.api.worker.WorkerResponse;
 import com.hpe.caf.codec.JsonCodec;
+import com.hpe.caf.naming.ServicePath;
+import com.hpe.caf.worker.AbstractWorker;
 import org.junit.Assert;
 import org.junit.Test;
 import org.mockito.Mockito;
@@ -211,7 +212,7 @@ public class WorkerCoreTest
     private Worker getWorker(final TestWorkerTask task, final Codec codec)
         throws InvalidTaskException
     {
-        return new Worker<TestWorkerTask, TestWorkerResult>(task, QUEUE_OUT, codec)
+        return new AbstractWorker<TestWorkerTask, TestWorkerResult>(task, QUEUE_OUT, codec)
         {
             @Override
             public WorkerResponse doWork()
@@ -252,12 +253,12 @@ public class WorkerCoreTest
         @Override
         public final TestWorkerQueue getWorkerQueue(final ConfigurationSource configurationSource, final int maxTasks)
         {
-            return new TestWorkerQueue(maxTasks, this.results);
+            return new TestWorkerQueue(this.results);
         }
     }
 
 
-    private class TestWorkerQueue extends WorkerQueue
+    private class TestWorkerQueue implements ManagedWorkerQueue
     {
         private TaskCallback callback;
         private final BlockingQueue<byte[]> results;
@@ -265,9 +266,8 @@ public class WorkerCoreTest
 
 
 
-        public TestWorkerQueue(final int maxTasks, final BlockingQueue<byte[]> results)
+        public TestWorkerQueue(final BlockingQueue<byte[]> results)
         {
-            super(maxTasks);
             this.results = results;
         }
 
@@ -343,7 +343,7 @@ public class WorkerCoreTest
 
 
 
-    private class SlowWorker extends Worker<TestWorkerTask, TestWorkerResult>
+    private class SlowWorker extends AbstractWorker<TestWorkerTask, TestWorkerResult>
     {
         private final CountDownLatch latch;
 
