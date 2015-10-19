@@ -2,9 +2,9 @@ package com.hpe.caf.worker.datastore.fs;
 
 
 import com.hpe.caf.api.HealthResult;
-import com.hpe.caf.api.worker.DataStore;
 import com.hpe.caf.api.worker.DataStoreException;
 import com.hpe.caf.api.worker.DataStoreMetricsReporter;
+import com.hpe.caf.api.worker.ManagedDataStore;
 import com.hpe.caf.api.worker.ReferenceNotFoundException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -25,7 +25,7 @@ import java.util.concurrent.atomic.AtomicInteger;
  * a directory upon the file system. The store directory must be an
  * absolute path.
  */
-public class FileSystemDataStore extends DataStore
+public class FileSystemDataStore implements ManagedDataStore
 {
     private Path dataStorePath;
     private final AtomicInteger errors = new AtomicInteger(0);
