@@ -105,7 +105,17 @@ public final class WorkerApplication extends Application<WorkerConfiguration>
             @Override
             public void run()
             {
-                core.shutdown();
+                LOG.debug("Shutting down");
+                workerQueue.shutdownIncoming();
+                tpe.shutdown();
+                try {
+                    tpe.awaitTermination(10_000, TimeUnit.MILLISECONDS);
+                } catch (InterruptedException e) {
+                    LOG.warn("Shutdown interrupted", e);
+                    Thread.currentThread().interrupt();
+                }
+                workerQueue.shutdown();
+                workerFactory.shutdown();
                 store.shutdown();
                 config.shutdown();
             }

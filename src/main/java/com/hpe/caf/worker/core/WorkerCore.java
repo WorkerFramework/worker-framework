@@ -23,7 +23,6 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.Future;
 import java.util.concurrent.ThreadPoolExecutor;
-import java.util.concurrent.TimeUnit;
 
 
 /**
@@ -59,25 +58,6 @@ public class WorkerCore
         throws QueueException
     {
         workerQueue.start(callback);
-    }
-
-
-    /**
-     * Close the incoming queues so no more jobs are taken, signal the thread pool to shut down and wait
-     * a while to allow any active work to complete, before shutting down the queue completely.
-     */
-    public void shutdown()
-    {
-        LOG.debug("Shutting down");
-        workerQueue.shutdownIncoming();
-        threadPool.shutdown();
-        try {
-            threadPool.awaitTermination(10_000, TimeUnit.MILLISECONDS);
-        } catch (InterruptedException e) {
-            LOG.warn("Shutdown interrupted", e);
-            Thread.currentThread().interrupt();
-        }
-        workerQueue.shutdown();
     }
 
 
