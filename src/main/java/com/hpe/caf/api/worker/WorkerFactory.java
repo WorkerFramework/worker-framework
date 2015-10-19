@@ -36,4 +36,11 @@ public interface WorkerFactory extends HealthReporter
      * @return the number of threads to be used by the framework to host this Worker backend
      */
     int getWorkerThreads();
+
+
+    /**
+     * Perform necessary cleanup of resources that the WorkerFactory was using.
+     * After this point, the factory can assume it will no longer be called.
+     */
+    default void shutdown() { }
 }
