@@ -3,6 +3,7 @@ package com.hpe.caf.util.ref;
 
 import java.io.ByteArrayInputStream;
 import java.io.InputStream;
+import java.util.Objects;
 
 
 /**
@@ -108,5 +109,17 @@ public class ReferencedData
     public static ReferencedData getWrappedData(final byte[] data)
     {
         return new ReferencedData(null, data);
+    }
+
+
+    /**
+     * Create a ReferencedData instance that wraps data but also has a reference.
+     * @param ref the reference to be interpreted by the DataStore
+     * @param data the raw data to wrapper, also accessible via the supplied reference
+     * @return a new ReferencedData instance that wraps and references the data supplied
+     */
+    public static ReferencedData getWrappedData(final String ref, final byte[] data)
+    {
+        return new ReferencedData(Objects.requireNonNull(ref), data);
     }
 }
