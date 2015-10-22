@@ -6,30 +6,30 @@
 
     <groupId>com.hpe.caf.worker</groupId>
     <artifactId>worker-core</artifactId>
-    <version>9.5-SNAPSHOT</version>
+    <version>10.5-SNAPSHOT</version>
     
     <parent>
         <groupId>com.hpe.caf</groupId>
         <artifactId>caf-maven</artifactId>
-        <version>8</version>
+        <version>9</version>
     </parent>
 
     <dependencies>
         <dependency>
             <groupId>com.hpe.caf</groupId>
             <artifactId>caf-api</artifactId>
-            <version>9.0-SNAPSHOT</version>
+            <version>10.0-SNAPSHOT</version>
             <scope>provided</scope>
         </dependency>
         <dependency>
             <groupId>com.hpe.caf.cipher</groupId>
             <artifactId>cipher-null</artifactId>
-            <version>9.0-SNAPSHOT</version>
+            <version>10.0-SNAPSHOT</version>
         </dependency>
         <dependency>
             <groupId>com.hpe.caf.config</groupId>
             <artifactId>config-system</artifactId>
-            <version>9.0-SNAPSHOT</version>
+            <version>10.0-SNAPSHOT</version>
         </dependency>
         <dependency>
             <groupId>com.hpe.caf.util</groupId>
@@ -56,13 +56,13 @@
         <dependency>
             <groupId>com.hpe.caf.codec</groupId>
             <artifactId>codec-json</artifactId>
-            <version>9.0-SNAPSHOT</version>
+            <version>10.0-SNAPSHOT</version>
             <scope>test</scope>
         </dependency>
         <dependency>
             <groupId>com.hpe.caf.worker</groupId>
             <artifactId>worker-caf</artifactId>
-            <version>9.0-SNAPSHOT</version>
+            <version>10.0-SNAPSHOT</version>
             <scope>test</scope>
         </dependency>
     </dependencies>
