@@ -1,52 +1,66 @@
 package com.hpe.caf.worker.datastore.cs;
 
+
 import com.hpe.caf.api.Configuration;
 
+import javax.validation.constraints.Max;
+import javax.validation.constraints.Min;
 import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Size;
 
-/**
- *
- */
-@Configuration
-public class StorageServiceDataStoreConfiguration {
 
+@Configuration
+public class StorageServiceDataStoreConfiguration
+{
     @NotNull
     @Size(min = 1)
     private String serverName;
-
     @NotNull
-    @Size(min = 1)
-    private String port;
-
+    @Min(1)
+    @Max(65535)
+    private int port;
     @NotNull
     @Size(min = 1)
     private String emailAddress;
 
-    public StorageServiceDataStoreConfiguration() {
+
+    public StorageServiceDataStoreConfiguration()
+    {
     }
 
-    public String getServerName() {
+
+    public String getServerName()
+    {
         return this.serverName;
     }
 
-    public void setServerName(String serverName) {
+
+    public void setServerName(String serverName)
+    {
         this.serverName = serverName;
     }
 
-    public String getPort() {
+
+    public int getPort()
+    {
         return this.port;
     }
 
-    public void setPort(String port) {
+
+    public void setPort(int port)
+    {
         this.port = port;
     }
 
-    public String getEmailAddress() {
+
+    public String getEmailAddress()
+    {
         return this.emailAddress;
     }
 
-    public void setEmailAddress(String emailAddress) {
+
+    public void setEmailAddress(String emailAddress)
+    {
         this.emailAddress = emailAddress;
     }
 }
