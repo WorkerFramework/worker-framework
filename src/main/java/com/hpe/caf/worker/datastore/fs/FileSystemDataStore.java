@@ -92,7 +92,7 @@ public class FileSystemDataStore implements ManagedDataStore
      * @throws InvalidPathException if the reference cannot be converted to a Path
      */
     @Override
-    public long getDataSize(final String reference)
+    public long size(final String reference)
         throws DataStoreException
     {
         Objects.requireNonNull(reference);
@@ -118,13 +118,53 @@ public class FileSystemDataStore implements ManagedDataStore
      * @throws InvalidPathException if the reference cannot be converted to a Path
      */
     @Override
-    public String store(final InputStream dataStream)
+    public String store(final InputStream dataStream, final String partialReference)
         throws DataStoreException
     {
         try {
-            String ref = generateReference();
-            Files.copy(dataStream, verifyReference(ref));
-            return ref;
+            Path ref = getStoreReference(partialReference);
+            Files.copy(dataStream, ref);
+            return ref.toString();
+        } catch (IOException e) {
+            errors.incrementAndGet();
+            throw new DataStoreException("Failed to get output stream for store", e);
+        }
+    }
+
+
+    /**
+     * {@inheritDoc}
+     * @throws DataStoreException if the reference is found but cannot be accessed or retrieved
+     * @throws InvalidPathException if the reference cannot be converted to a Path
+     */
+    @Override
+    public String store(byte[] data, String partialReference)
+        throws DataStoreException
+    {
+        try {
+            Path ref = getStoreReference(partialReference);
+            Files.write(ref, data);
+            return ref.toString();
+        } catch (IOException e) {
+            errors.incrementAndGet();
+            throw new DataStoreException("Failed to get output stream for store", e);
+        }
+    }
+
+
+    /**
+     * {@inheritDoc}
+     * @throws DataStoreException if the reference is found but cannot be accessed or retrieved
+     * @throws InvalidPathException if the reference cannot be converted to a Path
+     */
+    @Override
+    public String store(Path dataPath, String partialReference)
+        throws DataStoreException
+    {
+        try {
+            Path ref = getStoreReference(partialReference);
+            Files.copy(dataPath, ref);
+            return ref.toString();
         } catch (IOException e) {
             errors.incrementAndGet();
             throw new DataStoreException("Failed to get output stream for store", e);
@@ -136,6 +176,32 @@ public class FileSystemDataStore implements ManagedDataStore
     public HealthResult healthCheck()
     {
         return HealthResult.RESULT_HEALTHY;
+    }
+
+
+    /**
+     * The returned Path will be the partial reference resolved relative to the
+     * store's dataStorePath (from its configuration) and a randomly generated UUID file
+     * name will be made relative to that. Subdirectories under the dataStorePath will
+     * automatically be created.
+     * @param partialReference the partial reference, typically subdirectories, may be null
+     * @return the absolute Path to the location to store data
+     * @throws DataStoreException if the partial reference cannot be verified
+     * @throws IOException if the subdirectories cannot be created
+     */
+    private Path getStoreReference(final String partialReference)
+        throws DataStoreException, IOException
+    {
+        Path p;
+        if ( partialReference != null && !partialReference.isEmpty() ) {
+            p = verifyReference(partialReference);
+            if ( !Files.exists(p) ) {
+                Files.createDirectories(p);
+            }
+        } else {
+            p = dataStorePath;
+        }
+        return p.resolve(UUID.randomUUID().toString());
     }
 
 
@@ -171,15 +237,6 @@ public class FileSystemDataStore implements ManagedDataStore
             throw new ReferenceNotFoundException("Reference not found: "+ reference);
         }
         return reference;
-    }
-
-
-    /**
-     * @return a new reference to store a file by
-     */
-    private String generateReference()
-    {
-        return UUID.randomUUID().toString();
     }
 
 
