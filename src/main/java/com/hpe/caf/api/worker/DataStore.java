@@ -2,6 +2,7 @@ package com.hpe.caf.api.worker;
 
 
 import java.io.InputStream;
+import java.nio.file.Path;
 
 
 /**
@@ -13,8 +14,8 @@ public interface DataStore
 {
     /**
      * Provide a stream to get data by reference
-     * @param reference the arbitrary string reference to a piece of data
-     * @return the raw data referred to
+     * @param reference a complete reference to be interpreted by the DataStore implementation
+     * @return the raw data referred to as a stream, which should be closed by the caller
      * @throws DataStoreException if the data store cannot service the request
      */
     InputStream retrieve(String reference)
@@ -23,20 +24,51 @@ public interface DataStore
 
     /**
      * Get the byte size of some data in the DataStore by reference
-     * @param reference the arbitrary string reference to a piece of data
+     * @param reference a complete reference to be interpreted by the DataStore implementation
      * @return the size in bytes of the data being referred to
      * @throws DataStoreException if the data store cannot service the request
+     * @since 10.0
      */
-    long getDataSize(String reference)
+    long size(String reference)
         throws DataStoreException;
 
 
     /**
-     * Provide a stream to store data, returning the reference it is stored by
+     * Store data from a stream, which should be closed by the caller. The data will be
+     * stored relative to the partial reference supplied, and the absolute reference of
+     * the final location will be returned.
      * @param dataStream the stream of data which will be read and put into the DataStore
-     * @return reference to the stored data, which can be used to retrieve
+     * @param partialReference the partial reference, which the data will be stored relative to
+     * @return absolute reference to the stored data, which can be used to retrieve
      * @throws DataStoreException if the data store cannot service the request
+     * @since 10.0
      */
-    String store(InputStream dataStream)
+    String store(InputStream dataStream, String partialReference)
+        throws DataStoreException;
+
+
+    /**
+     * Store data from a byte array. The data will be stored relative to the partial
+     * reference supplied, and the absolute reference of the final location will be returned.
+     * @param data the raw byte data to store
+     * @param partialReference the partial reference, which the data will be stored relative to
+     * @return absolute reference to the stored data, which can be used to retrieve
+     * @throws DataStoreException if the data store cannot service the request
+     * @since 10.0
+     */
+    String store(byte[] data, String partialReference)
+        throws DataStoreException;
+
+
+    /**
+     * Store data from a local file. The data will be stored relative to the partial
+     * reference supplied, and the absolute reference of the final location will be returned.
+     * @param dataPath path to a file on the local filesystem to store on the remote DataStore
+     * @param partialReference the partial reference, which the data will be stored relative to
+     * @return absolute reference to the stored data, which can be used to retrieve
+     * @throws DataStoreException if the data store cannot service the request
+     * @since 10.0
+     */
+    String store(Path dataPath, String partialReference)
         throws DataStoreException;
 }

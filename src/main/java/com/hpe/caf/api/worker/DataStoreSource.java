@@ -67,7 +67,7 @@ public class DataStoreSource extends DataSource
         throws DataSourceException
     {
         try {
-            return store.getDataSize(ref);
+            return store.size(ref);
         } catch (ReferenceNotFoundException e) {
             throw new SourceNotFoundException("Reference not found: " + ref, e);
         } catch (DataStoreException e) {
