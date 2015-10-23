@@ -124,7 +124,7 @@ public class FileSystemDataStore implements ManagedDataStore
         try {
             Path ref = getStoreReference(partialReference);
             Files.copy(dataStream, ref);
-            return ref.toString();
+            return dataStorePath.relativize(ref).toString();
         } catch (IOException e) {
             errors.incrementAndGet();
             throw new DataStoreException("Failed to get output stream for store", e);
