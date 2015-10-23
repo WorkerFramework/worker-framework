@@ -1,7 +1,6 @@
 package com.hpe.caf.worker.datastore.cs;
 
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.io.ByteSource;
 import com.google.common.io.ByteStreams;
 import com.google.common.io.FileBackedOutputStream;
@@ -23,20 +22,28 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.nio.file.Path;
 import java.util.Date;
-import java.util.Objects;
 import java.util.UUID;
 import java.util.concurrent.atomic.AtomicInteger;
 
 
+/**
+ * ManagedDataStore implementation for the CAF Storage Service.
+ */
 public class StorageServiceDataStore implements ManagedDataStore
 {
+    /**
+     * The Storage Service "file type" for Worker assets.
+     */
+    public static final String WORKER_ASSET_TYPE = "WorkerDataStoreAsset";
     private final AtomicInteger errors = new AtomicInteger(0);
     private final AtomicInteger numRx = new AtomicInteger(0);
     private final AtomicInteger numTx = new AtomicInteger(0);
     private final DataStoreMetricsReporter metrics = new StorageServiceDataStoreMetricsReporter();
-    private final ObjectMapper mapper = new ObjectMapper();
     private final StorageClient storageClient;
     private static final Logger LOG = LoggerFactory.getLogger(StorageServiceDataStore.class);
+    /**
+     * Byte size at which incoming streams are buffered to disk before sending to the Storage Service.
+     */
     private static final int FILE_THRESHOLD = 1024 * 1024;
 
 
@@ -65,11 +72,13 @@ public class StorageServiceDataStore implements ManagedDataStore
     public InputStream retrieve(String reference)
         throws DataStoreException
     {
-        StorageServiceReference storageServiceReference = getStorageServiceReference(Objects.requireNonNull(reference));
-        if ( AssetStatus.ACTIVE.equals(AssetStatus.valueOf(getAssetMetadata(storageServiceReference).getStatus())) ) {
-            WrappedKey wrappedKey = this.storageClient.getAssetContainerEncryptionKey(storageServiceReference.getContainerId());
+        LOG.debug("Received retrieve request for {}", reference);
+        CafStoreReference ref = new CafStoreReference(reference);
+        AssetMetadata assetMetadata = storageClient.getAssetMetadata(ref.getContainer(), ref.getAsset());
+        if ( AssetStatus.ACTIVE.equals(AssetStatus.valueOf(assetMetadata.getStatus())) ) {
+            WrappedKey wrappedKey = this.storageClient.getAssetContainerEncryptionKey(ref.getContainer());
             try {
-                return this.storageClient.downloadAsset(storageServiceReference.getContainerId(), storageServiceReference.getAssetId(), wrappedKey).getDecryptedStream();
+                return this.storageClient.downloadAsset(ref.getContainer(), ref.getAsset(), wrappedKey).getDecryptedStream();
             } catch (IOException e) {
                 throw new DataStoreException(String.format("Could not download asset %s.", reference), e);
             }
@@ -79,29 +88,13 @@ public class StorageServiceDataStore implements ManagedDataStore
     }
 
 
-    private StorageServiceReference getStorageServiceReference(String reference)
-        throws DataStoreException
-    {
-        try {
-            return mapper.readValue(reference, StorageServiceReference.class);
-        } catch (IOException e) {
-            throw new DataStoreException(String.format("Invalid reference (%s).", reference), e);
-        }
-    }
-
-
-    private AssetMetadata getAssetMetadata(StorageServiceReference storageServiceReference)
-    {
-        return this.storageClient.getAssetMetadata(storageServiceReference.getContainerId(), storageServiceReference.getAssetId());
-    }
-
-
     @Override
     public long size(String reference)
         throws DataStoreException
     {
-        StorageServiceReference storageServiceReference = getStorageServiceReference(Objects.requireNonNull(reference));
-        return getAssetMetadata(storageServiceReference).getSize();
+        LOG.debug("Received size request for {}", reference);
+        CafStoreReference ref = new CafStoreReference(reference);
+        return storageClient.getAssetMetadata(ref.getContainer(), ref.getAsset()).getSize();
     }
 
 
@@ -110,7 +103,6 @@ public class StorageServiceDataStore implements ManagedDataStore
         throws DataStoreException
     {
         try ( FileBackedOutputStream fileBackedOutputStream = new FileBackedOutputStream(FILE_THRESHOLD, true) ) {
-
             try {
                 ByteStreams.copy(inputStream, fileBackedOutputStream);
                 return store(fileBackedOutputStream.asByteSource(), partialReference);
@@ -142,7 +134,7 @@ public class StorageServiceDataStore implements ManagedDataStore
     @Override
     public HealthResult healthCheck()
     {
-        //TODO verify underlying storage service is healthy
+        storageClient.listAssetContainers();
         return HealthResult.RESULT_HEALTHY;
     }
 
@@ -150,35 +142,16 @@ public class StorageServiceDataStore implements ManagedDataStore
     private String store(ByteSource byteSource, String partialReference)
         throws DataStoreException
     {
-        Objects.requireNonNull(partialReference);
-        StorageServiceReference storageServiceReference = getStorageServiceReference(partialReference);
-        verifyPartialReference(storageServiceReference);
+        LOG.debug("Received store request for {}", partialReference);
         CryptoKey assetKey = EncryptionUtil.generateRandomKey();
-        WrappedKey wrappedKey = this.storageClient.getAssetContainerEncryptionKey(storageServiceReference.getContainerId());
+        WrappedKey wrappedKey = this.storageClient.getAssetContainerEncryptionKey(partialReference);
         try (InputStream inputStream = byteSource.openBufferedStream()) {
             AssetMetadata assetMetadata =
-                this.storageClient.uploadAsset(storageServiceReference.getContainerId(), wrappedKey, assetKey, inputStream, null,
-                                               UUID.randomUUID().toString(), //name
-                                               byteSource.size(), null, //Description
-                                               "WorkerDataStoreAsset", //Filetype
-                                               new Date(System.currentTimeMillis()), new Date(System.currentTimeMillis()), null);//Custom metadata
-            StorageServiceReference completeReference = new StorageServiceReference();
-            completeReference.setAssetId(assetMetadata.getAssetId());
-            completeReference.setContainerId(assetMetadata.getContainerId());
-            completeReference.setRevId(assetMetadata.getRevId());
-            return mapper.writeValueAsString(completeReference);
-
+                this.storageClient.uploadAsset(partialReference, wrappedKey, assetKey, inputStream, null, UUID.randomUUID().toString(),
+                                               byteSource.size(), null, WORKER_ASSET_TYPE, new Date(), new Date(), null);
+            return new CafStoreReference(assetMetadata.getContainerId(), assetMetadata.getAssetId()).toString();
         } catch (IOException e) {
             throw new DataStoreException("Failed to open buffered stream.", e);
-        }
-    }
-
-
-    private void verifyPartialReference(StorageServiceReference storageServiceReference)
-        throws DataStoreException
-    {
-        if ( storageServiceReference.getAssetId() != null ) {
-            throw new DataStoreException("Invalid partial reference supplied, assetId should not be supplied.");
         }
     }
 
@@ -205,5 +178,6 @@ public class StorageServiceDataStore implements ManagedDataStore
             return errors.get();
         }
     }
+
 
 }

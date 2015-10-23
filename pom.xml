@@ -22,6 +22,11 @@
             <scope>provided</scope>
         </dependency>
         <dependency>
+            <groupId>com.hpe.caf.util</groupId>
+            <artifactId>util-naming</artifactId>
+            <version>1.0</version>
+        </dependency>
+        <dependency>
             <groupId>javax.validation</groupId>
             <artifactId>validation-api</artifactId>
             <version>1.1.0.Final</version>
@@ -33,10 +38,10 @@
             <version>1.0.0.26</version>
         </dependency>
         <dependency>
-            <groupId>com.fasterxml.jackson.core</groupId>
-            <artifactId>jackson-databind</artifactId>
-            <version>2.5.3</version>
-            <scope>provided</scope>
+            <groupId>junit</groupId>
+            <artifactId>junit</artifactId>
+            <version>${junit.version}</version>
+            <scope>test</scope>
         </dependency>
     </dependencies>
 
