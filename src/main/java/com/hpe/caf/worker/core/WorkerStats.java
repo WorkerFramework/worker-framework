@@ -1,6 +1,9 @@
 package com.hpe.caf.worker.core;
 
 
+import com.codahale.metrics.ExponentiallyDecayingReservoir;
+import com.codahale.metrics.Histogram;
+
 import java.util.concurrent.atomic.AtomicLong;
 
 
@@ -15,6 +18,8 @@ class WorkerStats
     private final AtomicLong tasksFailed = new AtomicLong(0);
     private final AtomicLong tasksAborted = new AtomicLong(0);
     private final AtomicLong lastTaskFinished = new AtomicLong(System.currentTimeMillis());
+    private final Histogram inputSizes = new Histogram(new ExponentiallyDecayingReservoir());
+    private final Histogram outputSizes = new Histogram(new ExponentiallyDecayingReservoir());
 
 
     /**
@@ -104,5 +109,17 @@ class WorkerStats
     public void updatedLastTaskFinishedTime()
     {
         lastTaskFinished.set(System.currentTimeMillis());
+    }
+
+
+    public Histogram getInputSizes()
+    {
+        return inputSizes;
+    }
+
+
+    public Histogram getOutputSizes()
+    {
+        return outputSizes;
     }
 }

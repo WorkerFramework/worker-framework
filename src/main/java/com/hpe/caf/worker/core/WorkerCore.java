@@ -130,6 +130,7 @@ public class WorkerCore
             Objects.requireNonNull(queueMsgId);
             try {
                 stats.incrementTasksReceived();
+                stats.getInputSizes().update(taskMessage.length);
                 TaskMessage tm = codec.deserialise(taskMessage, TaskMessage.class, DecodeMethod.LENIENT);
                 LOG.debug("Received task {} (message id: {})", tm.getTaskId(), queueMsgId);
                 executor.executeTask(tm, queueMsgId);
@@ -193,7 +194,9 @@ public class WorkerCore
             taskMap.remove(queueMsgId);
             LOG.debug("Task {} complete (message id: {})", responseMessage.getTaskId(), queueMsgId);
             try {
-                workerQueue.publish(queueMsgId, codec.serialise(responseMessage), queue);
+                byte[] output = codec.serialise(responseMessage);
+                workerQueue.publish(queueMsgId, output, queue);
+                stats.getOutputSizes().update(output.length);
                 stats.updatedLastTaskFinishedTime();
                 if ( TaskStatus.isSuccessfulResponse(responseMessage.getTaskStatus()) ) {
                     stats.incrementTasksSucceeded();
