@@ -156,7 +156,7 @@ public final class WorkerApplication extends Application<WorkerConfiguration>
             metrics.register(MetricRegistry.name("store.errors"), (Gauge<Integer>) store.getMetrics()::getErrors);
         }
         if ( core.getWorkerQueue().getMetrics() != null ) {
-            metrics.register(MetricRegistry.name("queue.receieved"), (Gauge<Integer>) core.getWorkerQueue().getMetrics()::getMessagesReceived);
+            metrics.register(MetricRegistry.name("queue.received"), (Gauge<Integer>) core.getWorkerQueue().getMetrics()::getMessagesReceived);
             metrics.register(MetricRegistry.name("queue.published"), (Gauge<Integer>) core.getWorkerQueue().getMetrics()::getMessagesPublished);
             metrics.register(MetricRegistry.name("queue.rejected"), (Gauge<Integer>) core.getWorkerQueue().getMetrics()::getMessagesRejected);
             metrics.register(MetricRegistry.name("queue.dropped"), (Gauge<Integer>) core.getWorkerQueue().getMetrics()::getMessagesDropped);
