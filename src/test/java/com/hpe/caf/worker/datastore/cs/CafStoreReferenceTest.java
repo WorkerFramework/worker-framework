@@ -15,8 +15,8 @@ public class CafStoreReferenceTest
     public void testReferenceFromString()
         throws DataStoreException
     {
-        String container = UUID.randomUUID().toString();
-        String asset = UUID.randomUUID().toString();
+        String container = getNewUUIDString();
+        String asset = getNewUUIDString();
         CafStoreReference test = new CafStoreReference(container + "/" + asset);
         Assert.assertEquals(container, test.getContainer());
         Assert.assertEquals(container, test.getIndex(0));
@@ -30,8 +30,8 @@ public class CafStoreReferenceTest
     public void testReferenceFromComponents()
         throws DataStoreException
     {
-        String container = UUID.randomUUID().toString();
-        String asset = UUID.randomUUID().toString();
+        String container = getNewUUIDString();
+        String asset = getNewUUIDString();
         CafStoreReference test = new CafStoreReference(container, asset);
         Assert.assertEquals(container, test.getContainer());
         Assert.assertEquals(container, test.getIndex(0));
@@ -46,7 +46,7 @@ public class CafStoreReferenceTest
         throws DataStoreException
     {
         String container = "01234:45678";
-        String asset = UUID.randomUUID().toString();
+        String asset = getNewUUIDString();
         CafStoreReference test = new CafStoreReference(container, asset);
     }
 
@@ -56,7 +56,7 @@ public class CafStoreReferenceTest
     public void testInvalidAsset()
         throws DataStoreException
     {
-        String container = UUID.randomUUID().toString();
+        String container = getNewUUIDString();
         String asset = "01234:45678";
         CafStoreReference test = new CafStoreReference(container, asset);
     }
@@ -67,8 +67,8 @@ public class CafStoreReferenceTest
     public void testInvalidReference()
         throws DataStoreException
     {
-        String container = UUID.randomUUID().toString();
-        String asset = UUID.randomUUID().toString();
+        String container = getNewUUIDString();
+        String asset = getNewUUIDString();
         CafStoreReference test = new CafStoreReference(container + "/" + asset + "/01234");
     }
 
@@ -78,8 +78,12 @@ public class CafStoreReferenceTest
     public void testMissingReference()
         throws DataStoreException
     {
-        String container = UUID.randomUUID().toString();
+        String container = getNewUUIDString();
         CafStoreReference test = new CafStoreReference(container);
+    }
+
+    private String getNewUUIDString(){
+        return UUID.randomUUID().toString().replace("-","");
     }
 
 }

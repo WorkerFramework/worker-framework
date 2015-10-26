@@ -5,7 +5,8 @@ import com.hpe.caf.api.worker.DataStoreException;
 import com.hpe.caf.naming.Name;
 
 import java.util.Arrays;
-import java.util.UUID;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 
 /**
@@ -14,6 +15,8 @@ import java.util.UUID;
  */
 public class CafStoreReference extends Name
 {
+    final Pattern pattern = Pattern.compile("^[0-9a-f]{32}$");
+
     public CafStoreReference(String completeReference)
         throws DataStoreException
     {
@@ -58,11 +61,9 @@ public class CafStoreReference extends Name
         if ( size() != 2 ) {
             throw new DataStoreException("Invalid reference, must consist of container id and asset id only");
         }
-        try {
-            for ( String component : getPrefix(size()) ) {
-                UUID.fromString(component);
-            }
-        } catch (IllegalArgumentException e) {
+
+        Matcher matcher = pattern.matcher(getAsset());
+        if(!matcher.find()){
             throw new DataStoreException("Invalid reference due to invalid characters");
         }
     }
