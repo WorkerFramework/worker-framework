@@ -40,6 +40,7 @@ public class StorageServiceDataStore implements ManagedDataStore
     private final AtomicInteger numTx = new AtomicInteger(0);
     private final DataStoreMetricsReporter metrics = new StorageServiceDataStoreMetricsReporter();
     private final StorageClient storageClient;
+    private final String accessToken;
     private static final Logger LOG = LoggerFactory.getLogger(StorageServiceDataStore.class);
     /**
      * Byte size at which incoming streams are buffered to disk before sending to the Storage Service.
@@ -49,8 +50,11 @@ public class StorageServiceDataStore implements ManagedDataStore
 
     public StorageServiceDataStore(final StorageServiceDataStoreConfiguration storageServiceDataStoreConfiguration)
     {
-        storageClient = new StorageClient(storageServiceDataStoreConfiguration.getServerName(), String.valueOf(storageServiceDataStoreConfiguration.getPort()),
-                              storageServiceDataStoreConfiguration.getEmailAddress());
+        //TODO Authentication is still disabled
+        accessToken = "1234";
+        storageClient = new StorageClient(storageServiceDataStoreConfiguration.getServerName(),
+                String.valueOf(storageServiceDataStoreConfiguration.getPort()));
+
     }
 
 
@@ -74,11 +78,12 @@ public class StorageServiceDataStore implements ManagedDataStore
     {
         LOG.debug("Received retrieve request for {}", reference);
         CafStoreReference ref = new CafStoreReference(reference);
-        AssetMetadata assetMetadata = storageClient.getAssetMetadata(ref.getContainer(), ref.getAsset());
+        AssetMetadata assetMetadata = storageClient.getAssetMetadata(accessToken, ref.getContainer(), ref.getAsset());
         if ( AssetStatus.ACTIVE.equals(AssetStatus.valueOf(assetMetadata.getStatus())) ) {
-            WrappedKey wrappedKey = this.storageClient.getAssetContainerEncryptionKey(ref.getContainer());
+            WrappedKey wrappedKey = this.storageClient.getAssetContainerEncryptionKey(accessToken, ref.getContainer());
             try {
-                return this.storageClient.downloadAsset(ref.getContainer(), ref.getAsset(), wrappedKey).getDecryptedStream();
+                return this.storageClient.downloadAsset(accessToken, ref.getContainer(),
+                        ref.getAsset(), wrappedKey).getDecryptedStream();
             } catch (IOException e) {
                 throw new DataStoreException(String.format("Could not download asset %s.", reference), e);
             }
@@ -94,7 +99,7 @@ public class StorageServiceDataStore implements ManagedDataStore
     {
         LOG.debug("Received size request for {}", reference);
         CafStoreReference ref = new CafStoreReference(reference);
-        return storageClient.getAssetMetadata(ref.getContainer(), ref.getAsset()).getSize();
+        return storageClient.getAssetMetadata(accessToken, ref.getContainer(), ref.getAsset()).getSize();
     }
 
 
@@ -134,7 +139,7 @@ public class StorageServiceDataStore implements ManagedDataStore
     @Override
     public HealthResult healthCheck()
     {
-        storageClient.listAssetContainers();
+        storageClient.listAssetContainers(accessToken);
         return HealthResult.RESULT_HEALTHY;
     }
 
@@ -144,11 +149,12 @@ public class StorageServiceDataStore implements ManagedDataStore
     {
         LOG.debug("Received store request for {}", partialReference);
         CryptoKey assetKey = EncryptionUtil.generateRandomKey();
-        WrappedKey wrappedKey = this.storageClient.getAssetContainerEncryptionKey(partialReference);
+        WrappedKey wrappedKey = this.storageClient.getAssetContainerEncryptionKey(accessToken, partialReference);
         try (InputStream inputStream = byteSource.openBufferedStream()) {
             AssetMetadata assetMetadata =
-                this.storageClient.uploadAsset(partialReference, wrappedKey, assetKey, inputStream, null, UUID.randomUUID().toString(),
-                                               byteSource.size(), null, WORKER_ASSET_TYPE, new Date(), new Date(), null);
+                this.storageClient.uploadAsset(accessToken, partialReference, wrappedKey, assetKey, inputStream, null,
+                        UUID.randomUUID().toString(), byteSource.size(), null, WORKER_ASSET_TYPE, new Date(),
+                        new Date(), null);
             return new CafStoreReference(assetMetadata.getContainerId(), assetMetadata.getAssetId()).toString();
         } catch (IOException e) {
             throw new DataStoreException("Failed to open buffered stream.", e);

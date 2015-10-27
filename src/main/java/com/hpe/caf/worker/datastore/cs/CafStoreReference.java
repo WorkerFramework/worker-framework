@@ -62,9 +62,11 @@ public class CafStoreReference extends Name
             throw new DataStoreException("Invalid reference, must consist of container id and asset id only");
         }
 
-        Matcher matcher = pattern.matcher(getAsset());
-        if(!matcher.find()){
-            throw new DataStoreException("Invalid reference due to invalid characters");
+        for(String component:this){
+            Matcher matcher = pattern.matcher(component);
+            if(!matcher.find()){
+                throw new DataStoreException("Invalid reference due to invalid characters");
+            }
         }
     }
 }

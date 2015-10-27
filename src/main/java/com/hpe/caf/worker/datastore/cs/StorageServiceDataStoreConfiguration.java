@@ -19,10 +19,6 @@ public class StorageServiceDataStoreConfiguration
     @Min(1)
     @Max(65535)
     private int port;
-    @NotNull
-    @Size(min = 1)
-    private String emailAddress;
-
 
     public StorageServiceDataStoreConfiguration()
     {
@@ -52,15 +48,4 @@ public class StorageServiceDataStoreConfiguration
         this.port = port;
     }
 
-
-    public String getEmailAddress()
-    {
-        return this.emailAddress;
-    }
-
-
-    public void setEmailAddress(String emailAddress)
-    {
-        this.emailAddress = emailAddress;
-    }
 }

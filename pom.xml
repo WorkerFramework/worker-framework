@@ -35,7 +35,7 @@
         <dependency>
             <groupId>com.hpe.caf</groupId>
             <artifactId>storage-sdk-with-dependencies</artifactId>
-            <version>1.0.0.26</version>
+            <version>1.0.0.46</version>
         </dependency>
         <dependency>
             <groupId>com.sun.jersey</groupId>
