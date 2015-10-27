@@ -25,8 +25,10 @@ import com.hpe.caf.config.system.SystemBootstrapConfiguration;
 import com.hpe.caf.naming.ServicePath;
 import com.hpe.caf.util.ModuleLoader;
 import com.hpe.caf.util.ModuleLoaderException;
+import com.hpe.caf.util.jerseycompat.Jersey2ServiceIteratorProvider;
 import io.dropwizard.Application;
 import io.dropwizard.setup.Environment;
+import org.glassfish.jersey.internal.ServiceFinder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -56,6 +58,7 @@ public final class WorkerApplication extends Application<WorkerConfiguration>
     public static void main(final String[] args)
         throws Exception
     {
+        ServiceFinder.setIteratorProvider(new Jersey2ServiceIteratorProvider());
         new WorkerApplication().run(args);
     }
 
