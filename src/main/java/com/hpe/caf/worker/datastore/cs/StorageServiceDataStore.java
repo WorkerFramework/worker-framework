@@ -77,6 +77,7 @@ public class StorageServiceDataStore implements ManagedDataStore
         throws DataStoreException
     {
         LOG.debug("Received retrieve request for {}", reference);
+        numRx.incrementAndGet();
         CafStoreReference ref = new CafStoreReference(reference);
         AssetMetadata assetMetadata = storageClient.getAssetMetadata(accessToken, ref.getContainer(), ref.getAsset());
         if ( AssetStatus.ACTIVE.equals(AssetStatus.valueOf(assetMetadata.getStatus())) ) {
@@ -85,9 +86,11 @@ public class StorageServiceDataStore implements ManagedDataStore
                 return this.storageClient.downloadAsset(accessToken, ref.getContainer(),
                         ref.getAsset(), wrappedKey).getDecryptedStream();
             } catch (IOException e) {
+                errors.incrementAndGet();
                 throw new DataStoreException(String.format("Could not download asset %s.", reference), e);
             }
         } else {
+            errors.incrementAndGet();
             throw new DataStoreException(String.format("Reference %s is not active.", reference));
         }
     }
@@ -115,6 +118,7 @@ public class StorageServiceDataStore implements ManagedDataStore
                 fileBackedOutputStream.reset();
             }
         } catch (IOException ex) {
+            errors.incrementAndGet();
             throw new DataStoreException("Could not store input stream.", ex);
         }
     }
@@ -148,6 +152,7 @@ public class StorageServiceDataStore implements ManagedDataStore
         throws DataStoreException
     {
         LOG.debug("Received store request for {}", partialReference);
+        numTx.incrementAndGet();
         CryptoKey assetKey = EncryptionUtil.generateRandomKey();
         WrappedKey wrappedKey = this.storageClient.getAssetContainerEncryptionKey(accessToken, partialReference);
         try (InputStream inputStream = byteSource.openBufferedStream()) {
@@ -157,6 +162,7 @@ public class StorageServiceDataStore implements ManagedDataStore
                         new Date(), null);
             return new CafStoreReference(assetMetadata.getContainerId(), assetMetadata.getAssetId()).toString();
         } catch (IOException e) {
+            errors.incrementAndGet();
             throw new DataStoreException("Failed to open buffered stream.", e);
         }
     }
