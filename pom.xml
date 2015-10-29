@@ -6,7 +6,7 @@
 
     <groupId>com.hpe.caf.worker</groupId>
     <artifactId>worker-store-cs</artifactId>
-    <version>10.1-SNAPSHOT</version>
+    <version>10.1</version>
     
     <parent>
         <groupId>com.hpe.caf</groupId>
