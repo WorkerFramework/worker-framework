@@ -36,7 +36,7 @@ public abstract class DataSource
      * Determine the size of the data abstracted.
      * @param ref the reference that points to the data
      * @return the size of the data, in bytes
-     * @throws DataSourceException
+     * @throws DataSourceException if the data size cannot be acquired
      */
     public abstract long getDataSize(final String ref)
         throws DataSourceException;
