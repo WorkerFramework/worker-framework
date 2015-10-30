@@ -86,13 +86,13 @@ public abstract class AbstractWorkerFactory<C, T> implements WorkerFactory
 
 
     /**
-     * Returns the name of the worker to use when checking the task type
+     * @return the name of the worker to use when checking the task type
      */
     protected abstract String getWorkerName();
 
 
     /**
-     * Returns the maximum version of the worker message that is supported
+     * @return the maximum version of the worker message that is supported
      */
     protected abstract int getWorkerApiVersion();
 
