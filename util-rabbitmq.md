@@ -79,6 +79,35 @@
  RabbitUtil.declareQueue(channel, queue, durability, exclusivity, emptyAction);
  ```
 
+### Declaring queues with a QueueCreator
+
+ An alternate way of creating/declaring queues is with a `QueueCreator`. This
+ is a builder pattern class where calls are chained to set various parameters
+ and attributes before performing a terminating call which will collect all the
+ specified settings and declare the queue. For example:
+
+ ```
+ new QueueCreator().withQueueName("testQueue").createWorkerQueue(myChannel);
+ ```
+
+ In this case a queue is created called 'testQueue' using the specified channel
+ and the default Worker queue parameters (durable, non-exclusive, and leave
+ empty). Alternatively the `createQueue(Channel)` method will declare a queue
+ using parameters specified otherwise. The following methods are available:
+
+ - `withQueueName(String)` - specifies the queue name, required
+ - `withDurability(Durability)` - manually specifies durability parameter
+ - `withEmptyAction(EmptyAction)` - manually specifies empty action parameter
+ - `withExclusivity(Exclusivity)` - manually specifies exclusivity parameter
+ - `withDeadLetterExchange(String)` - adds a dead letter exchange to the queue
+ - `withQueueTtl(long)` - adds a TTL to the queue in milliseconds, after which
+  they will be dead-lettered
+ - `withDeadLetterRoutingKey(String)` - adds a routing key for messages that
+  are dead-lettered from this queue
+ - `createQueue(Channel)` - declares the queue
+ - `createWorkerQueue(Channel)` - sets the durability, exclusivity, and empty
+  action defaults for a Worker-based queue, then declares the queue
+
 
 ## Creating producers and consumers
 
