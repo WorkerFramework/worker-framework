@@ -6,57 +6,50 @@
 
     <groupId>com.hpe.caf.worker</groupId>
     <artifactId>worker-queue-rabbit</artifactId>
-    <version>10.5</version>
-    
+    <version>10.6-SNAPSHOT</version>
+
     <parent>
         <groupId>com.hpe.caf</groupId>
         <artifactId>caf-maven</artifactId>
-        <version>9</version>
+        <version>14-SNAPSHOT</version>
+        <relativePath>../caf-maven</relativePath>
     </parent>
 
     <dependencies>
         <dependency>
             <groupId>com.hpe.caf</groupId>
             <artifactId>caf-api</artifactId>
-            <version>10.0</version>
             <scope>provided</scope>
         </dependency>
         <dependency>
             <groupId>org.slf4j</groupId>
             <artifactId>slf4j-api</artifactId>
-            <version>${slf4j.version}</version>
         </dependency>
         <dependency>
             <groupId>com.hpe.caf.util</groupId>
             <artifactId>util-rabbitmq</artifactId>
-            <version>1.0</version>
         </dependency>
         <dependency>
             <groupId>com.hpe.caf</groupId>
             <artifactId>caf-configs</artifactId>
-            <version>10.0</version>
         </dependency>
         <dependency>
             <groupId>com.rabbitmq</groupId>
             <artifactId>amqp-client</artifactId>
-            <version>3.5.3</version>
         </dependency>
         <dependency>
             <groupId>javax.validation</groupId>
             <artifactId>validation-api</artifactId>
-            <version>1.1.0.Final</version>
             <scope>provided</scope>
         </dependency>
         <dependency>
             <groupId>junit</groupId>
             <artifactId>junit</artifactId>
-            <version>${junit.version}</version>
             <scope>test</scope>
         </dependency>
         <dependency>
             <groupId>org.mockito</groupId>
             <artifactId>mockito-core</artifactId>
-            <version>${mockito.core.version}</version>
             <scope>test</scope>
         </dependency>
     </dependencies>
