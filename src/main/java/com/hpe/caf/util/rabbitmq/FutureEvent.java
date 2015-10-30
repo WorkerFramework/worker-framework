@@ -51,6 +51,7 @@ public abstract class FutureEvent<T,V> implements Event<T>
      * Trigger the event and return a result.
      * @param target the class to perform an action on
      * @return a result from the triggering of the Event
+     * @throws java.lang.Exception if the event couldn't be triggered or the result couldn't be retrieved
      */
     protected abstract V getEventResult(final T target)
         throws Exception;
