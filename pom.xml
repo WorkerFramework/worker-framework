@@ -6,7 +6,7 @@
 
     <groupId>com.hpe.caf.worker</groupId>
     <artifactId>worker-store-cs</artifactId>
-    <version>10.1-SNAPSHOT</version>
+    <version>10.2-SNAPSHOT</version>
     
     <parent>
         <groupId>com.hpe.caf</groupId>
@@ -41,7 +41,16 @@
                     <groupId>javax.ws.rs</groupId>
                     <artifactId>jsr311-api</artifactId>
                 </exclusion>
+                <exclusion>
+                    <groupId>com.sun.jersey</groupId>
+                    <artifactId>jersey-core</artifactId>
+                </exclusion>
             </exclusions>
+        </dependency>
+        <dependency>
+            <groupId>com.sun.jersey</groupId>
+            <artifactId>jersey-core</artifactId>
+            <version>1.19</version>
         </dependency>
         <dependency>
             <groupId>junit</groupId>
