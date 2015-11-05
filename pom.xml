@@ -11,7 +11,7 @@
     <parent>
         <groupId>com.hpe.caf</groupId>
         <artifactId>caf-maven</artifactId>
-        <version>14-SNAPSHOT</version>
+        <version>14</version>
         <relativePath>../caf-maven</relativePath>
     </parent>
 
@@ -19,23 +19,28 @@
         <dependency>
             <groupId>com.hpe.caf</groupId>
             <artifactId>caf-api</artifactId>
+	    <version>10.0</version>
             <scope>provided</scope>
         </dependency>
         <dependency>
             <groupId>com.hpe.caf.cipher</groupId>
             <artifactId>cipher-null</artifactId>
+	    <version>10.0</version>
         </dependency>
         <dependency>
             <groupId>com.hpe.caf.config</groupId>
             <artifactId>config-system</artifactId>
+	    <version>10.0</version>
         </dependency>
         <dependency>
             <groupId>com.hpe.caf.util</groupId>
             <artifactId>util-moduleloader</artifactId>
+	    <version>1.0</version>
         </dependency>
         <dependency>
             <groupId>com.hpe.caf.util</groupId>
             <artifactId>util-jerseycompat</artifactId>
+	    <version>1.0</version>
         </dependency>
         <dependency>
             <groupId>io.dropwizard</groupId>
@@ -54,11 +59,13 @@
         <dependency>
             <groupId>com.hpe.caf.codec</groupId>
             <artifactId>codec-json</artifactId>
+	    <version>10.0</version>
             <scope>test</scope>
         </dependency>
         <dependency>
             <groupId>com.hpe.caf.worker</groupId>
             <artifactId>worker-caf</artifactId>
+	    <version>10.0</version>
             <scope>test</scope>
         </dependency>
     </dependencies>
