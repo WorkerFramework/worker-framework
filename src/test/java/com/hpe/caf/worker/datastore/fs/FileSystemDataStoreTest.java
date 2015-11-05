@@ -48,14 +48,16 @@ public class FileSystemDataStoreTest
         DataStore store = new FileSystemDataStore(conf);
         final byte[] data = testData.getBytes(StandardCharsets.UTF_8);
         String storeRef = store.store(new ByteArrayInputStream(data), "test");
-        InputStream inStr = store.retrieve(storeRef);
-        ByteArrayOutputStream bos = new ByteArrayOutputStream();
-        int nRead;
-        while ((nRead = inStr.read(data, 0, data.length)) != -1) {
-            bos.write(data, 0, nRead);
+        try (InputStream inStr = store.retrieve(storeRef)) {
+            try (ByteArrayOutputStream bos = new ByteArrayOutputStream()) {
+                int nRead;
+                while ( (nRead = inStr.read(data, 0, data.length)) != -1 ) {
+                    bos.write(data, 0, nRead);
+                }
+                bos.flush();
+                Assert.assertArrayEquals(data, bos.toByteArray());
+            }
         }
-        bos.flush();
-        Assert.assertArrayEquals(data, bos.toByteArray());
         Assert.assertEquals(testData.length(), store.size(storeRef));
     }
 
@@ -69,14 +71,16 @@ public class FileSystemDataStoreTest
         DataStore store = new FileSystemDataStore(conf);
         final byte[] data = testData.getBytes(StandardCharsets.UTF_8);
         String storeRef = store.store(data, "test");
-        InputStream inStr = store.retrieve(storeRef);
-        ByteArrayOutputStream bos = new ByteArrayOutputStream();
-        int nRead;
-        while ((nRead = inStr.read(data, 0, data.length)) != -1) {
-            bos.write(data, 0, nRead);
+        try (InputStream inStr = store.retrieve(storeRef)) {
+            try (ByteArrayOutputStream bos = new ByteArrayOutputStream()) {
+                int nRead;
+                while ( (nRead = inStr.read(data, 0, data.length)) != -1 ) {
+                    bos.write(data, 0, nRead);
+                }
+                bos.flush();
+                Assert.assertArrayEquals(data, bos.toByteArray());
+            }
         }
-        bos.flush();
-        Assert.assertArrayEquals(data, bos.toByteArray());
         Assert.assertEquals(testData.length(), store.size(storeRef));
     }
 
@@ -92,14 +96,16 @@ public class FileSystemDataStoreTest
         Path p = Paths.get(temp.getAbsolutePath()).resolve(UUID.randomUUID().toString());
         Files.write(p, data);
         String storeRef = store.store(p, "test");
-        InputStream inStr = store.retrieve(storeRef);
-        ByteArrayOutputStream bos = new ByteArrayOutputStream();
-        int nRead;
-        while ((nRead = inStr.read(data, 0, data.length)) != -1) {
-            bos.write(data, 0, nRead);
+        try (InputStream inStr = store.retrieve(storeRef)) {
+            try (ByteArrayOutputStream bos = new ByteArrayOutputStream()) {
+                int nRead;
+                while ( (nRead = inStr.read(data, 0, data.length)) != -1 ) {
+                    bos.write(data, 0, nRead);
+                }
+                bos.flush();
+                Assert.assertArrayEquals(data, bos.toByteArray());
+            }
         }
-        bos.flush();
-        Assert.assertArrayEquals(data, bos.toByteArray());
         Assert.assertEquals(testData.length(), store.size(storeRef));
     }
 
