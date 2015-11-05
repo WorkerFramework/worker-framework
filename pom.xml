@@ -10,16 +10,15 @@
 
     <parent>
         <groupId>com.hpe.caf</groupId>
-        <artifactId>caf-maven</artifactId>
-        <version>14</version>
-        <relativePath>../caf-maven</relativePath>
+        <artifactId>caf-latest-develop</artifactId>
+        <version>1-SNAPSHOT</version>
+        <relativePath>../caf-latest-develop</relativePath>
     </parent>
 
     <dependencies>
         <dependency>
             <groupId>com.hpe.caf</groupId>
             <artifactId>caf-api</artifactId>
-	    <version>10.0</version>
             <scope>provided</scope>
         </dependency>
         <dependency>
