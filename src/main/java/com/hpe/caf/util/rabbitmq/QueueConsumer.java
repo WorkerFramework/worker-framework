@@ -3,7 +3,7 @@ package com.hpe.caf.util.rabbitmq;
 
 /**
  * The basic RabbitMQ consumer-side API methods.
- * @since 7.0
+ * @since 1.0
  */
 public interface QueueConsumer
 {

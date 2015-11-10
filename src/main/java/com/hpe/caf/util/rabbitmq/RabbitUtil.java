@@ -22,8 +22,6 @@ import java.util.concurrent.TimeoutException;
  */
 public final class RabbitUtil
 {
-
-
     private RabbitUtil() { }
 
 

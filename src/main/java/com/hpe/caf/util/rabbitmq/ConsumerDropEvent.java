@@ -3,7 +3,7 @@ package com.hpe.caf.util.rabbitmq;
 
 /**
  * A message drop Event for a Consumer.
- * @since 7.0
+ * @since 1.0
  */
 public class ConsumerDropEvent implements Event<QueueConsumer>
 {

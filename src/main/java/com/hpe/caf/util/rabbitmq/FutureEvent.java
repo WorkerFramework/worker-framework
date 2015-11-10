@@ -11,7 +11,7 @@ import java.util.concurrent.CompletableFuture;
  * A more complicated Event whereby a Future is obtainable in order to block/wait upon the result of it.
  * @param <T> the type of the Event
  * @param <V> the type of the returned value from the Future
- * @since 8.0
+ * @since 1.0
  */
 public abstract class FutureEvent<T,V> implements Event<T>
 {
