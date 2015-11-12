@@ -36,9 +36,14 @@ import java.util.concurrent.TimeoutException;
  * This implementation uses a separate thread for a consumer and producer, each with their own Channel.
  * These threads handle operations via a BlockingQueue of Event objects. In all scenarios where the
  * tasks triggered by the message take significantly longer than the handling of the messages themselves
- * (which should hopefully be true of all microservices), this implementation should work. The complexity
- * comes from the fact each thread should have its own Channel object (they are not thread-safe) but the
- * thread that received a message should also be the one to acknowledge it.
+ * (which should hopefully be true of all microservices), this implementation should work.
+ *
+ * This implementation has three routing keys, assumed to be on a direct exchange (hence effectively being
+ * queue names). There is the input queue to receive messages from, the retry queue (which may be the input
+ * queue) where redelivered messages get republished to, and the rejected queue which is where messages that
+ * could not be handled are put. There are an unlimited number of possible output queues as defined by the
+ * Worker's response.
+ * @since 7.5
  */
 public final class RabbitWorkerQueue implements ManagedWorkerQueue
 {
@@ -58,10 +63,9 @@ public final class RabbitWorkerQueue implements ManagedWorkerQueue
 
 
     /**
-     * {@inheritDoc}
      * Setup a new RabbitWorkerQueue.
      */
-    public RabbitWorkerQueue(final RabbitWorkerQueueConfiguration config, final int maxTasks)
+    public RabbitWorkerQueue(RabbitWorkerQueueConfiguration config, int maxTasks)
     {
         this.config = Objects.requireNonNull(config);
         this.maxTasks = maxTasks;
@@ -73,11 +77,11 @@ public final class RabbitWorkerQueue implements ManagedWorkerQueue
      * {@inheritDoc}
      *
      * Create a RabbitMQ connection, and separate incoming and outgoing channels. The connection and channels are managed by Lyra, so
-     * will attempt to re-establish should they drop. A dead letter exchange is declared.
+     * will attempt to re-establish should they drop.
      * Declare the queues on the appropriate channels and kick off the publisher and consumer threads to handle messages.
      */
     @Override
-    public void start(final TaskCallback callback)
+    public void start(TaskCallback callback)
         throws QueueException
     {
         if ( conn != null ) {
@@ -88,13 +92,15 @@ public final class RabbitWorkerQueue implements ManagedWorkerQueue
             incomingChannel = conn.createChannel();
             int prefetch = Math.max(1, maxTasks + config.getPrefetchBuffer());
             incomingChannel.basicQos(prefetch);
-            incomingChannel.exchangeDeclare(config.getDeadLetterExchange(), "direct");
             outgoingChannel = conn.createChannel();
-            WorkerQueueConsumerImpl consumerImpl = new WorkerQueueConsumerImpl(callback, metrics, consumerQueue, incomingChannel);
+            WorkerQueueConsumerImpl consumerImpl = new WorkerQueueConsumerImpl(callback, metrics, consumerQueue, incomingChannel, publisherQueue,
+                                                                               config.getRetryQueue(), config.getRejectedQueue(), config.getRetryLimit());
             consumer = new DefaultRabbitConsumer(consumerQueue, consumerImpl);
             WorkerPublisherImpl publisherImpl = new WorkerPublisherImpl(outgoingChannel, metrics, consumerQueue);
             publisher = new EventPoller<>(2, publisherQueue, publisherImpl);
             declareWorkerQueue(incomingChannel, config.getInputQueue());
+            declareWorkerQueue(outgoingChannel, config.getRetryQueue());
+            declareWorkerQueue(outgoingChannel, config.getRejectedQueue());
             consumerTags.add(incomingChannel.basicConsume(config.getInputQueue(), consumer));
         } catch (IOException | TimeoutException e) {
             throw new QueueException("Failed to establish queues", e);
@@ -110,7 +116,7 @@ public final class RabbitWorkerQueue implements ManagedWorkerQueue
      * Add a PUBLISH event that the publisher thread will handle.
      */
     @Override
-    public void publish(final String acknowledgeId, final byte[] taskMessage, final String targetQueue)
+    public void publish(String acknowledgeId, byte[] taskMessage, String targetQueue)
         throws QueueException
     {
         try {
@@ -128,7 +134,7 @@ public final class RabbitWorkerQueue implements ManagedWorkerQueue
      * Add a REJECT event that the consumer will handle.
      */
     @Override
-    public void rejectTask(final String messageId)
+    public void rejectTask(String messageId)
     {
         Objects.requireNonNull(messageId);
         LOG.debug("Generating reject event for task {}", messageId);
@@ -201,7 +207,7 @@ public final class RabbitWorkerQueue implements ManagedWorkerQueue
     }
 
 
-    private void createConnection(final TaskCallback callback)
+    private void createConnection(TaskCallback callback)
         throws IOException, TimeoutException
     {
         RabbitConfiguration rc = config.getRabbitConfiguration();
@@ -212,7 +218,7 @@ public final class RabbitWorkerQueue implements ManagedWorkerQueue
     }
 
 
-    private void declareWorkerQueue(final Channel channel, final String queueName)
+    private void declareWorkerQueue(Channel channel, String queueName)
         throws IOException
     {
         if ( !declaredQueues.contains(queueName) ) {

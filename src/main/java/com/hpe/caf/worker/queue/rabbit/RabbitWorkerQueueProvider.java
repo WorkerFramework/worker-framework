@@ -8,14 +8,8 @@ import com.hpe.caf.api.worker.QueueException;
 import com.hpe.caf.api.worker.WorkerQueueProvider;
 
 
-/**
- * {@inheritDoc}
- */
 public class RabbitWorkerQueueProvider implements WorkerQueueProvider
 {
-    /**
-     * {@inheritDoc}
-     */
     @Override
     public ManagedWorkerQueue getWorkerQueue(final ConfigurationSource configurationSource, final int maxTasks)
             throws QueueException

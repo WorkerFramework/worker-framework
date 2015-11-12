@@ -16,6 +16,7 @@ import java.util.Objects;
  * re-queue the message when it detected our client dropped, and we don't want to
  * produce a result for these tasks running when the connection dropped to try and
  * avoid duplicate results. This will also log all other events.
+ * @since 7.5
  */
 public class WorkerConnectionListener implements ConnectionListener
 {

@@ -1,7 +1,5 @@
 # worker-queue-rabbit
 
----
-
  This is an implementation of a `WorkerQueue` that uses RabbitMQ with the Lyra
  client library.
 
@@ -11,24 +9,21 @@
  The configuration source for this module is `RabbitWorkerQueueConfiguration`.
  The following configuration options are present:
 
- - rabbitHost: the hostname of the RabbitMQ server. Must not be null and must
-  not be empty.
- - rabbitUser: username for authentication with the RabbitMQ server. Must not
-  be null and must not be empty.
- - rabbitPassword: password for authentication with the RabbitMQ server. This
-  field is encrypted. Must not be null and must not be empty.
- - maxAttempts: integer specifying maximum number of attempts when performing
-  a request to the RabbitMQ server. Minimum 0, maximum 1000.
- - backoffInterval: integer specifying base number of seconds between a
-  backoff/retry. This will double each attempt up to the maximum. Minimum 1,
-  maximum 1000.
- - maxBackoffInterval: integer specifying the maximum number of seconds between
-  backoff/retry attempts. Minimum 1, maximum 1000.
- - deadLetterExchange: name of the RabbitMQ exchange where messages that cannot
-  be handled at all are routed to. Must not be null and must not be empty.
  - prefetchBuffer: the number of additional messages (tasks) to request from
   the RabbitMQ server beyond the number of tasks the worker can simultaneously
   handle. Minimum 0, maximum 1000.
+ - inputQueue: the routing key for a direct exchange (ie. queue name) to
+  receive input tasks from, this must be set
+ - retryQueue: the routing key to use for sending messages to retry to, this
+  may be the same as the inputQueue, and will default to this if unset
+ - rejectedQueue: the routing key to use for sending messages that are
+  rejected to, this can include messages deemed unparseable by the worker
+  application, and messages that exceed the retryLimit, this must be set
+ - retryLimit: the maximum number of retries before sending the messages to
+  the rejectedQueue, must be at least 1
+
+ Note this module expects a valid `RabbitConfiguration` file to be present.
+ See the `caf-configs` module for more details on this.
 
 
 ## Usage
@@ -42,19 +37,51 @@
  As this implementation uses the Lyra client, all connection failures will be
  retried, and dropped connections will be re-established, up to the maximum
  number of attempts specified in the configuration. Health checks will report
- as failed if the RabbitMQ connection is down.
+ as failed if the RabbitMQ connection is down. If the connection re-establishes
+ successfully, the module will notify `worker-core` to abort current tasks to
+ avoid duplication as much as possible, as the tasks will have already been
+ requeued by the RabbitMQ server. Note this should make the window for possible
+ duplicate responses small, but not impossible.
 
  Typically the prefetchBuffer should be 0, unless you have very short tasks
  (that don't take a long time to process) and you wish to reduce the amount
  of I/O chatter between workers and the RabbitMQ host.
 
- Messages rejected with a `RejectedTaskException` will always be returned to
- the queue. Messages rejected with an `InvalidTaskException` will be only
- returned to the queue once. If the same task redelivered encounters this
- exception again it will be dropped on to the dead letter exchange.
-
  Consumed messages will only be acknowledged once the result has been published
  to the output queue.
+
+ Messages that the `worker-core` application deems as invalid (ie. unparseable)
+ will be immediately discarded onto the rejected queue.
+
+ Messages the module encounters that are marked 'redelivered' by RabbitMQ are
+ republished to the 'retry' queue with a retry count. This retry queue can be
+ the same as the normal input queue, but this has some limitations. If these
+ two queues are the same, then retried messages will always go to the back of
+ the input queue, so if you desire to maintain some semblance of order you
+ should have a separate retry queue and a Worker instance listening on this
+ retry queue. The other scenario is when your Worker is running unmanaged
+ code that can segfault/crash Java. In this case, all running tasks will be
+ retried, and potentially valid tasks can then end up in the rejected queue.
+ To avoid this, the simplest way is to have single-threaded Worker instances
+ for unmanaged code listening on the retry queue and use the autoscaler to
+ scale as necessary. The alternative is to have only the Worker instances on
+ the retry queue to be single threaded.
+
+ Messages that are marked 'redelivered' and already have a retry count stamp
+ that exceeds the retry limit will be put on the rejected queue.
+
+ Messages that cause a `TaskRejectedException` at task registration time will
+ be republished back onto the input queue, but do not count towards the retry
+ limit.
+
+ ### Header stamping
+
+ The module uses the following headers that may be stamped on messages:
+ - `x-caf-worker-retry`: a numerical count of the number of retries
+  attempted for this message, only present for retried messages
+ - `x-caf-worker-rejected`: present for all messages published to the
+  rejected queue, possible values are `TASKMESSAGE_INVALID` and
+  `RETRIES_EXCEEDED`.
 
 
 ## Failure modes
@@ -63,7 +90,7 @@
 
  - The configuration file is invalid
  - A connection to the RabbitMQ server cannot be established
- - A queue of a differing type has already been declared with the same name
+ - A queue of a differing type has already been declared with the routing key
 
  The following scenarios have been identified as possible runtime failure modes
  for this module:
@@ -76,4 +103,4 @@
 
  The following people are contacts for developing and maintaining this module:
 
- - Richard Hickman (Cambridge, UK, richard.hickman@hp.com)
+ - Richard Hickman (Cambridge, UK, richard.hickman@hpe.com)

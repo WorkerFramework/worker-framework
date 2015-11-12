@@ -11,6 +11,10 @@ import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Size;
 
 
+/**
+ * Configuration for the worker-queue-rabbit module.
+ * @since 7.5
+ */
 @Configuration
 public class RabbitWorkerQueueConfiguration
 {
@@ -22,13 +26,6 @@ public class RabbitWorkerQueueConfiguration
     @Min(0)
     @Max(1000)
     private int prefetchBuffer;
-    /**
-     * The exchange to put dead letters (failed tasks) on. All tasks will be retried once, but if a task
-     * fails that is already marked as redelivered, then it will be dumped here.
-     */
-    @NotNull
-    @Size(min = 1)
-    private String deadLetterExchange;
     /**
      * The internal RabbitMQ configuration itself.
      */
@@ -42,6 +39,25 @@ public class RabbitWorkerQueueConfiguration
     @NotNull
     @Size(min = 1)
     private String inputQueue;
+    /**
+     * The queue to put redelivered messages on. If this null, the inputQueue will be used.
+     * @since 10.6
+     */
+    private String retryQueue;
+    /**
+     * The queue to put rejected messages on.
+     * @since 10.6
+     */
+    @NotNull
+    @Size(min = 1)
+    private String rejectedQueue;
+    /**
+     * The maximum number of times for redelivered messages to be retried before moving them to the rejectedQueue.
+     * This does not include messages explicitly rejected by the Worker at delivery time.
+     * @since 10.6
+     */
+    @Min(1)
+    private int retryLimit;
 
 
     public RabbitWorkerQueueConfiguration() { }
@@ -53,21 +69,9 @@ public class RabbitWorkerQueueConfiguration
     }
 
 
-    public void setPrefetchBuffer(final int prefetchBuffer)
+    public void setPrefetchBuffer(int prefetchBuffer)
     {
         this.prefetchBuffer = prefetchBuffer;
-    }
-
-
-    public String getDeadLetterExchange()
-    {
-        return deadLetterExchange;
-    }
-
-
-    public void setDeadLetterExchange(final String deadLetterExchange)
-    {
-        this.deadLetterExchange = deadLetterExchange;
     }
 
 
@@ -77,7 +81,7 @@ public class RabbitWorkerQueueConfiguration
     }
 
 
-    public void setRabbitConfiguration(final RabbitConfiguration rabbitConfiguration)
+    public void setRabbitConfiguration(RabbitConfiguration rabbitConfiguration)
     {
         this.rabbitConfiguration = rabbitConfiguration;
     }
@@ -89,8 +93,44 @@ public class RabbitWorkerQueueConfiguration
     }
 
 
-    public void setInputQueue(final String inputQueue)
+    public void setInputQueue(String inputQueue)
     {
         this.inputQueue = inputQueue;
+    }
+
+
+    public String getRetryQueue()
+    {
+        return retryQueue == null ? inputQueue : retryQueue;
+    }
+
+
+    public void setRetryQueue(String retryQueue)
+    {
+        this.retryQueue = retryQueue;
+    }
+
+
+    public String getRejectedQueue()
+    {
+        return rejectedQueue;
+    }
+
+
+    public void setRejectedQueue(String rejectedQueue)
+    {
+        this.rejectedQueue = rejectedQueue;
+    }
+
+
+    public int getRetryLimit()
+    {
+        return retryLimit;
+    }
+
+
+    public void setRetryLimit(int retryLimit)
+    {
+        this.retryLimit = retryLimit;
     }
 }

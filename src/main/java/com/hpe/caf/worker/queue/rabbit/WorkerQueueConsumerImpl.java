@@ -15,69 +15,89 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Objects;
 import java.util.concurrent.BlockingQueue;
 
 
 /**
  * QueueConsumer implementation for a WorkerQueue.
- * This QueueConsumer hands off messages to worker-core upon delivery, rejecting or
- * dropping messages if this fails (depending upon if this is the first try or not).
+ * This QueueConsumer hands off messages to worker-core upon delivery assuming the message is not marked 'redelivered'.
+ * Redelivered messages are republished to the retry queue with an incremented retry count.
+ * Redelivered messages that have exceeded the retry count are republished to the rejected queue.
+ * @since 7.5
  */
 public class WorkerQueueConsumerImpl implements QueueConsumer
 {
+    public static final String RABBIT_HEADER_CAF_WORKER_REJECTED = "x-caf-worker-rejected";
+    public static final String RABBIT_HEADER_CAF_WORKER_RETRY = "x-caf-worker-retry";
+    public static final String REJECTED_REASON_TASKMESSAGE = "TASKMESSAGE_INVALID";
+    public static final String REJECTED_REASON_RETRIES_EXCEEDED = "RETRIES_EXCEEDED";
     private final TaskCallback callback;
     private final RabbitMetricsReporter metrics;
     private final BlockingQueue<Event<QueueConsumer>> consumerEventQueue;
+    private final BlockingQueue<Event<WorkerPublisher>> publisherEventQueue;
     private final Channel channel;
+    private final String retryRoutingKey;
+    private final String rejectRoutingKey;
+    private final int retryLimit;
     private static final Logger LOG = LoggerFactory.getLogger(WorkerQueueConsumerImpl.class);
 
 
-    public WorkerQueueConsumerImpl(final TaskCallback callback, final RabbitMetricsReporter metrics, final BlockingQueue<Event<QueueConsumer>> queue, final Channel ch)
+    public WorkerQueueConsumerImpl(TaskCallback callback, RabbitMetricsReporter metrics, BlockingQueue<Event<QueueConsumer>> queue, Channel ch,
+                                   BlockingQueue<Event<WorkerPublisher>> pubQueue, String retryKey, String rejectKey, int retryLimit)
     {
         this.callback = Objects.requireNonNull(callback);
         this.metrics = Objects.requireNonNull(metrics);
         this.consumerEventQueue = Objects.requireNonNull(queue);
         this.channel = Objects.requireNonNull(ch);
+        this.publisherEventQueue = Objects.requireNonNull(pubQueue);
+        this.retryRoutingKey = Objects.requireNonNull(retryKey);
+        this.rejectRoutingKey = Objects.requireNonNull(rejectKey);
+        this.retryLimit = retryLimit;
     }
 
 
     /**
      * {@inheritDoc}
      *
-     * If a task is rejected it is always put back on the queue. If the task is invalid,
-     * it will be retried once and then dropped onto the dead letters exchange.
+     * If an incoming message is marked as redelivered, hand it off to another method to deal with retry/rejection.
+     * Otherwise, hand it off to worker-core, and potentially repbulish or reject it depending upon exceptions thrown.
      */
     @Override
-    public void processDelivery(final Delivery delivery)
+    public void processDelivery(Delivery delivery)
     {
         long tag = delivery.getEnvelope().getDeliveryTag();
-        try {
-            metrics.incrementReceived();
-            LOG.debug("Registering new message {}", tag);
-            callback.registerNewTask(String.valueOf(tag), delivery.getMessageData());
-        } catch (InvalidTaskException e) {
-            LOG.error("Cannot register new message, rejecting {}", tag, e);
-            if ( delivery.getEnvelope().isRedeliver() ) {
-                consumerEventQueue.add(new ConsumerDropEvent(tag));
-            } else {
-                consumerEventQueue.add(new ConsumerRejectEvent(tag));
+        metrics.incrementReceived();
+        if ( delivery.getEnvelope().isRedeliver() ) {
+            handleRedelivery(delivery);
+        } else {
+            try {
+                LOG.debug("Registering new message {}", tag);
+                callback.registerNewTask(String.valueOf(tag), delivery.getMessageData());
+            } catch (InvalidTaskException e) {
+                LOG.error("Cannot register new message, rejecting {}", tag, e);
+                publisherEventQueue.add(new WorkerPublishQueueEvent(delivery.getMessageData(), rejectRoutingKey, delivery.getEnvelope().getDeliveryTag(),
+                                                                    Collections.singletonMap(RABBIT_HEADER_CAF_WORKER_REJECTED, REJECTED_REASON_TASKMESSAGE)));
+            } catch (TaskRejectedException e) {
+                LOG.warn("Message {} rejected as a task at this time, returning to queue", tag, e);
+                publisherEventQueue.add(new WorkerPublishQueueEvent(delivery.getMessageData(), delivery.getEnvelope().getRoutingKey(),
+                                                                    delivery.getEnvelope().getDeliveryTag()));
             }
-        } catch (TaskRejectedException e) {
-            LOG.warn("Task {} rejected at this time, returning to queue", tag, e);
-            consumerEventQueue.add(new ConsumerRejectEvent(tag));
         }
     }
 
 
     @Override
-    public void processAck(final long tag)
+    public void processAck(long tag)
     {
         try {
             LOG.debug("Acknowledging message {}", tag);
             channel.basicAck(tag, false);
         } catch (IOException e) {
-            LOG.warn("Couldn't ack message {}, will retry", e);
+            LOG.warn("Couldn't ack message {}, will retry", tag, e);
             metrics.incremementErrors();
             consumerEventQueue.add(new ConsumerAckEvent(tag));
         }
@@ -85,14 +105,14 @@ public class WorkerQueueConsumerImpl implements QueueConsumer
 
 
     @Override
-    public void processReject(final long tag)
+    public void processReject(long tag)
     {
         processReject(tag, true);
     }
 
 
     @Override
-    public void processDrop(final long tag)
+    public void processDrop(long tag)
     {
         processReject(tag, false);
     }
@@ -105,7 +125,7 @@ public class WorkerQueueConsumerImpl implements QueueConsumer
      * @param id the id of the message to reject
      * @param requeue whether to put this message back on the queue or drop it to the dead letters exchange
      */
-    private void processReject(final long id, final boolean requeue)
+    private void processReject(long id, boolean requeue)
     {
         try {
             channel.basicReject(id, requeue);
@@ -117,9 +137,33 @@ public class WorkerQueueConsumerImpl implements QueueConsumer
                 metrics.incrementDropped();
             }
         } catch (IOException e) {
-            LOG.warn("Couldn't reject message {}, will retry", e);
+            LOG.warn("Couldn't reject message {}, will retry", id, e);
             metrics.incremementErrors();
             consumerEventQueue.add(requeue ? new ConsumerRejectEvent(id) : new ConsumerDropEvent(id));
+        }
+    }
+
+
+    /**
+     * Find the number of retries for this delivery (default to 0). If the current retries exceeds the limit,
+     * republish it to the rejected queue with a rejected reason stamped in the headers. Otherwise, republish to
+     * the retry queue with the retry count stamped in the headers.
+     * @param delivery the redelivered message
+     */
+    private void handleRedelivery(Delivery delivery)
+    {
+        int retries = Integer.parseInt(delivery.getHeaders().getOrDefault(RABBIT_HEADER_CAF_WORKER_RETRY, "0"));
+        if ( retries >= retryLimit ) {
+            LOG.debug("Retry exceeded for message with id {}, republishing to rejected queue", delivery.getEnvelope().getDeliveryTag());
+            Map<String, String> headers = new HashMap<>();
+            headers.put(RABBIT_HEADER_CAF_WORKER_RETRY, String.valueOf(retries));
+            headers.put(RABBIT_HEADER_CAF_WORKER_REJECTED, REJECTED_REASON_RETRIES_EXCEEDED);
+            publisherEventQueue.add(new WorkerPublishQueueEvent(delivery.getMessageData(), rejectRoutingKey, delivery.getEnvelope().getDeliveryTag(), headers));
+        } else {
+            LOG.debug("Received redelivered message with id {}, republishing to retry queue", delivery.getEnvelope().getDeliveryTag());
+            publisherEventQueue.add(
+                new WorkerPublishQueueEvent(delivery.getMessageData(), retryRoutingKey, delivery.getEnvelope().getDeliveryTag(),
+                                            Collections.singletonMap(RABBIT_HEADER_CAF_WORKER_RETRY, String.valueOf(retries + 1))));
         }
     }
 }

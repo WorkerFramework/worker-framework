@@ -6,6 +6,9 @@ import com.hpe.caf.api.worker.WorkerQueueMetricsReporter;
 import java.util.concurrent.atomic.AtomicInteger;
 
 
+/**
+ * @since 7.5
+ */
 public class RabbitMetricsReporter implements WorkerQueueMetricsReporter
 {
     private final AtomicInteger queueErrors = new AtomicInteger(0);
