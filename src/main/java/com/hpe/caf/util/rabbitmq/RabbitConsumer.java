@@ -9,6 +9,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
+import java.util.Collections;
 import java.util.Map;
 import java.util.concurrent.BlockingQueue;
 import java.util.stream.Collectors;
@@ -40,9 +41,13 @@ public abstract class RabbitConsumer<T> extends EventPoller<T> implements Consum
     @Override
     public final void handleDelivery(String consumerTag, Envelope envelope, AMQP.BasicProperties properties, byte[] body)
     {
-        getEventQueue().add(getDeliverEvent(envelope, body,
-                                            properties.getHeaders().entrySet().stream().collect(
-                                                Collectors.toMap(Map.Entry::getKey, e -> String.class.cast(e.getValue())))));
+        Map<String, String> headers;
+        if ( properties.getHeaders() == null ) {
+            headers = Collections.emptyMap();
+        } else {
+            headers = properties.getHeaders().entrySet().stream().collect(Collectors.toMap(Map.Entry::getKey, e -> String.class.cast(e.getValue())));
+        }
+        getEventQueue().add(getDeliverEvent(envelope, body, headers));
     }
 
 
