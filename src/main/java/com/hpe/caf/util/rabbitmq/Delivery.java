@@ -16,7 +16,7 @@ public class Delivery
 {
     private final Envelope envelope;
     private final byte[] messageData;
-    private final Map<String, String> headers;
+    private final Map<String, Object> headers;
 
 
     /**
@@ -26,7 +26,7 @@ public class Delivery
      * @param headers the string-mapped key/value headers
      * @since 2.0
      */
-    public Delivery(Envelope env, byte[] data, Map<String, String> headers)
+    public Delivery(Envelope env, byte[] data, Map<String, Object> headers)
     {
         this.envelope = Objects.requireNonNull(env);
         this.messageData = Objects.requireNonNull(data);
@@ -67,7 +67,7 @@ public class Delivery
      * @return headers for the message
      * @since 2.0
      */
-    public Map<String, String> getHeaders()
+    public Map<String, Object> getHeaders()
     {
         return headers;
     }

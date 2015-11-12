@@ -12,7 +12,6 @@ import java.io.IOException;
 import java.util.Collections;
 import java.util.Map;
 import java.util.concurrent.BlockingQueue;
-import java.util.stream.Collectors;
 
 
 /**
@@ -41,13 +40,7 @@ public abstract class RabbitConsumer<T> extends EventPoller<T> implements Consum
     @Override
     public final void handleDelivery(String consumerTag, Envelope envelope, AMQP.BasicProperties properties, byte[] body)
     {
-        Map<String, String> headers;
-        if ( properties.getHeaders() == null ) {
-            headers = Collections.emptyMap();
-        } else {
-            headers = properties.getHeaders().entrySet().stream().collect(Collectors.toMap(Map.Entry::getKey, e -> String.class.cast(e.getValue())));
-        }
-        getEventQueue().add(getDeliverEvent(envelope, body, headers));
+        getEventQueue().add(getDeliverEvent(envelope, body, properties.getHeaders() == null ? Collections.emptyMap() : properties.getHeaders()));
     }
 
 
@@ -95,5 +88,5 @@ public abstract class RabbitConsumer<T> extends EventPoller<T> implements Consum
      * @return an instance of this implementation's QueueEvent indicating a delivery
      * @since 2.0
      */
-    protected abstract Event<T> getDeliverEvent(Envelope envelope, byte[] data, Map<String, String> headers);
+    protected abstract Event<T> getDeliverEvent(Envelope envelope, byte[] data, Map<String, Object> headers);
 }

@@ -29,7 +29,7 @@ public class DefaultRabbitConsumer extends RabbitConsumer<QueueConsumer>
 
 
     @Override
-    protected final Event<QueueConsumer> getDeliverEvent(Envelope envelope, byte[] data, Map<String, String> headers)
+    protected final Event<QueueConsumer> getDeliverEvent(Envelope envelope, byte[] data, Map<String, Object> headers)
     {
         return new ConsumerDeliverEvent(new Delivery(envelope, data, headers));
     }
