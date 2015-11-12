@@ -152,7 +152,7 @@ public class WorkerQueueConsumerImpl implements QueueConsumer
      */
     private void handleRedelivery(Delivery delivery)
     {
-        int retries = Integer.parseInt(delivery.getHeaders().getOrDefault(RABBIT_HEADER_CAF_WORKER_RETRY, "0"));
+        int retries = Integer.parseInt(String.valueOf(delivery.getHeaders().getOrDefault(RABBIT_HEADER_CAF_WORKER_RETRY, "0")));
         if ( retries >= retryLimit ) {
             LOG.debug("Retry exceeded for message with id {}, republishing to rejected queue", delivery.getEnvelope().getDeliveryTag());
             Map<String, String> headers = new HashMap<>();
