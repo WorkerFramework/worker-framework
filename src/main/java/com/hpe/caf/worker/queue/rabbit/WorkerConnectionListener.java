@@ -54,15 +54,15 @@ public class WorkerConnectionListener implements ConnectionListener
     @Override
     public void onRecovery(final Connection connection)
     {
-        LOG.info("Connection recovered, aborting in-progress tasks");
-        callback.abortTasks();
+        LOG.info("Connection recovered");
     }
 
 
     @Override
     public void onRecoveryCompleted(final Connection connection)
     {
-        LOG.info("Connection recovered");
+        LOG.info("Connection recovery completed, aborting all in-progress tasks");
+        callback.abortTasks();
     }
 
 
