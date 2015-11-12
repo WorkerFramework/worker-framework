@@ -7,6 +7,7 @@ import net.jodah.lyra.ConnectionOptions;
 import net.jodah.lyra.Connections;
 import net.jodah.lyra.config.Config;
 import net.jodah.lyra.config.RecoveryPolicy;
+import net.jodah.lyra.config.RetryPolicy;
 import net.jodah.lyra.util.Duration;
 
 import java.io.IOException;
@@ -79,14 +80,16 @@ public final class RabbitUtil
      * call the createRabbitConnection(RabbitConfiguration) method.
      * @param backoffInterval the initial interval, in seconds, between re-attempts upon failed RabbitMQ operations
      * @param maxBackoffInterval the maximum interval, in seconds, between re-attempts upon failed RabbitMQ operations
-     * @param maxAttempts the maximum number of attempts to retry failed RabbitMQ operations
+     * @param maxAttempts the maximum number of attempts to retry failed RabbitMQ operations, -1 is unlimited
      * @return a Lyra Config object with settings configured from the RabbitConfiguration specified
      */
     public static Config createLyraConfig(int backoffInterval, int maxBackoffInterval, int maxAttempts)
     {
-        RecoveryPolicy policy =
+        RecoveryPolicy recoveryPolicy =
             new RecoveryPolicy().withBackoff(Duration.seconds(backoffInterval), Duration.seconds(maxBackoffInterval));
-        return new Config().withRecoveryPolicy(policy.withMaxAttempts(maxAttempts));
+        RetryPolicy retryPolicy =
+            new RetryPolicy().withBackoff(Duration.seconds(backoffInterval), Duration.seconds(maxBackoffInterval)).withMaxAttempts(maxAttempts);
+        return new Config().withRetryPolicy(retryPolicy).withRecoveryPolicy(recoveryPolicy.withMaxAttempts(maxAttempts));
     }
 
 
