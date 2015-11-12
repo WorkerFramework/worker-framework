@@ -212,7 +212,7 @@ public final class RabbitWorkerQueue implements ManagedWorkerQueue
     {
         RabbitConfiguration rc = config.getRabbitConfiguration();
         ConnectionOptions lyraOpts = RabbitUtil.createLyraConnectionOptions(rc.getRabbitHost(), rc.getRabbitPort(), rc.getRabbitUser(), rc.getRabbitPassword());
-        Config lyraConfig = RabbitUtil.createLyraConfig(rc.getBackoffInterval(), rc.getMaxBackoffInterval(), rc.getMaxAttempts());
+        Config lyraConfig = RabbitUtil.createLyraConfig(rc.getBackoffInterval(), rc.getMaxBackoffInterval(), -1);
         lyraConfig.withConnectionListeners(new WorkerConnectionListener(callback));
         conn = RabbitUtil.createRabbitConnection(lyraOpts, lyraConfig);
     }
