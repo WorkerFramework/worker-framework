@@ -33,8 +33,6 @@ public class TestController {
 
         TaskMessageFactory messageFactory = new TaskMessageFactory(workerServices.getCodec(), taskFactory.getWorkerName(), taskFactory.getApiVersion());
 
-
-
         for (TestItem item : items) {
             Object workerTask = taskFactory.createTask(item);
             String taskId = UUID.randomUUID().toString();
