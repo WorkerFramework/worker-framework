@@ -53,7 +53,6 @@ public class SimpleQueueConsumerImpl implements QueueConsumer {
     public void processAck(long tag) {
         try {
             channel.basicAck(tag, false);
-          //  latch.countDown();
         }
         catch (IOException e) {
             e.printStackTrace();
@@ -61,12 +60,8 @@ public class SimpleQueueConsumerImpl implements QueueConsumer {
     }
 
     @Override
-    public void processReject(long tag) {
-
-    }
+    public void processReject(long tag) {}
 
     @Override
-    public void processDrop(long tag) {
-
-    }
+    public void processDrop(long tag) {}
 }
