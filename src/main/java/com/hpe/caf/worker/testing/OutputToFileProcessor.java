@@ -1,10 +1,8 @@
 package com.hpe.caf.worker.testing;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
 import com.hpe.caf.api.Codec;
 import com.hpe.caf.api.worker.TaskMessage;
 
-import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -23,7 +21,7 @@ public abstract class OutputToFileProcessor<TResult, TInput, TExpected> extends 
     }
 
     @Override
-    protected boolean processWorkerResult(TestItem<TInput, TExpected> testItem, TaskMessage message, TResult result) throws IOException {
+    protected boolean processWorkerResult(TestItem<TInput, TExpected> testItem, TaskMessage message, TResult result) throws Exception {
         String baseFileName = testItem.getTag() == null ? message.getTaskId() : testItem.getTag();
         baseFileName = baseFileName + ".result";
         Path filePath = Paths.get(outputFolder, baseFileName);
@@ -34,5 +32,5 @@ public abstract class OutputToFileProcessor<TResult, TInput, TExpected> extends 
         return true;
     }
 
-    protected abstract byte[] getOutputContent(TResult result) throws JsonProcessingException;
+    protected abstract byte[] getOutputContent(TResult result) throws Exception;
 }

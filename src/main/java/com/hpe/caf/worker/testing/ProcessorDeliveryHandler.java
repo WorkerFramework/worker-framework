@@ -12,7 +12,7 @@ public class ProcessorDeliveryHandler implements ResultHandler {
     private final ResultProcessor resultProcessor;
     private ExecutionContext context;
 
-    public ProcessorDeliveryHandler(ResultProcessor resultProcessor,ExecutionContext context) {
+    public ProcessorDeliveryHandler(ResultProcessor resultProcessor, ExecutionContext context) {
 
         this.itemStore = context.getItemStore();
         this.resultProcessor = resultProcessor;
@@ -26,6 +26,7 @@ public class ProcessorDeliveryHandler implements ResultHandler {
         TestItem testItem = itemStore.findAndRemove(taskMessage.getTaskId());
         if (testItem == null) {
             System.out.println("Item with id " + taskMessage.getTaskId() + " was not found. Skipping.");
+            checkForFinished();
             return;
         }
 
@@ -34,11 +35,19 @@ public class ProcessorDeliveryHandler implements ResultHandler {
             System.out.println("Result processor success: " + success);
             if (!success) {
                 context.failed("Result processor didn't return success. Result processor name: " + resultProcessor.getClass().getName());
+                return;
             }
-        }
-        catch (Throwable e) {
+            checkForFinished();
+        } catch (Throwable e) {
             e.printStackTrace();
             context.failed(e.getMessage());
         }
     }
+
+    private void checkForFinished() {
+        if (itemStore.size() == 0) {
+            context.finishedSuccessfully();
+        }
+    }
+
 }

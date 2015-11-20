@@ -1,6 +1,5 @@
 package com.hpe.caf.worker.testing;
 
-import java.io.IOException;
 import java.util.Collection;
 
 /**
@@ -8,5 +7,5 @@ import java.util.Collection;
  */
 public interface TestItemProvider {
 
-    Collection<TestItem> getItems() throws IOException;
+    Collection<TestItem> getItems() throws Exception;
 }

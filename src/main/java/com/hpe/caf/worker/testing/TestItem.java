@@ -5,9 +5,11 @@ package com.hpe.caf.worker.testing;
  */
 public class TestItem<TInput, TExpected> {
 
-    private final String tag;
-    private final TInput inputData;
-    private final TExpected expectedOutputData;
+    private String tag;
+    private TInput inputData;
+    private TExpected expectedOutputData;
+
+    TestItem(){}
 
     public TestItem(String tag, TInput inputData, TExpected expectedOutputData) {
 

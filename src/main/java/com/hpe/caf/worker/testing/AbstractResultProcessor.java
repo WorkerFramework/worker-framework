@@ -27,10 +27,11 @@ public abstract class AbstractResultProcessor<TResult, TInput, TExpected> implem
             return processWorkerResult(testItem, resultMessage, workerResult);
 
         }
-        catch (Exception ex) {
+        catch (Exception e) {
+            e.printStackTrace();
             return false;
         }
     }
 
-    protected abstract boolean processWorkerResult(TestItem<TInput, TExpected> testItem, TaskMessage message, TResult result) throws IOException;
+    protected abstract boolean processWorkerResult(TestItem<TInput, TExpected> testItem, TaskMessage message, TResult result) throws Exception;
 }

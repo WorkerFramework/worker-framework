@@ -26,6 +26,8 @@ public class TestControllerFactory {
         ConfigurationSource configurationSource = workerServices.getConfigurationSource();
         RabbitWorkerQueueConfiguration configuration = configurationSource.getConfiguration(RabbitWorkerQueueConfiguration.class);
 
+     //   configuration.getRabbitConfiguration().setRabbitHost(/*System.getProperty("docker.host.ip", System.getenv("docker.host.ip"))*/ "127.0.0.1" );
+
         QueueServices queueServices = QueueServicesFactory.create(configuration, outputQueue);
 
         QueueManager queueManager = new QueueManager(queueServices, workerServices);

@@ -15,15 +15,20 @@ public class TestItemStore {
         this.context = context;
     }
 
+    public int size() {
+        synchronized (items) {
+            return items.size();
+        }
+    }
 
     public TestItem findAndRemove(String id) {
         synchronized (items) {
             TestItem item = items.get(id);
             if (item != null) {
                 items.remove(id,item );
-                if (items.size() == 0) {
+                /*if (items.size() == 0) {
                     context.finishedSuccessfully();
-                }
+                }*/
             }
 
             return item;
