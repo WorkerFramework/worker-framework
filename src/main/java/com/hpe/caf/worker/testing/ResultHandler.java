@@ -2,7 +2,6 @@ package com.hpe.caf.worker.testing;
 
 import com.hpe.caf.api.CodecException;
 import com.hpe.caf.api.worker.TaskMessage;
-import com.hpe.caf.util.rabbitmq.Delivery;
 
 import java.io.IOException;
 

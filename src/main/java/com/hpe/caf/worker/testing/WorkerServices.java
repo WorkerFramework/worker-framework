@@ -1,5 +1,6 @@
 package com.hpe.caf.worker.testing;
 
+import com.hpe.caf.api.BootstrapConfiguration;
 import com.hpe.caf.api.Cipher;
 import com.hpe.caf.api.Codec;
 import com.hpe.caf.api.ConfigurationSource;
@@ -10,17 +11,28 @@ import com.hpe.caf.api.worker.DataStore;
  */
 public class WorkerServices {
 
+    private final BootstrapConfiguration bootstrapConfiguration;
     private final Codec codec;
     private final Cipher cipher;
     private final ConfigurationSource configurationSource;
     private final DataStore dataStore;
 
-    public WorkerServices(final Codec codec, final Cipher cipher, final ConfigurationSource configurationSource, final DataStore dataStore) {
+    public WorkerServices(final BootstrapConfiguration bootstrapConfiguration, final Codec codec, final Cipher cipher, final ConfigurationSource configurationSource, final DataStore dataStore) {
+        this.bootstrapConfiguration = bootstrapConfiguration;
         this.codec = codec;
 
         this.cipher = cipher;
         this.configurationSource = configurationSource;
         this.dataStore = dataStore;
+    }
+
+    /**
+     * Getter for property 'bootstrapConfiguration'.
+     *
+     * @return Value for property 'bootstrapConfiguration'.
+     */
+    public BootstrapConfiguration getBootstrapConfiguration() {
+        return bootstrapConfiguration;
     }
 
     /**

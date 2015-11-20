@@ -1,22 +1,9 @@
 package com.hpe.caf.worker.testing;
 
 import com.hpe.caf.api.Codec;
-import com.hpe.caf.api.CodecException;
-import com.hpe.caf.api.worker.TaskCallback;
-import com.hpe.caf.api.worker.TaskMessage;
 import com.hpe.caf.codec.JsonCodec;
-import com.hpe.caf.configs.RabbitConfiguration;
-import com.hpe.caf.util.rabbitmq.RabbitUtil;
-import com.hpe.caf.worker.queue.rabbit.RabbitWorkerQueueConfiguration;
-import com.hpe.caf.worker.queue.rabbit.WorkerConnectionListener;
 import com.rabbitmq.client.Channel;
 import com.rabbitmq.client.Connection;
-import com.rabbitmq.client.MessageProperties;
-import net.jodah.lyra.ConnectionOptions;
-import net.jodah.lyra.config.Config;
-
-import java.io.IOException;
-import java.util.concurrent.TimeoutException;
 
 /**
  * Created by ploch on 08/11/2015.

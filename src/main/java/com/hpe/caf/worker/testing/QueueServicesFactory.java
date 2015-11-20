@@ -4,9 +4,6 @@ import com.hpe.caf.api.worker.InvalidTaskException;
 import com.hpe.caf.api.worker.TaskCallback;
 import com.hpe.caf.api.worker.TaskRejectedException;
 import com.hpe.caf.configs.RabbitConfiguration;
-import com.hpe.caf.util.rabbitmq.DefaultRabbitConsumer;
-import com.hpe.caf.util.rabbitmq.Event;
-import com.hpe.caf.util.rabbitmq.QueueConsumer;
 import com.hpe.caf.util.rabbitmq.RabbitUtil;
 import com.hpe.caf.worker.queue.rabbit.RabbitWorkerQueueConfiguration;
 import com.hpe.caf.worker.queue.rabbit.WorkerConnectionListener;
@@ -16,7 +13,6 @@ import net.jodah.lyra.ConnectionOptions;
 import net.jodah.lyra.config.Config;
 
 import java.io.IOException;
-import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.TimeoutException;
 
 /**

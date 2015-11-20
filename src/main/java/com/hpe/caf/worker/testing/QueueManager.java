@@ -10,14 +10,16 @@ import com.rabbitmq.client.Channel;
 import com.rabbitmq.client.Connection;
 import com.rabbitmq.client.MessageProperties;
 
+import java.io.Closeable;
 import java.io.IOException;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.LinkedBlockingQueue;
+import java.util.concurrent.TimeoutException;
 
 /**
  * Created by ploch on 08/11/2015.
  */
-public class QueueManager {
+public class QueueManager implements Closeable {
 
     private final QueueServices queueServices;
     private final WorkerServices workerServices;
@@ -26,6 +28,8 @@ public class QueueManager {
     private Channel pubChan;
     private Channel conChan;
 
+    private DefaultRabbitConsumer rabbitConsumer;
+    private Connection connection;
 
     public QueueManager(QueueServices queueServices, WorkerServices workerServices) {
 
@@ -33,9 +37,9 @@ public class QueueManager {
         this.workerServices = workerServices;
     }
 
-    public void start(ResultHandler resultHandler) throws IOException {
+    public Thread start(ResultHandler resultHandler) throws IOException {
 
-        Connection connection = queueServices.getConnection();
+        connection = queueServices.getConnection();
 
         pubChan = connection.createChannel();
         conChan = connection.createChannel();
@@ -47,12 +51,13 @@ public class QueueManager {
         BlockingQueue<Event<QueueConsumer>> conEvents = new LinkedBlockingQueue<>();
 
         SimpleQueueConsumerImpl queueConsumer = new SimpleQueueConsumerImpl(conEvents, conChan, resultHandler);
-        DefaultRabbitConsumer rabbitConsumer = new DefaultRabbitConsumer(conEvents, queueConsumer);
+        rabbitConsumer = new DefaultRabbitConsumer(conEvents, queueConsumer);
 
         consumerTag = conChan.basicConsume(queueServices.getWorkerResultsQueue(), rabbitConsumer);
         Thread consumerThread = new Thread(rabbitConsumer);
        // resultHandler.setContext(new ExecutionContext(consumerThread));
         consumerThread.start();
+        return consumerThread;
         //return consumerThread;
     }
 
@@ -61,5 +66,40 @@ public class QueueManager {
         byte[] data = workerServices.getCodec().serialise(message);
         pubChan.basicPublish("", queueServices.getWorkerInputQueue(), MessageProperties.TEXT_PLAIN, data);
 
+    }
+
+    @Override
+    public void close() throws IOException {
+        if ( consumerTag != null ) {
+            try {
+                conChan.basicCancel(consumerTag);
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }
+        if ( rabbitConsumer != null ) {
+            rabbitConsumer.shutdown();
+        }
+        if ( conChan != null ) {
+            try {
+                conChan.close();
+            } catch (IOException | TimeoutException e) {
+                e.printStackTrace();
+            }
+        }
+        if ( pubChan != null ) {
+            try {
+                pubChan.close();
+            } catch (IOException | TimeoutException e) {
+                e.printStackTrace();
+            }
+        }
+        if ( connection != null ) {
+            try {
+                connection.close();
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }
     }
 }

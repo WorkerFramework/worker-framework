@@ -8,7 +8,6 @@ import com.hpe.caf.api.worker.TaskMessage;
 import com.hpe.caf.api.worker.TaskStatus;
 import com.hpe.caf.codec.JsonCodec;
 import com.hpe.caf.util.ref.ReferencedData;
-import com.hpe.caf.worker.testing.TaskFactory;
 
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
