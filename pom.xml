@@ -2,32 +2,35 @@
 <project xmlns="http://maven.apache.org/POM/4.0.0"
          xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+
+    <groupId>com.hpe.caf.worker</groupId>
+    <artifactId>worker-testing-integration</artifactId>
+    <version>1-SNAPSHOT</version>
+
     <parent>
         <artifactId>worker-testing</artifactId>
         <groupId>com.hpe.caf.worker</groupId>
         <version>1-SNAPSHOT</version>
+        <relativePath>..</relativePath>
     </parent>
-    <modelVersion>4.0.0</modelVersion>
-
-    <artifactId>worker-testing-integration</artifactId>
-    <version>1-SNAPSHOT</version>
 
     <dependencies>
         <dependency>
-            <groupId>com.hpe.caf.worker</groupId>
-            <artifactId>worker-testing-util</artifactId>
-            <version>1-SNAPSHOT</version>
-        </dependency>
-
-        <dependency>
             <groupId>com.hpe.caf</groupId>
             <artifactId>caf-api</artifactId>
-            <version>${caf.api.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>com.hpe.caf.util</groupId>
+            <artifactId>util-rabbitmq</artifactId>
         </dependency>
         <dependency>
             <groupId>com.hpe.caf.worker</groupId>
             <artifactId>worker-core</artifactId>
-            <version>${caf.worker-core.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>com.hpe.caf.worker</groupId>
+            <artifactId>worker-testing-util</artifactId>
         </dependency>
         <dependency>
             <groupId>com.google.guava</groupId>
@@ -36,10 +39,6 @@
         <dependency>
             <groupId>commons-io</groupId>
             <artifactId>commons-io</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>com.hpe.caf.util</groupId>
-            <artifactId>util-rabbitmq</artifactId>
         </dependency>
     </dependencies>
 
