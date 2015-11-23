@@ -9,6 +9,7 @@ import com.hpe.caf.worker.queue.rabbit.RabbitWorkerQueueConfiguration;
 
 import java.io.IOException;
 import java.util.concurrent.TimeoutException;
+import java.util.function.Function;
 
 /**
  * Created by ploch on 08/11/2015.
@@ -19,16 +20,38 @@ public class TestControllerFactory {
             String outputQueue,
             TestItemProvider itemProvider,
             WorkerTaskFactory workerTaskFactory,
-            ResultProcessor resultProcessor) throws ModuleLoaderException, DataStoreException, ConfigurationException, CipherException, IOException, TimeoutException {
+            ResultProcessor resultProcessor) throws Exception
+    {
+        WorkerServices workerServices = WorkerServices.getDefault();
 
+        return create(workerServices, outputQueue, itemProvider, workerTaskFactory, resultProcessor);
+    }
 
-        WorkerServices workerServices = WorkerServicesFactory.create();
+    public static <TConfig> TestController createDefault(
+            Class<TConfig> configClass, Function<TConfig, String> queueNameFunc,
+            TestItemProvider itemProvider,
+            WorkerTaskFactory workerTaskFactory,
+            ResultProcessor resultProcessor) throws Exception
+    {
+        WorkerServices workerServices = WorkerServices.getDefault();
         ConfigurationSource configurationSource = workerServices.getConfigurationSource();
-        RabbitWorkerQueueConfiguration configuration = configurationSource.getConfiguration(RabbitWorkerQueueConfiguration.class);
 
-     //   configuration.getRabbitConfiguration().setRabbitHost(/*System.getProperty("docker.host.ip", System.getenv("docker.host.ip"))*/ "127.0.0.1" );
+        TConfig workerConfiguration = configurationSource.getConfiguration(configClass);
+        String queueName = queueNameFunc.apply(workerConfiguration);
 
-        QueueServices queueServices = QueueServicesFactory.create(configuration, outputQueue);
+        return create(workerServices, queueName, itemProvider, workerTaskFactory, resultProcessor);
+    }
+
+    private static TestController create(WorkerServices workerServices,
+                                         String queueName,
+                                         TestItemProvider itemProvider,
+                                         WorkerTaskFactory workerTaskFactory,
+                                         ResultProcessor resultProcessor) throws Exception
+    {
+        ConfigurationSource configurationSource = workerServices.getConfigurationSource();
+        RabbitWorkerQueueConfiguration rabbitConfiguration = configurationSource.getConfiguration(RabbitWorkerQueueConfiguration.class);
+
+        QueueServices queueServices = QueueServicesFactory.create(rabbitConfiguration, queueName, workerServices.getCodec());
 
         QueueManager queueManager = new QueueManager(queueServices, workerServices);
 

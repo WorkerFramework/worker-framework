@@ -13,6 +13,10 @@ public abstract class FileInputWorkerTaskFactory<TTask, TInput extends FileTestI
     private final WorkerServices workerServices;
     private final String containerId;
 
+    public FileInputWorkerTaskFactory() throws Exception {
+        this(WorkerServices.getDefault(), SettingsProvider.defaultProvider.getSetting(SettingNames.dataStoreContainerId) );
+    }
+
     public FileInputWorkerTaskFactory(WorkerServices workerServices, String containerId) {
 
         this.workerServices = workerServices;

@@ -17,6 +17,10 @@ public abstract class ContentFilesTestItemProvider implements TestItemProvider {
     private final String inputPath;
     private final String expectedPath;
 
+    public ContentFilesTestItemProvider(){
+        this(SettingsProvider.defaultProvider.getSetting(SettingNames.inputFolder), SettingsProvider.defaultProvider.getSetting(SettingNames.expectedFolder));
+    }
+
     public ContentFilesTestItemProvider(final String inputPath, final String expectedPath) {
 
         this.inputPath = inputPath;
@@ -26,7 +30,7 @@ public abstract class ContentFilesTestItemProvider implements TestItemProvider {
     @Override
     public Collection<TestItem> getItems() throws Exception {
 
-        List<Path> files = getFiles(inputPath);
+        List<Path> files = getFiles(Paths.get(inputPath));
 
         List<TestItem> testItems = new ArrayList<>(files.size());
         for (Path inputFile : files) {
@@ -42,11 +46,16 @@ public abstract class ContentFilesTestItemProvider implements TestItemProvider {
 
     protected abstract TestItem createTestItem(Path inputFile, Path expectedFile) throws Exception;
 
-    private static List<Path> getFiles(String directory) throws IOException {
+    private static List<Path> getFiles(Path directory) throws IOException {
         List<Path> fileNames = new ArrayList<>();
-        try (DirectoryStream<Path> directoryStream = Files.newDirectoryStream(Paths.get(directory))) {
+        try (DirectoryStream<Path> directoryStream = Files.newDirectoryStream(directory)) {
             for (Path path : directoryStream) {
-                fileNames.add(path);
+                if (Files.isDirectory(path)){
+                    fileNames.addAll(getFiles(path));
+                }
+                else {
+                    fileNames.add(path);
+                }
             }
         } catch (IOException ex) {
             System.out.println(ex);
