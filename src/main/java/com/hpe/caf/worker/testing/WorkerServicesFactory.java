@@ -5,7 +5,6 @@ import com.hpe.caf.api.worker.DataStore;
 import com.hpe.caf.api.worker.DataStoreException;
 import com.hpe.caf.api.worker.DataStoreProvider;
 import com.hpe.caf.cipher.NullCipherProvider;
-import com.hpe.caf.codec.JsonCodec;
 import com.hpe.caf.config.system.SystemBootstrapConfiguration;
 import com.hpe.caf.naming.ServicePath;
 import com.hpe.caf.util.ModuleLoader;
@@ -17,11 +16,11 @@ import com.hpe.caf.util.ModuleLoaderException;
 public class WorkerServicesFactory {
 
     private static BootstrapConfiguration bootstrapConfiguration = new SystemBootstrapConfiguration();
-    private static Codec codec = new JsonCodec();
 
     private WorkerServicesFactory(){}
 
     public static WorkerServices create() throws ModuleLoaderException, CipherException, ConfigurationException, DataStoreException {
+        Codec codec = ModuleLoader.getService(Codec.class);
         Cipher cipher = ModuleLoader.getService(CipherProvider.class, NullCipherProvider.class).getCipher(bootstrapConfiguration);
         ServicePath path = bootstrapConfiguration.getServicePath();
         ConfigurationSource configurationSource = ModuleLoader.getService(ConfigurationSourceProvider.class).getConfigurationSource(bootstrapConfiguration, cipher, path, codec);
@@ -29,5 +28,4 @@ public class WorkerServicesFactory {
 
         return new WorkerServices(bootstrapConfiguration, codec, cipher, configurationSource, dataStore);
     }
-
 }

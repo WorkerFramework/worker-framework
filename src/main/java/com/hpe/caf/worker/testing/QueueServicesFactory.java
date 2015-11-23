@@ -1,5 +1,6 @@
 package com.hpe.caf.worker.testing;
 
+import com.hpe.caf.api.Codec;
 import com.hpe.caf.api.worker.InvalidTaskException;
 import com.hpe.caf.api.worker.TaskCallback;
 import com.hpe.caf.api.worker.TaskRejectedException;
@@ -31,7 +32,7 @@ public class QueueServicesFactory {
         }
     }
 
-    public static QueueServices create(final RabbitWorkerQueueConfiguration configuration, final String resultsQueueName) throws IOException, TimeoutException {
+    public static QueueServices create(final RabbitWorkerQueueConfiguration configuration, final String resultsQueueName, final Codec codec) throws IOException, TimeoutException {
         Connection connection = createConnection(configuration, new NoOpCallback());
         Channel pubChan = connection.createChannel();
         Channel conChan = connection.createChannel();
@@ -42,7 +43,7 @@ public class QueueServicesFactory {
       //  conChan.basicConsume(resultsQueueName, new DefaultRabbitConsumer(new LinkedBlockingQueue<Event<QueueConsumer>>(), new SimpleQueueConsumerImpl()));
 
 
-        return new QueueServices(connection, pubChan, configuration.getInputQueue(), conChan, resultsQueueName);
+        return new QueueServices(connection, pubChan, configuration.getInputQueue(), conChan, resultsQueueName, codec);
     }
 
     private static Connection createConnection(RabbitWorkerQueueConfiguration configuration, final TaskCallback callback)

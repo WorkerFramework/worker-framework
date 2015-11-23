@@ -11,6 +11,15 @@ import com.hpe.caf.api.worker.DataStore;
  */
 public class WorkerServices {
 
+    private static WorkerServices defaultWorkerServices;
+
+    public static WorkerServices getDefault() throws Exception {
+        if (defaultWorkerServices == null) {
+            defaultWorkerServices = WorkerServicesFactory.create();
+        }
+        return defaultWorkerServices;
+    }
+
     private final BootstrapConfiguration bootstrapConfiguration;
     private final Codec codec;
     private final Cipher cipher;

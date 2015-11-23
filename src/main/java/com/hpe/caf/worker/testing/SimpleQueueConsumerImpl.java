@@ -3,7 +3,6 @@ package com.hpe.caf.worker.testing;
 import com.hpe.caf.api.Codec;
 import com.hpe.caf.api.CodecException;
 import com.hpe.caf.api.worker.TaskMessage;
-import com.hpe.caf.codec.JsonCodec;
 import com.hpe.caf.util.rabbitmq.ConsumerAckEvent;
 import com.hpe.caf.util.rabbitmq.Delivery;
 import com.hpe.caf.util.rabbitmq.Event;
@@ -21,12 +20,13 @@ public class SimpleQueueConsumerImpl implements QueueConsumer {
     private final BlockingQueue<Event<QueueConsumer>> eventQueue;
     private final Channel channel;
     private final ResultHandler resultHandler;
-    private final Codec codec = new JsonCodec();
+    private final Codec codec;
 
-    public SimpleQueueConsumerImpl(final BlockingQueue<Event<QueueConsumer>> queue, Channel channel, ResultHandler resultHandler) {
+    public SimpleQueueConsumerImpl(final BlockingQueue<Event<QueueConsumer>> queue, Channel channel, ResultHandler resultHandler, final Codec codec) {
         this.eventQueue = queue;
         this.channel = channel;
         this.resultHandler = resultHandler;
+        this.codec = codec;
     }
 
     @Override

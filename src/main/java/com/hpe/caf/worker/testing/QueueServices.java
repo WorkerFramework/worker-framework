@@ -1,7 +1,6 @@
 package com.hpe.caf.worker.testing;
 
 import com.hpe.caf.api.Codec;
-import com.hpe.caf.codec.JsonCodec;
 import com.rabbitmq.client.Channel;
 import com.rabbitmq.client.Connection;
 
@@ -16,10 +15,6 @@ public class QueueServices {
     private final Channel consumerChannel;
     private final String workerResultsQueue;
     private final Codec codec;
-
-    public QueueServices(Connection connection, Channel publisherChannel, String workerInputQueue, Channel consumerChannel, String workerResultsQueue) {
-        this(connection, publisherChannel, workerInputQueue, consumerChannel, workerResultsQueue, new JsonCodec());
-    }
 
     public QueueServices(Connection connection, Channel publisherChannel, String workerInputQueue, Channel consumerChannel, String workerResultsQueue, Codec codec) {
 

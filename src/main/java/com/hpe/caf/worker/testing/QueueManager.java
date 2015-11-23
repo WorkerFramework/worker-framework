@@ -50,7 +50,7 @@ public class QueueManager implements Closeable {
 
         BlockingQueue<Event<QueueConsumer>> conEvents = new LinkedBlockingQueue<>();
 
-        SimpleQueueConsumerImpl queueConsumer = new SimpleQueueConsumerImpl(conEvents, conChan, resultHandler);
+        SimpleQueueConsumerImpl queueConsumer = new SimpleQueueConsumerImpl(conEvents, conChan, resultHandler, workerServices.getCodec());
         rabbitConsumer = new DefaultRabbitConsumer(conEvents, queueConsumer);
 
         consumerTag = conChan.basicConsume(queueServices.getWorkerResultsQueue(), rabbitConsumer);

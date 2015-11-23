@@ -20,28 +20,12 @@
         </dependency>
         <dependency>
             <groupId>com.hpe.caf.worker</groupId>
-            <artifactId>${caf.worker-store.impl}</artifactId>
-            <version>${caf.worker-store.version}</version>
-        </dependency>
-        <dependency>
-            <groupId>com.hpe.caf.config</groupId>
-            <artifactId>${caf.config.impl}</artifactId>
-            <version>${caf.config.version}</version>
-        </dependency>
-        <dependency>
-            <groupId>com.hpe.caf.worker</groupId>
             <artifactId>worker-core</artifactId>
             <version>${caf.worker-core.version}</version>
         </dependency>
         <dependency>
             <groupId>com.hpe.caf.worker</groupId>
-            <artifactId>${caf.worker-queue.impl}</artifactId>
-            <version>${caf.worker-queue.version}</version>
-        </dependency>
-        <dependency>
-            <groupId>com.hpe.caf.codec</groupId>
-            <artifactId>${caf.codec.impl}</artifactId>
-            <version>${caf.codec.version}</version>
+            <artifactId>worker-queue-rabbit</artifactId>
         </dependency>
         <dependency>
             <groupId>com.google.guava</groupId>
@@ -51,12 +35,12 @@
         <dependency>
             <groupId>commons-io</groupId>
             <artifactId>commons-io</artifactId>
-            <version>2.4</version>
+            <!--<version>2.4</version>-->
         </dependency>
         <dependency>
             <groupId>com.hpe.caf.util</groupId>
             <artifactId>util-rabbitmq</artifactId>
-            <version>1.0</version>
+            <!--<version>1.0</version>-->
         </dependency>
     </dependencies>
 </project>
