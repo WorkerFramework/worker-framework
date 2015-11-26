@@ -6,6 +6,8 @@ package com.hpe.caf.worker.testing;
 public class FileTestInputData {
 
     private boolean useDataStore;
+    private String containerId;
+
     private String inputFile;
 
     /**
@@ -24,6 +26,24 @@ public class FileTestInputData {
      */
     public void setUseDataStore(boolean useDataStore) {
         this.useDataStore = useDataStore;
+    }
+
+    /**
+     * Getter for property 'containerId'.
+     *
+     * @return Value for property 'containerId'.
+     */
+    public String getContainerId() {
+        return containerId;
+    }
+
+    /**
+     * Setter for property 'containerId'.
+     *
+     * @param containerId Value to set for property 'containerId'.
+     */
+    public void setContainerId(String containerId) {
+        this.containerId = containerId;
     }
 
     /**

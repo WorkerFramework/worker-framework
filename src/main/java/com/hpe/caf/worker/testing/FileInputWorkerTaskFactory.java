@@ -2,7 +2,9 @@ package com.hpe.caf.worker.testing;
 
 import com.hpe.caf.util.ref.ReferencedData;
 
+import java.io.InputStream;
 import java.nio.file.Files;
+import java.nio.file.Path;
 import java.nio.file.Paths;
 
 /**
@@ -12,27 +14,37 @@ public abstract class FileInputWorkerTaskFactory<TTask, TInput extends FileTestI
 
     private final WorkerServices workerServices;
     private final String containerId;
+    private final String testFilesFolder;
 
-    public FileInputWorkerTaskFactory() throws Exception {
-        this(WorkerServices.getDefault(), SettingsProvider.defaultProvider.getSetting(SettingNames.dataStoreContainerId) );
+    public FileInputWorkerTaskFactory(TestConfiguration configuration) throws Exception {
+        this(WorkerServices.getDefault(), configuration.getDataStoreContainerId(), configuration.getTestDataFolder() );
     }
 
-    public FileInputWorkerTaskFactory(WorkerServices workerServices, String containerId) {
+    public FileInputWorkerTaskFactory(WorkerServices workerServices, String containerId, String testFilesFolder) {
 
         this.workerServices = workerServices;
         this.containerId = containerId;
+        this.testFilesFolder = testFilesFolder;
     }
 
     @Override
     public TTask createTask(TestItem<TInput, TExpected> testItem) throws Exception {
-        byte[] fileContent = Files.readAllBytes(Paths.get(testItem.getInputData().getInputFile()));
+        Path inputFile = Paths.get(testItem.getInputData().getInputFile());
+        if (Files.notExists(inputFile)) {
+            inputFile = Paths.get(testFilesFolder, testItem.getInputData().getInputFile());
+         /*   Path resolve = Paths.get(inputFolder).resolve(inputFile);
+            inputFile = inputFile.resolve(inputFolder);*/
+
+        }
 
         ReferencedData sourceData;
         if (testItem.getInputData().isUseDataStore()) {
 
-            String reference = workerServices.getDataStore().store(fileContent, containerId);
+            InputStream inputStream = Files.newInputStream(inputFile);
+            String reference = workerServices.getDataStore().store(inputStream, testItem.getInputData().getContainerId());
             sourceData = ReferencedData.getReferencedData(reference);
         } else {
+            byte[] fileContent = Files.readAllBytes(inputFile);
             sourceData = ReferencedData.getWrappedData(fileContent);
         }
         return createTask(testItem, sourceData);

@@ -32,9 +32,9 @@ public class ProcessorDeliveryHandler implements ResultHandler {
 
         try {
             boolean success = resultProcessor.process(testItem, taskMessage);
-            System.out.println("Result processor success: " + success);
+            System.out.println("Item " + testItem.getTag() + ": Result processor success: " + success);
             if (!success) {
-                context.failed("Result processor didn't return success. Result processor name: " + resultProcessor.getClass().getName());
+                context.failed("Item " + testItem.getTag() + ": Result processor didn't return success. Result processor name: " + resultProcessor.getClass().getName());
                 return;
             }
             checkForFinished();

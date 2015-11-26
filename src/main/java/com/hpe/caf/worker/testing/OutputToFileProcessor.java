@@ -15,6 +15,15 @@ public abstract class OutputToFileProcessor<TResult, TInput, TExpected> extends 
 
     private final String outputFolder;
 
+    /**
+     * Getter for property 'outputFolder'.
+     *
+     * @return Value for property 'outputFolder'.
+     */
+    protected String getOutputFolder() {
+        return outputFolder;
+    }
+
     protected OutputToFileProcessor(final Codec codec, final Class<TResult> resultClass, final String outputFolder) {
         super(codec, resultClass);
         this.outputFolder = outputFolder;
@@ -23,14 +32,14 @@ public abstract class OutputToFileProcessor<TResult, TInput, TExpected> extends 
     @Override
     protected boolean processWorkerResult(TestItem<TInput, TExpected> testItem, TaskMessage message, TResult result) throws Exception {
         String baseFileName = testItem.getTag() == null ? message.getTaskId() : testItem.getTag();
-        baseFileName = baseFileName + ".result";
+        baseFileName = baseFileName + ".result.xml";
         Path filePath = Paths.get(outputFolder, baseFileName);
 
-        byte[] content = getOutputContent(result);
+        byte[] content = getOutputContent(result, testItem);
         Files.write(filePath, content, StandardOpenOption.CREATE);
 
         return true;
     }
 
-    protected abstract byte[] getOutputContent(TResult result) throws Exception;
+    protected abstract byte[] getOutputContent(TResult result, TestItem<TInput, TExpected> testItem) throws Exception;
 }

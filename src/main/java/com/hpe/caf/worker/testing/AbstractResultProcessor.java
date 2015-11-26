@@ -14,6 +14,15 @@ public abstract class AbstractResultProcessor<TResult, TInput, TExpected> implem
     private final Codec codec;
     private final Class<TResult> resultClass;
 
+    /**
+     * Getter for property 'codec'.
+     *
+     * @return Value for property 'codec'.
+     */
+    protected Codec getCodec() {
+        return codec;
+    }
+
     protected AbstractResultProcessor(final Codec codec, final Class<TResult> resultClass) {
 
         this.codec = codec;
