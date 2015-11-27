@@ -21,12 +21,14 @@ import java.util.Objects;
 public class WorkerConnectionListener implements ConnectionListener
 {
     private final TaskCallback callback;
+    private final WorkerConfirmListener confirmListener;
     private static final Logger LOG = LoggerFactory.getLogger(WorkerConnectionListener.class);
 
 
-    public WorkerConnectionListener(final TaskCallback taskCallback)
+    public WorkerConnectionListener(TaskCallback taskCallback, WorkerConfirmListener listener)
     {
         this.callback = Objects.requireNonNull(taskCallback);
+        this.confirmListener = Objects.requireNonNull(listener);
     }
 
 
@@ -48,6 +50,7 @@ public class WorkerConnectionListener implements ConnectionListener
     public void onRecoveryStarted(final Connection connection)
     {
         LOG.info("Connection recovery starting");
+        confirmListener.clearConfirmations();
     }
 
 

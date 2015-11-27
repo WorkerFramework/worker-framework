@@ -48,7 +48,7 @@
  of I/O chatter between workers and the RabbitMQ host.
 
  Consumed messages will only be acknowledged once the result has been published
- to the output queue.
+ to the output queue, and the published response was confirmed by the server.
 
  Messages that the `worker-core` application deems as invalid (ie. unparseable)
  will be immediately discarded onto the rejected queue.

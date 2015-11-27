@@ -42,7 +42,7 @@ import java.util.concurrent.TimeoutException;
  * queue names). There is the input queue to receive messages from, the retry queue (which may be the input
  * queue) where redelivered messages get republished to, and the rejected queue which is where messages that
  * could not be handled are put. There are an unlimited number of possible output queues as defined by the
- * Worker's response.
+ * Worker's response. All published messages use RabbitMQ confirmations.
  * @since 7.5
  */
 public final class RabbitWorkerQueue implements ManagedWorkerQueue
@@ -77,8 +77,10 @@ public final class RabbitWorkerQueue implements ManagedWorkerQueue
      * {@inheritDoc}
      *
      * Create a RabbitMQ connection, and separate incoming and outgoing channels. The connection and channels are managed by Lyra, so
-     * will attempt to re-establish should they drop.
-     * Declare the queues on the appropriate channels and kick off the publisher and consumer threads to handle messages.
+     * will attempt to re-establish should they drop. Declare the queues on the appropriate channels and kick off the publisher and
+     * consumer threads to handle messages. Since this code uses publisher confirms, it is important currently to declare the publisher
+     * channel before the consumer channel, otherwise during a connection drop scenario, Lyra can report the publish sequence number
+     * for the "old" channel before recovering it.
      */
     @Override
     public void start(TaskCallback callback)
@@ -88,15 +90,16 @@ public final class RabbitWorkerQueue implements ManagedWorkerQueue
             throw new IllegalStateException("Already started");
         }
         try {
-            createConnection(callback);
+            WorkerConfirmListener confirmListener = new WorkerConfirmListener(consumerQueue);
+            createConnection(callback, confirmListener);
+            outgoingChannel = conn.createChannel();
             incomingChannel = conn.createChannel();
             int prefetch = Math.max(1, maxTasks + config.getPrefetchBuffer());
             incomingChannel.basicQos(prefetch);
-            outgoingChannel = conn.createChannel();
             WorkerQueueConsumerImpl consumerImpl = new WorkerQueueConsumerImpl(callback, metrics, consumerQueue, incomingChannel, publisherQueue,
                                                                                config.getRetryQueue(), config.getRejectedQueue(), config.getRetryLimit());
             consumer = new DefaultRabbitConsumer(consumerQueue, consumerImpl);
-            WorkerPublisherImpl publisherImpl = new WorkerPublisherImpl(outgoingChannel, metrics, consumerQueue);
+            WorkerPublisherImpl publisherImpl = new WorkerPublisherImpl(outgoingChannel, metrics, consumerQueue, confirmListener);
             publisher = new EventPoller<>(2, publisherQueue, publisherImpl);
             declareWorkerQueue(incomingChannel, config.getInputQueue());
             declareWorkerQueue(outgoingChannel, config.getRetryQueue());
@@ -167,11 +170,11 @@ public final class RabbitWorkerQueue implements ManagedWorkerQueue
     {
         LOG.debug("Shutting down");
         try {
-            if ( publisher != null ) {
-                publisher.shutdown();
-            }
             if ( consumer != null ) {
                 consumer.shutdown();
+            }
+            if ( publisher != null ) {
+                publisher.shutdown();
             }
             if ( conn != null ) {
                 incomingChannel.close();
@@ -207,13 +210,13 @@ public final class RabbitWorkerQueue implements ManagedWorkerQueue
     }
 
 
-    private void createConnection(TaskCallback callback)
+    private void createConnection(TaskCallback callback, WorkerConfirmListener listener)
         throws IOException, TimeoutException
     {
         RabbitConfiguration rc = config.getRabbitConfiguration();
         ConnectionOptions lyraOpts = RabbitUtil.createLyraConnectionOptions(rc.getRabbitHost(), rc.getRabbitPort(), rc.getRabbitUser(), rc.getRabbitPassword());
         Config lyraConfig = RabbitUtil.createLyraConfig(rc.getBackoffInterval(), rc.getMaxBackoffInterval(), -1);
-        lyraConfig.withConnectionListeners(new WorkerConnectionListener(callback));
+        lyraConfig.withConnectionListeners(new WorkerConnectionListener(callback, listener));
         conn = RabbitUtil.createRabbitConnection(lyraOpts, lyraConfig);
     }
 
