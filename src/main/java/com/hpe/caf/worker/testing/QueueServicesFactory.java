@@ -7,7 +7,6 @@ import com.hpe.caf.api.worker.TaskRejectedException;
 import com.hpe.caf.configs.RabbitConfiguration;
 import com.hpe.caf.util.rabbitmq.RabbitUtil;
 import com.hpe.caf.worker.queue.rabbit.RabbitWorkerQueueConfiguration;
-import com.hpe.caf.worker.queue.rabbit.WorkerConnectionListener;
 import com.rabbitmq.client.Channel;
 import com.rabbitmq.client.Connection;
 import net.jodah.lyra.ConnectionOptions;
@@ -40,9 +39,6 @@ public class QueueServicesFactory {
         RabbitUtil.declareWorkerQueue(pubChan, configuration.getInputQueue());
         RabbitUtil.declareWorkerQueue(conChan, resultsQueueName);
 
-      //  conChan.basicConsume(resultsQueueName, new DefaultRabbitConsumer(new LinkedBlockingQueue<Event<QueueConsumer>>(), new SimpleQueueConsumerImpl()));
-
-
         return new QueueServices(connection, pubChan, configuration.getInputQueue(), conChan, resultsQueueName, codec);
     }
 
@@ -52,7 +48,6 @@ public class QueueServicesFactory {
         RabbitConfiguration rc = configuration.getRabbitConfiguration();
         ConnectionOptions lyraOpts = RabbitUtil.createLyraConnectionOptions(rc.getRabbitHost(), rc.getRabbitPort(), rc.getRabbitUser(), rc.getRabbitPassword());
         Config lyraConfig = RabbitUtil.createLyraConfig(rc.getBackoffInterval(), rc.getMaxBackoffInterval(), rc.getMaxAttempts());
-        lyraConfig.withConnectionListeners(new WorkerConnectionListener(callback));
         Connection connection = RabbitUtil.createRabbitConnection(lyraOpts, lyraConfig);
         return connection;
     }
