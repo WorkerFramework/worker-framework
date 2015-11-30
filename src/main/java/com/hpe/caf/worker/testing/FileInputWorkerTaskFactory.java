@@ -32,9 +32,6 @@ public abstract class FileInputWorkerTaskFactory<TTask, TInput extends FileTestI
         Path inputFile = Paths.get(testItem.getInputData().getInputFile());
         if (Files.notExists(inputFile)) {
             inputFile = Paths.get(testFilesFolder, testItem.getInputData().getInputFile());
-         /*   Path resolve = Paths.get(inputFolder).resolve(inputFile);
-            inputFile = inputFile.resolve(inputFolder);*/
-
         }
 
         ReferencedData sourceData;
