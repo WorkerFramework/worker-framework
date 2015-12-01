@@ -31,6 +31,7 @@ public abstract class AbstractWorker<T,V> implements Worker
     private final String resultQueue;
     private final Codec codec;
     private static final Logger LOG = LoggerFactory.getLogger(AbstractWorker.class);
+    private static final Validator validator = Validation.buildDefaultValidatorFactory().getValidator();
 
 
     /**
@@ -46,7 +47,6 @@ public abstract class AbstractWorker<T,V> implements Worker
         this.task = Objects.requireNonNull(task);
         this.resultQueue = Objects.requireNonNull(resultQueue);
         this.codec = Objects.requireNonNull(codec);
-        Validator validator = Validation.buildDefaultValidatorFactory().getValidator();
         Set<ConstraintViolation<T>> violations = validator.validate(task);
         if ( violations.size() > 0 ) {
             LOG.error("Task of type {} failed validation due to: {}", task.getClass().getSimpleName(), violations);
