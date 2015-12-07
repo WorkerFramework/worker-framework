@@ -27,8 +27,10 @@ public class Signal {
     }
 
     public void doNotify(TestResult testResult){
-        this.testResult = testResult;
         synchronized(myMonitorObject){
+            if (this.testResult == null) {
+                this.testResult = testResult;
+            }
             wasSignalled = true;
             myMonitorObject.notify();
         }

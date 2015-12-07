@@ -3,7 +3,6 @@ package com.hpe.caf.worker.testing;
 import com.hpe.caf.api.Codec;
 import com.hpe.caf.api.CodecException;
 import com.hpe.caf.api.worker.TaskMessage;
-import com.hpe.caf.util.rabbitmq.ConsumerAckEvent;
 import com.hpe.caf.util.rabbitmq.Delivery;
 import com.hpe.caf.util.rabbitmq.Event;
 import com.hpe.caf.util.rabbitmq.QueueConsumer;
@@ -34,15 +33,20 @@ public class SimpleQueueConsumerImpl implements QueueConsumer {
 
         System.out.print("New delivery, task id: " );
 
-        eventQueue.add(new ConsumerAckEvent(delivery.getEnvelope().getDeliveryTag()));
+      //  eventQueue.add(new ConsumerAckEvent(delivery.getEnvelope().getDeliveryTag()));
         try {
             TaskMessage taskMessage = codec.deserialise(delivery.getMessageData(), TaskMessage.class);
             System.out.println(taskMessage.getTaskId() + ", status: " + taskMessage.getTaskStatus());
             resultHandler.handleResult(taskMessage);
         }
-        catch (CodecException | IOException e) {
+        catch (CodecException e) {
             e.printStackTrace();
-            Thread.currentThread().interrupt();
+            //Thread.currentThread().interrupt();
+            throw new AssertionError("Failed: " + e.getMessage());
+        } catch (Exception e) {
+            e.printStackTrace();
+            //Thread.currentThread().interrupt();
+            throw new AssertionError("Failed: " + e.getMessage());
         }
 
     }

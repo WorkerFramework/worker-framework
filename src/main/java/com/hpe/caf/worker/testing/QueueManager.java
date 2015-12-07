@@ -47,18 +47,18 @@ public class QueueManager implements Closeable {
         RabbitUtil.declareWorkerQueue(pubChan, queueServices.getWorkerInputQueue());
         RabbitUtil.declareWorkerQueue(conChan, queueServices.getWorkerResultsQueue());
 
+        pubChan.queuePurge(queueServices.getWorkerInputQueue());
+        conChan.queuePurge(queueServices.getWorkerResultsQueue());
 
         BlockingQueue<Event<QueueConsumer>> conEvents = new LinkedBlockingQueue<>();
 
         SimpleQueueConsumerImpl queueConsumer = new SimpleQueueConsumerImpl(conEvents, conChan, resultHandler, workerServices.getCodec());
         rabbitConsumer = new DefaultRabbitConsumer(conEvents, queueConsumer);
 
-        consumerTag = conChan.basicConsume(queueServices.getWorkerResultsQueue(), rabbitConsumer);
+        consumerTag = conChan.basicConsume(queueServices.getWorkerResultsQueue(), true, rabbitConsumer);
         Thread consumerThread = new Thread(rabbitConsumer);
-       // resultHandler.setContext(new ExecutionContext(consumerThread));
         consumerThread.start();
         return consumerThread;
-        //return consumerThread;
     }
 
     public void publish(TaskMessage message) throws CodecException, IOException {
@@ -82,6 +82,7 @@ public class QueueManager implements Closeable {
         }
         if ( conChan != null ) {
             try {
+                System.out.println("Closing queue connection");
                 conChan.close();
             } catch (IOException | TimeoutException e) {
                 e.printStackTrace();
