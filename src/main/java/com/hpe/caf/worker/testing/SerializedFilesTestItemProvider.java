@@ -1,9 +1,8 @@
 package com.hpe.caf.worker.testing;
 
-import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.type.TypeFactory;
-import com.fasterxml.jackson.dataformat.xml.XmlMapper;
 
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -16,19 +15,22 @@ public class SerializedFilesTestItemProvider<TInput, TExpected> extends ContentF
 
     private final Class<TInput> inputClass;
     private final Class<TExpected> expectedClass;
+    private final ObjectMapper serializer;
 
     public SerializedFilesTestItemProvider(TestConfiguration configuration) {
-        super(configuration.getTestDocumentsFolder(), configuration.getTestDataFolder(), "*.xml", false);
+        super(configuration.getTestDocumentsFolder(), configuration.getTestDataFolder(), "*.testcase", false);
         this.inputClass = configuration.getInputClass();
         this.expectedClass = configuration.getExpectationClass();
+        serializer = configuration.getSerializer();
     }
 
     @Override
     protected TestItem<TInput, TExpected> createTestItem(Path inputFile, Path expectedFile) throws Exception {
 
-        ObjectMapper mapper = new XmlMapper();
+        //ObjectMapper mapper = new XmlMapper();
 
-        TestItem<TInput, TExpected> item = mapper.readValue(Files.readAllBytes(inputFile), TypeFactory.defaultInstance().constructParametrizedType(TestItem.class, TestItem.class, inputClass, expectedClass));
+        serializer.disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES);
+        TestItem<TInput, TExpected> item = serializer.readValue(Files.readAllBytes(inputFile), TypeFactory.defaultInstance().constructParametrizedType(TestItem.class, TestItem.class, inputClass, expectedClass));
 
         // Validate provided file exists
         if (item.getInputData() instanceof FileTestInputData) {

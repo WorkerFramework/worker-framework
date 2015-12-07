@@ -31,7 +31,7 @@ public abstract class AbstractResultProcessor<TResult, TInput, TExpected> implem
 
     @Override
     public boolean process(TestItem testItem, TaskMessage resultMessage) throws CodecException, IOException {
-        TResult workerResult = codec.deserialise(resultMessage.getTaskData(), resultClass);
+        TResult workerResult = deserializeMessage(resultMessage, resultClass);
         try {
             return processWorkerResult(testItem, resultMessage, workerResult);
 
@@ -40,6 +40,11 @@ public abstract class AbstractResultProcessor<TResult, TInput, TExpected> implem
             e.printStackTrace();
             return false;
         }
+    }
+
+    protected TResult deserializeMessage(TaskMessage message, Class<TResult> resultClass) throws CodecException {
+        TResult workerResult = codec.deserialise(message.getTaskData(), resultClass);
+        return workerResult;
     }
 
     protected abstract boolean processWorkerResult(TestItem<TInput, TExpected> testItem, TaskMessage message, TResult result) throws Exception;

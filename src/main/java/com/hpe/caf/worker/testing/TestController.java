@@ -19,7 +19,7 @@ public class TestController implements Closeable {
     private final ResultProcessor resultProcessor;
     Thread thread;
 
-    public TestController(WorkerServices workerServices, TestItemProvider itemProvider, QueueManager queueManager,/* TestItemStore itemStore,*/ WorkerTaskFactory taskFactory, ResultProcessor resultProcessor) {
+    public TestController(WorkerServices workerServices, TestItemProvider itemProvider, QueueManager queueManager, WorkerTaskFactory taskFactory, ResultProcessor resultProcessor) {
         this.workerServices = workerServices;
 
         this.itemProvider = itemProvider;
@@ -39,17 +39,20 @@ public class TestController implements Closeable {
         }
 
         ExecutionContext context = new ExecutionContext();
+
         thread = queueManager.start(new ProcessorDeliveryHandler(resultProcessor, context));
 
         TaskMessageFactory messageFactory = new TaskMessageFactory(workerServices.getCodec(), taskFactory.getWorkerName(), taskFactory.getApiVersion());
 
         for (TestItem item : items) {
             Object workerTask = taskFactory.createTask(item);
-            String taskId = UUID.randomUUID().toString();
+            //String taskId = UUID.randomUUID().toString();
+            String taskId = item.getTag() == null ? UUID.randomUUID().toString() : item.getTag();
             TaskMessage message = messageFactory.create(workerTask, taskId);
+
             context.getItemStore().store(taskId, item);
             System.out.println("================================================================================");
-            System.out.println("============ QUEUEING NEW TASK: " + item.getTag() + " ==========================");
+            System.out.println(" QUEUEING NEW TASK: " + item.getTag());
             System.out.println("================================================================================");
             queueManager.publish(message);
         }

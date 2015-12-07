@@ -19,7 +19,7 @@ public class ContentFileTestExpectation {
     }
 
     /**
-     * Setter for property 'expectedContentFile'.
+     * Setter   property 'expectedContentFile'.
      *
      * @param expectedContentFile Value to set for property 'expectedContentFile'.
      */

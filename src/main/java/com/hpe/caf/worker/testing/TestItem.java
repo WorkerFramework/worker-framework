@@ -1,5 +1,7 @@
 package com.hpe.caf.worker.testing;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+
 /**
  * Created by ploch on 07/11/2015.
  */
@@ -8,6 +10,9 @@ public class TestItem<TInput, TExpected> {
     private String tag;
     private TInput inputData;
     private TExpected expectedOutputData;
+
+    @JsonIgnore
+    private boolean completed = true;
 
     TestItem(){}
 
@@ -45,6 +50,23 @@ public class TestItem<TInput, TExpected> {
         return expectedOutputData;
     }
 
+    /**
+     * Getter for property 'completed'.
+     *
+     * @return Value for property 'completed'.
+     */
+    @JsonIgnore
+    public boolean isCompleted() {
+        return completed;
+    }
 
-
+    /**
+     * Setter for property 'completed'.
+     *
+     * @param completed Value to set for property 'completed'.
+     */
+    @JsonIgnore
+    public void setCompleted(boolean completed) {
+        this.completed = completed;
+    }
 }

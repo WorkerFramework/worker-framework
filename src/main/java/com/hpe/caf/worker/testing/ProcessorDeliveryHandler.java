@@ -1,6 +1,5 @@
 package com.hpe.caf.worker.testing;
 
-import com.hpe.caf.api.CodecException;
 import com.hpe.caf.api.worker.TaskMessage;
 
 /**
@@ -20,10 +19,17 @@ public class ProcessorDeliveryHandler implements ResultHandler {
     }
 
     @Override
-    public void handleResult(TaskMessage taskMessage) throws CodecException {
+    public void handleResult(TaskMessage taskMessage) {
 
         System.out.println("New delivery: task id: " + taskMessage.getTaskId() + ", status: " + taskMessage.getTaskStatus());
-        TestItem testItem = itemStore.findAndRemove(taskMessage.getTaskId());
+       // TestItem testItem = itemStore.findAndRemove(taskMessage.getTaskId());
+        TestItem testItem = null;
+        try {
+            testItem = itemStore.find(taskMessage.getTaskId());
+        } catch (Throwable e) {
+            e.printStackTrace();
+            context.failed(e.getMessage());
+        }
         if (testItem == null) {
             System.out.println("Item with id " + taskMessage.getTaskId() + " was not found. Skipping.");
             checkForFinished();
@@ -36,6 +42,9 @@ public class ProcessorDeliveryHandler implements ResultHandler {
             if (!success) {
                 context.failed("Item " + testItem.getTag() + ": Result processor didn't return success. Result processor name: " + resultProcessor.getClass().getName());
                 return;
+            }
+            if (testItem.isCompleted()) {
+                itemStore.remove(taskMessage.getTaskId());
             }
             checkForFinished();
         } catch (Throwable e) {

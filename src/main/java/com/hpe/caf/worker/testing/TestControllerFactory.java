@@ -1,14 +1,8 @@
 package com.hpe.caf.worker.testing;
 
-import com.hpe.caf.api.CipherException;
-import com.hpe.caf.api.ConfigurationException;
 import com.hpe.caf.api.ConfigurationSource;
-import com.hpe.caf.api.worker.DataStoreException;
-import com.hpe.caf.util.ModuleLoaderException;
 import com.hpe.caf.worker.queue.rabbit.RabbitWorkerQueueConfiguration;
 
-import java.io.IOException;
-import java.util.concurrent.TimeoutException;
 import java.util.function.Function;
 
 /**

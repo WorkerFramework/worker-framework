@@ -48,6 +48,29 @@
             <groupId>org.codehaus.woodstox</groupId>
             <artifactId>woodstox-core-asl</artifactId>
         </dependency>
+        <dependency>
+            <groupId>com.hpe.caf.worker</groupId>
+            <artifactId>worker-testing-tester</artifactId>
+            <version>1-SNAPSHOT</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>junit</groupId>
+            <artifactId>junit</artifactId>
+            <version>4.9</version>
+            <scope>test</scope>
+        </dependency>
+      <!--  <dependency>
+            <groupId>net.java</groupId>
+            <artifactId>quickcheck-all</artifactId>
+            <version>0.6</version>
+        </dependency>-->
+        <dependency>
+            <groupId>io.dropwizard</groupId>
+            <artifactId>dropwizard-testing</artifactId>
+            <version>0.8.4</version>
+            <scope>test</scope>
+        </dependency>
     </dependencies>
 
 </project>

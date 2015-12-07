@@ -7,11 +7,11 @@ public class TestResultHelper {
 
     private TestResultHelper(){}
 
-    public static void testFailed(String message) throws Exception {
-        throw new Exception("Test Failed. " + message);
+    public static void testFailed(String message)  {
+        throw new AssertionError("Test Failed. " + message);
     }
 
-    public static void testFailed(TestItem testItem, String message) throws Exception {
+    public static void testFailed(TestItem testItem, String message) {
         testFailed("Test item '" + testItem.getTag() + "' failed. " + message);
     }
 }

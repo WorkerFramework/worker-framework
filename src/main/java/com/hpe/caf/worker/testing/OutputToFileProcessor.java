@@ -32,7 +32,7 @@ public abstract class OutputToFileProcessor<TResult, TInput, TExpected> extends 
     @Override
     protected boolean processWorkerResult(TestItem<TInput, TExpected> testItem, TaskMessage message, TResult result) throws Exception {
         String baseFileName = testItem.getTag() == null ? message.getTaskId() : testItem.getTag();
-        baseFileName = baseFileName + ".result.xml";
+        baseFileName = baseFileName + ".testcase";
         Path filePath = Paths.get(outputFolder, baseFileName);
 
         byte[] content = getOutputContent(result, testItem);

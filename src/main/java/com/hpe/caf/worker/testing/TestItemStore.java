@@ -2,6 +2,7 @@ package com.hpe.caf.worker.testing;
 
 
 import java.util.HashMap;
+import java.util.Optional;
 
 /**
  * Created by ploch on 07/11/2015.
@@ -37,4 +38,31 @@ public class TestItemStore {
             items.put(id, item);
         }
     }
+
+    public TestItem find(String id) throws Exception {
+        synchronized (items) {
+            TestItem item = items.get(id);
+            if (item == null) {
+                Optional<String> first = items.keySet().stream().filter(key -> id.startsWith(key)).findFirst();
+                boolean present = first.isPresent();
+                if (!present) return null;
+                /*if (search.count() > 1) {
+                    throw new Exception("Multiple keys matching the same task id");
+                }*/
+                String actualId = first.get();
+
+                item = items.get(actualId);
+            }
+            return item;
+        }
+    }
+
+    public void remove(String id) {
+        synchronized (items) {
+            //        if (item != null) {
+
+            TestItem remove = items.remove(id);
+        }
+    }
+
 }
