@@ -1,9 +1,9 @@
 package com.hpe.caf.worker.testing.validation;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.hpe.caf.api.Codec;
 import com.hpe.caf.api.worker.TaskMessage;
 import com.hpe.caf.worker.testing.AbstractResultProcessor;
+import com.hpe.caf.worker.testing.TestConfiguration;
 import com.hpe.caf.worker.testing.TestItem;
 import com.hpe.caf.worker.testing.WorkerServices;
 import com.hpe.caf.worker.testing.configuration.ValidationSettings;
@@ -18,14 +18,13 @@ public abstract class PropertyValidatingProcessor<TResult, TInput, TExpected> ex
 
     private final ValidatorFactory validatorFactory;
 
-    protected PropertyValidatingProcessor(Codec codec, Class<TResult> resultClass, ValidationSettings validationSettings) {
-        super(codec, resultClass);
-        this.validatorFactory = new ValidatorFactory(validationSettings);
+    protected PropertyValidatingProcessor(TestConfiguration<?, TResult, TInput, TExpected> testConfiguration, WorkerServices workerServices, ValidationSettings validationSettings) {
+        super(workerServices.getCodec(), testConfiguration.getWorkerResultClass());
+        this.validatorFactory = new ValidatorFactory(validationSettings, workerServices.getDataStore(), workerServices.getCodec(), testConfiguration.getTestDataFolder());
     }
 
     @Override
     protected boolean processWorkerResult(TestItem<TInput, TExpected> testItem, TaskMessage message, TResult result) throws Exception {
-       // String key = keyviewWorkerResult.getKeyviewResults().getContent().getIdentifier().toString();
 
         Map<String, Object> expectation = getExpectationMap(testItem, message, result);
         PropertyMap expectationPropertyMap = new PropertyMap(expectation);

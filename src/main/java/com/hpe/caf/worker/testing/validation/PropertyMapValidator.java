@@ -1,9 +1,6 @@
 package com.hpe.caf.worker.testing.validation;
 
-import java.util.Arrays;
-import java.util.HashSet;
 import java.util.Map;
-import java.util.Set;
 
 /**
  * Created by ploch on 05/12/2015.

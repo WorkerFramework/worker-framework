@@ -1,6 +1,8 @@
 package com.hpe.caf.worker.testing;
 
+import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.SerializationFeature;
 import com.fasterxml.jackson.dataformat.xml.XmlMapper;
 import com.fasterxml.jackson.dataformat.yaml.YAMLMapper;
 import com.hpe.caf.worker.testing.configuration.TestCaseFormat;
@@ -34,6 +36,8 @@ public class TestConfiguration<TWorkerTask, TWorkerResult, TInput, TExpectation>
             default:
                 throw new RuntimeException(String.format("Test case format %s is not supported.", testCaseFormat.toString()));
         }
+        mapper.disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES);
+        mapper.enable(SerializationFeature.INDENT_OUTPUT);
 
         return new TestConfiguration<>(settingsProvider.getSetting(SettingNames.expectedFolder),
                 settingsProvider.getSetting(SettingNames.inputFolder),

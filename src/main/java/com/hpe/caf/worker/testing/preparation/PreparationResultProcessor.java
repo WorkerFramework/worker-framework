@@ -1,6 +1,5 @@
 package com.hpe.caf.worker.testing.preparation;
 
-import com.fasterxml.jackson.databind.SerializationFeature;
 import com.hpe.caf.api.Codec;
 import com.hpe.caf.worker.testing.OutputToFileProcessor;
 import com.hpe.caf.worker.testing.TestConfiguration;
@@ -31,7 +30,7 @@ public class PreparationResultProcessor<TWorkerTask, TWorkerResult, TInput, TExp
     @Override
     protected byte[] getOutputContent(TWorkerResult workerResult, TestItem<TInput, TExpected> testItem) throws Exception {
 
-        configuration.getSerializer().enable(SerializationFeature.INDENT_OUTPUT);
+      //  configuration.getSerializer().enable(SerializationFeature.INDENT_OUTPUT);
 
         return configuration.getSerializer().writeValueAsBytes(testItem);
     }
