@@ -33,7 +33,7 @@ public class SimpleQueueConsumerImpl implements QueueConsumer {
 
         System.out.print("New delivery, task id: " );
 
-      //  eventQueue.add(new ConsumerAckEvent(delivery.getEnvelope().getDeliveryTag()));
+       // eventQueue.add(new ConsumerAckEvent(delivery.getEnvelope().getDeliveryTag()));
         try {
             TaskMessage taskMessage = codec.deserialise(delivery.getMessageData(), TaskMessage.class);
             System.out.println(taskMessage.getTaskId() + ", status: " + taskMessage.getTaskStatus());
