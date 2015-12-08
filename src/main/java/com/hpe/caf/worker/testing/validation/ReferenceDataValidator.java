@@ -38,6 +38,8 @@ public class ReferenceDataValidator extends PropertyValidator {
     @Override
     public boolean isValid(Object testedPropertyValue, Object validatorPropertyValue) {
 
+        if (testedPropertyValue == null && validatorPropertyValue == null) return true;
+
         ObjectMapper mapper = new ObjectMapper();
 
         ContentFileTestExpectation expectation = mapper.convertValue(validatorPropertyValue, ContentFileTestExpectation.class);

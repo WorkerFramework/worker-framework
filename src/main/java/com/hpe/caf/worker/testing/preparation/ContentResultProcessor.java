@@ -3,6 +3,7 @@ package com.hpe.caf.worker.testing.preparation;
 import com.hpe.caf.api.Codec;
 import com.hpe.caf.api.worker.DataStore;
 import com.hpe.caf.api.worker.DataStoreSource;
+import com.hpe.caf.api.worker.TaskMessage;
 import com.hpe.caf.util.ref.ReferencedData;
 import com.hpe.caf.worker.testing.ContentFileTestExpectation;
 import com.hpe.caf.worker.testing.TestConfiguration;
@@ -30,7 +31,7 @@ public class ContentResultProcessor<TWorkerTask, TWorkerResult, TInput, TExpecte
     }
 
     @Override
-    protected byte[] getOutputContent(TWorkerResult workerResult, TestItem<TInput, TExpected> testItem) throws Exception {
+    protected byte[] getOutputContent(TWorkerResult workerResult, TaskMessage message, TestItem<TInput, TExpected> testItem) throws Exception {
 
         Path contentFile = null;
         ReferencedData textData = getContentFunc.apply(workerResult);
@@ -48,6 +49,6 @@ public class ContentResultProcessor<TWorkerTask, TWorkerResult, TInput, TExpecte
         expectation.setExpectedContentFile(contentFile == null ? null : contentFile.getFileName().toString());
         expectation.setExpectedSimilarityPercentage(80);
 
-        return super.getOutputContent(workerResult, testItem);
+        return super.getOutputContent(workerResult, message, testItem);
     }
 }

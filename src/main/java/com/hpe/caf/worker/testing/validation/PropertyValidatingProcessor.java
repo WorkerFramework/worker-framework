@@ -34,7 +34,7 @@ public abstract class PropertyValidatingProcessor<TResult, TInput, TExpected> ex
 
         PropertyMap propertyMap = mapper.convertValue(validatedObject, PropertyMap.class);
 
-        PropertyValidator validator = validatorFactory.create("Root", propertyMap, expectationPropertyMap);
+        PropertyValidator validator = validatorFactory.createRootValidator();
 
         validator.validate("Root", propertyMap, expectationPropertyMap);
 

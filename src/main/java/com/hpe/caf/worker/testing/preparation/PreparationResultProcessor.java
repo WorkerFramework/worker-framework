@@ -1,6 +1,7 @@
 package com.hpe.caf.worker.testing.preparation;
 
 import com.hpe.caf.api.Codec;
+import com.hpe.caf.api.worker.TaskMessage;
 import com.hpe.caf.worker.testing.OutputToFileProcessor;
 import com.hpe.caf.worker.testing.TestConfiguration;
 import com.hpe.caf.worker.testing.TestItem;
@@ -28,9 +29,7 @@ public class PreparationResultProcessor<TWorkerTask, TWorkerResult, TInput, TExp
     }
 
     @Override
-    protected byte[] getOutputContent(TWorkerResult workerResult, TestItem<TInput, TExpected> testItem) throws Exception {
-
-      //  configuration.getSerializer().enable(SerializationFeature.INDENT_OUTPUT);
+    protected byte[] getOutputContent(TWorkerResult workerResult, TaskMessage message, TestItem<TInput, TExpected> testItem) throws Exception {
 
         return configuration.getSerializer().writeValueAsBytes(testItem);
     }

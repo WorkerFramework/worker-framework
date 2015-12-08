@@ -8,11 +8,8 @@ import java.util.Map;
 public class PropertyMapValidator extends PropertyValidator {
     private final ValidatorFactory validatorFactory;
 
-    //private final Set<String> excludedProperties;
-
     public PropertyMapValidator(ValidatorFactory validatorFactory) {
 
-        //this.excludedProperties = new HashSet<>(Arrays.asList(excludedProperties));;
         this.validatorFactory = validatorFactory;
     }
 

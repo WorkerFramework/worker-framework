@@ -35,11 +35,11 @@ public abstract class OutputToFileProcessor<TResult, TInput, TExpected> extends 
         baseFileName = baseFileName + ".testcase";
         Path filePath = Paths.get(outputFolder, baseFileName);
 
-        byte[] content = getOutputContent(result, testItem);
+        byte[] content = getOutputContent(result, message, testItem);
         Files.write(filePath, content, StandardOpenOption.CREATE);
 
         return true;
     }
 
-    protected abstract byte[] getOutputContent(TResult result, TestItem<TInput, TExpected> testItem) throws Exception;
+    protected abstract byte[] getOutputContent(TResult result, TaskMessage message, TestItem<TInput, TExpected> testItem) throws Exception;
 }

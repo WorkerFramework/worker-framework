@@ -42,10 +42,6 @@ public class ValidationSettings {
 
     public ValidationSettings(){}
 
-    public ValidationSettings(Set<String> ignoredProperties, Set<String> referencedDataProperties) {
-        this.ignoredProperties = ignoredProperties;
-        this.referencedDataProperties = referencedDataProperties;
-    }
 
     /**
      * Getter for property 'ignoredProperties'.

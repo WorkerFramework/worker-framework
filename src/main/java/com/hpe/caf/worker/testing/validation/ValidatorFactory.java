@@ -4,6 +4,7 @@ import com.hpe.caf.api.Codec;
 import com.hpe.caf.api.worker.DataStore;
 import com.hpe.caf.worker.testing.configuration.ValidationSettings;
 
+import java.util.Collection;
 import java.util.Map;
 
 /**
@@ -29,15 +30,20 @@ public class ValidatorFactory {
     }
 
     public PropertyValidator create(String propertyName, Object sourcePropertyValue, Object validatorPropertyValue) {
-        if (validationSettings.getIgnoredProperties().contains(propertyName)) {
-            return new IgnorePropertyValidator();
+        if (propertyName != null) {
+            if (validationSettings.getIgnoredProperties().contains(propertyName)) {
+                return new IgnorePropertyValidator();
+            }
+            if (validationSettings.getReferencedDataProperties().contains(propertyName)) {
+                return new ReferenceDataValidator(dataStore, codec, testDataFolder);
+            }
         }
-        if (validationSettings.getReferencedDataProperties().contains(propertyName)) {
-            return new ReferenceDataValidator(dataStore, codec, testDataFolder);
-        }
-
         if (sourcePropertyValue instanceof Map && validatorPropertyValue instanceof Map) {
             return new PropertyMapValidator(this);
+        }
+
+        if (sourcePropertyValue instanceof Collection && validatorPropertyValue instanceof Collection) {
+            return new CollectionValidator(this);
         }
 
         return new ValuePropertyValidator();
