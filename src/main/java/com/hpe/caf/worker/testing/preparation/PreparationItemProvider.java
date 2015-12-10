@@ -1,10 +1,10 @@
 package com.hpe.caf.worker.testing.preparation;
 
-import com.hpe.caf.worker.testing.ContentFilesTestItemProvider;
-import com.hpe.caf.worker.testing.FileTestInputData;
-import com.hpe.caf.worker.testing.TestConfiguration;
-import com.hpe.caf.worker.testing.TestItem;
+import com.google.common.base.Strings;
+import com.hpe.caf.worker.testing.*;
 
+import java.io.IOException;
+import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 
@@ -20,6 +20,27 @@ public class PreparationItemProvider<TWorkerTask, TWorkerResult, TInput extends 
         this.configuration = configuration;
     }
 
+    protected TWorkerTask getTaskTemplate() {
+        String setting = SettingsProvider.defaultProvider.getSetting(SettingNames.taskTemplate);
+        if (Strings.isNullOrEmpty(setting)) {
+            System.out.println("Template task not provided. Set 'template.task' property.");
+            return null;
+        }
+        System.out.println("Template task file provided: " + setting);
+        Path templateTaskFile = Paths.get(setting);
+        if (Files.notExists(templateTaskFile)) {
+            System.out.println("Provided template file doesn't exist: " + setting);
+            throw new AssertionError("Failed to retrieve task template file. File doesn't exist: " + setting);
+        }
+        try {
+            TWorkerTask task = configuration.getSerializer().readValue(templateTaskFile.toFile(), configuration.getWorkerTaskClass());
+            return task;
+        } catch (IOException e) {
+            e.printStackTrace();
+            throw new AssertionError("Failed to deserialize template task: " + setting + ". Message: " + e.getMessage());
+        }
+    }
+
     @Override
     protected TestItem createTestItem(Path inputFile, Path expectedFile) throws Exception {
 
@@ -28,7 +49,6 @@ public class PreparationItemProvider<TWorkerTask, TWorkerResult, TInput extends 
         testInput.setContainerId(configuration.getDataStoreContainerId());
 
         Path basePath = Paths.get(getExpectedPath());
-
 
         Path relativePath = basePath.relativize(inputFile);
 

@@ -49,13 +49,11 @@ public class PropertyMapValidator extends PropertyValidator {
             Object sourcePropertyValue = itemUnderTest.get(validationPropertyName);
             Object validationPropertyValue = validationMap.get(validationPropertyName);
 
+            System.out.println("*** Validating '" + validationPropertyName + "'" );
             PropertyValidator validator = validatorFactory.create(validationPropertyName, sourcePropertyValue, validationPropertyValue);
 
-            boolean isValid = validator.isValid(sourcePropertyValue, validationPropertyValue);
-
-            if (!isValid) {
-                return false;
-            }
+            System.out.println("*** Created validator: " + validator.getClass().getSimpleName());
+            validator.validate(validationPropertyName, sourcePropertyValue, validationPropertyValue);
         }
         return true;
     }

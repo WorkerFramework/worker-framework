@@ -22,4 +22,5 @@ public final class SettingNames {
     public static final String rabbitmqNodePort = "rabbitmq.node.port";
     public static final String rabbitmqCtrlPort = "rabbitmq.ctrl.port";
 
+    public static final String taskTemplate = "task.template";
 }
