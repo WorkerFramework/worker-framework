@@ -39,8 +39,10 @@ public class TestConfiguration<TWorkerTask, TWorkerResult, TInput, TExpectation>
         mapper.disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES);
         mapper.enable(SerializationFeature.INDENT_OUTPUT);
 
+        boolean processSubFolders = SettingsProvider.defaultProvider.getBooleanSetting(SettingNames.processSubFolders);
+
         return new TestConfiguration<>(settingsProvider.getSetting(SettingNames.expectedFolder),
-                settingsProvider.getSetting(SettingNames.inputFolder),
+                settingsProvider.getSetting(SettingNames.inputFolder), processSubFolders,
                 useDataStore,
                 settingsProvider.getSetting(SettingNames.dataStoreContainerId),
                 mapper,
@@ -64,9 +66,12 @@ public class TestConfiguration<TWorkerTask, TWorkerResult, TInput, TExpectation>
 
     private Class<TExpectation> expectationClass;
 
-    public TestConfiguration(String testDataFolder, String testDocumentsFolder, boolean useDataStore, String dataStoreContainerId, ObjectMapper serializer, Class<TWorkerTask> workerTaskClass, Class<TWorkerResult> workerResultClass, Class<TInput> inputClass, Class<TExpectation> expectationClass) {
+    private boolean processSubFolders;
+
+    public TestConfiguration(String testDataFolder, String testDocumentsFolder, boolean processSubFolders, boolean useDataStore, String dataStoreContainerId, ObjectMapper serializer, Class<TWorkerTask> workerTaskClass, Class<TWorkerResult> workerResultClass, Class<TInput> inputClass, Class<TExpectation> expectationClass) {
         this.testDataFolder = testDataFolder;
         this.testDocumentsFolder = testDocumentsFolder;
+        this.processSubFolders = processSubFolders;
         this.useDataStore = useDataStore;
         this.dataStoreContainerId = dataStoreContainerId;
         this.serializer = serializer;
@@ -155,5 +160,14 @@ public class TestConfiguration<TWorkerTask, TWorkerResult, TInput, TExpectation>
      */
     public Class<TExpectation> getExpectationClass() {
         return expectationClass;
+    }
+
+    /**
+     * Getter for property 'processSubFolders'.
+     *
+     * @return Value for property 'processSubFolders'.
+     */
+    public boolean isProcessSubFolders() {
+        return processSubFolders;
     }
 }

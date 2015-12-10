@@ -16,7 +16,7 @@ public class PreparationItemProvider<TWorkerTask, TWorkerResult, TInput extends 
     private final TestConfiguration<TWorkerTask, TWorkerResult, TInput, TExpectation> configuration;
 
     public PreparationItemProvider(final TestConfiguration<TWorkerTask, TWorkerResult, TInput, TExpectation> configuration) {
-        super(configuration.getTestDocumentsFolder(), configuration.getTestDataFolder(), "*", true);
+        super(configuration.getTestDocumentsFolder(), configuration.getTestDataFolder(), null, true);
         this.configuration = configuration;
     }
 
@@ -35,7 +35,8 @@ public class PreparationItemProvider<TWorkerTask, TWorkerResult, TInput extends 
         try {
             TWorkerTask task = configuration.getSerializer().readValue(templateTaskFile.toFile(), configuration.getWorkerTaskClass());
             return task;
-        } catch (IOException e) {
+        }
+        catch (IOException e) {
             e.printStackTrace();
             throw new AssertionError("Failed to deserialize template task: " + setting + ". Message: " + e.getMessage());
         }

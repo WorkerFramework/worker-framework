@@ -75,15 +75,18 @@ public abstract class ContentFilesTestItemProvider implements TestItemProvider {
 
     private List<Path> getFiles(Path directory) throws IOException {
         List<Path> fileNames = new ArrayList<>();
-        try (DirectoryStream<Path> directoryStream = Files.newDirectoryStream(directory, globPattern)) {
+        try (DirectoryStream<Path> directoryStream = Files.newDirectoryStream(directory)) {
             for (Path path : directoryStream) {
+
                 if (Files.isDirectory(path)){
                     if (includeSubFolders) {
                         fileNames.addAll(getFiles(path));
                     }
                 }
                 else {
-                    fileNames.add(path);
+                    if (globPattern == null || (path.getFileName().toString().endsWith(globPattern))) {
+                        fileNames.add(path);
+                    }
                 }
             }
         } catch (IOException ex) {
