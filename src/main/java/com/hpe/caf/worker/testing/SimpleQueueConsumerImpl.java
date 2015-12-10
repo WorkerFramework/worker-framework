@@ -9,6 +9,7 @@ import com.hpe.caf.util.rabbitmq.QueueConsumer;
 import com.rabbitmq.client.Channel;
 
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.concurrent.BlockingQueue;
 
 /**
@@ -20,6 +21,7 @@ public class SimpleQueueConsumerImpl implements QueueConsumer {
     private final Channel channel;
     private final ResultHandler resultHandler;
     private final Codec codec;
+    private final ArrayList<Delivery> deliveries = new ArrayList<>();
 
     public SimpleQueueConsumerImpl(final BlockingQueue<Event<QueueConsumer>> queue, Channel channel, ResultHandler resultHandler, final Codec codec) {
         this.eventQueue = queue;
@@ -31,7 +33,7 @@ public class SimpleQueueConsumerImpl implements QueueConsumer {
     @Override
     public void processDelivery(Delivery delivery) {
 
-        System.out.print("New delivery, task id: " );
+        System.out.print("New delivery" );
 
        // eventQueue.add(new ConsumerAckEvent(delivery.getEnvelope().getDeliveryTag()));
         try {
