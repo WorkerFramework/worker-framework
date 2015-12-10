@@ -17,7 +17,7 @@ import static junit.framework.Assert.assertEquals;
 
 public class StorageServiceDataStoreTestIT {
 
-    private static final String SERVER_NAME = "a1-dev-api052.lab.lynx-connected.com";
+    private static final String SERVER_NAME = "a1-dev-api035.lab.lynx-connected.com";
     private static final int SERVER_PORT = 8443;
     private static final String CONTAINER_ID = "5e94c95bf5aa426e8de876e80fd34bed";
 
