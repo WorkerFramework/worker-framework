@@ -19,7 +19,7 @@ public class StorageServiceDataStoreTestIT {
 
     private static final String SERVER_NAME = "a1-dev-api035.lab.lynx-connected.com";
     private static final int SERVER_PORT = 8443;
-    private static final String CONTAINER_ID = "5e94c95bf5aa426e8de876e80fd34bed";
+    private static final String CONTAINER_ID = "0a1b8e24cc44490888b3d8d8ebba8309";
 
     private static final String TEST_STRING = " ং ঃ অ আ ই ঈ উ ঊ ঋ ঌ এ ঐ ও ঔ ক খ গ ঘ ঙ চ ছ জ ঝ ঞ ট ঠ";
 
