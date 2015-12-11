@@ -16,14 +16,14 @@ public class PreparationItemProvider<TWorkerTask, TWorkerResult, TInput extends 
     private final TestConfiguration<TWorkerTask, TWorkerResult, TInput, TExpectation> configuration;
 
     public PreparationItemProvider(final TestConfiguration<TWorkerTask, TWorkerResult, TInput, TExpectation> configuration) {
-        super(configuration.getTestDocumentsFolder(), configuration.getTestDataFolder(), null, true);
+        super(configuration.getTestDocumentsFolder(), configuration.getTestDataFolder(), "regex:^(?!.*[.](content|testcase)$).*$", true);
         this.configuration = configuration;
     }
 
     protected TWorkerTask getTaskTemplate() {
         String setting = SettingsProvider.defaultProvider.getSetting(SettingNames.taskTemplate);
         if (Strings.isNullOrEmpty(setting)) {
-            System.out.println("Template task not provided. Set 'template.task' property.");
+            System.out.println("Template task not provided, using default.");
             return null;
         }
         System.out.println("Template task file provided: " + setting);

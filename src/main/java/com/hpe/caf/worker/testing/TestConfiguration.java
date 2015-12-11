@@ -39,10 +39,11 @@ public class TestConfiguration<TWorkerTask, TWorkerResult, TInput, TExpectation>
         mapper.disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES);
         mapper.enable(SerializationFeature.INDENT_OUTPUT);
 
-        boolean processSubFolders = SettingsProvider.defaultProvider.getBooleanSetting(SettingNames.processSubFolders);
+        boolean processSubFolders = SettingsProvider.defaultProvider.getBooleanSetting(SettingNames.processSubFolders, true);
+        boolean storeTestCaseWithInput = SettingsProvider.defaultProvider.getBooleanSetting(SettingNames.storeTestCaseWithInput, true);
 
         return new TestConfiguration<>(settingsProvider.getSetting(SettingNames.expectedFolder),
-                settingsProvider.getSetting(SettingNames.inputFolder), processSubFolders,
+                settingsProvider.getSetting(SettingNames.inputFolder), processSubFolders, storeTestCaseWithInput,
                 useDataStore,
                 settingsProvider.getSetting(SettingNames.dataStoreContainerId),
                 mapper,
@@ -68,10 +69,13 @@ public class TestConfiguration<TWorkerTask, TWorkerResult, TInput, TExpectation>
 
     private boolean processSubFolders;
 
-    public TestConfiguration(String testDataFolder, String testDocumentsFolder, boolean processSubFolders, boolean useDataStore, String dataStoreContainerId, ObjectMapper serializer, Class<TWorkerTask> workerTaskClass, Class<TWorkerResult> workerResultClass, Class<TInput> inputClass, Class<TExpectation> expectationClass) {
+    private boolean storeTestCaseWithInput;
+
+    public TestConfiguration(String testDataFolder, String testDocumentsFolder, boolean processSubFolders, boolean storeTestCaseWithInput, boolean useDataStore, String dataStoreContainerId, ObjectMapper serializer, Class<TWorkerTask> workerTaskClass, Class<TWorkerResult> workerResultClass, Class<TInput> inputClass, Class<TExpectation> expectationClass) {
         this.testDataFolder = testDataFolder;
         this.testDocumentsFolder = testDocumentsFolder;
         this.processSubFolders = processSubFolders;
+        this.storeTestCaseWithInput = storeTestCaseWithInput;
         this.useDataStore = useDataStore;
         this.dataStoreContainerId = dataStoreContainerId;
         this.serializer = serializer;
@@ -169,5 +173,14 @@ public class TestConfiguration<TWorkerTask, TWorkerResult, TInput, TExpectation>
      */
     public boolean isProcessSubFolders() {
         return processSubFolders;
+    }
+
+    /**
+     * Getter for property 'storeTestCaseWithInput'.
+     *
+     * @return Value for property 'storeTestCaseWithInput'.
+     */
+    public boolean isStoreTestCaseWithInput() {
+        return storeTestCaseWithInput;
     }
 }

@@ -25,5 +25,6 @@ public final class SettingNames {
 
     public static final String taskTemplate = "task.template";
 
+    public static final String storeTestCaseWithInput = "store.testcase.with.input";
 
 }

@@ -84,7 +84,8 @@ public abstract class ContentFilesTestItemProvider implements TestItemProvider {
                     }
                 }
                 else {
-                    if (globPattern == null || (path.getFileName().toString().endsWith(globPattern))) {
+
+                    if (globPattern == null || path.getFileSystem().getPathMatcher(globPattern).matches(path.getFileName())) {
                         fileNames.add(path);
                     }
                 }

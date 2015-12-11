@@ -6,6 +6,7 @@ import com.hpe.caf.api.worker.DataStoreSource;
 import com.hpe.caf.api.worker.TaskMessage;
 import com.hpe.caf.util.ref.ReferencedData;
 import com.hpe.caf.worker.testing.ContentFileTestExpectation;
+import com.hpe.caf.worker.testing.FileTestInputData;
 import com.hpe.caf.worker.testing.TestConfiguration;
 import com.hpe.caf.worker.testing.TestItem;
 import org.apache.commons.io.IOUtils;
@@ -20,7 +21,7 @@ import java.util.function.Function;
 /**
  * Created by ploch on 25/11/2015.
  */
-public class ContentResultProcessor<TWorkerTask, TWorkerResult, TInput, TExpected extends ContentFileTestExpectation> extends PreparationResultProcessor<TWorkerTask, TWorkerResult, TInput, TExpected> {
+public class ContentResultProcessor<TWorkerTask, TWorkerResult, TInput extends FileTestInputData, TExpected extends ContentFileTestExpectation> extends PreparationResultProcessor<TWorkerTask, TWorkerResult, TInput, TExpected> {
     private final DataStore dataStore;
     private final Function<TWorkerResult, ReferencedData> getContentFunc;
 

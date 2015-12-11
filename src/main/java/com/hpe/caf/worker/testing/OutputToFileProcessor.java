@@ -31,14 +31,19 @@ public abstract class OutputToFileProcessor<TResult, TInput, TExpected> extends 
 
     @Override
     protected boolean processWorkerResult(TestItem<TInput, TExpected> testItem, TaskMessage message, TResult result) throws Exception {
-        String baseFileName = testItem.getTag() == null ? message.getTaskId() : testItem.getTag();
-        baseFileName = baseFileName + ".testcase";
-        Path filePath = Paths.get(outputFolder, baseFileName);
+        Path filePath = getSaveFilePath(testItem, message);
 
         byte[] content = getOutputContent(result, message, testItem);
         Files.write(filePath, content, StandardOpenOption.CREATE);
 
         return true;
+    }
+
+    protected Path getSaveFilePath(TestItem<TInput, TExpected> testItem, TaskMessage message) {
+        String baseFileName = testItem.getTag() == null ? message.getTaskId() : testItem.getTag();
+        baseFileName = baseFileName + ".testcase";
+        Path filePath = Paths.get(outputFolder, baseFileName);
+        return filePath;
     }
 
     protected abstract byte[] getOutputContent(TResult result, TaskMessage message, TestItem<TInput, TExpected> testItem) throws Exception;

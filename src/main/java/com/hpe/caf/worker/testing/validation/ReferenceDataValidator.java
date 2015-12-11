@@ -49,7 +49,9 @@ public class ReferenceDataValidator extends PropertyValidator {
         InputStream dataStream;
 
         try {
+            System.out.println("About to retrieve content for " + referencedData.toString());
             dataStream = ContentDataHelper.retrieveReferencedData(dataStore, codec, referencedData);
+            System.out.println("Finished retrieving content for " + referencedData.toString());
         }
         catch (DataSourceException e) {
             e.printStackTrace();
@@ -63,15 +65,16 @@ public class ReferenceDataValidator extends PropertyValidator {
                 contentFile = Paths.get(testDataFolder, contentFileName);
             }
 
-            byte[]
-                    expectedFileBytes = Files.readAllBytes(contentFile);
+            byte[] expectedFileBytes = Files.readAllBytes(contentFile);
 
             if (expectation.getComparisonType() == ContentComparisonType.TEXT) {
-
 
                 String actualText = IOUtils.toString(dataStream, StandardCharsets.UTF_8);
                 String expectedText = new String(expectedFileBytes);
 
+                if (expectation.getExpectedSimilarityPercentage() == 100) {
+                    return actualText.equals(expectedText);
+                }
 
                 double similarity = ContentComparer.calculateSimilarityPercentage(expectedText, actualText);
 

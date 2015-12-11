@@ -18,7 +18,7 @@ public class SerializedFilesTestItemProvider<TInput, TExpected> extends ContentF
     private final ObjectMapper serializer;
 
     public SerializedFilesTestItemProvider(TestConfiguration configuration) {
-        super(configuration.getTestDocumentsFolder(), configuration.getTestDataFolder(), ".testcase", configuration.isProcessSubFolders());
+        super(configuration.getTestDocumentsFolder(), configuration.getTestDataFolder(), "glob:*.testcase", configuration.isProcessSubFolders());
         this.inputClass = configuration.getInputClass();
         this.expectedClass = configuration.getExpectationClass();
         serializer = configuration.getSerializer();

@@ -1,8 +1,6 @@
 package com.hpe.caf.worker.testing.validation;
 
 import java.util.Collection;
-import java.util.Collections;
-import java.util.Objects;
 
 /**
  * Created by ploch on 08/12/2015.
