@@ -13,4 +13,12 @@ public abstract class SettingsProvider {
         return Boolean.parseBoolean(getSetting(name));
     }
 
+    public boolean getBooleanSetting(String name, boolean defaultValue) {
+        String setting = getSetting(name);
+        if (setting != null) {
+            return Boolean.parseBoolean(getSetting(name));
+        }
+        return defaultValue;
+    }
+
 }
