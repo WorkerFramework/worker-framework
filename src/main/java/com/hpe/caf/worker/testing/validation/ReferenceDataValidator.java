@@ -73,7 +73,13 @@ public class ReferenceDataValidator extends PropertyValidator {
                 String expectedText = new String(expectedFileBytes);
 
                 if (expectation.getExpectedSimilarityPercentage() == 100) {
-                    return actualText.equals(expectedText);
+                    boolean equals = actualText.equals(expectedText);
+                    if (!equals) {
+                        System.err.println("Expected and actual texts were different.\n\n*** Expected Text ***\n" +
+                        expectedText + "\n\n*** Actual Text ***\n" + actualText);
+                        return false;
+                    }
+                    return true;
                 }
 
                 double similarity = ContentComparer.calculateSimilarityPercentage(expectedText, actualText);

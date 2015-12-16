@@ -27,8 +27,6 @@ public class SerializedFilesTestItemProvider<TInput, TExpected> extends ContentF
     @Override
     protected TestItem<TInput, TExpected> createTestItem(Path inputFile, Path expectedFile) throws Exception {
 
-        //ObjectMapper mapper = new XmlMapper();
-
         serializer.disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES);
         TestItem<TInput, TExpected> item = serializer.readValue(Files.readAllBytes(inputFile), TypeFactory.defaultInstance().constructParametrizedType(TestItem.class, TestItem.class, inputClass, expectedClass));
 

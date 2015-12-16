@@ -17,15 +17,17 @@ public class TestController implements Closeable {
     private final QueueManager queueManager;
     private final WorkerTaskFactory taskFactory;
     private final ResultProcessor resultProcessor;
+    private final boolean stopOnError;
     Thread thread;
 
-    public TestController(WorkerServices workerServices, TestItemProvider itemProvider, QueueManager queueManager, WorkerTaskFactory taskFactory, ResultProcessor resultProcessor) {
+    public TestController(WorkerServices workerServices, TestItemProvider itemProvider, QueueManager queueManager, WorkerTaskFactory taskFactory, ResultProcessor resultProcessor, boolean stopOnError) {
         this.workerServices = workerServices;
 
         this.itemProvider = itemProvider;
         this.queueManager = queueManager;
         this.taskFactory = taskFactory;
         this.resultProcessor = resultProcessor;
+        this.stopOnError = stopOnError;
     }
 
     public void runTests() throws Exception {
@@ -38,7 +40,7 @@ public class TestController implements Closeable {
             throw new Exception("No test items provided! Exiting.");
         }
 
-        ExecutionContext context = new ExecutionContext();
+        ExecutionContext context = new ExecutionContext(stopOnError);
 
         thread = queueManager.start(new ProcessorDeliveryHandler(resultProcessor, context));
 
@@ -46,7 +48,6 @@ public class TestController implements Closeable {
 
         for (TestItem item : items) {
             Object workerTask = taskFactory.createTask(item);
-            //String taskId = UUID.randomUUID().toString();
             String taskId = item.getTag() == null ? UUID.randomUUID().toString() : item.getTag();
             TaskMessage message = messageFactory.create(workerTask, taskId);
 

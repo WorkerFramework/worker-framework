@@ -34,9 +34,9 @@ public abstract class AbstractResultProcessor<TResult, TInput, TExpected> implem
         TResult workerResult = deserializeMessage(resultMessage, resultClass);
         try {
             return processWorkerResult(testItem, resultMessage, workerResult);
-
         }
-        catch (Exception e) {
+        catch (Throwable e) {
+            System.err.println("Failure during processing results. Test item: " + testItem.getTag());
             e.printStackTrace();
             return false;
         }

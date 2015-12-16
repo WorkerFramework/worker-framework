@@ -27,4 +27,5 @@ public final class SettingNames {
 
     public static final String storeTestCaseWithInput = "store.testcase.with.input";
 
+    public static final String stopOnError = "stop.on.error";
 }

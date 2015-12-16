@@ -22,7 +22,7 @@ public class ProcessorDeliveryHandler implements ResultHandler {
     public void handleResult(TaskMessage taskMessage) {
 
         System.out.println("New delivery: task id: " + taskMessage.getTaskId() + ", status: " + taskMessage.getTaskStatus());
-       // TestItem testItem = itemStore.findAndRemove(taskMessage.getTaskId());
+
         TestItem testItem = null;
         try {
             testItem = itemStore.find(taskMessage.getTaskId());
@@ -41,16 +41,19 @@ public class ProcessorDeliveryHandler implements ResultHandler {
             System.out.println("Item " + testItem.getTag() + ": Result processor success: " + success);
             if (!success) {
                 context.failed("Item " + testItem.getTag() + ": Result processor didn't return success. Result processor name: " + resultProcessor.getClass().getName());
-                return;
+                testItem.setCompleted(true);
             }
-            if (testItem.isCompleted()) {
-                itemStore.remove(taskMessage.getTaskId());
-            }
-            checkForFinished();
-        } catch (Throwable e) {
+        }
+        catch (Throwable e) {
             e.printStackTrace();
             context.failed(e.getMessage());
         }
+
+        if (testItem.isCompleted()) {
+            itemStore.remove(taskMessage.getTaskId());
+            testItem.setCompleted(true);
+        }
+        checkForFinished();
     }
 
     private void checkForFinished() {

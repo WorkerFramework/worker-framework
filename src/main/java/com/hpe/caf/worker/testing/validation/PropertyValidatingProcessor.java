@@ -27,6 +27,10 @@ public abstract class PropertyValidatingProcessor<TResult, TInput, TExpected> ex
     protected boolean processWorkerResult(TestItem<TInput, TExpected> testItem, TaskMessage message, TResult result) throws Exception {
 
         Map<String, Object> expectation = getExpectationMap(testItem, message, result);
+        if (expectation == null) {
+            System.err.println("Could not locate result in pre-defined testcase, item tag '" + testItem.getTag() + "'. Message id: '" + message.getTaskId() + "'. ");
+            return false;
+        }
         PropertyMap expectationPropertyMap = new PropertyMap(expectation);
 
         ObjectMapper mapper = new ObjectMapper();
@@ -34,7 +38,8 @@ public abstract class PropertyValidatingProcessor<TResult, TInput, TExpected> ex
 
         PropertyMap propertyMap = mapper.convertValue(validatedObject, PropertyMap.class);
 
-        PropertyValidator validator = validatorFactory.createRootValidator();
+        PropertyValidator
+                validator = validatorFactory.createRootValidator();
 
         validator.validate("Root", propertyMap, expectationPropertyMap);
 

@@ -57,6 +57,6 @@ public class PreparationItemProvider<TWorkerTask, TWorkerResult, TInput extends 
 
         TExpectation testExpectation = configuration.getExpectationClass().newInstance();
 
-        return new TestItem<>(inputFile.getFileName().toString(), testInput, testExpectation);
+        return new TestItem<>(relativePath.toString(), testInput, testExpectation);
     }
 }

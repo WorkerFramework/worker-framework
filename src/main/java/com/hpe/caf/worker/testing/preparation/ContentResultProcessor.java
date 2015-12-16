@@ -38,16 +38,13 @@ public class ContentResultProcessor<TWorkerTask, TWorkerResult, TInput extends F
         ReferencedData textData = getContentFunc.apply(workerResult);
         if (textData != null) {
             InputStream dataStream = textData.acquire(new DataStoreSource(dataStore, getCodec()));
-            byte[] bytes = IOUtils.toByteArray(dataStream);
-            String outputFolder = getOutputFolder();
 
-            contentFile = Paths.get(outputFolder, testItem.getTag() + ".content");
-            Files.write(contentFile, bytes, StandardOpenOption.CREATE);
+            contentFile = saveContentFile(testItem, testItem.getTag(), "result", dataStream );
         }
 
         TExpected expectation = testItem.getExpectedOutputData();
-        //expectation.setStatus(ocrWorkerResult.getStatus());
-        expectation.setExpectedContentFile(contentFile == null ? null : contentFile.getFileName().toString());
+
+        expectation.setExpectedContentFile(contentFile == null ? null : contentFile.toString());
         expectation.setExpectedSimilarityPercentage(80);
 
         return super.getOutputContent(workerResult, message, testItem);

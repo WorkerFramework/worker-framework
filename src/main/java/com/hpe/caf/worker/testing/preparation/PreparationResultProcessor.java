@@ -61,12 +61,13 @@ public class PreparationResultProcessor<TWorkerTask, TWorkerResult, TInput exten
 
         String outputFolder = getOutputFolder();
         if (configuration.isStoreTestCaseWithInput()) {
-           // Path fileName = saveFilePath.getFileName();
+
             Path path = Paths.get(testItem.getInputData().getInputFile()).getParent();
             outputFolder =  Paths.get(configuration.getTestDataFolder(), path == null ? "" : path.toString()).toString();
         }
 
         baseFileName = FilenameUtils.normalize(baseFileName);
+        baseFileName = Paths.get(baseFileName).getFileName().toString();
         Path contentFile = Paths.get(outputFolder, baseFileName + "." + extension + ".content");
         Files.write(contentFile, bytes, StandardOpenOption.CREATE);
 
