@@ -4,7 +4,6 @@
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
 
-    <groupId>com.hpe.caf.worker</groupId>
     <artifactId>worker-testing-util</artifactId>
     <version>1-SNAPSHOT</version>
 
@@ -19,6 +18,10 @@
         <dependency>
             <groupId>com.hpe.caf</groupId>
             <artifactId>caf-api</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>com.hpe.caf</groupId>
+            <artifactId>caf-configs</artifactId>
         </dependency>
         <dependency>
             <groupId>com.hpe.caf.util</groupId>
@@ -39,6 +42,14 @@
         <dependency>
             <groupId>commons-io</groupId>
             <artifactId>commons-io</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.commons</groupId>
+            <artifactId>commons-lang3</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>com.rabbitmq</groupId>
+            <artifactId>amqp-client</artifactId>
         </dependency>
     </dependencies>
 
