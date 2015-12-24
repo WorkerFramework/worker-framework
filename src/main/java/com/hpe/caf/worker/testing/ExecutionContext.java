@@ -1,8 +1,8 @@
 package com.hpe.caf.worker.testing;
 
 
-import java.util.HashSet;
-import java.util.Set;
+import java.util.ArrayList;
+import java.util.Collection;
 
 /**
  * Created by ploch on 08/11/2015.
@@ -11,7 +11,7 @@ public class ExecutionContext {
 
     private final Signal finishedSignal;
     private final TestItemStore itemStore;
-    private final Set<String> failures = new HashSet<>();
+    private final Collection<String> failures = new ArrayList<>();
     private final boolean stopOnException;
 
     public ExecutionContext(boolean stopOnException) {
@@ -38,12 +38,6 @@ public class ExecutionContext {
         return itemStore;
     }
 
-    /**
-     * Getter for property 'consumerThread'.
-     *
-     * @return Value for property 'consumerThread'.
-     */
-
 
     public void finishedSuccessfully(){
         if (failures.isEmpty()) {
@@ -51,7 +45,7 @@ public class ExecutionContext {
         }
         else {
             StringBuilder sb = new StringBuilder();
-            System.err.println("Tests failed:");
+            System.out.println("Tests failed. Number of failures: " + failures.size() + "\nCheck 'Errors.txt' file for details!");
             for (String failure : failures) {
                 sb.append(failure).append("\n");
             }
@@ -60,7 +54,6 @@ public class ExecutionContext {
     }
 
     public void failed(String message) {
-
         failures.add(message);
         if (stopOnException) {
             finishedSignal.doNotify(TestResult.createFailed(message));

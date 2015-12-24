@@ -9,13 +9,9 @@ import com.hpe.caf.worker.testing.ContentFileTestExpectation;
 import com.hpe.caf.worker.testing.FileTestInputData;
 import com.hpe.caf.worker.testing.TestConfiguration;
 import com.hpe.caf.worker.testing.TestItem;
-import org.apache.commons.io.IOUtils;
 
 import java.io.InputStream;
-import java.nio.file.Files;
 import java.nio.file.Path;
-import java.nio.file.Paths;
-import java.nio.file.StandardOpenOption;
 import java.util.function.Function;
 
 /**

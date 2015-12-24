@@ -18,7 +18,7 @@ public abstract class PropertyValidatingProcessor<TResult, TInput, TExpected> ex
 
     private final ValidatorFactory validatorFactory;
 
-    protected PropertyValidatingProcessor(TestConfiguration<?, TResult, TInput, TExpected> testConfiguration, WorkerServices workerServices, ValidationSettings validationSettings) {
+    public PropertyValidatingProcessor(TestConfiguration<?, TResult, TInput, TExpected> testConfiguration, WorkerServices workerServices, ValidationSettings validationSettings) {
         super(workerServices.getCodec(), testConfiguration.getWorkerResultClass());
         this.validatorFactory = new ValidatorFactory(validationSettings, workerServices.getDataStore(), workerServices.getCodec(), testConfiguration.getTestDataFolder());
     }

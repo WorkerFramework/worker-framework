@@ -8,7 +8,7 @@ import java.util.Collection;
 import java.util.UUID;
 
 /**
- * Created by ploch on 08/11/2015.
+ * The {@code TestController} class is responsible for controlling test execution.
  */
 public class TestController implements Closeable {
 
@@ -18,8 +18,21 @@ public class TestController implements Closeable {
     private final WorkerTaskFactory taskFactory;
     private final ResultProcessor resultProcessor;
     private final boolean stopOnError;
+    /**
+     * The Thread.
+     */
     Thread thread;
 
+    /**
+     * Instantiates a new Test controller.
+     *
+     * @param workerServices  the worker services
+     * @param itemProvider    the {@link TestItem} provider (test cases)
+     * @param queueManager    the worker queue manager
+     * @param taskFactory     the worker task factory
+     * @param resultProcessor the worker result processor
+     * @param stopOnError     determines if tests should continue after any validation error
+     */
     public TestController(WorkerServices workerServices, TestItemProvider itemProvider, QueueManager queueManager, WorkerTaskFactory taskFactory, ResultProcessor resultProcessor, boolean stopOnError) {
         this.workerServices = workerServices;
 
@@ -30,6 +43,10 @@ public class TestController implements Closeable {
         this.stopOnError = stopOnError;
     }
 
+    /**
+     * Executes the tests using types provided.
+     * @throws Exception the exception
+     */
     public void runTests() throws Exception {
 
         System.out.println("===============  Starting tests ======================");
