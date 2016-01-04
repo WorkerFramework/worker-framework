@@ -11,9 +11,9 @@
 
     <parent>
         <groupId>com.hpe.caf</groupId>
-        <artifactId>caf-maven</artifactId>
-        <version>15-SNAPSHOT</version>
-        <relativePath>../caf-maven</relativePath>
+        <artifactId>caf-maven-latest</artifactId>
+        <version>1-SNAPSHOT</version>
+        <relativePath>../caf-maven-latest</relativePath>
     </parent>
 
     <dependencyManagement>
