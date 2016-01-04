@@ -9,6 +9,7 @@ import java.util.function.Function;
  */
 public abstract class AbstractTestControllerProvider<TWorkerConfiguration, TWorkerTask, TWorkerResult, TInput, TExpectation> implements TestControllerProvider {
 
+    private final String workerName;
     private final Function<TWorkerConfiguration, String> queueNameFunc;
     private final Class<TWorkerConfiguration> workerConfigurationClass;
     private final Class<TWorkerTask> workerTaskClass;
@@ -16,7 +17,8 @@ public abstract class AbstractTestControllerProvider<TWorkerConfiguration, TWork
     private final Class<TInput> inputClass;
     private final Class<TExpectation> expectationClass;
 
-    public AbstractTestControllerProvider(Function<TWorkerConfiguration, String> queueNameFunc, Class<TWorkerConfiguration> workerConfigurationClass, Class<TWorkerTask> workerTaskClass, Class<TWorkerResult> workerResultClass, Class<TInput> inputClass, Class<TExpectation> expectationClass) {
+    public AbstractTestControllerProvider(String workerName, Function<TWorkerConfiguration, String> queueNameFunc, Class<TWorkerConfiguration> workerConfigurationClass, Class<TWorkerTask> workerTaskClass, Class<TWorkerResult> workerResultClass, Class<TInput> inputClass, Class<TExpectation> expectationClass) {
+        this.workerName = workerName;
         this.queueNameFunc = queueNameFunc;
         this.workerConfigurationClass = workerConfigurationClass;
         this.workerTaskClass = workerTaskClass;
@@ -27,13 +29,20 @@ public abstract class AbstractTestControllerProvider<TWorkerConfiguration, TWork
 
     protected abstract WorkerTaskFactory<TWorkerTask, TInput, TExpectation> getTaskFactory(TestConfiguration<TWorkerTask, TWorkerResult, TInput, TExpectation> configuration) throws Exception;
 
-    protected abstract TestItemProvider getTestItemProvider(TestConfiguration<TWorkerTask, TWorkerResult, TInput, TExpectation> configuration);
+    protected TestItemProvider getTestItemProvider(TestConfiguration<TWorkerTask, TWorkerResult, TInput, TExpectation> configuration){
+        return new SerializedFilesTestItemProvider<>(configuration);
+    }
 
     protected abstract ResultProcessor getTestResultProcessor(TestConfiguration<TWorkerTask, TWorkerResult, TInput, TExpectation> configuration, WorkerServices workerServices);
 
     protected abstract TestItemProvider getDataPreparationItemProvider(TestConfiguration<TWorkerTask, TWorkerResult, TInput, TExpectation> configuration);
 
     protected abstract ResultProcessor getDataPreparationResultProcessor(TestConfiguration<TWorkerTask, TWorkerResult, TInput, TExpectation> configuration, WorkerServices workerServices);
+
+    @Override
+    public String getWorkerName() {
+        return workerName;
+    }
 
     @Override
     public TestController getTestController() throws Exception {

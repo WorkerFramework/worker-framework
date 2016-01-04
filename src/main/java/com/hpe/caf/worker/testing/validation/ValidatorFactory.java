@@ -37,6 +37,9 @@ public class ValidatorFactory {
             if (validationSettings.getReferencedDataProperties().contains(propertyName)) {
                 return new ReferenceDataValidator(dataStore, codec, testDataFolder);
             }
+            if (validationSettings.getBase64Properties().contains(propertyName)) {
+                return new Base64PropertyValidator();
+            }
         }
         if (sourcePropertyValue instanceof Map && validatorPropertyValue instanceof Map) {
             return new PropertyMapValidator(this);

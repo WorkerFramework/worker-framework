@@ -1,12 +1,34 @@
 package com.hpe.caf.worker.testing.validation;
 
 /**
- * Created by ploch on 05/12/2015.
+ * The {@code PropertyValidator} class.
+ * Base class for element level (single property or name=value pair) validators.
+ * Worker result is converted to a {@link java.util.Map} of {@code String} and {@code Object}.
+ * Each property of the result will be the map entry with a name and value of the property.
+ * Expectation is read as a Map as well and then each entry of worker result and expectation
+ * is passed to implementations of this class.
  */
 public abstract class PropertyValidator {
 
+    /**
+     * Is valid.
+     * Actual comparison logic for a validator.
+     *
+     * @param testedPropertyValue    the tested property value
+     * @param validatorPropertyValue the validator property value
+     * @return the boolean
+     */
     protected abstract boolean isValid(Object testedPropertyValue, Object validatorPropertyValue);
 
+    /**
+     * Validate property.
+     * Entry point for property (map entry) validation.
+     * This method will throw {@link AssertionError} if validation fails.
+     *
+     * @param propertyName           the property name
+     * @param testedPropertyValue    the tested property value
+     * @param validatorPropertyValue the expected property value
+     */
     public void validate(String propertyName, Object testedPropertyValue, Object validatorPropertyValue){
         boolean isValid = isValid(testedPropertyValue, validatorPropertyValue);
 

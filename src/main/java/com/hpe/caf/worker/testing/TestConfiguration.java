@@ -5,6 +5,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
 import com.fasterxml.jackson.dataformat.xml.XmlMapper;
 import com.fasterxml.jackson.dataformat.yaml.YAMLMapper;
+import com.google.common.base.Strings;
 import com.hpe.caf.worker.testing.configuration.TestCaseFormat;
 
 /**
@@ -41,13 +42,20 @@ public class TestConfiguration<TWorkerTask, TWorkerResult, TInput, TExpectation>
 
         boolean processSubFolders = SettingsProvider.defaultProvider.getBooleanSetting(SettingNames.processSubFolders, true);
         boolean storeTestCaseWithInput = SettingsProvider.defaultProvider.getBooleanSetting(SettingNames.storeTestCaseWithInput, true);
+        String inputFolder = settingsProvider.getSetting(SettingNames.inputFolder);
+        String expectedFolder = settingsProvider.getSetting(SettingNames.expectedFolder);
 
-        return new TestConfiguration<>(settingsProvider.getSetting(SettingNames.expectedFolder),
-                settingsProvider.getSetting(SettingNames.inputFolder), processSubFolders, storeTestCaseWithInput,
-                useDataStore,
-                settingsProvider.getSetting(SettingNames.dataStoreContainerId),
+        if (Strings.isNullOrEmpty(inputFolder)) {
+            inputFolder = expectedFolder;
+        }
+
+        TestConfiguration<TWorkerTask, TWorkerResult, TInput, TExpectation> configuration = new TestConfiguration<>(
+                expectedFolder, inputFolder,
+                processSubFolders, storeTestCaseWithInput,
+                useDataStore, settingsProvider.getSetting(SettingNames.dataStoreContainerId),
                 mapper,
                 workerTaskClass, workerResultClass, inputClass, expectationClass);
+        return configuration;
     }
 
     private String testDataFolder;
@@ -71,7 +79,7 @@ public class TestConfiguration<TWorkerTask, TWorkerResult, TInput, TExpectation>
 
     private boolean storeTestCaseWithInput;
 
-    public TestConfiguration(String testDataFolder, String testDocumentsFolder, boolean processSubFolders, boolean storeTestCaseWithInput, boolean useDataStore, String dataStoreContainerId, ObjectMapper serializer, Class<TWorkerTask> workerTaskClass, Class<TWorkerResult> workerResultClass, Class<TInput> inputClass, Class<TExpectation> expectationClass) {
+    private TestConfiguration(String testDataFolder, String testDocumentsFolder, boolean processSubFolders, boolean storeTestCaseWithInput, boolean useDataStore, String dataStoreContainerId, ObjectMapper serializer, Class<TWorkerTask> workerTaskClass, Class<TWorkerResult> workerResultClass, Class<TInput> inputClass, Class<TExpectation> expectationClass) {
         this.testDataFolder = testDataFolder;
         this.testDocumentsFolder = testDocumentsFolder;
         this.processSubFolders = processSubFolders;

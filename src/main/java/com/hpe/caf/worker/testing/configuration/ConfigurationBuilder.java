@@ -72,7 +72,7 @@ public class ConfigurationBuilder<TWorkerTask, TWorkerResult, TInput, TExpectati
 
         builder.setTestCaseFolder(settingsProvider.getSetting(SettingNames.testCaseFolder))
                 .setDocumentFolder(settingsProvider.getSetting(SettingNames.documentFolder))
-                .setUseDataStore(settingsProvider.getBooleanSetting(SettingNames.useDataStore))
+                .setUseDataStore(settingsProvider.getBooleanSetting(SettingNames.useDataStore, false))
                 .setDataStoreContainerId(settingsProvider.getSetting(SettingNames.dataStoreContainerId));
 
 

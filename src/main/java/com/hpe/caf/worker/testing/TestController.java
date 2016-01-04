@@ -45,6 +45,13 @@ public class TestController implements Closeable {
 
     /**
      * Executes the tests using types provided.
+     * <ul>
+     * <li>Retrieves test cases - {@link TestItem} instances from {@link TestItemProvider}
+     * <li>Starts {@link QueueManager}
+     * <li>Iterates over test cases and uses them to create and publish worker tasks
+     * <li>Stores test case data in {@link TestItemStore} so they can be retrieved when worker finishes
+     * task processing
+     * </ul>
      * @throws Exception the exception
      */
     public void runTests() throws Exception {

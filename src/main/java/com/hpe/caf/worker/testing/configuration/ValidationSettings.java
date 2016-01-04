@@ -27,13 +27,19 @@ public class ValidationSettings {
             return this;
         }
 
+        public ValidationSettingsBuilder base64Properties(String... base64Properties) {
+            settings.base64Properties = new HashSet<>(Arrays.asList(base64Properties));
+            return this;
+        }
+
         public ValidationSettings build(){
             return settings;
         }
     }
 
-    private Set<String> ignoredProperties;
-    private Set<String> referencedDataProperties;
+    private Set<String> ignoredProperties = new HashSet<>();
+    private Set<String> referencedDataProperties = new HashSet<>();
+    private Set<String> base64Properties = new HashSet<>();
 
     public static ValidationSettingsBuilder configure() {
         return new ValidationSettingsBuilder(new ValidationSettings());
@@ -59,5 +65,14 @@ public class ValidationSettings {
      */
     public Set<String> getReferencedDataProperties() {
         return referencedDataProperties;
+    }
+
+    /**
+     * Getter for property 'base64Properties'.
+     *
+     * @return Value for property 'base64Properties'.
+     */
+    public Set<String> getBase64Properties() {
+        return base64Properties;
     }
 }
