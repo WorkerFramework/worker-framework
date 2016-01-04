@@ -20,6 +20,7 @@ public class WorkerServicesFactory {
     private WorkerServicesFactory(){}
 
     public static WorkerServices create() throws ModuleLoaderException, CipherException, ConfigurationException, DataStoreException {
+
         Codec codec = ModuleLoader.getService(Codec.class);
         Cipher cipher = ModuleLoader.getService(CipherProvider.class, NullCipherProvider.class).getCipher(bootstrapConfiguration);
         ServicePath path = bootstrapConfiguration.getServicePath();

@@ -3,9 +3,10 @@ package com.hpe.caf.worker.testing;
 /**
  * Created by ploch on 23/11/2015.
  */
+//// TODO: 25/12/2015 Remove this class and use commons-configuration Configuration class instead.
 public abstract class SettingsProvider {
 
-    public static final SettingsProvider defaultProvider = new SystemSettingsProvider();
+    public static final SystemSettingsProvider defaultProvider = new SystemSettingsProvider();
 
     public abstract String getSetting(String name);
 
