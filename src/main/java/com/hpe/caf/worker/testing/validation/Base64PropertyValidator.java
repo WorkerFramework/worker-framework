@@ -19,7 +19,15 @@ public class Base64PropertyValidator extends PropertyValidator {
                     ". Values: " + testedPropertyValue.toString() + ", " + validatorPropertyValue.toString());
         }
 
+        byte[] testedPropertyValueBytes = (byte[]) testedPropertyValue;
 
-        return Arrays.equals((byte[])testedPropertyValue, Base64.decodeBase64(validatorPropertyValue.toString()));
+        boolean areEqual = Arrays.equals(testedPropertyValueBytes, Base64.decodeBase64(validatorPropertyValue.toString()));
+
+        if (!areEqual) {
+            String actual = Base64.encodeBase64String(testedPropertyValueBytes);
+            System.err.println("Unexpected result. Actual value: " + actual + ", expected value: " + validatorPropertyValue.toString());
+        }
+
+        return areEqual;
     }
 }
