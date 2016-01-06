@@ -100,6 +100,11 @@
             </dependency>
             <dependency>
                 <groupId>com.hpe.caf.worker</groupId>
+                <artifactId>standard-worker-container</artifactId>
+                <version>1-SNAPSHOT</version>
+            </dependency>
+            <dependency>
+                <groupId>com.hpe.caf.worker</groupId>
                 <artifactId>worker-caf</artifactId>
                 <version>10.1-SNAPSHOT</version>
             </dependency>
