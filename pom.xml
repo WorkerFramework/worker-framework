@@ -11,7 +11,6 @@
         <groupId>com.hpe.caf.worker</groupId>
         <artifactId>worker-testing</artifactId>
         <version>1-SNAPSHOT</version>
-        <relativePath>..</relativePath>
     </parent>
 
     <dependencies>
@@ -30,6 +29,7 @@
         <dependency>
             <groupId>com.hpe.caf.worker</groupId>
             <artifactId>worker-testing-util</artifactId>
+            <version>1-SNAPSHOT</version>
         </dependency>
         <dependency>
             <groupId>com.google.guava</groupId>
@@ -64,5 +64,9 @@
         </dependency>
     </dependencies>
 
+    <ciManagement>
+        <system>hudson</system>
+        <url>http://cafbuilder.hpswlabs.hp.com:8080/job/worker-testing-integration/</url>
+    </ciManagement>
 
 </project>
