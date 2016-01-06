@@ -6,54 +6,80 @@
 
     <groupId>com.hpe.caf.worker</groupId>
     <artifactId>standard-worker-container</artifactId>
-    <version>1.0-SNAPSHOT</version>
+    <version>1-SNAPSHOT</version>
     <packaging>pom</packaging>
-
-    <parent>
-        <groupId>com.hpe.caf</groupId>
-        <artifactId>caf-latest-develop</artifactId>
-        <version>1-SNAPSHOT</version>
-        <relativePath>../caf-latest-develop</relativePath>
-    </parent>
 
     <dependencies>
         <dependency>
             <groupId>com.hpe.caf</groupId>
             <artifactId>caf-api</artifactId>
+            <version>UNSPECIFIED</version>
         </dependency>
         <dependency>
             <groupId>com.hpe.caf.codec</groupId>
             <artifactId>codec-json</artifactId>
+            <version>UNSPECIFIED</version>
         </dependency>
         <dependency>
             <groupId>com.hpe.caf.config</groupId>
             <artifactId>config-file</artifactId>
+            <version>UNSPECIFIED</version>
         </dependency>
         <dependency>
             <groupId>com.hpe.caf.worker</groupId>
             <artifactId>worker-core</artifactId>
+            <version>UNSPECIFIED</version>
         </dependency>
         <dependency>
             <groupId>com.hpe.caf.worker</groupId>
             <artifactId>worker-queue-rabbit</artifactId>
+            <version>UNSPECIFIED</version>
         </dependency>
         <dependency>
             <groupId>com.hpe.caf.worker</groupId>
             <artifactId>worker-store-cs</artifactId>
-            <exclusions>
-                <exclusion>
-                    <groupId>javax.ws.rs</groupId>
-                    <artifactId>jsr311-api</artifactId>
-                </exclusion>
-            </exclusions>
-        </dependency>
-        <dependency>
-            <groupId>com.github.krallin</groupId>
-            <artifactId>tini</artifactId>
-            <scope>runtime</scope>
-            <type>exe</type>
+            <version>UNSPECIFIED</version>
         </dependency>
     </dependencies>
+
+    <profiles>
+        <profile>
+            <id>cmbg</id>
+            <activation>
+                <property>
+                    <name>CAF_BUILD_TYPE</name>
+                    <value>official</value>
+                </property>
+            </activation>
+            <distributionManagement>
+                <repository>
+                    <id>cmbg-maven-releases</id>
+                    <name>Internal Releases</name>
+                    <url>http://cmbg-maven.autonomy.com/nexus/content/repositories/releases</url>
+                </repository>
+                <snapshotRepository>
+                    <id>cmbg-maven-snapshots</id>
+                    <name>Internal Snapshots</name>
+                    <url>http://cmbg-maven.autonomy.com/nexus/content/repositories/snapshots</url>
+                </snapshotRepository>
+            </distributionManagement>
+        </profile>
+        <profile>
+            <id>sunnyvale</id>
+            <distributionManagement>
+                <repository>
+                    <id>HPEreleases</id>
+                    <name>Internal Releases</name>
+                    <url>http://rh7-artifactory.hpswlabs.hp.com:8081/artifactory/libs-release-local</url>
+                </repository>
+                <snapshotRepository>
+                    <id>HPEsnapshots</id>
+                    <name>Internal Snapshots</name>
+                    <url>http://rh7-artifactory.hpswlabs.hp.com:8081/artifactory/libs-snapshot-local</url>
+                </snapshotRepository>
+            </distributionManagement>
+        </profile>
+    </profiles>
 
     <ciManagement>
         <system>hudson</system>
