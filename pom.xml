@@ -29,6 +29,7 @@
         <dependency>
             <groupId>com.hpe.caf.worker</groupId>
             <artifactId>worker-testing-util</artifactId>
+            <version>1-SNAPSHOT</version>
         </dependency>
         <dependency>
             <groupId>com.google.guava</groupId>
