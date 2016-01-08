@@ -39,6 +39,9 @@ public class ValidatorFactory {
             }
             if (validationSettings.getArrayReferencedDataProperties().contains(propertyName)){
                 return new ArrayReferencedDataValidator(dataStore,codec,testDataFolder);
+			}
+            if (validationSettings.getBase64Properties().contains(propertyName)) {
+                return new Base64PropertyValidator();
             }
         }
         if (sourcePropertyValue instanceof Map && validatorPropertyValue instanceof Map) {
