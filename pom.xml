@@ -41,7 +41,7 @@
             <dependency>
                 <groupId>com.hpe.caf.codec</groupId>
                 <artifactId>codec-json</artifactId>
-                <version>10.1-SNAPSHOT</version>
+                <version>10.1</version>
             </dependency>
             <dependency>
                 <groupId>com.hpe.caf.codec</groupId>
@@ -101,12 +101,12 @@
             <dependency>
                 <groupId>com.hpe.caf.worker</groupId>
                 <artifactId>standard-worker-container</artifactId>
-                <version>1-SNAPSHOT</version>
+                <version>1</version>
             </dependency>
             <dependency>
                 <groupId>com.hpe.caf.worker</groupId>
                 <artifactId>worker-caf</artifactId>
-                <version>10.1-SNAPSHOT</version>
+                <version>10.1</version>
             </dependency>
             <dependency>
                 <groupId>com.hpe.caf.worker</groupId>
@@ -116,7 +116,7 @@
             <dependency>
                 <groupId>com.hpe.caf.worker</groupId>
                 <artifactId>worker-queue-rabbit</artifactId>
-                <version>10.7-SNAPSHOT</version>
+                <version>10.7</version>
             </dependency>
             <dependency>
                 <groupId>com.hpe.caf.worker</groupId>
