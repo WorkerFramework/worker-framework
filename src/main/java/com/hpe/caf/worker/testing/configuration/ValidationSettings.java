@@ -27,6 +27,11 @@ public class ValidationSettings {
             return this;
         }
 
+        public ValidationSettingsBuilder arrayReferencedDataProperties(String... arrayReferencedDataProperties){
+            settings.arrayReferencedDataProperties = new HashSet<>(Arrays.asList(arrayReferencedDataProperties));
+            return this;
+        }
+
         public ValidationSettings build(){
             return settings;
         }
@@ -34,6 +39,7 @@ public class ValidationSettings {
 
     private Set<String> ignoredProperties;
     private Set<String> referencedDataProperties;
+    private Set<String> arrayReferencedDataProperties;
 
     public static ValidationSettingsBuilder configure() {
         return new ValidationSettingsBuilder(new ValidationSettings());
@@ -59,5 +65,9 @@ public class ValidationSettings {
      */
     public Set<String> getReferencedDataProperties() {
         return referencedDataProperties;
+    }
+
+    public Set<String> getArrayReferencedDataProperties() {
+        return arrayReferencedDataProperties;
     }
 }

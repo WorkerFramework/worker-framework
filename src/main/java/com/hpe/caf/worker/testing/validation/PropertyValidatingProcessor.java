@@ -1,5 +1,7 @@
 package com.hpe.caf.worker.testing.validation;
 
+import com.fasterxml.jackson.annotation.JsonAutoDetect;
+import com.fasterxml.jackson.annotation.PropertyAccessor;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.hpe.caf.api.worker.TaskMessage;
 import com.hpe.caf.worker.testing.AbstractResultProcessor;
@@ -31,10 +33,14 @@ public abstract class PropertyValidatingProcessor<TResult, TInput, TExpected> ex
             System.err.println("Could not locate result in pre-defined testcase, item tag '" + testItem.getTag() + "'. Message id: '" + message.getTaskId() + "'. ");
             return false;
         }
-        PropertyMap expectationPropertyMap = new PropertyMap(expectation);
 
         ObjectMapper mapper = new ObjectMapper();
         Object validatedObject = getValidatedObject(testItem, message, result);
+
+        mapper.setVisibility(PropertyAccessor.FIELD, JsonAutoDetect.Visibility.ANY);
+        mapper.setVisibility(PropertyAccessor.GETTER, JsonAutoDetect.Visibility.NONE);
+
+        PropertyMap expectationPropertyMap = mapper.convertValue(expectation,PropertyMap.class); //new PropertyMap(expectation);
 
         PropertyMap propertyMap = mapper.convertValue(validatedObject, PropertyMap.class);
 

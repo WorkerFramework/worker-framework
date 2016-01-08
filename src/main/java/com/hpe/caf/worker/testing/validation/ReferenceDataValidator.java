@@ -1,5 +1,7 @@
 package com.hpe.caf.worker.testing.validation;
 
+import com.fasterxml.jackson.annotation.JsonAutoDetect;
+import com.fasterxml.jackson.annotation.PropertyAccessor;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.hpe.caf.api.Codec;
 import com.hpe.caf.api.worker.DataStore;
@@ -41,6 +43,8 @@ public class ReferenceDataValidator extends PropertyValidator {
         if (testedPropertyValue == null && validatorPropertyValue == null) return true;
 
         ObjectMapper mapper = new ObjectMapper();
+        mapper.setVisibility(PropertyAccessor.FIELD, JsonAutoDetect.Visibility.ANY);
+        mapper.setVisibility(PropertyAccessor.GETTER, JsonAutoDetect.Visibility.NONE);
 
         ContentFileTestExpectation expectation = mapper.convertValue(validatorPropertyValue, ContentFileTestExpectation.class);
 
