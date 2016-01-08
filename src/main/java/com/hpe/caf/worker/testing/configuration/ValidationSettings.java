@@ -42,8 +42,6 @@ public class ValidationSettings {
         }
     }
 
-    private Set<String> ignoredProperties;
-    private Set<String> referencedDataProperties;
     private Set<String> arrayReferencedDataProperties;
     private Set<String> ignoredProperties = new HashSet<>();
     private Set<String> referencedDataProperties = new HashSet<>();
