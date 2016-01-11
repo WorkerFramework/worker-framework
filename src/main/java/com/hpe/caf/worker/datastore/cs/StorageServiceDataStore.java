@@ -10,7 +10,6 @@ import com.hpe.caf.api.HealthStatus;
 import com.hpe.caf.api.worker.DataStoreException;
 import com.hpe.caf.api.worker.DataStoreMetricsReporter;
 import com.hpe.caf.api.worker.ManagedDataStore;
-import com.hpe.caf.storage.common.crypto.CryptoKey;
 import com.hpe.caf.storage.common.crypto.WrappedKey;
 import com.hpe.caf.storage.common.model.AssetStatus;
 import com.hpe.caf.storage.sdk.StorageClient;
@@ -18,14 +17,13 @@ import com.hpe.caf.storage.sdk.exceptions.StorageClientException;
 import com.hpe.caf.storage.sdk.exceptions.StorageServiceConnectException;
 import com.hpe.caf.storage.sdk.exceptions.StorageServiceException;
 import com.hpe.caf.storage.sdk.model.AssetMetadata;
-import com.hpe.caf.storage.sdk.util.EncryptionUtil;
+import com.hpe.caf.storage.sdk.model.requests.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.file.Path;
-import java.util.Date;
 import java.util.UUID;
 import java.util.concurrent.atomic.AtomicInteger;
 
@@ -35,17 +33,22 @@ import java.util.concurrent.atomic.AtomicInteger;
  */
 public class StorageServiceDataStore implements ManagedDataStore
 {
+    @FunctionalInterface
+    private interface StorageClientFunction<T, R> {
+        R apply(T t) throws StorageServiceConnectException, StorageServiceException, StorageClientException, IOException;
+    }
+
     /**
      * The Storage Service "file type" for Worker assets.
      */
-    public static final String WORKER_ASSET_TYPE = "WorkerDataStoreAsset";
     private final AtomicInteger errors = new AtomicInteger(0);
     private final AtomicInteger numRx = new AtomicInteger(0);
     private final AtomicInteger numTx = new AtomicInteger(0);
     private final DataStoreMetricsReporter metrics = new StorageServiceDataStoreMetricsReporter();
     private final StorageClient storageClient;
-    private final String accessToken;
+    private String accessToken = null;
     private static final Logger LOG = LoggerFactory.getLogger(StorageServiceDataStore.class);
+    private final KeycloakClient keycloakClient;
     /**
      * Byte size at which incoming streams are buffered to disk before sending to the Storage Service.
      */
@@ -54,11 +57,10 @@ public class StorageServiceDataStore implements ManagedDataStore
 
     public StorageServiceDataStore(final StorageServiceDataStoreConfiguration storageServiceDataStoreConfiguration)
     {
-        //TODO Authentication is still disabled
-        accessToken = "1234";
         storageClient = new StorageClient(storageServiceDataStoreConfiguration.getServerName(),
                 String.valueOf(storageServiceDataStoreConfiguration.getPort()));
 
+        keycloakClient = storageServiceDataStoreConfiguration.getAuthenticationConfiguration() != null ? new KeycloakClient(storageServiceDataStoreConfiguration.getAuthenticationConfiguration()) : null;
     }
 
 
@@ -75,6 +77,28 @@ public class StorageServiceDataStore implements ManagedDataStore
         // nothing to do
     }
 
+    private <T> T  callStorageService(StorageClientFunction<StorageClient, T> call)
+            throws StorageServiceConnectException, IOException, StorageServiceException, StorageClientException {
+        return callStorageService(call, 1);
+    }
+
+    private <T> T  callStorageService(StorageClientFunction<StorageClient, T> call, int retryCount)
+            throws StorageServiceConnectException, StorageClientException, IOException, StorageServiceException {
+        for (int i = 1; ; i++) {
+            try {
+                if (accessToken == null && keycloakClient != null) {
+                    accessToken = keycloakClient.getAccessToken();
+                }
+                return call.apply(storageClient);
+            }
+            catch (StorageServiceException e) {
+                if (i >= retryCount || e.getHTTPStatus() != 401 || keycloakClient == null) {
+                    throw e;
+                }
+                accessToken = keycloakClient.getAccessToken();
+            }
+        }
+    }
 
     @Override
     public InputStream retrieve(String reference)
@@ -84,15 +108,16 @@ public class StorageServiceDataStore implements ManagedDataStore
         numRx.incrementAndGet();
         CafStoreReference ref = new CafStoreReference(reference);
         try {
-            AssetMetadata assetMetadata = storageClient.getAssetMetadata(accessToken, ref.getContainer(), ref.getAsset());
+
+            AssetMetadata assetMetadata = callStorageService(c -> c.getAssetMetadata(new GetAssetMetadataRequest(accessToken, ref.getContainer(), ref.getAsset())));
             if ( AssetStatus.ACTIVE.equals(AssetStatus.valueOf(assetMetadata.getStatus())) ) {
-                WrappedKey wrappedKey = this.storageClient.getAssetContainerEncryptionKey(accessToken, ref.getContainer());
-                return storageClient.downloadAsset(accessToken, ref.getContainer(), ref.getAsset(), wrappedKey).getDecryptedStream();
+                WrappedKey wrappedKey = callStorageService(c -> c.getAssetContainerEncryptionKey(new GetAssetContainerEncryptionKeyRequest(accessToken, ref.getContainer())));
+                return callStorageService(c -> c.downloadAsset(new DownloadAssetRequest(accessToken, ref.getContainer(), ref.getAsset(), wrappedKey))).getDecryptedStream();
             } else {
                 errors.incrementAndGet();
                 throw new DataStoreException(String.format("Reference %s is not active.", reference));
             }
-        } catch (StorageServiceException | StorageServiceConnectException | IOException e) {
+        } catch (StorageClientException | StorageServiceException | StorageServiceConnectException | IOException e) {
             errors.incrementAndGet();
             throw new DataStoreException("Failed to retrieve data from reference " + reference, e);
         }
@@ -106,8 +131,8 @@ public class StorageServiceDataStore implements ManagedDataStore
         LOG.debug("Received size request for {}", reference);
         CafStoreReference ref = new CafStoreReference(reference);
         try {
-            return storageClient.getAssetMetadata(accessToken, ref.getContainer(), ref.getAsset()).getSize();
-        } catch (StorageServiceException | StorageServiceConnectException e) {
+            return callStorageService(c -> c.getAssetMetadata(new GetAssetMetadataRequest(accessToken, ref.getContainer(), ref.getAsset()))).getSize();
+        } catch (IOException | StorageClientException |  StorageServiceException | StorageServiceConnectException e) {
             errors.incrementAndGet();
             throw new DataStoreException("Failed to get data size for reference " + reference, e);
         }
@@ -152,29 +177,29 @@ public class StorageServiceDataStore implements ManagedDataStore
     public HealthResult healthCheck()
     {
         try {
-            storageClient.listAssetContainers(accessToken);
+            callStorageService(c -> c.listAssetContainers(new ListAssetContainersRequest(accessToken)));
         } catch (StorageServiceException e) {
             LOG.warn("Health check failed", e);
             return new HealthResult(HealthStatus.UNHEALTHY, "Error from Storage service: " + e.getResponseErrorMessage());
-        } catch (StorageServiceConnectException e) {
+        } catch (StorageServiceConnectException | StorageClientException e) {
             LOG.warn("Health check failed", e);
             return new HealthResult(HealthStatus.UNHEALTHY, "Failed to connect to Storage service");
+        } catch (IOException e) {
+            LOG.warn("Health check failed", e);
+            return new HealthResult(HealthStatus.UNHEALTHY, "Failed to request access token: " + e.getMessage());
         }
         return HealthResult.RESULT_HEALTHY;
     }
-
 
     private String store(ByteSource byteSource, String partialReference)
         throws DataStoreException
     {
         LOG.debug("Received store request for {}", partialReference);
         numTx.incrementAndGet();
-        CryptoKey assetKey = EncryptionUtil.generateRandomKey();
         try (InputStream inputStream = byteSource.openBufferedStream()) {
-            WrappedKey wrappedKey = storageClient.getAssetContainerEncryptionKey(accessToken, partialReference);
+            WrappedKey wrappedKey = callStorageService(c -> c.getAssetContainerEncryptionKey(new GetAssetContainerEncryptionKeyRequest(accessToken, partialReference)));
             AssetMetadata assetMetadata =
-                storageClient.uploadAsset(accessToken, partialReference, wrappedKey, assetKey, inputStream, null, UUID.randomUUID().toString(),
-                                          byteSource.size(), null, WORKER_ASSET_TYPE, new Date(), new Date(), null);
+                    callStorageService(c -> c.uploadAsset(new UploadAssetRequest(accessToken, partialReference, UUID.randomUUID().toString(), wrappedKey, inputStream)));
             return new CafStoreReference(assetMetadata.getContainerId(), assetMetadata.getAssetId()).toString();
         } catch (IOException e) {
             errors.incrementAndGet();

@@ -15,10 +15,16 @@ public class StorageServiceDataStoreConfiguration
     @NotNull
     @Size(min = 1)
     private String serverName;
+
     @NotNull
     @Min(1)
     @Max(65535)
     private int port;
+
+    /**
+     * Optional authentication configuration settings.
+     */
+    private KeycloakAuthenticationConfiguration authenticationConfiguration;
 
     public StorageServiceDataStoreConfiguration()
     {
@@ -48,4 +54,15 @@ public class StorageServiceDataStoreConfiguration
         this.port = port;
     }
 
+    /**
+     * Getter for property authenticationSettings
+     * @return authentication settings. If null, authentication is disabled.
+     */
+    public KeycloakAuthenticationConfiguration getAuthenticationConfiguration() {
+        return authenticationConfiguration;
+    }
+
+    public void setAuthenticationConfiguration(KeycloakAuthenticationConfiguration authenticationConfiguration) {
+        this.authenticationConfiguration = authenticationConfiguration;
+    }
 }
