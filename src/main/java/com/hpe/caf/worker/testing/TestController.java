@@ -5,6 +5,8 @@ import com.hpe.caf.api.worker.TaskMessage;
 import java.io.Closeable;
 import java.io.IOException;
 import java.util.Collection;
+import java.util.Timer;
+import java.util.TimerTask;
 import java.util.UUID;
 
 /**
@@ -18,6 +20,7 @@ public class TestController implements Closeable {
     private final WorkerTaskFactory taskFactory;
     private final ResultProcessor resultProcessor;
     private final boolean stopOnError;
+    private final long defaultTimeOutMs = 600000; // 10 minutes
     /**
      * The Thread.
      */
@@ -66,6 +69,16 @@ public class TestController implements Closeable {
 
         ExecutionContext context = new ExecutionContext(stopOnError);
 
+        String timeoutSetting = SettingsProvider.defaultProvider.getSetting(SettingNames.timeOutMs);
+        long timeout = timeoutSetting == null ? defaultTimeOutMs : Long.parseLong(timeoutSetting);
+
+        Timer timer = new Timer();
+        timer.schedule(new TimerTask() {
+            @Override
+            public void run() {
+                context.getFinishedSignal().doNotify(TestResult.createFailed("Tests timed out. Failed."));
+            }
+        }, timeout);
         thread = queueManager.start(new ProcessorDeliveryHandler(resultProcessor, context));
 
         TaskMessageFactory messageFactory = new TaskMessageFactory(workerServices.getCodec(), taskFactory.getWorkerName(), taskFactory.getApiVersion());
@@ -84,6 +97,7 @@ public class TestController implements Closeable {
 
         TestResult result = context.getTestResult();
 
+        timer.cancel();
         if (!result.isSuccess()) {
             throw new Exception(result.getErrorMessage());
         }
