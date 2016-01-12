@@ -65,9 +65,6 @@ public abstract class PropertyValidatingProcessor<TResult, TInput, TExpected> ex
         ObjectMapper mapper = new ObjectMapper();
         Object validatedObject = getValidatedObject(testItem, message, result);
 
-        mapper.setVisibility(PropertyAccessor.FIELD, JsonAutoDetect.Visibility.ANY);
-        mapper.setVisibility(PropertyAccessor.GETTER, JsonAutoDetect.Visibility.NONE);
-
         PropertyMap expectationPropertyMap = mapper.convertValue(expectation,PropertyMap.class); //new PropertyMap(expectation);
 
         PropertyMap propertyMap = mapper.convertValue(validatedObject, PropertyMap.class);
