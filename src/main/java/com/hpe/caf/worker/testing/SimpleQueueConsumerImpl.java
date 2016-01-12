@@ -11,6 +11,7 @@ import com.rabbitmq.client.Channel;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.concurrent.BlockingQueue;
+import java.util.function.ObjDoubleConsumer;
 
 /**
  * Created by ploch on 01/11/2015.
@@ -22,6 +23,8 @@ public class SimpleQueueConsumerImpl implements QueueConsumer {
     private final ResultHandler resultHandler;
     private final Codec codec;
     private final ArrayList<Delivery> deliveries = new ArrayList<>();
+
+    private static final Object syncLock = new Object();
 
     public SimpleQueueConsumerImpl(final BlockingQueue<Event<QueueConsumer>> queue, Channel channel, ResultHandler resultHandler, final Codec codec) {
         this.eventQueue = queue;
@@ -39,7 +42,10 @@ public class SimpleQueueConsumerImpl implements QueueConsumer {
         try {
             TaskMessage taskMessage = codec.deserialise(delivery.getMessageData(), TaskMessage.class);
             System.out.println(taskMessage.getTaskId() + ", status: " + taskMessage.getTaskStatus());
-            resultHandler.handleResult(taskMessage);
+            synchronized (syncLock)
+            {
+                resultHandler.handleResult(taskMessage);
+            }
         }
         catch (CodecException e) {
             e.printStackTrace();
