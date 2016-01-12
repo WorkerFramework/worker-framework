@@ -42,7 +42,7 @@ public class ValidationSettings {
         }
     }
 
-    private Set<String> arrayReferencedDataProperties;
+    private Set<String> arrayReferencedDataProperties = new HashSet<>();
     private Set<String> ignoredProperties = new HashSet<>();
     private Set<String> referencedDataProperties = new HashSet<>();
     private Set<String> base64Properties = new HashSet<>();
