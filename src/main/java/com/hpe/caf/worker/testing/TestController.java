@@ -1,5 +1,6 @@
 package com.hpe.caf.worker.testing;
 
+import com.google.common.base.Strings;
 import com.hpe.caf.api.worker.TaskMessage;
 
 import java.io.Closeable;
@@ -88,7 +89,12 @@ public class TestController implements Closeable {
             String taskId = item.getTag() == null ? UUID.randomUUID().toString() : item.getTag();
             TaskMessage message = messageFactory.create(workerTask, taskId);
 
-            context.getItemStore().store(taskId, item);
+            String inputIdentifier = item.getInputIdentifier();
+            if (Strings.isNullOrEmpty(inputIdentifier)) {
+                context.getItemStore().store(taskId, item);
+            } else {
+                context.getItemStore().store(item.getInputIdentifier(), item);
+            }
             System.out.println("================================================================================");
             System.out.println(" QUEUEING NEW TASK: " + item.getTag());
             System.out.println("================================================================================");

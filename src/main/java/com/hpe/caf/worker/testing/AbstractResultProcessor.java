@@ -5,6 +5,8 @@ import com.hpe.caf.api.CodecException;
 import com.hpe.caf.api.worker.TaskMessage;
 
 import java.io.IOException;
+import java.util.Collection;
+import java.util.Map;
 
 /**
  * Created by ploch on 08/11/2015.
@@ -48,4 +50,31 @@ public abstract class AbstractResultProcessor<TResult, TInput, TExpected> implem
     }
 
     protected abstract boolean processWorkerResult(TestItem<TInput, TExpected> testItem, TaskMessage message, TResult result) throws Exception;
+
+    protected String getMetadataValue(Collection<Map.Entry<String, String>> metadata, String key) {
+        String value = "";
+        if (metadata != null) {
+            for (Map.Entry me : metadata) {
+                if (key.equalsIgnoreCase(me.getKey().toString())) {
+                    value = me.getValue().toString();
+                    break;
+                }
+            }
+        }
+
+        return value;
+    }
+
+    protected void clearMetadataValue(Collection<Map.Entry<String, String>> metadata, String key) {
+        if (metadata != null) {
+            for (Map.Entry me : metadata) {
+                if (key.equalsIgnoreCase(me.getKey().toString())) {
+                    me.setValue("");
+                    break;
+                }
+            }
+        }
+    }
+
+    public String getInputIdentifier(TaskMessage message) throws Exception {return "";}
 }

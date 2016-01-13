@@ -27,4 +27,5 @@ public interface ResultProcessor {
      */
     boolean process(TestItem testItem, TaskMessage resultMessage) throws CodecException, IOException;
 
+    String getInputIdentifier(TaskMessage message) throws Exception;
 }

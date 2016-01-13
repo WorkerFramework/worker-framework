@@ -1,5 +1,6 @@
 package com.hpe.caf.worker.testing;
 
+import com.google.common.base.Strings;
 import com.hpe.caf.api.worker.TaskMessage;
 
 /**
@@ -25,7 +26,12 @@ public class ProcessorDeliveryHandler implements ResultHandler {
 
         TestItem testItem = null;
         try {
-            testItem = itemStore.find(taskMessage.getTaskId());
+            String inputIdentifier = resultProcessor.getInputIdentifier(taskMessage);
+            if (Strings.isNullOrEmpty(inputIdentifier)) {
+                testItem = itemStore.find(taskMessage.getTaskId());
+            } else {
+                testItem = itemStore.find(inputIdentifier);
+            }
         } catch (Throwable e) {
             e.printStackTrace();
             context.failed(e.getMessage());

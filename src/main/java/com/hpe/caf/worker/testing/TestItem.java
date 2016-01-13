@@ -21,6 +21,9 @@ public class TestItem<TInput, TExpected> {
     @JsonIgnore
     private boolean completed = true;
 
+    @JsonIgnore
+    private String inputIdentifier;
+
     /**
      * Instantiates a new Test item.
      */
@@ -93,5 +96,25 @@ public class TestItem<TInput, TExpected> {
     @JsonIgnore
     public void setCompleted(boolean completed) {
         this.completed = completed;
+    }
+
+    /**
+     * Getter for property 'inputIdentifier'.
+     *
+     * @return Value for property 'inputIdentifier'.
+     */
+    @JsonIgnore
+    public String getInputIdentifier() {
+        return inputIdentifier;
+    }
+
+    /**
+     * Setter for property 'inputIdentifier'.
+     *
+     * @param inputIdentifier Value to set for property 'inputIdentifier'.
+     */
+    @JsonIgnore
+    public void setInputIdentifier(String inputIdentifier) {
+        this.inputIdentifier = inputIdentifier;
     }
 }

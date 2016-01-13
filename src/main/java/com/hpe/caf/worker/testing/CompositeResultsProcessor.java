@@ -27,4 +27,6 @@ public class CompositeResultsProcessor implements ResultProcessor {
         }
         return success;
     }
+
+    public String getInputIdentifier(TaskMessage message) throws Exception {return "";}
 }
