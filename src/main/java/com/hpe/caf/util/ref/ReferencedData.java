@@ -44,6 +44,9 @@ public class ReferencedData
         return reference;
     }
 
+    public byte[] getData() {
+        return data;
+    }
 
     /**
      * Return the referenced data as a stream, potentially performing a remote lookup.
