@@ -96,7 +96,7 @@
             <dependency>
                 <groupId>com.hpe.caf.util</groupId>
                 <artifactId>util-ref</artifactId>
-                <version>1.0</version>
+                <version>1.1-SNAPSHOT</version>
             </dependency>
             <dependency>
                 <groupId>com.hpe.caf.worker</groupId>
