@@ -79,17 +79,20 @@ public class StorageServiceDataStore implements ManagedDataStore
 
     private <T> T  callStorageService(StorageClientFunction<StorageClient, T> call)
             throws StorageServiceConnectException, IOException, StorageServiceException, StorageClientException {
-        return callStorageService(call, 1);
+        return callStorageService(call, 2);
     }
 
     private <T> T  callStorageService(StorageClientFunction<StorageClient, T> call, int retryCount)
             throws StorageServiceConnectException, StorageClientException, IOException, StorageServiceException {
         for (int i = 1; ; i++) {
             try {
+                LOG.debug("About to run caf storage request.");
                 if (accessToken == null && keycloakClient != null) {
                     accessToken = keycloakClient.getAccessToken();
                 }
-                return call.apply(storageClient);
+                T result = call.apply(storageClient);
+                LOG.debug("Received caf storage response.");
+                return result;
             }
             catch (StorageServiceException e) {
                 if (i >= retryCount || e.getHTTPStatus() != 401 || keycloakClient == null) {
