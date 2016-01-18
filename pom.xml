@@ -101,6 +101,7 @@
             <dependency>
                 <groupId>com.hpe.caf.worker</groupId>
                 <artifactId>standard-worker-container</artifactId>
+                <type>pom</type>
                 <version>1</version>
             </dependency>
             <dependency>
