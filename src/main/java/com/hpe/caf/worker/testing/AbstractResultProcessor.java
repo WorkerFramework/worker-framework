@@ -3,6 +3,7 @@ package com.hpe.caf.worker.testing;
 import com.hpe.caf.api.Codec;
 import com.hpe.caf.api.CodecException;
 import com.hpe.caf.api.worker.TaskMessage;
+import com.hpe.caf.api.worker.TaskStatus;
 
 import java.io.IOException;
 import java.util.Collection;
@@ -45,6 +46,9 @@ public abstract class AbstractResultProcessor<TResult, TInput, TExpected> implem
     }
 
     protected TResult deserializeMessage(TaskMessage message, Class<TResult> resultClass) throws CodecException {
+        if(message.getTaskStatus() != TaskStatus.RESULT_SUCCESS){
+            throw new AssertionError("Task status was failure.");
+        }
         TResult workerResult = codec.deserialise(message.getTaskData(), resultClass);
         return workerResult;
     }

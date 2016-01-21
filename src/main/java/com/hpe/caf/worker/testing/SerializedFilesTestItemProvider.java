@@ -3,6 +3,7 @@ package com.hpe.caf.worker.testing;
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.type.TypeFactory;
+import com.fasterxml.jackson.datatype.guava.GuavaModule;
 
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -22,6 +23,7 @@ public class SerializedFilesTestItemProvider<TInput, TExpected> extends ContentF
         this.inputClass = configuration.getInputClass();
         this.expectedClass = configuration.getExpectationClass();
         serializer = configuration.getSerializer();
+        serializer.registerModule(new GuavaModule());
     }
 
     @Override

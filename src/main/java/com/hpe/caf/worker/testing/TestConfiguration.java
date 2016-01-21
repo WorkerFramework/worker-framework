@@ -5,6 +5,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
 import com.fasterxml.jackson.dataformat.xml.XmlMapper;
 import com.fasterxml.jackson.dataformat.yaml.YAMLMapper;
+import com.fasterxml.jackson.datatype.guava.GuavaModule;
 import com.google.common.base.Strings;
 import com.hpe.caf.worker.testing.configuration.TestCaseFormat;
 
@@ -39,6 +40,7 @@ public class TestConfiguration<TWorkerTask, TWorkerResult, TInput, TExpectation>
         }
         mapper.disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES);
         mapper.enable(SerializationFeature.INDENT_OUTPUT);
+        mapper.registerModule(new GuavaModule());
 
         boolean processSubFolders = SettingsProvider.defaultProvider.getBooleanSetting(SettingNames.processSubFolders, true);
         boolean storeTestCaseWithInput = SettingsProvider.defaultProvider.getBooleanSetting(SettingNames.storeTestCaseWithInput, true);
