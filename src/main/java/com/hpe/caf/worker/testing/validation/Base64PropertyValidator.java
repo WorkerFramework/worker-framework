@@ -21,6 +21,10 @@ public class Base64PropertyValidator extends PropertyValidator {
 
         byte[] testedPropertyValueBytes = (byte[]) testedPropertyValue;
 
+        if (validatorPropertyValue.toString().equals("*")) {
+            return testedPropertyValueBytes.length > 0;
+        }
+
         boolean areEqual = Arrays.equals(testedPropertyValueBytes, Base64.decodeBase64(validatorPropertyValue.toString()));
 
         if (!areEqual) {

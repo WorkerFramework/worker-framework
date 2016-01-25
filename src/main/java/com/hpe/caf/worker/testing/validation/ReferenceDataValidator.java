@@ -74,7 +74,7 @@ public class ReferenceDataValidator extends PropertyValidator {
             if (expectation.getComparisonType() == ContentComparisonType.TEXT) {
 
                 String actualText = IOUtils.toString(dataStream, StandardCharsets.UTF_8);
-                String expectedText = new String(expectedFileBytes);
+                String expectedText = new String(expectedFileBytes, StandardCharsets.UTF_8);
 
                 if (expectation.getExpectedSimilarityPercentage() == 100) {
                     boolean equals = actualText.equals(expectedText);
