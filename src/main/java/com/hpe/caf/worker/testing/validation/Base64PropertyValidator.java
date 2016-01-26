@@ -13,6 +13,14 @@ import java.util.Arrays;
 public class Base64PropertyValidator extends PropertyValidator {
     @Override
     protected boolean isValid(Object testedPropertyValue, Object validatorPropertyValue) {
+        if (validatorPropertyValue == null) {
+            return testedPropertyValue == null;
+        }
+
+        if (testedPropertyValue == null) {
+            return false;
+        }
+
         if (!(testedPropertyValue instanceof byte[]) || !(validatorPropertyValue instanceof String)) {
             throw new AssertionError("Unexpected types provided to Base64PropertyValidator. Expected byte array testedPropertyValue and String validatorPropertyValue. Provided were "
                     + testedPropertyValue.getClass().getSimpleName() + " and " + validatorPropertyValue.getClass().getSimpleName() +
