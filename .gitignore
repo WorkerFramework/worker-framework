@@ -1,1 +1,5 @@
-worker-example.iml
+*.iml
+**/dependency-reduced-pom.xml
+**/*.bak
+**/target/
+/target/
