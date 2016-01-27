@@ -36,7 +36,7 @@
             <dependency>
                 <groupId>com.hpe.caf.worker</groupId>
                 <artifactId>worker-framework</artifactId>
-                <version>10.2</version>
+                <version>10.3-SNAPSHOT</version>
                 <type>pom</type>
                 <scope>import</scope>
             </dependency>
@@ -48,7 +48,6 @@
             <groupId>com.hpe.caf.worker</groupId>
             <artifactId>standard-worker-container</artifactId>
             <type>pom</type>
-            <version>1</version>
         </dependency>
         <dependency>
             <groupId>com.github.krallin</groupId>
@@ -56,6 +55,7 @@
             <scope>runtime</scope>
             <type>exe</type>
         </dependency>
+        <!--
         <dependency>
             <groupId>com.hpe.caf.worker</groupId>
             <artifactId>worker-testing-integration</artifactId>
@@ -66,6 +66,7 @@
             <artifactId>worker-testing-example</artifactId>
             <version>1-SNAPSHOT</version>
         </dependency>
+        -->
         <dependency>
             <groupId>com.hpe.caf.worker</groupId>
             <artifactId>worker-example</artifactId>
@@ -350,7 +351,7 @@
             <url>http://cmbg-maven.autonomy.com/nexus/content/repositories/snapshots</url>
         </snapshotRepository>
     </distributionManagement>
-    
+
     <ciManagement>
         <system>hudson</system>
         <url>http://cafbuilder.hpswlabs.hp.com:8080/job/worker-example-container/</url>
