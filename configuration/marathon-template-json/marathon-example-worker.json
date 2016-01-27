@@ -1,0 +1,67 @@
+{
+  "id": "/${marathon-group}/example",
+  "cpus": "${example-cpus}",
+  "mem": "${example-mem}",
+  "dependencies": ["/${marathon-group}/${rabbit-id}"],
+  "instances": "${example-autoscale.mininstances}",
+  "container": {
+    "type": "DOCKER",
+    "docker": {
+      "image": "${docker-registry}/caf/worker-example:${example-version}",
+      "network": "BRIDGE",
+      "portMappings": [
+        {
+          "containerPort": 8080,
+          "hostPort": 0,
+          "servicePort": "${example-8080-serviceport}",
+          "protocol": "tcp"
+        },
+        {
+          "containerPort": 8081,
+          "hostPort": 0,
+          "servicePort": "${example-8081-serviceport}",
+          "protocol": "tcp"
+        }
+      ],
+      "privileged": true,
+      "forcePullImage": "${forcePullImage}"
+    },
+    "volumes": [
+      {
+        "containerPath": "/etc/store",
+        "hostPath": "${caf-fs-storage-hostPath}",
+        "mode": "RW"
+      }
+    ]
+  },
+  "env": {
+    "_JAVA_OPTIONS": "-Xms${example-java-mem-min}m -Xmx${example-java-mem-max}m",
+    "CAF_CONFIG_PATH": "/mnt/mesos/sandbox"
+  },
+  "labels": {
+    "autoscale.metric": "${example-autoscale.metric}",
+    "autoscale.scalingtarget": "${marathon-group}-example-in",
+    "autoscale.scalingprofile": "${example-autoscale.scalingprofile}",
+    "autoscale.maxinstances": "${example-autoscale.maxinstances}",
+    "autoscale.mininstances": "${example-autoscale.mininstances}"
+  },
+  "healthChecks": [
+    {
+      "path": "/healthcheck",
+      "portIndex": 1,
+      "protocol": "HTTP",
+      "gracePeriodSeconds": "${example-healthcheck-graceperiodseconds}",
+      "intervalSeconds": "${example-healthcheck-intervalseconds}",
+      "maxConsecutiveFailures": "${example-healthcheck-maxconsecutivefailures}",
+      "timeoutSeconds": "${example-healthcheck-timeoutseconds}"
+    }
+  ],
+  "uris": [
+    "${marathon-uris-root}/${worker-config-location}/cfg_${marathon-group}_example_FileSystemDataStoreConfiguration",
+    "${marathon-uris-root}/${worker-config-location}/cfg_${marathon-group}_example_ExampleWorkerConfiguration",
+    "${marathon-uris-root}/${worker-config-location}/cfg_${marathon-group}_example_RabbitWorkerQueueConfiguration",
+    "${marathon-uris-root}/${worker-config-location}/cfg_${marathon-group}_example_StorageServiceDataStoreConfiguration",
+    "${marathon-uris-root}/${docker-login-config}"
+  ]
+}
+

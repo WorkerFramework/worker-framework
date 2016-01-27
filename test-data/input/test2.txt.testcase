@@ -1,0 +1,21 @@
+---
+tag: "test2.txt"
+inputData:
+  useDataStore: true
+  containerId: "0a1b8e24cc44490888b3d8d8ebba8309"
+  inputFile: "test2.txt"
+  task:
+    sourceData:
+      reference: "0a1b8e24cc44490888b3d8d8ebba8309/19c08482d55646a6971490e120e9625e"
+      data: null
+    datastorePartialReference: null
+    action: "reverse"
+expectedOutputData:
+  expectedContentFile: "test2.txt.result.content"
+  expectedSimilarityPercentage: 80
+  comparisonType: "TEXT"
+  result:
+    workerStatus: "COMPLETED"
+    textData:
+      reference: null
+      data: ""
