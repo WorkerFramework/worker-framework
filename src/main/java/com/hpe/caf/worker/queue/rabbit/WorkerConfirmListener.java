@@ -85,7 +85,9 @@ class WorkerConfirmListener implements ConfirmListener
     {
         if (multiple) {
             Map<Long, Long> ackMap = confirmMap.headMap(sequenceNo + 1);
-            consumerEvents.addAll(ackMap.values().stream().map(eventSource::apply).collect(Collectors.toList()));
+            synchronized (confirmMap) {
+                consumerEvents.addAll(ackMap.values().stream().map(eventSource::apply).collect(Collectors.toList()));
+            }
             ackMap.clear(); // clear all entries up to this (n)acked sequence number
         } else {
             Long ackId = confirmMap.remove(sequenceNo);
