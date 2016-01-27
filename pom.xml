@@ -23,7 +23,6 @@
         </dependency>
     </dependencies>
 
-
     <dependencyManagement>
         <dependencies>
             <dependency>
@@ -35,6 +34,19 @@
             </dependency>
         </dependencies>
     </dependencyManagement>
+
+    <distributionManagement>
+        <repository>
+            <id>cmbg-maven-releases</id>
+            <name>Internal Releases</name>
+            <url>http://cmbg-maven.autonomy.com/nexus/content/repositories/releases</url>
+        </repository>
+        <snapshotRepository>
+            <id>cmbg-maven-snapshots</id>
+            <name>Internal Snapshots</name>
+            <url>http://cmbg-maven.autonomy.com/nexus/content/repositories/snapshots</url>
+        </snapshotRepository>
+    </distributionManagement>
 
     <ciManagement>
         <system>hudson</system>
