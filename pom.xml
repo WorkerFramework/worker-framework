@@ -43,6 +43,17 @@
         </dependencies>
     </dependencyManagement>
 
+    <repositories>
+        <repository>
+            <id>cmbg-maven-thirdparty</id>
+            <name>Cambridge Nexus 3rd Party</name>
+            <url>http://cmbg-maven.autonomy.com/nexus/content/repositories/thirdparty</url>
+            <snapshots>
+                <enabled>false</enabled>
+            </snapshots>
+        </repository>
+    </repositories>
+
     <dependencies>
         <dependency>
             <groupId>com.hpe.caf.worker</groupId>
