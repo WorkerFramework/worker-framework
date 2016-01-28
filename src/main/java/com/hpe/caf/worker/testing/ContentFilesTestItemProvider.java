@@ -37,10 +37,6 @@ public abstract class ContentFilesTestItemProvider implements TestItemProvider {
         return expectedPath;
     }
 
-    /*public ContentFilesTestItemProvider(){
-        this(SettingsProvider.defaultProvider.getSetting(SettingNames.inputFolder), SettingsProvider.defaultProvider.getSetting(SettingNames.expectedFolder), "*", false);
-    }*/
-
     public ContentFilesTestItemProvider(final String inputPath, final String expectedPath, final String globPattern, final boolean includeSubFolders) {
 
         this.inputPath = inputPath;

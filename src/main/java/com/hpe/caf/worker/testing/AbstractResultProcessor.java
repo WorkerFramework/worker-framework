@@ -10,7 +10,11 @@ import java.util.Collection;
 import java.util.Map;
 
 /**
- * Created by ploch on 08/11/2015.
+ * The base implementation of {@link ResultProcessor}.
+ *
+ * @param <TResult>   the type parameter
+ * @param <TInput>    the type parameter
+ * @param <TExpected> the type parameter
  */
 public abstract class AbstractResultProcessor<TResult, TInput, TExpected> implements ResultProcessor {
 
@@ -26,6 +30,12 @@ public abstract class AbstractResultProcessor<TResult, TInput, TExpected> implem
         return codec;
     }
 
+    /**
+     * Instantiates a new Abstract result processor.
+     *
+     * @param codec       the codec
+     * @param resultClass the result class
+     */
     protected AbstractResultProcessor(final Codec codec, final Class<TResult> resultClass) {
 
         this.codec = codec;
@@ -45,6 +55,14 @@ public abstract class AbstractResultProcessor<TResult, TInput, TExpected> implem
         }
     }
 
+    /**
+     * Deserialize message to the worker-under-test result using configured {@link Codec} implementation.
+     *
+     * @param message     the message
+     * @param resultClass the result class
+     * @return the t result
+     * @throws CodecException the codec exception
+     */
     protected TResult deserializeMessage(TaskMessage message, Class<TResult> resultClass) throws CodecException {
         if(message.getTaskStatus() != TaskStatus.RESULT_SUCCESS){
             throw new AssertionError("Task status was failure.");
@@ -53,6 +71,15 @@ public abstract class AbstractResultProcessor<TResult, TInput, TExpected> implem
         return workerResult;
     }
 
+    /**
+     * Processes deserialized worker-under-test result.
+     *
+     * @param testItem the test item
+     * @param message  the message
+     * @param result   the result
+     * @return the boolean
+     * @throws Exception the exception
+     */
     protected abstract boolean processWorkerResult(TestItem<TInput, TExpected> testItem, TaskMessage message, TResult result) throws Exception;
 
     public String getInputIdentifier(TaskMessage message) throws Exception {return "";}

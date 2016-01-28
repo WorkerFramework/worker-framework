@@ -3,14 +3,16 @@ package com.hpe.caf.worker.testing;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 
 /**
- * The {@code TestItem} class contains all required data required to create
- * a worker task as well as expectations regarding the worker result for this
+ * The {@code TestItem} class represents a single test case.
+ * Contains all required data required to create a worker task
+ * as well as expectations for the worker result for this
  * particular input.
- * {@code TestItem} is a self-contained <b>test case</b>. It includes all the input
- * data and all data required to validate the result.
  *
- * @param <TInput>    the type parameter
- * @param <TExpected> the type parameter
+ * @param <TInput>    the test case input type parameter representing
+ *                    all data required to create a worker task
+ * @param <TExpected> the test case expectation type parameter
+ *                    representing all data required to validate a
+ *                    worker result (or results)
  */
 public class TestItem<TInput, TExpected> {
 

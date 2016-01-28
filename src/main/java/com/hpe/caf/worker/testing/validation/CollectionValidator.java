@@ -27,8 +27,7 @@ public class CollectionValidator extends PropertyValidator {
             Object testedValue = testedArray[i];
             Object validationValue = validationArray[i];
             PropertyValidator validator = validatorFactory.create(null, testedValue, validationValue);
-            boolean valid = validator.isValid(testedValue, validationValue);
-            if (!valid) return false;
+            validator.validate("collection-entry", testedValue, validationValue);
         }
 
         return true;

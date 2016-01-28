@@ -34,6 +34,7 @@ public abstract class OutputToFileProcessor<TResult, TInput, TExpected> extends 
         Path filePath = getSaveFilePath(testItem, message);
 
         byte[] content = getOutputContent(result, message, testItem);
+        Files.deleteIfExists(filePath);
         Files.write(filePath, content, StandardOpenOption.CREATE);
 
         return true;

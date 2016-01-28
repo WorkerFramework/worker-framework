@@ -1,7 +1,6 @@
 package com.hpe.caf.worker.testing.validation;
 
 /**
- * The {@code PropertyValidator} class.
  * Base class for element level (single property or name=value pair) validators.
  * Worker result is converted to a {@link java.util.Map} of {@code String} and {@code Object}.
  * Each property of the result will be the map entry with a name and value of the property.
@@ -11,7 +10,7 @@ package com.hpe.caf.worker.testing.validation;
 public abstract class PropertyValidator {
 
     /**
-     * Is valid.
+     * The isValid method does the actual comparison.
      * Actual comparison logic for a validator.
      *
      * @param testedPropertyValue    the tested property value
@@ -21,7 +20,7 @@ public abstract class PropertyValidator {
     protected abstract boolean isValid(Object testedPropertyValue, Object validatorPropertyValue);
 
     /**
-     * Validate property.
+     * Method {@code validate} is the entry point for the root validator.
      * Entry point for property (map entry) validation.
      * This method will throw {@link AssertionError} if validation fails.
      *

@@ -29,7 +29,8 @@ public interface TestControllerProvider {
     TestController getTestController() throws Exception;
 
     /**
-     * Gets initial test case data preparation controller.
+     * Gets initial test case data preparation controller. This controller will be used when tests are running in
+     * the data generation mode.
      *
      * @return the data preparation controller
      * @throws Exception

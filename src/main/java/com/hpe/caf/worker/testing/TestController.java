@@ -11,7 +11,18 @@ import java.util.TimerTask;
 import java.util.UUID;
 
 /**
- * The {@code TestController} class is responsible for controlling test execution.
+ * The {@code TestController} class responsible for executing test cases and controlling execution.
+ * {@code TestController} will:
+ * <ol>
+ *     <li>Load {@link TestItem} instances using {@link TestItemProvider} implementation. These are either full test cases
+ *     or stubs for generating test data
+ *     <li>Start the {@link QueueManager} which manages interactions with RabbitMQ (publishing and listening to result messages)
+ *     <li>Create a worker task for each {@code TestItem} using {@link WorkerTaskFactory} implementation
+ *     <li>Publish worker tasks to the RabbitMQ
+ * </ol>
+ *
+ * Queued messages will be processed by a worker and published to results queue (by a worker under test). Result messages
+ * are processed by implementation of {@link ResultProcessor}.
  */
 public class TestController implements Closeable {
 

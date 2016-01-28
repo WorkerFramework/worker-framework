@@ -71,6 +71,7 @@ public class PreparationResultProcessor<TWorkerTask, TWorkerResult, TInput exten
         baseFileName = FilenameUtils.normalize(baseFileName);
         baseFileName = Paths.get(baseFileName).getFileName().toString();
         Path contentFile = Paths.get(outputFolder, baseFileName + "." + extension + ".content");
+        Files.deleteIfExists(contentFile);
         Files.write(contentFile, bytes, StandardOpenOption.CREATE);
 
         return getRelativeLocation(contentFile);
