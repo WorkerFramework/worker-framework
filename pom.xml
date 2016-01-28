@@ -117,7 +117,7 @@
             <dependency>
                 <groupId>com.hpe.caf.worker</groupId>
                 <artifactId>worker-queue-rabbit</artifactId>
-                <version>10.8-SNAPSHOT</version>
+                <version>10.8</version>
             </dependency>
             <dependency>
                 <groupId>com.hpe.caf.worker</groupId>
