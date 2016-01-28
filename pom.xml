@@ -16,19 +16,16 @@
         <caf.worker-store.impl>worker-store-cs</caf.worker-store.impl>
         <caf.worker-queue.impl>worker-queue-rabbit</caf.worker-queue.impl>
         <test.data>${project.basedir}/test-data</test.data>
+        <maven.source.version>2.4</maven.source.version>
+        <maven.javadoc.version>2.10.3</maven.javadoc.version>
         <maven.failsafe.version>2.19</maven.failsafe.version>
         <maven.compiler.version>3.3</maven.compiler.version>
         <maven.resources.version>2.7</maven.resources.version>
         <docker.maven.version>0.13.6</docker.maven.version>
         <docker.dev.repo>rh7-artifactory.hpswlabs.hp.com:8443</docker.dev.repo>
         <tini.version>0.6</tini.version>
-
-        <caf.worker-store.impl>worker-store-cs</caf.worker-store.impl>
+        <marathon.client.version>0.4.9</marathon.client.version>
         <worker-example.container.name>caf/worker-example:${project.version}</worker-example.container.name>
-        <datastore.container.id>4a7848fe703a46149c3350d4c8dd55a7</datastore.container.id>
-        <worker.adminport>8081</worker.adminport>
-        <rabbitmq.node.port>5672</rabbitmq.node.port>
-        <rabbitmq.ctrl.port>15672</rabbitmq.ctrl.port>
     </properties>
 
     <dependencyManagement>
