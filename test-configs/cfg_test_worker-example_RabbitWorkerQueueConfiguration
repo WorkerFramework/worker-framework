@@ -1,7 +1,7 @@
 {
         "prefetchBuffer": 0,
-        "inputQueue": "demo-langdetect-in",
-        "retryQueue": "demo-langdetect-in",
-        "rejectedQueue": "demo-langdetect-rejected",
+        "inputQueue": "demo-example-in",
+        "retryQueue": "demo-example-in",
+        "rejectedQueue": "demo-example-rejected",
         "retryLimit": 2
 }

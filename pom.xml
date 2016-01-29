@@ -15,7 +15,7 @@
         <caf.codec.impl>codec-json</caf.codec.impl>
         <caf.worker-store.impl>worker-store-cs</caf.worker-store.impl>
         <caf.worker-queue.impl>worker-queue-rabbit</caf.worker-queue.impl>
-        <test.data>${project.basedir}/test-data</test.data>
+        <test.data>${project.basedir}/test-data/input</test.data>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
         <maven.source.version>2.4</maven.source.version>
@@ -25,9 +25,9 @@
         <maven.resources.version>2.7</maven.resources.version>
         <docker.maven.version>0.13.6</docker.maven.version>
         <docker.dev.repo>rh7-artifactory.hpswlabs.hp.com:8443</docker.dev.repo>
-        <tini.version>0.6</tini.version>
         <marathon.client.version>0.4.9</marathon.client.version>
         <worker-example.container.name>caf/worker-example:${project.version}</worker-example.container.name>
+        <datastore.container.id>0a1b8e24cc44490888b3d8d8ebba8309</datastore.container.id>
     </properties>
 
     <dependencyManagement>
@@ -42,28 +42,11 @@
         </dependencies>
     </dependencyManagement>
 
-    <repositories>
-        <repository>
-            <id>cmbg-maven-thirdparty</id>
-            <name>Cambridge Nexus 3rd Party</name>
-            <url>http://cmbg-maven.autonomy.com/nexus/content/repositories/thirdparty</url>
-            <snapshots>
-                <enabled>false</enabled>
-            </snapshots>
-        </repository>
-    </repositories>
-
     <dependencies>
         <dependency>
             <groupId>com.hpe.caf.worker</groupId>
             <artifactId>standard-worker-container</artifactId>
             <type>pom</type>
-        </dependency>
-        <dependency>
-            <groupId>com.github.krallin</groupId>
-            <artifactId>tini</artifactId>
-            <scope>runtime</scope>
-            <type>exe</type>
         </dependency>
         <dependency>
             <groupId>com.hpe.caf.worker</groupId>
@@ -102,23 +85,8 @@
                         <CAF_APPNAME>test/worker-example</CAF_APPNAME>
                         <CAF_CONFIG_PATH>${project.basedir}/test-configs</CAF_CONFIG_PATH>
                     </environmentVariables>
-                    <includes>
-                        <include>**/*IT.java</include>
-                    </includes>
-                    <excludes>
-                        <exclude>**/*Test.java</exclude>
-                    </excludes>
                 </configuration>
-                <executions>
-                    <execution>
-                        <goals>
-                            <goal>integration-test</goal>
-                            <goal>verify</goal>
-                        </goals>
-                    </execution>
-                </executions>
             </plugin>
-
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-compiler-plugin</artifactId>
@@ -132,7 +100,6 @@
                     </execution>
                 </executions>
             </plugin>
-
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-resources-plugin</artifactId>
@@ -146,7 +113,6 @@
                     </execution>
                 </executions>
             </plugin>
-
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-dependency-plugin</artifactId>
@@ -175,45 +141,6 @@
                     </execution>
                 </executions>
             </plugin>
-
-
-
-            <plugin>
-                <groupId>org.codehaus.mojo</groupId>
-                <artifactId>build-helper-maven-plugin</artifactId>
-                <version>1.9.1</version>
-                <executions>
-                    <execution>
-                        <id>add-integration-test-source-as-test-sources</id>
-                        <phase>generate-test-sources</phase>
-                        <goals>
-                            <goal>add-test-source</goal>
-                        </goals>
-                        <configuration>
-                            <sources>
-                                <source>src/integration-test/java</source>
-                            </sources>
-                        </configuration>
-                    </execution>
-                    <execution>
-                        <id>add-integration-test-resource</id>
-                        <phase>generate-resources</phase>
-                        <goals>
-                            <goal>add-test-resource</goal>
-                        </goals>
-                        <configuration>
-                            <resources>
-                                <resource>
-                                    <directory>src/integration-test/resources</directory>
-                                </resource>
-                            </resources>
-                        </configuration>
-                    </execution>
-                </executions>
-            </plugin>
-
-
-
             <plugin>
                 <groupId>org.jolokia</groupId>
                 <artifactId>docker-maven-plugin</artifactId>
@@ -229,21 +156,6 @@
                             <registry>${docker.dev.repo}</registry>
                             <image>example-worker</image>
                         </configuration>
-                    </execution>
-                    <execution>
-                        <id>start</id>
-                        <phase>pre-integration-test</phase>
-                        <goals>
-                            <goal>build</goal>
-                            <goal>start</goal>
-                        </goals>
-                    </execution>
-                    <execution>
-                        <id>stop</id>
-                        <phase>post-integration-test</phase>
-                        <goals>
-                            <goal>stop</goal>
-                        </goals>
                     </execution>
                 </executions>
                 <configuration>
@@ -272,7 +184,6 @@
                                 </log>
                             </run>
                         </image>
-
                         <image>
                             <alias>config</alias>
                             <name>${project.artifactId}-test-config:${project.version}</name>
@@ -314,35 +225,25 @@
                                 </labels>
                                 <entryPoint>
                                     <exec>
-                                        <args>/maven/tini-${tini.version}.exe</args>
-                                        <args>-v</args>
-                                        <args>--</args>
                                         <args>/maven/worker.sh</args>
                                     </exec>
                                 </entryPoint>
+                                <!--  <cmd>sleep 500000</cmd>-->
                                 <assembly>
                                     <mode>tar</mode>
                                     <inline>
                                         <fileSets>
                                             <fileSet>
-                                                <directory>target/dependency/UnlimitedJCEPolicyJDK8</directory>
-                                                <outputDirectory>/usr/java/default/jre/lib/security/
-                                                </outputDirectory>
-                                                <includes>
-                                                    <include>*.jar</include>
-                                                </includes>
-                                            </fileSet>
-                                            <fileSet>
                                                 <lineEnding>unix</lineEnding>
                                                 <includes>
-                                                    <include>*.sh</include>
+                                                    <include>worker.sh</include>
                                                 </includes>
                                                 <fileMode>0755</fileMode>
                                             </fileSet>
                                             <fileSet>
                                                 <lineEnding>unix</lineEnding>
                                                 <includes>
-                                                    <include>*.yaml</include>
+                                                    <include>worker.yaml</include>
                                                 </includes>
                                             </fileSet>
                                         </fileSets>
@@ -350,16 +251,6 @@
                                             <dependencySet>
                                                 <useProjectArtifact>false</useProjectArtifact>
                                                 <scope>runtime</scope>
-                                                <excludes>
-                                                    <exclude>com.github.krallin:tini</exclude>
-                                                </excludes>
-                                            </dependencySet>
-                                            <dependencySet>
-                                                <useProjectArtifact>false</useProjectArtifact>
-                                                <fileMode>0755</fileMode>
-                                                <includes>
-                                                    <include>com.github.krallin:tini</include>
-                                                </includes>
                                             </dependencySet>
                                         </dependencySets>
                                     </inline>
@@ -388,7 +279,7 @@
                                     <http>
                                         <url>http://${docker.host.address}:${worker.adminport}</url>
                                     </http>
-                                    <time>12000</time>
+                                    <time>120000</time>
                                     <shutdown>500</shutdown>
                                 </wait>
                             </run>
@@ -396,8 +287,109 @@
                     </images>
                 </configuration>
             </plugin>
+
         </plugins>
     </build>
+
+    <profiles>
+        <profile>
+            <id>use-default-fixed-ports</id>
+            <properties>
+                <worker.adminport>8081</worker.adminport>
+                <rabbitmq.node.port>5672</rabbitmq.node.port>
+                <rabbitmq.ctrl.port>15672</rabbitmq.ctrl.port>
+            </properties>
+        </profile>
+        <profile>
+            <id>integration-test</id>
+            <activation>
+                <property>
+                    <name>CAF_BUILD_TYPE</name>
+                    <value>official</value>
+                </property>
+            </activation>
+            <build>
+                <plugins>
+                    <plugin>
+                        <groupId>org.codehaus.mojo</groupId>
+                        <artifactId>build-helper-maven-plugin</artifactId>
+                        <version>1.9.1</version>
+                        <executions>
+                            <execution>
+                                <id>add-integration-test-source-as-test-sources</id>
+                                <phase>generate-test-sources</phase>
+                                <goals>
+                                    <goal>add-test-source</goal>
+                                </goals>
+                                <configuration>
+                                    <sources>
+                                        <source>src/test/java</source>
+                                    </sources>
+                                </configuration>
+                            </execution>
+                            <execution>
+                                <id>add-integration-test-resource</id>
+                                <phase>generate-resources</phase>
+                                <goals>
+                                    <goal>add-test-resource</goal>
+                                </goals>
+                                <configuration>
+                                    <resources>
+                                        <resource>
+                                            <directory>test-data/input</directory>
+                                        </resource>
+                                    </resources>
+                                </configuration>
+                            </execution>
+                        </executions>
+                    </plugin>
+                    <plugin>
+                        <groupId>org.apache.maven.plugins</groupId>
+                        <artifactId>maven-failsafe-plugin</artifactId>
+                        <version>${maven.failsafe.version}</version>
+                        <configuration>
+                            <includes>
+                                <include>**/*IT.java</include>
+                            </includes>
+                            <excludes>
+                                <exclude>**/*Test.java</exclude>
+                            </excludes>
+                        </configuration>
+                        <executions>
+                            <execution>
+                                <goals>
+                                    <goal>integration-test</goal>
+                                    <goal>verify</goal>
+                                </goals>
+                            </execution>
+                        </executions>
+                    </plugin>
+                    <plugin>
+                        <groupId>org.jolokia</groupId>
+                        <artifactId>docker-maven-plugin</artifactId>
+                        <version>${docker.maven.version}</version>
+                        <executions>
+                            <execution>
+                                <id>start</id>
+                                <phase>pre-integration-test</phase>
+                                <goals>
+                                    <goal>build</goal>
+                                    <goal>start</goal>
+                                </goals>
+                            </execution>
+                            <execution>
+                                <id>stop</id>
+                                <phase>post-integration-test</phase>
+                                <goals>
+                                    <goal>stop</goal>
+                                </goals>
+                            </execution>
+                        </executions>
+                    </plugin>
+                </plugins>
+            </build>
+        </profile>
+    </profiles>
 
     <distributionManagement>
         <repository>
