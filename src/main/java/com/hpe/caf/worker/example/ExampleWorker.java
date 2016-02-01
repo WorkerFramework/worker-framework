@@ -27,7 +27,7 @@ public class ExampleWorker extends AbstractWorker<ExampleWorkerTask, ExampleWork
     private static final Logger LOG = LoggerFactory.getLogger(ExampleWorker.class);
 
     /**
-     * datastore used to store the result/read the reference
+     * Datastore used to store the result/read the reference
      */
     private final DataStore dataStore;
 
@@ -42,10 +42,12 @@ public class ExampleWorker extends AbstractWorker<ExampleWorkerTask, ExampleWork
         this.resultSizeThreshold = resultSizeThreshold;
     }
 
+    @Override
     public String getWorkerIdentifier() {
         return ExampleWorkerConstants.WORKER_NAME;
     }
 
+    @Override
     public int getWorkerApiVersion() {
         return ExampleWorkerConstants.WORKER_API_VER;
     }
@@ -119,9 +121,7 @@ public class ExampleWorker extends AbstractWorker<ExampleWorkerTask, ExampleWork
     }
 
     /**
-     * if an error in the worker occurs, create a new ExampleWorkerREsult with the corresponding worker failure status
-     * @param status
-     * @return
+     * If an error in the worker occurs, create a new ExampleWorkerREsult with the corresponding worker failure status
      */
     private ExampleWorkerResult createErrorResult(ExampleWorkerStatus status){
         ExampleWorkerResult workerResult = new ExampleWorkerResult();
@@ -149,5 +149,4 @@ public class ExampleWorker extends AbstractWorker<ExampleWorkerTask, ExampleWork
         }
         return refData;
     }
-
 }

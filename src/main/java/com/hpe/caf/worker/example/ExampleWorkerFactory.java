@@ -23,7 +23,6 @@ public class ExampleWorkerFactory extends AbstractWorkerFactory<ExampleWorkerCon
 //        }
     }
 
-
     @Override
     protected String getWorkerName() {
         return ExampleWorkerConstants.WORKER_NAME;
@@ -35,7 +34,7 @@ public class ExampleWorkerFactory extends AbstractWorkerFactory<ExampleWorkerCon
     }
 
     /**
-     * create a worker given a task, using DataStore, ConfiguratonSource and Codec passed in constructor.
+     * Create a worker given a task, using DataStore, ConfiguratonSource and Codec passed in constructor.
      * @param task
      * @return ExampleWorker
      * @throws InvalidTaskException
@@ -56,7 +55,7 @@ public class ExampleWorkerFactory extends AbstractWorkerFactory<ExampleWorkerCon
     }
 
     /**
-     * ExampleWorkerFactory is responsible for calling the healthcheck to view the status of the worker and this is displayed on Marathon.
+     * ExampleWorkerFactory is responsible for calling the health-check to view the status of the worker and this is displayed on Marathon.
      * @return
      */
     @Override
@@ -64,5 +63,4 @@ public class ExampleWorkerFactory extends AbstractWorkerFactory<ExampleWorkerCon
         ExampleWorkerHealthCheck healthCheck = new ExampleWorkerHealthCheck();
         return healthCheck.healthCheck();
     }
-
 }
