@@ -8,8 +8,8 @@ inputData:
     sourceData:
       reference: "0a1b8e24cc44490888b3d8d8ebba8309/8365e96395f44587abc6d9fe5421ea95"
       data: null
-    datastorePartialReference: null
-    action: "reverse"
+    datastorePartialReference: "0a1b8e24cc44490888b3d8d8ebba8309"
+    action: "REVERSE"
 expectedOutputData:
   expectedContentFile: "test1.txt.result.content"
   expectedSimilarityPercentage: 80
@@ -18,4 +18,4 @@ expectedOutputData:
     workerStatus: "COMPLETED"
     textData:
       reference: null
-      data: ""
+      data: null

@@ -8,6 +8,10 @@ import org.junit.Test;
  */
 public class ExampleWorkerAcceptanceIT {
 
+    /**
+     * Run integration tests using the testing framework.
+     * @throws Exception
+     */
     @Test
     public void testWorker() throws Exception {
         TestRunner.runTests(new ExampleTestControllerProvider());
