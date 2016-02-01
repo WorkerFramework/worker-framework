@@ -9,9 +9,7 @@ public class ExampleWorkerConstants {
 
     public static final int WORKER_API_VER = 1;
 
-    private ExampleWorkerConstants(){
-
+    private ExampleWorkerConstants() {
     }
-
 
 }

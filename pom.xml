@@ -8,6 +8,24 @@
     <artifactId>worker-example-shared</artifactId>
     <version>1.0-SNAPSHOT</version>
 
+    <properties>
+        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+        <maven.compiler.source>1.8</maven.compiler.source>
+        <maven.compiler.target>1.8</maven.compiler.target>
+    </properties>
+
+    <dependencyManagement>
+        <dependencies>
+            <dependency>
+                <groupId>com.hpe.caf.worker</groupId>
+                <artifactId>worker-framework</artifactId>
+                <version>10.2</version>
+                <type>pom</type>
+                <scope>import</scope>
+            </dependency>
+        </dependencies>
+    </dependencyManagement>
+
     <dependencies>
         <dependency>
             <groupId>com.hpe.caf.util</groupId>
@@ -22,18 +40,6 @@
             <artifactId>caf-api</artifactId>
         </dependency>
     </dependencies>
-
-    <dependencyManagement>
-        <dependencies>
-            <dependency>
-                <groupId>com.hpe.caf.worker</groupId>
-                <artifactId>worker-framework</artifactId>
-                <version>10.2</version>
-                <type>pom</type>
-                <scope>import</scope>
-            </dependency>
-        </dependencies>
-    </dependencyManagement>
 
     <distributionManagement>
         <repository>
@@ -52,4 +58,5 @@
         <system>hudson</system>
         <url>http://cafbuilder.hpswlabs.hp.com:8080/job/worker-example-shared/</url>
     </ciManagement>
+
 </project>
