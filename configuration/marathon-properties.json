@@ -40,7 +40,7 @@
 	"example-healthcheck-intervalseconds":"120",
 	"example-healthcheck-maxconsecutivefailures":"5",
 	"example-healthcheck-timeoutseconds":"20",
-	"example-version":"1.0",
+	"example-version":"1.0-SNAPSHOT",
 	"example-threads": "1",
 	"example-resultSizeThreshold": "1024"
 }
