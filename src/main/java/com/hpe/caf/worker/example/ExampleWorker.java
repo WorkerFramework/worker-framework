@@ -21,8 +21,19 @@ import java.util.Objects;
  */
 public class ExampleWorker extends AbstractWorker<ExampleWorkerTask, ExampleWorkerResult> {
 
+    /**
+     * Logger for logging purposes
+     */
     private static final Logger LOG = LoggerFactory.getLogger(ExampleWorker.class);
+
+    /**
+     * datastore used to store the result/read the reference
+     */
     private final DataStore dataStore;
+
+    /**
+     * Minimum size that the result should be
+     */
     private final long resultSizeThreshold;
 
     public ExampleWorker(final ExampleWorkerTask task, final DataStore dataStore, final String outputQueue, final Codec codec, final long resultSizeThreshold) throws InvalidTaskException {
@@ -59,52 +70,73 @@ public class ExampleWorker extends AbstractWorker<ExampleWorkerTask, ExampleWork
         LOG.info("Starting work");
         checkIfInterrupted();
 
+        //DataSource and serialization codec
         DataSource source = new DataStoreSource(dataStore, getCodec());
+
         ReferencedData data = getTask().getSourceData();
+
         try {
+            //Acquire the inputstream data from the referenced data in the datasource
             InputStream textStream = data.acquire(source);
 
+            //convert inputstream to a string
             String original = IOUtils.toString(textStream, StandardCharsets.UTF_8);
             String result = "";
 
-            /** Simple way to choose which action should be used to process the text. **/
-            if(getTask().getAction().equals("reverse")){
+            //manipulate the text by the method depicted by the task action
+            if(getTask().getAction() == ExampleWorkerAction.REVERSE){
                 for(int i=original.length()-1; i>=0; i--){
                     result = result + original.charAt(i);
                 }
-            } else if(getTask().getAction().equals("capitalise")){
+            } else if(getTask().getAction() == ExampleWorkerAction.CAPITALISE){
                 result = original.toUpperCase();
-            } else if(getTask().getAction().equals("verbatim")){
+            } else if(getTask().getAction() == ExampleWorkerAction.VERBATIM){
                 result = original;
             }
 
-            /**write to datastore using the wrap method below**/
+            //write to the datastore using the wrapAsReferencedData method below
             ReferencedData textDataSource = wrapAsReferencedData(result.getBytes());
 
-            /**create the worker result with the result text and COMPLETED worker status.**/
+            //create the worker result with the resultant referenced data text data, set worker status complete
             ExampleWorkerResult workerResult = new ExampleWorkerResult();
             workerResult.setWorkerStatus(ExampleWorkerStatus.COMPLETED);
             workerResult.setTextData(textDataSource);
 
             return workerResult;
         } catch(DataSourceException e) {
+            //DataSourceException thrown when retrieving data from the datastore
             LOG.warn("Error acquiring data", e);
             return createErrorResult(ExampleWorkerStatus.SOURCE_FAILED);
         } catch (DataStoreException e) {
+            //DataStoreException thrown when storing data in the datastore
             LOG.warn("Error storing result", e);
             return createErrorResult(ExampleWorkerStatus.STORE_FAILED);
         } catch (IOException e) {
+            //IOException thrown if the conversion from InputStream to String fails
             LOG.warn("Error converting input stream to text", e);
             return createErrorResult(ExampleWorkerStatus.WORKER_EXAMPLE_FAILED);
         }
     }
 
+    /**
+     * if an error in the worker occurs, create a new ExampleWorkerREsult with the corresponding worker failure status
+     * @param status
+     * @return
+     */
     private ExampleWorkerResult createErrorResult(ExampleWorkerStatus status){
         ExampleWorkerResult workerResult = new ExampleWorkerResult();
         workerResult.setWorkerStatus(status);
         return workerResult;
     }
 
+    /**
+     * If the length of the data is greater than the result size threshold, store the data in the datastore. Otherwise,
+     * wrap as a byte array.
+     * @param data
+     * @return
+     * @throws DataSourceException
+     * @throws DataStoreException
+     */
     private ReferencedData wrapAsReferencedData(final byte[] data) throws DataSourceException, DataStoreException {
         ReferencedData refData;
         if (data.length > resultSizeThreshold) {

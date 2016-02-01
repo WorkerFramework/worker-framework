@@ -7,6 +7,7 @@ import com.hpe.caf.codec.JsonCodec;
 import com.hpe.caf.util.ref.DataSource;
 import com.hpe.caf.util.ref.ReferencedData;
 import com.hpe.caf.worker.example.ExampleWorker;
+import com.hpe.caf.worker.example.ExampleWorkerAction;
 import com.hpe.caf.worker.example.ExampleWorkerResult;
 import com.hpe.caf.worker.example.ExampleWorkerTask;
 import org.apache.commons.io.IOUtils;
@@ -25,11 +26,8 @@ import java.io.StringWriter;
  */
 @RunWith(MockitoJUnitRunner.class)
 public class ExampleWorkerTest {
-
-
-
     /**
-     * JUnit test for testing the worker.
+     * JUnit test for testing the worker's reverse action.
      * Create a referenced data object,
      * Create a worker task using the referenced data object,
      * Create a worker using the factory provider,
@@ -47,7 +45,7 @@ public class ExampleWorkerTest {
         DataSource mockSource = new DataStoreSource(mockDataStore, codec);
 
         //Create the worker subject to testing
-        ExampleWorker worker = new ExampleWorker(createMockTask("reverse"), mockDataStore, "mockQueue", codec, 1024);
+        ExampleWorker worker = new ExampleWorker(createMockTask(ExampleWorkerAction.REVERSE), mockDataStore, "mockQueue", codec, 1024);
 
         //Test
         WorkerResponse response = worker.doWork();
@@ -61,6 +59,13 @@ public class ExampleWorkerTest {
         Assert.assertTrue(resultText.startsWith("etats fo yraterceS"));
     }
 
+    /**
+     * JUnit test for testing the worker's capitalise action.
+     * Create a referenced data object,
+     * Create a worker task using the referenced data object,
+     * Create a worker using the factory provider,
+     * Compare the result to the expected result.
+     */
     @Test
     public void testExampleWorkerCapitalise() throws Exception {
         //Codec
@@ -73,7 +78,7 @@ public class ExampleWorkerTest {
         DataSource mockSource = new DataStoreSource(mockDataStore, codec);
 
         //Create the worker subject to testing
-        ExampleWorker worker = new ExampleWorker(createMockTask("capitalise"), mockDataStore, "mockQueue", codec, 1024);
+        ExampleWorker worker = new ExampleWorker(createMockTask(ExampleWorkerAction.CAPITALISE), mockDataStore, "mockQueue", codec, 1024);
 
         //Test
         WorkerResponse response = worker.doWork();
@@ -87,7 +92,13 @@ public class ExampleWorkerTest {
         Assert.assertTrue(resultText.startsWith("SECRETARY OF STATE"));
     }
 
-    private ExampleWorkerTask createMockTask(String action) throws IOException {
+    /**
+     * create a mock task using a mocked referenced data object
+     * @param action
+     * @return
+     * @throws IOException
+     */
+    private ExampleWorkerTask createMockTask(ExampleWorkerAction action) throws IOException {
         String text = "Secretary of state";
         ReferencedData mockReferencedData = ReferencedData.getWrappedData(text.getBytes());
         ExampleWorkerTask task = new ExampleWorkerTask();
@@ -96,6 +107,13 @@ public class ExampleWorkerTest {
         return task;
     }
 
+    /**
+     * Convert the inputstream acquired from the datastore to a string
+     * @param stream
+     * @param encoding
+     * @return
+     * @throws IOException
+     */
     private String streamToString(InputStream stream, String encoding) throws IOException {
         StringWriter writer = new StringWriter();
         IOUtils.copy(stream, writer, encoding);

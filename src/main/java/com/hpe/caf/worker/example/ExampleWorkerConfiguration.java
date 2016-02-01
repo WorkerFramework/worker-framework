@@ -6,14 +6,20 @@ import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Size;
 
 /**
- * Created by smitcona on 22/01/2016.
+ * Configuration read in from test-configs > cfg_test_worker-example-ExampleWorkerConfiguration
  */
 public class ExampleWorkerConfiguration {
 
+    /**
+     * Output queue to return results to RabbitMQ
+     */
     @NotNull
     @Size(min = 1)
     private String outputQueue;
 
+    /**
+     * Number of threads to use in the worker
+     */
     @Min(1)
     @Max(20)
     private int threads;
