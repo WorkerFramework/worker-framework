@@ -5,7 +5,7 @@ import com.hpe.caf.util.ref.ReferencedData;
 import javax.validation.constraints.NotNull;
 
 /**
- * Created by smitcona on 22/01/2016.
+ * Worker task supplied to the worker as the main input communication.
  */
 public class ExampleWorkerTask {
     /**
@@ -14,18 +14,18 @@ public class ExampleWorkerTask {
     @NotNull
     private ReferencedData sourceData;
 
-
+    /**
+     * Reference to the sourceData in the datastore, used to store data in the datastore.
+     */
     private String datastorePartialReference;
 
     /**
-     * String to represent which action the worker will perform.
+     * Enum to represent which action the worker will perform.
      */
-    private String action;
+    private ExampleWorkerAction action;
 
-    /**
-     * Empty constructor for serialisation purposes.
-     */
     public ExampleWorkerTask(){
+        //empty constructor for serialisation.
 
     }
 
@@ -45,11 +45,11 @@ public class ExampleWorkerTask {
         this.datastorePartialReference = datastorePartialReference;
     }
 
-    public String getAction() {
+    public ExampleWorkerAction getAction() {
         return action;
     }
 
-    public void setAction(String action) {
+    public void setAction(ExampleWorkerAction action) {
         this.action = action;
     }
 }

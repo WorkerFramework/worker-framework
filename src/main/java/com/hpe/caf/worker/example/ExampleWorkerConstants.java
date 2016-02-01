@@ -1,7 +1,7 @@
 package com.hpe.caf.worker.example;
 
 /**
- * Created by smitcona on 22/01/2016.
+ * Example worker constants including API version and the name of the worker.
  */
 public class ExampleWorkerConstants {
 
@@ -9,7 +9,7 @@ public class ExampleWorkerConstants {
 
     public static final int WORKER_API_VER = 1;
 
-    public ExampleWorkerConstants(){
+    private ExampleWorkerConstants(){
 
     }
 

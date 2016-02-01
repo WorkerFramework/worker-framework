@@ -1,7 +1,7 @@
 package com.hpe.caf.worker.example;
 
 /**
- * Created by smitcona on 22/01/2016.
+ * Worker status enum to represent status of the worker result.
  */
 public enum ExampleWorkerStatus {
 

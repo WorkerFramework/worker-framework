@@ -5,7 +5,7 @@ import com.hpe.caf.util.ref.ReferencedData;
 import javax.validation.constraints.NotNull;
 
 /**
- * Created by smitcona on 22/01/2016.
+ * Result class of the worker, containing a worker status and a ReferencedData object for textData.
  */
 public class ExampleWorkerResult {
     /**
@@ -21,6 +21,7 @@ public class ExampleWorkerResult {
 
 
     public ExampleWorkerResult() {
+        //empty constructor for serialisation.
     }
 
     public ExampleWorkerResult(ExampleWorkerStatus status){
