@@ -176,7 +176,7 @@
                                     <http>
                                         <url>http://${docker.host.address}:${rabbitmq.ctrl.port}</url>
                                     </http>
-                                    <time>12000</time>
+                                    <time>120000</time>
                                     <shutdown>500</shutdown>
                                 </wait>
                                 <log>
