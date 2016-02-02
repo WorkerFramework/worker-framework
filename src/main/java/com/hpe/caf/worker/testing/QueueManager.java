@@ -26,15 +26,24 @@ public class QueueManager implements Closeable {
     private String consumerTag;
 
     private Channel pubChan;
+    private Channel debugPubChan;
     private Channel conChan;
+    private Channel debugConChan;
 
     private DefaultRabbitConsumer rabbitConsumer;
     private Connection connection;
 
-    public QueueManager(QueueServices queueServices, WorkerServices workerServices) {
+    private String debugInputQueueName;
+    private String debugOutputQueueName;
+    private boolean debugEnabled;
+
+    public QueueManager(QueueServices queueServices, WorkerServices workerServices, boolean debugEnabled) {
 
         this.queueServices = queueServices;
         this.workerServices = workerServices;
+        this.debugInputQueueName = this.queueServices.getWorkerInputQueue() + "-debug";
+        this.debugOutputQueueName = this.queueServices.getWorkerResultsQueue() + "-debug";
+        this.debugEnabled = debugEnabled;
     }
 
     public Thread start(ResultHandler resultHandler) throws IOException {
@@ -50,6 +59,15 @@ public class QueueManager implements Closeable {
         pubChan.queuePurge(queueServices.getWorkerInputQueue());
         conChan.queuePurge(queueServices.getWorkerResultsQueue());
 
+        if (debugEnabled) {
+            debugPubChan = connection.createChannel();
+            debugConChan = connection.createChannel();
+            RabbitUtil.declareWorkerQueue(debugPubChan, debugInputQueueName);
+            RabbitUtil.declareWorkerQueue(debugConChan, debugOutputQueueName);
+            debugPubChan.queuePurge(debugInputQueueName);
+            debugConChan.queuePurge(debugOutputQueueName);
+        }
+
         BlockingQueue<Event<QueueConsumer>> conEvents = new LinkedBlockingQueue<>();
 
         SimpleQueueConsumerImpl queueConsumer = new SimpleQueueConsumerImpl(conEvents, conChan, resultHandler, workerServices.getCodec());
@@ -62,25 +80,35 @@ public class QueueManager implements Closeable {
     }
 
     public void publish(TaskMessage message) throws CodecException, IOException {
-
         byte[] data = workerServices.getCodec().serialise(message);
         pubChan.basicPublish("", queueServices.getWorkerInputQueue(), MessageProperties.TEXT_PLAIN, data);
+        if (debugEnabled) {
+            debugPubChan.basicPublish("", debugInputQueueName, MessageProperties.TEXT_PLAIN, data);
+        }
+    }
 
+    public void publishDebugOutput(TaskMessage message) throws CodecException, IOException {
+        byte[] data = workerServices.getCodec().serialise(message);
+        debugConChan.basicPublish("", debugOutputQueueName, MessageProperties.TEXT_PLAIN, data);
+    }
+
+    public boolean isDebugEnabled() {
+        return debugEnabled;
     }
 
     @Override
     public void close() throws IOException {
-        if ( consumerTag != null ) {
+        if (consumerTag != null) {
             try {
                 conChan.basicCancel(consumerTag);
             } catch (IOException e) {
                 e.printStackTrace();
             }
         }
-        if ( rabbitConsumer != null ) {
+        if (rabbitConsumer != null) {
             rabbitConsumer.shutdown();
         }
-        if ( conChan != null ) {
+        if (conChan != null) {
             try {
                 System.out.println("Closing queue connection");
                 conChan.close();
@@ -88,14 +116,14 @@ public class QueueManager implements Closeable {
                 e.printStackTrace();
             }
         }
-        if ( pubChan != null ) {
+        if (pubChan != null) {
             try {
                 pubChan.close();
             } catch (IOException | TimeoutException e) {
                 e.printStackTrace();
             }
         }
-        if ( connection != null ) {
+        if (connection != null) {
             try {
                 connection.close();
             } catch (IOException e) {
