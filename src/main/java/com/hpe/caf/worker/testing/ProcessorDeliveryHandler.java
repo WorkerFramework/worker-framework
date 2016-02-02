@@ -1,7 +1,10 @@
 package com.hpe.caf.worker.testing;
 
 import com.google.common.base.Strings;
+import com.hpe.caf.api.CodecException;
 import com.hpe.caf.api.worker.TaskMessage;
+
+import java.io.IOException;
 
 /**
  * Created by ploch on 08/11/2015.
@@ -11,16 +14,28 @@ public class ProcessorDeliveryHandler implements ResultHandler {
     private final TestItemStore itemStore;
     private final ResultProcessor resultProcessor;
     private ExecutionContext context;
+    private QueueManager queueManager;
 
-    public ProcessorDeliveryHandler(ResultProcessor resultProcessor, ExecutionContext context) {
+    public ProcessorDeliveryHandler(ResultProcessor resultProcessor, ExecutionContext context, QueueManager queueManager) {
 
         this.itemStore = context.getItemStore();
         this.resultProcessor = resultProcessor;
         this.context = context;
+        this.queueManager = queueManager;
     }
 
     @Override
     public void handleResult(TaskMessage taskMessage) {
+
+        if(this.queueManager.isDebugEnabled()) {
+            try {
+                queueManager.publishDebugOutput(taskMessage);
+            } catch (CodecException e) {
+                e.printStackTrace();
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }
 
         System.out.println("New delivery: task id: " + taskMessage.getTaskId() + ", status: " + taskMessage.getTaskStatus());
 
@@ -49,8 +64,7 @@ public class ProcessorDeliveryHandler implements ResultHandler {
                 context.failed("Item " + testItem.getTag() + ": Result processor didn't return success. Result processor name: " + resultProcessor.getClass().getName());
                 testItem.setCompleted(true);
             }
-        }
-        catch (Throwable e) {
+        } catch (Throwable e) {
             e.printStackTrace();
             context.failed(e.getMessage());
         }

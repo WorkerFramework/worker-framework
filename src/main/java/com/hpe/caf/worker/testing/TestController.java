@@ -56,6 +56,7 @@ public class TestController implements Closeable {
      * <li>Stores test case data in {@link TestItemStore} so they can be retrieved when worker finishes
      * task processing
      * </ul>
+     *
      * @throws Exception the exception
      */
     public void runTests() throws Exception {
@@ -64,7 +65,7 @@ public class TestController implements Closeable {
 
         Collection<TestItem> items = itemProvider.getItems();
 
-        if (items.size() == 0){
+        if (items.size() == 0) {
             throw new Exception("No test items provided! Exiting.");
         }
 
@@ -80,7 +81,7 @@ public class TestController implements Closeable {
                 context.getFinishedSignal().doNotify(TestResult.createFailed("Tests timed out. Failed."));
             }
         }, timeout);
-        thread = queueManager.start(new ProcessorDeliveryHandler(resultProcessor, context));
+        thread = queueManager.start(new ProcessorDeliveryHandler(resultProcessor, context, queueManager));
 
         TaskMessageFactory messageFactory = new TaskMessageFactory(workerServices.getCodec(), taskFactory.getWorkerName(), taskFactory.getApiVersion());
 
@@ -115,8 +116,7 @@ public class TestController implements Closeable {
     public void close() throws IOException {
         try {
             queueManager.close();
-        }
-        catch (Throwable e) {
+        } catch (Throwable e) {
             e.printStackTrace();
         }
     }
