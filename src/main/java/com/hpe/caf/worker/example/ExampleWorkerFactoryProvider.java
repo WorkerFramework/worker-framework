@@ -8,17 +8,17 @@ import com.hpe.caf.api.worker.WorkerFactory;
 import com.hpe.caf.api.worker.WorkerFactoryProvider;
 
 /**
- * Created by smitcona on 22/01/2016.
+ * Example worker factory provider implementation.
  */
 public class ExampleWorkerFactoryProvider implements WorkerFactoryProvider {
 
     /**
      * Get the worker factory implementation.
-     * Called by ModuleLoader providing the ExampleWorkerFactoryProvider is registered by the service file in META-INF > services
+     * Called by the ModuleLoader. ExampleWorkerFactoryProvider must be registered by the service file in resources/META-INF/services.
      * @param configSource
      * @param dataStore
      * @param codec
-     * @return
+     * @return ExampleWorkerFactory
      * @throws WorkerException
      */
     @Override

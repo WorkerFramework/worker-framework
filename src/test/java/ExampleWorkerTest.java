@@ -22,10 +22,11 @@ import java.io.InputStream;
 import java.io.StringWriter;
 
 /**
- * Created by smitcona on 26/01/2016.
+ * JUnit test to verify the worker correctly performs the desired action.
  */
 @RunWith(MockitoJUnitRunner.class)
 public class ExampleWorkerTest {
+
     /**
      * JUnit test for testing the worker's reverse action.
      * Create a referenced data object,
@@ -93,9 +94,9 @@ public class ExampleWorkerTest {
     }
 
     /**
-     * create a mock task using a mocked referenced data object
+     * Private method to create a mock task using a mocked referenced data object.
      * @param action
-     * @return
+     * @return ExampleWorkerTask
      * @throws IOException
      */
     private ExampleWorkerTask createMockTask(ExampleWorkerAction action) throws IOException {
@@ -108,10 +109,10 @@ public class ExampleWorkerTest {
     }
 
     /**
-     * Convert the inputstream acquired from the datastore to a string
+     * Private method to convert the InputStream acquired from the DataStore to a string.
      * @param stream
      * @param encoding
-     * @return
+     * @return String
      * @throws IOException
      */
     private String streamToString(InputStream stream, String encoding) throws IOException {

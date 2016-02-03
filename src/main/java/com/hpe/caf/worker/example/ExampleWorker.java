@@ -22,17 +22,17 @@ import java.util.Objects;
 public class ExampleWorker extends AbstractWorker<ExampleWorkerTask, ExampleWorkerResult> {
 
     /**
-     * Logger for logging purposes
+     * Logger for logging purposes.
      */
     private static final Logger LOG = LoggerFactory.getLogger(ExampleWorker.class);
 
     /**
-     * Datastore used to store the result/read the reference
+     * Datastore used to store the result/read the reference.
      */
     private final DataStore dataStore;
 
     /**
-     * Minimum size that the result should be
+     * Minimum size of result which should be wrapped as a datastore reference.
      */
     private final long resultSizeThreshold;
 
@@ -54,8 +54,8 @@ public class ExampleWorker extends AbstractWorker<ExampleWorkerTask, ExampleWork
 
     /**
      * Trigger processing of the source file and determine a response.
-     * @return  a response from the operation
-     * @throws InterruptedException if the task is interrupted
+     * @return WorkerResponse - a response from the operation.
+     * @throws InterruptedException - if the task is interrupted.
      * @throws TaskRejectedException
      */
     @Override
@@ -68,11 +68,16 @@ public class ExampleWorker extends AbstractWorker<ExampleWorkerTask, ExampleWork
         }
     }
 
+    /**
+     * Private method to process the ReferencedData
+     * @return ExampleWorkerResult
+     * @throws InterruptedException
+     */
     private ExampleWorkerResult processFile() throws InterruptedException {
         LOG.info("Starting work");
         checkIfInterrupted();
 
-        //DataSource and serialization codec
+        //Creation of DataSource using dataStore from constructor and serialization codec
         DataSource source = new DataStoreSource(dataStore, getCodec());
 
         ReferencedData data = getTask().getSourceData();
@@ -133,18 +138,18 @@ public class ExampleWorker extends AbstractWorker<ExampleWorkerTask, ExampleWork
      * If the length of the data is greater than the result size threshold, store the data in the datastore. Otherwise,
      * wrap as a byte array.
      * @param data
-     * @return
+     * @return ReferencedData
      * @throws DataSourceException
      * @throws DataStoreException
      */
     private ReferencedData wrapAsReferencedData(final byte[] data) throws DataSourceException, DataStoreException {
         ReferencedData refData;
         if (data.length > resultSizeThreshold) {
-            /** Wrap as datastore reference. **/
+            // Wrap as datastore reference.
             String ref = dataStore.store(new ByteArrayInputStream(data), getTask().getDatastorePartialReference());
             refData = ReferencedData.getReferencedData(ref);
         } else {
-            /**Wrap as byte array. **/
+            //Wrap as byte array.
             refData = ReferencedData.getWrappedData(data);
         }
         return refData;

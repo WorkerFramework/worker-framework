@@ -10,17 +10,12 @@ import com.hpe.caf.api.worker.WorkerException;
 import com.hpe.caf.worker.AbstractWorkerFactory;
 
 /**
- * Factory class for creating an Example Worker
+ * Factory class for creating an Example Worker.
  */
 public class ExampleWorkerFactory extends AbstractWorkerFactory<ExampleWorkerConfiguration, ExampleWorkerTask> {
 
     public ExampleWorkerFactory(ConfigurationSource configSource, DataStore store, Codec codec) throws WorkerException {
         super(configSource, store, codec, ExampleWorkerConfiguration.class, ExampleWorkerTask.class);
-
-        //check that the healthcheck returns healthy
-//        if(!healthCheck().getStatus().equals(HealthStatus.HEALTHY)){
-//            throw new WorkerException("Cannot create worker. Aborting.");
-//        }
     }
 
     @Override
@@ -34,7 +29,7 @@ public class ExampleWorkerFactory extends AbstractWorkerFactory<ExampleWorkerCon
     }
 
     /**
-     * Create a worker given a task, using DataStore, ConfiguratonSource and Codec passed in constructor.
+     * Create a worker given a task, using DataStore, ConfiguratonSource and Codec passed in the constructor.
      * @param task
      * @return ExampleWorker
      * @throws InvalidTaskException
@@ -56,7 +51,7 @@ public class ExampleWorkerFactory extends AbstractWorkerFactory<ExampleWorkerCon
 
     /**
      * ExampleWorkerFactory is responsible for calling the health-check to view the status of the worker and this is displayed on Marathon.
-     * @return
+     * @return HealthResult
      */
     @Override
     public HealthResult healthCheck() {
