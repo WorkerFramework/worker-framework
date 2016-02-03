@@ -1,5 +1,5 @@
 {
-        "outputQueue": "demo-workflow-in",
+        "outputQueue": "example-output-1",
         "threads": 1,
         "resultSizeThreshold": 1024
 }

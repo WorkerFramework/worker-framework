@@ -4,7 +4,7 @@ import com.hpe.caf.worker.testing.execution.TestRunner;
 import org.junit.Test;
 
 /**
- * Created by smitcona on 22/01/2016.
+ * Integration test for Example worker, running the testing framework.
  */
 public class ExampleWorkerAcceptanceIT {
 

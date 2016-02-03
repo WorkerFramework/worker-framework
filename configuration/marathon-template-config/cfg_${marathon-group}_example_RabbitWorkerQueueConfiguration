@@ -9,7 +9,6 @@
 		"rabbitPort": "${rabbit-port}"
 	},
 	"retryLimit": 10,
-	"rejectedQueue": "${marathon-group}-langdetect-rejected",
 	"prefetchBuffer": 1,
-	"inputQueue": "${marathon-group}-langdetect-in"
+	"inputQueue": "${marathon-group}-example-in"
 }

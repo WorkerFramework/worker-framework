@@ -7,17 +7,17 @@
 
   	"marathon-uris-root":"/vagrant",
   	"worker-config-location":"marathon-config",
-	"docker-login-config": "config.json",
+	"docker-login-config": "<MUST_REPLACE: Location of docker login config tar>",
 
-	"storage_service-server": "a1-dev-api035.lab.lynx-connected.com",
-	"storage_service-port": 8443,
+	"storage_service-server": "<MUST_REPLACE: Server for storage service>",
+	"storage_service-port": "<MUST_REPLACE: Port for storage service>",
 
 	"rabbit-id":"rabbit-01",
 	"rabbit-cpus":0.4,
 	"rabbit-mem":"512",
 	"rabbit-instances":"1",
 	"rabbit-erlang-cookie":"chocolatechip",
-	"rabbit-host":"16.49.191.34",
+	"rabbit-host":"<MUST REPLACE IP>",
 	"rabbit-user":"guest",
 	"rabbit-password":"guest",
 	"rabbit-maxattempts":"3",
