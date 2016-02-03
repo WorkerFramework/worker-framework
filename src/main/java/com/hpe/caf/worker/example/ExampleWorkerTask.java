@@ -5,17 +5,19 @@ import com.hpe.caf.util.ref.ReferencedData;
 import javax.validation.constraints.NotNull;
 
 /**
- * Worker task supplied to the worker as the main input communication.
+ * The task supplied to the worker. This is the main means of communication to the worker, providing the ReferencedData and
+ * the action to take.
  */
 public class ExampleWorkerTask {
+
     /**
-     * The ReferencedData file in datastore of the source data.
+     * The ReferencedData file in the DataStore.
      */
     @NotNull
     private ReferencedData sourceData;
 
     /**
-     * Reference to the sourceData in the datastore, used to store data in the datastore.
+     * Reference to the sourceData file in the DataStore, used in "wrapAsReferencedData" in the ExampleWorker class.
      */
     private String datastorePartialReference;
 
@@ -26,7 +28,6 @@ public class ExampleWorkerTask {
 
     public ExampleWorkerTask(){
         //empty constructor for serialisation.
-
     }
 
     public ReferencedData getSourceData() {

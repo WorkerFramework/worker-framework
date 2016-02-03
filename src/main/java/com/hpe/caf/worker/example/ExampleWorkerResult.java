@@ -5,20 +5,20 @@ import com.hpe.caf.util.ref.ReferencedData;
 import javax.validation.constraints.NotNull;
 
 /**
- * Result class of the worker, containing a worker status and a ReferencedData object for textData.
+ * The result class of the worker, containing a worker status and a ReferencedData object for textData.
  */
 public class ExampleWorkerResult {
+
     /**
-     * Worker specific return code
+     * Worker specific return code.
      */
     @NotNull
     private ExampleWorkerStatus workerStatus;
 
     /**
-     * Result file is stored in datastore and accessed using this ReferencedData object
+     * Result file is stored in datastore and accessed using this ReferencedData object.
      */
     private ReferencedData textData;
-
 
     public ExampleWorkerResult() {
         //empty constructor for serialisation.

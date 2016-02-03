@@ -1,7 +1,7 @@
 package com.hpe.caf.worker.example;
 
 /**
- * Worker status enum to represent status of the worker result.
+ * Enumeration representing the status of the worker result.
  */
 public enum ExampleWorkerStatus {
 
@@ -16,7 +16,7 @@ public enum ExampleWorkerStatus {
     SOURCE_FAILED,
 
     /**
-     * The result could not be stored in datastore.
+     * The result could not be stored in the DataStore.
      */
     STORE_FAILED,
 
