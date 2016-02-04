@@ -1,4 +1,0 @@
-logging:
-  level: DEBUG
-  loggers:
-    com.hpe.caf: DEBUG
