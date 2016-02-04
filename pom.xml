@@ -30,10 +30,6 @@
         <datastore.container.id>0a1b8e24cc44490888b3d8d8ebba8309</datastore.container.id>
         <version.major>1.0</version.major>
         <version.major.minor>1.0-SNAPSHOT</version.major.minor>
-        <rabbitmq.ctrl.port>15672</rabbitmq.ctrl.port>
-        <rabbitmq.node.port>5672</rabbitmq.node.port>
-        <docker.host.address>127.0.0.1</docker.host.address>
-        <worker.adminport>8081</worker.adminport>
     </properties>
 
     <!-- CAF worker framework dependency. -->
@@ -100,5 +96,18 @@
             <url>http://cmbg-maven.autonomy.com/nexus/content/repositories/snapshots</url>
         </snapshotRepository>
     </distributionManagement>
+
+    <!-- Use this profile if your virtual machine setup must use fixed ports. -->
+    <profiles>
+        <profile>
+            <id>use-default-fixed-ports</id>
+            <properties>
+                <rabbitmq.ctrl.port>15672</rabbitmq.ctrl.port>
+                <rabbitmq.node.port>5672</rabbitmq.node.port>
+                <docker.host.address>127.0.0.1</docker.host.address>
+                <worker.adminport>8081</worker.adminport>
+            </properties>
+        </profile>
+    </profiles>
 
 </project>
