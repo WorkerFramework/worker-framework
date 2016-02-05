@@ -1,10 +1,9 @@
 # worker-example-container
 ---
-This is a docker container for the Example Worker. It consists of the Example Worker in the build sub-module and the integration
-tests found in the test sub-module. The build sub-module is responsible for building the worker image and pushing to docker.
-The test sub-module is responsible for starting the worker container, RabbitMQ container and assembling the configuration files
-in the test-configs folder.
-It uses 'java:8' as a base image.
+This is a docker container for the Example Worker. It consists of two sub modules, `build` and `test`. The `build` sub-module
+is responsible for building the worker image and pushing it to docker. The example worker uses 'java:8' as a base image. The
+`test` sub-module is responsible for starting containers for the worker and RabbitMQ, assembling the configuration files in the
+test-configs folder, and running the integration tests.
 
 ## Configuration
 ### Configuration Files

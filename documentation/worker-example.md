@@ -1,14 +1,15 @@
 # worker-example
 
-This example worker uses the CAF Worker framework. It takes an action specified by an enum in it's task class, and performs
-a text conversion based on this action. It retrieves the text from a data source and stores the result to a datastore.
+This code includes an implementation of a simple example worker for the CAF Worker framework. It performs
+a text conversion on a text file based on an `Action` enumeration passed in from the `ExampleWorkerTask` class. It retrieves
+the text from a data source and returns a result message containing either a reference to the result in the `DataStore` or
+the result itself.
 
 
 ## General operation overview
 
-The Worker will take a single input message, expecting to find a reference to
-data accessed either directly or via a `DataStore`. The result will then be made available via a reference to data accessed
-either directly or via the `DataStore`.
+The Worker will take a single input message with a reference to a text file data accessed via a `DataStore`. The result
+will then be made available either directly as a byte array or as a reference via the `DataStore`.
 
 
 ## Configuration
@@ -28,9 +29,9 @@ The task class is `ExampleWorkerTask` and has the following entries:
 
 - `sourceData` (required): a reference to the data accessible either directly
 or via the `DataStore`.
-- `datastorePartialReference` (optional): the location within the datastore
+- `datastorePartialReference` (optional): the location within the DataStore
 relative to which data will be stored.
-- `action` (required): an enumeration representing the action which will be taken to manipulate the text by the worker.
+- `action` (required): an enumeration determining the method of text manipulation which will be taken by the worker.
 
 
 ## Output message (result) format
@@ -44,14 +45,14 @@ Status can have one of the following values:
     - `SOURCE_FAILED`: the source data could not be acquired from the DataStore
     - `STORE_FAILED`: failed to store the OCR result in the `DataStore`
     - `WORKER_EXAMPLE_FAILED`: the input file could be read but the worker failed in an unexpected way
-- `textData`: a reference to the result data
+- `textData`: a reference to the result data in the DataStore or the data itself.
 
 
 ## Health checks
 
-This Worker provides a basic health check in the form of an attempt to
-create an `ExampleWorkerFactoryProvider` object using the module loader. If the call is successful this indicates that the
-module loader can retrieve the implementation and the health check will return success.
+This Worker provides a basic health check. It creates an `ExampleWorkerFactoryProvider` object using the `ModuleLoader`.
+If the call is successful this indicates that the module loader can retrieve the implementation and the health check will
+return success.
 
 
 ## Resource usage
@@ -61,9 +62,8 @@ The number of Worker threads is configured using the configuration class
 
 Memory usage will vary significantly with the size of the input file.
 
-Any result whose size exceeds the `resultSizeThreshold` stipulated in the
-configuration class `ExampleWorkerConfiguration` will be written to the DataStore rather than held in a byte array directly
-within the worker result.
+Any result whose size exceeds the `resultSizeThreshold` stipulated in the configuration class `ExampleWorkerConfiguration`
+will be written to the DataStore rather than being held in a byte array directly within the worker result.
 
 
 ## Failure modes
@@ -74,8 +74,8 @@ The main points of failure for `worker-example` are:
 to fail to start. Check the logs for clues, and double check your configuration files.
 - `DataStore errors`: for failure results with `SOURCE_FAILED` or `STORE_FAILED` status, you should check your configuration
 for the `DataStore` and the connectivity and health of the store itself.
-- `IO errors`: for results with `WORKER_EXAMPLE_FAILED`, this could be caused by the conversion of the InputStream to a
-String, and you should check that the input data contains valid UTF-8 characters.
+- `IO errors`: for results with `WORKER_EXAMPLE_FAILED`, this could be caused by the InputStream to String conversion, and
+you should check that the input data folder is correctly referenced, is not empty, and contains valid UTF-8 characters.
 
 
 ## Upgrade procedures
