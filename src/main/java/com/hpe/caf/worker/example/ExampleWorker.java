@@ -69,7 +69,7 @@ public class ExampleWorker extends AbstractWorker<ExampleWorkerTask, ExampleWork
     }
 
     /**
-     * Private method to process the ReferencedData
+     * Private method to process the ReferencedData.
      * @return ExampleWorkerResult
      * @throws InterruptedException
      */
@@ -126,7 +126,7 @@ public class ExampleWorker extends AbstractWorker<ExampleWorkerTask, ExampleWork
     }
 
     /**
-     * If an error in the worker occurs, create a new ExampleWorkerREsult with the corresponding worker failure status
+     * If an error in the worker occurs, create a new ExampleWorkerResult with the corresponding worker failure status.
      */
     private ExampleWorkerResult createErrorResult(ExampleWorkerStatus status){
         ExampleWorkerResult workerResult = new ExampleWorkerResult();
