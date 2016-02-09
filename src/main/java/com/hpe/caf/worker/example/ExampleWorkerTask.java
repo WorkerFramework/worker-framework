@@ -17,12 +17,15 @@ public class ExampleWorkerTask {
     private ReferencedData sourceData;
 
     /**
-     * Reference to the sourceData file in the DataStore, used in "wrapAsReferencedData" in the ExampleWorker class.
+     * Identifies a target (relative) location for any output data that worker will save in data store.
+     * If datastore-cs is used, this value will identify a target data store container to use.
+     * If a worker needs to store output data, this should be used when calling {@link com.hpe.caf.api.worker.DataStore#store(Path, String)} method.
+     * Example usage is located in ExampleWorker class, 'wrapAsReferencedData' method.
      */
     private String datastorePartialReference;
 
     /**
-     * Enum to represent which action the worker will perform.
+     * Enumeration to represent which action the worker will perform.
      */
     private ExampleWorkerAction action;
 
