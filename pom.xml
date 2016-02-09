@@ -24,8 +24,8 @@
         <test.data>${project.basedir}/test-data/input</test.data>
         <maven.failsafe.version>2.19</maven.failsafe.version>
         <maven.compiler.version>3.3</maven.compiler.version>
+        <maven.deploy.skip>true</maven.deploy.skip>
         <docker.maven.version>0.13.6</docker.maven.version>
-        <docker.dev.repo>rh7-artifactory.hpswlabs.hp.com:8443</docker.dev.repo>
         <worker-example.container.name>caf/worker-example:${project.version}</worker-example.container.name>
         <datastore.container.id>0a1b8e24cc44490888b3d8d8ebba8309</datastore.container.id>
         <version.major>1.0</version.major>
@@ -59,9 +59,10 @@
         </dependency>
     </dependencies>
 
+    <!-- This section specifies a binding for a push goal to be executed in the deploy phase to push the docker image for the worker to Artifactory.
+    If you want to push the docker image in the deploy phase, uncomment this section and replace <registry>. -->
     <build>
         <plugins>
-            <!-- Docker maven plugin executions enabling deploy of worker to the repository. -->
             <plugin>
                 <groupId>org.jolokia</groupId>
                 <artifactId>docker-maven-plugin</artifactId>
@@ -74,7 +75,8 @@
                             <goal>push</goal>
                         </goals>
                         <configuration>
-                            <registry>${docker.dev.repo}</registry>
+                            <!--Replace this address with your Artifactory server's address.-->
+                            <registry>rh7-artifactory.hpswlabs.hp.com:8443</registry>
                             <image>example-worker</image>
                         </configuration>
                     </execution>
@@ -82,20 +84,6 @@
             </plugin>
         </plugins>
     </build>
-
-    <!-- Repositories for deployment. -->
-    <distributionManagement>
-        <repository>
-            <id>cmbg-maven-releases</id>
-            <name>Internal Releases</name>
-            <url>http://cmbg-maven.autonomy.com/nexus/content/repositories/releases</url>
-        </repository>
-        <snapshotRepository>
-            <id>cmbg-maven-snapshots</id>
-            <name>Internal Snapshots</name>
-            <url>http://cmbg-maven.autonomy.com/nexus/content/repositories/snapshots</url>
-        </snapshotRepository>
-    </distributionManagement>
 
     <!-- Use this profile if your virtual machine setup must use fixed ports. -->
     <profiles>
