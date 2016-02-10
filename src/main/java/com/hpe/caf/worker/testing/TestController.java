@@ -5,6 +5,7 @@ import com.hpe.caf.api.worker.TaskMessage;
 
 import java.io.Closeable;
 import java.io.IOException;
+import java.io.PrintStream;
 import java.util.Collection;
 import java.util.Timer;
 import java.util.TimerTask;
@@ -32,11 +33,25 @@ public class TestController implements Closeable {
     private final WorkerTaskFactory taskFactory;
     private final ResultProcessor resultProcessor;
     private final boolean stopOnError;
+    private final TestResultsReporter resultsReporter;
     private final long defaultTimeOutMs = 600000; // 10 minutes
     /**
      * The Thread.
      */
     Thread thread;
+
+    /**
+     * Instantiates a new Test controller.
+     *  @param workerServices  the worker services
+     * @param itemProvider    the {@link TestItem} provider (test cases)
+ * @param queueManager    the worker queue manager
+ * @param taskFactory     the worker task factory
+ * @param resultProcessor the worker result processor
+ * @param stopOnError     determines if tests should continue after any validation error
+     */
+    public TestController(WorkerServices workerServices, TestItemProvider itemProvider, QueueManager queueManager, WorkerTaskFactory taskFactory, ResultProcessor resultProcessor, boolean stopOnError) {
+        this(workerServices, itemProvider, queueManager, taskFactory, resultProcessor, stopOnError, new ConsoleTestReporter());
+    }
 
     /**
      * Instantiates a new Test controller.
@@ -48,7 +63,7 @@ public class TestController implements Closeable {
      * @param resultProcessor the worker result processor
      * @param stopOnError     determines if tests should continue after any validation error
      */
-    public TestController(WorkerServices workerServices, TestItemProvider itemProvider, QueueManager queueManager, WorkerTaskFactory taskFactory, ResultProcessor resultProcessor, boolean stopOnError) {
+    public TestController(WorkerServices workerServices, TestItemProvider itemProvider, QueueManager queueManager, WorkerTaskFactory taskFactory, ResultProcessor resultProcessor, boolean stopOnError, TestResultsReporter resultsReporter) {
         this.workerServices = workerServices;
 
         this.itemProvider = itemProvider;
@@ -56,6 +71,7 @@ public class TestController implements Closeable {
         this.taskFactory = taskFactory;
         this.resultProcessor = resultProcessor;
         this.stopOnError = stopOnError;
+        this.resultsReporter = resultsReporter;
     }
 
     /**
@@ -88,7 +104,7 @@ public class TestController implements Closeable {
         timer.schedule(new TimerTask() {
             @Override
             public void run() {
-                context.getFinishedSignal().doNotify(TestResult.createFailed("Tests timed out. Failed."));
+                context.testRunsTimedOut();
             }
         }, timeout);
         thread = queueManager.start(new ProcessorDeliveryHandler(resultProcessor, context));
@@ -115,8 +131,9 @@ public class TestController implements Closeable {
         TestResult result = context.getTestResult();
 
         timer.cancel();
+        resultsReporter.reportResults(result);
         if (!result.isSuccess()) {
-            throw new Exception(result.getErrorMessage());
+            throw new TestsFailedException(result.getErrorMessage(), result.getResults());
         }
 
         System.out.println("===============  Finished successfully ======================");

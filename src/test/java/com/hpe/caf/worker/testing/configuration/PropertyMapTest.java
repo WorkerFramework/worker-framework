@@ -5,10 +5,10 @@ import com.hpe.caf.worker.testing.validation.PropertyMap;
 import org.junit.Test;
 
 import java.time.Instant;
-import java.util.Date;
-import java.util.UUID;
+import java.util.*;
 
-import static org.hamcrest.CoreMatchers.equalTo;
+import static org.hamcrest.CoreMatchers.*;
+import static org.junit.matchers.JUnitMatchers.*;
 import static org.junit.Assert.assertThat;
 
 /**
@@ -190,11 +190,7 @@ public class PropertyMapTest {
     @Test
     public void testIsComplexProperty() throws Exception {
 
-
-
-      /*  TestClassComplex1 testClass = new TestClassComplex1(
-                new TestClassSimple1(stringProp1, intProp1), new TestClassSimple2(boolProp1, dateProp1), stringProp2
-        );*/
+        List<String> coll = new ArrayList<>();
 
         TestClassComplex1 testClass = createComplex();
 

@@ -43,16 +43,9 @@ public abstract class AbstractResultProcessor<TResult, TInput, TExpected> implem
     }
 
     @Override
-    public boolean process(TestItem testItem, TaskMessage resultMessage) throws CodecException, IOException {
+    public boolean process(TestItem testItem, TaskMessage resultMessage) throws Exception {
         TResult workerResult = deserializeMessage(resultMessage, resultClass);
-        try {
-            return processWorkerResult(testItem, resultMessage, workerResult);
-        }
-        catch (Throwable e) {
-            System.err.println("Failure during processing results. Test item: " + testItem.getTag());
-            e.printStackTrace();
-            return false;
-        }
+        return processWorkerResult(testItem, resultMessage, workerResult);
     }
 
     /**
@@ -82,5 +75,5 @@ public abstract class AbstractResultProcessor<TResult, TInput, TExpected> implem
      */
     protected abstract boolean processWorkerResult(TestItem<TInput, TExpected> testItem, TaskMessage message, TResult result) throws Exception;
 
-    public String getInputIdentifier(TaskMessage message) throws Exception {return "";}
+    public String getInputIdentifier(TaskMessage message) {return "";}
 }

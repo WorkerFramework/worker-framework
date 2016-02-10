@@ -1,8 +1,7 @@
 package com.hpe.caf.worker.testing;
 
 
-import java.util.ArrayList;
-import java.util.Collection;
+import java.util.*;
 
 /**
  * Created by ploch on 08/11/2015.
@@ -11,7 +10,8 @@ public class ExecutionContext {
 
     private final Signal finishedSignal;
     private final TestItemStore itemStore;
-    private final Collection<String> failures = new ArrayList<>();
+    private final Set<TestCaseResult> results = new HashSet<>();
+    private boolean failureEncountered = false;
     private final boolean stopOnException;
 
     public ExecutionContext(boolean stopOnException) {
@@ -38,26 +38,60 @@ public class ExecutionContext {
         return itemStore;
     }
 
+    /**
+     * Getter for property 'results'.
+     *
+     * @return Value for property 'results'.
+     */
+    public Set<TestCaseResult> getResults() {
+        return results;
+    }
 
     public void finishedSuccessfully(){
-        if (failures.isEmpty()) {
-            finishedSignal.doNotify(TestResult.createSuccess());
+
+        if (!failureEncountered) {
+            finishedSignal.doNotify(TestResult.createSuccess(results));
         }
         else {
-            StringBuilder sb = new StringBuilder();
-            System.out.println("Tests failed. Number of failures: " + failures.size() + "\nCheck 'Errors.txt' file for details!");
-            for (String failure : failures) {
-                sb.append(failure).append("\n");
+            int failures = 0;
+            for (TestCaseResult result : results) {
+                if (!result.isSucceeded()) {
+                    failures++;
+                }
             }
-            finishedSignal.doNotify(TestResult.createFailed(sb.toString()));
+            System.out.println("Tests failed. Number of failures: " + failures);
+            finishedSignal.doNotify(TestResult.createFailed("Tests failed. Number of failed test cases: " + failures + ". Number of successful test cases: " + (results.size() - failures), results));
         }
     }
 
-    public void failed(String message) {
-        failures.add(message);
-        if (stopOnException) {
-            finishedSignal.doNotify(TestResult.createFailed(message));
+    public void succeeded(TestItem testItem) {
+        synchronized (results) {
+            results.add(TestCaseResult.createSuccess(testItem.getTestCaseInformation() == null ? createIfNoneProvided(testItem) : testItem.getTestCaseInformation()));
         }
+    }
+
+    private TestCaseInfo createIfNoneProvided(TestItem item) {
+        TestCaseInfo info = new TestCaseInfo();
+        info.setTestCaseId("Unknown. Test item tag is: " + item.getTag());
+        info.setDescription("No description provided!");
+        info.setComments("Please update the test case file! Test Case Info was not set!");
+        info.setAssociatedTickets("No associated tickets provided!");
+        return info;
+    }
+
+    public void failed(TestItem testItem, String message) {
+        synchronized (results) {
+            failureEncountered = true;
+            results.add(TestCaseResult.createFailure(testItem.getTestCaseInformation() == null ? createIfNoneProvided(testItem) : testItem.getTestCaseInformation(), message));
+        }
+
+        if (stopOnException) {
+            finishedSignal.doNotify(TestResult.createFailed(message, results));
+        }
+    }
+
+    public void testRunsTimedOut() {
+        finishedSignal.doNotify(TestResult.createFailed("Tests timed out. Failed.", results));
     }
 
     public TestResult getTestResult(){

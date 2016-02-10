@@ -25,7 +25,7 @@ public interface ResultProcessor {
      * @throws CodecException the codec exception
      * @throws IOException    the io exception
      */
-    boolean process(TestItem testItem, TaskMessage resultMessage) throws CodecException, IOException;
+    boolean process(TestItem testItem, TaskMessage resultMessage) throws Exception;
 
-    String getInputIdentifier(TaskMessage message) throws Exception;
+    String getInputIdentifier(TaskMessage message);
 }

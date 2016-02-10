@@ -76,16 +76,14 @@ public class TestItemStore {
      * @return the test item
      * @throws Exception the exception
      */
-    public TestItem find(String id) throws Exception {
+    public TestItem find(String id) {
         synchronized (items) {
             TestItem item = items.get(id);
             if (item == null) {
-                Optional<String> first = items.keySet().stream().filter(key -> id.startsWith(key)).findFirst();
+                Optional<String> first = items.keySet().stream().filter(id::startsWith).findFirst();
                 boolean present = first.isPresent();
                 if (!present) return null;
-                /*if (search.count() > 1) {
-                    throw new Exception("Multiple keys matching the same task id");
-                }*/
+
                 String actualId = first.get();
 
                 item = items.get(actualId);

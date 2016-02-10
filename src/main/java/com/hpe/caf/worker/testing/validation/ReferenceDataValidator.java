@@ -1,7 +1,5 @@
 package com.hpe.caf.worker.testing.validation;
 
-import com.fasterxml.jackson.annotation.JsonAutoDetect;
-import com.fasterxml.jackson.annotation.PropertyAccessor;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.hpe.caf.api.Codec;
 import com.hpe.caf.api.worker.DataStore;
@@ -9,6 +7,7 @@ import com.hpe.caf.util.ref.DataSourceException;
 import com.hpe.caf.util.ref.ReferencedData;
 import com.hpe.caf.worker.testing.ContentComparer;
 import com.hpe.caf.worker.testing.ContentFileTestExpectation;
+import com.hpe.caf.worker.testing.TestResultHelper;
 import com.hpe.caf.worker.testing.data.ContentComparisonType;
 import com.hpe.caf.worker.testing.data.ContentDataHelper;
 import org.apache.commons.io.IOUtils;
@@ -43,8 +42,6 @@ public class ReferenceDataValidator extends PropertyValidator {
         if (testedPropertyValue == null && validatorPropertyValue == null) return true;
 
         ObjectMapper mapper = new ObjectMapper();
-        mapper.setVisibility(PropertyAccessor.FIELD, JsonAutoDetect.Visibility.ANY);
-        mapper.setVisibility(PropertyAccessor.GETTER, JsonAutoDetect.Visibility.NONE);
 
         ContentFileTestExpectation expectation = mapper.convertValue(validatorPropertyValue, ContentFileTestExpectation.class);
 
@@ -60,6 +57,8 @@ public class ReferenceDataValidator extends PropertyValidator {
         catch (DataSourceException e) {
             e.printStackTrace();
             System.err.println("Failed to acquire referenced data.");
+            e.printStackTrace();
+            TestResultHelper.testFailed("Failed to acquire referenced data. Exception message: " + e.getMessage(), e);
             return false;
         }
         try {
@@ -79,8 +78,10 @@ public class ReferenceDataValidator extends PropertyValidator {
                 if (expectation.getExpectedSimilarityPercentage() == 100) {
                     boolean equals = actualText.equals(expectedText);
                     if (!equals) {
-                        System.err.println("Expected and actual texts were different.\n\n*** Expected Text ***\n" +
-                        expectedText + "\n\n*** Actual Text ***\n" + actualText);
+                        String message = "Expected and actual texts were different.\n\n*** Expected Text ***\n" +
+                        expectedText + "\n\n*** Actual Text ***\n" + actualText;
+                        System.err.println(message);
+                        TestResultHelper.testFailed(message);
                         return false;
                     }
                     return true;
@@ -91,7 +92,9 @@ public class ReferenceDataValidator extends PropertyValidator {
                 System.out.println("Compared text similarity:" + similarity + "%");
 
                 if (similarity < expectation.getExpectedSimilarityPercentage()) {
-                    System.err.println("Expected similarity of " + expectation.getExpectedSimilarityPercentage() + "% but actual similarity was " + similarity + "%");
+                    String message = "Expected similarity of " + expectation.getExpectedSimilarityPercentage() + "% but actual similarity was " + similarity + "%";
+                    System.err.println(message);
+                    TestResultHelper.testFailed(message);
                     return false;
                 }
             }
@@ -99,13 +102,16 @@ public class ReferenceDataValidator extends PropertyValidator {
                 byte[] actualDataBytes = IOUtils.toByteArray(dataStream);
                 boolean equals = Arrays.equals(actualDataBytes, expectedFileBytes);
                 if (!equals) {
-                    System.err.println("Data returned was different than expected for file: " + contentFileName);
+                    String message = "Data returned was different than expected for file: " + contentFileName;
+                    System.err.println(message);
+                    TestResultHelper.testFailed(message);
                     return false;
                 }
             }
         }
         catch (IOException e) {
             e.printStackTrace();
+            TestResultHelper.testFailed("Error while processing reference data! " + e.getMessage(), e);
             return false;
         }
         return true;

@@ -17,6 +17,8 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 public class TestItem<TInput, TExpected> {
 
     private String tag;
+    private TestCaseInfo testCaseInformation;
+
     private TInput inputData;
     private TExpected expectedOutputData;
 
@@ -45,6 +47,8 @@ public class TestItem<TInput, TExpected> {
         this.expectedOutputData = expectedOutputData;
     }
 
+
+
     /**
      * Getter for property 'tag'.
      * Tag represents a test case identifier used (among others) to locate it in {@link TestItemStore}.
@@ -53,6 +57,24 @@ public class TestItem<TInput, TExpected> {
      */
     public String getTag() {
         return tag;
+    }
+
+    /**
+     * Getter for property 'testCaseInformation'.
+     *
+     * @return Value for property 'testCaseInformation'.
+     */
+    public TestCaseInfo getTestCaseInformation() {
+        return testCaseInformation;
+    }
+
+    /**
+     * Setter for property 'testCaseInformation'.
+     *
+     * @param testCaseInformation Value to set for property 'testCaseInformation'.
+     */
+    public void setTestCaseInformation(TestCaseInfo testCaseInformation) {
+        this.testCaseInformation = testCaseInformation;
     }
 
     /**

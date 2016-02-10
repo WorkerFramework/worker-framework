@@ -18,7 +18,7 @@ public class CompositeResultsProcessor implements ResultProcessor {
     }
 
     @Override
-    public boolean process(TestItem testItem, TaskMessage resultMessage) throws CodecException, IOException {
+    public boolean process(TestItem testItem, TaskMessage resultMessage) throws Exception {
         boolean success = true;
         for (ResultProcessor processor : processors) {
             if (!processor.process(testItem, resultMessage)){
@@ -28,5 +28,5 @@ public class CompositeResultsProcessor implements ResultProcessor {
         return success;
     }
 
-    public String getInputIdentifier(TaskMessage message) throws Exception {return "";}
+    public String getInputIdentifier(TaskMessage message) {return "";}
 }

@@ -28,7 +28,7 @@ public abstract class PropertyValidator {
      * @param testedPropertyValue    the tested property value
      * @param validatorPropertyValue the expected property value
      */
-    public void validate(String propertyName, Object testedPropertyValue, Object validatorPropertyValue){
+    public final void validate(String propertyName, Object testedPropertyValue, Object validatorPropertyValue){
         boolean isValid = isValid(testedPropertyValue, validatorPropertyValue);
 
         if (!isValid) {

@@ -52,7 +52,7 @@ public class TestControllerFactory {
 
         QueueManager queueManager = new QueueManager(queueServices, workerServices);
 
-        boolean stopOnError = SettingsProvider.defaultProvider.getBooleanSetting(SettingNames.stopOnError, true);
+        boolean stopOnError = SettingsProvider.defaultProvider.getBooleanSetting(SettingNames.stopOnError, false);
 
         TestController controller = new TestController(workerServices, itemProvider, queueManager, workerTaskFactory, resultProcessor, stopOnError);
         return controller;
