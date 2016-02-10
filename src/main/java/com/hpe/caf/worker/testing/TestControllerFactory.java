@@ -49,8 +49,8 @@ public class TestControllerFactory {
         rabbitConfiguration.getRabbitConfiguration().setRabbitPort(Integer.parseInt(SettingsProvider.defaultProvider.getSetting(SettingNames.rabbitmqNodePort)));
 
         QueueServices queueServices = QueueServicesFactory.create(rabbitConfiguration, queueName, workerServices.getCodec());
-
-        QueueManager queueManager = new QueueManager(queueServices, workerServices);
+        boolean debugEnabled = SettingsProvider.defaultProvider.getBooleanSetting(SettingNames.createDebugMessage,false);
+        QueueManager queueManager = new QueueManager(queueServices, workerServices,debugEnabled);
 
         boolean stopOnError = SettingsProvider.defaultProvider.getBooleanSetting(SettingNames.stopOnError, false);
 

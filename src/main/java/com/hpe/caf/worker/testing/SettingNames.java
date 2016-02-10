@@ -30,4 +30,6 @@ public final class SettingNames {
     public static final String stopOnError = "stop.on.error";
 
     public static final String timeOutMs = "timeout.ms";
+
+    public static final String createDebugMessage = "create.debug.message";
 }
