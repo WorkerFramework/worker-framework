@@ -2,26 +2,35 @@
 <project xmlns="http://maven.apache.org/POM/4.0.0"
          xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+
+    <groupId>com.hpe.caf.worker</groupId>
+    <artifactId>worker-example-container-build</artifactId>
+    <packaging>pom</packaging>
+
     <parent>
         <artifactId>worker-example-container</artifactId>
         <groupId>com.hpe.caf.worker</groupId>
         <version>1.0-SNAPSHOT</version>
     </parent>
-    <modelVersion>4.0.0</modelVersion>
 
-    <artifactId>worker-example-container-build</artifactId>
+    <properties>
+        <version.major>1-SNAPSHOT</version.major>
+        <version.major.minor>${project.version}</version.major.minor>
+    </properties>
 
     <build>
         <plugins>
-            <!-- Docker maven plugin builds the docker image for the example worker and pushes it to docker. -->
+            <!--
+                Builds the Docker image for the Example Worker
+            -->
             <plugin>
                 <groupId>org.jolokia</groupId>
                 <artifactId>docker-maven-plugin</artifactId>
                 <version>${docker.maven.version}</version>
-                <!-- Binding the image building configuration to the compile phase. -->
                 <executions>
                     <execution>
-                        <id>build-and-push-docker-image</id>
+                        <id>build-docker-image</id>
                         <phase>compile</phase>
                         <goals>
                             <goal>build</goal>
@@ -32,7 +41,7 @@
                     <logDate>default</logDate>
                     <verbose>true</verbose>
                     <images>
-                        <!-- Configuration for the example-worker image. -->
+                        <!-- Configuration for the example-worker image -->
                         <image>
                             <alias>example-worker</alias>
                             <name>${worker-example.container.name}</name>
@@ -46,10 +55,6 @@
                                 </tags>
                                 <labels>
                                     <caf.worker-framework.version>${caf.worker-framework.version}</caf.worker-framework.version>
-                                    <caf.worker-queue.impl>${caf.worker-queue.impl}</caf.worker-queue.impl>
-                                    <caf.worker-store.impl>${caf.worker-store.impl}</caf.worker-store.impl>
-                                    <caf.config.impl>${caf.config.impl}</caf.config.impl>
-                                    <caf.codec.impl>${caf.codec.impl}</caf.codec.impl>
                                 </labels>
                                 <!-- The entry point will be the worker.sh executable. -->
                                 <entryPoint>
@@ -60,7 +65,7 @@
                                 <assembly>
                                     <mode>tar</mode>
                                     <inline>
-                                        <!-- Assembling the executable worker.sh and worker.yaml files to the docker tar. -->
+                                        <!-- Including the executable worker.sh and worker.yaml files in the docker tar -->
                                         <fileSets>
                                             <fileSet>
                                                 <lineEnding>unix</lineEnding>
@@ -76,7 +81,7 @@
                                                 </includes>
                                             </fileSet>
                                         </fileSets>
-                                        <!-- Assembling the dependencies into the docker tar. -->
+                                        <!-- Including the dependencies into the docker tar -->
                                         <dependencySets>
                                             <dependencySet>
                                                 <useProjectArtifact>false</useProjectArtifact>
@@ -92,10 +97,5 @@
             </plugin>
         </plugins>
     </build>
-
-    <ciManagement>
-        <system>hudson</system>
-        <url>http://cafbuilder.hpswlabs.hp.com:8080/job/worker-example-container-build/</url>
-    </ciManagement>
 
 </project>

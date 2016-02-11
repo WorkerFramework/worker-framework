@@ -17,19 +17,11 @@
     <!-- Caf worker properties. -->
     <properties>
         <caf.worker-framework.version>10.3</caf.worker-framework.version>
-        <caf.config.impl>config-file</caf.config.impl>
-        <caf.codec.impl>codec-json</caf.codec.impl>
-        <caf.worker-store.impl>worker-store-cs</caf.worker-store.impl>
-        <caf.worker-queue.impl>worker-queue-rabbit</caf.worker-queue.impl>
-        <test.data>${project.basedir}/test-data/input</test.data>
-        <maven.failsafe.version>2.19</maven.failsafe.version>
-        <maven.compiler.version>3.3</maven.compiler.version>
+        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+        <maven.install.skip>true</maven.install.skip>
         <maven.deploy.skip>true</maven.deploy.skip>
         <docker.maven.version>0.13.6</docker.maven.version>
         <worker-example.container.name>caf/worker-example:${project.version}</worker-example.container.name>
-        <datastore.container.id>0a1b8e24cc44490888b3d8d8ebba8309</datastore.container.id>
-        <version.major>1.0</version.major>
-        <version.major.minor>1.0-SNAPSHOT</version.major.minor>
     </properties>
 
     <!-- CAF worker framework dependency. -->
@@ -38,7 +30,7 @@
             <dependency>
                 <groupId>com.hpe.caf.worker</groupId>
                 <artifactId>worker-framework</artifactId>
-                <version>10.3</version>
+                <version>${caf.worker-framework.version}</version>
                 <type>pom</type>
                 <scope>import</scope>
             </dependency>
@@ -59,8 +51,10 @@
         </dependency>
     </dependencies>
 
-    <!-- This section specifies a binding for a push goal to be executed in the deploy phase to push the docker image for the worker to Artifactory.
-    If you want to push the docker image in the deploy phase, uncomment this section and replace <registry>. -->
+    <!--
+        This section specifies a binding for a push goal to be executed in the
+        deploy phase to push the docker image for the worker to Artifactory.
+    -->
     <build>
         <plugins>
             <plugin>
@@ -75,7 +69,7 @@
                             <goal>push</goal>
                         </goals>
                         <configuration>
-                            <!--Replace this address with your Artifactory server's address.-->
+                            <!-- Replace this address with your Artifactory server's address. -->
                             <registry>rh7-artifactory.hpswlabs.hp.com:8443</registry>
                             <image>example-worker</image>
                         </configuration>
@@ -85,17 +79,9 @@
         </plugins>
     </build>
 
-    <!-- Use this profile if your virtual machine setup must use fixed ports. -->
-    <profiles>
-        <profile>
-            <id>use-default-fixed-ports</id>
-            <properties>
-                <rabbitmq.ctrl.port>15672</rabbitmq.ctrl.port>
-                <rabbitmq.node.port>5672</rabbitmq.node.port>
-                <docker.host.address>127.0.0.1</docker.host.address>
-                <worker.adminport>8081</worker.adminport>
-            </properties>
-        </profile>
-    </profiles>
+    <ciManagement>
+        <system>hudson</system>
+        <url>http://cafbuilder.hpswlabs.hp.com:8080/job/worker-example-container/</url>
+    </ciManagement>
 
 </project>

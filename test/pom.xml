@@ -2,14 +2,26 @@
 <project xmlns="http://maven.apache.org/POM/4.0.0"
          xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+
+    <groupId>com.hpe.caf.worker</groupId>
+    <artifactId>worker-example-container-test</artifactId>
+
     <parent>
         <artifactId>worker-example-container</artifactId>
         <groupId>com.hpe.caf.worker</groupId>
         <version>1.0-SNAPSHOT</version>
     </parent>
-    <modelVersion>4.0.0</modelVersion>
 
-    <artifactId>worker-example-container-test</artifactId>
+    <properties>
+        <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
+        <test.data>${project.basedir}/test-data/input</test.data>
+        <maven.failsafe.version>2.19</maven.failsafe.version>
+        <maven.compiler.version>3.3</maven.compiler.version>
+        <datastore.container.id>0a1b8e24cc44490888b3d8d8ebba8309</datastore.container.id>
+        <maven.compiler.source>1.8</maven.compiler.source>
+        <maven.compiler.target>1.8</maven.compiler.target>
+    </properties>
 
     <dependencies>
         <dependency>
@@ -21,26 +33,10 @@
 
     <build>
         <plugins>
-            <!-- Compile the source code of the tests in the test-compile phase. -->
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-compiler-plugin</artifactId>
-                <version>${maven.compiler.version}</version>
-                <configuration>
-                    <source>1.8</source>
-                    <target>1.8</target>
-                </configuration>
-                <executions>
-                    <execution>
-                        <id>example-worker-integration-test-compile</id>
-                        <phase>test-compile</phase>
-                        <goals>
-                            <goal>testCompile</goal>
-                        </goals>
-                    </execution>
-                </executions>
-            </plugin>
-            <!-- Docker maven plugin to start the docker containers from the images. -->
+            <!--
+                Start the Docker containers before the integration tests and
+                stop them after the tests
+            -->
             <plugin>
                 <groupId>org.jolokia</groupId>
                 <artifactId>docker-maven-plugin</artifactId>
@@ -66,8 +62,8 @@
                     <watchInterval>500</watchInterval>
                     <logDate>default</logDate>
                     <verbose>true</verbose>
-                    <!-- Run the RabbitMQ image. -->
                     <images>
+                        <!-- Run the RabbitMQ image. -->
                         <image>
                             <alias>rabbitmq</alias>
                             <name>rabbitmq:3-management</name>
@@ -89,6 +85,7 @@
                                 </log>
                             </run>
                         </image>
+
                         <!-- Assemble the config files from the test-configs folder to an image in /config on the host. -->
                         <image>
                             <alias>config</alias>
@@ -111,6 +108,7 @@
                                 </assembly>
                             </build>
                         </image>
+
                         <!-- Run the worker image which has already been built by worker-example-container-build module. -->
                         <image>
                             <alias>example-worker</alias>
@@ -146,7 +144,8 @@
                     </images>
                 </configuration>
             </plugin>
-            <!-- Plugin for running integration tests in the integration-test phase. -->
+
+            <!-- Plugin for running integration tests in the integration-test phase -->
             <plugin>
                 <artifactId>maven-failsafe-plugin</artifactId>
                 <version>${maven.failsafe.version}</version>
@@ -156,7 +155,6 @@
                             <goal>integration-test</goal>
                             <goal>verify</goal>
                         </goals>
-                        <phase>integration-test</phase>
                     </execution>
                 </executions>
                 <configuration>
@@ -179,9 +177,16 @@
         </plugins>
     </build>
 
-    <ciManagement>
-        <system>hudson</system>
-        <url>http://cafbuilder.hpswlabs.hp.com:8080/job/worker-example-container-test/</url>
-    </ciManagement>
+    <!-- Use this profile if your virtual machine setup must use fixed ports. -->
+    <profiles>
+        <profile>
+            <id>use-default-fixed-ports</id>
+            <properties>
+                <rabbitmq.ctrl.port>15672</rabbitmq.ctrl.port>
+                <rabbitmq.node.port>5672</rabbitmq.node.port>
+                <worker.adminport>8081</worker.adminport>
+            </properties>
+        </profile>
+    </profiles>
 
 </project>
