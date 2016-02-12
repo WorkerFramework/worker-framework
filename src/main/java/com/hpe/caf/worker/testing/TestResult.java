@@ -1,5 +1,6 @@
 package com.hpe.caf.worker.testing;
 
+import java.util.Collection;
 import java.util.Set;
 
 /**
@@ -9,19 +10,19 @@ public class TestResult {
 
     private final boolean success;
     private final String errorMessage;
-    private final Set<TestCaseResult> results;
+    private final Collection<TestCaseResult> results;
 
-    private TestResult(boolean success, String errorMessage, Set<TestCaseResult> results) {
+    private TestResult(boolean success, String errorMessage, Collection<TestCaseResult> results) {
         this.success = success;
         this.errorMessage = errorMessage;
         this.results = results;
     }
 
-    public static TestResult createSuccess(Set<TestCaseResult> results) {
+    public static TestResult createSuccess(Collection<TestCaseResult> results) {
         return new TestResult(true, null, results);
     }
 
-    public static TestResult createFailed(String errorMessage, Set<TestCaseResult> results) {
+    public static TestResult createFailed(String errorMessage, Collection<TestCaseResult> results) {
         return new TestResult(false, errorMessage, results);
     }
 
@@ -48,7 +49,7 @@ public class TestResult {
      *
      * @return Value for property 'results'.
      */
-    public Set<TestCaseResult> getResults() {
+    public Collection<TestCaseResult> getResults() {
         return results;
     }
 

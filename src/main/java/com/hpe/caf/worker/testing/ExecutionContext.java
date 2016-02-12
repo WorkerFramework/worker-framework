@@ -10,7 +10,7 @@ public class ExecutionContext {
 
     private final Signal finishedSignal;
     private final TestItemStore itemStore;
-    private final Set<TestCaseResult> results = new HashSet<>();
+    private final Map<String, TestCaseResult> results = new HashMap<>();
     private boolean failureEncountered = false;
     private final boolean stopOnException;
 
@@ -43,36 +43,36 @@ public class ExecutionContext {
      *
      * @return Value for property 'results'.
      */
-    public Set<TestCaseResult> getResults() {
-        return results;
+    public Collection<TestCaseResult> getResults() {
+        return results.values();
     }
 
     public void finishedSuccessfully(){
 
         if (!failureEncountered) {
-            finishedSignal.doNotify(TestResult.createSuccess(results));
+            finishedSignal.doNotify(TestResult.createSuccess(results.values()));
         }
         else {
             int failures = 0;
-            for (TestCaseResult result : results) {
+            for (TestCaseResult result : results.values()) {
                 if (!result.isSucceeded()) {
                     failures++;
                 }
             }
             System.out.println("Tests failed. Number of failures: " + failures);
-            finishedSignal.doNotify(TestResult.createFailed("Tests failed. Number of failed test cases: " + failures + ". Number of successful test cases: " + (results.size() - failures), results));
+            finishedSignal.doNotify(TestResult.createFailed("Tests failed. Number of failed test cases: " + failures + ". Number of successful test cases: " + (results.size() - failures), results.values()));
         }
     }
 
     public void succeeded(TestItem testItem) {
         synchronized (results) {
-            results.add(TestCaseResult.createSuccess(testItem.getTestCaseInformation() == null ? createIfNoneProvided(testItem) : testItem.getTestCaseInformation()));
+            results.putIfAbsent(testItem.getTag(), TestCaseResult.createSuccess(testItem.getTestCaseInformation() == null ? createIfNoneProvided(testItem) : testItem.getTestCaseInformation()));
         }
     }
 
     private TestCaseInfo createIfNoneProvided(TestItem item) {
         TestCaseInfo info = new TestCaseInfo();
-        info.setTestCaseId("Unknown. Test item tag is: " + item.getTag());
+        info.setTestCaseId(item.getTag());
         info.setDescription("No description provided!");
         info.setComments("Please update the test case file! Test Case Info was not set!");
         info.setAssociatedTickets("No associated tickets provided!");
@@ -82,16 +82,24 @@ public class ExecutionContext {
     public void failed(TestItem testItem, String message) {
         synchronized (results) {
             failureEncountered = true;
-            results.add(TestCaseResult.createFailure(testItem.getTestCaseInformation() == null ? createIfNoneProvided(testItem) : testItem.getTestCaseInformation(), message));
+            TestCaseResult result = results.get(testItem.getTag());
+            if (result == null) {
+                results.put(testItem.getTag(), TestCaseResult.createFailure(testItem.getTestCaseInformation() == null ? createIfNoneProvided(testItem) : testItem.getTestCaseInformation(), message));
+            }
+            else {
+                result.setSucceeded(false);
+                result.setFailureMessage(result.getFailureMessage() + "\n***\n" + message);
+            }
+        //    results.add(TestCaseResult.createFailure(testItem.getTestCaseInformation() == null ? createIfNoneProvided(testItem) : testItem.getTestCaseInformation(), message));
         }
 
         if (stopOnException) {
-            finishedSignal.doNotify(TestResult.createFailed(message, results));
+            finishedSignal.doNotify(TestResult.createFailed(message, results.values()));
         }
     }
 
     public void testRunsTimedOut() {
-        finishedSignal.doNotify(TestResult.createFailed("Tests timed out. Failed.", results));
+        finishedSignal.doNotify(TestResult.createFailed("Tests timed out. Failed.", results.values()));
     }
 
     public TestResult getTestResult(){

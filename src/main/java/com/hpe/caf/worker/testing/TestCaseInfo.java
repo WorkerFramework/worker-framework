@@ -1,7 +1,7 @@
 package com.hpe.caf.worker.testing;
 
 /**
- * Created by ploch on 05/02/2016.
+ * This should be called TestInstanceInfo....
  */
 public class TestCaseInfo {
 

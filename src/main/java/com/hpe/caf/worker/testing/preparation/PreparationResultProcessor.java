@@ -3,19 +3,19 @@ package com.hpe.caf.worker.testing.preparation;
 import com.fasterxml.jackson.databind.SerializationFeature;
 import com.hpe.caf.api.Codec;
 import com.hpe.caf.api.worker.TaskMessage;
-import com.hpe.caf.worker.testing.FileTestInputData;
-import com.hpe.caf.worker.testing.OutputToFileProcessor;
-import com.hpe.caf.worker.testing.TestConfiguration;
-import com.hpe.caf.worker.testing.TestItem;
+import com.hpe.caf.worker.testing.*;
 import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.io.IOUtils;
 
+import java.awt.event.ItemEvent;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.StandardOpenOption;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 /**
  * Created by ploch on 25/11/2015.
@@ -42,6 +42,18 @@ public class PreparationResultProcessor<TWorkerTask, TWorkerResult, TInput exten
     @Override
     protected byte[] getOutputContent(TWorkerResult workerResult, TaskMessage message, TestItem<TInput, TExpected> testItem) throws Exception {
 
+        TestCaseInfo info = new TestCaseInfo();
+        Matcher matcher = Pattern.compile(".*[/\\\\]").matcher(testItem.getTag());
+        if (matcher.find()) {
+            String testCaseId = testItem.getTag().substring(matcher.start(), matcher.end() - 1);
+            info.setTestCaseId(testCaseId);
+        }
+        else {
+            info.setTestCaseId(testItem.getTag());
+        }
+        info.setComments(testItem.getTag());
+
+        testItem.setTestCaseInformation(info);
 
         return configuration.getSerializer().writeValueAsBytes(testItem);
     }

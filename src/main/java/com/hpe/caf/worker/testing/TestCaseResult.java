@@ -6,8 +6,8 @@ package com.hpe.caf.worker.testing;
 public class TestCaseResult {
 
     private final TestCaseInfo testCaseInfo;
-    private final boolean succeeded;
-    private final String failureMessage;
+    private boolean succeeded;
+    private String failureMessage;
 
     public static TestCaseResult createSuccess(TestCaseInfo testCaseInfo) {
         return new TestCaseResult(testCaseInfo, true, null);
@@ -49,5 +49,23 @@ public class TestCaseResult {
      */
     public String getFailureMessage() {
         return failureMessage;
+    }
+
+    /**
+     * Setter for property 'succeeded'.
+     *
+     * @param succeeded Value to set for property 'succeeded'.
+     */
+    public void setSucceeded(boolean succeeded) {
+        this.succeeded = succeeded;
+    }
+
+    /**
+     * Setter for property 'failureMessage'.
+     *
+     * @param failureMessage Value to set for property 'failureMessage'.
+     */
+    public void setFailureMessage(String failureMessage) {
+        this.failureMessage = failureMessage;
     }
 }

@@ -6,10 +6,13 @@ import com.hpe.caf.api.worker.TaskMessage;
 import java.io.Closeable;
 import java.io.IOException;
 import java.io.PrintStream;
+import java.nio.file.Paths;
 import java.util.Collection;
 import java.util.Timer;
 import java.util.TimerTask;
 import java.util.UUID;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 /**
  * The {@code TestController} class responsible for executing test cases and controlling execution.
@@ -115,6 +118,9 @@ public class TestController implements Closeable {
         for (TestItem item : items) {
             Object workerTask = taskFactory.createTask(item);
             String taskId = item.getTag() == null ? UUID.randomUUID().toString() : item.getTag();
+            //String s = Paths.get(item.getTag()).getRoot().toString();
+
+
             TaskMessage message = messageFactory.create(workerTask, taskId);
 
             String inputIdentifier = item.getInputIdentifier();

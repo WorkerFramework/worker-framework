@@ -60,6 +60,8 @@ public class ProcessorDeliveryHandler implements ResultHandler {
             if (!success) {
                 context.failed(testItem, "Item " + testItem.getTag() + ": Result processor didn't return success. Result processor name: " + resultProcessor.getClass().getName() + "\nNo detailed message returned.");
                 testItem.setCompleted(true);
+            } else {
+                context.succeeded(testItem);
             }
         } catch (Throwable e) {
             e.printStackTrace();
@@ -68,7 +70,7 @@ public class ProcessorDeliveryHandler implements ResultHandler {
         }
 
         if (testItem.isCompleted()) {
-            itemStore.remove(taskMessage.getTaskId());
+            itemStore.remove(testItem.getTag());
         }
         checkForFinished();
     }
