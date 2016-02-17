@@ -1,5 +1,6 @@
 package com.hpe.caf.worker.example;
 
+import com.hpe.caf.worker.example.ExampleWorkerResult;
 import com.hpe.caf.worker.testing.ContentFileTestExpectation;
 
 /**
