@@ -70,7 +70,7 @@ public class ProcessorDeliveryHandler implements ResultHandler {
         }
 
         if (testItem.isCompleted()) {
-            itemStore.remove(testItem.getTag());
+            itemStore.remove(taskMessage.getTaskId());
         }
         checkForFinished();
     }

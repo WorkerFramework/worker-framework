@@ -35,6 +35,7 @@ public abstract class OutputToFileProcessor<TResult, TInput, TExpected> extends 
 
         byte[] content = getOutputContent(result, message, testItem);
         Files.deleteIfExists(filePath);
+        while(Files.exists(filePath)); // Wait till the file is really deleted.
         Files.write(filePath, content, StandardOpenOption.CREATE);
 
         return true;
