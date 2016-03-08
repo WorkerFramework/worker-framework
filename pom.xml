@@ -11,7 +11,7 @@
 
     <!-- Properties for the worker. -->
     <properties>
-        <caf.worker-framework.version>10.4-SNAPSHOT</caf.worker-framework.version>
+        <caf.worker-framework.version>10.5-SNAPSHOT</caf.worker-framework.version>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <maven.install.skip>true</maven.install.skip>
         <maven.deploy.skip>true</maven.deploy.skip>
