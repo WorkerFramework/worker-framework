@@ -44,6 +44,7 @@ public class WorkerCoreTest
     private static final String WORKER_NAME = "testWorker";
     private static final int WORKER_API_VER = 1;
     private static final String QUEUE_MSG_ID = "test1";
+    private static final String QUEUE_IN = "inQueue";
     private static final String QUEUE_OUT = "outQueue";
     private static final String SERVICE_PATH = "/test/group";
 
@@ -163,6 +164,8 @@ public class WorkerCoreTest
         Thread.sleep(100);
         Assert.assertEquals(3, core.getStats().getTasksReceived());
         Assert.assertEquals(3, core.getStats().getTasksAborted());
+        Assert.assertEquals(0, core.getStats().getTasksForwarded());
+        Assert.assertEquals(0, core.getStats().getTasksDiscarded());
         Assert.assertEquals(0, core.getBacklogSize());
     }
 
@@ -176,6 +179,7 @@ public class WorkerCoreTest
         tm.setTaskClassifier(WORKER_NAME);
         tm.setTaskApiVersion(WORKER_API_VER);
         tm.setTaskData(codec.serialise(task));
+        tm.setTo(QUEUE_IN);
         return tm;
     }
 
@@ -294,6 +298,10 @@ public class WorkerCoreTest
         {
         }
 
+        @Override
+        public String getInputQueue() {
+            return QUEUE_IN;
+        }
 
         @Override
         public void shutdownIncoming()

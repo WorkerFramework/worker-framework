@@ -268,6 +268,19 @@ public class WorkerWrapperTest
         }
 
 
+        @Override
+        public void forward(String queueMsgId, String queue, TaskMessage forwardedMessage) {
+            this.queueMsgId = queueMsgId;
+            latch.countDown();
+        }
+
+
+        @Override
+        public void discard(String queueMsgId) {
+            this.queueMsgId = queueMsgId;
+            latch.countDown();
+        }
+
         public String getClassifier()
         {
             return classifier;

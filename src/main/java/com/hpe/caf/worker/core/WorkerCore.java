@@ -45,7 +45,7 @@ public class WorkerCore
     {
         WorkerCallback taskCallback =  new CoreWorkerCallback(codec, queue, stats, tasks);
         this.threadPool = Objects.requireNonNull(pool);
-        this.callback = new CoreTaskCallback(codec, stats, new WorkerExecutor(path, taskCallback, factory, tasks, threadPool), tasks);
+        this.callback = new CoreTaskCallback(codec, stats, new WorkerExecutor(path, taskCallback, factory, tasks, threadPool), tasks, queue);
         this.workerQueue = Objects.requireNonNull(queue);
     }
 
@@ -106,14 +106,16 @@ public class WorkerCore
         private final WorkerStats stats;
         private final WorkerExecutor executor;
         private final Map<String, Future<?>> taskMap;
+        private final ManagedWorkerQueue workerQueue;
 
 
-        public CoreTaskCallback(final Codec codec, final WorkerStats stats, final WorkerExecutor executor, final Map<String, Future<?>> tasks)
+        public CoreTaskCallback(final Codec codec, final WorkerStats stats, final WorkerExecutor executor, final Map<String, Future<?>> tasks, final ManagedWorkerQueue workerQueue)
         {
             this.codec = Objects.requireNonNull(codec);
             this.stats = Objects.requireNonNull(stats);
             this.executor = Objects.requireNonNull(executor);
             this.taskMap = Objects.requireNonNull(tasks);
+            this.workerQueue = Objects.requireNonNull(workerQueue);
         }
 
 
@@ -133,11 +135,36 @@ public class WorkerCore
                 stats.getInputSizes().update(taskMessage.length);
                 TaskMessage tm = codec.deserialise(taskMessage, TaskMessage.class, DecodeMethod.LENIENT);
                 LOG.debug("Received task {} (message id: {})", tm.getTaskId(), queueMsgId);
-                executor.executeTask(tm, queueMsgId);
+                if (taskIsActive(tm)) {
+                    if (tm.getTo() == null) {
+                        LOG.debug("Task {} (message id: {}) has no explicit destination, therefore assuming it is intended for this worker, on input queue {}", tm.getTaskId(), queueMsgId, workerQueue.getInputQueue());
+                        executor.executeTask(tm, queueMsgId);
+                    } else if (tm.getTo().equalsIgnoreCase(workerQueue.getInputQueue())) {
+                        LOG.debug("Task {} (message id: {}) is intended for this worker, on input queue {}", tm.getTaskId(), queueMsgId, workerQueue.getInputQueue());
+                        executor.executeTask(tm, queueMsgId);
+                    } else {
+                        LOG.debug("Task {} (message id: {}) is not intended for this worker: input queue {} does not match message destination queue {}", tm.getTaskId(), queueMsgId, workerQueue.getInputQueue(), tm.getTo());
+                        executor.forwardTask(tm, queueMsgId);
+                    }
+                } else {
+                    LOG.debug("Task {} is no longer active. The task message (message id: {}) is not being executed.", tm.getTaskId(), queueMsgId);
+                    //TODO - CAF-599
+                }
             } catch (CodecException e) {
                 stats.incrementTasksRejected();
                 throw new InvalidTaskException("Queue data did not deserialise to a TaskMessage", e);
             }
+        }
+
+
+        /**
+         * Checks whether a task is still active.
+         * @param tm task message to be checked to verify whether the task is still active
+         * @return true if the task is still active, false otherwise
+         */
+        private boolean taskIsActive(final TaskMessage tm) {
+            //TODO - CAF-599
+            return true;
         }
 
 
@@ -193,6 +220,8 @@ public class WorkerCore
             Objects.requireNonNull(responseMessage);
             taskMap.remove(queueMsgId);
             LOG.debug("Task {} complete (message id: {})", responseMessage.getTaskId(), queueMsgId);
+            LOG.debug("Setting destination {} in task {} (message id: {})", queue, responseMessage.getTaskId(), queueMsgId);
+            responseMessage.setTo(queue);
             try {
                 byte[] output = codec.serialise(responseMessage);
                 workerQueue.publish(queueMsgId, output, queue);
@@ -216,6 +245,33 @@ public class WorkerCore
             LOG.debug("Rejecting message id {}", queueMsgId);
             workerQueue.rejectTask(queueMsgId);
             stats.incrementTasksRejected();
+        }
+
+
+        @Override
+        public void forward(String queueMsgId, String queue, TaskMessage forwardedMessage) {
+            Objects.requireNonNull(queueMsgId);
+            Objects.requireNonNull(queue);
+            Objects.requireNonNull(forwardedMessage);
+            taskMap.remove(queueMsgId);
+            LOG.debug("Task {} (message id: {}) being forwarded to queue {}", forwardedMessage.getTaskId(), queueMsgId, queue);
+            try {
+                byte[] output = codec.serialise(forwardedMessage);
+                workerQueue.publish(queueMsgId, output, queue);
+                stats.incrementTasksForwarded();
+                //TODO - I'm guessing this stat should not be updated for forward messages:
+                // stats.getOutputSizes().update(output.length);
+            } catch (CodecException | QueueException e) {
+                LOG.error("Cannot publish data for forwarded task {}, rejecting", forwardedMessage.getTaskId(), e);
+                abandon(queueMsgId);
+            }
+        }
+
+
+        @Override
+        public void discard(String queueMsgId) {
+            LOG.debug("Discarding message id {}", queueMsgId);
+            stats.incrementTasksDiscarded();
         }
     }
 }

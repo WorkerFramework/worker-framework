@@ -25,4 +25,20 @@ public interface WorkerCallback
      * @param queueMsgId the id of the task's queue message to reject
      */
     void abandon(final String queueMsgId);
+
+
+    /**
+     * Indicates the Worker wishes to forward this task to the specified queue without processing it.
+     * @param queueMsgId a queue-specific reference for the incoming message to be forwarded
+     * @param queue the queue to hold the forwarded message
+     * @param forwardedMessage the message to put on the queue
+     */
+    void forward(final String queueMsgId, final String queue, final TaskMessage forwardedMessage);
+
+
+    /**
+     * Indicates the Worker wishes to discard this task without returning it to the queue for retry.
+     * @param queueMsgId the id of the task's queue message to discard
+     */
+    void discard(final String queueMsgId);
 }
