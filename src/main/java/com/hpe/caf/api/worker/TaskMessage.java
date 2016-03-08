@@ -42,6 +42,10 @@ public final class TaskMessage
      * Holds worker-specific context data.
      */
     private Map<String, byte[]> context;
+    /**
+     * The destination pipe to which the sender intends the message to be sent.
+     */
+    private String to;
 
 
     public TaskMessage(){ }
@@ -50,12 +54,20 @@ public final class TaskMessage
     public TaskMessage(final String taskId, final String taskClassifier, final int taskApiVersion, final byte[] taskData,
                        final TaskStatus taskStatus, final Map<String, byte[]> context)
     {
+        this(taskId, taskClassifier, taskApiVersion, taskData, taskStatus, context, null);
+    }
+
+
+    public TaskMessage(final String taskId, final String taskClassifier, final int taskApiVersion, final byte[] taskData,
+                       final TaskStatus taskStatus, final Map<String, byte[]> context, final String to)
+    {
         this.taskId = Objects.requireNonNull(taskId);
         this.taskClassifier = Objects.requireNonNull(taskClassifier);
         this.taskApiVersion = Objects.requireNonNull(taskApiVersion);
         this.taskData = Objects.requireNonNull(taskData);
         this.taskStatus = Objects.requireNonNull(taskStatus);
         this.context = Objects.requireNonNull(context);
+        this.to = to;
     }
 
 
@@ -140,5 +152,15 @@ public final class TaskMessage
     public void setContext(final Map<String, byte[]> context)
     {
         this.context = context;
+    }
+
+
+    public String getTo() {
+        return to;
+    }
+
+
+    public void setTo(String to) {
+        this.to = to;
     }
 }

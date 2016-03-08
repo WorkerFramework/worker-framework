@@ -24,4 +24,11 @@ public interface WorkerQueue
      * @param messageId the queue task id that has been rejected
      */
     void rejectTask(String messageId);
+
+
+    /**
+     * Return the name of the input queue.
+     * @return the name of the input queue
+     */
+    String getInputQueue();
 }
