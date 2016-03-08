@@ -148,6 +148,17 @@ public final class RabbitWorkerQueue implements ManagedWorkerQueue
     /**
      * {@inheritDoc}
      *
+     * Return the name of the input queue.
+     */
+    @Override
+    public String getInputQueue() {
+        return config.getInputQueue();
+    }
+
+
+    /**
+     * {@inheritDoc}
+     *
      * The incoming queues will all be cancelled so the consumer will fall back to idle.
      */
     @Override
