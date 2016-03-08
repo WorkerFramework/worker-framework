@@ -113,7 +113,7 @@ public class TestController implements Closeable {
         }, timeout);
         thread = queueManager.start(new ProcessorDeliveryHandler(resultProcessor, context, queueManager));
 
-        TaskMessageFactory messageFactory = new TaskMessageFactory(workerServices.getCodec(), taskFactory.getWorkerName(), taskFactory.getApiVersion());
+        TaskMessageFactory messageFactory = new TaskMessageFactory(workerServices.getCodec(), taskFactory.getWorkerName(), queueManager.getWorkerInputQueueName(), taskFactory.getApiVersion());
 
         for (TestItem item : items) {
             Object workerTask = taskFactory.createTask(item);
