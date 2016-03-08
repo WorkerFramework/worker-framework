@@ -96,6 +96,10 @@ public class QueueManager implements Closeable {
         return debugEnabled;
     }
 
+    public String getWorkerInputQueueName() {
+        return queueServices.getWorkerInputQueue();
+    }
+
     @Override
     public void close() throws IOException {
         if (consumerTag != null) {
