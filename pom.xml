@@ -21,7 +21,7 @@
             <dependency>
                 <groupId>com.hpe.caf</groupId>
                 <artifactId>caf-api</artifactId>
-                <version>10.0</version>
+                <version>11.0-SNAPSHOT</version>
             </dependency>
             <dependency>
                 <groupId>com.hpe.caf</groupId>
@@ -112,12 +112,12 @@
             <dependency>
                 <groupId>com.hpe.caf.worker</groupId>
                 <artifactId>worker-core</artifactId>
-                <version>10.5</version>
+                <version>10.6-SNAPSHOT</version>
             </dependency>
             <dependency>
                 <groupId>com.hpe.caf.worker</groupId>
                 <artifactId>worker-queue-rabbit</artifactId>
-                <version>10.8</version>
+                <version>10.9-SNAPSHOT</version>
             </dependency>
             <dependency>
                 <groupId>com.hpe.caf.worker</groupId>
