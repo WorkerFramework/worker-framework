@@ -18,7 +18,6 @@ public class TaskMessageFactory {
     private final byte[] CONTEXT_DATA = "testData".getBytes(StandardCharsets.UTF_8);
     private final Codec codec;
     private final String workerName;
-    private final String workerInputQueueName;
     private final int apiVersion;
 
     /**
@@ -28,11 +27,10 @@ public class TaskMessageFactory {
      * @param workerName the worker name
      * @param apiVersion the api version
      */
-    public TaskMessageFactory(final Codec codec, final String workerName, final String workerInputQueueName, final int apiVersion) {
+    public TaskMessageFactory(final Codec codec, final String workerName, final int apiVersion) {
 
         this.codec = codec;
         this.workerName = workerName;
-        this.workerInputQueueName = workerInputQueueName;
         this.apiVersion = apiVersion;
     }
 
@@ -47,7 +45,7 @@ public class TaskMessageFactory {
     public TaskMessage create(final Object workerTask, final String taskId) throws CodecException {
 
         Map<java.lang.String, byte[]> context = Collections.singletonMap(CONTEXT_KEY, CONTEXT_DATA);
-        TaskMessage msg = new TaskMessage(taskId, workerName, apiVersion, codec.serialise(workerTask), TaskStatus.NEW_TASK, context, workerInputQueueName);
+        TaskMessage msg = new TaskMessage(taskId, workerName, apiVersion, codec.serialise(workerTask), TaskStatus.NEW_TASK, context);
 
         return msg;
     }
