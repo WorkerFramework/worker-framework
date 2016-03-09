@@ -7,7 +7,7 @@ import javax.validation.constraints.NotNull;
 /**
  * The result class of the worker, containing a worker status and a ReferencedData object for textData.
  */
-public class ExampleWorkerResult {
+public final class ExampleWorkerResult {
 
     /**
      * Worker specific return code.

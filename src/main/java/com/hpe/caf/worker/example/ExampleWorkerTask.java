@@ -8,7 +8,7 @@ import javax.validation.constraints.NotNull;
  * The task supplied to the worker. This is the main means of communication to the worker, providing the ReferencedData and
  * the action to take.
  */
-public class ExampleWorkerTask {
+public final class ExampleWorkerTask {
 
     /**
      * The ReferencedData file in the DataStore.

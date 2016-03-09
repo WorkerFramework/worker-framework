@@ -3,7 +3,7 @@ package com.hpe.caf.worker.example;
 /**
  * Example worker constants including API version and the name of the worker.
  */
-public class ExampleWorkerConstants {
+public final class ExampleWorkerConstants {
 
     public static final String WORKER_NAME = "ExampleWorker";
 
@@ -11,5 +11,4 @@ public class ExampleWorkerConstants {
 
     private ExampleWorkerConstants() {
     }
-
 }
