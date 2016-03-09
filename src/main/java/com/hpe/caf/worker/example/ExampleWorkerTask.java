@@ -14,7 +14,7 @@ public final class ExampleWorkerTask {
      * The ReferencedData file in the DataStore.
      */
     @NotNull
-    private ReferencedData sourceData;
+    public ReferencedData sourceData;
 
     /**
      * Identifies a target (relative) location for any output data that worker will save in data store.
@@ -22,38 +22,10 @@ public final class ExampleWorkerTask {
      * If a worker needs to store output data, this should be used when calling {@link com.hpe.caf.api.worker.DataStore#store(Path, String)} method.
      * Example usage is located in ExampleWorker class, 'wrapAsReferencedData' method.
      */
-    private String datastorePartialReference;
+    public String datastorePartialReference;
 
     /**
      * Enumeration to represent which action the worker will perform.
      */
-    private ExampleWorkerAction action;
-
-    public ExampleWorkerTask(){
-        //empty constructor for serialisation.
-    }
-
-    public ReferencedData getSourceData() {
-        return sourceData;
-    }
-
-    public void setSourceData(ReferencedData sourceData) {
-        this.sourceData = sourceData;
-    }
-
-    public String getDatastorePartialReference() {
-        return datastorePartialReference;
-    }
-
-    public void setDatastorePartialReference(String datastorePartialReference) {
-        this.datastorePartialReference = datastorePartialReference;
-    }
-
-    public ExampleWorkerAction getAction() {
-        return action;
-    }
-
-    public void setAction(ExampleWorkerAction action) {
-        this.action = action;
-    }
+    public ExampleWorkerAction action;
 }
