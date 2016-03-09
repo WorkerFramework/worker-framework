@@ -52,10 +52,10 @@ public class ExampleWorkerTaskBuilderTest {
         Assert.assertNotNull("Expecting returned task data from builder to not be null when deserialized.", returnedTaskdata);
 
         Assert.assertEquals("Expecting action on returned task data from builder to be that originally passed in.",
-                testAction, returnedTaskdata.getAction());
+                testAction, returnedTaskdata.action);
         Assert.assertEquals("Expecting data source on returned task data from builder to be that originally passed in.",
-                testDataStoreValue, returnedTaskdata.getDatastorePartialReference());
-        ReferencedData returnedStorageReference = returnedTaskdata.getSourceData();
+                testDataStoreValue, returnedTaskdata.datastorePartialReference);
+        ReferencedData returnedStorageReference = returnedTaskdata.sourceData;
         Assert.assertEquals("Expecting storage reference returned from build to be that originally passed in.",
                 testStorageReference, returnedStorageReference.getReference());
     }

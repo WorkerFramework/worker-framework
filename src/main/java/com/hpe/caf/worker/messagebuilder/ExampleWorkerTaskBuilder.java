@@ -43,7 +43,7 @@ public class ExampleWorkerTaskBuilder implements DocumentMessageBuilder {
         ExampleWorkerTask taskData = new ExampleWorkerTask();
         String storageReference = document.getStorageReference();
         Objects.requireNonNull(storageReference, "storageReference on document must not be null.");
-        taskData.setSourceData(ReferencedData.getReferencedData(document.getStorageReference()));
+        taskData.sourceData = ReferencedData.getReferencedData(document.getStorageReference());
 
         if(!taskMessageParams.containsKey(dataStorePartialReferenceKey)){
             throw new NullPointerException("'datastorePartialReference' must be provided in 'taskMessageParams'.");
@@ -51,7 +51,7 @@ public class ExampleWorkerTaskBuilder implements DocumentMessageBuilder {
         String datastorePartialReference = taskMessageParams.get(dataStorePartialReferenceKey);
         Objects.requireNonNull(datastorePartialReference, "datastorePartialReference' on taskMessageParams must not be null.");
 
-        taskData.setDatastorePartialReference(datastorePartialReference);
+        taskData.datastorePartialReference = datastorePartialReference;
 
         String actionStr = taskMessageParams.get(actionKey);
         ExampleWorkerAction actionToSet;
@@ -63,7 +63,7 @@ public class ExampleWorkerTaskBuilder implements DocumentMessageBuilder {
             throw new IllegalArgumentException("Unable to derive ExampleWorkerAction value from value on taskMessageParam. key " + actionKey +
                                  ", value: "+actionStr, e);
         }
-        taskData.setAction(actionToSet);
+        taskData.action = actionToSet;
         return constructTaskMessageFromExampleWorkerTask(taskData);
     }
 
