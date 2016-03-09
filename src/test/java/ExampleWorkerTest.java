@@ -55,7 +55,7 @@ public class ExampleWorkerTest {
         Assert.assertEquals(TaskStatus.RESULT_SUCCESS, response.getTaskStatus());
         ExampleWorkerResult workerResult = codec.deserialise(response.getData(), ExampleWorkerResult.class);
         Assert.assertNotNull(workerResult);
-        ReferencedData resultRefData = workerResult.getTextData();
+        ReferencedData resultRefData = workerResult.textData;
         String resultText = streamToString(resultRefData.acquire(mockSource), "UTF-8");
         Assert.assertTrue(resultText.startsWith("etats fo yraterceS"));
     }
@@ -88,7 +88,7 @@ public class ExampleWorkerTest {
         Assert.assertEquals(TaskStatus.RESULT_SUCCESS, response.getTaskStatus());
         ExampleWorkerResult workerResult = codec.deserialise(response.getData(), ExampleWorkerResult.class);
         Assert.assertNotNull(workerResult);
-        ReferencedData resultRefData = workerResult.getTextData();
+        ReferencedData resultRefData = workerResult.textData;
         String resultText = streamToString(resultRefData.acquire(mockSource), "UTF-8");
         Assert.assertTrue(resultText.startsWith("SECRETARY OF STATE"));
     }
@@ -103,8 +103,8 @@ public class ExampleWorkerTest {
         String text = "Secretary of state";
         ReferencedData mockReferencedData = ReferencedData.getWrappedData(text.getBytes());
         ExampleWorkerTask task = new ExampleWorkerTask();
-        task.setSourceData(mockReferencedData);
-        task.setAction(action);
+        task.sourceData = mockReferencedData;
+        task.action = action;
         return task;
     }
 
