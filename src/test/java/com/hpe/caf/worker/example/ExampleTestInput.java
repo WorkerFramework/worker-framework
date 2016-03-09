@@ -1,6 +1,5 @@
 package com.hpe.caf.worker.example;
 
-import com.hpe.caf.worker.example.ExampleWorkerTask;
 import com.hpe.caf.worker.testing.FileTestInputData;
 
 /**
