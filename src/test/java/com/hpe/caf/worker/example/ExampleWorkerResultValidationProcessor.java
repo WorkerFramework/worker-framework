@@ -10,7 +10,7 @@ import org.junit.Assert;
 public class ExampleWorkerResultValidationProcessor extends ContentResultValidationProcessor<ExampleWorkerResult, ExampleTestInput, ExampleTestExpectation> {
 
     public ExampleWorkerResultValidationProcessor(WorkerServices workerServices) {
-        super(workerServices.getDataStore(), workerServices.getCodec(), ExampleWorkerResult.class, ExampleWorkerResult::getTextData, SettingsProvider.defaultProvider.getSetting(SettingNames.expectedFolder));
+        super(workerServices.getDataStore(), workerServices.getCodec(), ExampleWorkerResult.class, ExampleWorkerResultAccessors::getTextData, SettingsProvider.defaultProvider.getSetting(SettingNames.expectedFolder));
     }
 
     /**
@@ -27,8 +27,7 @@ public class ExampleWorkerResultValidationProcessor extends ContentResultValidat
      */
     @Override
     protected boolean processWorkerResult(TestItem<ExampleTestInput, ExampleTestExpectation> testItem, TaskMessage message, ExampleWorkerResult workerResult) throws Exception {
-        Assert.assertEquals(testItem.getExpectedOutputData().getResult().getWorkerStatus(), workerResult.getWorkerStatus());
+        Assert.assertEquals(testItem.getExpectedOutputData().getResult().workerStatus, workerResult.workerStatus);
         return super.processWorkerResult(testItem, message, workerResult);
     }
-
 }

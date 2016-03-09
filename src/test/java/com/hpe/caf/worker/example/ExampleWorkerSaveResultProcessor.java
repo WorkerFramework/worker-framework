@@ -12,7 +12,7 @@ import com.hpe.caf.worker.testing.preparation.ContentResultProcessor;
 public class ExampleWorkerSaveResultProcessor extends ContentResultProcessor<ExampleWorkerTask, ExampleWorkerResult, ExampleTestInput, ExampleTestExpectation> {
 
     protected ExampleWorkerSaveResultProcessor(TestConfiguration configuration, WorkerServices workerServices){
-        super(configuration, workerServices.getCodec(), workerServices.getDataStore(), ExampleWorkerResult::getTextData);
+        super(configuration, workerServices.getCodec(), workerServices.getDataStore(), ExampleWorkerResultAccessors::getTextData);
     }
 
     /**

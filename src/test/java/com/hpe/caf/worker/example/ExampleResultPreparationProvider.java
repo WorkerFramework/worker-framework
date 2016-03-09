@@ -34,7 +34,7 @@ public class ExampleResultPreparationProvider  extends PreparationItemProvider<E
         // if the task is null, put in default values
         if(task==null){
             task=new ExampleWorkerTask();
-            task.setAction(ExampleWorkerAction.VERBATIM);
+            task.action = ExampleWorkerAction.VERBATIM;
         }
 
         item.getInputData().setTask(task);
