@@ -8,9 +8,10 @@ import com.hpe.caf.messagebuilder.Document;
 public class TestDocumentImpl implements Document {
     private String storageReference;
 
-    public void setStorageReference(String storageReference){
+    public TestDocumentImpl(String storageReference){
         this.storageReference = storageReference;
     }
+
     public String getStorageReference(){
         return this.storageReference;
     }
