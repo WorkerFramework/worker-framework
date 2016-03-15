@@ -64,7 +64,7 @@ public class ${workerName} extends AbstractWorker<${workerName}Task, ${workerNam
     @Override
     public WorkerResponse doWork() throws InterruptedException, TaskRejectedException {
         ${workerName}Result result = processFile();
-        if(result.getWorkerStatus() == ${workerName}Status.COMPLETED){
+        if(result.workerStatus == ${workerName}Status.COMPLETED){
             return createSuccessResult(result);
         } else {
             return createFailureResult(result);
@@ -83,7 +83,7 @@ public class ${workerName} extends AbstractWorker<${workerName}Task, ${workerNam
         //Creation of DataSource using dataStore from constructor and serialization codec
         DataSource source = new DataStoreSource(dataStore, getCodec());
 
-        ReferencedData data = getTask().getSourceData();
+        ReferencedData data = getTask().sourceData;
 
         try {
             //Acquire the inputstream data from the referenced data in the datasource
@@ -94,13 +94,13 @@ public class ${workerName} extends AbstractWorker<${workerName}Task, ${workerNam
             String result = "";
 
             //manipulate the text by the method depicted by the task action
-            if(getTask().getAction() == ${workerName}Action.REVERSE){
+            if(getTask().action == ${workerName}Action.REVERSE){
                 for(int i=original.length()-1; i>=0; i--){
                     result = result + original.charAt(i);
                 }
-            } else if(getTask().getAction() == ${workerName}Action.CAPITALISE){
+            } else if(getTask().action == ${workerName}Action.CAPITALISE){
                 result = original.toUpperCase();
-            } else if(getTask().getAction() == ${workerName}Action.VERBATIM){
+            } else if(getTask().action == ${workerName}Action.VERBATIM){
                 result = original;
             }
 
@@ -109,8 +109,8 @@ public class ${workerName} extends AbstractWorker<${workerName}Task, ${workerNam
 
             //create the worker result with the resultant referenced data text data, set worker status complete
             ${workerName}Result workerResult = new ${workerName}Result();
-            workerResult.setWorkerStatus(${workerName}Status.COMPLETED);
-            workerResult.setTextData(textDataSource);
+            workerResult.workerStatus = ${workerName}Status.COMPLETED;
+            workerResult.textData = textDataSource;
 
             return workerResult;
         } catch(DataSourceException e) {
@@ -133,7 +133,7 @@ public class ${workerName} extends AbstractWorker<${workerName}Task, ${workerNam
      */
     private ${workerName}Result createErrorResult(${workerName}Status status){
         ${workerName}Result workerResult = new ${workerName}Result();
-        workerResult.setWorkerStatus(status);
+        workerResult.workerStatus = status;
         return workerResult;
     }
 
@@ -149,7 +149,7 @@ public class ${workerName} extends AbstractWorker<${workerName}Task, ${workerNam
         ReferencedData refData;
         if (data.length > resultSizeThreshold) {
             // Wrap as datastore reference.
-            String ref = dataStore.store(new ByteArrayInputStream(data), getTask().getDatastorePartialReference());
+            String ref = dataStore.store(new ByteArrayInputStream(data), getTask().datastorePartialReference);
             refData = ReferencedData.getReferencedData(ref);
         } else {
             //Wrap as byte array.

@@ -58,7 +58,7 @@ public class ${workerName}Test {
         Assert.assertEquals(TaskStatus.RESULT_SUCCESS, response.getTaskStatus());
         ${workerName}Result workerResult = codec.deserialise(response.getData(), ${workerName}Result.class);
         Assert.assertNotNull(workerResult);
-        ReferencedData resultRefData = workerResult.getTextData();
+        ReferencedData resultRefData = workerResult.textData;
         String resultText = streamToString(resultRefData.acquire(mockSource), "UTF-8");
         Assert.assertTrue(resultText.startsWith("etats fo yraterceS"));
     }
@@ -91,7 +91,7 @@ public class ${workerName}Test {
         Assert.assertEquals(TaskStatus.RESULT_SUCCESS, response.getTaskStatus());
         ${workerName}Result workerResult = codec.deserialise(response.getData(), ${workerName}Result.class);
         Assert.assertNotNull(workerResult);
-        ReferencedData resultRefData = workerResult.getTextData();
+        ReferencedData resultRefData = workerResult.textData;
         String resultText = streamToString(resultRefData.acquire(mockSource), "UTF-8");
         Assert.assertTrue(resultText.startsWith("SECRETARY OF STATE"));
     }
@@ -106,8 +106,8 @@ public class ${workerName}Test {
         String text = "Secretary of state";
         ReferencedData mockReferencedData = ReferencedData.getWrappedData(text.getBytes());
         ${workerName}Task task = new ${workerName}Task();
-        task.setSourceData(mockReferencedData);
-        task.setAction(action);
+        task.sourceData = mockReferencedData;
+        task.action = action;
         return task;
     }
 
