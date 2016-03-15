@@ -23,9 +23,8 @@ public class ExampleWorkerTaskBuilderTest {
     @Test
     public void buildExampleWorkerTaskMessage() throws DocumentMessageBuilderException, IOException {
         //set up a document to be retrievable by builder
-        Document testDoc = new TestDocumentImpl();
         String testStorageReference = UUID.randomUUID().toString();
-        testDoc.setStorageReference(testStorageReference);
+        Document testDoc = new TestDocumentImpl(testStorageReference);
         DocumentServices testDocServices = () -> testDoc;
 
         //set up taskMessageParams to construct the TaskMessage from in the builder
