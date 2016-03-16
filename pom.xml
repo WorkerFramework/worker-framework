@@ -4,16 +4,15 @@
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
 
-    <parent>
-        <groupId>com.hpe.caf</groupId>
-        <artifactId>caf-maven-latest</artifactId>
-        <version>1-SNAPSHOT</version>
-        <relativePath>../caf-maven-latest</relativePath>
-    </parent>
-
     <groupId>com.hpe.caf.worker.messagebuilder</groupId>
     <artifactId>worker-example-message-builder</artifactId>
     <version>1.0-SNAPSHOT</version>
+
+    <properties>
+        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+        <maven.compiler.source>1.8</maven.compiler.source>
+        <maven.compiler.target>1.8</maven.compiler.target>
+    </properties>
 
     <dependencies>
         <dependency>
@@ -29,9 +28,42 @@
         <dependency>
             <groupId>junit</groupId>
             <artifactId>junit</artifactId>
+            <version>4.12</version>
             <scope>test</scope>
         </dependency>
     </dependencies>
+
+    <repositories>
+        <repository>
+            <id>cmbg-maven-releases</id>
+            <name>Cambridge Nexus Releases</name>
+            <url>http://cmbg-maven.autonomy.com/nexus/content/repositories/releases</url>
+            <snapshots>
+                <enabled>false</enabled>
+            </snapshots>
+        </repository>
+        <repository>
+            <id>cmbg-maven-snapshots</id>
+            <name>Cambridge Nexus Snapshots</name>
+            <url>http://cmbg-maven.autonomy.com/nexus/content/repositories/snapshots</url>
+            <releases>
+                <enabled>false</enabled>
+            </releases>
+        </repository>
+    </repositories>
+
+    <distributionManagement>
+        <repository>
+            <id>cmbg-maven-releases</id>
+            <name>Internal Releases</name>
+            <url>http://cmbg-maven.autonomy.com/nexus/content/repositories/releases</url>
+        </repository>
+        <snapshotRepository>
+            <id>cmbg-maven-snapshots</id>
+            <name>Internal Snapshots</name>
+            <url>http://cmbg-maven.autonomy.com/nexus/content/repositories/snapshots</url>
+        </snapshotRepository>
+    </distributionManagement>
 
     <ciManagement>
         <system>hudson</system>
