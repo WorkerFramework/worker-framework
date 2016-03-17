@@ -1,6 +1,7 @@
 package com.hpe.caf.worker.queue.rabbit;
 
 
+import com.hpe.caf.api.Codec;
 import com.hpe.caf.api.HealthResult;
 import com.hpe.caf.api.HealthStatus;
 import com.hpe.caf.api.worker.ManagedWorkerQueue;
@@ -8,12 +9,7 @@ import com.hpe.caf.api.worker.QueueException;
 import com.hpe.caf.api.worker.TaskCallback;
 import com.hpe.caf.api.worker.WorkerQueueMetricsReporter;
 import com.hpe.caf.configs.RabbitConfiguration;
-import com.hpe.caf.util.rabbitmq.ConsumerRejectEvent;
-import com.hpe.caf.util.rabbitmq.DefaultRabbitConsumer;
-import com.hpe.caf.util.rabbitmq.Event;
-import com.hpe.caf.util.rabbitmq.EventPoller;
-import com.hpe.caf.util.rabbitmq.QueueConsumer;
-import com.hpe.caf.util.rabbitmq.RabbitUtil;
+import com.hpe.caf.util.rabbitmq.*;
 import com.rabbitmq.client.Channel;
 import com.rabbitmq.client.Connection;
 import net.jodah.lyra.ConnectionOptions;
@@ -52,6 +48,7 @@ public final class RabbitWorkerQueue implements ManagedWorkerQueue
     private Connection conn;
     private Channel incomingChannel;
     private Channel outgoingChannel;
+    private Channel trackingChannel;
     private final List<String> consumerTags = new LinkedList<>();
     private final Set<String> declaredQueues = new HashSet<>();
     private final BlockingQueue<Event<QueueConsumer>> consumerQueue = new LinkedBlockingQueue<>();
@@ -59,16 +56,18 @@ public final class RabbitWorkerQueue implements ManagedWorkerQueue
     private final RabbitMetricsReporter metrics = new RabbitMetricsReporter();
     private final RabbitWorkerQueueConfiguration config;
     private final int maxTasks;
+    private final Codec codec;
     private static final Logger LOG = LoggerFactory.getLogger(RabbitWorkerQueue.class);
 
 
     /**
      * Setup a new RabbitWorkerQueue.
      */
-    public RabbitWorkerQueue(RabbitWorkerQueueConfiguration config, int maxTasks)
+    public RabbitWorkerQueue(RabbitWorkerQueueConfiguration config, int maxTasks, Codec codec)
     {
         this.config = Objects.requireNonNull(config);
         this.maxTasks = maxTasks;
+        this.codec = codec;
         LOG.debug("Initialised");
     }
 
@@ -93,13 +92,14 @@ public final class RabbitWorkerQueue implements ManagedWorkerQueue
             WorkerConfirmListener confirmListener = new WorkerConfirmListener(consumerQueue);
             createConnection(callback, confirmListener);
             outgoingChannel = conn.createChannel();
+            trackingChannel = conn.createChannel();
             incomingChannel = conn.createChannel();
             int prefetch = Math.max(1, maxTasks + config.getPrefetchBuffer());
             incomingChannel.basicQos(prefetch);
             WorkerQueueConsumerImpl consumerImpl = new WorkerQueueConsumerImpl(callback, metrics, consumerQueue, incomingChannel, publisherQueue,
                                                                                config.getRetryQueue(), config.getRejectedQueue(), config.getRetryLimit());
             consumer = new DefaultRabbitConsumer(consumerQueue, consumerImpl);
-            WorkerPublisherImpl publisherImpl = new WorkerPublisherImpl(outgoingChannel, metrics, consumerQueue, confirmListener);
+            WorkerPublisherImpl publisherImpl = new WorkerPublisherImpl(outgoingChannel, trackingChannel, metrics, consumerQueue, confirmListener, getInputQueue(), codec);
             publisher = new EventPoller<>(2, publisherQueue, publisherImpl);
             declareWorkerQueue(incomingChannel, config.getInputQueue());
             declareWorkerQueue(outgoingChannel, config.getRetryQueue());
@@ -148,6 +148,19 @@ public final class RabbitWorkerQueue implements ManagedWorkerQueue
     /**
      * {@inheritDoc}
      *
+     * Add a DROP event that the consumer will handle.
+     */
+    @Override
+    public void discardTask(String messageId) {
+        Objects.requireNonNull(messageId);
+        LOG.debug("Generating drop event for task {}", messageId);
+        consumerQueue.add(new ConsumerDropEvent(Long.parseLong(messageId)));
+    }
+
+
+    /**
+     * {@inheritDoc}
+     *
      * Return the name of the input queue.
      */
     @Override
@@ -190,6 +203,7 @@ public final class RabbitWorkerQueue implements ManagedWorkerQueue
             if ( conn != null ) {
                 incomingChannel.close();
                 outgoingChannel.close();
+                trackingChannel.close();
                 conn.close();
             }
         } catch (IOException | TimeoutException e) {
@@ -215,6 +229,8 @@ public final class RabbitWorkerQueue implements ManagedWorkerQueue
             return new HealthResult(HealthStatus.UNHEALTHY, "Incoming channel failed");
         } else if ( !outgoingChannel.isOpen() ) {
             return new HealthResult(HealthStatus.UNHEALTHY, "Outgoing channel failed");
+        } else if ( !trackingChannel.isOpen() ) {
+            return new HealthResult(HealthStatus.UNHEALTHY, "Tracking channel failed");
         } else {
             return HealthResult.RESULT_HEALTHY;
         }

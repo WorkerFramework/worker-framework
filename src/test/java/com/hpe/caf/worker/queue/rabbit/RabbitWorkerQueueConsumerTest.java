@@ -1,16 +1,17 @@
 package com.hpe.caf.worker.queue.rabbit;
 
 
-import com.hpe.caf.api.worker.InvalidTaskException;
-import com.hpe.caf.api.worker.TaskCallback;
-import com.hpe.caf.api.worker.TaskRejectedException;
-import com.hpe.caf.api.worker.WorkerException;
+import com.hpe.caf.api.Codec;
+import com.hpe.caf.api.CodecException;
+import com.hpe.caf.api.worker.*;
+import com.hpe.caf.codec.JsonCodec;
 import com.hpe.caf.util.rabbitmq.ConsumerAckEvent;
 import com.hpe.caf.util.rabbitmq.ConsumerDropEvent;
 import com.hpe.caf.util.rabbitmq.ConsumerRejectEvent;
 import com.hpe.caf.util.rabbitmq.DefaultRabbitConsumer;
 import com.hpe.caf.util.rabbitmq.Event;
 import com.hpe.caf.util.rabbitmq.QueueConsumer;
+import com.hpe.caf.worker.jobtracking.JobTrackingEventType;
 import com.rabbitmq.client.AMQP;
 import com.rabbitmq.client.Channel;
 import com.rabbitmq.client.Envelope;
@@ -26,6 +27,7 @@ import org.mockito.stubbing.Answer;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.util.Collections;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.BlockingQueue;
@@ -106,7 +108,7 @@ public class RabbitWorkerQueueConsumerTest
         WorkerPublisher publisher = Mockito.mock(WorkerPublisher.class);
         ArgumentCaptor<Map> captor = ArgumentCaptor.forClass(Map.class);
         pubEvent.handleEvent(publisher);
-        Mockito.verify(publisher, Mockito.times(1)).handlePublish(Mockito.eq(data), Mockito.eq(rejectKey), Mockito.eq(id), captor.capture());
+        Mockito.verify(publisher, Mockito.times(1)).handlePublish(Mockito.eq(data), Mockito.eq(rejectKey), Mockito.eq(id), captor.capture(), Mockito.eq(JobTrackingEventType.REJECTED));
         Assert.assertTrue(captor.getValue().containsKey(WorkerQueueConsumerImpl.RABBIT_HEADER_CAF_WORKER_REJECTED));
         Assert.assertEquals(WorkerQueueConsumerImpl.REJECTED_REASON_TASKMESSAGE,
                             captor.getValue().get(WorkerQueueConsumerImpl.RABBIT_HEADER_CAF_WORKER_REJECTED));
@@ -142,7 +144,7 @@ public class RabbitWorkerQueueConsumerTest
         WorkerPublisher publisher = Mockito.mock(WorkerPublisher.class);
         ArgumentCaptor<Map> captor = ArgumentCaptor.forClass(Map.class);
         pubEvent.handleEvent(publisher);
-        Mockito.verify(publisher, Mockito.times(1)).handlePublish(Mockito.eq(data), Mockito.eq(testQueue), Mockito.eq(id), captor.capture());
+        Mockito.verify(publisher, Mockito.times(1)).handlePublish(Mockito.eq(data), Mockito.eq(testQueue), Mockito.eq(id), captor.capture(), Mockito.eq(null));
         Assert.assertFalse(captor.getValue().containsKey(WorkerQueueConsumerImpl.RABBIT_HEADER_CAF_WORKER_REJECTED));
         consumer.shutdown();
     }
@@ -172,9 +174,51 @@ public class RabbitWorkerQueueConsumerTest
         WorkerPublisher publisher = Mockito.mock(WorkerPublisher.class);
         ArgumentCaptor<Map> captor = ArgumentCaptor.forClass(Map.class);
         pubEvent.handleEvent(publisher);
-        Mockito.verify(publisher, Mockito.times(1)).handlePublish(Mockito.eq(data), Mockito.eq(retryKey), Mockito.eq(id), captor.capture());
+        Mockito.verify(publisher, Mockito.times(1)).handlePublish(Mockito.eq(data), Mockito.eq(retryKey), Mockito.eq(id), captor.capture(), Mockito.eq(JobTrackingEventType.RETRIED));
         Assert.assertTrue(captor.getValue().containsKey(WorkerQueueConsumerImpl.RABBIT_HEADER_CAF_WORKER_RETRY));
         Assert.assertEquals("1", captor.getValue().get(WorkerQueueConsumerImpl.RABBIT_HEADER_CAF_WORKER_RETRY));
+        consumer.shutdown();
+    }
+
+
+    /**
+     * Send in a message marked as redelivered, with tracking info.
+     * Verify that a new publish request is sent to the retry queue with the appropriate headers stamped.
+     * Also verify that a new tracking event message is sent to the tracking pipe.
+     */
+    @Test
+    public void testHandleRedeliveryWithTracking()
+            throws CodecException, IOException, InterruptedException, WorkerException
+    {
+        BlockingQueue<Event<QueueConsumer>> consumerEvents = new LinkedBlockingQueue<>();
+        BlockingQueue<Event<WorkerPublisher>> publisherEvents = new LinkedBlockingQueue<>();
+        Channel channel = Mockito.mock(Channel.class);
+        TaskCallback callback = Mockito.mock(TaskCallback.class);
+        Codec codec = new JsonCodec();
+        WorkerQueueConsumerImpl impl = new WorkerQueueConsumerImpl(callback, metrics, consumerEvents, channel, publisherEvents, retryKey, rejectKey, 1);
+        DefaultRabbitConsumer consumer = new DefaultRabbitConsumer(consumerEvents, impl);
+        Thread t = new Thread(consumer);
+        t.start();
+        AMQP.BasicProperties prop = Mockito.mock(AMQP.BasicProperties.class);
+        Mockito.when(prop.getHeaders()).thenReturn(Collections.emptyMap());
+
+        String trackingKey = "trackingKey";
+        TaskMessage tm = new TaskMessage("taskId", "taskClassifier", 1, new byte[0], TaskStatus.NEW_TASK, Collections.emptyMap());
+        TrackingInfo tracking = new TrackingInfo("J123.1", new Date(), "http://127.0.0.1:26080/caf-job-service/v1", trackingKey, "trackToKey");
+        tm.setTracking(tracking);
+        byte[] taskMessageData = codec.serialise(tm);
+
+        consumer.handleDelivery("consumer", redeliveredEnv, prop, taskMessageData);
+
+        Event<WorkerPublisher> pubEvent = publisherEvents.poll(1, TimeUnit.SECONDS);
+        Assert.assertNotNull(pubEvent);
+        WorkerPublisher publisher = Mockito.mock(WorkerPublisher.class);
+        ArgumentCaptor<Map> captor = ArgumentCaptor.forClass(Map.class);
+        pubEvent.handleEvent(publisher);
+        Mockito.verify(publisher, Mockito.times(1)).handlePublish(Mockito.eq(taskMessageData), Mockito.eq(retryKey), Mockito.eq(id), captor.capture(), Mockito.eq(JobTrackingEventType.RETRIED));
+        Assert.assertTrue(captor.getValue().containsKey(WorkerQueueConsumerImpl.RABBIT_HEADER_CAF_WORKER_RETRY));
+        Assert.assertEquals("1", captor.getValue().get(WorkerQueueConsumerImpl.RABBIT_HEADER_CAF_WORKER_RETRY));
+
         consumer.shutdown();
     }
 
@@ -205,7 +249,7 @@ public class RabbitWorkerQueueConsumerTest
         WorkerPublisher publisher = Mockito.mock(WorkerPublisher.class);
         ArgumentCaptor<Map> captor = ArgumentCaptor.forClass(Map.class);
         pubEvent.handleEvent(publisher);
-        Mockito.verify(publisher, Mockito.times(1)).handlePublish(Mockito.eq(data), Mockito.eq(rejectKey), Mockito.eq(id), captor.capture());
+        Mockito.verify(publisher, Mockito.times(1)).handlePublish(Mockito.eq(data), Mockito.eq(rejectKey), Mockito.eq(id), captor.capture(), Mockito.eq(JobTrackingEventType.REJECTED));
         Assert.assertTrue(captor.getValue().containsKey(WorkerQueueConsumerImpl.RABBIT_HEADER_CAF_WORKER_RETRY));
         Assert.assertEquals("1", captor.getValue().get(WorkerQueueConsumerImpl.RABBIT_HEADER_CAF_WORKER_RETRY));
         Assert.assertTrue(captor.getValue().containsKey(WorkerQueueConsumerImpl.RABBIT_HEADER_CAF_WORKER_REJECTED));

@@ -1,15 +1,9 @@
 package com.hpe.caf.worker.queue.rabbit;
 
 
-import com.hpe.caf.api.worker.InvalidTaskException;
-import com.hpe.caf.api.worker.TaskCallback;
-import com.hpe.caf.api.worker.TaskRejectedException;
-import com.hpe.caf.util.rabbitmq.ConsumerAckEvent;
-import com.hpe.caf.util.rabbitmq.ConsumerDropEvent;
-import com.hpe.caf.util.rabbitmq.ConsumerRejectEvent;
-import com.hpe.caf.util.rabbitmq.Delivery;
-import com.hpe.caf.util.rabbitmq.Event;
-import com.hpe.caf.util.rabbitmq.QueueConsumer;
+import com.hpe.caf.api.worker.*;
+import com.hpe.caf.util.rabbitmq.*;
+import com.hpe.caf.worker.jobtracking.JobTrackingEventType;
 import com.rabbitmq.client.Channel;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -79,12 +73,20 @@ public class WorkerQueueConsumerImpl implements QueueConsumer
                 callback.registerNewTask(String.valueOf(tag), delivery.getMessageData());
             } catch (InvalidTaskException e) {
                 LOG.error("Cannot register new message, rejecting {}", tag, e);
-                publisherEventQueue.add(new WorkerPublishQueueEvent(delivery.getMessageData(), rejectRoutingKey, delivery.getEnvelope().getDeliveryTag(),
-                                                                    Collections.singletonMap(RABBIT_HEADER_CAF_WORKER_REJECTED, REJECTED_REASON_TASKMESSAGE)));
+                publisherEventQueue.add(
+                        new WorkerPublishQueueEvent(
+                                delivery.getMessageData(),
+                                rejectRoutingKey,
+                                delivery.getEnvelope().getDeliveryTag(),
+                                Collections.singletonMap(RABBIT_HEADER_CAF_WORKER_REJECTED, REJECTED_REASON_TASKMESSAGE),
+                                JobTrackingEventType.REJECTED));
             } catch (TaskRejectedException e) {
                 LOG.warn("Message {} rejected as a task at this time, returning to queue", tag, e);
-                publisherEventQueue.add(new WorkerPublishQueueEvent(delivery.getMessageData(), delivery.getEnvelope().getRoutingKey(),
-                                                                    delivery.getEnvelope().getDeliveryTag()));
+                publisherEventQueue.add(
+                        new WorkerPublishQueueEvent(
+                                delivery.getMessageData(),
+                                delivery.getEnvelope().getRoutingKey(),
+                                delivery.getEnvelope().getDeliveryTag()));
             }
         }
     }
@@ -158,12 +160,22 @@ public class WorkerQueueConsumerImpl implements QueueConsumer
             Map<String, String> headers = new HashMap<>();
             headers.put(RABBIT_HEADER_CAF_WORKER_RETRY, String.valueOf(retries));
             headers.put(RABBIT_HEADER_CAF_WORKER_REJECTED, REJECTED_REASON_RETRIES_EXCEEDED);
-            publisherEventQueue.add(new WorkerPublishQueueEvent(delivery.getMessageData(), rejectRoutingKey, delivery.getEnvelope().getDeliveryTag(), headers));
+            publisherEventQueue.add(
+                    new WorkerPublishQueueEvent(
+                            delivery.getMessageData(),
+                            rejectRoutingKey,
+                            delivery.getEnvelope().getDeliveryTag(),
+                            headers,
+                            JobTrackingEventType.REJECTED));
         } else {
             LOG.debug("Received redelivered message with id {}, republishing to retry queue", delivery.getEnvelope().getDeliveryTag());
             publisherEventQueue.add(
-                new WorkerPublishQueueEvent(delivery.getMessageData(), retryRoutingKey, delivery.getEnvelope().getDeliveryTag(),
-                                            Collections.singletonMap(RABBIT_HEADER_CAF_WORKER_RETRY, String.valueOf(retries + 1))));
+                    new WorkerPublishQueueEvent(
+                            delivery.getMessageData(),
+                            retryRoutingKey,
+                            delivery.getEnvelope().getDeliveryTag(),
+                            Collections.singletonMap(RABBIT_HEADER_CAF_WORKER_RETRY, String.valueOf(retries + 1)),
+                            JobTrackingEventType.RETRIED));
         }
     }
 }

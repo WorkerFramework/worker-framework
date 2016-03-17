@@ -34,6 +34,10 @@
             <artifactId>caf-configs</artifactId>
         </dependency>
         <dependency>
+            <groupId>com.hpe.caf.worker</groupId>
+            <artifactId>worker-jobtracking-shared</artifactId>
+        </dependency>
+        <dependency>
             <groupId>com.rabbitmq</groupId>
             <artifactId>amqp-client</artifactId>
         </dependency>
@@ -41,6 +45,11 @@
             <groupId>javax.validation</groupId>
             <artifactId>validation-api</artifactId>
             <scope>provided</scope>
+        </dependency>
+        <dependency>
+            <groupId>com.hpe.caf.codec</groupId>
+            <artifactId>codec-json</artifactId>
+            <scope>test</scope>
         </dependency>
         <dependency>
             <groupId>junit</groupId>
