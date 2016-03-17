@@ -30,6 +30,10 @@
             <artifactId>config-system</artifactId>
         </dependency>
         <dependency>
+            <groupId>com.hpe.caf</groupId>
+            <artifactId>job-service-client</artifactId>
+        </dependency>
+        <dependency>
             <groupId>com.hpe.caf.util</groupId>
             <artifactId>util-moduleloader</artifactId>
         </dependency>

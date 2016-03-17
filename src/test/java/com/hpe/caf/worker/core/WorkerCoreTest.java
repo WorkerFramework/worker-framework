@@ -6,18 +6,7 @@ import com.hpe.caf.api.CodecException;
 import com.hpe.caf.api.ConfigurationException;
 import com.hpe.caf.api.ConfigurationSource;
 import com.hpe.caf.api.HealthResult;
-import com.hpe.caf.api.worker.InvalidTaskException;
-import com.hpe.caf.api.worker.ManagedWorkerQueue;
-import com.hpe.caf.api.worker.QueueException;
-import com.hpe.caf.api.worker.TaskCallback;
-import com.hpe.caf.api.worker.TaskMessage;
-import com.hpe.caf.api.worker.TaskStatus;
-import com.hpe.caf.api.worker.Worker;
-import com.hpe.caf.api.worker.WorkerException;
-import com.hpe.caf.api.worker.WorkerFactory;
-import com.hpe.caf.api.worker.WorkerQueueMetricsReporter;
-import com.hpe.caf.api.worker.WorkerQueueProvider;
-import com.hpe.caf.api.worker.WorkerResponse;
+import com.hpe.caf.api.worker.*;
 import com.hpe.caf.codec.JsonCodec;
 import com.hpe.caf.naming.ServicePath;
 import com.hpe.caf.worker.AbstractWorker;
@@ -27,10 +16,7 @@ import org.mockito.Mockito;
 
 import javax.naming.InvalidNameException;
 import java.nio.charset.StandardCharsets;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Objects;
-import java.util.UUID;
+import java.util.*;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.LinkedBlockingQueue;
@@ -60,12 +46,47 @@ public class WorkerCoreTest
         ConfigurationSource config = Mockito.mock(ConfigurationSource.class);
         ServicePath path = new ServicePath(SERVICE_PATH);
         TestWorkerTask task = new TestWorkerTask();
-        TestWorkerQueue queue = new TestWorkerQueueProvider(q).getWorkerQueue(config, 50);
+        TestWorkerQueue queue = new TestWorkerQueueProvider(q).getWorkerQueue(config, 50, codec);
         WorkerCore core = new WorkerCore(codec, tpe, queue, getWorkerFactory(task, codec), path);
         core.start();
         // at this point, the queue should hand off the task to the app, the app should get a worker from the mocked WorkerFactory,
         // and the Worker itself is a mock wrapped in a WorkerWrapper, which should return success and the appropriate result data
         byte[] stuff = codec.serialise(getTaskMessage(task, codec, WORKER_NAME));
+        queue.submitTask(QUEUE_MSG_ID, stuff);
+        // the worker's task result should eventually be passed back to our dummy WorkerQueue and onto our blocking queue
+        byte[] result = q.poll(5000, TimeUnit.MILLISECONDS);
+        // if the result didn't get back to us, then result will be null
+        Assert.assertNotNull(result);
+        // deserialise and verify result data
+        TaskMessage taskMessage = codec.deserialise(result, TaskMessage.class);
+        Assert.assertEquals(TaskStatus.RESULT_SUCCESS, taskMessage.getTaskStatus());
+        Assert.assertEquals(WORKER_NAME, taskMessage.getTaskClassifier());
+        Assert.assertEquals(WORKER_API_VER, taskMessage.getTaskApiVersion());
+        TestWorkerResult workerResult = codec.deserialise(taskMessage.getTaskData(), TestWorkerResult.class);
+        Assert.assertEquals(SUCCESS, workerResult.getResultString());
+        Assert.assertTrue(taskMessage.getContext().containsKey(path.toString()));
+        Assert.assertArrayEquals(SUCCESS.getBytes(StandardCharsets.UTF_8), taskMessage.getContext().get(path.toString()));
+    }
+
+
+    /** Send a message with tracking info **/
+    @Test
+    public void testWorkerCoreWithTracking()
+            throws CodecException, InterruptedException, WorkerException, ConfigurationException, QueueException, InvalidNameException
+    {
+        BlockingQueue<byte[]> q = new LinkedBlockingQueue<>();
+        Codec codec = new JsonCodec();
+        ThreadPoolExecutor tpe = WorkerApplication.getDefaultThreadPoolExecutor(5);
+        ConfigurationSource config = Mockito.mock(ConfigurationSource.class);
+        ServicePath path = new ServicePath(SERVICE_PATH);
+        TestWorkerTask task = new TestWorkerTask();
+        TestWorkerQueue queue = new TestWorkerQueueProvider(q).getWorkerQueue(config, 50, codec);
+        WorkerCore core = new WorkerCore(codec, tpe, queue, getWorkerFactory(task, codec), path);
+        core.start();
+        // at this point, the queue should hand off the task to the app, the app should get a worker from the mocked WorkerFactory,
+        // and the Worker itself is a mock wrapped in a WorkerWrapper, which should return success and the appropriate result data
+        TrackingInfo tracking = new TrackingInfo("J1234.1.2", new Date(), "http://127.0.0.1:26080/caf-job-service/v1", "trackingQueue", "trackTo");
+        byte[] stuff = codec.serialise(getTaskMessage(task, codec, WORKER_NAME, tracking));
         queue.submitTask(QUEUE_MSG_ID, stuff);
         // the worker's task result should eventually be passed back to our dummy WorkerQueue and onto our blocking queue
         byte[] result = q.poll(5000, TimeUnit.MILLISECONDS);
@@ -94,7 +115,7 @@ public class WorkerCoreTest
         ConfigurationSource config = Mockito.mock(ConfigurationSource.class);
         ServicePath path = new ServicePath(SERVICE_PATH);
         TestWorkerTask task = new TestWorkerTask();
-        TestWorkerQueue queue = new TestWorkerQueueProvider(q).getWorkerQueue(config, 50);
+        TestWorkerQueue queue = new TestWorkerQueueProvider(q).getWorkerQueue(config, 50, codec);
         WorkerCore core = new WorkerCore(codec, tpe, queue, getWorkerFactory(task, codec), path);
         core.start();
         byte[] stuff = codec.serialise("nonsense");
@@ -113,7 +134,7 @@ public class WorkerCoreTest
         ConfigurationSource config = Mockito.mock(ConfigurationSource.class);
         ServicePath path = new ServicePath(SERVICE_PATH);
         TestWorkerTask task = new TestWorkerTask();
-        TestWorkerQueue queue = new TestWorkerQueueProvider(q).getWorkerQueue(config, 50);
+        TestWorkerQueue queue = new TestWorkerQueueProvider(q).getWorkerQueue(config, 50, codec);
         WorkerCore core = new WorkerCore(codec, tpe, queue, getInvalidTaskWorkerFactory(), path);
         core.start();
         TaskMessage tm = getTaskMessage(task, codec, WORKER_NAME);
@@ -149,7 +170,7 @@ public class WorkerCoreTest
         ServicePath path = new ServicePath(SERVICE_PATH);
         TestWorkerTask task = new TestWorkerTask();
         CountDownLatch latch = new CountDownLatch(2);
-        TestWorkerQueue queue = new TestWorkerQueueProvider(q).getWorkerQueue(config, 20);
+        TestWorkerQueue queue = new TestWorkerQueueProvider(q).getWorkerQueue(config, 20, codec);
         WorkerCore core = new WorkerCore(codec, tpe, queue, getSlowWorkerFactory(latch, task, codec), path);
         core.start();
         byte[] task1 = codec.serialise(getTaskMessage(task, codec, UUID.randomUUID().toString()));
@@ -173,6 +194,13 @@ public class WorkerCoreTest
     private TaskMessage getTaskMessage(final TestWorkerTask task, final Codec codec, final String taskId)
         throws CodecException
     {
+        return getTaskMessage(task, codec, taskId, null);
+    }
+
+
+    private TaskMessage getTaskMessage(final TestWorkerTask task, final Codec codec, final String taskId, final TrackingInfo tracking)
+            throws CodecException
+    {
         TaskMessage tm = new TaskMessage();
         tm.setTaskId(taskId);
         tm.setTaskStatus(TaskStatus.NEW_TASK);
@@ -180,6 +208,7 @@ public class WorkerCoreTest
         tm.setTaskApiVersion(WORKER_API_VER);
         tm.setTaskData(codec.serialise(task));
         tm.setTo(QUEUE_IN);
+        tm.setTracking(tracking);
         return tm;
     }
 
@@ -255,7 +284,7 @@ public class WorkerCoreTest
 
 
         @Override
-        public final TestWorkerQueue getWorkerQueue(final ConfigurationSource configurationSource, final int maxTasks)
+        public final TestWorkerQueue getWorkerQueue(final ConfigurationSource configurationSource, final int maxTasks, final Codec codec)
         {
             return new TestWorkerQueue(this.results);
         }
@@ -298,10 +327,17 @@ public class WorkerCoreTest
         {
         }
 
+
+        @Override
+        public void discardTask(String messageId) {
+        }
+
+
         @Override
         public String getInputQueue() {
             return QUEUE_IN;
         }
+
 
         @Override
         public void shutdownIncoming()

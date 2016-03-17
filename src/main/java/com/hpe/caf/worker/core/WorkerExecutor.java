@@ -1,12 +1,7 @@
 package com.hpe.caf.worker.core;
 
 
-import com.hpe.caf.api.worker.InvalidTaskException;
-import com.hpe.caf.api.worker.TaskMessage;
-import com.hpe.caf.api.worker.TaskRejectedException;
-import com.hpe.caf.api.worker.TaskStatus;
-import com.hpe.caf.api.worker.Worker;
-import com.hpe.caf.api.worker.WorkerFactory;
+import com.hpe.caf.api.worker.*;
 import com.hpe.caf.naming.ServicePath;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -92,6 +87,17 @@ public class WorkerExecutor
                     new TaskMessage(tm.getTaskId(), tm.getTaskClassifier(), tm.getTaskApiVersion(), new byte[]{}, TaskStatus.INVALID_TASK, tm.getContext());
             callback.complete(queueMessageId, factory.getInvalidTaskQueue(), invalidResponse);
         }
+    }
+
+
+    /**
+     * Discard the supplied task message.
+     * @param tm the task message to be discarded
+     * @param queueMessageId the reference to the message this task arrived on
+     */
+    public void discardTask(final TaskMessage tm, final String queueMessageId) throws TaskRejectedException {
+        LOG.error("Discarding task {} (message id: {})", tm.getTaskId(), queueMessageId);
+        callback.discard(queueMessageId);
     }
 
 

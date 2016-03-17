@@ -1,16 +1,10 @@
 package com.hpe.caf.worker.core;
 
 
-import com.hpe.caf.api.worker.InvalidTaskException;
-import com.hpe.caf.api.worker.TaskMessage;
-import com.hpe.caf.api.worker.TaskRejectedException;
-import com.hpe.caf.api.worker.TaskStatus;
-import com.hpe.caf.api.worker.Worker;
-import com.hpe.caf.api.worker.WorkerFactory;
+import com.hpe.caf.api.worker.*;
 import com.hpe.caf.naming.ServicePath;
 import org.junit.Assert;
 import org.junit.Test;
-import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.invocation.InvocationOnMock;
 import org.mockito.stubbing.Answer;
@@ -81,7 +75,7 @@ public class WorkerExecutorTest
 
 
     @Test
-    public void testDiscardTask()
+    public void testForwardDiscardTask()
             throws InvalidNameException, TaskRejectedException, InvalidTaskException
     {
         ServicePath path = new ServicePath("/unitTest/test");

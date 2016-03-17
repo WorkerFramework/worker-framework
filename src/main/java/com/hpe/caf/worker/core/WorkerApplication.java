@@ -101,7 +101,7 @@ public final class WorkerApplication extends Application<WorkerConfiguration>
         WorkerFactory workerFactory = workerProvider.getWorkerFactory(config, store, codec);
         final int nThreads = workerFactory.getWorkerThreads();
         ThreadPoolExecutor tpe = getDefaultThreadPoolExecutor(nThreads);
-        ManagedWorkerQueue workerQueue = queueProvider.getWorkerQueue(config, nThreads);
+        ManagedWorkerQueue workerQueue = queueProvider.getWorkerQueue(config, nThreads, codec);
         WorkerCore core = new WorkerCore(codec, tpe, workerQueue, workerFactory, path);
         Runtime.getRuntime().addShutdownHook(new Thread()
         {
