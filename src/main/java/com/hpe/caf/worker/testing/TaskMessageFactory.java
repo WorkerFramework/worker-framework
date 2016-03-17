@@ -4,9 +4,11 @@ import com.hpe.caf.api.Codec;
 import com.hpe.caf.api.CodecException;
 import com.hpe.caf.api.worker.TaskMessage;
 import com.hpe.caf.api.worker.TaskStatus;
+import com.hpe.caf.api.worker.TrackingInfo;
 
 import java.nio.charset.StandardCharsets;
 import java.util.Collections;
+import java.util.Date;
 import java.util.Map;
 
 /**
@@ -15,9 +17,14 @@ import java.util.Map;
 public class TaskMessageFactory {
 
     private final java.lang.String CONTEXT_KEY = "context";
+    private final String JOBTRACKING_JOB_TASK_ID = "J1234.1.1";
+    private final String JOBTRACKING_STATUS_CHECK_URL = "http://127.0.0.1:26080/caf-job-service/v1";
+    private final String JOBTRACKING_TRACKING_PIPE = "test-tracking-1";
+    private final String JOBTRACKING_TRACK_TO = "test-tracking-end-1";
     private final byte[] CONTEXT_DATA = "testData".getBytes(StandardCharsets.UTF_8);
     private final Codec codec;
     private final String workerName;
+    private final String workerInputQueueName;
     private final int apiVersion;
 
     /**
@@ -27,10 +34,11 @@ public class TaskMessageFactory {
      * @param workerName the worker name
      * @param apiVersion the api version
      */
-    public TaskMessageFactory(final Codec codec, final String workerName, final int apiVersion) {
+    public TaskMessageFactory(final Codec codec, final String workerName, final String workerInputQueueName, final int apiVersion) {
 
         this.codec = codec;
         this.workerName = workerName;
+        this.workerInputQueueName = workerInputQueueName;
         this.apiVersion = apiVersion;
     }
 
@@ -45,8 +53,8 @@ public class TaskMessageFactory {
     public TaskMessage create(final Object workerTask, final String taskId) throws CodecException {
 
         Map<java.lang.String, byte[]> context = Collections.singletonMap(CONTEXT_KEY, CONTEXT_DATA);
-        TaskMessage msg = new TaskMessage(taskId, workerName, apiVersion, codec.serialise(workerTask), TaskStatus.NEW_TASK, context);
-
+        TrackingInfo tracking = new TrackingInfo(JOBTRACKING_JOB_TASK_ID, new Date(), JOBTRACKING_STATUS_CHECK_URL, JOBTRACKING_TRACKING_PIPE, JOBTRACKING_TRACK_TO);
+        TaskMessage msg = new TaskMessage(taskId, workerName, apiVersion, codec.serialise(workerTask), TaskStatus.NEW_TASK, context, workerInputQueueName, tracking);
         return msg;
     }
 }

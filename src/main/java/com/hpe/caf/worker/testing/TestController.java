@@ -47,10 +47,10 @@ public class TestController implements Closeable {
      * Instantiates a new Test controller.
      *  @param workerServices  the worker services
      * @param itemProvider    the {@link TestItem} provider (test cases)
- * @param queueManager    the worker queue manager
- * @param taskFactory     the worker task factory
- * @param resultProcessor the worker result processor
- * @param stopOnError     determines if tests should continue after any validation error
+     * @param queueManager    the worker queue manager
+     * @param taskFactory     the worker task factory
+     * @param resultProcessor the worker result processor
+     * @param stopOnError     determines if tests should continue after any validation error
      */
     public TestController(WorkerServices workerServices, TestItemProvider itemProvider, QueueManager queueManager, WorkerTaskFactory taskFactory, ResultProcessor resultProcessor, boolean stopOnError) {
         this(workerServices, itemProvider, queueManager, taskFactory, resultProcessor, stopOnError, new ConsoleTestReporter());
@@ -113,7 +113,7 @@ public class TestController implements Closeable {
         }, timeout);
         thread = queueManager.start(new ProcessorDeliveryHandler(resultProcessor, context, queueManager));
 
-        TaskMessageFactory messageFactory = new TaskMessageFactory(workerServices.getCodec(), taskFactory.getWorkerName(), taskFactory.getApiVersion());
+        TaskMessageFactory messageFactory = new TaskMessageFactory(workerServices.getCodec(), taskFactory.getWorkerName(), queueManager.getWorkerInputQueueName(), taskFactory.getApiVersion());
 
         for (TestItem item : items) {
             Object workerTask = taskFactory.createTask(item);
