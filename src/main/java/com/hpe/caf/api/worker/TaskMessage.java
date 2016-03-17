@@ -13,7 +13,7 @@ import java.util.Objects;
  */
 public final class TaskMessage
 {
-    public static final int TASK_MESSAGE_VERSION = 1;
+    public static final int TASK_MESSAGE_VERSION = 2;
     /**
      * The version of this TaskMessage wrapper.
      */
@@ -46,6 +46,10 @@ public final class TaskMessage
      * The destination pipe to which the sender intends the message to be sent.
      */
     private String to;
+    /**
+     * Additional fields used in tracking task messages.
+     */
+    private TrackingInfo tracking;
 
 
     public TaskMessage(){ }
@@ -61,6 +65,13 @@ public final class TaskMessage
     public TaskMessage(final String taskId, final String taskClassifier, final int taskApiVersion, final byte[] taskData,
                        final TaskStatus taskStatus, final Map<String, byte[]> context, final String to)
     {
+        this(taskId, taskClassifier, taskApiVersion, taskData, taskStatus, context, to, null);
+    }
+
+
+    public TaskMessage(final String taskId, final String taskClassifier, final int taskApiVersion, final byte[] taskData,
+                       final TaskStatus taskStatus, final Map<String, byte[]> context, final String to, final TrackingInfo tracking)
+    {
         this.taskId = Objects.requireNonNull(taskId);
         this.taskClassifier = Objects.requireNonNull(taskClassifier);
         this.taskApiVersion = Objects.requireNonNull(taskApiVersion);
@@ -68,6 +79,7 @@ public final class TaskMessage
         this.taskStatus = Objects.requireNonNull(taskStatus);
         this.context = Objects.requireNonNull(context);
         this.to = to;
+        this.tracking = tracking;
     }
 
 
@@ -162,5 +174,15 @@ public final class TaskMessage
 
     public void setTo(String to) {
         this.to = to;
+    }
+
+
+    public TrackingInfo getTracking() {
+        return tracking;
+    }
+
+
+    public void setTracking(TrackingInfo tracking) {
+        this.tracking = tracking;
     }
 }

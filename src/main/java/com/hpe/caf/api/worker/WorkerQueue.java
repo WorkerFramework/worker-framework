@@ -27,6 +27,13 @@ public interface WorkerQueue
 
 
     /**
+     * Called from the asynchronous worker service to notify the queue that it is discarding a task.
+     * @param messageId the queue task id that has been discarded
+     */
+    void discardTask(String messageId);
+
+
+    /**
      * Return the name of the input queue.
      * @return the name of the input queue
      */
