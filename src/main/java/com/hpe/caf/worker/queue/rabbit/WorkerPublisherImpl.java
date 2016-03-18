@@ -115,7 +115,7 @@ public class WorkerPublisherImpl implements WorkerPublisher
 
         TrackingInfo tracking = trackedTaskMessage.getTracking();
         if (tracking == null) {
-            LOG.error("Cannot obtain a tracked task message from published data - task {} has no tracking info", trackedTaskMessage.getTaskId());
+            LOG.warn("Cannot obtain a tracked task message from published data - task {} has no tracking info", trackedTaskMessage.getTaskId());
             return;
         }
 
@@ -126,7 +126,7 @@ public class WorkerPublisherImpl implements WorkerPublisher
         }
 
         if (trackingPipe.equalsIgnoreCase(inputRoutingKey)) {
-            LOG.error("Skipping creation of a tracking message for task {} - the tracked task message has arrived at the tracking destination", trackedTaskMessage.getTaskId());
+            LOG.debug("Skipping creation of a tracking message for task {} - the tracked task message has arrived at the tracking destination", trackedTaskMessage.getTaskId());
             return;
         }
 
