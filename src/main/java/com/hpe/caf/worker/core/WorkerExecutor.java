@@ -96,7 +96,7 @@ public class WorkerExecutor
      * @param queueMessageId the reference to the message this task arrived on
      */
     public void discardTask(final TaskMessage tm, final String queueMessageId) throws TaskRejectedException {
-        LOG.error("Discarding task {} (message id: {})", tm.getTaskId(), queueMessageId);
+        LOG.warn("Discarding task {} (message id: {})", tm.getTaskId(), queueMessageId);
         callback.discard(queueMessageId);
     }
 
