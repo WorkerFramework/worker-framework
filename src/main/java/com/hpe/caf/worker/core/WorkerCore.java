@@ -101,7 +101,7 @@ public class WorkerCore
         private final Map<String, Future<?>> taskMap;
         private final ManagedWorkerQueue workerQueue;
         private final Cache<String, JobStatusResponse> jobStatusCache;
-        private static final String DEFAULT_JOB_STATUS_CACHE_ITEM_LIFETIME_SECS = "60";
+        private static final String DEFAULT_JOB_STATUS_CACHE_ITEM_LIFETIME_SECS = "300";
         private static final String CAF_JOB_STATUS_CACHE_ITEM_LIFETIME_SECS_VAR_NAME = "CAF_JOB_STATUS_CACHE_ITEM_LIFETIME_SECS";
 
 
