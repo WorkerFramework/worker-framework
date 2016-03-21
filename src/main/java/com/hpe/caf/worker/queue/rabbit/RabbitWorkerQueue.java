@@ -48,7 +48,6 @@ public final class RabbitWorkerQueue implements ManagedWorkerQueue
     private Connection conn;
     private Channel incomingChannel;
     private Channel outgoingChannel;
-    private Channel trackingChannel;
     private final List<String> consumerTags = new LinkedList<>();
     private final Set<String> declaredQueues = new HashSet<>();
     private final BlockingQueue<Event<QueueConsumer>> consumerQueue = new LinkedBlockingQueue<>();
@@ -92,14 +91,13 @@ public final class RabbitWorkerQueue implements ManagedWorkerQueue
             WorkerConfirmListener confirmListener = new WorkerConfirmListener(consumerQueue);
             createConnection(callback, confirmListener);
             outgoingChannel = conn.createChannel();
-            trackingChannel = conn.createChannel();
             incomingChannel = conn.createChannel();
             int prefetch = Math.max(1, maxTasks + config.getPrefetchBuffer());
             incomingChannel.basicQos(prefetch);
             WorkerQueueConsumerImpl consumerImpl = new WorkerQueueConsumerImpl(callback, metrics, consumerQueue, incomingChannel, publisherQueue,
                                                                                config.getRetryQueue(), config.getRejectedQueue(), config.getRetryLimit());
             consumer = new DefaultRabbitConsumer(consumerQueue, consumerImpl);
-            WorkerPublisherImpl publisherImpl = new WorkerPublisherImpl(outgoingChannel, trackingChannel, metrics, consumerQueue, confirmListener, getInputQueue(), codec);
+            WorkerPublisherImpl publisherImpl = new WorkerPublisherImpl(outgoingChannel, metrics, consumerQueue, confirmListener, getInputQueue(), codec);
             publisher = new EventPoller<>(2, publisherQueue, publisherImpl);
             declareWorkerQueue(incomingChannel, config.getInputQueue());
             declareWorkerQueue(outgoingChannel, config.getRetryQueue());
@@ -203,7 +201,6 @@ public final class RabbitWorkerQueue implements ManagedWorkerQueue
             if ( conn != null ) {
                 incomingChannel.close();
                 outgoingChannel.close();
-                trackingChannel.close();
                 conn.close();
             }
         } catch (IOException | TimeoutException e) {
@@ -229,8 +226,6 @@ public final class RabbitWorkerQueue implements ManagedWorkerQueue
             return new HealthResult(HealthStatus.UNHEALTHY, "Incoming channel failed");
         } else if ( !outgoingChannel.isOpen() ) {
             return new HealthResult(HealthStatus.UNHEALTHY, "Outgoing channel failed");
-        } else if ( !trackingChannel.isOpen() ) {
-            return new HealthResult(HealthStatus.UNHEALTHY, "Tracking channel failed");
         } else {
             return HealthResult.RESULT_HEALTHY;
         }

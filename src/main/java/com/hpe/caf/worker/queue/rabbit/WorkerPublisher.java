@@ -1,8 +1,6 @@
 package com.hpe.caf.worker.queue.rabbit;
 
 
-import com.hpe.caf.worker.jobtracking.JobTrackingEventType;
-
 import java.util.Map;
 
 
@@ -19,7 +17,7 @@ public interface WorkerPublisher
      * @param routingKey the routing key to publish the new message with
      * @param ackId the prior message id to acknowledge
      * @param headers key/value map of headers to add to the published message
-     * @param trackingEventType the type of tracking update message to be published in addition to the message held in data
+     * @since 10.6
      */
-    void handlePublish(byte[] data, String routingKey, long ackId, Map<String, String> headers, JobTrackingEventType trackingEventType);
+    void handlePublish(byte[] data, String routingKey, long ackId, Map<String, String> headers);
 }
