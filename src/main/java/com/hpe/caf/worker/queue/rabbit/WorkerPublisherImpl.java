@@ -9,6 +9,7 @@ import com.hpe.caf.api.worker.TrackingInfo;
 import com.hpe.caf.util.rabbitmq.ConsumerRejectEvent;
 import com.hpe.caf.util.rabbitmq.Event;
 import com.hpe.caf.util.rabbitmq.QueueConsumer;
+import com.hpe.caf.util.rabbitmq.RabbitUtil;
 import com.rabbitmq.client.AMQP;
 import com.rabbitmq.client.Channel;
 import org.slf4j.Logger;
@@ -88,7 +89,7 @@ public class WorkerPublisherImpl implements WorkerPublisher
 
 
     /**
-     * Determines the queue to publish to.
+     * Determines the queue to publish to and ensures that this queue is declared on the channel.
      * If the data is found to be a task message with tracking info then the tracking info should dictate the queue to publish to.
      * @param data checks this data to determine tracking info
      * @param routingKey publish to this queue if no tracking info or tracking destination can be found in the supplied data
@@ -99,24 +100,31 @@ public class WorkerPublisherImpl implements WorkerPublisher
         try {
             trackedTaskMessage = codec.deserialise(data, TaskMessage.class, DecodeMethod.LENIENT);
         } catch (CodecException e) {
-            LOG.error("Cannot obtain a tracked task message from published data due to error: {}", e);
+            LOG.error("Publishing to queue {} - cannot obtain a tracked task message from published data due to error: {}",routingKey, e);
             return routingKey;
         }
 
         TrackingInfo tracking = trackedTaskMessage.getTracking();
         if (tracking == null) {
-            LOG.warn("Cannot obtain a tracked task message from published data - task {} has no tracking info", trackedTaskMessage.getTaskId());
+            LOG.warn("Cannot obtain a tracked task message from published data - task {} has no tracking info so publishing to queue {}", trackedTaskMessage.getTaskId(), routingKey);
             return routingKey;
         }
 
         String trackingPipe = tracking.getTrackingPipe();
         if (trackingPipe == null) {
-            LOG.error("Cannot obtain a tracked task message from published data - task {} has no tracking pipe specified in its tracking info", trackedTaskMessage.getTaskId());
+            LOG.error("Cannot obtain a tracked task message from published data - task {} has no tracking pipe specified in its tracking info so publishing to queue {}", trackedTaskMessage.getTaskId(), routingKey);
             return routingKey;
         }
 
         if (trackingPipe.equalsIgnoreCase(inputRoutingKey)) {
-            LOG.debug("Task {} - the tracked task message has arrived at the tracking destination so does not need to be diverted to that destination", trackedTaskMessage.getTaskId());
+            LOG.debug("Task {} - the tracked task message has arrived at the tracking destination {} so does not need to be diverted to that destination", trackedTaskMessage.getTaskId(), trackingPipe);
+            return routingKey;
+        }
+
+        try {
+            RabbitUtil.declareWorkerQueue(channel, trackingPipe);
+        } catch (IOException e) {
+            LOG.debug("Task {} - the tracking destination {} could not be declared so publishing to queue {}", trackedTaskMessage.getTaskId(), trackingPipe, routingKey);
             return routingKey;
         }
 

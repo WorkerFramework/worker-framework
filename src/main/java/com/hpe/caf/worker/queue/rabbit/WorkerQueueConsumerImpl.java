@@ -76,7 +76,7 @@ public class WorkerQueueConsumerImpl implements QueueConsumer
         } else {
             try {
                 LOG.debug("Registering new message {}", tag);
-                callback.registerNewTask(String.valueOf(tag), delivery.getMessageData());
+                callback.registerNewTask(String.valueOf(tag), delivery.getMessageData(), delivery.getHeaders());
             } catch (InvalidTaskException e) {
                 LOG.error("Cannot register new message, rejecting {}", tag, e);
                 publisherEventQueue.add(new WorkerPublishQueueEvent(delivery.getMessageData(), rejectRoutingKey, delivery.getEnvelope().getDeliveryTag(),

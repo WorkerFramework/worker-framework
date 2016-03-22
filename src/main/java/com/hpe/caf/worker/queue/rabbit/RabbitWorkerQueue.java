@@ -18,14 +18,11 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
-import java.util.HashSet;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Objects;
-import java.util.Set;
+import java.util.*;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.TimeoutException;
+import java.util.stream.Collectors;
 
 
 /**
@@ -117,7 +114,7 @@ public final class RabbitWorkerQueue implements ManagedWorkerQueue
      * Add a PUBLISH event that the publisher thread will handle.
      */
     @Override
-    public void publish(String acknowledgeId, byte[] taskMessage, String targetQueue)
+    public void publish(String acknowledgeId, byte[] taskMessage, String targetQueue, Map<String, Object> headers)
         throws QueueException
     {
         try {
@@ -125,7 +122,8 @@ public final class RabbitWorkerQueue implements ManagedWorkerQueue
         } catch (IOException e) {
             throw new QueueException("Failed to submit task", e);
         }
-        publisherQueue.add(new WorkerPublishQueueEvent(taskMessage, targetQueue, Long.parseLong(acknowledgeId)));
+        Map<String, String> stringHeaders = headers.entrySet().stream().collect(Collectors.toMap(Map.Entry::getKey, e -> (String) e.getValue()));
+        publisherQueue.add(new WorkerPublishQueueEvent(taskMessage, targetQueue, Long.parseLong(acknowledgeId), stringHeaders));
     }
 
 

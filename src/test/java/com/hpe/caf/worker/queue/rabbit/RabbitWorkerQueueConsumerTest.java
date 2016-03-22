@@ -65,7 +65,7 @@ public class RabbitWorkerQueueConsumerTest
             latch.countDown();
             return null;
         };
-        Mockito.doAnswer(a).when(callback).registerNewTask(Mockito.any(), Mockito.any());
+        Mockito.doAnswer(a).when(callback).registerNewTask(Mockito.any(), Mockito.any(), Mockito.anyMap());
         WorkerQueueConsumerImpl impl = new WorkerQueueConsumerImpl(callback, metrics, consumerEvents, channel, publisherEvents, retryKey, rejectKey, 1);
         DefaultRabbitConsumer consumer = new DefaultRabbitConsumer(consumerEvents, impl);
         Thread t = new Thread(consumer);
@@ -93,7 +93,7 @@ public class RabbitWorkerQueueConsumerTest
         Answer<Void> a = invocationOnMock -> {
             throw new InvalidTaskException("blah");
         };
-        Mockito.doAnswer(a).when(callback).registerNewTask(Mockito.any(), Mockito.any());
+        Mockito.doAnswer(a).when(callback).registerNewTask(Mockito.any(), Mockito.any(), Mockito.anyMap());
         WorkerQueueConsumerImpl impl = new WorkerQueueConsumerImpl(callback, metrics, consumerEvents, channel, publisherEvents, retryKey, rejectKey, 1);
         DefaultRabbitConsumer consumer = new DefaultRabbitConsumer(consumerEvents, impl);
         Thread t = new Thread(consumer);
@@ -129,7 +129,7 @@ public class RabbitWorkerQueueConsumerTest
         Answer<Void> a = invocationOnMock -> {
             throw new TaskRejectedException("blah");
         };
-        Mockito.doAnswer(a).when(callback).registerNewTask(Mockito.any(), Mockito.any());
+        Mockito.doAnswer(a).when(callback).registerNewTask(Mockito.any(), Mockito.any(), Mockito.anyMap());
         WorkerQueueConsumerImpl impl = new WorkerQueueConsumerImpl(callback, metrics, consumerEvents, channel, publisherEvents, retryKey, rejectKey, 1);
         DefaultRabbitConsumer consumer = new DefaultRabbitConsumer(consumerEvents, impl);
         Thread t = new Thread(consumer);
