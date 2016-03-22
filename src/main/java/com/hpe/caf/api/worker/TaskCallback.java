@@ -1,6 +1,8 @@
 package com.hpe.caf.api.worker;
 
 
+import java.util.Map;
+
 /**
  * A callback interface used to announce the arrival of a new task for a worker
  * to process or signal that the core should cancel its tasks. Generally called
@@ -14,10 +16,11 @@ public interface TaskCallback
      * processing.
      * @param taskId an arbitrary task reference
      * @param taskData the task data that is specific to the workers hosted
+     * @param headers the map of key/value paired headers on the message
      * @throws TaskRejectedException if the worker framework rejected execution of the task at this time
      * @throws InvalidTaskException if the worker framework indicates this task is invalid and cannot possibly be executed
      */
-    void registerNewTask(String taskId, byte[] taskData)
+    void registerNewTask(String taskId, byte[] taskData, Map<String, Object> headers)
         throws TaskRejectedException, InvalidTaskException;
 
 

@@ -1,6 +1,8 @@
 package com.hpe.caf.api.worker;
 
 
+import java.util.Map;
+
 /**
  * A general representation of a queue for the purposes of a worker service.
  * @since 9.0
@@ -12,9 +14,10 @@ public interface WorkerQueue
      * @param acknowledgeId the internal queue message id of the message to acknowledge
      * @param taskMessage the message to publish
      * @param targetQueue the queue to put the message upon
+     * @param headers the map of key/value paired headers to be stamped on the message
      * @throws QueueException if the message cannot be submitted
      */
-    void publish(String acknowledgeId, byte[] taskMessage, String targetQueue)
+    void publish(String acknowledgeId, byte[] taskMessage, String targetQueue, Map<String, Object> headers)
         throws QueueException;
 
 

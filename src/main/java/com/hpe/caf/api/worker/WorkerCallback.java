@@ -1,5 +1,7 @@
 package com.hpe.caf.api.worker;
 
+import java.util.Map;
+
 /**
  * The callback interface for a task to report it is complete or that it must
  * be subject to some further action, e.g. forwarding.
@@ -28,8 +30,9 @@ public interface WorkerCallback
      * @param queueMsgId a queue-specific reference for the incoming message to be forwarded
      * @param queue the queue to hold the forwarded message
      * @param forwardedMessage the message to put on the queue
+     * @param headers the map of key/value paired headers to be stamped on the message
      */
-    void forward(String queueMsgId, String queue, TaskMessage forwardedMessage);
+    void forward(String queueMsgId, String queue, TaskMessage forwardedMessage, Map<String, Object> headers);
 
 
     /**
