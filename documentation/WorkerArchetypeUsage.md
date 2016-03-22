@@ -81,7 +81,7 @@ The Maven CLI offers developers the ability to generate projects from archetypes
 
 Generate the new Worker's Shared module from the `worker-shared-archetype` with the following Maven command:
 
-<pre>mvn archetype:generate -DarchetypeRepository=http://cmbg-maven.autonomy.com/nexus/content/repositories/snapshots -DarchetypeVersion=1.0-SNAPSHOT -DarchetypeArtifactId=worker-shared-archetype -DarchetypeGroupId=com.hpe.caf.worker</pre>
+<pre>mvn archetype:generate -DarchetypeRepository=http://cmbg-maven.autonomy.com/nexus/content/repositories/snapshots -DarchetypeVersion=1.1-SNAPSHOT -DarchetypeArtifactId=worker-shared-archetype -DarchetypeGroupId=com.hpe.caf.worker</pre>
 
 The CLI will prompt you for groupId, version, package and workerName properties required for the new shared project. The artifactId should be distinct to this module's purpose. See Figure 1.
 
@@ -94,7 +94,7 @@ If you are satisfied with the properties you have set, confirm these and Maven w
 
 Generate the new Worker's Back-end project from the `worker-archetype` with the following Maven command:
 
-<pre>mvn archetype:generate -DarchetypeRepository=http://cmbg-maven.autonomy.com/nexus/content/repositories/snapshots -DarchetypeVersion=1.0-SNAPSHOT -DarchetypeArtifactId=worker-archetype -DarchetypeGroupId=com.hpe.caf.worker</pre>
+<pre>mvn archetype:generate -DarchetypeRepository=http://cmbg-maven.autonomy.com/nexus/content/repositories/snapshots -DarchetypeVersion=1.1-SNAPSHOT -DarchetypeArtifactId=worker-archetype -DarchetypeGroupId=com.hpe.caf.worker</pre>
 
 The CLI will prompt you for the Worker's common properties; groupId, version, package and workerName. In addition the Back-end module archetype will prompt you for the name of the Worker Shared module's artifactId property that you set in the previous step. The artifactId should be distinct to this module's purpose. See Figure 2.
 
@@ -107,7 +107,7 @@ If you are satisfied with the properties you have set, confirm these and Maven w
 
 Generate the new Worker's Container project from the `worker-container-archetype` with the following Maven command:
 
-<pre>mvn archetype:generate -DarchetypeRepository=http://cmbg-maven.autonomy.com/nexus/content/repositories/snapshots -DarchetypeVersion=1.0-SNAPSHOT -DarchetypeArtifactId=worker-container-archetype -DarchetypeGroupId=com.hpe.caf.worker</pre>
+<pre>mvn archetype:generate -DarchetypeRepository=http://cmbg-maven.autonomy.com/nexus/content/repositories/snapshots -DarchetypeVersion=1.1-SNAPSHOT -DarchetypeArtifactId=worker-container-archetype -DarchetypeGroupId=com.hpe.caf.worker</pre>
 
 The CLI will prompt you for the Worker's common properties; groupId, version, package and workerName. In addition the Container module archetype will prompt you for the name of the Worker Back-end module's artifactId property that you set in the previous step. The artifactId should be distinct to this module's purpose. See Figure 3.
 
@@ -131,7 +131,7 @@ Generate the new Worker's Shared module from the `worker-shared-archetype` by fo
 - Specify the details of the 'worker-shared-archetype'
 	- GroupId : com.hpe.caf.worker
 	- ArtifactId : worker-shared-archetype
-	- Version : 1.0-SNAPSHOT
+	- Version : 1.1-SNAPSHOT
 	- Repository : http://cmbg-maven.autonomy.com/nexus/content/repositories/snapshots
 	- Click 'OK'
 - Select the added 'com.hpe.caf.worker:worker-shared-archetype' archetype > Click 'Next'
@@ -157,7 +157,7 @@ Generate the new Worker's Back-end module from the `worker-archetype` by followi
 - Specify the details of the 'worker-archetype'
 	- GroupId : com.hpe.caf.worker
 	- ArtifactId : worker-archetype
-	- Version : 1.0-SNAPSHOT
+	- Version : 1.1-SNAPSHOT
 	- Repository : http://cmbg-maven.autonomy.com/nexus/content/repositories/snapshots
 	- Click 'OK'
 - Select the added 'com.hpe.caf.worker:worker-archetype' archetype > Click 'Next'
@@ -185,7 +185,7 @@ Generate the new Worker's Container module from the `worker-container-archetype`
 - Specify the details of the 'worker-container-archetype'
 	- GroupId : com.hpe.caf.worker
 	- ArtifactId : worker-container-archetype
-	- Version : 1.0-SNAPSHOT
+	- Version : 1.1-SNAPSHOT
 	- Repository : http://cmbg-maven.autonomy.com/nexus/content/repositories/snapshots
 	- Click 'OK'
 - Select the added 'com.hpe.caf.worker:worker-container-archetype' archetype > Click 'Next'
@@ -217,7 +217,7 @@ Generate the new Worker's Shared module from the `worker-shared-archetype` by fo
 - Specify the details of the 'worker-shared-archetype'
 	- GroupId : com.hpe.caf.worker
 	- ArtifactId : worker-shared-archetype
-	- Version : 1.0-SNAPSHOT
+	- Version : 1.1-SNAPSHOT
 	- Repository : http://cmbg-maven.autonomy.com/nexus/content/repositories/snapshots
 	- Click 'Next >'
 - Enter Project Name, Project Location, GroupId, Version and Package of your Worker Shared project, e.g:
@@ -240,7 +240,7 @@ Generate the new Worker's Back-end module from the `worker-archetype` by followi
 - Specify the details of the 'worker-shared-archetype'
 	- GroupId : com.hpe.caf.worker
 	- ArtifactId : worker-archetype
-	- Version : 1.0-SNAPSHOT
+	- Version : 1.1-SNAPSHOT
 	- Repository : http://cmbg-maven.autonomy.com/nexus/content/repositories/snapshots
 	- Click 'Next >'
 - Enter Project Name, Project Location, GroupId, Version and Package of your Worker Shared project, e.g:
@@ -265,7 +265,7 @@ Generate the new Worker's Back-end module from the `worker-archetype` by followi
 - Specify the details of the 'worker-container-archetype'
 	- GroupId : com.hpe.caf.worker
 	- ArtifactId : worker-container-archetype
-	- Version : 1.0-SNAPSHOT
+	- Version : 1.1-SNAPSHOT
 	- Repository : http://cmbg-maven.autonomy.com/nexus/content/repositories/snapshots
 	- Click 'Next >'
 - Enter Project Name, Project Location, GroupId, Version and Package of your Worker Shared project, e.g:
