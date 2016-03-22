@@ -17,10 +17,6 @@ import java.util.Map;
 public class TaskMessageFactory {
 
     private final java.lang.String CONTEXT_KEY = "context";
-    private final String JOBTRACKING_JOB_TASK_ID = "J1234.1.1";
-    private final String JOBTRACKING_STATUS_CHECK_URL = "http://127.0.0.1:26080/caf-job-service/v1";
-    private final String JOBTRACKING_TRACKING_PIPE = "test-tracking-1";
-    private final String JOBTRACKING_TRACK_TO = "test-tracking-end-1";
     private final byte[] CONTEXT_DATA = "testData".getBytes(StandardCharsets.UTF_8);
     private final Codec codec;
     private final String workerName;
@@ -53,7 +49,11 @@ public class TaskMessageFactory {
     public TaskMessage create(final Object workerTask, final String taskId) throws CodecException {
 
         Map<java.lang.String, byte[]> context = Collections.singletonMap(CONTEXT_KEY, CONTEXT_DATA);
-        TrackingInfo tracking = new TrackingInfo(JOBTRACKING_JOB_TASK_ID, new Date(), JOBTRACKING_STATUS_CHECK_URL, JOBTRACKING_TRACKING_PIPE, JOBTRACKING_TRACK_TO);
+
+        //TODO - Cannot include tracking info yet because it will cause response messages to be diverted to trackingPipe (Job Tracking Worker, see CAF-600).
+        //TrackingInfo tracking = new TrackingInfo("J23.1.1", new Date(), "http://thehost:1234/job-service/v1/jobs/23/isActive", "test-tracking-1", "test-tracking-end-1");
+        TrackingInfo tracking = null;
+
         TaskMessage msg = new TaskMessage(taskId, workerName, apiVersion, codec.serialise(workerTask), TaskStatus.NEW_TASK, context, workerInputQueueName, tracking);
         return msg;
     }
