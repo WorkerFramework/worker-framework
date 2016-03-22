@@ -13,6 +13,7 @@ import net.jodah.lyra.ConnectionOptions;
 import net.jodah.lyra.config.Config;
 
 import java.io.IOException;
+import java.util.Map;
 import java.util.concurrent.TimeoutException;
 
 /**
@@ -23,7 +24,7 @@ public class QueueServicesFactory {
     private static class NoOpCallback implements TaskCallback {
 
         @Override
-        public void registerNewTask(String s, byte[] bytes) throws TaskRejectedException, InvalidTaskException {
+        public void registerNewTask(String s, byte[] bytes, Map<String, Object> headers) throws TaskRejectedException, InvalidTaskException {
         }
 
         @Override
