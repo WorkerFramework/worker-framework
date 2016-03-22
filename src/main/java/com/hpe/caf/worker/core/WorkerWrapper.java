@@ -51,7 +51,7 @@ class WorkerWrapper implements Runnable
             Timer.Context t = TIMER.time();
             WorkerResponse response = worker.doWork();
             t.stop();
-            doCallback(response);
+            doCallback(response, message.getTracking());
         } catch (TaskRejectedException e) {
             LOG.info("Worker requested to abandon task {} (message id: {})", message.getTaskId(), queueMsgId, e);
             callback.abandon(queueMsgId);
@@ -59,7 +59,7 @@ class WorkerWrapper implements Runnable
             LOG.warn("Worker interrupt signalled, not performing callback for task {} (message id: {})", message.getTaskId(), queueMsgId, e);
         } catch (Exception e) {
             LOG.warn("Worker threw unhandled exception", e);
-            doCallback(worker.getGeneralFailureResult(e));
+            doCallback(worker.getGeneralFailureResult(e), message.getTracking());
         }
     }
 
@@ -76,16 +76,17 @@ class WorkerWrapper implements Runnable
     /**
      * Generate a TaskMessage from a WorkerResponse and callback to the core notifying of completion.
      * @param response the response from the Worker
+     * @param originalMessageTracking the tracking info of the original message for which response is the result
      */
-    private void doCallback(final WorkerResponse response)
+    private void doCallback(final WorkerResponse response, TrackingInfo originalMessageTracking)
     {
         Map<String, byte[]> contextMap = message.getContext();
         if ( response.getContext() != null ) {
             contextMap.put(servicePath.toString(), response.getContext());
         }
         TaskMessage tm = new TaskMessage(message.getTaskId(), response.getMessageType(), response.getApiVersion(),
-                                         response.getData(), response.getTaskStatus(), contextMap);
+                                         response.getData(), response.getTaskStatus(), contextMap,
+                                         response.getQueueReference(), originalMessageTracking);
         callback.complete(queueMsgId, response.getQueueReference(), tm);
     }
-
 }

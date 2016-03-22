@@ -68,9 +68,9 @@ public class WorkerExecutorTest
 
         WorkerExecutor executor = new WorkerExecutor(path, callback, factory, taskMap, pool);
         TaskMessage tm = new TaskMessage("test", "test", 1, "test".getBytes(StandardCharsets.UTF_8), TaskStatus.NEW_TASK, new HashMap<>(), "testTo");
-        executor.forwardTask(tm, "testMsgId");
+        executor.forwardTask(tm, "testMsgId", new HashMap<>());
         Mockito.verify(factory, Mockito.times(1)).getWorker(Mockito.any(), Mockito.anyInt(), Mockito.any(), Mockito.any(), Mockito.any());
-        Mockito.verify(callback, Mockito.times(1)).forward("testMsgId", "testTo", tm);
+        Mockito.verify(callback, Mockito.times(1)).forward("testMsgId", "testTo", tm, new HashMap<>());
     }
 
 
@@ -89,11 +89,12 @@ public class WorkerExecutorTest
 
                 TaskMessage invocation_tm = (TaskMessage) args[0];
                 String invocation_queueMessageId = (String) args[1];
-                WorkerCallback invocation_callback = (WorkerCallback) args[2];
+                Map<String, Object> invocation_headers = (Map<String, Object>)args[2];
+                WorkerCallback invocation_callback = (WorkerCallback) args[3];
 
                 invocation_callback.discard(invocation_queueMessageId);
                 return null;
-            }}).when((TaskMessageForwardingEvaluator)worker).determineForwardingAction(Mockito.any(TaskMessage.class), Mockito.anyString(), Mockito.any(WorkerCallback.class));
+            }}).when((TaskMessageForwardingEvaluator)worker).determineForwardingAction(Mockito.any(TaskMessage.class), Mockito.anyString(), Mockito.anyMap(), Mockito.any(WorkerCallback.class));
 
         WorkerFactory factory = Mockito.mock(WorkerFactory.class);
         Mockito.when(factory.getWorker(Mockito.any(), Mockito.anyInt(), Mockito.any(), Mockito.any(), Mockito.any())).thenReturn(worker);
@@ -107,9 +108,9 @@ public class WorkerExecutorTest
         Mockito.when(pool.submit(Mockito.any(Runnable.class))).then(invocationOnMock -> future);
 
         WorkerExecutor executor = new WorkerExecutor(path, callback, factory, taskMap, pool);
-        executor.forwardTask(tm, "testMsgId");
+        executor.forwardTask(tm, "testMsgId", new HashMap<>());
         Mockito.verify(factory, Mockito.times(1)).getWorker(Mockito.any(), Mockito.anyInt(), Mockito.any(), Mockito.any(), Mockito.any());
-        Mockito.verify((TaskMessageForwardingEvaluator)worker, Mockito.times(1)).determineForwardingAction(tm, "testMsgId", callback);
+        Mockito.verify((TaskMessageForwardingEvaluator)worker, Mockito.times(1)).determineForwardingAction(tm, "testMsgId", new HashMap<>(), callback);
         Mockito.verify(callback, Mockito.times(1)).discard("testMsgId");
     }
 

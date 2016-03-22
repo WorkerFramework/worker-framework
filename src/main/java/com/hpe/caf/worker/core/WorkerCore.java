@@ -8,10 +8,14 @@ import com.hpe.caf.api.CodecException;
 import com.hpe.caf.api.DecodeMethod;
 import com.hpe.caf.api.worker.*;
 import com.hpe.caf.naming.ServicePath;
-import com.hpe.caf.services.job.client.api.JobsApi;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.BufferedReader;
+import java.io.InputStreamReader;
+import java.net.URL;
+import java.net.URLConnection;
+import java.util.Collections;
 import java.util.Date;
 import java.util.Map;
 import java.util.Objects;
@@ -126,7 +130,7 @@ public class WorkerCore
          * and hand it off to the thread pool.
          */
         @Override
-        public void registerNewTask(final String queueMsgId, final byte[] taskMessage)
+        public void registerNewTask(final String queueMsgId, final byte[] taskMessage, Map<String, Object> headers)
                 throws InvalidTaskException, TaskRejectedException
         {
             Objects.requireNonNull(queueMsgId);
@@ -143,7 +147,7 @@ public class WorkerCore
                         executor.executeTask(tm, queueMsgId);
                     } else {
                         LOG.debug("Task {} (message id: {}) is not intended for this worker: input queue {} does not match message destination queue {}", tm.getTaskId(), queueMsgId, workerQueue.getInputQueue(), tm.getTo());
-                        executor.forwardTask(tm, queueMsgId);
+                        executor.forwardTask(tm, queueMsgId, headers);
                     }
                 } else {
                     LOG.debug("Task {} is no longer active. The task message (message id: {}) will not be executed", tm.getTaskId(), queueMsgId);
@@ -253,25 +257,34 @@ public class WorkerCore
         /**
          * Makes a call to the status check URL to determine whether the job is active.
          * @param jobId checks the active status of this job
-         * @param statusCheckUrl base path of the CAF Job Service REST API
+         * @param statusCheckUrl full path that can be used to check job status
          * @return job status response including active status of job - true if the job is active or if the check could not be performed, false if the job is inactive
          */
         private JobStatusResponse getJobStatus(String jobId, String statusCheckUrl) {
-            JobStatusResponse response = new JobStatusResponse();
+            JobStatusResponse jobStatusResponse = new JobStatusResponse();
             try {
-                JobsApi client = new JobsApi();
-                client.getApiClient().setBasePath(statusCheckUrl);
+                URL url = new URL(statusCheckUrl);
+                URLConnection connection = url.openConnection();
+                try (BufferedReader response = new BufferedReader(new InputStreamReader(connection.getInputStream()))) {
+                    String responseValue;
+                    if ((responseValue = response.readLine()) != null) {
+                        jobStatusResponse.setActive(Boolean.parseBoolean(responseValue));
+                    } else {
+                        LOG.warn("Job {} : assuming that job is active - no suitable response from status check URL {} : {}", jobId, statusCheckUrl);
+                        jobStatusResponse.setActive(true);
+                    }
+                } catch (Exception ex) {
+                    LOG.warn("Job {} : assuming that job is active - failed to perform status check using URL {} : {}", jobId, statusCheckUrl, ex);
+                    jobStatusResponse.setActive(true);
+                }
 
-                boolean isActive = client.getJobActive(jobId, null); //TODO - correlationId ignored for now - see CAF-715
-                long statusCheckIntervalMillis = 3600000; //TODO - statusCheckIntervalMillis value should come from Job Service response header - see CAF-870
-
-                response.setActive(isActive);
-                response.setStatusCheckIntervalMillis(statusCheckIntervalMillis);
+                long statusCheckIntervalMillis = 3600000; //TODO - statusCheckIntervalMillis value should come from statusCheckUrl response header - see CAF-870
+                jobStatusResponse.setStatusCheckIntervalMillis(statusCheckIntervalMillis);
             } catch (Exception e) {
                 LOG.warn("Job {} : assuming that job is active - failed to perform status check using URL {} : {}", jobId, statusCheckUrl, e);
-                response.setActive(true);
+                jobStatusResponse.setActive(true);
             }
-            return response;
+            return jobStatusResponse;
         }
 
 
@@ -368,7 +381,7 @@ public class WorkerCore
             responseMessage.setTo(queue);
             try {
                 byte[] output = codec.serialise(responseMessage);
-                workerQueue.publish(queueMsgId, output, getTargetQueue(queueMsgId, responseMessage, queue));
+                workerQueue.publish(queueMsgId, output, getTargetQueue(queueMsgId, responseMessage, queue), Collections.emptyMap());
                 stats.getOutputSizes().update(output.length);
                 stats.updatedLastTaskFinishedTime();
                 if ( TaskStatus.isSuccessfulResponse(responseMessage.getTaskStatus()) ) {
@@ -393,7 +406,7 @@ public class WorkerCore
 
 
         @Override
-        public void forward(String queueMsgId, String queue, TaskMessage forwardedMessage) {
+        public void forward(String queueMsgId, String queue, TaskMessage forwardedMessage, Map<String, Object> headers) {
             Objects.requireNonNull(queueMsgId);
             Objects.requireNonNull(queue);
             Objects.requireNonNull(forwardedMessage);
@@ -401,7 +414,7 @@ public class WorkerCore
             LOG.debug("Task {} (message id: {}) being forwarded to queue {}", forwardedMessage.getTaskId(), queueMsgId, queue);
             try {
                 byte[] output = codec.serialise(forwardedMessage);
-                workerQueue.publish(queueMsgId, output, queue);
+                workerQueue.publish(queueMsgId, output, queue, headers);
                 stats.incrementTasksForwarded();
                 //TODO - I'm guessing this stat should not be updated for forwarded messages:
                 // stats.getOutputSizes().update(output.length);
@@ -421,16 +434,6 @@ public class WorkerCore
         }
 
 
-        private String getTrackingPipe(final TaskMessage tm) {
-            Objects.requireNonNull(tm);
-            TrackingInfo tracking = tm.getTracking();
-            if (tracking != null) {
-                return tracking.getTrackingPipe();
-            }
-            return null;
-        }
-
-
         /**
          * Attempts to derive the target queue (the queue that the task message is to be sent out to)
          * from the tracking info on the task message. If the message has no tracking info specifying
@@ -441,7 +444,9 @@ public class WorkerCore
          * @return the queue to which the message should be dispatched
          */
         private String getTargetQueue(String queueMsgId, TaskMessage tm, String defaultTargetQueue) {
-            String trackingPipe = getTrackingPipe(tm);
+            Objects.requireNonNull(tm);
+            TrackingInfo tracking = tm.getTracking();
+            String trackingPipe = tracking == null ? null : tracking.getTrackingPipe();
             if (isInputQueue(trackingPipe)) {
                 // If this worker is the tracking destination then there's no point redirecting to self!
                 LOG.debug("Task {} (message id: {}) tracking pipe matches the current input queue - this worker is the tracking destination for this message", tm.getTaskId(), queueMsgId);

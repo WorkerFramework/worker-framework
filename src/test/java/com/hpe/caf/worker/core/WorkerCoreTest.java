@@ -85,7 +85,7 @@ public class WorkerCoreTest
         core.start();
         // at this point, the queue should hand off the task to the app, the app should get a worker from the mocked WorkerFactory,
         // and the Worker itself is a mock wrapped in a WorkerWrapper, which should return success and the appropriate result data
-        TrackingInfo tracking = new TrackingInfo("J1234.1.2", new Date(), "http://127.0.0.1:26080/caf-job-service/v1", "trackingQueue", "trackTo");
+        TrackingInfo tracking = new TrackingInfo("J23.1.2", new Date(), "http://thehost:1234/job-service/v1/jobs/23/isActive", "trackingQueue", "trackTo");
         byte[] stuff = codec.serialise(getTaskMessage(task, codec, WORKER_NAME, tracking));
         queue.submitTask(QUEUE_MSG_ID, stuff);
         // the worker's task result should eventually be passed back to our dummy WorkerQueue and onto our blocking queue
@@ -314,7 +314,7 @@ public class WorkerCoreTest
 
 
         @Override
-        public void publish(String acknowledgeId, byte[] taskMessage, String targetQueue)
+        public void publish(String acknowledgeId, byte[] taskMessage, String targetQueue, Map<String, Object> headers)
             throws QueueException
         {
             this.lastQueue = targetQueue;
@@ -380,7 +380,7 @@ public class WorkerCoreTest
         public void submitTask(final String taskId, final byte[] stuff)
             throws WorkerException
         {
-            callback.registerNewTask(taskId, stuff);
+            callback.registerNewTask(taskId, stuff, new HashMap<>());
         }
 
     }

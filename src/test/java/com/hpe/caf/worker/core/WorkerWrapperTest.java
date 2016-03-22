@@ -262,7 +262,7 @@ public class WorkerWrapperTest
 
 
         @Override
-        public void forward(String queueMsgId, String queue, TaskMessage forwardedMessage) {
+        public void forward(String queueMsgId, String queue, TaskMessage forwardedMessage, Map<String, Object> headers) {
             this.queueMsgId = queueMsgId;
             latch.countDown();
         }
