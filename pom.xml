@@ -107,7 +107,7 @@
             <dependency>
                 <groupId>com.hpe.caf.worker</groupId>
                 <artifactId>worker-caf</artifactId>
-                <version>10.1</version>
+                <version>10.2-SNAPSHOT</version>
             </dependency>
             <dependency>
                 <groupId>com.hpe.caf.worker</groupId>
