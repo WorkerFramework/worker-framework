@@ -5,12 +5,7 @@ import com.hpe.caf.api.worker.InvalidTaskException;
 import com.hpe.caf.api.worker.TaskCallback;
 import com.hpe.caf.api.worker.TaskRejectedException;
 import com.hpe.caf.api.worker.WorkerException;
-import com.hpe.caf.util.rabbitmq.ConsumerAckEvent;
-import com.hpe.caf.util.rabbitmq.ConsumerDropEvent;
-import com.hpe.caf.util.rabbitmq.ConsumerRejectEvent;
-import com.hpe.caf.util.rabbitmq.DefaultRabbitConsumer;
-import com.hpe.caf.util.rabbitmq.Event;
-import com.hpe.caf.util.rabbitmq.QueueConsumer;
+import com.hpe.caf.util.rabbitmq.*;
 import com.rabbitmq.client.AMQP;
 import com.rabbitmq.client.Channel;
 import com.rabbitmq.client.Envelope;
@@ -107,9 +102,9 @@ public class RabbitWorkerQueueConsumerTest
         ArgumentCaptor<Map> captor = ArgumentCaptor.forClass(Map.class);
         pubEvent.handleEvent(publisher);
         Mockito.verify(publisher, Mockito.times(1)).handlePublish(Mockito.eq(data), Mockito.eq(rejectKey), Mockito.eq(id), captor.capture());
-        Assert.assertTrue(captor.getValue().containsKey(WorkerQueueConsumerImpl.RABBIT_HEADER_CAF_WORKER_REJECTED));
+        Assert.assertTrue(captor.getValue().containsKey(RabbitHeaders.RABBIT_HEADER_CAF_WORKER_REJECTED));
         Assert.assertEquals(WorkerQueueConsumerImpl.REJECTED_REASON_TASKMESSAGE,
-                            captor.getValue().get(WorkerQueueConsumerImpl.RABBIT_HEADER_CAF_WORKER_REJECTED));
+                            captor.getValue().get(RabbitHeaders.RABBIT_HEADER_CAF_WORKER_REJECTED));
         consumer.shutdown();
     }
 
@@ -143,7 +138,7 @@ public class RabbitWorkerQueueConsumerTest
         ArgumentCaptor<Map> captor = ArgumentCaptor.forClass(Map.class);
         pubEvent.handleEvent(publisher);
         Mockito.verify(publisher, Mockito.times(1)).handlePublish(Mockito.eq(data), Mockito.eq(testQueue), Mockito.eq(id), captor.capture());
-        Assert.assertFalse(captor.getValue().containsKey(WorkerQueueConsumerImpl.RABBIT_HEADER_CAF_WORKER_REJECTED));
+        Assert.assertFalse(captor.getValue().containsKey(RabbitHeaders.RABBIT_HEADER_CAF_WORKER_REJECTED));
         consumer.shutdown();
     }
 
@@ -173,8 +168,8 @@ public class RabbitWorkerQueueConsumerTest
         ArgumentCaptor<Map> captor = ArgumentCaptor.forClass(Map.class);
         pubEvent.handleEvent(publisher);
         Mockito.verify(publisher, Mockito.times(1)).handlePublish(Mockito.eq(data), Mockito.eq(retryKey), Mockito.eq(id), captor.capture());
-        Assert.assertTrue(captor.getValue().containsKey(WorkerQueueConsumerImpl.RABBIT_HEADER_CAF_WORKER_RETRY));
-        Assert.assertEquals("1", captor.getValue().get(WorkerQueueConsumerImpl.RABBIT_HEADER_CAF_WORKER_RETRY));
+        Assert.assertTrue(captor.getValue().containsKey(RabbitHeaders.RABBIT_HEADER_CAF_WORKER_RETRY));
+        Assert.assertEquals("1", captor.getValue().get(RabbitHeaders.RABBIT_HEADER_CAF_WORKER_RETRY));
         consumer.shutdown();
     }
 
@@ -197,7 +192,7 @@ public class RabbitWorkerQueueConsumerTest
         t.start();
         AMQP.BasicProperties prop = Mockito.mock(AMQP.BasicProperties.class);
         Map<String, Object> headers = new HashMap<>();
-        headers.put(WorkerQueueConsumerImpl.RABBIT_HEADER_CAF_WORKER_RETRY, "1");
+        headers.put(RabbitHeaders.RABBIT_HEADER_CAF_WORKER_RETRY, "1");
         Mockito.when(prop.getHeaders()).thenReturn(headers);
         consumer.handleDelivery("consumer", redeliveredEnv, prop, data);
         Event<WorkerPublisher> pubEvent = publisherEvents.poll(1, TimeUnit.SECONDS);
@@ -206,11 +201,11 @@ public class RabbitWorkerQueueConsumerTest
         ArgumentCaptor<Map> captor = ArgumentCaptor.forClass(Map.class);
         pubEvent.handleEvent(publisher);
         Mockito.verify(publisher, Mockito.times(1)).handlePublish(Mockito.eq(data), Mockito.eq(rejectKey), Mockito.eq(id), captor.capture());
-        Assert.assertTrue(captor.getValue().containsKey(WorkerQueueConsumerImpl.RABBIT_HEADER_CAF_WORKER_RETRY));
-        Assert.assertEquals("1", captor.getValue().get(WorkerQueueConsumerImpl.RABBIT_HEADER_CAF_WORKER_RETRY));
-        Assert.assertTrue(captor.getValue().containsKey(WorkerQueueConsumerImpl.RABBIT_HEADER_CAF_WORKER_REJECTED));
+        Assert.assertTrue(captor.getValue().containsKey(RabbitHeaders.RABBIT_HEADER_CAF_WORKER_RETRY));
+        Assert.assertEquals("1", captor.getValue().get(RabbitHeaders.RABBIT_HEADER_CAF_WORKER_RETRY));
+        Assert.assertTrue(captor.getValue().containsKey(RabbitHeaders.RABBIT_HEADER_CAF_WORKER_REJECTED));
         Assert.assertEquals(WorkerQueueConsumerImpl.REJECTED_REASON_RETRIES_EXCEEDED,
-                            captor.getValue().get(WorkerQueueConsumerImpl.RABBIT_HEADER_CAF_WORKER_REJECTED));
+                            captor.getValue().get(RabbitHeaders.RABBIT_HEADER_CAF_WORKER_REJECTED));
         consumer.shutdown();
     }
 
