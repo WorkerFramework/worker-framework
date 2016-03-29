@@ -85,7 +85,7 @@ public abstract class AbstractWorkerFactory<C, T> implements WorkerFactory
     }
 
 
-    public Worker getMismatchedWorker(final String classifier, final int version, final TaskStatus status, final byte[] data, final byte[] context) throws InvalidTaskException {
+    public Worker getMismatchedWorker(final String classifier, final int version, final TaskStatus status, final byte[] data, final byte[] context) throws TaskRejectedException, InvalidTaskException {
         throw new InvalidTaskException("Task of type " + classifier + " found on queue for " + getWorkerName());
     }
 
