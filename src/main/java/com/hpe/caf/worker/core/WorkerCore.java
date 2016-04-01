@@ -139,7 +139,6 @@ public class WorkerCore
                 stats.getInputSizes().update(taskMessage.length);
                 TaskMessage tm = codec.deserialise(taskMessage, TaskMessage.class, DecodeMethod.LENIENT);
                 LOG.debug("Received task {} (message id: {})", tm.getTaskId(), queueMsgId);
-                checkForTrackingTermination(queueMsgId, tm);
                 boolean taskIsActive = checkStatus(tm);
                 if (taskIsActive) {
                     if (tm.getTo() == null || tm.getTo().equalsIgnoreCase(workerQueue.getInputQueue())) {
@@ -288,27 +287,6 @@ public class WorkerCore
         }
 
 
-        /**
-         * Checks whether tracking of this task message should end when arriving at the specified queue.
-         * If tracking is to end here then tracking info is removed from the task message.
-         * @param queueMsgId the reference to the message this task arrived on
-         * @param tm task message whose tracking info is to be checked
-         */
-        private void checkForTrackingTermination(String queueMsgId, TaskMessage tm) {
-            Objects.requireNonNull(queueMsgId);
-            Objects.requireNonNull(tm);
-
-            TrackingInfo tracking = tm.getTracking();
-            if (tracking != null) {
-                String trackTo = tracking.getTrackTo();
-                if (trackTo != null && trackTo.equalsIgnoreCase(workerQueue.getInputQueue())) {
-                    LOG.debug("Task {} (message id: {}) on input queue {}: removing tracking info from this message as tracking ends on arrival at this queue", tm.getTaskId(), queueMsgId, workerQueue.getInputQueue());
-                    tm.setTracking(null);
-                }
-            }
-        }
-
-
         private static class JobStatusResponse {
             private static final long defaultJobStatusCheckIntervalMillis = 120000;
 
@@ -379,9 +357,11 @@ public class WorkerCore
             LOG.debug("Task {} complete (message id: {})", responseMessage.getTaskId(), queueMsgId);
             LOG.debug("Setting destination {} in task {} (message id: {})", queue, responseMessage.getTaskId(), queueMsgId);
             responseMessage.setTo(queue);
+            String targetQueue = getTargetQueue(queueMsgId, responseMessage, queue);
+            checkForTrackingTermination(queueMsgId, targetQueue, responseMessage);
             try {
                 byte[] output = codec.serialise(responseMessage);
-                workerQueue.publish(queueMsgId, output, getTargetQueue(queueMsgId, responseMessage, queue), Collections.emptyMap());
+                workerQueue.publish(queueMsgId, output, targetQueue, Collections.emptyMap());
                 stats.getOutputSizes().update(output.length);
                 stats.updatedLastTaskFinishedTime();
                 if ( TaskStatus.isSuccessfulResponse(responseMessage.getTaskStatus()) ) {
@@ -412,6 +392,7 @@ public class WorkerCore
             Objects.requireNonNull(forwardedMessage);
             taskMap.remove(queueMsgId);
             LOG.debug("Task {} (message id: {}) being forwarded to queue {}", forwardedMessage.getTaskId(), queueMsgId, queue);
+            checkForTrackingTermination(queueMsgId, queue, forwardedMessage);
             try {
                 byte[] output = codec.serialise(forwardedMessage);
                 workerQueue.publish(queueMsgId, output, queue, headers);
@@ -431,6 +412,31 @@ public class WorkerCore
             LOG.debug("Discarding message id {}", queueMsgId);
             workerQueue.discardTask(queueMsgId);
             stats.incrementTasksDiscarded();
+        }
+
+
+        /**
+         * Checks whether tracking of this task message should end when publishing to the specified queue.
+         * If tracking is to end then this method removes and returns the tracking info from the task message.
+         * @param queueMsgId the reference to the message this task arrived on
+         * @param queueToSend the queue to which the message is to be published
+         * @param tm task message whose tracking info is to be checked
+         * @return if tracking of the message terminates on publishing to the specified queue then the removed tracking info is returned; otherwise null is returned and the tracking info is not removed from the message
+         */
+        private TrackingInfo checkForTrackingTermination(final String queueMsgId, final String queueToSend, TaskMessage tm) {
+            Objects.requireNonNull(queueMsgId);
+            Objects.requireNonNull(queueToSend);
+            Objects.requireNonNull(tm);
+
+            TrackingInfo tracking = tm.getTracking();
+            if (tracking != null) {
+                String trackTo = tracking.getTrackTo();
+                if (trackTo != null && trackTo.equalsIgnoreCase(queueToSend)) {
+                    LOG.debug("Task {} (message id: {}): removing tracking info from this message as tracking ends on publishing to the queue {}.", tm.getTaskId(), queueMsgId, queueToSend);
+                    tm.setTracking(null);
+                }
+            }
+            return tracking;
         }
 
 
