@@ -18,11 +18,12 @@ public interface WorkerFactory extends HealthReporter
      * @param status the status of the task
      * @param data the raw serialised task data
      * @param context provides access to task specific context, may be null
+     * @param tracking additional fields used in tracking task messages
      * @return a new Worker instance that will perform work upon the taskData
      * @throws TaskRejectedException if a Worker cannot be created to handle this task currently
      * @throws InvalidTaskException if it appears this task cannot possibly be handled by a Worker of this type
      */
-    Worker getWorker(String classifier, int version, TaskStatus status, byte[] data, byte[] context)
+    Worker getWorker(String classifier, int version, TaskStatus status, byte[] data, byte[] context, TrackingInfo tracking)
         throws TaskRejectedException, InvalidTaskException;
 
 
