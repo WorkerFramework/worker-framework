@@ -14,7 +14,7 @@ public class TrackingInfo {
      * Values of jobTaskId should be the job id followed by period-separated subtask elements.
      * For example J5.1.2 where the job id is "J5".
      */
-    private static final String jobTaskIdPattern = "^([^\\.]*)\\..*$";
+    private static final String jobTaskIdPattern = "^([^\\.]*)\\.?.*$";
 
     /**
      * An identifier assigned for tracking the task - not the same as the taskId on TaskMessage.
