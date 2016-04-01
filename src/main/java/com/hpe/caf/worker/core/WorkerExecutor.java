@@ -136,6 +136,6 @@ public class WorkerExecutor
         throws InvalidTaskException, TaskRejectedException
     {
         byte[] context = tm.getContext().get(servicePath.toString());
-        return factory.getWorker(tm.getTaskClassifier(), tm.getTaskApiVersion(), tm.getTaskStatus(), tm.getTaskData(), context);
+        return factory.getWorker(tm.getTaskClassifier(), tm.getTaskApiVersion(), tm.getTaskStatus(), tm.getTaskData(), context, tm.getTracking());
     }
 }
