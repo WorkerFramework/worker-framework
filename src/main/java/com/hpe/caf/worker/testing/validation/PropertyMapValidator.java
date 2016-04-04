@@ -43,7 +43,7 @@ public class PropertyMapValidator extends PropertyValidator {
             }
 
             if (itemUnderTest.isComplexProperty(validationPropertyName) != validationMap.isComplexProperty(validationPropertyName)) {
-                throw new AssertionError("Property type mismach - complex vs non-complex. Property name: " + validationPropertyName);
+                throw new AssertionError("Property type mismatch - complex vs non-complex. Property name: " + validationPropertyName);
             }
 
             Object sourcePropertyValue = itemUnderTest.get(validationPropertyName);

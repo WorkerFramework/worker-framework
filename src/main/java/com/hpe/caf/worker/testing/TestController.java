@@ -7,10 +7,7 @@ import java.io.Closeable;
 import java.io.IOException;
 import java.io.PrintStream;
 import java.nio.file.Paths;
-import java.util.Collection;
-import java.util.Timer;
-import java.util.TimerTask;
-import java.util.UUID;
+import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -115,13 +112,10 @@ public class TestController implements Closeable {
 
         TaskMessageFactory messageFactory = new TaskMessageFactory(workerServices.getCodec(), taskFactory.getWorkerName(), queueManager.getWorkerInputQueueName(), taskFactory.getApiVersion());
 
+        HashMap<String, TestItem> storedItems = new HashMap<>();
+
         for (TestItem item : items) {
-            Object workerTask = taskFactory.createTask(item);
             String taskId = item.getTag() == null ? UUID.randomUUID().toString() : item.getTag();
-            //String s = Paths.get(item.getTag()).getRoot().toString();
-
-
-            TaskMessage message = messageFactory.create(workerTask, taskId);
 
             String inputIdentifier = item.getInputIdentifier();
             if (Strings.isNullOrEmpty(inputIdentifier)) {
@@ -129,6 +123,14 @@ public class TestController implements Closeable {
             } else {
                 context.getItemStore().store(item.getInputIdentifier(), item);
             }
+            storedItems.put(taskId, item);
+        }
+
+        for (Map.Entry<String, TestItem> entry : storedItems.entrySet()) {
+            TestItem item = entry.getValue();
+            String taskId = entry.getKey();
+            Object workerTask = taskFactory.createTask(item);
+            TaskMessage message = messageFactory.create(workerTask, taskId);
             System.out.println("================================================================================");
             System.out.println(" QUEUEING NEW TASK: " + item.getTag());
             System.out.println("================================================================================");

@@ -2,6 +2,7 @@ package com.hpe.caf.worker.testing;
 
 
 import java.util.HashMap;
+import java.util.Map;
 import java.util.Optional;
 
 /**
@@ -90,6 +91,15 @@ public class TestItemStore {
             }
             return item;
         }
+    }
+
+    /**
+     * Getter for property 'items'.
+     *
+     * @return Value for property 'items'.
+     */
+    public Map<String, TestItem> getItems() {
+        return items;
     }
 
     /**
