@@ -277,7 +277,7 @@ public class WorkerCore
                     jobStatusResponse.setActive(true);
                 }
 
-                long statusCheckIntervalMillis = 3600000; //TODO - statusCheckIntervalMillis value should come from statusCheckUrl response header - see CAF-870
+                long statusCheckIntervalMillis = 300000; //TODO - statusCheckIntervalMillis value should come from statusCheckUrl response header - see CAF-870
                 jobStatusResponse.setStatusCheckIntervalMillis(statusCheckIntervalMillis);
             } catch (Exception e) {
                 LOG.warn("Job {} : assuming that job is active - failed to perform status check using URL {} : {}", jobId, statusCheckUrl, e);
