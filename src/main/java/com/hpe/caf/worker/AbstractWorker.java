@@ -198,10 +198,44 @@ public abstract class AbstractWorker<T,V> implements Worker
     private byte[] getExceptionData(final Throwable t)
     {
         try {
-            return getCodec().serialise(t.getClass());
+            String exceptionDetail = buildExceptionStackTrace(t);
+            return getCodec().serialise(exceptionDetail);
         } catch (CodecException e) {
             LOG.warn("Failed to serialise exception, continuing", e);
             return new byte[]{};
         }
+    }
+
+    /**
+     * Builds up a stack trace with one level of cause stack trace
+     * @param e The exception to build a stack trace from
+     * @return Stack trace constructed from exception
+     */
+    protected String buildExceptionStackTrace(Throwable e) {
+        // Build up exception detail from stack trace
+        StringBuilder exceptionStackTrace = new StringBuilder(e.getClass() + " " + e.getMessage());
+        // Check if there is a stack trace on the exception before building it up into a string
+        if (Objects.nonNull(e.getStackTrace())) {
+            exceptionStackTrace.append(stackTraceToString(e.getStackTrace()));
+        }
+        // If a cause exists add it to the exception detail
+        if (Objects.nonNull(e.getCause())) {
+            exceptionStackTrace.append(". Cause: " + e.getCause().getClass().toString() + " "
+                    + e.getCause().getMessage());
+            // Check if the cause has a stack trace before building it up into a string
+            if (Objects.nonNull(e.getCause().getStackTrace())) {
+                exceptionStackTrace.append(stackTraceToString(e.getCause().getStackTrace()));
+            }
+        }
+        return exceptionStackTrace.toString();
+    }
+
+    protected String stackTraceToString(StackTraceElement[] stackTraceElements) {
+        StringBuilder stackTraceStr = new StringBuilder();
+        // From each stack trace element, build up the stack trace
+        for (StackTraceElement stackTraceElement : stackTraceElements) {
+            stackTraceStr.append(" " + stackTraceElement.toString());
+        }
+        return stackTraceStr.toString();
     }
 }
