@@ -34,7 +34,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 public class StorageServiceDataStore implements ManagedDataStore
 {
     @FunctionalInterface
-    private interface StorageClientFunction<T, R> {
+    private interface StorageClientFunction<T, R>  {
         R apply(T t) throws StorageServiceConnectException, StorageServiceException, StorageClientException, IOException;
     }
 
@@ -44,6 +44,8 @@ public class StorageServiceDataStore implements ManagedDataStore
     private final AtomicInteger errors = new AtomicInteger(0);
     private final AtomicInteger numRx = new AtomicInteger(0);
     private final AtomicInteger numTx = new AtomicInteger(0);
+    private final AtomicInteger numDx = new AtomicInteger(0);
+
     private final DataStoreMetricsReporter metrics = new StorageServiceDataStoreMetricsReporter();
     private final StorageClient storageClient;
     private String accessToken = null;
@@ -59,7 +61,6 @@ public class StorageServiceDataStore implements ManagedDataStore
     {
         storageClient = new StorageClient(storageServiceDataStoreConfiguration.getServerName(),
                 String.valueOf(storageServiceDataStoreConfiguration.getPort()));
-
         keycloakClient = storageServiceDataStoreConfiguration.getAuthenticationConfiguration() != null ? new KeycloakClient(storageServiceDataStoreConfiguration.getAuthenticationConfiguration()) : null;
     }
 
@@ -100,6 +101,22 @@ public class StorageServiceDataStore implements ManagedDataStore
                 }
                 accessToken = keycloakClient.getAccessToken();
             }
+        }
+    }
+
+    public void delete(String reference) throws DataStoreException {
+        LOG.debug("Received delete request for {}", reference);
+        numDx.incrementAndGet();
+        CafStoreReference ref = new CafStoreReference(reference);
+
+        try {
+            callStorageService(c ->  {
+                c.deleteAsset(new DeleteAssetRequest(accessToken, ref.getContainer(), ref.getAsset()));
+                return null; // Added return to satisfy functional interface
+            });
+        } catch (StorageServiceConnectException | StorageClientException | StorageServiceException | IOException e) {
+            errors.incrementAndGet();
+            throw new DataStoreException("Failed to delete asset data for reference " + reference, e);
         }
     }
 
@@ -215,6 +232,11 @@ public class StorageServiceDataStore implements ManagedDataStore
 
     private class StorageServiceDataStoreMetricsReporter implements DataStoreMetricsReporter
     {
+        @Override
+        public int getDeleteRequests() {
+            return numDx.get();
+        }
+
         @Override
         public int getStoreRequests()
         {
