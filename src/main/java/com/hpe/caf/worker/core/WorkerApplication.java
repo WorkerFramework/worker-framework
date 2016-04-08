@@ -158,6 +158,7 @@ public final class WorkerApplication extends Application<WorkerConfiguration>
         if ( store.getMetrics() != null ) {
             metrics.register(MetricRegistry.name("store.writes"), (Gauge<Integer>) store.getMetrics()::getStoreRequests);
             metrics.register(MetricRegistry.name("store.reads"), (Gauge<Integer>) store.getMetrics()::getRetrieveRequests);
+            metrics.register(MetricRegistry.name("store.deletes"), (Gauge<Integer>) store.getMetrics()::getDeleteRequests);
             metrics.register(MetricRegistry.name("store.errors"), (Gauge<Integer>) store.getMetrics()::getErrors);
         }
         if ( core.getWorkerQueue().getMetrics() != null ) {

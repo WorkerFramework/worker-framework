@@ -254,6 +254,7 @@
  - config.errors: the number of failures reported by the ConfigurationSource.
  - store.writes: the number of write requests to the DataStore.
  - store.reads: the number of read requests to the DataStore.
+ - store.deletes: the number of delete requests to the DataStore.
  - store.errors: the number of errors encounted by the DataStore.
  - queue.received: the number of messages received by the WorkerQueue.
  - queue.published: the number of messages published by the WorkerQueue.
