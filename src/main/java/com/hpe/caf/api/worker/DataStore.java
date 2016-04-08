@@ -12,6 +12,17 @@ import java.nio.file.Path;
  */
 public interface DataStore
 {
+
+
+    /**
+     * Delete asset identified by reference
+     * @param reference a complete reference to be interpreted by the DataStore implementation
+     * @throws DataStoreException if data store cannot service the request
+     * @since 11.0
+     */
+    void delete(String reference)
+       throws DataStoreException;
+
     /**
      * Provide a stream to get data by reference
      * @param reference a complete reference to be interpreted by the DataStore implementation

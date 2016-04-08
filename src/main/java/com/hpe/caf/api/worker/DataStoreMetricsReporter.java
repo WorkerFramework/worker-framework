@@ -8,6 +8,11 @@ package com.hpe.caf.api.worker;
 public interface DataStoreMetricsReporter
 {
     /**
+     * @return the number of 'delete' requests so far
+     */
+    int getDeleteRequests();
+
+    /**
      * @return the number of 'store' requests so far
      */
     int getStoreRequests();
