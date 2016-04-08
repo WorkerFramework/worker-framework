@@ -83,12 +83,12 @@ Generate the new Worker's Shared module from the `worker-shared-archetype` with 
 
 <pre>mvn archetype:generate -DarchetypeRepository=http://cmbg-maven.autonomy.com/nexus/content/repositories/snapshots -DarchetypeVersion=1.1-SNAPSHOT -DarchetypeArtifactId=worker-shared-archetype -DarchetypeGroupId=com.hpe.caf.worker</pre>
 
-The CLI will prompt you for groupId, version, package and workerName properties required for the new shared project. The artifactId should be distinct to this module's purpose. See Figure 1.
+The CLI will prompt you for groupId, version (default suggestion is 1.0-SNAPSHOT), package (default suggestion is the groupId, you should however adjust this to include the worker's purpose) and workerName properties required for the new shared project. The artifactId should be distinct to this module's purpose. See Figure 1.
 
 ![Generate Example Worker Shared Module from CLI](images/CLIGenerateExampleShared.png)
 *Figure 1*
 
-If you are satisfied with the properties you have set, confirm these and Maven will generate the new Worker's shared module. Take note of these property names for the generation of the Worker Back-end module.
+If you are satisfied with the properties you have set, confirm these by typing 'Y' else if you are not satisfied type 'N' or any other character to re-enter property values. After confirming your properties Maven will generate the new Worker's Shared module. Take note of these property names for the generation of the Worker Back-end module.
 
 ##### 2. Generate the New Worker's Back-end Module
 
@@ -96,12 +96,12 @@ Generate the new Worker's Back-end project from the `worker-archetype` with the 
 
 <pre>mvn archetype:generate -DarchetypeRepository=http://cmbg-maven.autonomy.com/nexus/content/repositories/snapshots -DarchetypeVersion=1.1-SNAPSHOT -DarchetypeArtifactId=worker-archetype -DarchetypeGroupId=com.hpe.caf.worker</pre>
 
-The CLI will prompt you for the Worker's common properties; groupId, version, package and workerName. In addition the Back-end module archetype will prompt you for the name of the Worker Shared module's artifactId property that you set in the previous step. The artifactId should be distinct to this module's purpose. See Figure 2.
+The CLI will prompt you for the Worker's common properties; groupId, version (default suggestion is 1.0-SNAPSHOT), package (default suggestion is the groupId, you should however adjust this to the package property value you set in the shared module) and workerName. The artifactId should be distinct to this module's purpose. In addition the Back-end module archetype will prompt you for the name of the Worker Shared module's artifactId property that you set in the previous step. See Figure 2.
 
 ![Generate Example Worker Backend Module from CLI](images/CLIGenerateExampleBackend.png)
 *Figure 2*
 
-If you are satisfied with the properties you have set, confirm these and Maven will generate the new Worker's Back-end module. Take note of these property names for the generation of the Worker Container module.
+If you are satisfied with the properties you have set, confirm these by typing 'Y' else if you are not satisfied type 'N' or any other character to re-enter property values. After confirming your properties Maven will generate the new Worker's Back-end module. Take note of these property names for the generation of the Worker Container module.
 
 ##### 3. Generate the New Worker's Container Module
 
@@ -109,12 +109,12 @@ Generate the new Worker's Container project from the `worker-container-archetype
 
 <pre>mvn archetype:generate -DarchetypeRepository=http://cmbg-maven.autonomy.com/nexus/content/repositories/snapshots -DarchetypeVersion=1.1-SNAPSHOT -DarchetypeArtifactId=worker-container-archetype -DarchetypeGroupId=com.hpe.caf.worker</pre>
 
-The CLI will prompt you for the Worker's common properties; groupId, version, package and workerName. In addition the Container module archetype will prompt you for the name of the Worker Back-end module's artifactId property that you set in the previous step. The artifactId should be distinct to this module's purpose. See Figure 3.
+The CLI will prompt you for the Worker's common properties; groupId, version (default suggestion is 1.0-SNAPSHOT), package (default suggestion is the groupId, you should however adjust this to the package property value you set in the shared module) and workerName. The artifactId should be distinct to this module's purpose. In addition the Container module archetype will prompt you for the name of the Worker Back-end module's artifactId property that you set in the previous step. See Figure 3.
 
 ![Generate Example Worker Container Module from CLI](images/CLIGenerateExampleContainer.png)
 *Figure 3*
 
-If you are satisfied with the properties you have set, confirm these and Maven will generate the new Worker's Container module.
+If you are satisfied with the properties you have set, confirm these by typing 'Y' else if you are not satisfied type 'N' or any other character to re-enter property values. After confirming your properties Maven will generate the new Worker's Container module.
 
 Due to a bug with the Apache Maven Archetype, file name some place-holders that are preceded with underscores do not get replaced and so as a manual step it is required that you replace these manually. The generated container project .../configuration/marathon-template-config and .../test-configs folders contain container configuration files that contain left over place-holders within their file names. Replace all occurrences of `__workerArtifactId__` with the name of the Worker Back-end module's artifactId property (workerArtifactId). See the **Renaming Container Marathon Configuration Files** and **Renaming Container Test Configuration Files** table in the Appendix.
 
