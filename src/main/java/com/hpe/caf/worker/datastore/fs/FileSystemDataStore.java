@@ -60,6 +60,12 @@ public class FileSystemDataStore implements ManagedDataStore
     }
 
 
+    @Override
+    public void delete(String reference) throws DataStoreException {
+        // no-op
+        // Not throwing not supported exception to avoid breaking things. FS store will be retired.
+    }
+
     /**
      * {@inheritDoc}
      * Read a file from disk in the data directory.
@@ -236,6 +242,13 @@ public class FileSystemDataStore implements ManagedDataStore
 
     private class FileSystemDataStoreMetricsReporter implements DataStoreMetricsReporter
     {
+        @Override
+        public int getDeleteRequests() {
+            // delete is not implemented for FS datastore but it'll be no-op instead of
+            // exception to avoid breaking things. FS datastore will be retired.
+            return 0;
+        }
+
         @Override
         public int getStoreRequests()
         {
