@@ -16,7 +16,7 @@
         <maven.install.skip>true</maven.install.skip>
         <maven.deploy.skip>true</maven.deploy.skip>
         <docker.maven.version>0.13.6</docker.maven.version>
-        <worker-example.container.name>caf/worker-example:${project.version}</worker-example.container.name>
+        <worker-example.container.name>rh7-artifactory.hpswlabs.hp.com:8443/caf/worker-example:${project.version}</worker-example.container.name>
         <version.major>1-SNAPSHOT</version.major>
         <version.major.minor>${project.version}</version.major.minor>
         <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
@@ -144,7 +144,7 @@
                             <goal>stop</goal>
                         </goals>
                     </execution>
-                    <!-- Push the docker image for the worker to Artifactory in deploy phase, using the address specified in <registry> -->
+                    <!-- Push the docker image for the worker to Artifactory in deploy phase -->
                     <execution>
                         <id>upload-docker-container</id>
                         <phase>deploy</phase>
@@ -152,8 +152,6 @@
                             <goal>push</goal>
                         </goals>
                         <configuration>
-                            <!-- Replace this address with your Artifactory server's address. -->
-                            <registry>rh7-artifactory.hpswlabs.hp.com:8443</registry>
                             <image>example-worker</image>
                         </configuration>
                     </execution>
