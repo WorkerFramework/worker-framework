@@ -4,6 +4,7 @@ package com.hpe.caf.api.worker;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
+import javax.validation.constraints.NotNull;
 
 
 /**
@@ -14,38 +15,53 @@ import java.util.Objects;
 public final class TaskMessage
 {
     public static final int TASK_MESSAGE_VERSION = 2;
+
     /**
      * The version of this TaskMessage wrapper.
      */
     private int version = TASK_MESSAGE_VERSION;
+
     /**
      * Unique id for this task chain.
      */
+    @NotNull
     private String taskId;
+
     /**
      * Identifies the sort of task this message is.
      */
+    @NotNull
     private String taskClassifier;
+
     /**
      * The numeric API version of the message task.
      */
+    @NotNull
     private int taskApiVersion;
+
     /**
      * The serialised data of the task-specific message.
      */
+    @NotNull
     private byte[] taskData;
+
     /**
      * Status of this task.
      */
+    @NotNull
     private TaskStatus taskStatus;
+
     /**
      * Holds worker-specific context data.
      */
+    @NotNull
     private Map<String, byte[]> context;
+
     /**
      * The destination pipe to which the sender intends the message to be sent.
      */
     private String to;
+
     /**
      * Additional fields used in tracking task messages.
      */
