@@ -71,6 +71,10 @@ public abstract class AbstractWorkerFactory<C, T> implements WorkerFactory
             throw new TaskRejectedException("Found task version " + version + ", which is newer than " + workerApiVersion);
         }
 
+        if (data == null) {
+            throw new InvalidTaskException("Invalid input message: task not specified");
+        }
+
         try {
              return createWorker(codec.deserialise(data, taskClass, DecodeMethod.LENIENT), tracking);
         } catch (CodecException e) {
