@@ -134,11 +134,24 @@ public class WorkerCore
                 throws InvalidTaskException, TaskRejectedException
         {
             Objects.requireNonNull(queueMsgId);
+            stats.incrementTasksReceived();
+            stats.getInputSizes().update(taskMessage.length);
+
             try {
-                stats.incrementTasksReceived();
-                stats.getInputSizes().update(taskMessage.length);
+                registerNewTaskImpl(queueMsgId, taskMessage, headers);
+            } catch (InvalidTaskException e) {
+                stats.incrementTasksRejected();
+                throw e;
+            }
+        }
+
+        private void registerNewTaskImpl(final String queueMsgId, final byte[] taskMessage, Map<String, Object> headers)
+                 throws InvalidTaskException, TaskRejectedException
+        {
+            try {
                 TaskMessage tm = codec.deserialise(taskMessage, TaskMessage.class, DecodeMethod.LENIENT);
                 LOG.debug("Received task {} (message id: {})", tm.getTaskId(), queueMsgId);
+                validateTaskMessage(tm);
                 boolean taskIsActive = checkStatus(tm);
                 if (taskIsActive) {
                     if (tm.getTo() == null || tm.getTo().equalsIgnoreCase(workerQueue.getInputQueue())) {
@@ -153,14 +166,20 @@ public class WorkerCore
                     executor.discardTask(tm, queueMsgId);
                 }
             } catch (CodecException e) {
-                stats.incrementTasksRejected();
                 throw new InvalidTaskException("Queue data did not deserialise to a TaskMessage", e);
             } catch (InvalidJobTaskIdException ijte) {
-                stats.incrementTasksRejected();
                 throw new InvalidTaskException("TaskMessage contains an invalid job task identifier", ijte);
             }
         }
 
+        private void validateTaskMessage(TaskMessage tm) throws InvalidTaskException {
+            // The task message must be present so that the framework can
+            // callback with a valid message
+            final String taskId = tm.getTaskId();
+            if (taskId == null) {
+                throw new InvalidTaskException("Task identifier not specified");
+            }
+        }
 
         /**
          * Cancel all the Future objects in our Map of running tasks. If the task is not yet
