@@ -113,8 +113,8 @@ public class WorkerWrapperTest
         Assert.assertEquals(QUEUE_OUT, callback.getQueue());
         Assert.assertTrue(callback.getContext().containsKey(path.toString()));
         Assert.assertArrayEquals(SUCCESS_BYTES, callback.getContext().get(path.toString()));
-        Class s = codec.deserialise(callback.getResultData(), Class.class);
-        Assert.assertEquals(TaskFailedException.class.getName(), s.getName());
+        String s = codec.deserialise(callback.getResultData(), String.class);
+        Assert.assertEquals(true, s.contains("class com.hpe.caf.api.worker.TaskFailedException whoops"));
     }
 
 
