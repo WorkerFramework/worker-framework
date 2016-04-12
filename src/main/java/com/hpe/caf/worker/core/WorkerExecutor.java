@@ -1,8 +1,10 @@
 package com.hpe.caf.worker.core;
 
 
+import com.google.common.base.MoreObjects;
 import com.hpe.caf.api.worker.*;
 import com.hpe.caf.naming.ServicePath;
+import java.util.Collections;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -58,8 +60,21 @@ public class WorkerExecutor
             submitToThreadPool(wrapper, queueMessageId);
         } catch (InvalidTaskException e) {
             LOG.error("Task data is invalid for {}, returning status {}", tm.getTaskId(), TaskStatus.INVALID_TASK, e);
-            TaskMessage invalidResponse =
-                new TaskMessage(tm.getTaskId(), tm.getTaskClassifier(), tm.getTaskApiVersion(), new byte[]{}, TaskStatus.INVALID_TASK, tm.getContext());
+
+            final String taskId =
+                MoreObjects.firstNonNull(tm.getTaskId(), "");
+            final String taskClassifier =
+                MoreObjects.firstNonNull(tm.getTaskClassifier(), "");
+            final int taskApiVersion = tm.getTaskApiVersion();
+            final byte[] taskData = new byte[] {};
+            final TaskStatus taskStatus = TaskStatus.INVALID_TASK;
+            final Map<String, byte[]> context = MoreObjects.firstNonNull(
+                tm.getContext(),
+                Collections.<String, byte[]>emptyMap());
+
+            final TaskMessage invalidResponse = new TaskMessage(
+                taskId, taskClassifier, taskApiVersion, taskData, taskStatus, context);
+
             callback.complete(queueMessageId, factory.getInvalidTaskQueue(), invalidResponse);
         }
     }
