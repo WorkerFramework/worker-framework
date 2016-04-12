@@ -59,23 +59,7 @@ public class WorkerExecutor
             WorkerWrapper wrapper = getWorkerWrapper(tm, queueMessageId);
             submitToThreadPool(wrapper, queueMessageId);
         } catch (InvalidTaskException e) {
-            LOG.error("Task data is invalid for {}, returning status {}", tm.getTaskId(), TaskStatus.INVALID_TASK, e);
-
-            final String taskId =
-                MoreObjects.firstNonNull(tm.getTaskId(), "");
-            final String taskClassifier =
-                MoreObjects.firstNonNull(tm.getTaskClassifier(), "");
-            final int taskApiVersion = tm.getTaskApiVersion();
-            final byte[] taskData = new byte[] {};
-            final TaskStatus taskStatus = TaskStatus.INVALID_TASK;
-            final Map<String, byte[]> context = MoreObjects.firstNonNull(
-                tm.getContext(),
-                Collections.<String, byte[]>emptyMap());
-
-            final TaskMessage invalidResponse = new TaskMessage(
-                taskId, taskClassifier, taskApiVersion, taskData, taskStatus, context);
-
-            callback.complete(queueMessageId, factory.getInvalidTaskQueue(), invalidResponse);
+            dealWithInvalidTaskException(tm, e, queueMessageId);
         }
     }
 
@@ -98,10 +82,7 @@ public class WorkerExecutor
                 callback.forward(queueMessageId, tm.getTo(), tm, headers);
             }
         } catch (InvalidTaskException e) {
-            LOG.error("Task data is invalid for {}, returning status {}", tm.getTaskId(), TaskStatus.INVALID_TASK, e);
-            TaskMessage invalidResponse =
-                    new TaskMessage(tm.getTaskId(), tm.getTaskClassifier(), tm.getTaskApiVersion(), new byte[]{}, TaskStatus.INVALID_TASK, tm.getContext());
-            callback.complete(queueMessageId, factory.getInvalidTaskQueue(), invalidResponse);
+            dealWithInvalidTaskException(tm, e, queueMessageId);
         }
     }
 
@@ -152,5 +133,29 @@ public class WorkerExecutor
     {
         byte[] context = tm.getContext().get(servicePath.toString());
         return factory.getWorker(tm.getTaskClassifier(), tm.getTaskApiVersion(), tm.getTaskStatus(), tm.getTaskData(), context, tm.getTracking());
+    }
+
+    private void dealWithInvalidTaskException(
+        final TaskMessage tm,
+        final InvalidTaskException e,
+        final String queueMessageId
+    ) {
+        LOG.error("Task data is invalid for {}, returning status {}", tm.getTaskId(), TaskStatus.INVALID_TASK, e);
+
+        final String taskId =
+                MoreObjects.firstNonNull(tm.getTaskId(), "");
+        final String taskClassifier =
+                MoreObjects.firstNonNull(tm.getTaskClassifier(), "");
+        final int taskApiVersion = tm.getTaskApiVersion();
+        final byte[] taskData = new byte[] {};
+        final TaskStatus taskStatus = TaskStatus.INVALID_TASK;
+        final Map<String, byte[]> context = MoreObjects.firstNonNull(
+                tm.getContext(),
+                Collections.<String, byte[]>emptyMap());
+
+        final TaskMessage invalidResponse = new TaskMessage(
+                taskId, taskClassifier, taskApiVersion, taskData, taskStatus, context);
+
+        callback.complete(queueMessageId, factory.getInvalidTaskQueue(), invalidResponse);
     }
 }
