@@ -45,6 +45,8 @@ public final class RabbitWorkerQueue implements ManagedWorkerQueue
     private Connection conn;
     private Channel incomingChannel;
     private Channel outgoingChannel;
+    private Thread publisherThread;
+    private Thread consumerThread;
     private final List<String> consumerTags = new LinkedList<>();
     private final Set<String> declaredQueues = new HashSet<>();
     private final BlockingQueue<Event<QueueConsumer>> consumerQueue = new LinkedBlockingQueue<>();
@@ -103,8 +105,10 @@ public final class RabbitWorkerQueue implements ManagedWorkerQueue
         } catch (IOException | TimeoutException e) {
             throw new QueueException("Failed to establish queues", e);
         }
-        new Thread(publisher).start();
-        new Thread(consumer).start();
+        publisherThread = new Thread(publisher);
+        consumerThread = new Thread(consumer);
+        publisherThread.start();
+        consumerThread.start();
     }
 
 
@@ -224,6 +228,10 @@ public final class RabbitWorkerQueue implements ManagedWorkerQueue
             return new HealthResult(HealthStatus.UNHEALTHY, "Incoming channel failed");
         } else if ( !outgoingChannel.isOpen() ) {
             return new HealthResult(HealthStatus.UNHEALTHY, "Outgoing channel failed");
+        } else if ( consumerThread == null || !consumerThread.isAlive() ) {
+            return new HealthResult(HealthStatus.UNHEALTHY, "RabbitMQ listening thread not running");
+        } else if ( publisherThread == null || !publisherThread.isAlive() ) {
+            return new HealthResult(HealthStatus.UNHEALTHY, "RabbitMQ publishing thread not running");
         } else {
             return HealthResult.RESULT_HEALTHY;
         }
