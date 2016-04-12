@@ -106,13 +106,13 @@ public class WorkerPublisherImpl implements WorkerPublisher
 
         TrackingInfo tracking = trackedTaskMessage.getTracking();
         if (tracking == null) {
-            LOG.warn("Cannot obtain a tracked task message from published data - task {} has no tracking info so publishing to queue {}", trackedTaskMessage.getTaskId(), routingKey);
+            LOG.debug("Cannot obtain a tracked task message from published data - task {} has no tracking info so publishing to queue {}", trackedTaskMessage.getTaskId(), routingKey);
             return routingKey;
         }
 
         String trackingPipe = tracking.getTrackingPipe();
         if (trackingPipe == null) {
-            LOG.error("Cannot obtain a tracked task message from published data - task {} has no tracking pipe specified in its tracking info so publishing to queue {}", trackedTaskMessage.getTaskId(), routingKey);
+            LOG.warn("Cannot obtain a tracked task message from published data - task {} has no tracking pipe specified in its tracking info so publishing to queue {}", trackedTaskMessage.getTaskId(), routingKey);
             return routingKey;
         }
 
@@ -124,7 +124,7 @@ public class WorkerPublisherImpl implements WorkerPublisher
         try {
             RabbitUtil.declareWorkerQueue(channel, trackingPipe);
         } catch (IOException e) {
-            LOG.debug("Task {} - the tracking destination {} could not be declared so publishing to queue {}", trackedTaskMessage.getTaskId(), trackingPipe, routingKey);
+            LOG.warn("Task {} - the tracking destination {} could not be declared so publishing to queue {}", trackedTaskMessage.getTaskId(), trackingPipe, routingKey);
             return routingKey;
         }
 
