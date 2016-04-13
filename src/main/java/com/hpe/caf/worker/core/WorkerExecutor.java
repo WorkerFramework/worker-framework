@@ -65,24 +65,18 @@ public class WorkerExecutor
 
 
     /**
-     * Get a new Worker for a TaskMessage and use it to decide whether the message is to be forwarded or discarded.
+     * Decide whether the message is to be forwarded or discarded.
      * @param tm the task message
      * @param queueMessageId the reference to the message this task arrived on
      * @param headers the map of key/value paired headers to be stamped on the message
      */
     public void forwardTask(final TaskMessage tm, final String queueMessageId, Map<String, Object> headers) throws TaskRejectedException {
-        try {
-            Worker worker = getWorker(tm);
-
-            //Check whether the worker can evaluate messages for forwarding.
-            if (worker instanceof TaskMessageForwardingEvaluator) {
-                ((TaskMessageForwardingEvaluator) worker).determineForwardingAction(tm, queueMessageId, headers, callback);
-            } else {
-                //Messages are forwarded by default.
-                callback.forward(queueMessageId, tm.getTo(), tm, headers);
-            }
-        } catch (InvalidTaskException e) {
-            dealWithInvalidTaskException(tm, e, queueMessageId);
+        //Check whether this worker application can evaluate messages for forwarding.
+        if (factory instanceof TaskMessageForwardingEvaluator) {
+            ((TaskMessageForwardingEvaluator) factory).determineForwardingAction(tm, queueMessageId, headers, callback);
+        } else {
+            //Messages are forwarded by default.
+            callback.forward(queueMessageId, tm.getTo(), tm, headers);
         }
     }
 
