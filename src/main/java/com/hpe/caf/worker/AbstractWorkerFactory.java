@@ -62,7 +62,7 @@ public abstract class AbstractWorkerFactory<C, T> implements WorkerFactory
         // Reject tasks of the wrong type and tasks that require a newer version
         final String workerName = getWorkerName();
         if (!workerName.equals(classifier)) {
-            return getMismatchedWorker(classifier, version, status, data, context, tracking);
+            throw new InvalidTaskException("Task of type " + classifier + " found on queue for " + getWorkerName());
         }
 
         final int workerApiVersion = getWorkerApiVersion();
@@ -80,11 +80,6 @@ public abstract class AbstractWorkerFactory<C, T> implements WorkerFactory
         } catch (CodecException e) {
             throw new InvalidTaskException("Invalid input message", e);
         }
-    }
-
-
-    public Worker getMismatchedWorker(final String classifier, final int version, final TaskStatus status, final byte[] data, final byte[] context, TrackingInfo tracking) throws TaskRejectedException, InvalidTaskException {
-        throw new InvalidTaskException("Task of type " + classifier + " found on queue for " + getWorkerName());
     }
 
 
