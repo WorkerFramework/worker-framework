@@ -68,7 +68,6 @@ public class WorkerPublisherImpl implements WorkerPublisher
     @Override
     public void handlePublish(byte[] data, String routingKey, long ackId, Map<String, String> headers)
     {
-        String publishKey = routingKey;
         try {
             LOG.debug("Publishing message with ack id {}", ackId);
             AMQP.BasicProperties.Builder builder = new AMQP.BasicProperties().builder();
@@ -77,57 +76,12 @@ public class WorkerPublisherImpl implements WorkerPublisher
             builder.deliveryMode(2);
             builder.priority(0);
             confirmListener.registerResponseSequence(channel.getNextPublishSeqNo(), ackId);
-            publishKey = getPublishKey(data, routingKey);
-            channel.basicPublish("", publishKey, builder.build(), data);
+            channel.basicPublish("", routingKey, builder.build(), data);
             metrics.incrementPublished();
         } catch (IOException e) {
-            LOG.error("Failed to publish result of message {} to queue {}, rejecting", ackId, publishKey, e);
+            LOG.error("Failed to publish result of message {} to queue {}, rejecting", ackId, routingKey, e);
             metrics.incremementErrors();
             consumerEvents.add(new ConsumerRejectEvent(ackId));
         }
-    }
-
-
-    /**
-     * Determines the queue to publish to and ensures that this queue is declared on the channel.
-     * If the data is found to be a task message with tracking info then the tracking info should dictate the queue to publish to.
-     * @param data checks this data to determine tracking info
-     * @param routingKey publish to this queue if no tracking info or tracking destination can be found in the supplied data
-     * @return the queue to publish to
-     */
-    private String getPublishKey(final byte[] data, final String routingKey) {
-        TaskMessage trackedTaskMessage;
-        try {
-            trackedTaskMessage = codec.deserialise(data, TaskMessage.class, DecodeMethod.LENIENT);
-        } catch (CodecException e) {
-            LOG.error("Publishing to queue {} - cannot obtain a tracked task message from published data due to error: {}",routingKey, e);
-            return routingKey;
-        }
-
-        TrackingInfo tracking = trackedTaskMessage.getTracking();
-        if (tracking == null) {
-            LOG.debug("Cannot obtain a tracked task message from published data - task {} has no tracking info so publishing to queue {}", trackedTaskMessage.getTaskId(), routingKey);
-            return routingKey;
-        }
-
-        String trackingPipe = tracking.getTrackingPipe();
-        if (trackingPipe == null) {
-            LOG.warn("Cannot obtain a tracked task message from published data - task {} has no tracking pipe specified in its tracking info so publishing to queue {}", trackedTaskMessage.getTaskId(), routingKey);
-            return routingKey;
-        }
-
-        if (trackingPipe.equalsIgnoreCase(inputRoutingKey)) {
-            LOG.debug("Task {} - the tracked task message has arrived at the tracking destination {} so does not need to be diverted to that destination", trackedTaskMessage.getTaskId(), trackingPipe);
-            return routingKey;
-        }
-
-        try {
-            RabbitUtil.declareWorkerQueue(channel, trackingPipe);
-        } catch (IOException e) {
-            LOG.warn("Task {} - the tracking destination {} could not be declared so publishing to queue {}", trackedTaskMessage.getTaskId(), trackingPipe, routingKey);
-            return routingKey;
-        }
-
-        return trackingPipe;
     }
 }
