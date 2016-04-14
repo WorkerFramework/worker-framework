@@ -104,7 +104,10 @@ public class WorkerCore
         private final WorkerExecutor executor;
         private final Map<String, Future<?>> taskMap;
         private final ManagedWorkerQueue workerQueue;
+
+        // Cache of job status, indexed by status check URL (which incorporates job id) as the key.
         private final Cache<String, JobStatusResponse> jobStatusCache;
+
         private static final String DEFAULT_JOB_STATUS_CACHE_ITEM_LIFETIME_SECS = "300";
         private static final String CAF_JOB_STATUS_CACHE_ITEM_LIFETIME_SECS_VAR_NAME = "CAF_JOB_STATUS_CACHE_ITEM_LIFETIME_SECS";
 
@@ -229,8 +232,7 @@ public class WorkerCore
             TrackingInfo tracking = tm.getTracking();
             if (tracking != null) {
                 Date statusCheckTime = tracking.getStatusCheckTime();
-                Objects.requireNonNull(statusCheckTime);
-                if (statusCheckTime.getTime() <= System.currentTimeMillis()) {
+                if (statusCheckTime == null || statusCheckTime.getTime() <= System.currentTimeMillis()) {
                     return performJobStatusCheck(tm);
                 }
                 LOG.debug("Task {} active status is not being checked - it is not yet time for the status check to be performed", tm.getTaskId());
@@ -253,18 +255,21 @@ public class WorkerCore
             Objects.requireNonNull(tm);
             TrackingInfo tracking = tm.getTracking();
             Objects.requireNonNull(tracking);
+
             String statusCheckUrl = tracking.getStatusCheckUrl();
-            Objects.requireNonNull(statusCheckUrl);
-            String jobTaskId = tracking.getJobTaskId();
-            Objects.requireNonNull(jobTaskId);
+            if (statusCheckUrl == null) {
+                //If statusCheckUrl is null then we can't perform the status check so we have to assume the job is active.
+                return true;
+            }
+
             String jobId = tracking.getJobId();
-            JobStatusResponse jobStatus = jobStatusCache.getIfPresent(jobId);
+            JobStatusResponse jobStatus = jobStatusCache.getIfPresent(statusCheckUrl);
             if (jobStatus != null) {
                 LOG.debug("Task {} (job {}) - using cached job status", tm.getTaskId(), jobId);
             } else {
                 LOG.debug("Task {} (job {}) - attempting to check job status", tm.getTaskId(), jobId);
                 jobStatus = getJobStatus(jobId, statusCheckUrl);
-                jobStatusCache.put(jobId, jobStatus);
+                jobStatusCache.put(statusCheckUrl, jobStatus);
             }
             long newStatusCheckTime = System.currentTimeMillis() + jobStatus.getStatusCheckIntervalMillis();
             tracking.setStatusCheckTime(new Date(newStatusCheckTime));
