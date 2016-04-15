@@ -52,11 +52,12 @@ public class PreparationItemProvider<TWorkerTask, TWorkerResult, TInput extends 
         Path basePath = Paths.get(getExpectedPath());
 
         Path relativePath = basePath.relativize(inputFile);
+        String normalizedRelativePath = relativePath.toString().replace("\\", "/");
 
-        testInput.setInputFile(relativePath.toString());
+        testInput.setInputFile(normalizedRelativePath);
 
         TExpectation testExpectation = configuration.getExpectationClass().newInstance();
 
-        return new TestItem<>(relativePath.toString(), testInput, testExpectation);
+        return new TestItem<>(normalizedRelativePath, testInput, testExpectation);
     }
 }

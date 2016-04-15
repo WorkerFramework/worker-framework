@@ -46,13 +46,9 @@ public class TaskMessageFactory {
      * @return the task message
      * @throws CodecException the codec exception
      */
-    public TaskMessage create(final Object workerTask, final String taskId) throws CodecException {
+    public TaskMessage create(final Object workerTask, TrackingInfo tracking, final String taskId) throws CodecException {
 
         Map<java.lang.String, byte[]> context = Collections.singletonMap(CONTEXT_KEY, CONTEXT_DATA);
-
-        //TODO - Cannot include tracking info yet because it will cause response messages to be diverted to trackingPipe (Job Tracking Worker, see CAF-600).
-        //TrackingInfo tracking = new TrackingInfo("J23.1.1", new Date(), "http://thehost:1234/job-service/v1/jobs/23/isActive", "test-tracking-1", "test-tracking-end-1");
-        TrackingInfo tracking = null;
 
         TaskMessage msg = new TaskMessage(taskId, workerName, apiVersion, codec.serialise(workerTask), TaskStatus.NEW_TASK, context, workerInputQueueName, tracking);
         return msg;

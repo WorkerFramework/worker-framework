@@ -2,6 +2,7 @@ package com.hpe.caf.worker.testing;
 
 import com.google.common.base.Strings;
 import com.hpe.caf.api.worker.TaskMessage;
+import com.hpe.caf.api.worker.TrackingInfo;
 
 import java.io.Closeable;
 import java.io.IOException;
@@ -130,7 +131,8 @@ public class TestController implements Closeable {
             TestItem item = entry.getValue();
             String taskId = entry.getKey();
             Object workerTask = taskFactory.createTask(item);
-            TaskMessage message = messageFactory.create(workerTask, taskId);
+            TrackingInfo tracking = taskFactory.createTrackingInfo(item);
+            TaskMessage message = messageFactory.create(workerTask, tracking, taskId);
             System.out.println("================================================================================");
             System.out.println(" QUEUEING NEW TASK: " + item.getTag());
             System.out.println("================================================================================");
