@@ -1,7 +1,6 @@
 package com.hpe.caf.worker.queue.rabbit;
 
 
-import com.hpe.caf.api.Codec;
 import com.hpe.caf.api.HealthResult;
 import com.hpe.caf.api.HealthStatus;
 import com.hpe.caf.api.worker.ManagedWorkerQueue;
@@ -54,18 +53,16 @@ public final class RabbitWorkerQueue implements ManagedWorkerQueue
     private final RabbitMetricsReporter metrics = new RabbitMetricsReporter();
     private final RabbitWorkerQueueConfiguration config;
     private final int maxTasks;
-    private final Codec codec;
     private static final Logger LOG = LoggerFactory.getLogger(RabbitWorkerQueue.class);
 
 
     /**
      * Setup a new RabbitWorkerQueue.
      */
-    public RabbitWorkerQueue(RabbitWorkerQueueConfiguration config, int maxTasks, Codec codec)
+    public RabbitWorkerQueue(RabbitWorkerQueueConfiguration config, int maxTasks)
     {
         this.config = Objects.requireNonNull(config);
         this.maxTasks = maxTasks;
-        this.codec = codec;
         LOG.debug("Initialised");
     }
 
@@ -96,7 +93,7 @@ public final class RabbitWorkerQueue implements ManagedWorkerQueue
             WorkerQueueConsumerImpl consumerImpl = new WorkerQueueConsumerImpl(callback, metrics, consumerQueue, incomingChannel, publisherQueue,
                                                                                config.getRetryQueue(), config.getRejectedQueue(), config.getRetryLimit());
             consumer = new DefaultRabbitConsumer(consumerQueue, consumerImpl);
-            WorkerPublisherImpl publisherImpl = new WorkerPublisherImpl(outgoingChannel, metrics, consumerQueue, confirmListener, getInputQueue(), codec);
+            WorkerPublisherImpl publisherImpl = new WorkerPublisherImpl(outgoingChannel, metrics, consumerQueue, confirmListener);
             publisher = new EventPoller<>(2, publisherQueue, publisherImpl);
             declareWorkerQueue(incomingChannel, config.getInputQueue());
             declareWorkerQueue(outgoingChannel, config.getRetryQueue());

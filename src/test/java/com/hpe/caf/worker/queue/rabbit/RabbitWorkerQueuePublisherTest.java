@@ -1,8 +1,6 @@
 package com.hpe.caf.worker.queue.rabbit;
 
 
-import com.hpe.caf.api.Codec;
-import com.hpe.caf.codec.JsonCodec;
 import com.hpe.caf.util.rabbitmq.ConsumerRejectEvent;
 import com.hpe.caf.util.rabbitmq.Event;
 import com.hpe.caf.util.rabbitmq.EventPoller;
@@ -24,7 +22,6 @@ import java.util.concurrent.TimeUnit;
 public class RabbitWorkerQueuePublisherTest
 {
     private String testQueue = "testQueue";
-    private String inputQueue = "inputQueue";
     private long id = 101L;
     private byte[] data = "test123".getBytes(StandardCharsets.UTF_8);
     private RabbitMetricsReporter metrics = new RabbitMetricsReporter();
@@ -36,9 +33,8 @@ public class RabbitWorkerQueuePublisherTest
     {
         BlockingQueue<Event<QueueConsumer>> consumerEvents = new LinkedBlockingQueue<>();
         Channel channel = Mockito.mock(Channel.class);
-        Codec codec = new JsonCodec();
         WorkerConfirmListener listener = Mockito.mock(WorkerConfirmListener.class);
-        WorkerPublisher impl = new WorkerPublisherImpl(channel, metrics, consumerEvents, listener, inputQueue, codec);
+        WorkerPublisher impl = new WorkerPublisherImpl(channel, metrics, consumerEvents, listener);
         Mockito.verify(channel, Mockito.times(1)).confirmSelect();
         Mockito.verify(channel, Mockito.times(1)).addConfirmListener(listener);
     }
@@ -51,9 +47,8 @@ public class RabbitWorkerQueuePublisherTest
         BlockingQueue<Event<QueueConsumer>> consumerEvents = new LinkedBlockingQueue<>();
         BlockingQueue<Event<WorkerPublisher>> publisherEvents = new LinkedBlockingQueue<>();
         Channel channel = Mockito.mock(Channel.class);
-        Codec codec = new JsonCodec();
         WorkerConfirmListener listener = Mockito.mock(WorkerConfirmListener.class);
-        WorkerPublisher impl = new WorkerPublisherImpl(channel, metrics, consumerEvents, listener, inputQueue, codec);
+        WorkerPublisher impl = new WorkerPublisherImpl(channel, metrics, consumerEvents, listener);
         EventPoller<WorkerPublisher> publisher = new EventPoller<>(2, publisherEvents, impl);
         Thread t = new Thread(publisher);
         t.start();
@@ -78,10 +73,9 @@ public class RabbitWorkerQueuePublisherTest
         BlockingQueue<Event<QueueConsumer>> consumerEvents = new LinkedBlockingQueue<>();
         BlockingQueue<Event<WorkerPublisher>> publisherEvents = new LinkedBlockingQueue<>();
         Channel channel = Mockito.mock(Channel.class);
-        Codec codec = new JsonCodec();
         WorkerConfirmListener listener = Mockito.mock(WorkerConfirmListener.class);
         Mockito.doThrow(IOException.class).when(channel).basicPublish(Mockito.any(), Mockito.eq(testQueue), Mockito.any(), Mockito.eq(data));
-        WorkerPublisher impl = new WorkerPublisherImpl(channel, metrics, consumerEvents, listener, inputQueue, codec);
+        WorkerPublisher impl = new WorkerPublisherImpl(channel, metrics, consumerEvents, listener);
         EventPoller<WorkerPublisher> publisher = new EventPoller<>(2, publisherEvents, impl);
         Thread t = new Thread(publisher);
         t.start();
