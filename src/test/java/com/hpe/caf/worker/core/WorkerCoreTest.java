@@ -46,7 +46,7 @@ public class WorkerCoreTest
         ConfigurationSource config = Mockito.mock(ConfigurationSource.class);
         ServicePath path = new ServicePath(SERVICE_PATH);
         TestWorkerTask task = new TestWorkerTask();
-        TestWorkerQueue queue = new TestWorkerQueueProvider(q).getWorkerQueue(config, 50, codec);
+        TestWorkerQueue queue = new TestWorkerQueueProvider(q).getWorkerQueue(config, 50);
         WorkerCore core = new WorkerCore(codec, tpe, queue, getWorkerFactory(task, codec), path);
         core.start();
         // at this point, the queue should hand off the task to the app, the app should get a worker from the mocked WorkerFactory,
@@ -80,7 +80,7 @@ public class WorkerCoreTest
         ConfigurationSource config = Mockito.mock(ConfigurationSource.class);
         ServicePath path = new ServicePath(SERVICE_PATH);
         TestWorkerTask task = new TestWorkerTask();
-        TestWorkerQueue queue = new TestWorkerQueueProvider(q).getWorkerQueue(config, 50, codec);
+        TestWorkerQueue queue = new TestWorkerQueueProvider(q).getWorkerQueue(config, 50);
         WorkerCore core = new WorkerCore(codec, tpe, queue, getWorkerFactory(task, codec), path);
         core.start();
         // at this point, the queue should hand off the task to the app, the app should get a worker from the mocked WorkerFactory,
@@ -115,7 +115,7 @@ public class WorkerCoreTest
         ConfigurationSource config = Mockito.mock(ConfigurationSource.class);
         ServicePath path = new ServicePath(SERVICE_PATH);
         TestWorkerTask task = new TestWorkerTask();
-        TestWorkerQueue queue = new TestWorkerQueueProvider(q).getWorkerQueue(config, 50, codec);
+        TestWorkerQueue queue = new TestWorkerQueueProvider(q).getWorkerQueue(config, 50);
         WorkerCore core = new WorkerCore(codec, tpe, queue, getWorkerFactory(task, codec), path);
         core.start();
         byte[] stuff = codec.serialise("nonsense");
@@ -134,7 +134,7 @@ public class WorkerCoreTest
         ConfigurationSource config = Mockito.mock(ConfigurationSource.class);
         ServicePath path = new ServicePath(SERVICE_PATH);
         TestWorkerTask task = new TestWorkerTask();
-        TestWorkerQueue queue = new TestWorkerQueueProvider(q).getWorkerQueue(config, 50, codec);
+        TestWorkerQueue queue = new TestWorkerQueueProvider(q).getWorkerQueue(config, 50);
         WorkerCore core = new WorkerCore(codec, tpe, queue, getInvalidTaskWorkerFactory(), path);
         core.start();
         TaskMessage tm = getTaskMessage(task, codec, WORKER_NAME);
@@ -170,7 +170,7 @@ public class WorkerCoreTest
         ServicePath path = new ServicePath(SERVICE_PATH);
         TestWorkerTask task = new TestWorkerTask();
         CountDownLatch latch = new CountDownLatch(2);
-        TestWorkerQueue queue = new TestWorkerQueueProvider(q).getWorkerQueue(config, 20, codec);
+        TestWorkerQueue queue = new TestWorkerQueueProvider(q).getWorkerQueue(config, 20);
         WorkerCore core = new WorkerCore(codec, tpe, queue, getSlowWorkerFactory(latch, task, codec), path);
         core.start();
         byte[] task1 = codec.serialise(getTaskMessage(task, codec, UUID.randomUUID().toString()));
@@ -284,7 +284,7 @@ public class WorkerCoreTest
 
 
         @Override
-        public final TestWorkerQueue getWorkerQueue(final ConfigurationSource configurationSource, final int maxTasks, final Codec codec)
+        public final TestWorkerQueue getWorkerQueue(final ConfigurationSource configurationSource, final int maxTasks)
         {
             return new TestWorkerQueue(this.results);
         }
