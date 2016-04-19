@@ -35,10 +35,6 @@
             <groupId>javax.validation</groupId>
             <artifactId>validation-api</artifactId>
         </dependency>
-        <dependency>
-            <groupId>com.hpe.caf</groupId>
-            <artifactId>caf-api</artifactId>
-        </dependency>
     </dependencies>
 
     <distributionManagement>
