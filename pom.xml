@@ -24,6 +24,7 @@
             <groupId>com.hpe.caf.messagebuilder</groupId>
             <artifactId>document-message-builder</artifactId>
             <version>1.0-SNAPSHOT</version>
+            <scope>provided</scope>
         </dependency>
         <dependency>
             <groupId>org.slf4j</groupId>
