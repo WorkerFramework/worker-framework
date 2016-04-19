@@ -1,8 +1,6 @@
 package com.hpe.caf.worker.core;
 
 
-import com.google.common.cache.Cache;
-import com.google.common.cache.CacheBuilder;
 import com.hpe.caf.api.Codec;
 import com.hpe.caf.api.CodecException;
 import com.hpe.caf.api.DecodeMethod;
@@ -15,10 +13,7 @@ import java.io.BufferedReader;
 import java.io.InputStreamReader;
 import java.net.URL;
 import java.net.URLConnection;
-import java.util.Collections;
-import java.util.Date;
-import java.util.Map;
-import java.util.Objects;
+import java.util.*;
 import java.util.concurrent.*;
 
 
@@ -105,12 +100,6 @@ public class WorkerCore
         private final Map<String, Future<?>> taskMap;
         private final ManagedWorkerQueue workerQueue;
 
-        // Cache of job status, indexed by status check URL (which incorporates job id) as the key.
-        private final Cache<String, JobStatusResponse> jobStatusCache;
-
-        private static final String DEFAULT_JOB_STATUS_CACHE_ITEM_LIFETIME_SECS = "300";
-        private static final String CAF_JOB_STATUS_CACHE_ITEM_LIFETIME_SECS_VAR_NAME = "CAF_JOB_STATUS_CACHE_ITEM_LIFETIME_SECS";
-
 
         public CoreTaskCallback(final Codec codec, final WorkerStats stats, final WorkerExecutor executor, final Map<String, Future<?>> tasks, final ManagedWorkerQueue workerQueue)
         {
@@ -119,10 +108,6 @@ public class WorkerCore
             this.executor = Objects.requireNonNull(executor);
             this.taskMap = Objects.requireNonNull(tasks);
             this.workerQueue = Objects.requireNonNull(workerQueue);
-            this.jobStatusCache = CacheBuilder.newBuilder()
-                    .maximumSize(1000)
-                    .expireAfterWrite(getJobStatusCacheItemLifetimeSecs(), TimeUnit.SECONDS)
-                    .build();
         }
 
 
@@ -202,24 +187,6 @@ public class WorkerCore
 
 
         /**
-         * @return the lifetime, in seconds, of cached job status values
-         */
-        private int getJobStatusCacheItemLifetimeSecs()
-        {
-            String lifetime = System.getProperty(CAF_JOB_STATUS_CACHE_ITEM_LIFETIME_SECS_VAR_NAME);
-            if (lifetime == null) {
-                LOG.debug("{} system property not found", CAF_JOB_STATUS_CACHE_ITEM_LIFETIME_SECS_VAR_NAME);
-                lifetime = System.getenv(CAF_JOB_STATUS_CACHE_ITEM_LIFETIME_SECS_VAR_NAME);
-                if (lifetime == null) {
-                    LOG.debug("{} environment variable not found - using default value {}", CAF_JOB_STATUS_CACHE_ITEM_LIFETIME_SECS_VAR_NAME, DEFAULT_JOB_STATUS_CACHE_ITEM_LIFETIME_SECS);
-                    lifetime = DEFAULT_JOB_STATUS_CACHE_ITEM_LIFETIME_SECS;
-                }
-            }
-            return Integer.parseInt(lifetime);
-        }
-
-
-        /**
          * Checks whether a task is still active.
          * If a status check cannot be performed then the task is assumed to be active.
          * Checking status may result in a change to the tracking info on the supplied task message.
@@ -263,14 +230,8 @@ public class WorkerCore
             }
 
             String jobId = tracking.getJobId();
-            JobStatusResponse jobStatus = jobStatusCache.getIfPresent(statusCheckUrl);
-            if (jobStatus != null) {
-                LOG.debug("Task {} (job {}) - using cached job status", tm.getTaskId(), jobId);
-            } else {
-                LOG.debug("Task {} (job {}) - attempting to check job status", tm.getTaskId(), jobId);
-                jobStatus = getJobStatus(jobId, statusCheckUrl);
-                jobStatusCache.put(statusCheckUrl, jobStatus);
-            }
+            LOG.debug("Task {} (job {}) - attempting to check job status", tm.getTaskId(), jobId);
+            JobStatusResponse jobStatus = getJobStatus(jobId, statusCheckUrl);
             long newStatusCheckTime = System.currentTimeMillis() + jobStatus.getStatusCheckIntervalMillis();
             tracking.setStatusCheckTime(new Date(newStatusCheckTime));
             return jobStatus.isActive();
@@ -279,6 +240,7 @@ public class WorkerCore
 
         /**
          * Makes a call to the status check URL to determine whether the job is active.
+         * This should make implicit use of JobStatusResponseCache.
          * @param jobId checks the active status of this job
          * @param statusCheckUrl full path that can be used to check job status
          * @return job status response including active status of job - true if the job is active or if the check could not be performed, false if the job is inactive
@@ -288,6 +250,7 @@ public class WorkerCore
             try {
                 URL url = new URL(statusCheckUrl);
                 URLConnection connection = url.openConnection();
+                long statusCheckIntervalMillis = JobStatusResponseCache.getStatusCheckIntervalMillis(connection);
                 try (BufferedReader response = new BufferedReader(new InputStreamReader(connection.getInputStream()))) {
                     String responseValue;
                     if ((responseValue = response.readLine()) != null) {
@@ -301,7 +264,6 @@ public class WorkerCore
                     jobStatusResponse.setActive(true);
                 }
 
-                long statusCheckIntervalMillis = 300000; //TODO - statusCheckIntervalMillis value should come from statusCheckUrl response header - see CAF-870
                 jobStatusResponse.setStatusCheckIntervalMillis(statusCheckIntervalMillis);
             } catch (Exception e) {
                 LOG.warn("Job {} : assuming that job is active - failed to perform status check using URL {} : {}", jobId, statusCheckUrl, e);
@@ -312,13 +274,11 @@ public class WorkerCore
 
 
         private static class JobStatusResponse {
-            private static final long defaultJobStatusCheckIntervalMillis = 120000;
-
             private boolean isActive;
             private long statusCheckIntervalMillis;
 
             public JobStatusResponse() {
-                this(true, defaultJobStatusCheckIntervalMillis);
+                this(true, JobStatusResponseCache.getDefaultJobStatusCheckIntervalMillis());
             }
 
             public JobStatusResponse(boolean isActive, long statusCheckInterval) {

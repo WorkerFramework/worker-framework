@@ -32,6 +32,7 @@ import org.glassfish.jersey.internal.ServiceFinder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.net.ResponseCache;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
@@ -90,6 +91,7 @@ public final class WorkerApplication extends Application<WorkerConfiguration>
         throws QueueException, ModuleLoaderException, CipherException, ConfigurationException, DataStoreException, WorkerException
     {
         LOG.debug("Starting up");
+        ResponseCache.setDefault(new JobStatusResponseCache());
         BootstrapConfiguration bootstrap = new SystemBootstrapConfiguration();
         Cipher cipher = ModuleLoader.getService(CipherProvider.class, NullCipherProvider.class).getCipher(bootstrap);
         ServicePath path = bootstrap.getServicePath();
