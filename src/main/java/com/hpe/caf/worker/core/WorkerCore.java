@@ -202,7 +202,7 @@ public class WorkerCore
                 if (statusCheckTime == null || statusCheckTime.getTime() <= System.currentTimeMillis()) {
                     return performJobStatusCheck(tm);
                 }
-                LOG.debug("Task {} active status is not being checked - it is not yet time for the status check to be performed", tm.getTaskId());
+                LOG.debug("Task {} active status is not being checked - it is not yet time for the status check to be performed: status check due at {}", tm.getTaskId(), statusCheckTime);
             } else {
                 LOG.debug("Task {} active status is not being checked - the task message does not have tracking info", tm.getTaskId());
             }
@@ -233,6 +233,7 @@ public class WorkerCore
             LOG.debug("Task {} (job {}) - attempting to check job status", tm.getTaskId(), jobId);
             JobStatusResponse jobStatus = getJobStatus(jobId, statusCheckUrl);
             long newStatusCheckTime = System.currentTimeMillis() + jobStatus.getStatusCheckIntervalMillis();
+            LOG.debug("Task {} (job {}) - updating status check time from {} to {}", tm.getTaskId(), jobId, tracking.getStatusCheckTime(), new Date(newStatusCheckTime));
             tracking.setStatusCheckTime(new Date(newStatusCheckTime));
             return jobStatus.isActive();
         }
@@ -254,19 +255,20 @@ public class WorkerCore
                 try (BufferedReader response = new BufferedReader(new InputStreamReader(connection.getInputStream()))) {
                     String responseValue;
                     if ((responseValue = response.readLine()) != null) {
+                        LOG.debug("Job {} : retrieved active status '{}' from status check URL {}.", jobId, responseValue, statusCheckUrl);
                         jobStatusResponse.setActive(Boolean.parseBoolean(responseValue));
                     } else {
-                        LOG.warn("Job {} : assuming that job is active - no suitable response from status check URL {} : {}", jobId, statusCheckUrl);
+                        LOG.warn("Job {} : assuming that job is active - no suitable response from status check URL {}.", jobId, statusCheckUrl);
                         jobStatusResponse.setActive(true);
                     }
                 } catch (Exception ex) {
-                    LOG.warn("Job {} : assuming that job is active - failed to perform status check using URL {} : {}", jobId, statusCheckUrl, ex);
+                    LOG.warn("Job {} : assuming that job is active - failed to perform status check using URL {}. ", jobId, statusCheckUrl, ex);
                     jobStatusResponse.setActive(true);
                 }
 
                 jobStatusResponse.setStatusCheckIntervalMillis(statusCheckIntervalMillis);
             } catch (Exception e) {
-                LOG.warn("Job {} : assuming that job is active - failed to perform status check using URL {} : {}", jobId, statusCheckUrl, e);
+                LOG.warn("Job {} : assuming that job is active - failed to perform status check using URL {}. ", jobId, statusCheckUrl, e);
                 jobStatusResponse.setActive(true);
             }
             return jobStatusResponse;
