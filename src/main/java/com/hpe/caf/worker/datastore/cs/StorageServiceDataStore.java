@@ -17,6 +17,8 @@ import com.hpe.caf.storage.sdk.exceptions.StorageClientException;
 import com.hpe.caf.storage.sdk.exceptions.StorageServiceConnectException;
 import com.hpe.caf.storage.sdk.exceptions.StorageServiceException;
 import com.hpe.caf.storage.sdk.model.AssetMetadata;
+import com.hpe.caf.storage.sdk.model.StorageServiceInfo;
+import com.hpe.caf.storage.sdk.model.StorageServiceStatus;
 import com.hpe.caf.storage.sdk.model.requests.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -61,6 +63,7 @@ public class StorageServiceDataStore implements ManagedDataStore
     {
         storageClient = new StorageClient(storageServiceDataStoreConfiguration.getServerName(),
                 String.valueOf(storageServiceDataStoreConfiguration.getPort()));
+
         keycloakClient = storageServiceDataStoreConfiguration.getAuthenticationConfiguration() != null ? new KeycloakClient(storageServiceDataStoreConfiguration.getAuthenticationConfiguration()) : null;
     }
 
@@ -197,7 +200,13 @@ public class StorageServiceDataStore implements ManagedDataStore
     public HealthResult healthCheck()
     {
         try {
-            callStorageService(c -> c.listAssetContainers(new ListAssetContainersRequest(accessToken)));
+            LOG.debug("Received healthcheck request for storage service.");
+            StorageServiceInfo status = callStorageService(c -> c.getStorageServiceStatus());
+            LOG.debug("Storage service healthcheck status received. Storage service version: " + status.getVersion() + ", status: " + status.getStatus());
+            if (status.getStatus() != StorageServiceStatus.HEALTHY) {
+                return new HealthResult(HealthStatus.UNHEALTHY, "Storage service returned " + status.getStatus() + " status.");
+            }
+
         } catch (StorageServiceException e) {
             LOG.warn("Health check failed", e);
             return new HealthResult(HealthStatus.UNHEALTHY, "Error from Storage service: " + e.getResponseErrorMessage());
