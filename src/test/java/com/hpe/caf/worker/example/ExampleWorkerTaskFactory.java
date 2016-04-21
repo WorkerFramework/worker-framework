@@ -25,7 +25,7 @@ public class ExampleWorkerTaskFactory extends FileInputWorkerTaskFactory<Example
 
         //setting task source data to the source data parameter.
         task.sourceData = sourceData;
-        task.datastorePartialReference = testItem.getInputData().getTask().datastorePartialReference;
+        task.datastorePartialReference = getContainerId();
         task.action = testItem.getInputData().getTask().action;
 
         return task;
