@@ -17,7 +17,7 @@ public class JobStatusCacheResponse extends CacheResponse {
     private static final Logger LOG = LoggerFactory.getLogger(JobStatusCacheResponse.class);
 
     private ByteArrayInputStream responseBody;
-    Map<String, List<String>> responseHeaders;
+    private Map<String, List<String>> responseHeaders;
 
 
     public JobStatusCacheResponse(ByteArrayOutputStream cachedResponseStream) throws IOException {
@@ -34,7 +34,7 @@ public class JobStatusCacheResponse extends CacheResponse {
 
 
     @Override
-    public Map getHeaders() throws IOException {
+    public Map<String, List<String>> getHeaders() throws IOException {
         return responseHeaders;
     }
 

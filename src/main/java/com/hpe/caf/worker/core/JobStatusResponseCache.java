@@ -6,6 +6,7 @@ import org.slf4j.LoggerFactory;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.net.*;
+import java.util.List;
 import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -30,7 +31,7 @@ public class JobStatusResponseCache extends ResponseCache {
 
 
     @Override
-    public CacheResponse get(URI uri, String requestMethod, Map requestHeaders) throws IOException {
+    public CacheResponse get(URI uri, String requestMethod, Map<String, List<String>> requestHeaders) throws IOException {
         ByteArrayOutputStream cachedResponseStream = jobStatusCache.get(uri);
         if (cachedResponseStream != null) {
             LOG.debug("Job status response cache hit for URI={}", uri);
