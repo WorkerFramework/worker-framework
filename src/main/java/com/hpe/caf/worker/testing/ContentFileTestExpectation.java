@@ -28,7 +28,7 @@ public class ContentFileTestExpectation {
      * @param expectedContentFile Value to set for property 'expectedContentFile'.
      */
     public void setExpectedContentFile(String expectedContentFile) {
-        this.expectedContentFile = expectedContentFile.replace("\\", "/");
+        this.expectedContentFile = expectedContentFile == null ? null : expectedContentFile.replace("\\", "/");
     }
 
     /**
