@@ -51,7 +51,7 @@ class WorkerWrapper implements Runnable
             Timer.Context t = TIMER.time();
             WorkerResponse response = worker.doWork();
             t.stop();
-            doCallback(response, message.getTracking());
+            doCallback(response);
         } catch (TaskRejectedException e) {
             LOG.info("Worker requested to abandon task {} (message id: {})", message.getTaskId(), queueMsgId, e);
             callback.abandon(queueMsgId);
@@ -59,7 +59,7 @@ class WorkerWrapper implements Runnable
             LOG.warn("Worker interrupt signalled, not performing callback for task {} (message id: {})", message.getTaskId(), queueMsgId, e);
         } catch (Exception e) {
             LOG.warn("Worker threw unhandled exception", e);
-            doCallback(worker.getGeneralFailureResult(e), message.getTracking());
+            doCallback(worker.getGeneralFailureResult(e));
         }
     }
 
@@ -78,7 +78,7 @@ class WorkerWrapper implements Runnable
      * @param response the response from the Worker
      * @param originalMessageTracking the tracking info of the original message for which response is the result
      */
-    private void doCallback(final WorkerResponse response, TrackingInfo originalMessageTracking)
+    private void doCallback(final WorkerResponse response)
     {
         Map<String, byte[]> contextMap = message.getContext();
         if ( response.getContext() != null ) {
@@ -86,7 +86,7 @@ class WorkerWrapper implements Runnable
         }
         TaskMessage tm = new TaskMessage(message.getTaskId(), response.getMessageType(), response.getApiVersion(),
                                          response.getData(), response.getTaskStatus(), contextMap,
-                                         response.getQueueReference(), originalMessageTracking);
+                                         response.getQueueReference(), message.getTracking());
         callback.complete(queueMsgId, response.getQueueReference(), tm);
     }
 }
