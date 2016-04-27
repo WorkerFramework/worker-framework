@@ -203,7 +203,7 @@
  - Connections to the queue dropping
 
  
-## Creatng a container for a worker
+## Creating a container for a worker
  
  A container for a worker is generally made as a new subproject in Maven (or
  your preferred build system). It will have no code itself, but will have 
