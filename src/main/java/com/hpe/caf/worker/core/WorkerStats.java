@@ -99,6 +99,12 @@ class WorkerStats
     }
 
 
+    public void incrementTasksAborted(long delta)
+    {
+        tasksAborted.addAndGet(delta);
+    }
+
+
     /**
      * @return the number of tasks WorkerCore has forwarded to a WorkerQueue
      */

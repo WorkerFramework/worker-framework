@@ -23,21 +23,20 @@ import java.util.concurrent.*;
  * It will then accept a result from the Worker it executed and hand the TaskResult back to the WorkerQueue
  * for publishing.
  */
-public class WorkerCore
+final class WorkerCore
 {
-    private final ThreadPoolExecutor threadPool;
+    private final WorkerThreadPool threadPool;
     private final ManagedWorkerQueue workerQueue;
     private final WorkerStats stats = new WorkerStats();
     private final TaskCallback callback;
-    private final ConcurrentMap<String, Future<?>> tasks = new ConcurrentHashMap<>();
     private static final Logger LOG = LoggerFactory.getLogger(WorkerCore.class);
 
 
-    public WorkerCore(final Codec codec, final ThreadPoolExecutor pool, final ManagedWorkerQueue queue, final WorkerFactory factory, final ServicePath path)
+    public WorkerCore(final Codec codec, final WorkerThreadPool pool, final ManagedWorkerQueue queue, final WorkerFactory factory, final ServicePath path)
     {
-        WorkerCallback taskCallback =  new CoreWorkerCallback(codec, queue, stats, tasks);
+        WorkerCallback taskCallback =  new CoreWorkerCallback(codec, queue, stats);
         this.threadPool = Objects.requireNonNull(pool);
-        this.callback = new CoreTaskCallback(codec, stats, new WorkerExecutor(path, taskCallback, factory, tasks, threadPool), tasks, queue);
+        this.callback = new CoreTaskCallback(codec, stats, new WorkerExecutor(path, taskCallback, factory, pool), pool, queue);
         this.workerQueue = Objects.requireNonNull(queue);
     }
 
@@ -79,7 +78,7 @@ public class WorkerCore
      */
     public int getBacklogSize()
     {
-        return threadPool.getQueue().size();
+        return threadPool.getBacklogSize();
     }
 
 
@@ -97,16 +96,16 @@ public class WorkerCore
         private final Codec codec;
         private final WorkerStats stats;
         private final WorkerExecutor executor;
-        private final Map<String, Future<?>> taskMap;
+        private final WorkerThreadPool threadPool;
         private final ManagedWorkerQueue workerQueue;
 
 
-        public CoreTaskCallback(final Codec codec, final WorkerStats stats, final WorkerExecutor executor, final Map<String, Future<?>> tasks, final ManagedWorkerQueue workerQueue)
+        public CoreTaskCallback(final Codec codec, final WorkerStats stats, final WorkerExecutor executor, final WorkerThreadPool pool, final ManagedWorkerQueue workerQueue)
         {
             this.codec = Objects.requireNonNull(codec);
             this.stats = Objects.requireNonNull(stats);
             this.executor = Objects.requireNonNull(executor);
-            this.taskMap = Objects.requireNonNull(tasks);
+            this.threadPool = Objects.requireNonNull(pool);
             this.workerQueue = Objects.requireNonNull(workerQueue);
         }
 
@@ -178,11 +177,8 @@ public class WorkerCore
         public void abortTasks()
         {
             LOG.warn("Aborting all current queued and in-progress tasks");
-            taskMap.forEach((key, value) -> {
-                value.cancel(true);
-                stats.incrementTasksAborted();
-            });
-            taskMap.clear();
+            final int numberOfTasksAborted = threadPool.abortTasks();
+            stats.incrementTasksAborted(numberOfTasksAborted);
         }
 
 
@@ -315,15 +311,13 @@ public class WorkerCore
         private final Codec codec;
         private final WorkerQueue workerQueue;
         private final WorkerStats stats;
-        private final ConcurrentMap<String, Future<?>> taskMap;
 
 
-        public CoreWorkerCallback(final Codec codec, final WorkerQueue queue, final WorkerStats stats, final ConcurrentMap<String, Future<?>> tasks)
+        public CoreWorkerCallback(final Codec codec, final WorkerQueue queue, final WorkerStats stats)
         {
             this.codec = Objects.requireNonNull(codec);
             this.workerQueue = Objects.requireNonNull(queue);
             this.stats = Objects.requireNonNull(stats);
-            this.taskMap = Objects.requireNonNull(tasks);
         }
 
 
@@ -339,7 +333,6 @@ public class WorkerCore
             Objects.requireNonNull(queueMsgId);
             Objects.requireNonNull(queue);
             Objects.requireNonNull(responseMessage);
-            taskMap.remove(queueMsgId);
             LOG.debug("Task {} complete (message id: {})", responseMessage.getTaskId(), queueMsgId);
             LOG.debug("Setting destination {} in task {} (message id: {})", queue, responseMessage.getTaskId(), queueMsgId);
             responseMessage.setTo(queue);
@@ -376,7 +369,6 @@ public class WorkerCore
             Objects.requireNonNull(queueMsgId);
             Objects.requireNonNull(queue);
             Objects.requireNonNull(forwardedMessage);
-            taskMap.remove(queueMsgId);
             LOG.debug("Task {} (message id: {}) being forwarded to queue {}", forwardedMessage.getTaskId(), queueMsgId, queue);
             checkForTrackingTermination(queueMsgId, queue, forwardedMessage);
             try {

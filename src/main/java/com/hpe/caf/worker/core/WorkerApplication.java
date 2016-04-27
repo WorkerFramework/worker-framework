@@ -65,17 +65,6 @@ public final class WorkerApplication extends Application<WorkerConfiguration>
 
 
     /**
-     * Get the default thread pool executor used by the worker framework.
-     * @param nThreads the number of threads to initialise the new thread pool with
-     * @return an instance of the default thread pool executor used by the worker framework
-     */
-    public static ThreadPoolExecutor getDefaultThreadPoolExecutor(final int nThreads)
-    {
-        return new WorkerThreadPoolExecutor(nThreads, nThreads, 0L, TimeUnit.MILLISECONDS, new LinkedBlockingQueue<>(), () -> System.exit(1));
-    }
-
-
-    /**
      * Package private. If you wish to test a worker framework, try using WorkerCore.
      */
     WorkerApplication() { }
@@ -102,9 +91,9 @@ public final class WorkerApplication extends Application<WorkerConfiguration>
         ManagedDataStore store = ModuleLoader.getService(DataStoreProvider.class).getDataStore(config);
         WorkerFactory workerFactory = workerProvider.getWorkerFactory(config, store, codec);
         final int nThreads = workerFactory.getWorkerThreads();
-        ThreadPoolExecutor tpe = getDefaultThreadPoolExecutor(nThreads);
+        WorkerThreadPool wtp = new WorkerThreadPool(nThreads);
         ManagedWorkerQueue workerQueue = queueProvider.getWorkerQueue(config, nThreads);
-        WorkerCore core = new WorkerCore(codec, tpe, workerQueue, workerFactory, path);
+        WorkerCore core = new WorkerCore(codec, wtp, workerQueue, workerFactory, path);
         Runtime.getRuntime().addShutdownHook(new Thread()
         {
             @Override
@@ -112,9 +101,9 @@ public final class WorkerApplication extends Application<WorkerConfiguration>
             {
                 LOG.debug("Shutting down");
                 workerQueue.shutdownIncoming();
-                tpe.shutdown();
+                wtp.shutdown();
                 try {
-                    tpe.awaitTermination(10_000, TimeUnit.MILLISECONDS);
+                    wtp.awaitTermination(10_000, TimeUnit.MILLISECONDS);
                 } catch (InterruptedException e) {
                     LOG.warn("Shutdown interrupted", e);
                     Thread.currentThread().interrupt();

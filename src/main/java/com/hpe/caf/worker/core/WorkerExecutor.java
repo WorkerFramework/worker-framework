@@ -10,20 +10,17 @@ import org.slf4j.LoggerFactory;
 
 import java.util.Map;
 import java.util.Objects;
-import java.util.concurrent.Future;
-import java.util.concurrent.ThreadPoolExecutor;
 
 
 /**
  * Utility class for preparing a new Worker for a task and executing it.
  */
-public class WorkerExecutor
+final class WorkerExecutor
 {
     private final ServicePath servicePath;
     private final WorkerCallback callback;
     private final WorkerFactory factory;
-    private final Map<String, Future<?>> tasks;
-    private final ThreadPoolExecutor threadPool;
+    private final WorkerThreadPool threadPool;
     private static final Logger LOG = LoggerFactory.getLogger(WorkerExecutor.class);
 
 
@@ -34,13 +31,17 @@ public class WorkerExecutor
      * @param callback the callback the wrappers use when a task completes
      * @param workerFactory the origin of the Worker objects themselves
      */
-    public WorkerExecutor(final ServicePath path, final WorkerCallback callback, final WorkerFactory workerFactory, final Map<String, Future<?>> taskMap,
-                          final ThreadPoolExecutor pool)
+    public WorkerExecutor
+    (
+        final ServicePath path,
+        final WorkerCallback callback,
+        final WorkerFactory workerFactory,
+        final WorkerThreadPool pool
+    )
     {
         this.servicePath = Objects.requireNonNull(path);
         this.callback = Objects.requireNonNull(callback);
         this.factory = Objects.requireNonNull(workerFactory);
-        this.tasks = Objects.requireNonNull(taskMap);
         this.threadPool = Objects.requireNonNull(pool);
     }
 
@@ -57,7 +58,7 @@ public class WorkerExecutor
     {
         try {
             WorkerWrapper wrapper = getWorkerWrapper(tm, queueMessageId);
-            submitToThreadPool(wrapper, queueMessageId);
+            threadPool.submit(wrapper, queueMessageId);
         } catch (InvalidTaskException e) {
             dealWithInvalidTaskException(tm, e, queueMessageId);
         }
@@ -89,23 +90,6 @@ public class WorkerExecutor
     public void discardTask(final TaskMessage tm, final String queueMessageId) throws TaskRejectedException {
         LOG.warn("Discarding task {} (message id: {})", tm.getTaskId(), queueMessageId);
         callback.discard(queueMessageId);
-    }
-
-
-    /**
-     * Pass off a runnable task to the backend, considering a hard upper bound to the internal backlog.
-     * @param wrapper the new task to run
-     * @param id a unique task id
-     * @throws TaskRejectedException if no more tasks can be added to the internal backlog
-     */
-    private void submitToThreadPool(final Runnable wrapper, final String id)
-        throws TaskRejectedException
-    {
-        if ( threadPool.getQueue().size() < threadPool.getCorePoolSize() * 10 ) {
-            tasks.put(id, threadPool.submit(wrapper));
-        } else {
-            throw new TaskRejectedException("Maximum internal task backlog exceeded");
-        }
     }
 
 

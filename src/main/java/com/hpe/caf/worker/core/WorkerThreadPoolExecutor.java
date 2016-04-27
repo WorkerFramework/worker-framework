@@ -13,7 +13,7 @@ import java.util.concurrent.TimeUnit;
 /**
  * ThreadPoolExecutor to perform specific actions if a thread in the pool terminate abnormally.
  */
-public class WorkerThreadPoolExecutor extends ThreadPoolExecutor
+class WorkerThreadPoolExecutor extends ThreadPoolExecutor
 {
     private final Procedure throwableHandler;
     private static final Logger LOG = LoggerFactory.getLogger(WorkerThreadPoolExecutor.class);

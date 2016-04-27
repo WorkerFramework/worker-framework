@@ -42,12 +42,12 @@ public class WorkerCoreTest
     {
         BlockingQueue<byte[]> q = new LinkedBlockingQueue<>();
         Codec codec = new JsonCodec();
-        ThreadPoolExecutor tpe = WorkerApplication.getDefaultThreadPoolExecutor(5);
+        WorkerThreadPool wtp = new WorkerThreadPool(5);
         ConfigurationSource config = Mockito.mock(ConfigurationSource.class);
         ServicePath path = new ServicePath(SERVICE_PATH);
         TestWorkerTask task = new TestWorkerTask();
         TestWorkerQueue queue = new TestWorkerQueueProvider(q).getWorkerQueue(config, 50);
-        WorkerCore core = new WorkerCore(codec, tpe, queue, getWorkerFactory(task, codec), path);
+        WorkerCore core = new WorkerCore(codec, wtp, queue, getWorkerFactory(task, codec), path);
         core.start();
         // at this point, the queue should hand off the task to the app, the app should get a worker from the mocked WorkerFactory,
         // and the Worker itself is a mock wrapped in a WorkerWrapper, which should return success and the appropriate result data
@@ -76,12 +76,12 @@ public class WorkerCoreTest
     {
         BlockingQueue<byte[]> q = new LinkedBlockingQueue<>();
         Codec codec = new JsonCodec();
-        ThreadPoolExecutor tpe = WorkerApplication.getDefaultThreadPoolExecutor(5);
+        WorkerThreadPool wtp = new WorkerThreadPool(5);
         ConfigurationSource config = Mockito.mock(ConfigurationSource.class);
         ServicePath path = new ServicePath(SERVICE_PATH);
         TestWorkerTask task = new TestWorkerTask();
         TestWorkerQueue queue = new TestWorkerQueueProvider(q).getWorkerQueue(config, 50);
-        WorkerCore core = new WorkerCore(codec, tpe, queue, getWorkerFactory(task, codec), path);
+        WorkerCore core = new WorkerCore(codec, wtp, queue, getWorkerFactory(task, codec), path);
         core.start();
         // at this point, the queue should hand off the task to the app, the app should get a worker from the mocked WorkerFactory,
         // and the Worker itself is a mock wrapped in a WorkerWrapper, which should return success and the appropriate result data
@@ -111,12 +111,12 @@ public class WorkerCoreTest
     {
         BlockingQueue<byte[]> q = new LinkedBlockingQueue<>();
         Codec codec = new JsonCodec();
-        ThreadPoolExecutor tpe = WorkerApplication.getDefaultThreadPoolExecutor(5);
+        WorkerThreadPool wtp = new WorkerThreadPool(5);
         ConfigurationSource config = Mockito.mock(ConfigurationSource.class);
         ServicePath path = new ServicePath(SERVICE_PATH);
         TestWorkerTask task = new TestWorkerTask();
         TestWorkerQueue queue = new TestWorkerQueueProvider(q).getWorkerQueue(config, 50);
-        WorkerCore core = new WorkerCore(codec, tpe, queue, getWorkerFactory(task, codec), path);
+        WorkerCore core = new WorkerCore(codec, wtp, queue, getWorkerFactory(task, codec), path);
         core.start();
         byte[] stuff = codec.serialise("nonsense");
         queue.submitTask(QUEUE_MSG_ID, stuff);
@@ -130,12 +130,12 @@ public class WorkerCoreTest
     {
         BlockingQueue<byte[]> q = new LinkedBlockingQueue<>();
         Codec codec = new JsonCodec();
-        ThreadPoolExecutor tpe = WorkerApplication.getDefaultThreadPoolExecutor(5);
+        WorkerThreadPool wtp = new WorkerThreadPool(5);
         ConfigurationSource config = Mockito.mock(ConfigurationSource.class);
         ServicePath path = new ServicePath(SERVICE_PATH);
         TestWorkerTask task = new TestWorkerTask();
         TestWorkerQueue queue = new TestWorkerQueueProvider(q).getWorkerQueue(config, 50);
-        WorkerCore core = new WorkerCore(codec, tpe, queue, getInvalidTaskWorkerFactory(), path);
+        WorkerCore core = new WorkerCore(codec, wtp, queue, getInvalidTaskWorkerFactory(), path);
         core.start();
         TaskMessage tm = getTaskMessage(task, codec, WORKER_NAME);
         tm.setTaskData(codec.serialise("invalid task data"));
@@ -165,13 +165,13 @@ public class WorkerCoreTest
     {
         BlockingQueue<byte[]> q = new LinkedBlockingQueue<>();
         Codec codec = new JsonCodec();
-        ThreadPoolExecutor tpe = WorkerApplication.getDefaultThreadPoolExecutor(2);
+        WorkerThreadPool wtp = new WorkerThreadPool(2);
         ConfigurationSource config = Mockito.mock(ConfigurationSource.class);
         ServicePath path = new ServicePath(SERVICE_PATH);
         TestWorkerTask task = new TestWorkerTask();
         CountDownLatch latch = new CountDownLatch(2);
         TestWorkerQueue queue = new TestWorkerQueueProvider(q).getWorkerQueue(config, 20);
-        WorkerCore core = new WorkerCore(codec, tpe, queue, getSlowWorkerFactory(latch, task, codec), path);
+        WorkerCore core = new WorkerCore(codec, wtp, queue, getSlowWorkerFactory(latch, task, codec), path);
         core.start();
         byte[] task1 = codec.serialise(getTaskMessage(task, codec, UUID.randomUUID().toString()));
         byte[] task2 = codec.serialise(getTaskMessage(task, codec, UUID.randomUUID().toString()));
