@@ -15,8 +15,12 @@ class WorkerThreadPool {
     private final PrivateWorkerThreadPoolExecutor threadPoolExecutor;
 
     public WorkerThreadPool(final int nThreads) {
+        this(nThreads, () -> System.exit(1));
+    }
+
+    public WorkerThreadPool(final int nThreads, final Runnable handler) {
         workQueue = new LinkedBlockingQueue<>();
-        threadPoolExecutor = new PrivateWorkerThreadPoolExecutor(nThreads, workQueue);
+        threadPoolExecutor = new PrivateWorkerThreadPoolExecutor(nThreads, workQueue, handler);
     }
 
     public void shutdown() {
@@ -57,14 +61,19 @@ class WorkerThreadPool {
 
         private final Map<RunnableFuture<?>, Runnable> tasks;
 
-        public PrivateWorkerThreadPoolExecutor(final int nThreads, final BlockingQueue<Runnable> workQueue) {
+        public PrivateWorkerThreadPoolExecutor
+        (
+            final int nThreads,
+            final BlockingQueue<Runnable> workQueue,
+            final Runnable handler
+        ) {
             super(nThreads,
                   nThreads,
                   0L,
                   TimeUnit.MILLISECONDS,
                   workQueue,
-                  () -> System.exit(1));
-            
+                  handler);
+
             tasks = new ConcurrentHashMap<>();
         }
 
