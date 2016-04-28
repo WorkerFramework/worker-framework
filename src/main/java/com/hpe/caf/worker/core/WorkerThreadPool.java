@@ -37,8 +37,12 @@ class WorkerThreadPool {
         threadPoolExecutor.awaitTermination(timeout, unit);
     }
 
-    public int getActiveCount() {
-        return threadPoolExecutor.getActiveCount();
+    /**
+     * Returns whether or not any threads are active
+     * @return true if there are no active threads
+     */
+    public boolean isIdle() {
+        return threadPoolExecutor.getActiveCount() == 0;
     }
 
     public int getBacklogSize() {

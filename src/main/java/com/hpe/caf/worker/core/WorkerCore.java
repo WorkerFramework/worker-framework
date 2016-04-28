@@ -58,7 +58,7 @@ final class WorkerCore
      */
     public long getCurrentIdleTime()
     {
-        if ( threadPool.getActiveCount() == 0 ) {
+        if ( threadPool.isIdle() ) {
             return System.currentTimeMillis() - stats.getLastTaskFinishedTime();
         } else {
             return 0;   // if we are working, then we are not idle
