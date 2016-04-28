@@ -2,12 +2,16 @@ package com.hpe.caf.worker.core;
 
 import com.hpe.caf.api.worker.TaskRejectedException;
 import java.util.Map;
+import java.util.Objects;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.RunnableFuture;
+import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 class WorkerThreadPool {
 
@@ -57,8 +61,11 @@ class WorkerThreadPool {
         return threadPoolExecutor.abortTasks();
     }
 
-    private static class PrivateWorkerThreadPoolExecutor extends WorkerThreadPoolExecutor {
+    private static class PrivateWorkerThreadPoolExecutor extends ThreadPoolExecutor {
 
+        private static final Logger LOG = LoggerFactory.getLogger(PrivateWorkerThreadPoolExecutor.class);
+
+        private final Runnable throwableHandler;
         private final Map<RunnableFuture<?>, Runnable> tasks;
 
         public PrivateWorkerThreadPoolExecutor
@@ -71,9 +78,9 @@ class WorkerThreadPool {
                   nThreads,
                   0L,
                   TimeUnit.MILLISECONDS,
-                  workQueue,
-                  handler);
+                  workQueue);
 
+            throwableHandler = Objects.requireNonNull(handler);
             tasks = new ConcurrentHashMap<>();
         }
 
@@ -81,6 +88,10 @@ class WorkerThreadPool {
         public void afterExecute(Runnable r, Throwable t) {
             try {
                 super.afterExecute(r, t);
+                if ( t != null ) {
+                    LOG.error("Worker thread terminated with unhandled throwable, terminating service", t);
+                    throwableHandler.run();
+                }
             }
             finally {
                 tasks.remove(r);
