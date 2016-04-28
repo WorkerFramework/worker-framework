@@ -18,8 +18,12 @@ class WorkerThreadPool {
     private final BlockingQueue<Runnable> workQueue;
     private final PrivateWorkerThreadPoolExecutor threadPoolExecutor;
 
-    public WorkerThreadPool(final int nThreads) {
-        this(nThreads, () -> System.exit(1));
+    public static WorkerThreadPool create(final int nThreads) {
+        return create(nThreads, () -> System.exit(1));
+    }
+
+    public static WorkerThreadPool create(final int nThreads, final Runnable handler) {
+        return new WorkerThreadPool(nThreads, handler);
     }
 
     public WorkerThreadPool(final int nThreads, final Runnable handler) {

@@ -13,7 +13,7 @@ public class WorkerThreadPoolTest
         throws TaskRejectedException, InterruptedException
     {
         CountDownLatch latch = new CountDownLatch(1);
-        WorkerThreadPool wtp = new WorkerThreadPool(2, latch::countDown);
+        WorkerThreadPool wtp = WorkerThreadPool.create(2, latch::countDown);
         wtp.submit(new TestCrash(), "test-id");
         latch.await(1, TimeUnit.SECONDS);
     }

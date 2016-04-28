@@ -39,7 +39,7 @@ public class WorkerCoreTest
     {
         BlockingQueue<byte[]> q = new LinkedBlockingQueue<>();
         Codec codec = new JsonCodec();
-        WorkerThreadPool wtp = new WorkerThreadPool(5);
+        WorkerThreadPool wtp = WorkerThreadPool.create(5);
         ConfigurationSource config = Mockito.mock(ConfigurationSource.class);
         ServicePath path = new ServicePath(SERVICE_PATH);
         TestWorkerTask task = new TestWorkerTask();
@@ -73,7 +73,7 @@ public class WorkerCoreTest
     {
         BlockingQueue<byte[]> q = new LinkedBlockingQueue<>();
         Codec codec = new JsonCodec();
-        WorkerThreadPool wtp = new WorkerThreadPool(5);
+        WorkerThreadPool wtp = WorkerThreadPool.create(5);
         ConfigurationSource config = Mockito.mock(ConfigurationSource.class);
         ServicePath path = new ServicePath(SERVICE_PATH);
         TestWorkerTask task = new TestWorkerTask();
@@ -108,7 +108,7 @@ public class WorkerCoreTest
     {
         BlockingQueue<byte[]> q = new LinkedBlockingQueue<>();
         Codec codec = new JsonCodec();
-        WorkerThreadPool wtp = new WorkerThreadPool(5);
+        WorkerThreadPool wtp = WorkerThreadPool.create(5);
         ConfigurationSource config = Mockito.mock(ConfigurationSource.class);
         ServicePath path = new ServicePath(SERVICE_PATH);
         TestWorkerTask task = new TestWorkerTask();
@@ -127,7 +127,7 @@ public class WorkerCoreTest
     {
         BlockingQueue<byte[]> q = new LinkedBlockingQueue<>();
         Codec codec = new JsonCodec();
-        WorkerThreadPool wtp = new WorkerThreadPool(5);
+        WorkerThreadPool wtp = WorkerThreadPool.create(5);
         ConfigurationSource config = Mockito.mock(ConfigurationSource.class);
         ServicePath path = new ServicePath(SERVICE_PATH);
         TestWorkerTask task = new TestWorkerTask();
@@ -162,7 +162,7 @@ public class WorkerCoreTest
     {
         BlockingQueue<byte[]> q = new LinkedBlockingQueue<>();
         Codec codec = new JsonCodec();
-        WorkerThreadPool wtp = new WorkerThreadPool(2);
+        WorkerThreadPool wtp = WorkerThreadPool.create(2);
         ConfigurationSource config = Mockito.mock(ConfigurationSource.class);
         ServicePath path = new ServicePath(SERVICE_PATH);
         TestWorkerTask task = new TestWorkerTask();
