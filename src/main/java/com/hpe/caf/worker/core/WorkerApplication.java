@@ -1,6 +1,5 @@
 package com.hpe.caf.worker.core;
 
-
 import com.codahale.metrics.Gauge;
 import com.codahale.metrics.MetricRegistry;
 import com.hpe.caf.api.BootstrapConfiguration;
@@ -33,10 +32,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.net.ResponseCache;
-import java.util.concurrent.LinkedBlockingQueue;
-import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
-
 
 /**
  * This is the main HP SaaS asynchronous micro-service worker entry point.
