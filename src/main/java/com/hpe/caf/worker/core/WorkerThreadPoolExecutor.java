@@ -15,12 +15,12 @@ import java.util.concurrent.TimeUnit;
  */
 class WorkerThreadPoolExecutor extends ThreadPoolExecutor
 {
-    private final Procedure throwableHandler;
+    private final Runnable throwableHandler;
     private static final Logger LOG = LoggerFactory.getLogger(WorkerThreadPoolExecutor.class);
 
 
     public WorkerThreadPoolExecutor(final int corePoolSize, final int maximumPoolSize, final long keepAliveTime, final TimeUnit unit,
-                                    final BlockingQueue<Runnable> workQueue, final Procedure handler)
+                                    final BlockingQueue<Runnable> workQueue, final Runnable handler)
     {
         super(corePoolSize, maximumPoolSize, keepAliveTime, unit, workQueue);
         this.throwableHandler = Objects.requireNonNull(handler);
@@ -33,7 +33,7 @@ class WorkerThreadPoolExecutor extends ThreadPoolExecutor
         super.afterExecute(r, t);
         if ( t != null ) {
             LOG.error("Worker thread terminated with unhandled throwable, terminating service", t);
-            throwableHandler.execute();
+            throwableHandler.run();
         }
     }
 }
