@@ -60,7 +60,7 @@ final class StreamingWorkerThreadPool implements WorkerThreadPool {
         throws TaskRejectedException
     {
         try {
-            WorkerWrapper wrapper = new WorkerWrapper(workerTask);
+            StreamingWorkerWrapper wrapper = new StreamingWorkerWrapper(workerTask);
             threadPoolExecutor.submitWithSizeCheck(wrapper);
         } catch (InvalidTaskException e) {
             workerTask.setResponse(e);

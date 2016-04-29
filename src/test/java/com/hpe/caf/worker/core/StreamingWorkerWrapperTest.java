@@ -18,7 +18,7 @@ import java.util.Objects;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 
-public class WorkerWrapperTest
+public class StreamingWorkerWrapperTest
 {
     private static final String SUCCESS = "success";
     private static final byte[] SUCCESS_BYTES = SUCCESS.getBytes(StandardCharsets.UTF_8);
@@ -46,7 +46,7 @@ public class WorkerWrapperTest
         m.setTaskId(TASK_ID);
         ServicePath path = new ServicePath(SERVICE_NAME);
         WorkerTaskImpl workerTask = new WorkerTaskImpl(path, callback, happyWorkerFactory, queueMsgId, m);
-        WorkerWrapper wrapper = new WorkerWrapper(workerTask);
+        StreamingWorkerWrapper wrapper = new StreamingWorkerWrapper(workerTask);
         Thread t = new Thread(wrapper);
         t.start();
         latch.await(5, TimeUnit.SECONDS);
@@ -76,7 +76,7 @@ public class WorkerWrapperTest
         m.setTaskId(TASK_ID);
         ServicePath path = new ServicePath(SERVICE_NAME);
         WorkerTaskImpl workerTask = new WorkerTaskImpl(path, callback, happyWorkerFactory, queueMsgId, m);
-        WorkerWrapper wrapper = new WorkerWrapper(workerTask);
+        StreamingWorkerWrapper wrapper = new StreamingWorkerWrapper(workerTask);
         Thread t = new Thread(wrapper);
         t.start();
         latch.await(5, TimeUnit.SECONDS);
@@ -110,7 +110,7 @@ public class WorkerWrapperTest
         m.setTaskId(TASK_ID);
         m.setContext(contextMap);
         WorkerTaskImpl workerTask = new WorkerTaskImpl(path, callback, happyWorkerFactory, queueMsgId, m);
-        WorkerWrapper wrapper = new WorkerWrapper(workerTask);
+        StreamingWorkerWrapper wrapper = new StreamingWorkerWrapper(workerTask);
         Thread t = new Thread(wrapper);
         t.start();
         latch.await(5, TimeUnit.SECONDS);
@@ -142,7 +142,7 @@ public class WorkerWrapperTest
         ServicePath path = new ServicePath(SERVICE_NAME);
         m.setTaskId(TASK_ID);
         WorkerTaskImpl workerTask = new WorkerTaskImpl(path, callback, happyWorkerFactory, queueMsgId, m);
-        WorkerWrapper wrapper = new WorkerWrapper(workerTask);
+        StreamingWorkerWrapper wrapper = new StreamingWorkerWrapper(workerTask);
         Thread t = new Thread(wrapper);
         t.start();
         Thread.sleep(1000);
@@ -168,7 +168,7 @@ public class WorkerWrapperTest
         ServicePath path = new ServicePath(SERVICE_NAME);
         m.setTaskId(TASK_ID);
         WorkerTaskImpl workerTask = new WorkerTaskImpl(path, callback, happyWorkerFactory, queueMsgId, m);
-        WorkerWrapper wrapper = new WorkerWrapper(workerTask);
+        StreamingWorkerWrapper wrapper = new StreamingWorkerWrapper(workerTask);
         Thread t = new Thread(wrapper);
         t.start();
         latch.await(5, TimeUnit.SECONDS);

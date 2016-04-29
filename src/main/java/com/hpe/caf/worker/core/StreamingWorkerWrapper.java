@@ -11,15 +11,15 @@ import org.slf4j.LoggerFactory;
  * throws some unhandled exception. The wrapper will use a CompleteTaskCallback once
  * the worker has terminated.
  */
-class WorkerWrapper implements Runnable
+class StreamingWorkerWrapper implements Runnable
 {
     private final Worker worker;
     private final WorkerTaskImpl workerTask;
     private static final Timer TIMER = new Timer();
-    private static final Logger LOG = LoggerFactory.getLogger(WorkerWrapper.class);
+    private static final Logger LOG = LoggerFactory.getLogger(StreamingWorkerWrapper.class);
 
 
-    public WorkerWrapper(final WorkerTaskImpl workerTask)
+    public StreamingWorkerWrapper(final WorkerTaskImpl workerTask)
         throws InvalidTaskException, TaskRejectedException
     {
         this.worker = workerTask.createWorker();

@@ -122,7 +122,7 @@ public final class WorkerApplication extends Application<WorkerConfiguration>
 
     private void initCoreMetrics(final MetricRegistry metrics, final WorkerCore core)
     {
-        metrics.register(MetricRegistry.name("core.taskTimer"), WorkerWrapper.getTimer());
+        metrics.register(MetricRegistry.name("core.taskTimer"), StreamingWorkerWrapper.getTimer());
         metrics.register(MetricRegistry.name("core.backlogSize"), (Gauge<Integer>) core::getBacklogSize);
         metrics.register(MetricRegistry.name("core.uptime"), (Gauge<Long>) () -> System.currentTimeMillis() - startTime);
         metrics.register(MetricRegistry.name("core.tasksReceived"), (Gauge<Long>) core.getStats()::getTasksReceived);
