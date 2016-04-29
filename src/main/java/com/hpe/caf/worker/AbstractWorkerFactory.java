@@ -59,6 +59,57 @@ public abstract class AbstractWorkerFactory<C, T> implements WorkerFactory
     public final Worker getWorker(final String classifier, final int version, final TaskStatus status, final byte[] data, final byte[] context, TrackingInfo tracking)
         throws TaskRejectedException, InvalidTaskException
     {
+        return createWorker(verifyWorkerTask(classifier, version, data), tracking);
+    }
+
+
+    /**
+     * Verify that the specified worker task has the right type and is a version
+     * that can be handled.
+     */
+    protected final T verifyWorkerTask(final WorkerTask workerTask)
+        throws TaskRejectedException, InvalidTaskException
+    {
+        return verifyWorkerTask(workerTask.getClassifier(),
+                                workerTask.getVersion(),
+                                workerTask.getData());
+    }
+
+
+    /**
+     * Verify that the specified worker task has the right type and is a version
+     * that can be handled.
+     * 
+     * <p>Note that whereas verifyWorkerTask() will throw an exception when
+     * there is an issue, this method will instead use the setResponse() method
+     * on the WorkerTask and then return null.</p>
+     */
+    protected final T verifyWorkerTaskAndSetResponse(final WorkerTask workerTask)
+    {
+        try {
+            return verifyWorkerTask(workerTask);
+        } catch (TaskRejectedException ex) {
+            workerTask.setResponse(ex);
+            return null;
+        } catch (InvalidTaskException ex) {
+            workerTask.setResponse(ex);
+            return null;
+        }
+    }
+
+
+    /**
+     * Verify that the specified worker task has the right type and is a version
+     * that can be handled.
+     */
+    private T verifyWorkerTask
+    (
+        final String classifier,
+        final int version,
+        final byte[] data
+    )
+        throws TaskRejectedException, InvalidTaskException
+    {
         // Reject tasks of the wrong type and tasks that require a newer version
         final String workerName = getWorkerName();
         if (!workerName.equals(classifier)) {
@@ -76,7 +127,7 @@ public abstract class AbstractWorkerFactory<C, T> implements WorkerFactory
         }
 
         try {
-             return createWorker(codec.deserialise(data, taskClass, DecodeMethod.LENIENT), tracking);
+            return codec.deserialise(data, taskClass, DecodeMethod.LENIENT);
         } catch (CodecException e) {
             throw new InvalidTaskException("Invalid input message", e);
         }
