@@ -1,16 +1,12 @@
 package com.hpe.caf.worker.core;
 
-
-import com.google.common.base.MoreObjects;
 import com.hpe.caf.api.worker.*;
 import com.hpe.caf.naming.ServicePath;
-import java.util.Collections;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.Map;
 import java.util.Objects;
-
 
 /**
  * Utility class for preparing a new Worker for a task and executing it.
@@ -56,11 +52,13 @@ final class WorkerExecutor
     public void executeTask(final TaskMessage tm, final String queueMessageId)
         throws TaskRejectedException
     {
+        final WorkerTaskImpl workerTask = createWorkerTask(queueMessageId, tm);
+
         try {
-            WorkerWrapper wrapper = getWorkerWrapper(tm, queueMessageId);
+            WorkerWrapper wrapper = new WorkerWrapper(workerTask);
             threadPool.submit(wrapper, queueMessageId);
         } catch (InvalidTaskException e) {
-            dealWithInvalidTaskException(tm, e, queueMessageId);
+            workerTask.setResponse(e);
         }
     }
 
@@ -94,46 +92,10 @@ final class WorkerExecutor
 
 
     /**
-     * Get an appropriate WorkerWrapper for the given TaskMessage.
-     * @param tm the message to get an appropriately wrapped Worker for
-     * @param queueMessageId the queue message ID, used to keep track of this individual message
-     * @return a WorkerWrapper for the given TaskMessage
+     * Creates a WorkerTask for the specified message
      */
-    private WorkerWrapper getWorkerWrapper(final TaskMessage tm, final String queueMessageId)
-        throws InvalidTaskException, TaskRejectedException
+    private WorkerTaskImpl createWorkerTask(final String messageId, final TaskMessage taskMessage)
     {
-        return new WorkerWrapper(tm, queueMessageId, getWorker(tm), callback, servicePath);
-    }
-
-
-    private Worker getWorker(final TaskMessage tm)
-        throws InvalidTaskException, TaskRejectedException
-    {
-        byte[] context = tm.getContext().get(servicePath.toString());
-        return factory.getWorker(tm.getTaskClassifier(), tm.getTaskApiVersion(), tm.getTaskStatus(), tm.getTaskData(), context, tm.getTracking());
-    }
-
-    private void dealWithInvalidTaskException(
-        final TaskMessage tm,
-        final InvalidTaskException e,
-        final String queueMessageId
-    ) {
-        LOG.error("Task data is invalid for {}, returning status {}", tm.getTaskId(), TaskStatus.INVALID_TASK, e);
-
-        final String taskId =
-                MoreObjects.firstNonNull(tm.getTaskId(), "");
-        final String taskClassifier =
-                MoreObjects.firstNonNull(tm.getTaskClassifier(), "");
-        final int taskApiVersion = tm.getTaskApiVersion();
-        final byte[] taskData = new byte[] {};
-        final TaskStatus taskStatus = TaskStatus.INVALID_TASK;
-        final Map<String, byte[]> context = MoreObjects.firstNonNull(
-                tm.getContext(),
-                Collections.<String, byte[]>emptyMap());
-
-        final TaskMessage invalidResponse = new TaskMessage(
-                taskId, taskClassifier, taskApiVersion, taskData, taskStatus, context);
-
-        callback.complete(queueMessageId, factory.getInvalidTaskQueue(), invalidResponse);
+        return new WorkerTaskImpl(servicePath, callback, factory, messageId, taskMessage);
     }
 }

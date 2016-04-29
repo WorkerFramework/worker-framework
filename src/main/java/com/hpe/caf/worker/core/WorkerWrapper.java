@@ -1,15 +1,9 @@
 package com.hpe.caf.worker.core;
 
-
 import com.codahale.metrics.Timer;
 import com.hpe.caf.api.worker.*;
-import com.hpe.caf.naming.ServicePath;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import java.util.Map;
-import java.util.Objects;
-
 
 /**
  * A wrapper for a worker used internally by the worker core. It is a Runnable that
@@ -20,21 +14,16 @@ import java.util.Objects;
 class WorkerWrapper implements Runnable
 {
     private final Worker worker;
-    private final WorkerCallback callback;
-    private final TaskMessage message;
-    private final String queueMsgId;
-    private final ServicePath servicePath;
+    private final WorkerTaskImpl workerTask;
     private static final Timer TIMER = new Timer();
     private static final Logger LOG = LoggerFactory.getLogger(WorkerWrapper.class);
 
 
-    public WorkerWrapper(final TaskMessage message, final String queueMsgId, final Worker worker, final WorkerCallback callback, final ServicePath path)
+    public WorkerWrapper(final WorkerTaskImpl workerTask)
+        throws InvalidTaskException, TaskRejectedException
     {
-        this.message = Objects.requireNonNull(message);
-        this.queueMsgId = Objects.requireNonNull(queueMsgId);
-        this.worker = Objects.requireNonNull(worker);
-        this.callback = Objects.requireNonNull(callback);
-        this.servicePath = Objects.requireNonNull(path);
+        this.worker = workerTask.createWorker();
+        this.workerTask = workerTask;
     }
 
 
@@ -51,15 +40,14 @@ class WorkerWrapper implements Runnable
             Timer.Context t = TIMER.time();
             WorkerResponse response = worker.doWork();
             t.stop();
-            doCallback(response);
+            workerTask.setResponse(response);
         } catch (TaskRejectedException e) {
-            LOG.info("Worker requested to abandon task {} (message id: {})", message.getTaskId(), queueMsgId, e);
-            callback.abandon(queueMsgId);
+            workerTask.setResponse(e);
         } catch (InterruptedException e) {
-            LOG.warn("Worker interrupt signalled, not performing callback for task {} (message id: {})", message.getTaskId(), queueMsgId, e);
+            workerTask.logInterruptedException(e);
         } catch (Exception e) {
             LOG.warn("Worker threw unhandled exception", e);
-            doCallback(worker.getGeneralFailureResult(e));
+            workerTask.setResponse(worker.getGeneralFailureResult(e));
         }
     }
 
@@ -70,23 +58,5 @@ class WorkerWrapper implements Runnable
     public static Timer getTimer()
     {
         return TIMER;
-    }
-
-
-    /**
-     * Generate a TaskMessage from a WorkerResponse and callback to the core notifying of completion.
-     * @param response the response from the Worker
-     * @param originalMessageTracking the tracking info of the original message for which response is the result
-     */
-    private void doCallback(final WorkerResponse response)
-    {
-        Map<String, byte[]> contextMap = message.getContext();
-        if ( response.getContext() != null ) {
-            contextMap.put(servicePath.toString(), response.getContext());
-        }
-        TaskMessage tm = new TaskMessage(message.getTaskId(), response.getMessageType(), response.getApiVersion(),
-                                         response.getData(), response.getTaskStatus(), contextMap,
-                                         response.getQueueReference(), message.getTracking());
-        callback.complete(queueMsgId, response.getQueueReference(), tm);
     }
 }

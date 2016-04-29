@@ -1,6 +1,5 @@
 package com.hpe.caf.worker.core;
 
-
 import com.hpe.caf.api.Codec;
 import com.hpe.caf.api.CodecException;
 import com.hpe.caf.api.worker.*;
@@ -18,7 +17,6 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
-
 
 public class WorkerWrapperTest
 {
@@ -38,14 +36,17 @@ public class WorkerWrapperTest
         throws WorkerException, InterruptedException, InvalidNameException, CodecException
     {
         Codec codec = new JsonCodec();
+        WorkerFactory happyWorkerFactory = Mockito.mock(WorkerFactory.class);
         Worker happyWorker = getWorker(new TestWorkerTask(), codec);
+        Mockito.when(happyWorkerFactory.getWorker(Mockito.any(), Mockito.anyInt(), Mockito.any(), Mockito.any(), Mockito.any(), Mockito.any())).thenReturn(happyWorker);
         String queueMsgId = "success";
         CountDownLatch latch = new CountDownLatch(1);
         TestCallback callback = new TestCallback(latch);
         TaskMessage m = new TaskMessage();
         m.setTaskId(TASK_ID);
         ServicePath path = new ServicePath(SERVICE_NAME);
-        WorkerWrapper wrapper = new WorkerWrapper(m, queueMsgId, happyWorker, callback, path);
+        WorkerTaskImpl workerTask = new WorkerTaskImpl(path, callback, happyWorkerFactory, queueMsgId, m);
+        WorkerWrapper wrapper = new WorkerWrapper(workerTask);
         Thread t = new Thread(wrapper);
         t.start();
         latch.await(5, TimeUnit.SECONDS);
@@ -65,14 +66,17 @@ public class WorkerWrapperTest
         throws WorkerException, InterruptedException, InvalidNameException
     {
         Codec codec = new JsonCodec();
+        WorkerFactory happyWorkerFactory = Mockito.mock(WorkerFactory.class);
         Worker happyWorker = getRedirectWorker(new TestWorkerTask(), codec);
+        Mockito.when(happyWorkerFactory.getWorker(Mockito.any(), Mockito.anyInt(), Mockito.any(), Mockito.any(), Mockito.any(), Mockito.any())).thenReturn(happyWorker);
         String queueMsgId = "success";
         CountDownLatch latch = new CountDownLatch(1);
         TestCallback callback = new TestCallback(latch);
         TaskMessage m = new TaskMessage();
         m.setTaskId(TASK_ID);
         ServicePath path = new ServicePath(SERVICE_NAME);
-        WorkerWrapper wrapper = new WorkerWrapper(m, queueMsgId, happyWorker, callback, path);
+        WorkerTaskImpl workerTask = new WorkerTaskImpl(path, callback, happyWorkerFactory, queueMsgId, m);
+        WorkerWrapper wrapper = new WorkerWrapper(workerTask);
         Thread t = new Thread(wrapper);
         t.start();
         latch.await(5, TimeUnit.SECONDS);
@@ -90,7 +94,9 @@ public class WorkerWrapperTest
         throws WorkerException, InterruptedException, InvalidNameException, CodecException
     {
         Codec codec = new JsonCodec();
+        WorkerFactory happyWorkerFactory = Mockito.mock(WorkerFactory.class);
         Worker happyWorker = Mockito.spy(getWorker(new TestWorkerTask(), codec));
+        Mockito.when(happyWorkerFactory.getWorker(Mockito.any(), Mockito.anyInt(), Mockito.any(), Mockito.any(), Mockito.any(), Mockito.any())).thenReturn(happyWorker);
         Mockito.when(happyWorker.doWork()).thenAnswer(invocationOnMock -> {
             throw new TaskFailedException("whoops");
         });
@@ -103,7 +109,8 @@ public class WorkerWrapperTest
         contextMap.put(path.toString(), SUCCESS_BYTES);
         m.setTaskId(TASK_ID);
         m.setContext(contextMap);
-        WorkerWrapper wrapper = new WorkerWrapper(m, queueMsgId, happyWorker, callback, path);
+        WorkerTaskImpl workerTask = new WorkerTaskImpl(path, callback, happyWorkerFactory, queueMsgId, m);
+        WorkerWrapper wrapper = new WorkerWrapper(workerTask);
         Thread t = new Thread(wrapper);
         t.start();
         latch.await(5, TimeUnit.SECONDS);
@@ -123,7 +130,9 @@ public class WorkerWrapperTest
         throws WorkerException, InterruptedException, InvalidNameException, CodecException
     {
         Codec codec = new JsonCodec();
+        WorkerFactory happyWorkerFactory = Mockito.mock(WorkerFactory.class);
         Worker happyWorker = Mockito.spy(getWorker(new TestWorkerTask(), codec));
+        Mockito.when(happyWorkerFactory.getWorker(Mockito.any(), Mockito.anyInt(), Mockito.any(), Mockito.any(), Mockito.any(), Mockito.any())).thenReturn(happyWorker);
         Mockito.when(happyWorker.doWork()).thenAnswer(invocationOnMock -> {
             throw new InterruptedException("interrupting!");
         });
@@ -132,7 +141,8 @@ public class WorkerWrapperTest
         TaskMessage m = new TaskMessage();
         ServicePath path = new ServicePath(SERVICE_NAME);
         m.setTaskId(TASK_ID);
-        WorkerWrapper wrapper = new WorkerWrapper(m, queueMsgId, happyWorker, callback, path);
+        WorkerTaskImpl workerTask = new WorkerTaskImpl(path, callback, happyWorkerFactory, queueMsgId, m);
+        WorkerWrapper wrapper = new WorkerWrapper(workerTask);
         Thread t = new Thread(wrapper);
         t.start();
         Thread.sleep(1000);
@@ -145,7 +155,9 @@ public class WorkerWrapperTest
         throws InvalidTaskException, TaskRejectedException, InterruptedException, InvalidNameException
     {
         Codec codec = new JsonCodec();
+        WorkerFactory happyWorkerFactory = Mockito.mock(WorkerFactory.class);
         Worker happyWorker = Mockito.spy(getWorker(new TestWorkerTask(), codec));
+        Mockito.when(happyWorkerFactory.getWorker(Mockito.any(), Mockito.anyInt(), Mockito.any(), Mockito.any(), Mockito.any(), Mockito.any())).thenReturn(happyWorker);
         Mockito.when(happyWorker.doWork()).thenAnswer(invocationOnMock -> {
             throw new TaskRejectedException("bye!");
         });
@@ -155,7 +167,8 @@ public class WorkerWrapperTest
         TaskMessage m = new TaskMessage();
         ServicePath path = new ServicePath(SERVICE_NAME);
         m.setTaskId(TASK_ID);
-        WorkerWrapper wrapper = new WorkerWrapper(m, queueMsgId, happyWorker, callback, path);
+        WorkerTaskImpl workerTask = new WorkerTaskImpl(path, callback, happyWorkerFactory, queueMsgId, m);
+        WorkerWrapper wrapper = new WorkerWrapper(workerTask);
         Thread t = new Thread(wrapper);
         t.start();
         latch.await(5, TimeUnit.SECONDS);
