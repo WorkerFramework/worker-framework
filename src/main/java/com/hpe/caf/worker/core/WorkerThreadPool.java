@@ -27,12 +27,11 @@ interface WorkerThreadPool {
     int getBacklogSize();
 
     /**
-     * Pass off a runnable task to the backend, considering a hard upper bound to the internal backlog.
-     * @param wrapper the new task to run
-     * @param id a unique task id
-     * @throws TaskRejectedException if no more tasks can be added to the internal backlog
+     * Execute the specified task at some point in the future
+     * @param workerTask the task to be run
+     * @throws TaskRejectedException if no more tasks can be accepted
      */
-    void submit(final Runnable wrapper, final String id)
+    void submitWorkerTask(WorkerTaskImpl workerTask)
         throws TaskRejectedException;
 
     int abortTasks();

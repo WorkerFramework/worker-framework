@@ -1,5 +1,6 @@
 package com.hpe.caf.worker.core;
 
+import com.hpe.caf.api.worker.InvalidTaskException;
 import com.hpe.caf.api.worker.TaskRejectedException;
 import java.util.Map;
 import java.util.Objects;
@@ -50,16 +51,20 @@ final class WorkerThreadPoolImpl implements WorkerThreadPool {
     }
 
     /**
-     * Pass off a runnable task to the backend, considering a hard upper bound to the internal backlog.
-     * @param wrapper the new task to run
-     * @param id a unique task id
-     * @throws TaskRejectedException if no more tasks can be added to the internal backlog
+     * Execute the specified task at some point in the future
+     * @param workerTask the task to be run
+     * @throws TaskRejectedException if no more tasks can be accepted
      */
     @Override
-    public void submit(final Runnable wrapper, final String id)
+    public void submitWorkerTask(final WorkerTaskImpl workerTask)
         throws TaskRejectedException
     {
-        threadPoolExecutor.submit(wrapper, id);
+        try {
+            WorkerWrapper wrapper = new WorkerWrapper(workerTask);
+            threadPoolExecutor.submitWithSizeCheck(wrapper);
+        } catch (InvalidTaskException e) {
+            workerTask.setResponse(e);
+        }
     }
 
     @Override
@@ -104,13 +109,11 @@ final class WorkerThreadPoolImpl implements WorkerThreadPool {
             }
         }
 
-        public void submit(final Runnable wrapper, final String id)
+        public void submitWithSizeCheck(final Runnable task)
             throws TaskRejectedException
         {
             if (getQueue().size() < getCorePoolSize() * 10) {
-                //tasks.put(id, threadPoolExecutor.submit(wrapper));
-                //threadPoolExecutor.submit(wrapper);
-                submit(wrapper);
+                submit(task);
             } else {
                 throw new TaskRejectedException("Maximum internal task backlog exceeded");
             }

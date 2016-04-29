@@ -18,7 +18,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-final class WorkerTaskImpl implements WorkerTask
+class WorkerTaskImpl implements WorkerTask
 {
     private static final Logger LOG = LoggerFactory.getLogger(WorkerTaskImpl.class);
 

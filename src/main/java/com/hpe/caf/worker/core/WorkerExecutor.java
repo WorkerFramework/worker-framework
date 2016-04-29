@@ -54,12 +54,7 @@ final class WorkerExecutor
     {
         final WorkerTaskImpl workerTask = createWorkerTask(queueMessageId, tm);
 
-        try {
-            WorkerWrapper wrapper = new WorkerWrapper(workerTask);
-            threadPool.submit(wrapper, queueMessageId);
-        } catch (InvalidTaskException e) {
-            workerTask.setResponse(e);
-        }
+        threadPool.submitWorkerTask(workerTask);
     }
 
 
