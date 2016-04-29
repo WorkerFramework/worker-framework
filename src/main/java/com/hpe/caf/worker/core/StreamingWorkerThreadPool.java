@@ -14,12 +14,12 @@ import java.util.concurrent.atomic.AtomicInteger;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-final class WorkerThreadPoolImpl implements WorkerThreadPool {
+final class StreamingWorkerThreadPool implements WorkerThreadPool {
 
     private final BlockingQueue<Runnable> workQueue;
     private final PrivateWorkerThreadPoolExecutor threadPoolExecutor;
 
-    public WorkerThreadPoolImpl(final int nThreads, final Runnable handler) {
+    public StreamingWorkerThreadPool(final int nThreads, final Runnable handler) {
         workQueue = new LinkedBlockingQueue<>();
         threadPoolExecutor = new PrivateWorkerThreadPoolExecutor(nThreads, workQueue, handler);
     }

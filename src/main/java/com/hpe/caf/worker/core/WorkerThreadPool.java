@@ -10,7 +10,7 @@ interface WorkerThreadPool {
     }
 
     static WorkerThreadPool create(final int nThreads, final Runnable handler) {
-        return new WorkerThreadPoolImpl(nThreads, handler);
+        return new StreamingWorkerThreadPool(nThreads, handler);
     }
 
     void shutdown();
