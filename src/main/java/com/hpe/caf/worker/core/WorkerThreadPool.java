@@ -1,12 +1,29 @@
 package com.hpe.caf.worker.core;
 
+import com.hpe.caf.api.worker.BulkWorker;
 import com.hpe.caf.api.worker.TaskRejectedException;
+import com.hpe.caf.api.worker.WorkerFactory;
 import java.util.concurrent.TimeUnit;
 
-interface WorkerThreadPool {
+interface WorkerThreadPool
+{
+    /* private */ static final Runnable defaultHandler = () -> System.exit(1);
 
     static WorkerThreadPool create(final int nThreads) {
-        return create(nThreads, () -> System.exit(1));
+        return create(nThreads, defaultHandler);
+    }
+
+    static WorkerThreadPool create(final WorkerFactory workerFactory) {
+        return create(workerFactory, defaultHandler);
+    }
+
+    static WorkerThreadPool create(final WorkerFactory workerFactory, final Runnable handler) {
+        if (workerFactory instanceof BulkWorker) {
+            return new BulkWorkerThreadPool(workerFactory, handler);
+        }
+        else {
+            return create(workerFactory.getWorkerThreads(), handler);
+        }
     }
 
     static WorkerThreadPool create(final int nThreads, final Runnable handler) {

@@ -86,8 +86,8 @@ public final class WorkerApplication extends Application<WorkerConfiguration>
         WorkerQueueProvider queueProvider = ModuleLoader.getService(WorkerQueueProvider.class);
         ManagedDataStore store = ModuleLoader.getService(DataStoreProvider.class).getDataStore(config);
         WorkerFactory workerFactory = workerProvider.getWorkerFactory(config, store, codec);
+        WorkerThreadPool wtp = WorkerThreadPool.create(workerFactory);
         final int nThreads = workerFactory.getWorkerThreads();
-        WorkerThreadPool wtp = WorkerThreadPool.create(nThreads);
         ManagedWorkerQueue workerQueue = queueProvider.getWorkerQueue(config, nThreads);
         WorkerCore core = new WorkerCore(codec, wtp, workerQueue, workerFactory, path);
         Runtime.getRuntime().addShutdownHook(new Thread()

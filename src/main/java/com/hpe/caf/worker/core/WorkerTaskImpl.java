@@ -142,6 +142,10 @@ class WorkerTaskImpl implements WorkerTask
             taskMessage.getTaskId(), messageId, interruptedException);
     }
 
+    public boolean isResponseSet() {
+        return isResponseSet.get();
+    }
+
     /**
      * Throws an exception if a response has already been received
      */
