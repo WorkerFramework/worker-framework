@@ -66,14 +66,8 @@ final class BulkWorkerThreadPool implements WorkerThreadPool
             throws InterruptedException
         {
             final WorkerTaskImpl task = workQueue.take();
-            final BulkWorkerTaskProvider taskProvider;
-            try {
-                taskProvider = new BulkWorkerTaskProvider(task, workQueue);
-            } catch (final Throwable t) {
-                LOG.warn("Bulk Worker Provider construction failure", t);
-                resubmitWorkerTask(task);
-                throw t;
-            }
+            final BulkWorkerTaskProvider taskProvider =
+                new BulkWorkerTaskProvider(task, workQueue);
 
             try {
                 bulkWorker.processTasks(taskProvider);
