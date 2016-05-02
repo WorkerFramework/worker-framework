@@ -1,6 +1,5 @@
 package com.hpe.caf.worker.core;
 
-
 import com.codahale.metrics.Gauge;
 import com.codahale.metrics.MetricRegistry;
 import com.hpe.caf.api.BootstrapConfiguration;
@@ -33,10 +32,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.net.ResponseCache;
-import java.util.concurrent.LinkedBlockingQueue;
-import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
-
 
 /**
  * This is the main HP SaaS asynchronous micro-service worker entry point.
@@ -61,17 +57,6 @@ public final class WorkerApplication extends Application<WorkerConfiguration>
     {
         ServiceFinder.setIteratorProvider(new Jersey2ServiceIteratorProvider());
         new WorkerApplication().run(args);
-    }
-
-
-    /**
-     * Get the default thread pool executor used by the worker framework.
-     * @param nThreads the number of threads to initialise the new thread pool with
-     * @return an instance of the default thread pool executor used by the worker framework
-     */
-    public static ThreadPoolExecutor getDefaultThreadPoolExecutor(final int nThreads)
-    {
-        return new WorkerThreadPoolExecutor(nThreads, nThreads, 0L, TimeUnit.MILLISECONDS, new LinkedBlockingQueue<>(), () -> System.exit(1));
     }
 
 
@@ -101,10 +86,10 @@ public final class WorkerApplication extends Application<WorkerConfiguration>
         WorkerQueueProvider queueProvider = ModuleLoader.getService(WorkerQueueProvider.class);
         ManagedDataStore store = ModuleLoader.getService(DataStoreProvider.class).getDataStore(config);
         WorkerFactory workerFactory = workerProvider.getWorkerFactory(config, store, codec);
+        WorkerThreadPool wtp = WorkerThreadPool.create(workerFactory);
         final int nThreads = workerFactory.getWorkerThreads();
-        ThreadPoolExecutor tpe = getDefaultThreadPoolExecutor(nThreads);
         ManagedWorkerQueue workerQueue = queueProvider.getWorkerQueue(config, nThreads);
-        WorkerCore core = new WorkerCore(codec, tpe, workerQueue, workerFactory, path);
+        WorkerCore core = new WorkerCore(codec, wtp, workerQueue, workerFactory, path);
         Runtime.getRuntime().addShutdownHook(new Thread()
         {
             @Override
@@ -112,9 +97,9 @@ public final class WorkerApplication extends Application<WorkerConfiguration>
             {
                 LOG.debug("Shutting down");
                 workerQueue.shutdownIncoming();
-                tpe.shutdown();
+                wtp.shutdown();
                 try {
-                    tpe.awaitTermination(10_000, TimeUnit.MILLISECONDS);
+                    wtp.awaitTermination(10_000, TimeUnit.MILLISECONDS);
                 } catch (InterruptedException e) {
                     LOG.warn("Shutdown interrupted", e);
                     Thread.currentThread().interrupt();
@@ -137,7 +122,7 @@ public final class WorkerApplication extends Application<WorkerConfiguration>
 
     private void initCoreMetrics(final MetricRegistry metrics, final WorkerCore core)
     {
-        metrics.register(MetricRegistry.name("core.taskTimer"), WorkerWrapper.getTimer());
+        metrics.register(MetricRegistry.name("core.taskTimer"), StreamingWorkerWrapper.getTimer());
         metrics.register(MetricRegistry.name("core.backlogSize"), (Gauge<Integer>) core::getBacklogSize);
         metrics.register(MetricRegistry.name("core.uptime"), (Gauge<Long>) () -> System.currentTimeMillis() - startTime);
         metrics.register(MetricRegistry.name("core.tasksReceived"), (Gauge<Long>) core.getStats()::getTasksReceived);
