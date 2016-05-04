@@ -104,6 +104,8 @@ public class ReferenceDataValidator extends PropertyValidator {
                 if (!equals) {
                     String message = "Data returned was different than expected for file: " + contentFileName;
                     System.err.println(message);
+                    Path actualFilePath = Paths.get(testDataFolder, contentFileName + "_actual");
+                    Files.write(actualFilePath, actualDataBytes);
                     TestResultHelper.testFailed(message);
                     return false;
                 }
