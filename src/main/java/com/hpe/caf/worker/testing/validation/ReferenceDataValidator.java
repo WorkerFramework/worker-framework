@@ -102,9 +102,12 @@ public class ReferenceDataValidator extends PropertyValidator {
                 byte[] actualDataBytes = IOUtils.toByteArray(dataStream);
                 boolean equals = Arrays.equals(actualDataBytes, expectedFileBytes);
                 if (!equals) {
-                    String message = "Data returned was different than expected for file: " + contentFileName;
+                    String actualContentFileName = contentFileName + "_actual";
+                    String message =
+                            "Data returned was different than expected for file: " + contentFileName +
+                                    "\nActual content saved in file: " + actualContentFileName;
                     System.err.println(message);
-                    Path actualFilePath = Paths.get(testDataFolder, contentFileName + "_actual");
+                    Path actualFilePath = Paths.get(testDataFolder, actualContentFileName);
                     Files.write(actualFilePath, actualDataBytes);
                     TestResultHelper.testFailed(message);
                     return false;
