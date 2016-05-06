@@ -11,7 +11,6 @@ import com.hpe.caf.api.worker.DataStoreException;
 import com.hpe.caf.api.worker.DataStoreMetricsReporter;
 import com.hpe.caf.api.worker.ManagedDataStore;
 import com.hpe.caf.storage.common.crypto.WrappedKey;
-import com.hpe.caf.storage.common.model.AssetStatus;
 import com.hpe.caf.storage.sdk.StorageClient;
 import com.hpe.caf.storage.sdk.exceptions.StorageClientException;
 import com.hpe.caf.storage.sdk.exceptions.StorageServiceConnectException;
@@ -131,15 +130,9 @@ public class StorageServiceDataStore implements ManagedDataStore
         numRx.incrementAndGet();
         CafStoreReference ref = new CafStoreReference(reference);
         try {
-
             AssetMetadata assetMetadata = callStorageService(c -> c.getAssetMetadata(new GetAssetMetadataRequest(accessToken, ref.getContainer(), ref.getAsset())));
-            if ( AssetStatus.ACTIVE.equals(AssetStatus.valueOf(assetMetadata.getStatus())) ) {
-                WrappedKey wrappedKey = callStorageService(c -> c.getAssetContainerEncryptionKey(new GetAssetContainerEncryptionKeyRequest(accessToken, ref.getContainer())));
-                return callStorageService(c -> c.downloadAsset(new DownloadAssetRequest(accessToken, ref.getContainer(), ref.getAsset(), wrappedKey))).getDecryptedStream();
-            } else {
-                errors.incrementAndGet();
-                throw new DataStoreException(String.format("Reference %s is not active.", reference));
-            }
+            WrappedKey wrappedKey = callStorageService(c -> c.getAssetContainerEncryptionKey(new GetAssetContainerEncryptionKeyRequest(accessToken, ref.getContainer())));
+            return callStorageService(c -> c.downloadAsset(new DownloadAssetRequest(accessToken, ref.getContainer(), ref.getAsset(), wrappedKey))).getDecryptedStream();
         } catch (StorageClientException | StorageServiceException | StorageServiceConnectException | IOException e) {
             errors.incrementAndGet();
             throw new DataStoreException("Failed to retrieve data from reference " + reference, e);
@@ -228,7 +221,7 @@ public class StorageServiceDataStore implements ManagedDataStore
         try (InputStream inputStream = byteSource.openBufferedStream()) {
             WrappedKey wrappedKey = callStorageService(c -> c.getAssetContainerEncryptionKey(new GetAssetContainerEncryptionKeyRequest(accessToken, partialReference)));
             AssetMetadata assetMetadata =
-                    callStorageService(c -> c.uploadAsset(new UploadAssetRequest(accessToken, partialReference, UUID.randomUUID().toString(), wrappedKey, inputStream)));
+                    callStorageService(c -> c.uploadAsset(new UploadAssetRequest(accessToken, partialReference, UUID.randomUUID().toString(), wrappedKey, inputStream),null));
             return new CafStoreReference(assetMetadata.getContainerId(), assetMetadata.getAssetId()).toString();
         } catch (IOException e) {
             errors.incrementAndGet();
