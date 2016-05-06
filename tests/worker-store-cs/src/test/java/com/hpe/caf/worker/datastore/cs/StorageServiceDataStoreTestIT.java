@@ -17,9 +17,16 @@ import static junit.framework.Assert.assertEquals;
 
 public class StorageServiceDataStoreTestIT {
 
-    private static final String SERVER_NAME = "a1-dev-api035.lab.lynx-connected.com";
-    private static final int SERVER_PORT = 8443;
-    private static final String CONTAINER_ID = "0a1b8e24cc44490888b3d8d8ebba8309";
+    private static final String SERVER_NAME = "a1-dev-mem031.lab.lynx-connected.com";
+    private static final int SERVER_PORT = 9444;
+    private static final String AUTH_CONFIG_SERVER_NAME = "a1-dev-hap045.lab.lynx-connected.com";
+    private static final int AUTH_CONFIG_PORT = 8443;
+    private static final String AUTH_CONFIG_USERNAME = "caf_store_bfs@groups.int.hpe.com";
+    private static final String AUTH_CONFIG_PASSWORD = "Password1";
+    private static final String AUTH_CONFIG_CLIENT_NAME = "direct-grant-client";
+    private static final String AUTH_CONFIG_CLIENT_SECRET = "34a868ed-b2a3-4433-bca3-d60cabcd79df";
+    private static final String AUTH_CONFIG_REALM = "caf";
+    private static final String CONTAINER_ID = "c82335049236404ba86529e9afacba39";
 
     private static final String TEST_STRING = " ং ঃ অ আ ই ঈ উ ঊ ঋ ঌ এ ঐ ও ঔ ক খ গ ঘ ঙ চ ছ জ ঝ ঞ ট ঠ";
 
@@ -30,6 +37,16 @@ public class StorageServiceDataStoreTestIT {
         StorageServiceDataStoreConfiguration storageServiceDataStoreConfiguration = new StorageServiceDataStoreConfiguration();
         storageServiceDataStoreConfiguration.setServerName(SERVER_NAME);
         storageServiceDataStoreConfiguration.setPort(SERVER_PORT);
+
+        KeycloakAuthenticationConfiguration keycloakAuthenticationConfiguration = new KeycloakAuthenticationConfiguration();
+        keycloakAuthenticationConfiguration.setClientName(AUTH_CONFIG_CLIENT_NAME);
+        keycloakAuthenticationConfiguration.setClientSecret(AUTH_CONFIG_CLIENT_SECRET);
+        keycloakAuthenticationConfiguration.setPassword(AUTH_CONFIG_PASSWORD);
+        keycloakAuthenticationConfiguration.setPort(AUTH_CONFIG_PORT);
+        keycloakAuthenticationConfiguration.setServerName(AUTH_CONFIG_SERVER_NAME);
+        keycloakAuthenticationConfiguration.setRealm(AUTH_CONFIG_REALM);
+        keycloakAuthenticationConfiguration.setUserName(AUTH_CONFIG_USERNAME);
+        storageServiceDataStoreConfiguration.setAuthenticationConfiguration(keycloakAuthenticationConfiguration);
 
         storageServiceDataStore = new StorageServiceDataStore(storageServiceDataStoreConfiguration);
     }
@@ -57,4 +74,5 @@ public class StorageServiceDataStoreTestIT {
         String storedString = IOUtils.toString(inputStream, StandardCharsets.UTF_8);
         assertEquals(TEST_STRING, storedString);
     }
+
 }
