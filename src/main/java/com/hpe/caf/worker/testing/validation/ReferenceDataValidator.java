@@ -18,6 +18,7 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.nio.file.StandardOpenOption;
 import java.util.Arrays;
 
 /**
@@ -103,12 +104,13 @@ public class ReferenceDataValidator extends PropertyValidator {
                 boolean equals = Arrays.equals(actualDataBytes, expectedFileBytes);
                 if (!equals) {
                     String actualContentFileName = contentFileName + "_actual";
+                    Path actualFilePath = Paths.get(testDataFolder, actualContentFileName);
+                    Files.deleteIfExists(actualFilePath);
+                    Files.write(actualFilePath, actualDataBytes, StandardOpenOption.CREATE);
                     String message =
                             "Data returned was different than expected for file: " + contentFileName +
-                                    "\nActual content saved in file: " + actualContentFileName;
+                                    "\nActual content saved in file: " + actualFilePath.toString();
                     System.err.println(message);
-                    Path actualFilePath = Paths.get(testDataFolder, actualContentFileName);
-                    Files.write(actualFilePath, actualDataBytes);
                     TestResultHelper.testFailed(message);
                     return false;
                 }
