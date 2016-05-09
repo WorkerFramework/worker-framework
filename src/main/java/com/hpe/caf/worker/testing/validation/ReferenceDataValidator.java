@@ -103,8 +103,8 @@ public class ReferenceDataValidator extends PropertyValidator {
                 byte[] actualDataBytes = IOUtils.toByteArray(dataStream);
                 boolean equals = Arrays.equals(actualDataBytes, expectedFileBytes);
                 if (!equals) {
-                    String actualContentFileName = contentFileName + "_actual";
-                    Path actualFilePath = Paths.get(testDataFolder, actualContentFileName);
+                    String actualContentFileName = contentFile.getFileName() + "_actual";
+                    Path actualFilePath = Paths.get(contentFile.getParent().toString(), actualContentFileName);
                     Files.deleteIfExists(actualFilePath);
                     Files.write(actualFilePath, actualDataBytes, StandardOpenOption.CREATE);
                     String message =
