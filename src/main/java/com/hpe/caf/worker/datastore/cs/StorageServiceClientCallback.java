@@ -32,7 +32,7 @@ public class StorageServiceClientCallback implements StorageClientCallback {
                 accessToken = keycloakClient.getAccessToken();
             } catch (IOException e) {
                 LOG.error("Failed to retrieve access token.");
-                e.printStackTrace();
+                throw new StorageClientException("Failed to retrieve access token.", e);
             }
         }
 
