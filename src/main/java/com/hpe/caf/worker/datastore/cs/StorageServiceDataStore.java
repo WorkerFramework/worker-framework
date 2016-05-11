@@ -16,6 +16,7 @@ import com.hpe.caf.storage.sdk.exceptions.StorageClientException;
 import com.hpe.caf.storage.sdk.exceptions.StorageServiceConnectException;
 import com.hpe.caf.storage.sdk.exceptions.StorageServiceException;
 import com.hpe.caf.storage.sdk.model.AssetMetadata;
+import com.hpe.caf.storage.sdk.model.StorageClientConfig;
 import com.hpe.caf.storage.sdk.model.StorageServiceInfo;
 import com.hpe.caf.storage.sdk.model.StorageServiceStatus;
 import com.hpe.caf.storage.sdk.model.requests.*;
@@ -60,8 +61,12 @@ public class StorageServiceDataStore implements ManagedDataStore
 
     public StorageServiceDataStore(final StorageServiceDataStoreConfiguration storageServiceDataStoreConfiguration)
     {
+        StorageServiceClientCallback callBack = new StorageServiceClientCallback(storageServiceDataStoreConfiguration);
+
         storageClient = new StorageClient(storageServiceDataStoreConfiguration.getServerName(),
-                String.valueOf(storageServiceDataStoreConfiguration.getPort()));
+                String.valueOf(storageServiceDataStoreConfiguration.getPort()),
+                null,
+                callBack);
 
         keycloakClient = storageServiceDataStoreConfiguration.getAuthenticationConfiguration() != null ? new KeycloakClient(storageServiceDataStoreConfiguration.getAuthenticationConfiguration()) : null;
     }
