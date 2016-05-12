@@ -59,7 +59,7 @@ public class StorageServiceDataStore implements ManagedDataStore
     private static final int FILE_THRESHOLD = 1024 * 1024;
 
 
-    public StorageServiceDataStore(final StorageServiceDataStoreConfiguration storageServiceDataStoreConfiguration)
+    public StorageServiceDataStore(final StorageServiceDataStoreConfiguration storageServiceDataStoreConfiguration, final KeycloakClient keycloak)
     {
         StorageServiceClientCallback callBack = new StorageServiceClientCallback(storageServiceDataStoreConfiguration);
 
@@ -68,7 +68,7 @@ public class StorageServiceDataStore implements ManagedDataStore
                 null,
                 callBack);
 
-        keycloakClient = storageServiceDataStoreConfiguration.getAuthenticationConfiguration() != null ? new KeycloakClient(storageServiceDataStoreConfiguration.getAuthenticationConfiguration()) : null;
+        keycloakClient = keycloak;
     }
 
 
