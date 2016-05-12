@@ -122,7 +122,7 @@
             <dependency>
                 <groupId>com.hpe.caf.worker</groupId>
                 <artifactId>worker-store-cs</artifactId>
-                <version>10.6-SNAPSHOT</version>
+                <version>10.7-SNAPSHOT</version>
                 <exclusions>
                     <exclusion>
                         <groupId>javax.ws.rs</groupId>
