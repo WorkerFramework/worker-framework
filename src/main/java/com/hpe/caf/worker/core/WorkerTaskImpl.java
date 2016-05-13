@@ -1,16 +1,7 @@
 package com.hpe.caf.worker.core;
 
 import com.google.common.base.MoreObjects;
-import com.hpe.caf.api.worker.InvalidTaskException;
-import com.hpe.caf.api.worker.TaskMessage;
-import com.hpe.caf.api.worker.TaskRejectedException;
-import com.hpe.caf.api.worker.TaskStatus;
-import com.hpe.caf.api.worker.TrackingInfo;
-import com.hpe.caf.api.worker.Worker;
-import com.hpe.caf.api.worker.WorkerCallback;
-import com.hpe.caf.api.worker.WorkerFactory;
-import com.hpe.caf.api.worker.WorkerResponse;
-import com.hpe.caf.api.worker.WorkerTask;
+import com.hpe.caf.api.worker.*;
 import com.hpe.caf.naming.ServicePath;
 import java.util.Collections;
 import java.util.Map;
@@ -76,6 +67,11 @@ class WorkerTaskImpl implements WorkerTask
     }
 
     @Override
+    public TaskSourceInfo getSourceInfo() {
+        return taskMessage.getSourceInfo();
+    }
+
+    @Override
     public void setResponse(final WorkerResponse response) {
         ensureSingleResponse();
 
@@ -89,7 +85,8 @@ class WorkerTaskImpl implements WorkerTask
             taskMessage.getTaskId(), response.getMessageType(),
             response.getApiVersion(), response.getData(),
             response.getTaskStatus(), responseContext,
-            response.getQueueReference(), taskMessage.getTracking());
+            response.getQueueReference(), taskMessage.getTracking(),
+            new TaskSourceInfo(response.getMessageType(), response.getWorkerVersion()));
 
         workerCallback.complete(
             messageId, response.getQueueReference(), responseMessage);
