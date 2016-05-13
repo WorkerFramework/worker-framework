@@ -3,11 +3,7 @@ package com.hpe.caf.worker;
 
 import com.hpe.caf.api.Codec;
 import com.hpe.caf.api.CodecException;
-import com.hpe.caf.api.worker.InvalidTaskException;
-import com.hpe.caf.api.worker.TaskFailedException;
-import com.hpe.caf.api.worker.TaskStatus;
-import com.hpe.caf.api.worker.Worker;
-import com.hpe.caf.api.worker.WorkerResponse;
+import com.hpe.caf.api.worker.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -30,8 +26,10 @@ public abstract class AbstractWorker<T,V> implements Worker
     private final T task;
     private final String resultQueue;
     private final Codec codec;
+    private WorkerConfiguration configuration;
     private static final Logger LOG = LoggerFactory.getLogger(AbstractWorker.class);
     private static final Validator validator = Validation.buildDefaultValidatorFactory().getValidator();
+    private static final String WORKER_VERSION_UNKNOWN = "UNKNOWN";
 
 
     /**
@@ -55,11 +53,22 @@ public abstract class AbstractWorker<T,V> implements Worker
     }
 
 
+    @Override
+    public void setConfiguration(WorkerConfiguration configuration) {
+        this.configuration = configuration;
+    }
+
+
+    @Override
+    public final String getWorkerVersion() {
+        return configuration == null ? WORKER_VERSION_UNKNOWN : configuration.getWorkerVersion();
+    }
+
 
     @Override
     public final WorkerResponse getGeneralFailureResult(final Throwable t)
     {
-        return new WorkerResponse(getResultQueue(), TaskStatus.RESULT_EXCEPTION, getExceptionData(t), getWorkerIdentifier(), getWorkerApiVersion(), null);
+        return new WorkerResponse(getResultQueue(), TaskStatus.RESULT_EXCEPTION, getExceptionData(t), getWorkerIdentifier(), getWorkerApiVersion(), null, getWorkerVersion());
     }
 
 
@@ -111,7 +120,7 @@ public abstract class AbstractWorker<T,V> implements Worker
     {
         try {
             byte[] data = ( result != null ? getCodec().serialise(result) : new byte[]{} );
-            return new WorkerResponse(getResultQueue(), TaskStatus.RESULT_SUCCESS, data, getWorkerIdentifier(), getWorkerApiVersion(), context);
+            return new WorkerResponse(getResultQueue(), TaskStatus.RESULT_SUCCESS, data, getWorkerIdentifier(), getWorkerApiVersion(), context, getWorkerVersion());
         } catch (CodecException e) {
             throw new TaskFailedException("Failed to serialise result", e);
         }
@@ -139,7 +148,7 @@ public abstract class AbstractWorker<T,V> implements Worker
     {
         try {
             byte[] data = ( result != null ? getCodec().serialise(result) : new byte[]{} );
-            return new WorkerResponse(getResultQueue(), TaskStatus.RESULT_FAILURE, data, getWorkerIdentifier(), getWorkerApiVersion(), context);
+            return new WorkerResponse(getResultQueue(), TaskStatus.RESULT_FAILURE, data, getWorkerIdentifier(), getWorkerApiVersion(), context, getWorkerVersion());
         } catch (CodecException e) {
             throw new TaskFailedException("Failed to serialise result", e);
         }
@@ -174,7 +183,7 @@ public abstract class AbstractWorker<T,V> implements Worker
     protected final WorkerResponse createTaskSubmission(final String queue, final byte[] data, final String messageIdentifier, final int messageApiVersion,
                                                         final byte[] context)
     {
-        return new WorkerResponse(queue, TaskStatus.NEW_TASK, data, messageIdentifier, messageApiVersion, context);
+        return new WorkerResponse(queue, TaskStatus.NEW_TASK, data, messageIdentifier, messageApiVersion, context, getWorkerVersion());
     }
 
 

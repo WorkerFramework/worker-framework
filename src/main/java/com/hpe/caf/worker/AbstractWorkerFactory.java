@@ -19,7 +19,7 @@ import java.util.Objects;
  * @param <T> the Worker Task type parameter
  * @since 9.0
  */
-public abstract class AbstractWorkerFactory<C, T> implements WorkerFactory
+public abstract class AbstractWorkerFactory<C extends WorkerConfiguration, T> implements WorkerFactory
 {
     private final DataStore dataStore;
     private final C configuration;
@@ -59,7 +59,9 @@ public abstract class AbstractWorkerFactory<C, T> implements WorkerFactory
     public final Worker getWorker(final String classifier, final int version, final TaskStatus status, final byte[] data, final byte[] context, TrackingInfo tracking)
         throws TaskRejectedException, InvalidTaskException
     {
-        return createWorker(verifyWorkerTask(classifier, version, data), tracking);
+        Worker worker = createWorker(verifyWorkerTask(classifier, version, data), tracking);
+        worker.setConfiguration(configuration);
+        return worker;
     }
 
 
