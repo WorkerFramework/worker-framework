@@ -31,7 +31,7 @@
             <dependency>
                 <groupId>com.hpe.caf</groupId>
                 <artifactId>storage-sdk</artifactId>
-                <version>3.0.0.62</version>
+                <version>3.0.0.67</version>
             </dependency>
             <dependency>
                 <groupId>com.hpe.caf.cipher</groupId>
