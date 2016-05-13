@@ -23,6 +23,13 @@ package com.hpe.caf.api.worker;
 public interface Worker
 {
     /**
+     * This method provides a means to explicitly supply configuration to a worker instance.
+     * @param configuration worker configuration
+     */
+    void setConfiguration(WorkerConfiguration configuration);
+
+
+    /**
      * Start the work on a task.
      * @return the result of the worker operation, and appropriate result data
      * @throws InterruptedException indicates that the task is being aborted as requested by the framework
@@ -46,6 +53,14 @@ public interface Worker
      * @return a numeral that identifies the API version of the worker
      */
     int getWorkerApiVersion();
+
+
+    /**
+     * This should return a string that identifies the build version of the worker. Internal code-logic
+     * changes will affect the Worker Version.
+     * @return a string that identifies the build version of the worker
+     */
+    String getWorkerVersion();
 
 
     /**

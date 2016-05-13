@@ -36,6 +36,11 @@ public interface WorkerTask {
     TrackingInfo getTrackingInfo();
 
     /**
+     * Retrieves information relating to the source of the task
+     */
+    TaskSourceInfo getSourceInfo();
+
+    /**
      * Used by the Worker to set the response to the task.
      */
     void setResponse(WorkerResponse response);

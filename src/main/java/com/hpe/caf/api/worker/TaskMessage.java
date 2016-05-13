@@ -14,7 +14,7 @@ import javax.validation.constraints.NotNull;
  */
 public final class TaskMessage
 {
-    public static final int TASK_MESSAGE_VERSION = 2;
+    public static final int TASK_MESSAGE_VERSION = 3;
 
     /**
      * The version of this TaskMessage wrapper.
@@ -67,6 +67,11 @@ public final class TaskMessage
      */
     private TrackingInfo tracking;
 
+    /**
+     * Information about the source of the task message.
+     */
+    private TaskSourceInfo sourceInfo;
+
 
     public TaskMessage(){ }
 
@@ -88,6 +93,13 @@ public final class TaskMessage
     public TaskMessage(final String taskId, final String taskClassifier, final int taskApiVersion, final byte[] taskData,
                        final TaskStatus taskStatus, final Map<String, byte[]> context, final String to, final TrackingInfo tracking)
     {
+        this(taskId, taskClassifier, taskApiVersion, taskData, taskStatus, context, to, tracking, null);
+    }
+
+
+    public TaskMessage(final String taskId, final String taskClassifier, final int taskApiVersion, final byte[] taskData,
+                       final TaskStatus taskStatus, final Map<String, byte[]> context, final String to, final TrackingInfo tracking, final TaskSourceInfo sourceInfo)
+    {
         this.taskId = Objects.requireNonNull(taskId);
         this.taskClassifier = Objects.requireNonNull(taskClassifier);
         this.taskApiVersion = Objects.requireNonNull(taskApiVersion);
@@ -96,6 +108,7 @@ public final class TaskMessage
         this.context = Objects.requireNonNull(context);
         this.to = to;
         this.tracking = tracking;
+        this.sourceInfo = sourceInfo;
     }
 
 
@@ -200,5 +213,15 @@ public final class TaskMessage
 
     public void setTracking(TrackingInfo tracking) {
         this.tracking = tracking;
+    }
+
+
+    public TaskSourceInfo getSourceInfo() {
+        return sourceInfo;
+    }
+
+
+    public void setSourceInfo(TaskSourceInfo sourceInfo) {
+        this.sourceInfo = sourceInfo;
     }
 }
