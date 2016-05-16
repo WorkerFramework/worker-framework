@@ -1,4 +1,5 @@
 {
+        "workerVersion": "1.0-SNAPSHOT",
         "outputQueue": "example-output-1",
         "threads": 1,
         "resultSizeThreshold": 1024
