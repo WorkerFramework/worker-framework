@@ -17,6 +17,7 @@ will then be made available either directly as a byte array or as a reference vi
 This Worker uses the standard `caf-api` system of `ConfigurationSource` only.
 The configuration class is `ExampleWorkerConfiguration`, which has several options:
 
+- `workerVersion`: the version number of the worker
 - `outputQueue`: the name of the queue to put results upon
 - `threads`: the number of threads to be used to host this Worker
 - `resultSizeThreshold`: the result size limit (in bytes) at which the result
