@@ -11,6 +11,7 @@ import org.slf4j.LoggerFactory;
 
 class WorkerTaskImpl implements WorkerTask
 {
+    private static final String WORKER_VERSION_UNKNOWN = "UNKNOWN";
     private static final Logger LOG = LoggerFactory.getLogger(WorkerTaskImpl.class);
 
     private final ServicePath servicePath;
@@ -86,7 +87,8 @@ class WorkerTaskImpl implements WorkerTask
             response.getApiVersion(), response.getData(),
             response.getTaskStatus(), responseContext,
             response.getQueueReference(), taskMessage.getTracking(),
-            new TaskSourceInfo(response.getMessageType(), response.getWorkerVersion()));
+            new TaskSourceInfo(response.getMessageType(),
+                    workerFactory.getWorkerConfiguration() == null ? WORKER_VERSION_UNKNOWN : workerFactory.getWorkerConfiguration().getWorkerVersion()));
 
         workerCallback.complete(
             messageId, response.getQueueReference(), responseMessage);
