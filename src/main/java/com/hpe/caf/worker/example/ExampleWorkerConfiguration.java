@@ -1,5 +1,7 @@
 package com.hpe.caf.worker.example;
 
+import com.hpe.caf.api.worker.WorkerConfiguration;
+
 import javax.validation.constraints.Max;
 import javax.validation.constraints.Min;
 import javax.validation.constraints.NotNull;
@@ -8,7 +10,7 @@ import javax.validation.constraints.Size;
 /**
  * Configuration for the ExampleWorker, read in from test-configs/cfg_test_worker-example-ExampleWorkerConfiguration.
  */
-public class ExampleWorkerConfiguration {
+public class ExampleWorkerConfiguration extends WorkerConfiguration {
 
     /**
      * Output queue to return results to RabbitMQ.
