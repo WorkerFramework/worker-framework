@@ -16,13 +16,6 @@ public class WorkerResponse
     private final String messageType;
     private final int apiVersion;
     private final byte[] context;
-    private final String workerVersion;
-
-
-    public WorkerResponse(final String queue, final TaskStatus status, final byte[] data, final String msgType, final int version, final byte[] context)
-    {
-        this(queue, status, data, msgType, version, context, null);
-    }
 
 
     /**
@@ -33,9 +26,8 @@ public class WorkerResponse
      * @param msgType the task-specific message classifier
      * @param version the task-specific message API version
      * @param context the new context to add to the task message, can be null
-     * @param workerVersion the version of the worker producing this response, can be null
      */
-    public WorkerResponse(final String queue, final TaskStatus status, final byte[] data, final String msgType, final int version, final byte[] context, final String workerVersion)
+    public WorkerResponse(final String queue, final TaskStatus status, final byte[] data, final String msgType, final int version, final byte[] context)
     {
         this.queueReference = Objects.requireNonNull(queue);
         this.taskStatus = Objects.requireNonNull(status);
@@ -43,7 +35,6 @@ public class WorkerResponse
         this.messageType = Objects.requireNonNull(msgType);
         this.apiVersion = version;
         this.context = context;
-        this.workerVersion = workerVersion;
     }
 
 
@@ -80,10 +71,5 @@ public class WorkerResponse
     public byte[] getContext()
     {
         return context;
-    }
-
-
-    public String getWorkerVersion() {
-        return workerVersion;
     }
 }

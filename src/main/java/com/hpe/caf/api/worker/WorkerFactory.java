@@ -28,6 +28,14 @@ public interface WorkerFactory extends HealthReporter
 
 
     /**
+     * @return the configuration used to instantiate workers.
+     */
+    default WorkerConfiguration getWorkerConfiguration() {
+        return null;
+    }
+
+
+    /**
      * @return the queue to put responses to invalid tasks upon, may be the same as the Worker's result queue
      */
     String getInvalidTaskQueue();
