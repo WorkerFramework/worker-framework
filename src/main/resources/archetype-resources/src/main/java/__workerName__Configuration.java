@@ -11,7 +11,7 @@ import javax.validation.constraints.Size;
 /**
  * Configuration for the ${workerName}, read in from test-configs/cfg_test_${artifactId}-${workerName}Configuration.
  */
-public class ${workerName}Configuration {
+public class ${workerName}Configuration extends WorkerConfiguration {
 
     /**
      * Output queue to return results to RabbitMQ.
