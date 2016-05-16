@@ -16,16 +16,17 @@ import com.hpe.caf.storage.sdk.exceptions.StorageClientException;
 import com.hpe.caf.storage.sdk.exceptions.StorageServiceConnectException;
 import com.hpe.caf.storage.sdk.exceptions.StorageServiceException;
 import com.hpe.caf.storage.sdk.model.AssetMetadata;
-import com.hpe.caf.storage.sdk.model.StorageClientConfig;
 import com.hpe.caf.storage.sdk.model.StorageServiceInfo;
 import com.hpe.caf.storage.sdk.model.StorageServiceStatus;
 import com.hpe.caf.storage.sdk.model.requests.*;
+import org.apache.http.NameValuePair;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.file.Path;
+import java.util.List;
 import java.util.UUID;
 import java.util.concurrent.atomic.AtomicInteger;
 
@@ -58,6 +59,7 @@ public class StorageServiceDataStore implements ManagedDataStore
      */
     private static final int FILE_THRESHOLD = 1024 * 1024;
 
+    private static final String DELEGATION_TICKET_NAMED_PARAMETER = "delegationTicket";
 
     public StorageServiceDataStore(final StorageServiceDataStoreConfiguration storageServiceDataStoreConfiguration, final KeycloakClient keycloak)
     {
@@ -114,11 +116,44 @@ public class StorageServiceDataStore implements ManagedDataStore
     public void delete(String reference) throws DataStoreException {
         LOG.debug("Received delete request for {}", reference);
         numDx.incrementAndGet();
-        CafStoreReference ref = new CafStoreReference(reference);
+
+        //  Parse incoming reference. Extract container and asset identifiers
+        //  as well as any delegation ticket provided.
+        Reference refToParse = new Reference(reference);
+        ReferenceComponents refComponents = refToParse.parse();
+
+        String delegationTicket = null;
+        String containerId = refComponents.getContainerId();
+        String assetId = refComponents.getAssetId();
+        List<NameValuePair> params = refComponents.getNameValueCollection();
+        if (params != null && !params.isEmpty()) {
+            for (NameValuePair nvp : params) {
+                if (nvp.getName().equals(DELEGATION_TICKET_NAMED_PARAMETER)) {
+                    delegationTicket = nvp.getValue();
+                    break;
+                }
+            }
+        }
+
+        //  If delegation ticket (or any other named parameter) has been provided, then create a new
+        //  CafStoreReference from the container and asset id components of the reference.
+        CafStoreReference ref;
+        if (delegationTicket != null) {
+            ref = new CafStoreReference(containerId, assetId);
+        } else {
+            ref = new CafStoreReference(reference);
+        }
 
         try {
+            DeleteAssetRequest deleteAssetRequest = new DeleteAssetRequest(accessToken, ref.getContainer(), ref.getAsset());
+
+            //  If delegation ticket has been provided then set it as part of the upload request.
+            if (delegationTicket != null && !delegationTicket.isEmpty()) {
+                deleteAssetRequest.setDelegationTicket(delegationTicket);
+            }
+
             callStorageService(c ->  {
-                c.deleteAsset(new DeleteAssetRequest(accessToken, ref.getContainer(), ref.getAsset()));
+                c.deleteAsset(deleteAssetRequest);
                 return null; // Added return to satisfy functional interface
             });
         } catch (StorageServiceConnectException | StorageClientException | StorageServiceException | IOException e) {
@@ -133,11 +168,46 @@ public class StorageServiceDataStore implements ManagedDataStore
     {
         LOG.debug("Received retrieve request for {}", reference);
         numRx.incrementAndGet();
-        CafStoreReference ref = new CafStoreReference(reference);
+
+        //  Parse incoming reference. Extract container and asset identifiers
+        //  as well as any delegation ticket provided.
+        Reference refToParse = new Reference(reference);
+        ReferenceComponents refComponents = refToParse.parse();
+
+        String delegationTicket = null;
+        String containerId = refComponents.getContainerId();
+        String assetId = refComponents.getAssetId();
+        List<NameValuePair> params = refComponents.getNameValueCollection();
+        if (params != null && !params.isEmpty()) {
+            for (NameValuePair nvp : params) {
+                if (nvp.getName().equals(DELEGATION_TICKET_NAMED_PARAMETER)) {
+                    delegationTicket = nvp.getValue();
+                    break;
+                }
+            }
+        }
+
+        //  If delegation ticket (or any other named parameter) has been provided, then create a new
+        //  CafStoreReference from the container and asset id components of the reference.
+        CafStoreReference ref;
+        if (delegationTicket != null) {
+            ref = new CafStoreReference(containerId, assetId);
+        } else {
+            ref = new CafStoreReference(reference);
+        }
+
         try {
             AssetMetadata assetMetadata = callStorageService(c -> c.getAssetMetadata(new GetAssetMetadataRequest(accessToken, ref.getContainer(), ref.getAsset())));
             WrappedKey wrappedKey = callStorageService(c -> c.getAssetContainerEncryptionKey(new GetAssetContainerEncryptionKeyRequest(accessToken, ref.getContainer())));
-            return callStorageService(c -> c.downloadAsset(new DownloadAssetRequest(accessToken, ref.getContainer(), ref.getAsset(), wrappedKey))).getDecryptedStream();
+
+            DownloadAssetRequest downloadAssetRequest = new DownloadAssetRequest(accessToken, ref.getContainer(), ref.getAsset(), wrappedKey);
+
+            //  If delegation ticket has been provided then set it as part of the upload request.
+            if (delegationTicket != null && !delegationTicket.isEmpty()) {
+                downloadAssetRequest.setDelegationTicket(delegationTicket);
+            }
+
+            return callStorageService(c -> c.downloadAsset(downloadAssetRequest)).getDecryptedStream();
         } catch (StorageClientException | StorageServiceException | StorageServiceConnectException | IOException e) {
             errors.incrementAndGet();
             throw new DataStoreException("Failed to retrieve data from reference " + reference, e);
@@ -219,14 +289,39 @@ public class StorageServiceDataStore implements ManagedDataStore
     }
 
     private String store(ByteSource byteSource, String partialReference)
-        throws DataStoreException
-    {
+            throws DataStoreException {
+
         LOG.debug("Received store request for {}", partialReference);
         numTx.incrementAndGet();
+
+        //  Parse incoming partial reference. Extract container identifier
+        //  and delegation ticket if provided.
+        Reference ref = new Reference(partialReference);
+        ReferenceComponents refComponents = ref.parse();
+
+        String delegationTicket = null;
+        String containerId = refComponents.getContainerId();
+        List<NameValuePair> params = refComponents.getNameValueCollection();
+        if (params != null && !params.isEmpty()) {
+            for (NameValuePair nvp : params) {
+                if (nvp.getName().equals(DELEGATION_TICKET_NAMED_PARAMETER)) {
+                    delegationTicket = nvp.getValue();
+                    break;
+                }
+            }
+        }
+
         try (InputStream inputStream = byteSource.openBufferedStream()) {
-            WrappedKey wrappedKey = callStorageService(c -> c.getAssetContainerEncryptionKey(new GetAssetContainerEncryptionKeyRequest(accessToken, partialReference)));
+            WrappedKey wrappedKey = callStorageService(c -> c.getAssetContainerEncryptionKey(new GetAssetContainerEncryptionKeyRequest(accessToken, containerId)));
+            UploadAssetRequest uploadRequest = new UploadAssetRequest(accessToken, containerId, UUID.randomUUID().toString(), wrappedKey, inputStream);
+
+            //  If delegation ticket has been provided then set it as part of the upload request.
+            if (delegationTicket != null && !delegationTicket.isEmpty()) {
+                uploadRequest.setDelegationTicket(delegationTicket);
+            }
+
             AssetMetadata assetMetadata =
-                    callStorageService(c -> c.uploadAsset(new UploadAssetRequest(accessToken, partialReference, UUID.randomUUID().toString(), wrappedKey, inputStream),null));
+                    callStorageService(c -> c.uploadAsset(uploadRequest,null));
             return new CafStoreReference(assetMetadata.getContainerId(), assetMetadata.getAssetId()).toString();
         } catch (IOException e) {
             errors.incrementAndGet();
