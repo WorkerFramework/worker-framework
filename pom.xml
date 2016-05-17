@@ -36,7 +36,7 @@
         <dependency>
             <groupId>org.keycloak</groupId>
             <artifactId>keycloak-adapter-core</artifactId>
-            <version>1.9.4.Final</version>
+            <version>1.9.2.Final</version>
         </dependency>
         <dependency>
             <groupId>org.apache.httpcomponents</groupId>
