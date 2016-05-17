@@ -2,7 +2,6 @@ package com.hpe.caf.api.worker;
 
 
 import com.hpe.caf.api.HealthReporter;
-import sun.reflect.generics.reflectiveObjects.NotImplementedException;
 
 
 /**
@@ -25,7 +24,7 @@ public interface WorkerFactory extends HealthReporter
      * @throws InvalidTaskException if it appears this task cannot possibly be handled by a Worker of this type
      */
     default Worker getWorker(String classifier, int version, TaskStatus status, byte[] data, byte[] context, TrackingInfo tracking)
-        throws TaskRejectedException, InvalidTaskException {throw new NotImplementedException();}
+        throws TaskRejectedException, InvalidTaskException {throw new UnsupportedOperationException();}
 
     default Worker getWorker(WorkerTaskData workerTask)
             throws TaskRejectedException, InvalidTaskException {
