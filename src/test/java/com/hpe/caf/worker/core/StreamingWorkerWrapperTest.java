@@ -38,7 +38,7 @@ public class StreamingWorkerWrapperTest
         Codec codec = new JsonCodec();
         WorkerFactory happyWorkerFactory = Mockito.mock(WorkerFactory.class);
         Worker happyWorker = getWorker(new TestWorkerTask(), codec);
-        Mockito.when(happyWorkerFactory.getWorker(Mockito.any(), Mockito.anyInt(), Mockito.any(), Mockito.any(), Mockito.any(), Mockito.any())).thenReturn(happyWorker);
+        Mockito.when(happyWorkerFactory.getWorker(Mockito.any())).thenReturn(happyWorker);
         String queueMsgId = "success";
         CountDownLatch latch = new CountDownLatch(1);
         TestCallback callback = new TestCallback(latch);
@@ -68,7 +68,7 @@ public class StreamingWorkerWrapperTest
         Codec codec = new JsonCodec();
         WorkerFactory happyWorkerFactory = Mockito.mock(WorkerFactory.class);
         Worker happyWorker = getRedirectWorker(new TestWorkerTask(), codec);
-        Mockito.when(happyWorkerFactory.getWorker(Mockito.any(), Mockito.anyInt(), Mockito.any(), Mockito.any(), Mockito.any(), Mockito.any())).thenReturn(happyWorker);
+        Mockito.when(happyWorkerFactory.getWorker(Mockito.any())).thenReturn(happyWorker);
         String queueMsgId = "success";
         CountDownLatch latch = new CountDownLatch(1);
         TestCallback callback = new TestCallback(latch);
@@ -96,7 +96,7 @@ public class StreamingWorkerWrapperTest
         Codec codec = new JsonCodec();
         WorkerFactory happyWorkerFactory = Mockito.mock(WorkerFactory.class);
         Worker happyWorker = Mockito.spy(getWorker(new TestWorkerTask(), codec));
-        Mockito.when(happyWorkerFactory.getWorker(Mockito.any(), Mockito.anyInt(), Mockito.any(), Mockito.any(), Mockito.any(), Mockito.any())).thenReturn(happyWorker);
+        Mockito.when(happyWorkerFactory.getWorker(Mockito.any())).thenReturn(happyWorker);
         Mockito.when(happyWorker.doWork()).thenAnswer(invocationOnMock -> {
             throw new TaskFailedException("whoops");
         });
@@ -132,7 +132,7 @@ public class StreamingWorkerWrapperTest
         Codec codec = new JsonCodec();
         WorkerFactory happyWorkerFactory = Mockito.mock(WorkerFactory.class);
         Worker happyWorker = Mockito.spy(getWorker(new TestWorkerTask(), codec));
-        Mockito.when(happyWorkerFactory.getWorker(Mockito.any(), Mockito.anyInt(), Mockito.any(), Mockito.any(), Mockito.any(), Mockito.any())).thenReturn(happyWorker);
+        Mockito.when(happyWorkerFactory.getWorker(Mockito.any())).thenReturn(happyWorker);
         Mockito.when(happyWorker.doWork()).thenAnswer(invocationOnMock -> {
             throw new InterruptedException("interrupting!");
         });
@@ -157,7 +157,7 @@ public class StreamingWorkerWrapperTest
         Codec codec = new JsonCodec();
         WorkerFactory happyWorkerFactory = Mockito.mock(WorkerFactory.class);
         Worker happyWorker = Mockito.spy(getWorker(new TestWorkerTask(), codec));
-        Mockito.when(happyWorkerFactory.getWorker(Mockito.any(), Mockito.anyInt(), Mockito.any(), Mockito.any(), Mockito.any(), Mockito.any())).thenReturn(happyWorker);
+        Mockito.when(happyWorkerFactory.getWorker(Mockito.any())).thenReturn(happyWorker);
         Mockito.when(happyWorker.doWork()).thenAnswer(invocationOnMock -> {
             throw new TaskRejectedException("bye!");
         });

@@ -215,7 +215,7 @@ public class WorkerCoreTest
     {
         WorkerFactory factory = Mockito.mock(WorkerFactory.class);
         Worker mockWorker = getWorker(task, codec);
-        Mockito.when(factory.getWorker(Mockito.any(), Mockito.anyInt(), Mockito.any(), Mockito.any(), Mockito.any(), Mockito.any())).thenReturn(mockWorker);
+        Mockito.when(factory.getWorker(Mockito.any())).thenReturn(mockWorker);
         return factory;
     }
 
@@ -223,7 +223,7 @@ public class WorkerCoreTest
         throws WorkerException
     {
         WorkerFactory factory = Mockito.mock(WorkerFactory.class);
-        Mockito.when(factory.getWorker(Mockito.any(), Mockito.anyInt(), Mockito.any(), Mockito.any(), Mockito.any(), Mockito.any())).thenThrow(InvalidTaskException.class);
+        Mockito.when(factory.getWorker(Mockito.any())).thenThrow(InvalidTaskException.class);
         Mockito.when(factory.getInvalidTaskQueue()).thenReturn(QUEUE_OUT);
         return factory;
     }
@@ -234,7 +234,7 @@ public class WorkerCoreTest
     {
         WorkerFactory factory = Mockito.mock(WorkerFactory.class);
         Worker mockWorker = new SlowWorker(task, QUEUE_OUT, codec, latch);
-        Mockito.when(factory.getWorker(Mockito.any(), Mockito.anyInt(), Mockito.any(), Mockito.any(), Mockito.any(), Mockito.any())).thenReturn(mockWorker);
+        Mockito.when(factory.getWorker(Mockito.any())).thenReturn(mockWorker);
         return factory;
     }
 

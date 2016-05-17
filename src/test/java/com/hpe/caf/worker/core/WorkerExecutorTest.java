@@ -25,13 +25,13 @@ public class WorkerExecutorTest
         WorkerCallback callback = Mockito.mock(WorkerCallback.class);
         Worker worker = Mockito.mock(Worker.class);
         WorkerFactory factory = Mockito.mock(WorkerFactory.class);
-        Mockito.when(factory.getWorker(Mockito.any(), Mockito.anyInt(), Mockito.any(), Mockito.any(), Mockito.any(), Mockito.any())).thenReturn(worker);
+        Mockito.when(factory.getWorker(Mockito.any())).thenReturn(worker);
         WorkerThreadPool pool = WorkerThreadPool.create(5);
 
         WorkerExecutor executor = new WorkerExecutor(path, callback, factory, pool);
         TaskMessage tm = new TaskMessage("test", "test", 1, "test".getBytes(StandardCharsets.UTF_8), TaskStatus.NEW_TASK, new HashMap<>(), "testTo");
         executor.executeTask(tm, "test");
-        Mockito.verify(factory, Mockito.times(1)).getWorker(Mockito.any(), Mockito.anyInt(), Mockito.any(), Mockito.any(), Mockito.any(), Mockito.any());
+        Mockito.verify(factory, Mockito.times(1)).getWorker(Mockito.any());
     }
 
 
@@ -43,7 +43,7 @@ public class WorkerExecutorTest
         WorkerCallback callback = Mockito.mock(WorkerCallback.class);
         Worker worker = Mockito.mock(Worker.class);
         WorkerFactory factory = Mockito.mock(WorkerFactory.class);
-        Mockito.when(factory.getWorker(Mockito.any(), Mockito.anyInt(), Mockito.any(), Mockito.any(), Mockito.any(), Mockito.any())).thenReturn(worker);
+        Mockito.when(factory.getWorker(Mockito.any())).thenReturn(worker);
         WorkerThreadPool pool = Mockito.mock(WorkerThreadPool.class);
 
         WorkerExecutor executor = new WorkerExecutor(path, callback, factory, pool);
@@ -76,7 +76,7 @@ public class WorkerExecutorTest
                 return null;
             }}).when((TaskMessageForwardingEvaluator)factory).determineForwardingAction(Mockito.any(TaskMessage.class), Mockito.anyString(), Mockito.anyMap(), Mockito.any(WorkerCallback.class));
 
-        Mockito.when(factory.getWorker(Mockito.any(), Mockito.anyInt(), Mockito.any(), Mockito.any(), Mockito.any(), Mockito.any())).thenReturn(worker);
+        Mockito.when(factory.getWorker(Mockito.any())).thenReturn(worker);
         WorkerThreadPool pool = Mockito.mock(WorkerThreadPool.class);
 
         WorkerExecutor executor = new WorkerExecutor(path, callback, factory, pool);
@@ -93,7 +93,7 @@ public class WorkerExecutorTest
         ServicePath path = new ServicePath("/unitTest/test");
         WorkerCallback callback = Mockito.mock(WorkerCallback.class);
         WorkerFactory factory = Mockito.mock(WorkerFactory.class);
-        Mockito.when(factory.getWorker(Mockito.any(), Mockito.anyInt(), Mockito.any(), Mockito.any(), Mockito.any(), Mockito.any())).thenThrow(
+        Mockito.when(factory.getWorker(Mockito.any())).thenThrow(
             TaskRejectedException.class);
         WorkerThreadPool pool = WorkerThreadPool.create(5);
 
@@ -129,14 +129,14 @@ public class WorkerExecutorTest
         Mockito.doAnswer(a).when(callback).complete(Mockito.any(), Mockito.any(), Mockito.any());
         WorkerFactory factory = Mockito.mock(WorkerFactory.class);
         Mockito.when(factory.getInvalidTaskQueue()).thenReturn(invalidQueue);
-        Mockito.when(factory.getWorker(Mockito.any(), Mockito.anyInt(), Mockito.any(), Mockito.any(), Mockito.any(), Mockito.any())).thenThrow(
+        Mockito.when(factory.getWorker(Mockito.any())).thenThrow(
             InvalidTaskException.class);
         WorkerThreadPool pool = WorkerThreadPool.create(5);
         WorkerExecutor executor = new WorkerExecutor(path, callback, factory, pool);
 
         TaskMessage tm = new TaskMessage(taskId, classifier, ver, data, TaskStatus.NEW_TASK, new HashMap<>(), "queue");
         executor.executeTask(tm, msgId);
-        Mockito.verify(factory, Mockito.times(1)).getWorker(Mockito.any(), Mockito.anyInt(), Mockito.any(), Mockito.any(), Mockito.any(), Mockito.any());
+        Mockito.verify(factory, Mockito.times(1)).getWorker(Mockito.any());
         Mockito.verify(callback, Mockito.times(1)).complete(Mockito.any(), Mockito.any(), Mockito.any());
     }
 
@@ -167,7 +167,7 @@ public class WorkerExecutorTest
         Mockito.doAnswer(a).when(callback).complete(Mockito.any(), Mockito.any(), Mockito.any());
         WorkerFactory factory = Mockito.mock(WorkerFactory.class);
         Mockito.when(factory.getInvalidTaskQueue()).thenReturn(invalidQueue);
-        Mockito.when(factory.getWorker(Mockito.any(), Mockito.anyInt(), Mockito.any(), Mockito.any(), Mockito.any(), Mockito.any())).thenThrow(
+        Mockito.when(factory.getWorker(Mockito.any())).thenThrow(
             InvalidTaskException.class);
         WorkerThreadPool pool = WorkerThreadPool.create(5);
         WorkerExecutor executor = new WorkerExecutor(path, callback, factory, pool);
@@ -179,7 +179,7 @@ public class WorkerExecutorTest
         tm.setContext(null);
 
         executor.executeTask(tm, msgId);
-        Mockito.verify(factory, Mockito.times(1)).getWorker(Mockito.any(), Mockito.anyInt(), Mockito.any(), Mockito.any(), Mockito.any(), Mockito.any());
+        Mockito.verify(factory, Mockito.times(1)).getWorker(Mockito.any());
         Mockito.verify(callback, Mockito.times(1)).complete(Mockito.any(), Mockito.any(), Mockito.any());
     }
 
@@ -192,7 +192,7 @@ public class WorkerExecutorTest
         WorkerCallback callback = Mockito.mock(WorkerCallback.class);
         Worker worker = Mockito.mock(Worker.class);
         WorkerFactory factory = Mockito.mock(WorkerFactory.class);
-        Mockito.when(factory.getWorker(Mockito.any(), Mockito.anyInt(), Mockito.any(), Mockito.any(), Mockito.any(), Mockito.any())).thenReturn(worker);
+        Mockito.when(factory.getWorker(Mockito.any())).thenReturn(worker);
         WorkerThreadPool pool = Mockito.mock(WorkerThreadPool.class);
         Mockito.doThrow(TaskRejectedException.class).when(pool).submitWorkerTask(Mockito.any(WorkerTaskImpl.class));
 
