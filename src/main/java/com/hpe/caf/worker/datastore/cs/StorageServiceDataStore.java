@@ -128,7 +128,7 @@ public class StorageServiceDataStore implements ManagedDataStore
             DeleteAssetRequest deleteAssetRequest = new DeleteAssetRequest(accessToken, ref.getContainer(), ref.getAsset());
 
             //  If delegation ticket has been provided then set it as part of the upload request.
-            if (delegationTicket != null && !delegationTicket.isEmpty()) {
+            if (delegationTicket != null) {
                 deleteAssetRequest.setDelegationTicket(delegationTicket);
             }
 
@@ -163,7 +163,7 @@ public class StorageServiceDataStore implements ManagedDataStore
             DownloadAssetRequest downloadAssetRequest = new DownloadAssetRequest(accessToken, ref.getContainer(), ref.getAsset(), wrappedKey);
 
             //  If delegation ticket has been provided then set it as part of the upload request.
-            if (delegationTicket != null && !delegationTicket.isEmpty()) {
+            if (delegationTicket != null) {
                 downloadAssetRequest.setDelegationTicket(delegationTicket);
             }
 
@@ -264,7 +264,7 @@ public class StorageServiceDataStore implements ManagedDataStore
             UploadAssetRequest uploadRequest = new UploadAssetRequest(accessToken, containerId, UUID.randomUUID().toString(), wrappedKey, inputStream);
 
             //  If delegation ticket has been provided then set it as part of the upload request.
-            if (delegationTicket != null && !delegationTicket.isEmpty()) {
+            if (delegationTicket != null) {
                 uploadRequest.setDelegationTicket(delegationTicket);
             }
 

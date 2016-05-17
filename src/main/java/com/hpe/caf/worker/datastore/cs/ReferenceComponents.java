@@ -3,19 +3,19 @@ package com.hpe.caf.worker.datastore.cs;
 import org.apache.http.NameValuePair;
 import org.apache.http.client.utils.URLEncodedUtils;
 
-import java.nio.charset.Charset;
+import java.nio.charset.StandardCharsets;
 import java.util.List;
 
 /**
  * The ReferenceComponents class provides access to the asset related reference components.
  */
 
-public class ReferenceComponents {
+final class ReferenceComponents {
 
     private final String reference;
     private final String queryString;
 
-    public ReferenceComponents(String ref) {
+    private ReferenceComponents(String ref) {
 
         if (ref == null) {
             throw new IllegalArgumentException("Reference has not been supplied.");
@@ -56,13 +56,11 @@ public class ReferenceComponents {
         String returnValue = null;
 
         if (queryString != null) {
-            List<NameValuePair> nameValuePairs = URLEncodedUtils.parse(queryString, Charset.forName("utf-8"));
-            if (nameValuePairs != null && !nameValuePairs.isEmpty()) {
-                for (NameValuePair nvp : nameValuePairs) {
-                    if (nvp.getName().equals(name)) {
-                        returnValue = nvp.getValue();
-                        break;
-                    }
+            List<NameValuePair> nameValuePairs = URLEncodedUtils.parse(queryString, StandardCharsets.UTF_8);
+            for (NameValuePair nvp : nameValuePairs) {
+                if (nvp.getName().toLowerCase().equals(name.toLowerCase())) {
+                    returnValue = nvp.getValue();
+                    break;
                 }
             }
         }
