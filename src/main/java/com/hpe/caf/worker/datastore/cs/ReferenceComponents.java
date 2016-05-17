@@ -12,33 +12,21 @@ import java.util.List;
 
 public class ReferenceComponents {
 
-    private final String containerId;
-    private final String assetId;
+    private final String reference;
     private final String queryString;
 
-    public ReferenceComponents(String reference) {
+    public ReferenceComponents(String ref) {
 
-        if (reference == null) {
+        if (ref == null) {
             throw new IllegalArgumentException("Reference has not been supplied.");
         }
 
-        //  Split reference to separate container/asset identifiers from named value part.
-        String[] refComponents = reference.split("\\?");
-        if (refComponents != null && refComponents.length > 0) {
-            String[] containerAssetIds = refComponents[0].split("/");
+        //  The supplied 'ref' value could comprise a containerId, assetId and a name value collection.
+        String[] refComponents = ref.split("\\?");
+        if (refComponents.length > 0) {
 
-            //  Identify container and asset ids if provided.
-            if (containerAssetIds != null && containerAssetIds.length > 0) {
-                containerId = containerAssetIds[0];
-                if (containerAssetIds.length > 1) {
-                    assetId = containerAssetIds[1];
-                } else {
-                    assetId = null;
-                }
-            } else {
-                containerId = null;
-                assetId = null;
-            }
+            //  Identify containerId or containerId/assetId.
+            reference = refComponents[0];
 
             //  Identify named value pairs if provided.
             if (refComponents.length > 1) {
@@ -47,42 +35,42 @@ public class ReferenceComponents {
                 queryString = null;
             }
         } else {
-            containerId = null;
-            assetId = null;
+            reference = null;
             queryString = null;
         }
     }
 
     /**
-     * @return the container ID from this Reference
+     * @return the reference only (i.e. containerId or containerId/assetId)
      */
-    public String getContainerId()
+    public String getReference()
     {
-        if (containerId != null && !containerId.isEmpty()) {
-            return containerId;
-        }
-        return null;
+        return reference;
     }
 
     /**
-     * @return the asset ID from this Reference
+     * @return the named value from the the name value collection
      */
-    public String getAssetId()
+    public String getNamedValue(String name)
     {
-        if (assetId != null && !assetId.isEmpty()) {
-            return assetId;
+        String returnValue = null;
+
+        if (queryString != null) {
+            List<NameValuePair> nameValuePairs = URLEncodedUtils.parse(queryString, Charset.forName("utf-8"));
+            if (nameValuePairs != null && !nameValuePairs.isEmpty()) {
+                for (NameValuePair nvp : nameValuePairs) {
+                    if (nvp.getName().equals(name)) {
+                        returnValue = nvp.getValue();
+                        break;
+                    }
+                }
+            }
         }
-        return null;
+
+        return returnValue;
     }
 
-    /**
-     * @return the name/value collection from the query string.
-     */
-    public List<NameValuePair> getNameValueCollection()
-    {
-        if (queryString != null && !queryString.isEmpty()) {
-            return URLEncodedUtils.parse(queryString, Charset.forName("utf-8"));
-        }
-        return null;
+    public static ReferenceComponents parseReference(String ref) {
+        return new ReferenceComponents(ref);
     }
 }

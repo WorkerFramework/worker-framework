@@ -117,32 +117,12 @@ public class StorageServiceDataStore implements ManagedDataStore
         LOG.debug("Received delete request for {}", reference);
         numDx.incrementAndGet();
 
-        //  Parse incoming reference. Extract container and asset identifiers
-        //  as well as any delegation ticket provided.
-        Reference refToParse = new Reference(reference);
-        ReferenceComponents refComponents = refToParse.parse();
+        //  Parse incoming reference. Extract container/asset identifiers as well as any delegation ticket provided.
+        ReferenceComponents refComponents = ReferenceComponents.parseReference(reference);
+        reference = refComponents.getReference();
+        String delegationTicket = refComponents.getNamedValue(DELEGATION_TICKET_NAMED_PARAMETER);
 
-        String delegationTicket = null;
-        String containerId = refComponents.getContainerId();
-        String assetId = refComponents.getAssetId();
-        List<NameValuePair> params = refComponents.getNameValueCollection();
-        if (params != null && !params.isEmpty()) {
-            for (NameValuePair nvp : params) {
-                if (nvp.getName().equals(DELEGATION_TICKET_NAMED_PARAMETER)) {
-                    delegationTicket = nvp.getValue();
-                    break;
-                }
-            }
-        }
-
-        //  If delegation ticket (or any other named parameter) has been provided, then create a new
-        //  CafStoreReference from the container and asset id components of the reference.
-        CafStoreReference ref;
-        if (delegationTicket != null) {
-            ref = new CafStoreReference(containerId, assetId);
-        } else {
-            ref = new CafStoreReference(reference);
-        }
+        CafStoreReference ref = new CafStoreReference(reference);
 
         try {
             DeleteAssetRequest deleteAssetRequest = new DeleteAssetRequest(accessToken, ref.getContainer(), ref.getAsset());
@@ -169,32 +149,12 @@ public class StorageServiceDataStore implements ManagedDataStore
         LOG.debug("Received retrieve request for {}", reference);
         numRx.incrementAndGet();
 
-        //  Parse incoming reference. Extract container and asset identifiers
-        //  as well as any delegation ticket provided.
-        Reference refToParse = new Reference(reference);
-        ReferenceComponents refComponents = refToParse.parse();
+        //  Parse incoming reference. Extract container/asset identifiers as well as any delegation ticket provided.
+        ReferenceComponents refComponents = ReferenceComponents.parseReference(reference);
+        reference = refComponents.getReference();
+        String delegationTicket = refComponents.getNamedValue(DELEGATION_TICKET_NAMED_PARAMETER);
 
-        String delegationTicket = null;
-        String containerId = refComponents.getContainerId();
-        String assetId = refComponents.getAssetId();
-        List<NameValuePair> params = refComponents.getNameValueCollection();
-        if (params != null && !params.isEmpty()) {
-            for (NameValuePair nvp : params) {
-                if (nvp.getName().equals(DELEGATION_TICKET_NAMED_PARAMETER)) {
-                    delegationTicket = nvp.getValue();
-                    break;
-                }
-            }
-        }
-
-        //  If delegation ticket (or any other named parameter) has been provided, then create a new
-        //  CafStoreReference from the container and asset id components of the reference.
-        CafStoreReference ref;
-        if (delegationTicket != null) {
-            ref = new CafStoreReference(containerId, assetId);
-        } else {
-            ref = new CafStoreReference(reference);
-        }
+        CafStoreReference ref = new CafStoreReference(reference);
 
         try {
             AssetMetadata assetMetadata = callStorageService(c -> c.getAssetMetadata(new GetAssetMetadataRequest(accessToken, ref.getContainer(), ref.getAsset())));
@@ -294,22 +254,10 @@ public class StorageServiceDataStore implements ManagedDataStore
         LOG.debug("Received store request for {}", partialReference);
         numTx.incrementAndGet();
 
-        //  Parse incoming partial reference. Extract container identifier
-        //  and delegation ticket if provided.
-        Reference ref = new Reference(partialReference);
-        ReferenceComponents refComponents = ref.parse();
-
-        String delegationTicket = null;
-        String containerId = refComponents.getContainerId();
-        List<NameValuePair> params = refComponents.getNameValueCollection();
-        if (params != null && !params.isEmpty()) {
-            for (NameValuePair nvp : params) {
-                if (nvp.getName().equals(DELEGATION_TICKET_NAMED_PARAMETER)) {
-                    delegationTicket = nvp.getValue();
-                    break;
-                }
-            }
-        }
+        //  Parse incoming partial reference. Extract container identifier and delegation ticket if provided.
+        ReferenceComponents refComponents = ReferenceComponents.parseReference(partialReference);
+        String containerId = refComponents.getReference();
+        String delegationTicket = refComponents.getNamedValue(DELEGATION_TICKET_NAMED_PARAMETER);
 
         try (InputStream inputStream = byteSource.openBufferedStream()) {
             WrappedKey wrappedKey = callStorageService(c -> c.getAssetContainerEncryptionKey(new GetAssetContainerEncryptionKeyRequest(accessToken, containerId)));
