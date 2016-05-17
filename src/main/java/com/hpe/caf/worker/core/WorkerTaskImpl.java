@@ -132,8 +132,7 @@ class WorkerTaskImpl implements WorkerTask
     public Worker createWorker()
         throws InvalidTaskException, TaskRejectedException
     {
-        return workerFactory.getWorker(
-            getClassifier(), getVersion(), getStatus(), getData(), getContext(), getTrackingInfo());
+        return workerFactory.getWorker(this);
     }
 
     public void logInterruptedException(final InterruptedException interruptedException) {
