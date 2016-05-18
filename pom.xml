@@ -6,7 +6,7 @@
 
     <groupId>com.hpe.caf.worker</groupId>
     <artifactId>worker-framework</artifactId>
-    <version>10.7-SNAPSHOT</version>
+    <version>10.8-SNAPSHOT</version>
     <packaging>pom</packaging>
 
     <parent>
@@ -21,7 +21,7 @@
             <dependency>
                 <groupId>com.hpe.caf</groupId>
                 <artifactId>caf-api</artifactId>
-                <version>11.2-SNAPSHOT</version>
+                <version>11.2</version>
             </dependency>
             <dependency>
                 <groupId>com.hpe.caf</groupId>
@@ -107,12 +107,12 @@
             <dependency>
                 <groupId>com.hpe.caf.worker</groupId>
                 <artifactId>worker-caf</artifactId>
-                <version>10.4-SNAPSHOT</version>
+                <version>10.4</version>
             </dependency>
             <dependency>
                 <groupId>com.hpe.caf.worker</groupId>
                 <artifactId>worker-core</artifactId>
-                <version>10.8-SNAPSHOT</version>
+                <version>10.8</version>
             </dependency>
             <dependency>
                 <groupId>com.hpe.caf.worker</groupId>
@@ -122,7 +122,7 @@
             <dependency>
                 <groupId>com.hpe.caf.worker</groupId>
                 <artifactId>worker-store-cs</artifactId>
-                <version>10.7-SNAPSHOT</version>
+                <version>10.7</version>
                 <exclusions>
                     <exclusion>
                         <groupId>javax.ws.rs</groupId>
