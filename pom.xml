@@ -6,7 +6,7 @@
 
     <groupId>com.hpe.caf.worker</groupId>
     <artifactId>worker-core</artifactId>
-    <version>10.8-SNAPSHOT</version>
+    <version>10.9-SNAPSHOT</version>
 
     <parent>
         <groupId>com.hpe.caf</groupId>
