@@ -3,6 +3,7 @@ package com.hpe.caf.worker.testing.validation;
 import com.fasterxml.jackson.annotation.JsonAutoDetect;
 import com.fasterxml.jackson.annotation.PropertyAccessor;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.datatype.guava.GuavaModule;
 import com.hpe.caf.api.worker.TaskMessage;
 import com.hpe.caf.worker.testing.AbstractResultProcessor;
 import com.hpe.caf.worker.testing.TestConfiguration;
@@ -63,6 +64,7 @@ public abstract class PropertyValidatingProcessor<TResult, TInput, TExpected> ex
         }
 
         ObjectMapper mapper = new ObjectMapper();
+        mapper.registerModule(new GuavaModule());
         Object validatedObject = getValidatedObject(testItem, message, result);
 
         PropertyMap expectationPropertyMap = mapper.convertValue(expectation,PropertyMap.class); //new PropertyMap(expectation);

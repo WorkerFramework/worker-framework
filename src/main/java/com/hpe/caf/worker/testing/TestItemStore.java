@@ -81,13 +81,24 @@ public class TestItemStore {
         synchronized (items) {
             TestItem item = items.get(id);
             if (item == null) {
-                Optional<String> first = items.keySet().stream().filter(id::startsWith).findFirst();
-                boolean present = first.isPresent();
-                if (!present) return null;
-
-                String actualId = first.get();
-
-                item = items.get(actualId);
+                Optional<String> firstKey = items.keySet().stream().filter(id::startsWith).findFirst();
+                boolean firstKeyPresent = firstKey.isPresent();
+                String actualId = "";
+                // If the id exists in the set of keys assign it to the item to be returned
+                if (firstKeyPresent) {
+                    actualId = firstKey.get();
+                    item = items.get(actualId);
+                    return item;
+                }
+                // If the id is not contained within the key then look for the ID in the values
+                Optional<TestItem> firstValue = items.values().stream().filter(testItem -> testItem.getInputIdentifier().equals(id)).findFirst();
+                boolean firstValuePresent = firstValue.isPresent();
+                if (firstValuePresent) {
+                    actualId = firstValue.get().getTag();
+                    item = items.get(actualId);
+                    return item;
+                }
+                return null;
             }
             return item;
         }

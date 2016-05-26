@@ -32,6 +32,11 @@ public class ValidationSettings {
 			return this;
 		}
 
+        public ValidationSettingsBuilder unorderedArrayReferencedDataProperties(String... unorderedArrayReferencedDataProperties){
+            settings.unorderedArrayReferencedDataProperties = new HashSet<>(Arrays.asList(unorderedArrayReferencedDataProperties));
+            return this;
+        }
+
         public ValidationSettingsBuilder base64Properties(String... base64Properties) {
             settings.base64Properties = new HashSet<>(Arrays.asList(base64Properties));
             return this;
@@ -43,6 +48,7 @@ public class ValidationSettings {
     }
 
     private Set<String> arrayReferencedDataProperties = new HashSet<>();
+    private Set<String> unorderedArrayReferencedDataProperties = new HashSet<>();
     private Set<String> ignoredProperties = new HashSet<>();
     private Set<String> referencedDataProperties = new HashSet<>();
     private Set<String> base64Properties = new HashSet<>();
@@ -75,6 +81,10 @@ public class ValidationSettings {
 
     public Set<String> getArrayReferencedDataProperties() {
         return arrayReferencedDataProperties;
+	}
+
+    public Set<String> getUnorderedArrayReferencedDataProperties() {
+        return unorderedArrayReferencedDataProperties;
 	}
 
     /**

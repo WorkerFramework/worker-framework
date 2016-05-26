@@ -40,6 +40,9 @@ public class ValidatorFactory {
             if (validationSettings.getArrayReferencedDataProperties().contains(propertyName)){
                 return new ArrayReferencedDataValidator(dataStore,codec,testDataFolder);
 			}
+            if (validationSettings.getUnorderedArrayReferencedDataProperties().contains(propertyName)){
+                return new UnorderedArrayReferencedDataValidator(dataStore,codec,testDataFolder);
+			}
             if (validationSettings.getBase64Properties().contains(propertyName)) {
                 return new Base64PropertyValidator();
             }

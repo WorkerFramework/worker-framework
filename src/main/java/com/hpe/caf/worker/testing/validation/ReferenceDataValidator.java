@@ -26,12 +26,22 @@ import java.util.Arrays;
  */
 public class ReferenceDataValidator extends PropertyValidator {
 
+    private final boolean throwOnValidationFailure;
     private final DataStore dataStore;
     private final Codec codec;
     private final String testDataFolder;
 
     public ReferenceDataValidator(DataStore dataStore, Codec codec, String testDataFolder) {
 
+        this.throwOnValidationFailure = true;
+        this.dataStore = dataStore;
+        this.codec = codec;
+        this.testDataFolder = testDataFolder;
+    }
+
+    public ReferenceDataValidator(boolean throwOnValidationFailure, DataStore dataStore, Codec codec, String testDataFolder) {
+
+        this.throwOnValidationFailure = throwOnValidationFailure;
         this.dataStore = dataStore;
         this.codec = codec;
         this.testDataFolder = testDataFolder;
@@ -82,7 +92,7 @@ public class ReferenceDataValidator extends PropertyValidator {
                         String message = "Expected and actual texts were different.\n\n*** Expected Text ***\n" +
                         expectedText + "\n\n*** Actual Text ***\n" + actualText;
                         System.err.println(message);
-                        TestResultHelper.testFailed(message);
+                        if (throwOnValidationFailure) TestResultHelper.testFailed(message);
                         return false;
                     }
                     return true;
@@ -95,7 +105,7 @@ public class ReferenceDataValidator extends PropertyValidator {
                 if (similarity < expectation.getExpectedSimilarityPercentage()) {
                     String message = "Expected similarity of " + expectation.getExpectedSimilarityPercentage() + "% but actual similarity was " + similarity + "%";
                     System.err.println(message);
-                    TestResultHelper.testFailed(message);
+                    if (throwOnValidationFailure) TestResultHelper.testFailed(message);
                     return false;
                 }
             }
@@ -111,7 +121,7 @@ public class ReferenceDataValidator extends PropertyValidator {
                             "Data returned was different than expected for file: " + contentFileName +
                                     "\nActual content saved in file: " + actualFilePath.toString();
                     System.err.println(message);
-                    TestResultHelper.testFailed(message);
+                    if (throwOnValidationFailure) TestResultHelper.testFailed(message);
                     return false;
                 }
             }
