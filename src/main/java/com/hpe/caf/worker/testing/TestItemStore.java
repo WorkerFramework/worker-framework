@@ -3,6 +3,7 @@ package com.hpe.caf.worker.testing;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Optional;
 
 /**
@@ -91,7 +92,7 @@ public class TestItemStore {
                     return item;
                 }
                 // If the id is not contained within the key then look for the ID in the values
-                Optional<TestItem> firstValue = items.values().stream().filter(testItem -> testItem.getInputIdentifier().equals(id)).findFirst();
+                Optional<TestItem> firstValue = items.values().stream().filter(Objects::nonNull).filter(testItem -> testItem.getInputIdentifier().equals(id)).findFirst();
                 boolean firstValuePresent = firstValue.isPresent();
                 if (firstValuePresent) {
                     actualId = firstValue.get().getTag();
