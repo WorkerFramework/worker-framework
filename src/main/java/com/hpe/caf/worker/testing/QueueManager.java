@@ -79,6 +79,25 @@ public class QueueManager implements Closeable {
         return consumerThread;
     }
 
+    public void initialise() throws IOException{
+        connection = queueServices.getConnection();
+        pubChan = connection.createChannel();
+        conChan = connection.createChannel();
+        RabbitUtil.declareWorkerQueue(pubChan, queueServices.getWorkerInputQueue());
+        RabbitUtil.declareWorkerQueue(conChan, queueServices.getWorkerResultsQueue());
+        pubChan.queuePurge(queueServices.getWorkerInputQueue());
+        conChan.queuePurge(queueServices.getWorkerResultsQueue());
+    }
+    public Thread startConsumer(ResultHandler resultHandler) throws IOException{
+        BlockingQueue<Event<QueueConsumer>> conEvents = new LinkedBlockingQueue<>();
+        SimpleQueueConsumerImpl queueConsumer = new SimpleQueueConsumerImpl(conEvents, conChan, resultHandler, workerServices.getCodec());
+        rabbitConsumer = new DefaultRabbitConsumer(conEvents, queueConsumer);
+        consumerTag = conChan.basicConsume(queueServices.getWorkerResultsQueue(), true, rabbitConsumer);
+        Thread consumerThread = new Thread(rabbitConsumer);
+        consumerThread.start();
+        return consumerThread;
+    }
+
     public void publish(TaskMessage message) throws CodecException, IOException {
         byte[] data = workerServices.getCodec().serialise(message);
         pubChan.basicPublish("", queueServices.getWorkerInputQueue(), MessageProperties.TEXT_PLAIN, data);
@@ -135,4 +154,24 @@ public class QueueManager implements Closeable {
             }
         }
     }
+
+    /*
+    Need to modify close() method above so that it does not include the two if statements below.
+    Leaving in these if statements for the moment because the method is still in use by tests using
+    JUnit over TestNG
+     */
+    public void closeConsumer() throws IOException{
+        System.out.println("Closing Consumer");
+        if (consumerTag != null) {
+            try {
+                conChan.basicCancel(consumerTag);
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }
+        if (rabbitConsumer != null) {
+            rabbitConsumer.shutdown();
+        }
+    }
+
 }
