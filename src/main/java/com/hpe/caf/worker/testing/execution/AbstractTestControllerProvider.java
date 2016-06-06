@@ -16,6 +16,7 @@ public abstract class AbstractTestControllerProvider<TWorkerConfiguration, TWork
     private final Class<TWorkerResult> workerResultClass;
     private final Class<TInput> inputClass;
     private final Class<TExpectation> expectationClass;
+    TestConfiguration<TWorkerTask, TWorkerResult, TInput, TExpectation> configuration;
 
     public AbstractTestControllerProvider(String workerName, Function<TWorkerConfiguration, String> queueNameFunc, Class<TWorkerConfiguration> workerConfigurationClass, Class<TWorkerTask> workerTaskClass, Class<TWorkerResult> workerResultClass, Class<TInput> inputClass, Class<TExpectation> expectationClass) {
         this.workerName = workerName;
@@ -57,5 +58,28 @@ public abstract class AbstractTestControllerProvider<TWorkerConfiguration, TWork
 
     }
 
+    // Aaron's Test Additions Test
+    @Override
+    public TestControllerSingle getTestController(TestItemProvider itemProvider) throws Exception {
+        setConfiguration();
+        return TestControllerFactorySingle.createDefault(workerConfigurationClass, queueNameFunc, itemProvider, getTaskFactory(configuration), getTestResultProcessor(configuration, WorkerServices.getDefault()));
+    }
 
+    @Override
+    public TestControllerSingle getDataPreparationController(TestItemProvider itemProvider) throws Exception {
+        setConfiguration();
+        return TestControllerFactorySingle.createDefault(workerConfigurationClass, queueNameFunc, itemProvider, getTaskFactory(configuration), getDataPreparationResultProcessor(configuration, WorkerServices.getDefault()));
+    }
+
+    @Override
+    public TestItemProvider getItemProvider(boolean typeOfItemProvider)
+    {
+        setConfiguration();
+        TestItemProvider itemProvider = typeOfItemProvider? getDataPreparationItemProvider(configuration) : getTestItemProvider(configuration);
+        return itemProvider;
+    }
+
+    public void setConfiguration() {
+        configuration = TestConfiguration.createDefault(workerTaskClass, workerResultClass, inputClass, expectationClass);
+    }
 }

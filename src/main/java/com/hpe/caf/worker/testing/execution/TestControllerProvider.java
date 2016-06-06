@@ -1,6 +1,8 @@
 package com.hpe.caf.worker.testing.execution;
 
 import com.hpe.caf.worker.testing.TestController;
+import com.hpe.caf.worker.testing.TestControllerSingle;
+import com.hpe.caf.worker.testing.TestItemProvider;
 
 /**
  * The test controller provider interface.
@@ -36,4 +38,28 @@ public interface TestControllerProvider {
      * @throws Exception
      */
     TestController getDataPreparationController()  throws Exception;
+
+    /*
+    * Gets the configuration for the item provider. This can be used in the setup for the Test Classes
+    * @return the TestConfiguration
+    */
+    TestItemProvider getItemProvider(boolean typeOfItemProvider);
+
+    /*
+    * Gets the controller
+    *
+    * @return the data preparation controller
+    * @throws Exception
+    * */
+    TestControllerSingle getDataPreparationController(TestItemProvider itemProvider) throws Exception;
+
+    /*
+    * Gets the controller
+    *
+    * @return the test controller
+    * @throws Exception
+    * */
+    TestControllerSingle getTestController(TestItemProvider itemProvider) throws Exception;
+
+
 }
