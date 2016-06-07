@@ -27,33 +27,40 @@ import java.util.ArrayList;
 import java.util.List;
 
 import static junit.framework.Assert.assertEquals;
+import static junit.framework.Assert.assertTrue;
 
 public class StorageServiceDataStoreTestIT {
 
-    private static final String SERVER_NAME = "a1-dev-mem031.lab.lynx-connected.com";
+    private static final String SERVER_NAME = "a1-dev-mem035.lab.lynx-connected.com";
     private static final int SERVER_PORT = 9444;
-    private static final String AUTH_CONFIG_SERVER_NAME = "a1-dev-hap045.lab.lynx-connected.com";
+    private static final String AUTH_CONFIG_SERVER_NAME = "a1-dev-hap012.lab.lynx-connected.com";
     private static final int AUTH_CONFIG_PORT = 8443;
-    private static final String AUTH_CONFIG_USERNAME = "caf_store_bfs@groups.int.hpe.com";
-    private static final String AUTH_CONFIG_PASSWORD = "Password1";
-    private static final String AUTH_CONFIG_CLIENT_NAME = "direct-grant-client";
-    private static final String AUTH_CONFIG_CLIENT_SECRET = "34a868ed-b2a3-4433-bca3-d60cabcd79df";
+    private static final String AUTH_CONFIG_CREATE_TICKET_USERNAME = "SystemUser@88730611912541184.com";
+    private static final String AUTH_CONFIG_CREATE_TICKET_PASSWORD = "Dg$887306119125411!3";
+    private static final String AUTH_CONFIG_USERNAME = "CAFWorker053116@groups.int.hpe.com";
+    private static final String AUTH_CONFIG_PASSWORD = "1connected@ASPEN";
+    private static final String AUTH_CONFIG_CLIENT_NAME = "CAF_App";
+    private static final String AUTH_CONFIG_CLIENT_SECRET = "5532a380-2b97-40cd-a08f-403ce6a0f023";
     private static final String AUTH_CONFIG_REALM = "caf";
-    private static final String CONTAINER_ID = "c82335049236404ba86529e9afacba39";
+    private static final String CONTAINER_ID = "303602b2af2d4d44bca5ad4b3a844eb1";
 
     private static final String TEST_STRING = " ং ঃ অ আ ই ঈ উ ঊ ঋ ঌ এ ঐ ও ঔ ক খ গ ঘ ঙ চ ছ জ ঝ ঞ ট ঠ";
     private static final String TEST_STRING2 = " ং ঃ অ আ ই ঈ উ ঊ ঋ ঌ এ ঐ ও ঔ ক খ গ ঘ ঙ চ ছ জ ঝ ঞ ই ঈ উ ট ঠ";
+    private static final String TEST_STRING3 = " ং ঃ অ আ উ ঊ ঋ ঌ এ ঐ ও ঔ ক খ গ ঘ ঙ চ ছ জ ঝ ঞ ই ঈ উ ট ঠ";
+    private static final String TEST_STRING4 = " ং ঃ অ উ ঊ ঋ ও ঔ ক খ গ ঘ ঙ চ ছ জ ঝ ঞ ই ঈ উ ট ঠ";
 
-    private static final String DELEGATION_TICKET_INFO_DELEGATE_LOGIN = "caf_store_bfs@groups.int.hpe.com";
+    private static final String DELEGATION_TICKET_INFO_DELEGATE_LOGIN = AUTH_CONFIG_USERNAME;
     private static final String DELEGATION_TICKET_TEST = "delegation ticket request";
 
     StorageServiceDataStore storageServiceDataStore;
     StorageServiceDataStore storageServiceDataStoreWithMockKeycloakClient;
 
+    KeycloakClient createTicketKeycloakClient;
     KeycloakClient keycloakClient;
     StorageClient storageClient;
 
     String delegationTicketValue;
+    String reference;
 
     @Before
     public void setUp() throws Exception {
@@ -74,7 +81,7 @@ public class StorageServiceDataStoreTestIT {
         keycloakClient = new KeycloakClient(storageServiceDataStoreConfiguration.getAuthenticationConfiguration());
         storageServiceDataStore = new StorageServiceDataStore(storageServiceDataStoreConfiguration, keycloakClient);
 
-        //  Used for testTokenRefresh test in order to force storage-sdk to request an updated access token.
+        //  Mock KeycloakClient to be used for testTokenRefresh test in order to force storage-sdk to request an updated access token.
         KeycloakClient mockKeycloakClient = Mockito.mock(KeycloakClient.class);
         Mockito.when(mockKeycloakClient.getAccessToken()).thenReturn("invalid access token");
         storageServiceDataStoreWithMockKeycloakClient = new StorageServiceDataStore(storageServiceDataStoreConfiguration, mockKeycloakClient);
@@ -83,9 +90,20 @@ public class StorageServiceDataStoreTestIT {
 
         //  Create a delegation ticket.
         try {
+            KeycloakAuthenticationConfiguration createTicketKeycloakAuthenticationConfiguration = new KeycloakAuthenticationConfiguration();
+            createTicketKeycloakAuthenticationConfiguration.setClientName(AUTH_CONFIG_CLIENT_NAME);
+            createTicketKeycloakAuthenticationConfiguration.setClientSecret(AUTH_CONFIG_CLIENT_SECRET);
+            createTicketKeycloakAuthenticationConfiguration.setPassword(AUTH_CONFIG_CREATE_TICKET_PASSWORD);
+            createTicketKeycloakAuthenticationConfiguration.setPort(AUTH_CONFIG_PORT);
+            createTicketKeycloakAuthenticationConfiguration.setServerName(AUTH_CONFIG_SERVER_NAME);
+            createTicketKeycloakAuthenticationConfiguration.setRealm(AUTH_CONFIG_REALM);
+            createTicketKeycloakAuthenticationConfiguration.setUserName(AUTH_CONFIG_CREATE_TICKET_USERNAME);
+
+            createTicketKeycloakClient = new KeycloakClient(createTicketKeycloakAuthenticationConfiguration);
+
             final DelegationTicketInfo delegationTicketInfo = createDelegationTicketInfo();
             final CreateDelegationTicketRequest delegationTicketRequest =
-                    createDelegationTicketRequest(keycloakClient.getAccessToken(),CONTAINER_ID, delegationTicketInfo);
+                    createDelegationTicketRequest(createTicketKeycloakClient.getAccessToken(),CONTAINER_ID, delegationTicketInfo);
             DelegationTicket delegationTicket = storageClient.createDelegationTicket(delegationTicketRequest);
             delegationTicketValue = delegationTicket.getDelegateTicket();
 
@@ -121,17 +139,22 @@ public class StorageServiceDataStoreTestIT {
             throw exc;
         }
 
-
+        //  Append delegation ticket to container Id. This will be used in all tests.
+        reference = CONTAINER_ID + "?delegationTicket=" + URLEncoder.encode(delegationTicketValue,"UTF-8");
     }
 
     @Test
     public void testStoreByteArray() throws DataStoreException, IOException {
-        validateReferenceContainsExpected(storageServiceDataStore.store(TEST_STRING.getBytes(StandardCharsets.UTF_8), CONTAINER_ID),TEST_STRING);
+        String cafStoreReference = storageServiceDataStore.store(TEST_STRING.getBytes(StandardCharsets.UTF_8), reference);
+        cafStoreReference = cafStoreReference + "?delegationTicket=" + URLEncoder.encode(delegationTicketValue,"UTF-8");
+        validateReferenceContainsExpected(cafStoreReference, TEST_STRING);
     }
 
     @Test
     public void testStoreStream() throws DataStoreException, IOException {
-        validateReferenceContainsExpected(storageServiceDataStore.store(new ByteArrayInputStream(TEST_STRING.getBytes(StandardCharsets.UTF_8)), CONTAINER_ID),TEST_STRING);
+        String cafStoreReference = storageServiceDataStore.store(new ByteArrayInputStream(TEST_STRING.getBytes(StandardCharsets.UTF_8)), reference);
+        cafStoreReference = cafStoreReference + "?delegationTicket=" + URLEncoder.encode(delegationTicketValue,"UTF-8");
+        validateReferenceContainsExpected(cafStoreReference, TEST_STRING);
     }
 
     @Test
@@ -139,7 +162,9 @@ public class StorageServiceDataStoreTestIT {
         Path path = File.createTempFile("tmp", "tmp").toPath();
         Files.write(path, TEST_STRING.getBytes(StandardCharsets.UTF_8));
 
-        validateReferenceContainsExpected(storageServiceDataStore.store(path, CONTAINER_ID), TEST_STRING);
+        String cafStoreReference = storageServiceDataStore.store(path, reference);
+        cafStoreReference = cafStoreReference + "?delegationTicket=" + URLEncoder.encode(delegationTicketValue,"UTF-8");
+        validateReferenceContainsExpected(cafStoreReference, TEST_STRING);
     }
 
     @Test
@@ -149,19 +174,52 @@ public class StorageServiceDataStoreTestIT {
 
         //  This test will make initial call to CAF storage with an inavlid access token. It will force the storage-sdk
         //  to call into callback function to request an updated and valid access token which will then allow test to pass.
-        validateReferenceContainsExpected(storageServiceDataStoreWithMockKeycloakClient.store(path, CONTAINER_ID), TEST_STRING2);
+        String cafStoreReference = storageServiceDataStoreWithMockKeycloakClient.store(path, reference);
+        cafStoreReference = cafStoreReference + "?delegationTicket=" + URLEncoder.encode(delegationTicketValue,"UTF-8");
+        validateReferenceContainsExpected(cafStoreReference, TEST_STRING2);
     }
 
     @Test
-    public void testStoreWithDelegationTicket() throws Exception {
+    public void testSize() throws Exception {
         try {
             Path path = File.createTempFile("tmp", "tmp").toPath();
-            Files.write(path, TEST_STRING2.getBytes(StandardCharsets.UTF_8));
+            Files.write(path, TEST_STRING3.getBytes(StandardCharsets.UTF_8));
 
             String reference = CONTAINER_ID + "?delegationTicket=" + URLEncoder.encode(delegationTicketValue,"UTF-8");
             String cafStoreReference = storageServiceDataStore.store(path, reference);
             cafStoreReference = cafStoreReference + "?delegationTicket=" + URLEncoder.encode(delegationTicketValue,"UTF-8");
-            validateReferenceContainsExpected(cafStoreReference, TEST_STRING2);
+            validateReferenceContainsExpected(cafStoreReference, TEST_STRING3);
+            long size = storageServiceDataStore.size(cafStoreReference);
+            assertTrue(size > 0);
+        } catch (final Exception e) {
+
+            System.err.println("Unexpected error: " + e.getMessage());
+            throw e;
+        }
+    }
+
+    @Test
+    public void testDelete() throws Exception {
+        try {
+            Path path = File.createTempFile("tmp", "tmp").toPath();
+            Files.write(path, TEST_STRING4.getBytes(StandardCharsets.UTF_8));
+
+            String reference = CONTAINER_ID + "?delegationTicket=" + URLEncoder.encode(delegationTicketValue,"UTF-8");
+            String cafStoreReference = storageServiceDataStore.store(path, reference);
+            cafStoreReference = cafStoreReference + "?delegationTicket=" + URLEncoder.encode(delegationTicketValue,"UTF-8");
+
+            validateReferenceContainsExpected(cafStoreReference, TEST_STRING4);
+
+            try {
+                storageServiceDataStore.delete(cafStoreReference);
+            } catch (DataStoreException dse) {
+                if (!dse.getMessage().contains("Failed to delete asset data for reference")) {
+                    // Passed
+                } else {
+                    // Unexpected error.
+                    throw dse;
+                }
+            }
         } catch (final Exception e) {
 
             System.err.println("Unexpected error: " + e.getMessage());
@@ -190,7 +248,9 @@ public class StorageServiceDataStoreTestIT {
         permissions.add(AccessPermissionType.CREATE_ASSET.name());
         permissions.add(AccessPermissionType.UPDATE_ASSET.name());
         permissions.add(AccessPermissionType.VIEW_ASSETS.name());
+        permissions.add(AccessPermissionType.PURGE_ASSET.name());
         permissions.add(AccessPermissionType.RETRIEVE_ASSET.name());
+        permissions.add(AccessPermissionType.RETRIEVE_ASSET_CONTAINER.name());
 
         final DelegationTicketInfo delegationTicketInfo =
                 new DelegationTicketInfo.Builder()
