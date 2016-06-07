@@ -19,14 +19,12 @@ import com.hpe.caf.storage.sdk.model.AssetMetadata;
 import com.hpe.caf.storage.sdk.model.StorageServiceInfo;
 import com.hpe.caf.storage.sdk.model.StorageServiceStatus;
 import com.hpe.caf.storage.sdk.model.requests.*;
-import org.apache.http.NameValuePair;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.file.Path;
-import java.util.List;
 import java.util.UUID;
 import java.util.concurrent.atomic.AtomicInteger;
 
@@ -127,7 +125,7 @@ public class StorageServiceDataStore implements ManagedDataStore
         try {
             DeleteAssetRequest deleteAssetRequest = new DeleteAssetRequest(accessToken, ref.getContainer(), ref.getAsset());
 
-            //  If delegation ticket has been provided then set it as part of the upload request.
+            //  If delegation ticket has been provided then set it as part of the delete request.
             if (delegationTicket != null) {
                 deleteAssetRequest.setDelegationTicket(delegationTicket);
             }
@@ -157,12 +155,16 @@ public class StorageServiceDataStore implements ManagedDataStore
         CafStoreReference ref = new CafStoreReference(reference);
 
         try {
-            AssetMetadata assetMetadata = callStorageService(c -> c.getAssetMetadata(new GetAssetMetadataRequest(accessToken, ref.getContainer(), ref.getAsset())));
-            WrappedKey wrappedKey = callStorageService(c -> c.getAssetContainerEncryptionKey(new GetAssetContainerEncryptionKeyRequest(accessToken, ref.getContainer())));
+            GetAssetContainerEncryptionKeyRequest getAssetContainerEncryptionKeyRequest = new GetAssetContainerEncryptionKeyRequest(accessToken, ref.getContainer());
+            if(delegationTicket != null){
+                getAssetContainerEncryptionKeyRequest.setDelegationTicket(delegationTicket);
+            }
+
+            WrappedKey wrappedKey = callStorageService(c -> c.getAssetContainerEncryptionKey(getAssetContainerEncryptionKeyRequest));
 
             DownloadAssetRequest downloadAssetRequest = new DownloadAssetRequest(accessToken, ref.getContainer(), ref.getAsset(), wrappedKey);
 
-            //  If delegation ticket has been provided then set it as part of the upload request.
+            //  If delegation ticket has been provided then set it as part of the download asset request.
             if (delegationTicket != null) {
                 downloadAssetRequest.setDelegationTicket(delegationTicket);
             }
@@ -180,9 +182,20 @@ public class StorageServiceDataStore implements ManagedDataStore
         throws DataStoreException
     {
         LOG.debug("Received size request for {}", reference);
+
+        //  Parse incoming reference. Extract container/asset identifiers as well as any delegation ticket provided.
+        ReferenceComponents refComponents = ReferenceComponents.parseReference(reference);
+        reference = refComponents.getReference();
+        String delegationTicket = refComponents.getNamedValue(DELEGATION_TICKET_NAMED_PARAMETER);
+
         CafStoreReference ref = new CafStoreReference(reference);
         try {
-            return callStorageService(c -> c.getAssetMetadata(new GetAssetMetadataRequest(accessToken, ref.getContainer(), ref.getAsset()))).getSize();
+            GetAssetMetadataRequest getAssetMetadataRequest = new GetAssetMetadataRequest(accessToken, ref.getContainer(), ref.getAsset());
+            if (delegationTicket != null) {
+                getAssetMetadataRequest.setDelegationTicket(delegationTicket);
+            }
+
+            return callStorageService(c -> c.getAssetMetadata(getAssetMetadataRequest)).getSize();
         } catch (IOException | StorageClientException |  StorageServiceException | StorageServiceConnectException e) {
             errors.incrementAndGet();
             throw new DataStoreException("Failed to get data size for reference " + reference, e);
@@ -260,7 +273,14 @@ public class StorageServiceDataStore implements ManagedDataStore
         String delegationTicket = refComponents.getNamedValue(DELEGATION_TICKET_NAMED_PARAMETER);
 
         try (InputStream inputStream = byteSource.openBufferedStream()) {
-            WrappedKey wrappedKey = callStorageService(c -> c.getAssetContainerEncryptionKey(new GetAssetContainerEncryptionKeyRequest(accessToken, containerId)));
+
+            final GetAssetContainerEncryptionKeyRequest encryptionRequest = new GetAssetContainerEncryptionKeyRequest(accessToken, containerId);
+            if (delegationTicket != null) {
+                encryptionRequest.setDelegationTicket(delegationTicket);
+            }
+
+            WrappedKey wrappedKey = callStorageService(c -> c.getAssetContainerEncryptionKey(encryptionRequest));
+
             UploadAssetRequest uploadRequest = new UploadAssetRequest(accessToken, containerId, UUID.randomUUID().toString(), wrappedKey, inputStream);
 
             //  If delegation ticket has been provided then set it as part of the upload request.
