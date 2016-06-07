@@ -48,27 +48,30 @@ public abstract class AbstractTestControllerProvider<TWorkerConfiguration, TWork
     @Override
     public TestController getTestController() throws Exception {
         TestConfiguration<TWorkerTask, TWorkerResult, TInput, TExpectation> configuration = TestConfiguration.createDefault(workerTaskClass, workerResultClass, inputClass, expectationClass);
-        return TestControllerFactory.createDefault(workerConfigurationClass, queueNameFunc, getTestItemProvider(configuration), getTaskFactory(configuration), getTestResultProcessor(configuration, WorkerServices.getDefault()));
+        TestControllerFactoryBase<TestController> factory = new TestControllerFactory();
+        return factory.createDefault(workerConfigurationClass, queueNameFunc, getTestItemProvider(configuration), getTaskFactory(configuration), getTestResultProcessor(configuration, WorkerServices.getDefault()));
     }
 
     @Override
     public TestController getDataPreparationController() throws Exception {
         TestConfiguration<TWorkerTask, TWorkerResult, TInput, TExpectation> configuration = TestConfiguration.createDefault(workerTaskClass, workerResultClass, inputClass, expectationClass);
-        return TestControllerFactory.createDefault(workerConfigurationClass, queueNameFunc, getDataPreparationItemProvider(configuration), getTaskFactory(configuration), getDataPreparationResultProcessor(configuration, WorkerServices.getDefault()));
-
+        TestControllerFactoryBase<TestController> factory = new TestControllerFactory();
+        return factory.createDefault(workerConfigurationClass, queueNameFunc, getDataPreparationItemProvider(configuration), getTaskFactory(configuration), getDataPreparationResultProcessor(configuration, WorkerServices.getDefault()));
     }
 
     // Aaron's Test Additions Test
     @Override
-    public TestControllerSingle getTestController(TestItemProvider itemProvider) throws Exception {
+    public TestControllerSingle getNewTestController() throws Exception {
         setConfiguration();
-        return TestControllerFactorySingle.createDefault(workerConfigurationClass, queueNameFunc, itemProvider, getTaskFactory(configuration), getTestResultProcessor(configuration, WorkerServices.getDefault()));
+        TestControllerFactoryBase<TestControllerSingle> factory = new TestControllerFactorySingle();
+        return factory.createDefault(workerConfigurationClass, queueNameFunc, null,getTaskFactory(configuration), getTestResultProcessor(configuration, WorkerServices.getDefault()));
     }
 
     @Override
-    public TestControllerSingle getDataPreparationController(TestItemProvider itemProvider) throws Exception {
+    public TestControllerSingle getNewDataPreparationController() throws Exception {
         setConfiguration();
-        return TestControllerFactorySingle.createDefault(workerConfigurationClass, queueNameFunc, itemProvider, getTaskFactory(configuration), getDataPreparationResultProcessor(configuration, WorkerServices.getDefault()));
+        TestControllerFactoryBase<TestControllerSingle> factory = new TestControllerFactorySingle();
+        return factory.createDefault(workerConfigurationClass, queueNameFunc, null,getTaskFactory(configuration), getDataPreparationResultProcessor(configuration, WorkerServices.getDefault()));
     }
 
     @Override

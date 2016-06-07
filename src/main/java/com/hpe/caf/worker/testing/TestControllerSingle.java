@@ -16,37 +16,32 @@ import java.util.UUID;
 public class TestControllerSingle implements Closeable {
 
     private final WorkerServices workerServices;
-    private final TestItemProvider itemProvider;
     private final QueueManager queueManager;
     private final WorkerTaskFactory taskFactory;
     private final ResultProcessor resultProcessor;
     private final boolean stopOnError;
     private final TestResultsReporter resultsReporter;
-    private final long defaultTimeOutMs = 240000; //90 seconds...600000 10 minutes
+    private final long defaultTimeOutMs = 240000; //4 minutes
     /**
      * The Thread.
      */
     Thread thread;
 
-
-    public TestControllerSingle(WorkerServices workerServices, TestItemProvider itemProvider, QueueManager queueManager, WorkerTaskFactory taskFactory, ResultProcessor resultProcessor, boolean stopOnError) {
-        this(workerServices, itemProvider, queueManager, taskFactory, resultProcessor, stopOnError, new ConsoleTestReporter());
+    public TestControllerSingle(WorkerServices workerServices, QueueManager queueManager, WorkerTaskFactory taskFactory, ResultProcessor resultProcessor, boolean stopOnError) {
+        this(workerServices, queueManager, taskFactory, resultProcessor, stopOnError, new ConsoleTestReporter());
     }
 
     /**
      * Instantiates a new Test controller.
      *
      * @param workerServices  the worker services
-     * @param itemProvider    the {@link TestItem} provider (test cases)
      * @param queueManager    the worker queue manager
      * @param taskFactory     the worker task factory
      * @param resultProcessor the worker result processor
      * @param stopOnError     determines if tests should continue after any validation error
      */
-    public TestControllerSingle(WorkerServices workerServices, TestItemProvider itemProvider, QueueManager queueManager, WorkerTaskFactory taskFactory, ResultProcessor resultProcessor, boolean stopOnError, TestResultsReporter resultsReporter) {
+    public TestControllerSingle(WorkerServices workerServices, QueueManager queueManager, WorkerTaskFactory taskFactory, ResultProcessor resultProcessor, boolean stopOnError, TestResultsReporter resultsReporter) {
         this.workerServices = workerServices;
-
-        this.itemProvider = itemProvider;
         this.queueManager = queueManager;
         this.taskFactory = taskFactory;
         this.resultProcessor = resultProcessor;

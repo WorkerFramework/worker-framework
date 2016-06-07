@@ -23,9 +23,9 @@ public class TestRunnerSingle {
         return s;
     }
 
-    public static TestControllerSingle getTestController(TestControllerProvider controllerProvider, TestItemProvider itemProvider, boolean dataGenerationMode) throws Exception {
+    public static TestControllerSingle getTestController(TestControllerProvider controllerProvider, boolean dataGenerationMode) throws Exception {
 
-        TestControllerSingle controller = dataGenerationMode? controllerProvider.getDataPreparationController(itemProvider) : controllerProvider.getTestController(itemProvider);
+        TestControllerSingle controller = dataGenerationMode? controllerProvider.getNewDataPreparationController() : controllerProvider.getNewTestController();
         return controller;
     }
 

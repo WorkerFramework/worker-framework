@@ -51,7 +51,7 @@ public interface TestControllerProvider {
     * @return the data preparation controller
     * @throws Exception
     * */
-    TestControllerSingle getDataPreparationController(TestItemProvider itemProvider) throws Exception;
+    TestControllerSingle getNewDataPreparationController() throws Exception;
 
     /*
     * Gets the controller
@@ -59,7 +59,7 @@ public interface TestControllerProvider {
     * @return the test controller
     * @throws Exception
     * */
-    TestControllerSingle getTestController(TestItemProvider itemProvider) throws Exception;
+    TestControllerSingle getNewTestController() throws Exception;
 
 
 }
