@@ -19,14 +19,12 @@ import com.hpe.caf.storage.sdk.model.AssetMetadata;
 import com.hpe.caf.storage.sdk.model.StorageServiceInfo;
 import com.hpe.caf.storage.sdk.model.StorageServiceStatus;
 import com.hpe.caf.storage.sdk.model.requests.*;
-import org.apache.http.NameValuePair;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.file.Path;
-import java.util.List;
 import java.util.UUID;
 import java.util.concurrent.atomic.AtomicInteger;
 
@@ -127,7 +125,7 @@ public class StorageServiceDataStore implements ManagedDataStore
         try {
             DeleteAssetRequest deleteAssetRequest = new DeleteAssetRequest(accessToken, ref.getContainer(), ref.getAsset());
 
-            //  If delegation ticket has been provided then set it as part of the upload request.
+            //  If delegation ticket has been provided then set it as part of the delete request.
             if (delegationTicket != null) {
                 deleteAssetRequest.setDelegationTicket(delegationTicket);
             }
@@ -157,13 +155,6 @@ public class StorageServiceDataStore implements ManagedDataStore
         CafStoreReference ref = new CafStoreReference(reference);
 
         try {
-            GetAssetMetadataRequest getAssetMetadataRequest = new GetAssetMetadataRequest(accessToken, ref.getContainer(), ref.getAsset());
-            if (delegationTicket != null) {
-                getAssetMetadataRequest.setDelegationTicket(delegationTicket);
-            }
-
-            AssetMetadata assetMetadata = callStorageService(c -> c.getAssetMetadata(getAssetMetadataRequest));
-
             GetAssetContainerEncryptionKeyRequest getAssetContainerEncryptionKeyRequest = new GetAssetContainerEncryptionKeyRequest(accessToken, ref.getContainer());
             if(delegationTicket != null){
                 getAssetContainerEncryptionKeyRequest.setDelegationTicket(delegationTicket);
@@ -173,7 +164,7 @@ public class StorageServiceDataStore implements ManagedDataStore
 
             DownloadAssetRequest downloadAssetRequest = new DownloadAssetRequest(accessToken, ref.getContainer(), ref.getAsset(), wrappedKey);
 
-            //  If delegation ticket has been provided then set it as part of the upload request.
+            //  If delegation ticket has been provided then set it as part of the download asset request.
             if (delegationTicket != null) {
                 downloadAssetRequest.setDelegationTicket(delegationTicket);
             }
