@@ -10,12 +10,12 @@ import java.util.List;
  * The ReferenceComponents class provides access to the asset related reference components.
  */
 
-final class ReferenceComponents {
+public class ReferenceComponents {
 
     private final String reference;
     private final String queryString;
 
-    private ReferenceComponents(String ref) {
+    public ReferenceComponents(String ref) {
 
         if (ref == null) {
             throw new IllegalArgumentException("Reference has not been supplied.");
