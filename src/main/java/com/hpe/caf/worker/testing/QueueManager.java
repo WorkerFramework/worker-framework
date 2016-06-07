@@ -59,6 +59,15 @@ public class QueueManager implements Closeable {
         RabbitUtil.declareWorkerQueue(conChan, queueServices.getWorkerResultsQueue());
         pubChan.queuePurge(queueServices.getWorkerInputQueue());
         conChan.queuePurge(queueServices.getWorkerResultsQueue());
+
+        if (debugEnabled) {
+            debugPubChan = connection.createChannel();
+            debugConChan = connection.createChannel();
+            RabbitUtil.declareWorkerQueue(debugPubChan, debugInputQueueName);
+            RabbitUtil.declareWorkerQueue(debugConChan, debugOutputQueueName);
+            debugPubChan.queuePurge(debugInputQueueName);
+            debugConChan.queuePurge(debugOutputQueueName);
+        }
     }
     public Thread startConsumer(ResultHandler resultHandler) throws IOException{
         BlockingQueue<Event<QueueConsumer>> conEvents = new LinkedBlockingQueue<>();
