@@ -47,36 +47,8 @@ public class QueueManager implements Closeable {
     }
 
     public Thread start(ResultHandler resultHandler) throws IOException {
-
-        connection = queueServices.getConnection();
-
-        pubChan = connection.createChannel();
-        conChan = connection.createChannel();
-
-        RabbitUtil.declareWorkerQueue(pubChan, queueServices.getWorkerInputQueue());
-        RabbitUtil.declareWorkerQueue(conChan, queueServices.getWorkerResultsQueue());
-
-        pubChan.queuePurge(queueServices.getWorkerInputQueue());
-        conChan.queuePurge(queueServices.getWorkerResultsQueue());
-
-        if (debugEnabled) {
-            debugPubChan = connection.createChannel();
-            debugConChan = connection.createChannel();
-            RabbitUtil.declareWorkerQueue(debugPubChan, debugInputQueueName);
-            RabbitUtil.declareWorkerQueue(debugConChan, debugOutputQueueName);
-            debugPubChan.queuePurge(debugInputQueueName);
-            debugConChan.queuePurge(debugOutputQueueName);
-        }
-
-        BlockingQueue<Event<QueueConsumer>> conEvents = new LinkedBlockingQueue<>();
-
-        SimpleQueueConsumerImpl queueConsumer = new SimpleQueueConsumerImpl(conEvents, conChan, resultHandler, workerServices.getCodec());
-        rabbitConsumer = new DefaultRabbitConsumer(conEvents, queueConsumer);
-
-        consumerTag = conChan.basicConsume(queueServices.getWorkerResultsQueue(), true, rabbitConsumer);
-        Thread consumerThread = new Thread(rabbitConsumer);
-        consumerThread.start();
-        return consumerThread;
+        initialise();
+        return startConsumer(resultHandler);
     }
 
     public void initialise() throws IOException{
