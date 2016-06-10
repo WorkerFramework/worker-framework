@@ -146,14 +146,12 @@ public class StorageServiceDataStoreTestIT {
     @Test
     public void testStoreByteArray() throws DataStoreException, IOException {
         String cafStoreReference = storageServiceDataStore.store(TEST_STRING.getBytes(StandardCharsets.UTF_8), reference);
-        cafStoreReference = cafStoreReference + "?delegationTicket=" + URLEncoder.encode(delegationTicketValue,"UTF-8");
         validateReferenceContainsExpected(cafStoreReference, TEST_STRING);
     }
 
     @Test
     public void testStoreStream() throws DataStoreException, IOException {
         String cafStoreReference = storageServiceDataStore.store(new ByteArrayInputStream(TEST_STRING.getBytes(StandardCharsets.UTF_8)), reference);
-        cafStoreReference = cafStoreReference + "?delegationTicket=" + URLEncoder.encode(delegationTicketValue,"UTF-8");
         validateReferenceContainsExpected(cafStoreReference, TEST_STRING);
     }
 
@@ -163,7 +161,6 @@ public class StorageServiceDataStoreTestIT {
         Files.write(path, TEST_STRING.getBytes(StandardCharsets.UTF_8));
 
         String cafStoreReference = storageServiceDataStore.store(path, reference);
-        cafStoreReference = cafStoreReference + "?delegationTicket=" + URLEncoder.encode(delegationTicketValue,"UTF-8");
         validateReferenceContainsExpected(cafStoreReference, TEST_STRING);
     }
 
