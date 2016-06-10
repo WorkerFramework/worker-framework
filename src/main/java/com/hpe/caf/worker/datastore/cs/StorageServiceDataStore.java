@@ -24,6 +24,8 @@ import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.net.URLEncoder;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Path;
 import java.util.UUID;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -290,7 +292,17 @@ public class StorageServiceDataStore implements ManagedDataStore
 
             AssetMetadata assetMetadata =
                     callStorageService(c -> c.uploadAsset(uploadRequest,null));
-            return new CafStoreReference(assetMetadata.getContainerId(), assetMetadata.getAssetId()).toString();
+
+            String returnValue = null;
+            if (delegationTicket != null) {
+                //  Return the delegation ticket as part of the CafStoreReference value.
+                String encodedDelegationTicket = "?delegationTicket=" + URLEncoder.encode(delegationTicket, StandardCharsets.UTF_8.toString());
+                returnValue = new CafStoreReference(assetMetadata.getContainerId(), assetMetadata.getAssetId()).toString() + encodedDelegationTicket;
+            } else {
+                returnValue = new CafStoreReference(assetMetadata.getContainerId(), assetMetadata.getAssetId()).toString();
+            }
+
+            return returnValue;
         } catch (IOException e) {
             errors.incrementAndGet();
             throw new DataStoreException("Failed to open buffered stream.", e);
