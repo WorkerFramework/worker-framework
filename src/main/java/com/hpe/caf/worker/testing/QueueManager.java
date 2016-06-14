@@ -135,24 +135,4 @@ public class QueueManager implements Closeable {
             }
         }
     }
-
-    /*
-    Need to modify close() method above so that it does not include the two if statements below.
-    Leaving in these if statements for the moment because the method is still in use by tests using
-    JUnit over TestNG
-     */
-    public void closeConsumer() throws IOException{
-        System.out.println("Closing Consumer");
-        if (consumerTag != null) {
-            try {
-                conChan.basicCancel(consumerTag);
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
-        }
-        if (rabbitConsumer != null) {
-            rabbitConsumer.shutdown();
-        }
-    }
-
 }
