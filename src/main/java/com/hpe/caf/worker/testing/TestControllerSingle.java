@@ -21,7 +21,8 @@ public class TestControllerSingle implements Closeable {
     private final ResultProcessor resultProcessor;
     private final boolean stopOnError;
     private final TestResultsReporter resultsReporter;
-    private final long defaultTimeOutMs = 240000; //4 minutes
+    private final long defaultTimeOutMs = 2400000; //4 minutes
+    private final ExecutionContext context;
     /**
      * The Thread.
      */
@@ -47,18 +48,19 @@ public class TestControllerSingle implements Closeable {
         this.resultProcessor = resultProcessor;
         this.stopOnError = stopOnError;
         this.resultsReporter = resultsReporter;
+        context = new ExecutionContext(stopOnError);
     }
 
     public void initialise() throws Exception{
         queueManager.initialise();
+        queueManager.startConsumer((new ProcessorDeliveryHandler(resultProcessor, context, queueManager)));
     }
 
     public void runTests(TestItem testItem) throws Exception
     {
         System.out.println("\n===============  Starting test Item "+ testItem.getTag() +" ======================");
-        ExecutionContext context = new ExecutionContext(stopOnError);
+        context.initializeContext();
 
-        thread = queueManager.startConsumer((new ProcessorDeliveryHandler(resultProcessor, context, queueManager)));
         String timeoutSetting = SettingsProvider.defaultProvider.getSetting(SettingNames.timeOutMs);
         long timeout = timeoutSetting == null ? defaultTimeOutMs : Long.parseLong(timeoutSetting);
 
@@ -106,9 +108,5 @@ public class TestControllerSingle implements Closeable {
         } catch (Throwable e) {
             e.printStackTrace();
         }
-    }
-
-    public void closeConsumer() throws IOException{
-        queueManager.closeConsumer();
     }
 }

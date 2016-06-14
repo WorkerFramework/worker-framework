@@ -8,17 +8,31 @@ import java.util.*;
  */
 public class ExecutionContext {
 
-    private final Signal finishedSignal;
-    private final TestItemStore itemStore;
+    private Signal finishedSignal;
+    private TestItemStore itemStore;
     private final Map<String, TestCaseResult> results = new HashMap<>();
     private boolean failureEncountered = false;
     private final boolean stopOnException;
+    private boolean initialized = false;
 
     public ExecutionContext(boolean stopOnException) {
         this.stopOnException = stopOnException;
         finishedSignal = new Signal();
         itemStore = new TestItemStore(this);
     }
+
+    public void initializeContext(){
+        finishedSignal = new Signal();
+        itemStore = new TestItemStore(this);
+        initialized = true;
+    }
+
+    /**
+     * Getter for property 'isInitialized'.
+     *
+     * @return Value for property 'isInitialized'.
+     */
+    public boolean isInitialized() { return initialized; }
 
     /**
      * Getter for property 'finishedSignal'.
