@@ -39,9 +39,4 @@ public class TestRunnerSingle {
     {
         return itemProvider;
     }
-
-    public static void run(TestControllerSingle controller, TestItem testItem) throws Exception {
-        controller.runTests(testItem);
-    }
-
 }

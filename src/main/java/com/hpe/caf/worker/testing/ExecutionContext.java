@@ -17,8 +17,7 @@ public class ExecutionContext {
 
     public ExecutionContext(boolean stopOnException) {
         this.stopOnException = stopOnException;
-        finishedSignal = new Signal();
-        itemStore = new TestItemStore(this);
+        initializeContext();
     }
 
     public void initializeContext(){

@@ -21,7 +21,7 @@ public class TestControllerSingle implements Closeable {
     private final ResultProcessor resultProcessor;
     private final boolean stopOnError;
     private final TestResultsReporter resultsReporter;
-    private final long defaultTimeOutMs = 2400000; //4 minutes
+    private final long defaultTimeOutMs = 240000; //4 minutes
     private final ExecutionContext context;
     /**
      * The Thread.
