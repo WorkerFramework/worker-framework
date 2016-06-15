@@ -17,7 +17,6 @@ public class ExecutionContext {
 
     public ExecutionContext(boolean stopOnException) {
         this.stopOnException = stopOnException;
-        initializeContext();
     }
 
     public void initializeContext(){
@@ -27,18 +26,12 @@ public class ExecutionContext {
     }
 
     /**
-     * Getter for property 'isInitialized'.
-     *
-     * @return Value for property 'isInitialized'.
-     */
-    public boolean isInitialized() { return initialized; }
-
-    /**
      * Getter for property 'finishedSignal'.
      *
      * @return Value for property 'finishedSignal'.
      */
     public Signal getFinishedSignal() {
+        verifyInitialized();
         return finishedSignal;
     }
 
@@ -48,6 +41,7 @@ public class ExecutionContext {
      * @return Value for property 'itemStore'.
      */
     public TestItemStore getItemStore() {
+        verifyInitialized();
         return itemStore;
     }
 
@@ -57,11 +51,17 @@ public class ExecutionContext {
      * @return Value for property 'results'.
      */
     public Collection<TestCaseResult> getResults() {
+        verifyInitialized();
         return results.values();
     }
 
-    public void finishedSuccessfully(){
+    public void verifyInitialized() {
+        if (initialized == false)
+        throw new RuntimeException("ExecutionContext not initialized");
+    }
 
+    public void finishedSuccessfully(){
+        verifyInitialized();
         if (!failureEncountered) {
             finishedSignal.doNotify(TestResult.createSuccess(results.values()));
         }
@@ -78,12 +78,14 @@ public class ExecutionContext {
     }
 
     public void succeeded(TestItem testItem) {
+        verifyInitialized();
         synchronized (results) {
             results.putIfAbsent(testItem.getTag(), TestCaseResult.createSuccess(testItem.getTestCaseInformation() == null ? createIfNoneProvided(testItem) : testItem.getTestCaseInformation()));
         }
     }
 
     private TestCaseInfo createIfNoneProvided(TestItem item) {
+        verifyInitialized();
         TestCaseInfo info = new TestCaseInfo();
         info.setTestCaseId(item.getTag());
         info.setDescription("No description provided!");
@@ -93,6 +95,7 @@ public class ExecutionContext {
     }
 
     public void failed(TestItem testItem, String message) {
+        verifyInitialized();
         synchronized (results) {
             failureEncountered = true;
             TestCaseResult result = results.get(testItem.getTag());
@@ -112,10 +115,12 @@ public class ExecutionContext {
     }
 
     public void testRunsTimedOut() {
+        verifyInitialized();
         finishedSignal.doNotify(TestResult.createFailed("Tests timed out. Failed.", results.values()));
     }
 
     public TestResult getTestResult(){
+        verifyInitialized();
         return finishedSignal.doWait();
     }
 
