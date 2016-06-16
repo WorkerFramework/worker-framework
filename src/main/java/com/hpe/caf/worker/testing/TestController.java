@@ -98,6 +98,7 @@ public class TestController implements Closeable {
         }
 
         ExecutionContext context = new ExecutionContext(stopOnError);
+        context.initializeContext();
 
         String timeoutSetting = SettingsProvider.defaultProvider.getSetting(SettingNames.timeOutMs);
         long timeout = timeoutSetting == null ? defaultTimeOutMs : Long.parseLong(timeoutSetting);

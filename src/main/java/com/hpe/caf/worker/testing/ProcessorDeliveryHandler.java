@@ -12,14 +12,12 @@ import java.io.IOException;
  */
 public class ProcessorDeliveryHandler implements ResultHandler {
 
-    private final TestItemStore itemStore;
     private final ResultProcessor resultProcessor;
     private ExecutionContext context;
     private QueueManager queueManager;
 
     public ProcessorDeliveryHandler(ResultProcessor resultProcessor, ExecutionContext context, QueueManager queueManager) {
 
-        this.itemStore = context.getItemStore();
         this.resultProcessor = resultProcessor;
         this.context = context;
         this.queueManager = queueManager;
@@ -44,9 +42,9 @@ public class ProcessorDeliveryHandler implements ResultHandler {
 
             String inputIdentifier = resultProcessor.getInputIdentifier(taskMessage);
             if (Strings.isNullOrEmpty(inputIdentifier)) {
-                testItem = itemStore.find(taskMessage.getTaskId());
+                testItem = context.getItemStore().find(taskMessage.getTaskId());
             } else {
-                testItem = itemStore.find(inputIdentifier);
+                testItem = context.getItemStore().find(inputIdentifier);
             }
         if (testItem == null) {
             System.out.println("Item with id " + taskMessage.getTaskId() + " was not found. Skipping.");
@@ -70,7 +68,7 @@ public class ProcessorDeliveryHandler implements ResultHandler {
         }
 
         if (testItem.isCompleted()) {
-            itemStore.remove(testItem.getTag());
+            context.getItemStore().remove(testItem.getTag());
         }
         checkForFinished();
     }
@@ -96,7 +94,7 @@ public class ProcessorDeliveryHandler implements ResultHandler {
     }
 
     private void checkForFinished() {
-        if (itemStore.size() == 0) {
+        if (context.getItemStore().size() == 0) {
             context.finishedSuccessfully();
         }
     }
