@@ -47,18 +47,12 @@ public class QueueManager implements Closeable {
     }
 
     public Thread start(ResultHandler resultHandler) throws IOException {
-        initialise();
-        return startConsumer(resultHandler);
-    }
-
-    public void initialise() throws IOException{
         connection = queueServices.getConnection();
         pubChan = connection.createChannel();
         conChan = connection.createChannel();
         RabbitUtil.declareWorkerQueue(pubChan, queueServices.getWorkerInputQueue());
         RabbitUtil.declareWorkerQueue(conChan, queueServices.getWorkerResultsQueue());
-        pubChan.queuePurge(queueServices.getWorkerInputQueue());
-        conChan.queuePurge(queueServices.getWorkerResultsQueue());
+        purgeQueues();
 
         if (debugEnabled) {
             debugPubChan = connection.createChannel();
@@ -68,8 +62,7 @@ public class QueueManager implements Closeable {
             debugPubChan.queuePurge(debugInputQueueName);
             debugConChan.queuePurge(debugOutputQueueName);
         }
-    }
-    public Thread startConsumer(ResultHandler resultHandler) throws IOException{
+
         BlockingQueue<Event<QueueConsumer>> conEvents = new LinkedBlockingQueue<>();
         SimpleQueueConsumerImpl queueConsumer = new SimpleQueueConsumerImpl(conEvents, conChan, resultHandler, workerServices.getCodec());
         rabbitConsumer = new DefaultRabbitConsumer(conEvents, queueConsumer);
@@ -77,6 +70,11 @@ public class QueueManager implements Closeable {
         Thread consumerThread = new Thread(rabbitConsumer);
         consumerThread.start();
         return consumerThread;
+    }
+
+    public void purgeQueues() throws IOException{
+        pubChan.queuePurge(queueServices.getWorkerInputQueue());
+        conChan.queuePurge(queueServices.getWorkerResultsQueue());
     }
 
     public void publish(TaskMessage message) throws CodecException, IOException {
