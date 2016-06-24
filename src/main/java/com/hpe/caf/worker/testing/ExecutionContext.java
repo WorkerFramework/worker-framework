@@ -1,6 +1,8 @@
 package com.hpe.caf.worker.testing;
 
 
+import org.eclipse.jetty.util.HostMap;
+
 import java.util.*;
 
 /**
@@ -10,7 +12,7 @@ public class ExecutionContext {
 
     private Signal finishedSignal;
     private TestItemStore itemStore;
-    private final Map<String, TestCaseResult> results = new HashMap<>();
+    private Map<String, TestCaseResult> results = new HashMap<>();
     private boolean failureEncountered = false;
     private final boolean stopOnException;
     private boolean initialized = false;
@@ -20,6 +22,7 @@ public class ExecutionContext {
     }
 
     public void initializeContext(){
+        results = new HashMap<>();
         finishedSignal = new Signal();
         itemStore = new TestItemStore(this);
         initialized = true;
