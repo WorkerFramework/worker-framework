@@ -8,10 +8,14 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
 
 public class StorageServiceClientCallback implements StorageClientCallback {
 
     private static final Logger LOG = LoggerFactory.getLogger(StorageServiceClientCallback.class);
+
+    private List<TokenRefreshListener> listeners = new ArrayList<TokenRefreshListener>();
 
     private final KeycloakClient keycloakClient;
 
@@ -19,8 +23,12 @@ public class StorageServiceClientCallback implements StorageClientCallback {
         keycloakClient = storageServiceDataStoreConfiguration.getAuthenticationConfiguration() != null ? new KeycloakClient(storageServiceDataStoreConfiguration.getAuthenticationConfiguration()) : null;
     }
 
+    public void addTokenRefreshListener(TokenRefreshListener toAdd) {
+        listeners.add(toAdd);
+    }
+
     @Override
-    public String refreshToken() throws StorageClientException, StorageServiceException, StorageServiceConnectException {
+    public synchronized String refreshToken() throws StorageClientException, StorageServiceException, StorageServiceConnectException {
 
         String accessToken = null;
 
@@ -30,6 +38,11 @@ public class StorageServiceClientCallback implements StorageClientCallback {
             try {
                 LOG.debug("About to request access token.");
                 accessToken = keycloakClient.getAccessToken();
+
+                // Notify all listeners that the access token has been refreshed.
+                for (TokenRefreshListener rtl : listeners)
+                    rtl.tokenRefreshed(accessToken);
+
             } catch (IOException e) {
                 LOG.error("Failed to retrieve access token.");
                 throw new StorageClientException("Failed to retrieve access token.", e);

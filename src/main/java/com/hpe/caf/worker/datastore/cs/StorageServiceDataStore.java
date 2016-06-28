@@ -34,7 +34,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 /**
  * ManagedDataStore implementation for the CAF Storage Service.
  */
-public class StorageServiceDataStore implements ManagedDataStore
+public class StorageServiceDataStore implements ManagedDataStore, TokenRefreshListener
 {
     @FunctionalInterface
     private interface StorageClientFunction<T, R>  {
@@ -54,6 +54,7 @@ public class StorageServiceDataStore implements ManagedDataStore
     private String accessToken = null;
     private static final Logger LOG = LoggerFactory.getLogger(StorageServiceDataStore.class);
     private final KeycloakClient keycloakClient;
+
     /**
      * Byte size at which incoming streams are buffered to disk before sending to the Storage Service.
      */
@@ -65,14 +66,23 @@ public class StorageServiceDataStore implements ManagedDataStore
     {
         StorageServiceClientCallback callBack = new StorageServiceClientCallback(storageServiceDataStoreConfiguration);
 
+        // Listen for access token refresh changes.
+        callBack.addTokenRefreshListener(this);
+
         storageClient = new StorageClient(storageServiceDataStoreConfiguration.getServerName(),
                 String.valueOf(storageServiceDataStoreConfiguration.getPort()),
                 null,
                 callBack);
 
         keycloakClient = keycloak;
+
     }
 
+    @Override
+    public void tokenRefreshed(String token) {
+        //  Cache refreshed token.
+        accessToken = token;
+    }
 
     @Override
     public DataStoreMetricsReporter getMetrics()
