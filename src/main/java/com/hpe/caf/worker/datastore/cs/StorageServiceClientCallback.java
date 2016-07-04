@@ -21,6 +21,8 @@ public class StorageServiceClientCallback implements StorageClientCallback {
 
     private String accessToken = "";
 
+    private final Object syncLock = new Object();
+
     public StorageServiceClientCallback (final StorageServiceDataStoreConfiguration storageServiceDataStoreConfiguration) {
         keycloakClient = storageServiceDataStoreConfiguration.getAuthenticationConfiguration() != null ? new KeycloakClient(storageServiceDataStoreConfiguration.getAuthenticationConfiguration()) : null;
     }
@@ -34,7 +36,7 @@ public class StorageServiceClientCallback implements StorageClientCallback {
 
         String currentAccessToken = new String(accessToken);
 
-        synchronized (keycloakClient) {
+        synchronized (syncLock) {
 
             //  If access token has already been refreshed then return refreshed token value.
             if(!currentAccessToken.equals(accessToken)){
