@@ -6,7 +6,7 @@
 
     <groupId>com.hpe.caf.worker</groupId>
     <artifactId>worker-framework</artifactId>
-    <version>10.10-SNAPSHOT</version>
+    <version>10.11-SNAPSHOT</version>
     <packaging>pom</packaging>
 
     <parent>
@@ -128,7 +128,7 @@
             <dependency>
                 <groupId>com.hpe.caf.worker</groupId>
                 <artifactId>worker-store-cs</artifactId>
-                <version>10.11-SNAPSHOT</version>
+                <version>10.12-SNAPSHOT</version>
                 <exclusions>
                     <exclusion>
                         <groupId>javax.ws.rs</groupId>
