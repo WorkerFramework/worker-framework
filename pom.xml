@@ -118,12 +118,12 @@
             <dependency>
                 <groupId>com.hpe.caf.worker</groupId>
                 <artifactId>worker-core</artifactId>
-                <version>10.8</version>
+                <version>10.9</version>
             </dependency>
             <dependency>
                 <groupId>com.hpe.caf.worker</groupId>
                 <artifactId>worker-queue-rabbit</artifactId>
-                <version>10.9</version>
+                <version>10.10</version>
             </dependency>
             <dependency>
                 <groupId>com.hpe.caf.worker</groupId>
