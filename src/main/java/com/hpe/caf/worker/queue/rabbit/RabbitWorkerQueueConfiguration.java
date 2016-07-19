@@ -24,7 +24,7 @@ public class RabbitWorkerQueueConfiguration
      * ones with this parameter.
      */
     @Min(0)
-    @Max(1000)
+    @Max(100000)
     private int prefetchBuffer;
     /**
      * The internal RabbitMQ configuration itself.
