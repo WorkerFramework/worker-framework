@@ -33,7 +33,7 @@ final class BulkWorkerThreadPool implements WorkerThreadPool
         this.workQueue = new LinkedBlockingQueue<>();
         this.bulkWorkerThreads = new BulkWorkerThread[nThreads];
         this.throwableHandler = handler;
-        this.backupThreadPool = new StreamingWorkerThreadPool(1, handler, false);
+        this.backupThreadPool = new StreamingWorkerThreadPool(1, handler);
         this.isActive = true;
 
         for (int i = 0; i < nThreads; i++) {
@@ -139,8 +139,7 @@ final class BulkWorkerThreadPool implements WorkerThreadPool
     public void submitWorkerTask(final WorkerTaskImpl workerTask)
         throws TaskRejectedException
     {
-        if ((getBacklogSize() >= bulkWorkerThreads.length * 10)
-         || (!workQueue.offer(workerTask))) {
+        if (!workQueue.offer(workerTask)) {
             throw new TaskRejectedException(
                 "Bulk Worker: Maximum internal task backlog exceeded");
         }

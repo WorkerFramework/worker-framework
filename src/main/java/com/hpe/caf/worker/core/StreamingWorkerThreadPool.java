@@ -19,19 +19,14 @@ final class StreamingWorkerThreadPool implements WorkerThreadPool {
     private final BlockingQueue<Runnable> workQueue;
     private final PrivateWorkerThreadPoolExecutor threadPoolExecutor;
 
-    public StreamingWorkerThreadPool(final int nThreads, final Runnable handler) {
-        this(nThreads, handler, true);
-    }
-
     public StreamingWorkerThreadPool
     (
         final int nThreads,
-        final Runnable handler,
-        final boolean doSizeCheck
+        final Runnable handler
     ) {
         workQueue = new LinkedBlockingQueue<>();
         threadPoolExecutor = new PrivateWorkerThreadPoolExecutor(
-            nThreads, workQueue, handler, doSizeCheck);
+            nThreads, workQueue, handler);
     }
 
     @Override
@@ -71,7 +66,7 @@ final class StreamingWorkerThreadPool implements WorkerThreadPool {
     {
         try {
             StreamingWorkerWrapper wrapper = new StreamingWorkerWrapper(workerTask);
-            threadPoolExecutor.submitWithSizeCheck(wrapper);
+            threadPoolExecutor.submit(wrapper);
         } catch (InvalidTaskException e) {
             workerTask.setResponse(e);
         }
@@ -88,14 +83,12 @@ final class StreamingWorkerThreadPool implements WorkerThreadPool {
 
         private final Runnable throwableHandler;
         private final Map<RunnableFuture<?>, Runnable> tasks;
-        private final boolean ignoreSizeCheck;
 
         public PrivateWorkerThreadPoolExecutor
         (
             final int nThreads,
             final BlockingQueue<Runnable> workQueue,
-            final Runnable handler,
-            final boolean doSizeCheck
+            final Runnable handler
         ) {
             super(nThreads,
                   nThreads,
@@ -105,7 +98,6 @@ final class StreamingWorkerThreadPool implements WorkerThreadPool {
 
             throwableHandler = Objects.requireNonNull(handler);
             tasks = new ConcurrentHashMap<>();
-            ignoreSizeCheck = !doSizeCheck;
         }
 
         @Override
@@ -119,16 +111,6 @@ final class StreamingWorkerThreadPool implements WorkerThreadPool {
             }
             finally {
                 tasks.remove(r);
-            }
-        }
-
-        public void submitWithSizeCheck(final Runnable task)
-            throws TaskRejectedException
-        {
-            if (ignoreSizeCheck || (getQueue().size() < getCorePoolSize() * 10)) {
-                submit(task);
-            } else {
-                throw new TaskRejectedException("Maximum internal task backlog exceeded");
             }
         }
 
