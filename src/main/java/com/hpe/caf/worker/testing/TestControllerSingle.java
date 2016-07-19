@@ -58,8 +58,9 @@ public class TestControllerSingle implements Closeable {
     public void runTests(TestItem testItem) throws Exception
     {
         System.out.println("\n===============  Starting test Item "+ testItem.getTag() +" ======================");
-        queueManager.purgeQueues();
+
         context.initializeContext();
+        queueManager.purgeQueues();
 
         String timeoutSetting = SettingsProvider.defaultProvider.getSetting(SettingNames.timeOutMs);
         long timeout = timeoutSetting == null ? defaultTimeOutMs : Long.parseLong(timeoutSetting);

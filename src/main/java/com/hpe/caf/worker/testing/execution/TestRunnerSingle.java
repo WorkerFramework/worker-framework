@@ -13,9 +13,10 @@ import java.util.Set;
  */
 public class TestRunnerSingle {
     private static TestItemProvider itemProvider;
+    private static boolean mode;
 
-    public static Set<Object[]> setUpTest(TestControllerProvider controllerProvider, boolean typeOfItemProvider) throws Exception{
-        Collection<TestItem> items = getItemProvider(controllerProvider,typeOfItemProvider).getItems();
+    public static Set<Object[]> setUpTest(TestControllerProvider controllerProvider) throws Exception{
+        Collection<TestItem> items = getItemProvider(controllerProvider,mode).getItems();
         Set<Object[]> s=new HashSet<Object[]>();
         for (TestItem i: items) {
             s.add(new Object[]{i});
@@ -24,7 +25,7 @@ public class TestRunnerSingle {
     }
 
     public static TestControllerSingle getTestController(TestControllerProvider controllerProvider, boolean dataGenerationMode) throws Exception {
-
+        mode = dataGenerationMode;
         TestControllerSingle controller = dataGenerationMode? controllerProvider.getNewDataPreparationController() : controllerProvider.getNewTestController();
         return controller;
     }

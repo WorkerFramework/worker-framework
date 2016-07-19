@@ -23,6 +23,7 @@ public class ExecutionContext {
 
     public void initializeContext(){
         results = new HashMap<>();
+        failureEncountered = false;
         finishedSignal = new Signal();
         itemStore = new TestItemStore(this);
         initialized = true;
