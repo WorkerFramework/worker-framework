@@ -20,6 +20,9 @@ public class TestRunnerSingle {
         Set<Object[]> s=new HashSet<Object[]>();
         for (TestItem i: items) {
             s.add(new Object[]{i});
+
+            if(i.getInputIdentifier() == null)
+                i.setInputIdentifier(i.getTag());
         }
         return s;
     }
