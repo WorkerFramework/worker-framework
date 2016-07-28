@@ -16,8 +16,19 @@ public class TestRunnerSingle {
     private static boolean mode;
 
     public static Set<Object[]> setUpTest(TestControllerProvider controllerProvider) throws Exception{
-        Collection<TestItem> items = getItemProvider(controllerProvider,mode).getItems();
-        Set<Object[]> s=new HashSet<Object[]>();
+        Collection<TestItem> items = null;
+        try {
+            items = getItemProvider(controllerProvider,mode).getItems();
+        }
+        catch (NumberFormatException e)
+        {
+            e.printStackTrace();
+            if (e.getCause() != null){
+                e.getCause().printStackTrace();
+            }
+            throw e;
+        }
+        Set<Object[]> s= new HashSet<>();
         for (TestItem i: items) {
             s.add(new Object[]{i});
 
