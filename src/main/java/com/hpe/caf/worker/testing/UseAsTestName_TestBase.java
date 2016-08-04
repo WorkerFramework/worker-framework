@@ -104,15 +104,6 @@ public class UseAsTestName_TestBase implements ITest {
 
             String testCaseId = (String) parameters[useAsTestName.idx()];
 
-
-   /*
-    * Remove "input/" from each of the test case names
-    */
-            if(testCaseId.contains("/"))
-                testCaseId = testCaseId.substring(testCaseId.indexOf('/') +1, testCaseId.length());
-            else if(testCaseId.contains("\\"))
-                testCaseId = testCaseId.substring(testCaseId.indexOf('\\') +1, testCaseId.length());
-
             setTestName(testCaseId);
             }
         }
