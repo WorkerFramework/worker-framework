@@ -1,14 +1,19 @@
 ---
 tag: "test1.txt"
+testCaseInformation:
+  testCaseId: "test1.txt"
+  associatedTickets: null
+  description: null
+  comments: "test1.txt"
 inputData:
   useDataStore: true
-  containerId: "0a1b8e24cc44490888b3d8d8ebba8309"
+  containerId: "2f0e1a924d954ed09966f91d726e4960"
   inputFile: "test1.txt"
   task:
     sourceData:
-      reference: "0a1b8e24cc44490888b3d8d8ebba8309/8365e96395f44587abc6d9fe5421ea95"
+      reference: "2f0e1a924d954ed09966f91d726e4960/0f4ec0099feb43c38befeb9fb143764f"
       data: null
-    datastorePartialReference: "0a1b8e24cc44490888b3d8d8ebba8309"
+    datastorePartialReference: "2f0e1a924d954ed09966f91d726e4960"
     action: "REVERSE"
 expectedOutputData:
   expectedContentFile: "test1.txt.result.content"
@@ -17,5 +22,5 @@ expectedOutputData:
   result:
     workerStatus: "COMPLETED"
     textData:
-      reference: null
+      reference: "2f0e1a924d954ed09966f91d726e4960/fc5b5e22f5e4429282b05896e2dbf018"
       data: null
