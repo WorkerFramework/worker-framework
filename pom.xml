@@ -123,7 +123,7 @@
             <dependency>
                 <groupId>com.hpe.caf.worker</groupId>
                 <artifactId>worker-queue-rabbit</artifactId>
-                <version>10.10</version>
+                <version>10.10.1</version>
             </dependency>
             <dependency>
                 <groupId>com.hpe.caf.worker</groupId>
