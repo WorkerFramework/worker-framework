@@ -6,7 +6,7 @@
 
     <groupId>com.hpe.caf.worker</groupId>
     <artifactId>worker-example-container</artifactId>
-    <version>1.0-SNAPSHOT</version>
+    <version>1.0.0-SNAPSHOT</version>
     <packaging>pom</packaging>
 
     <!-- Properties for the worker. -->
@@ -16,9 +16,6 @@
         <maven.install.skip>true</maven.install.skip>
         <maven.deploy.skip>true</maven.deploy.skip>
         <docker.maven.version>0.13.6</docker.maven.version>
-        <worker-example.container.name>rh7-artifactory.hpswlabs.hp.com:8443/caf/worker-example:${project.version}</worker-example.container.name>
-        <version.major>1-SNAPSHOT</version.major>
-        <version.major.minor>${project.version}</version.major.minor>
         <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
         <test.data>${project.basedir}/test-data/input</test.data>
         <test.configs>${project.basedir}/test-configs</test.configs>
@@ -210,16 +207,13 @@
                         <!-- Configuration for the example-worker image -->
                         <image>
                             <alias>example-worker</alias>
-                            <name>${worker-example.container.name}</name>
+                            <name>rh7-artifactory.hpswlabs.hp.com:8443/caf/worker-example:${project.version}</name>
                             <build>
                                 <maintainer>conal.smith@hpe.com</maintainer>
                                 <from>java:8</from>
-                                <tags>
-                                    <tag>${version.major}</tag>
-                                    <tag>${version.major.minor}</tag>
-                                    <tag>latest</tag>
-                                </tags>
                                 <labels>
+                                    <Build.Number>${project.version}</Build.Number>
+                                    <Build.Date>${maven.build.timestamp}</Build.Date>
                                     <caf.worker-framework.version>${caf.worker-framework.version}</caf.worker-framework.version>
                                 </labels>
                                 <!-- The entry point will be the worker.sh executable. -->
