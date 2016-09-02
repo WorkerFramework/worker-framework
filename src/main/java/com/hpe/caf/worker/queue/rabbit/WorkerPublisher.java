@@ -19,5 +19,5 @@ public interface WorkerPublisher
      * @param headers key/value map of headers to add to the published message
      * @since 10.6
      */
-    void handlePublish(byte[] data, String routingKey, long ackId, Map<String, String> headers);
+    void handlePublish(byte[] data, String routingKey, long ackId, Map<String, Object> headers);
 }

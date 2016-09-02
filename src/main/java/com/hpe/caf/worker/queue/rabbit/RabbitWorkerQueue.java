@@ -123,8 +123,7 @@ public final class RabbitWorkerQueue implements ManagedWorkerQueue
         } catch (IOException e) {
             throw new QueueException("Failed to submit task", e);
         }
-        Map<String, String> stringHeaders = headers.entrySet().stream().collect(Collectors.toMap(Map.Entry::getKey, e -> (String) e.getValue()));
-        publisherQueue.add(new WorkerPublishQueueEvent(taskMessage, targetQueue, Long.parseLong(acknowledgeId), stringHeaders));
+        publisherQueue.add(new WorkerPublishQueueEvent(taskMessage, targetQueue, Long.parseLong(acknowledgeId), headers));
     }
 
 

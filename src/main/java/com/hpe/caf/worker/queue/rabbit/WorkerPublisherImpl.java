@@ -54,12 +54,12 @@ public class WorkerPublisherImpl implements WorkerPublisher
 
 
     @Override
-    public void handlePublish(byte[] data, String routingKey, long ackId, Map<String, String> headers)
+    public void handlePublish(byte[] data, String routingKey, long ackId, Map<String, Object> headers)
     {
         try {
             LOG.debug("Publishing message with ack id {}", ackId);
             AMQP.BasicProperties.Builder builder = new AMQP.BasicProperties().builder();
-            builder.headers(headers.entrySet().stream().collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue)));
+            builder.headers(headers);
             builder.contentType("text/plain");
             builder.deliveryMode(2);
             builder.priority(0);

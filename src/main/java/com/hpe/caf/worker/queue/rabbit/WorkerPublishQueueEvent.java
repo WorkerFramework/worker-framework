@@ -17,7 +17,7 @@ public class WorkerPublishQueueEvent implements Event<WorkerPublisher>
     private final byte[] data;
     private final String routingKey;
     private final long tag;
-    private final Map<String, String> headerMap;
+    private final Map<String, Object> headerMap;
 
 
     /**
@@ -28,7 +28,7 @@ public class WorkerPublishQueueEvent implements Event<WorkerPublisher>
      * @param headers the map of key/value paired headers to be stamped on the message
      * @since 10.6
      */
-    public WorkerPublishQueueEvent(byte[] messageData, String routingKey, long ackId, Map<String, String> headers)
+    public WorkerPublishQueueEvent(byte[] messageData, String routingKey, long ackId, Map<String, Object> headers)
     {
         this.data = Objects.requireNonNull(messageData);
         this.routingKey = Objects.requireNonNull(routingKey);
@@ -82,7 +82,7 @@ public class WorkerPublishQueueEvent implements Event<WorkerPublisher>
      * @return the key/value map of header strings
      * @since 10.6
      */
-    public Map<String, String> getHeaderMap()
+    public Map<String, Object> getHeaderMap()
     {
         return headerMap;
     }
