@@ -17,7 +17,7 @@
             <dependency>
                 <groupId>com.hpe.caf.worker</groupId>
                 <artifactId>worker-framework</artifactId>
-                <version>10.8-SNAPSHOT</version>
+                <version>10.13-SNAPSHOT</version>
                 <type>pom</type>
                 <scope>import</scope>
             </dependency>
