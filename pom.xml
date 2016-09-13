@@ -6,7 +6,7 @@
 
     <groupId>com.hpe.caf.worker</groupId>
     <artifactId>worker-example-container</artifactId>
-    <version>1.0.2-SNAPSHOT</version>
+    <version>1.0.3-SNAPSHOT</version>
     <packaging>pom</packaging>
 
     <!-- Properties for the worker. -->
