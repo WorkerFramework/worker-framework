@@ -6,12 +6,12 @@
 
     <groupId>com.hpe.caf.worker</groupId>
     <artifactId>worker-example-container</artifactId>
-    <version>1.0.0-SNAPSHOT</version>
+    <version>1.0.1-SNAPSHOT</version>
     <packaging>pom</packaging>
 
     <!-- Properties for the worker. -->
     <properties>
-        <caf.worker-framework.version>10.9-SNAPSHOT</caf.worker-framework.version>
+        <caf.worker-framework.version>10.12</caf.worker-framework.version>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <maven.install.skip>true</maven.install.skip>
         <maven.deploy.skip>true</maven.deploy.skip>
