@@ -7,13 +7,13 @@ testCaseInformation:
   comments: "test2.txt"
 inputData:
   useDataStore: true
-  containerId: "2f0e1a924d954ed09966f91d726e4960"
+  containerId: "66d1c33ec8c74fee99d207e7521a93ec"
   inputFile: "test2.txt"
   task:
     sourceData:
-      reference: "2f0e1a924d954ed09966f91d726e4960/3ce8fa48c0314671bfb136b3e0052bd0"
+      reference: "66d1c33ec8c74fee99d207e7521a93ec/2f2f03157fbe42889bad0737b3ebed67"
       data: null
-    datastorePartialReference: "2f0e1a924d954ed09966f91d726e4960"
+    datastorePartialReference: "66d1c33ec8c74fee99d207e7521a93ec"
     action: "CAPITALISE"
 expectedOutputData:
   expectedContentFile: "test2.txt.result.content"
@@ -22,5 +22,5 @@ expectedOutputData:
   result:
     workerStatus: "COMPLETED"
     textData:
-      reference: "2f0e1a924d954ed09966f91d726e4960/4d809f2c9bc04cac8a71cc8016f0f91c"
+      reference: "66d1c33ec8c74fee99d207e7521a93ec/e5f0bb2107f445d282ae3512725539cd"
       data: null

@@ -7,13 +7,13 @@ testCaseInformation:
   comments: "test1.txt"
 inputData:
   useDataStore: true
-  containerId: "2f0e1a924d954ed09966f91d726e4960"
+  containerId: "66d1c33ec8c74fee99d207e7521a93ec"
   inputFile: "test1.txt"
   task:
     sourceData:
-      reference: "2f0e1a924d954ed09966f91d726e4960/0f4ec0099feb43c38befeb9fb143764f"
+      reference: "66d1c33ec8c74fee99d207e7521a93ec/33de689bb3fd44939ba2ff9c9a7d7b42"
       data: null
-    datastorePartialReference: "2f0e1a924d954ed09966f91d726e4960"
+    datastorePartialReference: "66d1c33ec8c74fee99d207e7521a93ec"
     action: "REVERSE"
 expectedOutputData:
   expectedContentFile: "test1.txt.result.content"
@@ -22,5 +22,5 @@ expectedOutputData:
   result:
     workerStatus: "COMPLETED"
     textData:
-      reference: "2f0e1a924d954ed09966f91d726e4960/fc5b5e22f5e4429282b05896e2dbf018"
+      reference: "66d1c33ec8c74fee99d207e7521a93ec/4061554ba59348828c269ff8511fd457"
       data: null
