@@ -14,6 +14,8 @@ public class PropertyMapValidator extends PropertyValidator {
     }
 
     public boolean process(PropertyMap itemUnderTest, PropertyMap validationMap) {
+        // For each expected property (validationPropertyName) in the expected properties (validationMap)
+        // check if the actual properties (itemUnderTest) contains the expected property
         for (String validationPropertyName : validationMap.keySet()) {
 
             // Test case expected data structure (validationMap):
@@ -39,7 +41,7 @@ public class PropertyMapValidator extends PropertyValidator {
             //          or text similarity comparison (default similarity should be set to 100%).
             if (!itemUnderTest.containsKey(validationPropertyName)) {
                 // TODO: Fail
-                throw new AssertionError(String.format("Item under test doesn't have %s property.", validationPropertyName));
+                throw new AssertionError(String.format("Actual result item under test doesn't have %s property belonging to the expected filter data validation file.", validationPropertyName));
             }
 
             if (itemUnderTest.isComplexProperty(validationPropertyName) != validationMap.isComplexProperty(validationPropertyName)) {
@@ -54,6 +56,27 @@ public class PropertyMapValidator extends PropertyValidator {
 
             System.out.println("*** Created validator: " + validator.getClass().getSimpleName());
             validator.validate(validationPropertyName, sourcePropertyValue, validationPropertyValue);
+        }
+        // For each actual property (itemUnderTestPropertyName) in the actual properties (itemUnderTest)
+        // check if the expected properties (validationMap) contains the actual property
+        for (String itemUnderTestPropertyName : itemUnderTest.keySet()) {
+
+            if (!validationMap.containsKey(itemUnderTestPropertyName)) {
+                throw new AssertionError(String.format("Expected filter data validation file used doesn't have %s property belonging to the actual result.", itemUnderTestPropertyName));
+            }
+
+            if (validationMap.isComplexProperty(itemUnderTestPropertyName) != itemUnderTest.isComplexProperty(itemUnderTestPropertyName)) {
+                throw new AssertionError("Property type mismatch - complex vs non-complex. Property name: " + itemUnderTestPropertyName);
+            }
+
+            Object sourcePropertyValue = itemUnderTest.get(itemUnderTestPropertyName);
+            Object validationPropertyValue = validationMap.get(itemUnderTestPropertyName);
+
+            System.out.println("*** Validating '" + itemUnderTestPropertyName + "'" );
+            PropertyValidator validator = validatorFactory.create(itemUnderTestPropertyName, sourcePropertyValue, validationPropertyValue);
+
+            System.out.println("*** Created validator: " + validator.getClass().getSimpleName());
+            validator.validate(itemUnderTestPropertyName, sourcePropertyValue, validationPropertyValue);
         }
         return true;
     }
