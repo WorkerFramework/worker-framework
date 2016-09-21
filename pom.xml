@@ -43,7 +43,7 @@
         <repository>
             <id>cmbg-maven-releases</id>
             <name>Cambridge Nexus Releases</name>
-            <url>http://cmbg-maven.autonomy.com/nexus/content/repositories/releases</url>
+            <url>http://cbgmaven.hpeswlab.net/nexus/content/repositories/releases</url>
             <snapshots>
                 <enabled>false</enabled>
             </snapshots>
@@ -51,7 +51,7 @@
         <repository>
             <id>cmbg-maven-snapshots</id>
             <name>Cambridge Nexus Snapshots</name>
-            <url>http://cmbg-maven.autonomy.com/nexus/content/repositories/snapshots</url>
+            <url>http://cbgmaven.hpeswlab.net/nexus/content/repositories/snapshots</url>
             <releases>
                 <enabled>false</enabled>
             </releases>
@@ -62,12 +62,12 @@
         <repository>
             <id>cmbg-maven-releases</id>
             <name>Internal Releases</name>
-            <url>http://cmbg-maven.autonomy.com/nexus/content/repositories/releases</url>
+            <url>http://cbgmaven.hpeswlab.net//nexus/content/repositories/releases</url>
         </repository>
         <snapshotRepository>
             <id>cmbg-maven-snapshots</id>
             <name>Internal Snapshots</name>
-            <url>http://cmbg-maven.autonomy.com/nexus/content/repositories/snapshots</url>
+            <url>http://cbgmaven.hpeswlab.net/nexus/content/repositories/snapshots</url>
         </snapshotRepository>
     </distributionManagement>
 
