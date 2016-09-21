@@ -1,5 +1,5 @@
 {
-	"docker-registry":"rh7-artifactory.hpswlabs.hp.com:8443",
+	"docker-registry":"rh7-artifactory.svs.hpeswlab.net:8443",
 	"marathon-group":"demo",
 	"forcePullImage": false,
 
