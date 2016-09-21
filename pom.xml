@@ -212,7 +212,7 @@
                         <!-- Configuration for the example-worker image -->
                         <image>
                             <alias>example-worker</alias>
-                            <name>rh7-artifactory.hpswlabs.hp.com:8443/caf/worker-example:${project.version}</name>
+                            <name>rh7-artifactory.svs.hpeswlab.net:8443/caf/worker-example:${project.version}</name>
                             <build>
                                 <maintainer>conal.smith@hpe.com</maintainer>
                                 <from>java:8</from>
