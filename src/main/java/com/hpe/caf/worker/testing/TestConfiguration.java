@@ -44,7 +44,7 @@ public class TestConfiguration<TWorkerTask, TWorkerResult, TInput, TExpectation>
 
         boolean processSubFolders = SettingsProvider.defaultProvider.getBooleanSetting(SettingNames.processSubFolders, true);
         boolean storeTestCaseWithInput = SettingsProvider.defaultProvider.getBooleanSetting(SettingNames.storeTestCaseWithInput, true);
-        boolean throwOnNewActualProperty = SettingsProvider.defaultProvider.getBooleanSetting(SettingNames.throwOnNewActualProperty, false);
+        boolean failOnUnknownProperty = SettingsProvider.defaultProvider.getBooleanSetting(SettingNames.failOnUnknownProperty, false);
         String inputFolder = settingsProvider.getSetting(SettingNames.inputFolder);
         String expectedFolder = settingsProvider.getSetting(SettingNames.expectedFolder);
 
@@ -54,7 +54,7 @@ public class TestConfiguration<TWorkerTask, TWorkerResult, TInput, TExpectation>
 
         TestConfiguration<TWorkerTask, TWorkerResult, TInput, TExpectation> configuration = new TestConfiguration<>(
                 expectedFolder, inputFolder,
-                processSubFolders, storeTestCaseWithInput, throwOnNewActualProperty,
+                processSubFolders, storeTestCaseWithInput, failOnUnknownProperty,
                 useDataStore, settingsProvider.getSetting(SettingNames.dataStoreContainerId),
                 mapper,
                 workerTaskClass, workerResultClass, inputClass, expectationClass);
@@ -82,14 +82,14 @@ public class TestConfiguration<TWorkerTask, TWorkerResult, TInput, TExpectation>
 
     private boolean storeTestCaseWithInput;
 
-    private boolean throwOnNewActualProperty;
+    private boolean failOnUnknownProperty;
 
-    private TestConfiguration(String testDataFolder, String testDocumentsFolder, boolean processSubFolders, boolean storeTestCaseWithInput, boolean throwOnNewActualProperty, boolean useDataStore, String dataStoreContainerId, ObjectMapper serializer, Class<TWorkerTask> workerTaskClass, Class<TWorkerResult> workerResultClass, Class<TInput> inputClass, Class<TExpectation> expectationClass) {
+    private TestConfiguration(String testDataFolder, String testDocumentsFolder, boolean processSubFolders, boolean storeTestCaseWithInput, boolean failOnUnknownProperty, boolean useDataStore, String dataStoreContainerId, ObjectMapper serializer, Class<TWorkerTask> workerTaskClass, Class<TWorkerResult> workerResultClass, Class<TInput> inputClass, Class<TExpectation> expectationClass) {
         this.testDataFolder = testDataFolder;
         this.testDocumentsFolder = testDocumentsFolder;
         this.processSubFolders = processSubFolders;
         this.storeTestCaseWithInput = storeTestCaseWithInput;
-        this.throwOnNewActualProperty = throwOnNewActualProperty;
+        this.failOnUnknownProperty = failOnUnknownProperty;
         this.useDataStore = useDataStore;
         this.dataStoreContainerId = dataStoreContainerId;
         this.serializer = serializer;
@@ -199,11 +199,11 @@ public class TestConfiguration<TWorkerTask, TWorkerResult, TInput, TExpectation>
     }
 
     /**
-     * Getter for property 'throwOnNewActualProperty'.
+     * Getter for property 'failOnUnknownProperty'.
      *
-     * @return Value for property 'throwOnNewActualProperty'.
+     * @return Value for property 'failOnUnknownProperty'.
      */
-    public boolean throwOnNewActualProperty() {
-        return throwOnNewActualProperty;
+    public boolean failOnUnknownProperty() {
+        return failOnUnknownProperty;
     }
 }

@@ -1,5 +1,6 @@
 package com.hpe.caf.worker.testing.configuration;
 
+import com.hpe.caf.worker.testing.SettingNames;
 import com.hpe.caf.worker.testing.TestConfiguration;
 import com.hpe.caf.worker.testing.validation.PropertyMap;
 import com.hpe.caf.worker.testing.validation.PropertyMapValidator;
@@ -26,7 +27,7 @@ public class PropertyMapValidatorPropertyMismatchTest {
         mapOfActualProps.put("unknownField2", "unknownValue2");
         mapOfActualProps.put("unknownField3", "unknownValue3");
 
-        System.setProperty("throw.new.actual.property", "true");
+        System.setProperty(SettingNames.failOnUnknownProperty, "true");
 
         PropertyMapValidator propertyMapValidator = new PropertyMapValidator(new ValidatorFactory(
                 ValidationSettings.configure().build(), null, null, TestConfiguration.createDefault(null, null, null,
@@ -36,10 +37,7 @@ public class PropertyMapValidatorPropertyMismatchTest {
         try {
             propertyMapValidator.process(mapOfActualProps, mapOfExpectedProps);
         } catch (AssertionError error) {
-            String expectedError = "Expected filter data validation file used does not have the following properties " +
-                    "belonging to the actual result's : {unknownField2=[unknownValue2], unknownField3=[unknownValue3]}";
-            Assert.assertEquals("Should throw AssertionError on actual to expected property mismatch",
-                    expectedError, error.getMessage());
+            Assert.assertTrue("Should throw AssertionError on actual to expected property mismatch", error.getMessage().contains("unknownField3"));
             propertyMismatch = true;
         }
 

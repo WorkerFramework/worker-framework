@@ -18,14 +18,14 @@ public class ValidatorFactory {
     private final DataStore dataStore;
     private final Codec codec;
     private final String testDataFolder;
-    private final boolean throwOnNewActualProperty;
+    private final boolean failOnUnknownProperty;
 
     public ValidatorFactory(ValidationSettings validationSettings, DataStore dataStore, Codec codec, TestConfiguration testConfiguration) {
         this.validationSettings = validationSettings;
         this.dataStore = dataStore;
         this.codec = codec;
         this.testDataFolder = testConfiguration.getTestDataFolder();
-        this.throwOnNewActualProperty = testConfiguration.throwOnNewActualProperty();
+        this.failOnUnknownProperty = testConfiguration.failOnUnknownProperty();
     }
 
     public PropertyValidator createRootValidator() {
@@ -62,8 +62,8 @@ public class ValidatorFactory {
 
     }
 
-    public boolean shouldThrowOnNewActualProperty() {
-        return this.throwOnNewActualProperty;
+    public boolean shouldFailOnUnknownProperty() {
+        return this.failOnUnknownProperty;
     }
 
 }
