@@ -2,6 +2,7 @@ package com.hpe.caf.worker.testing.validation;
 
 import com.hpe.caf.api.Codec;
 import com.hpe.caf.api.worker.DataStore;
+import com.hpe.caf.worker.testing.TestConfiguration;
 import com.hpe.caf.worker.testing.configuration.ValidationSettings;
 
 import java.util.Collection;
@@ -17,12 +18,14 @@ public class ValidatorFactory {
     private final DataStore dataStore;
     private final Codec codec;
     private final String testDataFolder;
+    private final boolean throwOnNewActualProperty;
 
-    public ValidatorFactory(ValidationSettings validationSettings, DataStore dataStore, Codec codec, String testDataFolder) {
+    public ValidatorFactory(ValidationSettings validationSettings, DataStore dataStore, Codec codec, TestConfiguration testConfiguration) {
         this.validationSettings = validationSettings;
         this.dataStore = dataStore;
         this.codec = codec;
-        this.testDataFolder = testDataFolder;
+        this.testDataFolder = testConfiguration.getTestDataFolder();
+        this.throwOnNewActualProperty = testConfiguration.throwOnNewActualProperty();
     }
 
     public PropertyValidator createRootValidator() {
@@ -57,6 +60,10 @@ public class ValidatorFactory {
 
         return new ValuePropertyValidator();
 
+    }
+
+    public boolean shouldThrowOnNewActualProperty() {
+        return this.throwOnNewActualProperty;
     }
 
 }

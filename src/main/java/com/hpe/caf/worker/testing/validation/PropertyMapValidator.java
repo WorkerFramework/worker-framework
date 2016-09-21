@@ -1,5 +1,8 @@
 package com.hpe.caf.worker.testing.validation;
 
+import com.google.common.collect.ArrayListMultimap;
+import com.google.common.collect.Multimap;
+
 import java.util.Map;
 
 /**
@@ -7,10 +10,12 @@ import java.util.Map;
  */
 public class PropertyMapValidator extends PropertyValidator {
     private final ValidatorFactory validatorFactory;
+    private final boolean throwOnNewActualProperty;
 
     public PropertyMapValidator(ValidatorFactory validatorFactory) {
 
         this.validatorFactory = validatorFactory;
+        this.throwOnNewActualProperty = validatorFactory.shouldThrowOnNewActualProperty();
     }
 
     public boolean process(PropertyMap itemUnderTest, PropertyMap validationMap) {
@@ -57,28 +62,27 @@ public class PropertyMapValidator extends PropertyValidator {
             System.out.println("*** Created validator: " + validator.getClass().getSimpleName());
             validator.validate(validationPropertyName, sourcePropertyValue, validationPropertyValue);
         }
-        // For each actual property (itemUnderTestPropertyName) in the actual properties (itemUnderTest)
-        // check if the expected properties (validationMap) contains the actual property
-        for (String itemUnderTestPropertyName : itemUnderTest.keySet()) {
 
-            if (!validationMap.containsKey(itemUnderTestPropertyName)) {
-                throw new AssertionError(String.format("Expected filter data validation file used doesn't have %s property belonging to the actual result.", itemUnderTestPropertyName));
+        Multimap<String, String> mapOfActualOutputNewProperties = ArrayListMultimap.create();
+        // For each actual key that is not within the list of expected keys build up a list of them and print them
+        for (Object key : itemUnderTest.keySet().stream().filter(item -> !validationMap.containsKey(item)).toArray()){
+            mapOfActualOutputNewProperties.put(key.toString(), itemUnderTest.get(key).toString());
+            System.out.println("Expected filter data validation file used doesn't have property belonging to the actual result. " + key.toString() + " " + itemUnderTest.get(key));
+        }
+
+        if ( mapOfActualOutputNewProperties.size() > 0 ) {
+            if ( throwOnNewActualProperty ) {
+                throw new AssertionError(String.format("Expected filter data validation file used does not have the " +
+                        "following properties belonging to the actual result's : %s", mapOfActualOutputNewProperties.toString()));
             }
-
-            if (validationMap.isComplexProperty(itemUnderTestPropertyName) != itemUnderTest.isComplexProperty(itemUnderTestPropertyName)) {
-                throw new AssertionError("Property type mismatch - complex vs non-complex. Property name: " + itemUnderTestPropertyName);
-            }
-
-            Object sourcePropertyValue = itemUnderTest.get(itemUnderTestPropertyName);
-            Object validationPropertyValue = validationMap.get(itemUnderTestPropertyName);
-
-            System.out.println("*** Validating '" + itemUnderTestPropertyName + "'" );
-            PropertyValidator validator = validatorFactory.create(itemUnderTestPropertyName, sourcePropertyValue, validationPropertyValue);
-
-            System.out.println("*** Created validator: " + validator.getClass().getSimpleName());
-            validator.validate(itemUnderTestPropertyName, sourcePropertyValue, validationPropertyValue);
+            mapOfActualOutputNewProperties.entries().stream().forEach(newProp -> printStringValueProperty(newProp));
         }
         return true;
+    }
+
+    private void printStringValueProperty(Map.Entry<String, String> property){
+        System.out.println("New property existing within the actual result: " + property.getKey()
+                + " . New property value: " + property.getValue());
     }
 
     @Override

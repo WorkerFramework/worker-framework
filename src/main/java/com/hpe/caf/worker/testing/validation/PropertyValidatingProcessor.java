@@ -1,7 +1,5 @@
 package com.hpe.caf.worker.testing.validation;
 
-import com.fasterxml.jackson.annotation.JsonAutoDetect;
-import com.fasterxml.jackson.annotation.PropertyAccessor;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.datatype.guava.GuavaModule;
 import com.hpe.caf.api.worker.TaskMessage;
@@ -39,7 +37,7 @@ public abstract class PropertyValidatingProcessor<TResult, TInput, TExpected> ex
      */
     public PropertyValidatingProcessor(TestConfiguration<?, TResult, TInput, TExpected> testConfiguration, WorkerServices workerServices, ValidationSettings validationSettings) {
         super(workerServices.getCodec(), testConfiguration.getWorkerResultClass());
-        this.validatorFactory = new ValidatorFactory(validationSettings, workerServices.getDataStore(), workerServices.getCodec(), testConfiguration.getTestDataFolder());
+        this.validatorFactory = new ValidatorFactory(validationSettings, workerServices.getDataStore(), workerServices.getCodec(), testConfiguration);
     }
 
     /**

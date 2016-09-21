@@ -44,6 +44,7 @@ public class TestConfiguration<TWorkerTask, TWorkerResult, TInput, TExpectation>
 
         boolean processSubFolders = SettingsProvider.defaultProvider.getBooleanSetting(SettingNames.processSubFolders, true);
         boolean storeTestCaseWithInput = SettingsProvider.defaultProvider.getBooleanSetting(SettingNames.storeTestCaseWithInput, true);
+        boolean throwOnNewActualProperty = SettingsProvider.defaultProvider.getBooleanSetting(SettingNames.throwOnNewActualProperty, false);
         String inputFolder = settingsProvider.getSetting(SettingNames.inputFolder);
         String expectedFolder = settingsProvider.getSetting(SettingNames.expectedFolder);
 
@@ -53,7 +54,7 @@ public class TestConfiguration<TWorkerTask, TWorkerResult, TInput, TExpectation>
 
         TestConfiguration<TWorkerTask, TWorkerResult, TInput, TExpectation> configuration = new TestConfiguration<>(
                 expectedFolder, inputFolder,
-                processSubFolders, storeTestCaseWithInput,
+                processSubFolders, storeTestCaseWithInput, throwOnNewActualProperty,
                 useDataStore, settingsProvider.getSetting(SettingNames.dataStoreContainerId),
                 mapper,
                 workerTaskClass, workerResultClass, inputClass, expectationClass);
@@ -81,11 +82,14 @@ public class TestConfiguration<TWorkerTask, TWorkerResult, TInput, TExpectation>
 
     private boolean storeTestCaseWithInput;
 
-    private TestConfiguration(String testDataFolder, String testDocumentsFolder, boolean processSubFolders, boolean storeTestCaseWithInput, boolean useDataStore, String dataStoreContainerId, ObjectMapper serializer, Class<TWorkerTask> workerTaskClass, Class<TWorkerResult> workerResultClass, Class<TInput> inputClass, Class<TExpectation> expectationClass) {
+    private boolean throwOnNewActualProperty;
+
+    private TestConfiguration(String testDataFolder, String testDocumentsFolder, boolean processSubFolders, boolean storeTestCaseWithInput, boolean throwOnNewActualProperty, boolean useDataStore, String dataStoreContainerId, ObjectMapper serializer, Class<TWorkerTask> workerTaskClass, Class<TWorkerResult> workerResultClass, Class<TInput> inputClass, Class<TExpectation> expectationClass) {
         this.testDataFolder = testDataFolder;
         this.testDocumentsFolder = testDocumentsFolder;
         this.processSubFolders = processSubFolders;
         this.storeTestCaseWithInput = storeTestCaseWithInput;
+        this.throwOnNewActualProperty = throwOnNewActualProperty;
         this.useDataStore = useDataStore;
         this.dataStoreContainerId = dataStoreContainerId;
         this.serializer = serializer;
@@ -192,5 +196,14 @@ public class TestConfiguration<TWorkerTask, TWorkerResult, TInput, TExpectation>
      */
     public boolean isStoreTestCaseWithInput() {
         return storeTestCaseWithInput;
+    }
+
+    /**
+     * Getter for property 'throwOnNewActualProperty'.
+     *
+     * @return Value for property 'throwOnNewActualProperty'.
+     */
+    public boolean throwOnNewActualProperty() {
+        return throwOnNewActualProperty;
     }
 }

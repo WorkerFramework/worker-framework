@@ -32,4 +32,8 @@ public final class SettingNames {
     public static final String timeOutMs = "timeout.ms";
 
     public static final String createDebugMessage = "create.debug.message";
+
+    // If set to true this option will cause an exception to be thrown if there are additional properties within the
+    // actual result when compared to the expected. Defaults to false
+    public static final String throwOnNewActualProperty = "throw.new.actual.property";
 }
