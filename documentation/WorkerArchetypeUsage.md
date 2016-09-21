@@ -2,8 +2,8 @@
 
 ## Prerequisites
 
-- Connection to Cambridge Maven Nexus [http://cmbg-maven.autonomy.com/nexus/](http://cmbg-maven.autonomy.com/nexus/) 
-	- If you do not have DNS resolution to Cambridge Maven Nexus you may be able to use the direct IP [http://16.26.25.50/nexus/](http://16.26.25.50/nexus/) in place of [http://cmbg-maven.autonomy.com/nexus/](http://cmbg-maven.autonomy.com/nexus/)
+- Connection to Cambridge Maven Nexus [http://cbgmaven.hpeswlab.net/nexus/](http://cbgmaven.hpeswlab.net/nexus/) 
+	- If you do not have DNS resolution to Cambridge Maven Nexus you may be able to use the direct IP [http://16.26.25.50/nexus/](http://16.26.25.50/nexus/) in place of [http://cbgmaven.hpeswlab.net/nexus/](http://cbgmaven.hpeswlab.net/nexus/)
 - Maven
 - Docker VM
 - IntelliJ (Optional)
@@ -81,7 +81,7 @@ The Maven CLI offers developers the ability to generate projects from archetypes
 
 Generate the new Worker's Shared module from the `worker-shared-archetype` with the following Maven command:
 
-<pre>mvn archetype:generate -DarchetypeRepository=http://cmbg-maven.autonomy.com/nexus/content/repositories/snapshots -DarchetypeVersion=1.1-SNAPSHOT -DarchetypeArtifactId=worker-shared-archetype -DarchetypeGroupId=com.hpe.caf.worker</pre>
+<pre>mvn archetype:generate -DarchetypeRepository=http://cbgmaven.hpeswlab.net/nexus/content/repositories/snapshots -DarchetypeVersion=1.1-SNAPSHOT -DarchetypeArtifactId=worker-shared-archetype -DarchetypeGroupId=com.hpe.caf.worker</pre>
 
 The CLI will prompt you for groupId, version (default suggestion is 1.0-SNAPSHOT), package (default suggestion is the groupId, you should however adjust this to include the worker's purpose) and workerName properties required for the new shared project. The artifactId should be distinct to this module's purpose. See Figure 1.
 
@@ -94,7 +94,7 @@ If you are satisfied with the properties you have set, confirm these by typing '
 
 Generate the new Worker's Back-end project from the `worker-archetype` with the following Maven command:
 
-<pre>mvn archetype:generate -DarchetypeRepository=http://cmbg-maven.autonomy.com/nexus/content/repositories/snapshots -DarchetypeVersion=1.1-SNAPSHOT -DarchetypeArtifactId=worker-archetype -DarchetypeGroupId=com.hpe.caf.worker</pre>
+<pre>mvn archetype:generate -DarchetypeRepository=http://cbgmaven.hpeswlab.net/nexus/content/repositories/snapshots -DarchetypeVersion=1.1-SNAPSHOT -DarchetypeArtifactId=worker-archetype -DarchetypeGroupId=com.hpe.caf.worker</pre>
 
 The CLI will prompt you for the Worker's common properties; groupId, version (default suggestion is 1.0-SNAPSHOT), package (default suggestion is the groupId, you should however adjust this to the package property value you set in the shared module) and workerName. The artifactId should be distinct to this module's purpose. In addition the Back-end module archetype will prompt you for the name of the Worker Shared module's artifactId property that you set in the previous step. See Figure 2.
 
@@ -107,7 +107,7 @@ If you are satisfied with the properties you have set, confirm these by typing '
 
 Generate the new Worker's Container project from the `worker-container-archetype` with the following Maven command:
 
-<pre>mvn archetype:generate -DarchetypeRepository=http://cmbg-maven.autonomy.com/nexus/content/repositories/snapshots -DarchetypeVersion=1.1-SNAPSHOT -DarchetypeArtifactId=worker-container-archetype -DarchetypeGroupId=com.hpe.caf.worker</pre>
+<pre>mvn archetype:generate -DarchetypeRepository=http://cbgmaven.hpeswlab.net/nexus/content/repositories/snapshots -DarchetypeVersion=1.1-SNAPSHOT -DarchetypeArtifactId=worker-container-archetype -DarchetypeGroupId=com.hpe.caf.worker</pre>
 
 The CLI will prompt you for the Worker's common properties; groupId, version (default suggestion is 1.0-SNAPSHOT), package (default suggestion is the groupId, you should however adjust this to the package property value you set in the shared module) and workerName. The artifactId should be distinct to this module's purpose. In addition the Container module archetype will prompt you for the name of the Worker Back-end module's artifactId property that you set in the previous step. See Figure 3.
 
@@ -132,7 +132,7 @@ Generate the new Worker's Shared module from the `worker-shared-archetype` by fo
 	- GroupId : com.hpe.caf.worker
 	- ArtifactId : worker-shared-archetype
 	- Version : 1.1-SNAPSHOT
-	- Repository : http://cmbg-maven.autonomy.com/nexus/content/repositories/snapshots
+	- Repository : http://cbgmaven.hpeswlab.net/nexus/content/repositories/snapshots
 	- Click 'OK'
 - Select the added 'com.hpe.caf.worker:worker-shared-archetype' archetype > Click 'Next'
 - Enter GroupId, ArtifactId and Version of your Worker Shared project > Click 'Next', e.g:
@@ -158,7 +158,7 @@ Generate the new Worker's Back-end module from the `worker-archetype` by followi
 	- GroupId : com.hpe.caf.worker
 	- ArtifactId : worker-archetype
 	- Version : 1.1-SNAPSHOT
-	- Repository : http://cmbg-maven.autonomy.com/nexus/content/repositories/snapshots
+	- Repository : http://cbgmaven.hpeswlab.net/nexus/content/repositories/snapshots
 	- Click 'OK'
 - Select the added 'com.hpe.caf.worker:worker-archetype' archetype > Click 'Next'
 - Enter GroupId, ArtifactId and Version of your Worker Back-end project > Click 'Next', e.g:
@@ -186,7 +186,7 @@ Generate the new Worker's Container module from the `worker-container-archetype`
 	- GroupId : com.hpe.caf.worker
 	- ArtifactId : worker-container-archetype
 	- Version : 1.1-SNAPSHOT
-	- Repository : http://cmbg-maven.autonomy.com/nexus/content/repositories/snapshots
+	- Repository : http://cbgmaven.hpeswlab.net/nexus/content/repositories/snapshots
 	- Click 'OK'
 - Select the added 'com.hpe.caf.worker:worker-container-archetype' archetype > Click 'Next'
 - Enter GroupId, ArtifactId and Version of your Worker Container project > Click 'Next', e.g:
@@ -218,7 +218,7 @@ Generate the new Worker's Shared module from the `worker-shared-archetype` by fo
 	- GroupId : com.hpe.caf.worker
 	- ArtifactId : worker-shared-archetype
 	- Version : 1.1-SNAPSHOT
-	- Repository : http://cmbg-maven.autonomy.com/nexus/content/repositories/snapshots
+	- Repository : http://cbgmaven.hpeswlab.net/nexus/content/repositories/snapshots
 	- Click 'Next >'
 - Enter Project Name, Project Location, GroupId, Version and Package of your Worker Shared project, e.g:
 	- Project Name : worker-example-shared
@@ -241,7 +241,7 @@ Generate the new Worker's Back-end module from the `worker-archetype` by followi
 	- GroupId : com.hpe.caf.worker
 	- ArtifactId : worker-archetype
 	- Version : 1.1-SNAPSHOT
-	- Repository : http://cmbg-maven.autonomy.com/nexus/content/repositories/snapshots
+	- Repository : http://cbgmaven.hpeswlab.net/nexus/content/repositories/snapshots
 	- Click 'Next >'
 - Enter Project Name, Project Location, GroupId, Version and Package of your Worker Shared project, e.g:
 	- Project Name : worker-example
@@ -266,7 +266,7 @@ Generate the new Worker's Back-end module from the `worker-archetype` by followi
 	- GroupId : com.hpe.caf.worker
 	- ArtifactId : worker-container-archetype
 	- Version : 1.1-SNAPSHOT
-	- Repository : http://cmbg-maven.autonomy.com/nexus/content/repositories/snapshots
+	- Repository : http://cbgmaven.hpeswlab.net/nexus/content/repositories/snapshots
 	- Click 'Next >'
 - Enter Project Name, Project Location, GroupId, Version and Package of your Worker Shared project, e.g:
 	- Project Name : worker-example-container
