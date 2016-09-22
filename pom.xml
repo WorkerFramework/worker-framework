@@ -70,12 +70,12 @@
                 <repository>
                     <id>HPEreleases</id>
                     <name>Internal Releases</name>
-                    <url>http://rh7-artifactory.hpswlabs.hp.com:8081/artifactory/libs-release-local</url>
+                    <url>http://rh7-artifactory.svs.hpeswlab.net:8081/artifactory/libs-release-local</url>
                 </repository>
                 <snapshotRepository>
                     <id>HPEsnapshots</id>
                     <name>Internal Snapshots</name>
-                    <url>http://rh7-artifactory.hpswlabs.hp.com:8081/artifactory/libs-snapshot-local</url>
+                    <url>http://rh7-artifactory.svs.hpeswlab.net:8081/artifactory/libs-snapshot-local</url>
                 </snapshotRepository>
             </distributionManagement>
         </profile>
