@@ -69,7 +69,7 @@
 
     <ciManagement>
         <system>hudson</system>
-        <url>http://cafbuilder.hpswlabs.hp.com:8080/job/worker-core/</url>
+        <url>http://cafbuilder.hpeswlab.net:8080/job/worker-core/</url>
     </ciManagement>
 
 </project>
