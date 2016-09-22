@@ -58,7 +58,7 @@
 
     <ciManagement>
         <system>hudson</system>
-        <url>http://bel-jenkins.hpswlabs.hp.com:8080/job/caf-configs/</url>
+        <url>http://cafbuilder.hpeswlab.net:8080/job/caf-configs/</url>
     </ciManagement>
 
 </project>
