@@ -44,7 +44,7 @@ public class TestConfiguration<TWorkerTask, TWorkerResult, TInput, TExpectation>
 
         boolean processSubFolders = SettingsProvider.defaultProvider.getBooleanSetting(SettingNames.processSubFolders, true);
         boolean storeTestCaseWithInput = SettingsProvider.defaultProvider.getBooleanSetting(SettingNames.storeTestCaseWithInput, true);
-        boolean failOnUnknownProperty = SettingsProvider.defaultProvider.getBooleanSetting(SettingNames.failOnUnknownProperty, false);
+        boolean failOnUnknownProperty = SettingsProvider.defaultProvider.getBooleanSetting(SettingNames.failOnUnknownProperty, true);
         String inputFolder = settingsProvider.getSetting(SettingNames.inputFolder);
         String expectedFolder = settingsProvider.getSetting(SettingNames.expectedFolder);
 
