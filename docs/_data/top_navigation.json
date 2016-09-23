@@ -1,0 +1,30 @@
+{
+    "navigation_items": [{
+        "title": {
+            "en-us": "Getting Started"
+        },
+        "url": {
+            "en-us": "pages/en-us/Getting-Started"
+        },
+        "icon": "",
+        "primary": false
+    }, {
+        "title": {
+            "en-us": "Meet the Team"
+        },
+        "url": {
+            "en-us": "pages/en-us/Team"
+        },
+        "icon": "",
+        "primary": false
+    }, {
+        "title": {
+            "en-us": "Blog"
+        },
+        "url": {
+            "en-us": "pages/en-us/blog/"
+        },
+        "icon": "",
+        "primary": false
+    }]
+}
