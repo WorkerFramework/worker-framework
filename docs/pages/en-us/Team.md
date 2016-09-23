@@ -15,25 +15,15 @@ team_members:
           icon: hpe-social-email
           url: mailto:dermot.hardy@hpe.com
           
-    - name: Connor Mulholland
-      email: connor.mulholland@hpe.com
+    - name: Krzysztof Ploch
+      email: krzysztof.ploch:hpe.com
       avatar: /assets/img/user.png
       social:
-       - title: GitHub
-         icon: hpe-social-github
-         url: https://github.hpe.com/connor-mulholland
-       - title: Email
-         icon: hpe-social-email
-         url: mailto:connor.mulholland@hpe.com
-
-    - name: Conal Smith
-      email: conal.smith@hpe.com
-      avatar: /assets/img/user.png
-      social:
-       - title: GitHub
-         icon: hpe-social-github
-         url: https://github.hpe.com/conal-smith
-       - title: Email
-         icon: hpe-social-email
-         url: mailto:conal.smith@hpe.com
+        - title: GitHub
+          icon: hpe-social-github
+          url: https://github.hpe.com/krzysztof-ploch
+        - title: Email
+          icon: hpe-social-email
+          url: mailto:krzysztof.ploch@hpe.com
+          
 ---
