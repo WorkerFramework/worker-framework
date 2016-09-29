@@ -1,0 +1,13 @@
+{
+  "name": "worker-framework",
+  "version": "1.0.0",
+  "description": "CAF worker-framework Documentation Jekyll Project",
+    "dependencies": {
+      "grunt": "^1.0.1",
+      "grunt-build-control": "^0.7.1",
+      "grunt-jekyll": "^0.4.4"
+    },
+    "devDependencies": {
+      "grunt-exec": "^1.0.0"
+    }
+}
