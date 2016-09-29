@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html>
+
+  {% include head.html %}
+
+  <body ng-app="caf" disable-animation>
+
+    {% include top-navigation.html %}
+
+    <div class="content-container">
+
+      <div class="container">
+        <div class="row">
+          <div class="wrapper-content">
+            <div class="col-md-9">
+              <div class="docs-content">
+                {{ content | markdownify }}
+
+
+                <div class="footer">
+                  {% if page.last_updated %}
+                  <p class="pull-left text-muted m-nil">{{ page.last_updated }}</p>
+                  {% endif %}
+                  <a class="pull-right" href="{{ site.data.footer_links.feedback_url }}"><span class="hpe-icon hpe-contact-us align-text-bottom"></span> <span localize-text="'Submit Feedback'"></span></a>
+                </div>
+              </div>
+            </div>
+            <div class="col-md-3">
+              {% include side-navigation.html %}
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+
+    {% include footer.html %}
+
+    <!-- Get the required JSON files and give them and ID so we may use them in our directive -->
+    <script type="application/json" id="supported-languages">
+      {{ site.data.localizations.languages | jsonify }}
+    </script>
+
+    <script type="application/json" id="documentation-localization">
+      {{ site.data.localizations.documentation_localization_static | jsonify }}
+    </script>
+
+    <script src="{{ "/caf-templates/assets/js/third-party/jquery.min.js" | prepend: site.baseurl }}"></script>
+    <script src="{{ "/caf-templates/assets/js/third-party/bootstrap.min.js" | prepend: site.baseurl }}"></script>
+    <script src="{{ "/caf-templates/assets/js/polyfills.js" | prepend: site.baseurl }}"></script>
+    <!-- Formatter Plugins -->
+    <script src="{{ "/caf-templates/assets/js/third-party/jsonformatter.js" | prepend: site.baseurl }}"></script>
+    <script src="{{ "/caf-templates/assets/js/third-party/schemaview.min.js" | prepend: site.baseurl }}"></script>
+    <script src="{{ "/caf-templates/assets/js/third-party/ref-parser.js" | prepend: site.baseurl }}"></script>
+
+    <script src="{{ "/caf-templates/assets/js/third-party/angular.js" | prepend: site.baseurl }}"></script>
+    <script src="{{ "/caf-templates/assets/js/third-party/angular-recursion.js" | prepend: site.baseurl }}"></script>
+    <script src="{{ "/caf-templates/assets/js/third-party/moment.min.js" | prepend: site.baseurl }}"></script>
+    <script src="{{ "/caf-templates/assets/js/third-party/jquery.dotdotdot.min.js" | prepend: site.baseurl }}"></script>
+    <script src="{{ "/caf-templates/assets/js/third-party/lodash.min.js" | prepend: site.baseurl }}"></script>
+    <script src="{{ "/caf-templates/assets/js/elements/hpe-elements-angular.min.js" | prepend: site.baseurl }}"></script>
+    <script src="{{ "/caf-templates/assets/js/third-party/md2html.js" | prepend: site.baseurl }}"></script>
+    <script src="{{ "/caf-templates/assets/js/third-party/yaml2js.js" | prepend: site.baseurl }}"></script>
+    <script src="{{ "/caf-templates/assets/js/third-party/json-editor.js" | prepend: site.baseurl }}"></script>
+    <script src="{{ "/caf-templates/assets/js/third-party/schema-form.min.js" | prepend: site.baseurl }}"></script>
+    <script src="{{ "/caf-templates/assets/js/third-party/marked.js" | prepend: site.baseurl }}"></script>
+    <script src="{{ "/caf-templates/assets/js/third-party/angular-marked.min.js" | prepend: site.baseurl }}"></script>
+
+    <script src="{{ "/caf-templates/assets/js/app.js" | prepend: site.baseurl }}"></script>
+    <script src="{{ "/caf-templates/assets/js/localization.js" | prepend: site.baseurl }}"></script>
+    <script src="{{ "/caf-templates/assets/js/swagger.js" | prepend: site.baseurl }}"></script>
+    <script src="{{ "/caf-templates/assets/js/swagger_try.js" | prepend: site.baseurl }}"></script>
+
+    <script type="text/javascript">
+      var baseUrl = '{{ site.baseurl }}';
+    </script>
+
+  </body>
+
+</html>

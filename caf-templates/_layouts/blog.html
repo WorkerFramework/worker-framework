@@ -1,0 +1,50 @@
+---
+layout: default
+---
+
+{% for post in paginator.posts %}
+<div class="p-t-md p-b-md">
+
+    <div class="ebox blog-post">
+        <div class="ebox-title blog-header">
+            <div class="blog-title">
+                <h3 class="title">{{ post.title }}</h3>
+                <p class="post-info"><span class="author">{{ post.author }}</span> - <span class="timestamp">{{ post.datestamp }}</span></p>
+            </div>
+        </div>
+        <div class="ebox-content">
+            {{ post.content | markdownify }}            
+        </div>
+    </div>
+
+</div>
+{% endfor %}
+
+<div class="pagination-container">
+    <div class="btn-group">
+        {% if paginator.previous_page %}
+            <a class="btn button-secondary" href="{{ paginator.previous_page_path | prepend: site.baseurl }}" aria-label="Previous"><i class="hpe-icon hpe-previous"></i></a>
+        {% else %}
+            <a class="btn button-secondary" disabled aria-label="Previous"><i class="hpe-icon hpe-previous"></i></a>    
+        {% endif %}
+
+        {% for page in (1..paginator.total_pages) %}
+
+            {% if page == paginator.page %}
+                <a class="btn button-secondary btn-nav btn-grouped active">{{ page }}</a>
+            {% elsif page == 1 %}
+                <a class="btn button-secondary btn-nav btn-grouped" href="../">{{ page }}</a>
+            {% else %}
+                <a class="btn button-secondary btn-nav btn-grouped" href="{{ site.paginate_path | prepend: site.baseurl | replace: '//', '/' | replace: ':num', page }}">{{ page }}</a>
+            {% endif %}
+
+
+        {% endfor %}
+
+        {% if paginator.next_page %}
+            <a class="btn button-secondary" href="{{ paginator.next_page_path | prepend: site.baseurl }}" aria-label="Next"><i class="hpe-icon hpe-next"></i></a>
+        {% else %}
+            <a class="btn button-secondary" disabled aria-label="Next"><i class="hpe-icon hpe-next"></i></a>    
+        {% endif %}
+    </div>
+</div>

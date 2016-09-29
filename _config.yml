@@ -1,0 +1,22 @@
+title: Worker Framework
+email: caf@hpe.com
+
+description: Worker Framework Documentation
+baseurl: "https://pages.github.hpe.com/caf/worker-framework"
+
+# Build settings
+exclude: ['node_modules']
+
+markdown: kramdown
+highlighter: rouge
+
+gems: ['jekyll-coffeescript', 'jekyll-watch', 'jekyll-assets', 'jekyll-paginate']
+
+layouts_dir:  caf-templates/_layouts
+includes_dir: caf-templates/_includes
+
+paginate: 5
+paginate_path: "/pages/en-us/blog/page:num/"
+
+sass:
+    sass_dir: caf-templates/_sass

@@ -1,0 +1,32 @@
+---
+layout: default
+---
+
+<h1 class="api-landing-title">{% if page.header %}{{ page.header }}{% else %}Api &amp; Docs{% endif %}</h1>
+
+{% if page.description %}
+  <p class="api-landing-description">{{ page.description }}</p>
+{% endif%}
+
+{% for link in page.links %}
+  <a class="api-landing-section" href="{{ link.url }}">
+
+    <div class="contents">
+
+      <!-- Display the link icon -->
+      <div class="icon-section">
+        <i class="hpe-icon {{ link.icon }}"></i>
+      </div>
+
+      <!-- Display the text content -->
+      <div class="text-section">
+        <h3 class="section-title">{{ link.title }}</h3>
+        <p class="section-description" overflow-tooltip tooltip-placement="bottom">{{ link.description }}</p>
+      </div>
+
+    </div>
+
+  </a>
+{% endfor %}
+
+{{ content }}

@@ -1,0 +1,12 @@
+{
+    "registry":
+    {
+        "search": [
+            "http://rh7-artifactory.svs.hpeswlab.net:8081/artifactory/api/bower/bower-virtual"
+        ]
+    },
+    "resolvers": [
+        "bower-art-resolver"
+    ],
+    "directory": "."
+}

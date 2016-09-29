@@ -1,0 +1,171 @@
+<!DOCTYPE html>
+<html>
+
+  {% include head.html %}
+
+<body ng-app="caf" class="splash-page" prevent-animation>
+
+  {% include top-navigation.html %}
+
+  <div class="splash-header">
+      <div class="caf-brand">
+          <img class="logo" src="{{ page.logo }}" alt="">
+          <h2 class="title">{{ page.title }}</h2>
+          <h3 class="slogan">{{ page.slogan }}</h3>
+          <br>
+          <a class="btn button-primary download-caf" href="{{ page.button.url }}">{{ page.button.title }}</a>
+          {% if site.version %}
+          <p class="version">Currently v{{ site.version }}</p>
+          {% endif %}
+      </div>
+  </div>
+
+  <div class="container m-t-xl m-b-xl">
+      <div class="row m-b-xl">
+          <div class="col-md-12">
+            <h1 class="text-black text-center">{{ page.features.title }}</h1>
+            <h3 class="text-center large-line-spacing">{{ page.features.subtitle }}</h3>
+          </div>
+      </div>
+      <div class="row">
+          <div class="feature-list">
+            {% for feature in page.features.feature_list %}
+            <div class="feature">
+                <div class="icon">
+                    <span class="hpe-icon {{ feature.icon }}"></span>
+                </div>
+                <h2 class="title">{{ feature.title }}</h2>
+                <p class="subtitle">{{ feature.subtitle }}</p>
+            </div>
+            {% endfor %}
+          </div>
+      </div>
+  </div>
+
+  <hr>
+
+  {% if page.showcase %}
+  <div class="container m-t-xl m-b-xl examples-container">
+      <div class="row m-b-lg">
+          <div class="col-md-12">
+            <h1 class="text-black text-center">{{ page.showcase.title }}</h1>
+            <h3 class="text-center large-line-spacing">{{ page.showcase.subtitle }}</h3>
+          </div>
+      </div>
+      <div class="row">
+          <div class="examples">
+              <div class="example">
+                <a href="{{ page.showcase.left_showcase.url }}"><img class="example-image" src="{{ page.showcase.left_showcase.img }}" alt="showcase"></a>
+              </div>
+              <div class="example prominent">
+                <a href="{{ page.showcase.center_showcase.url }}"><img class="example-image" src="{{ page.showcase.center_showcase.img }}" alt="showcase"></a>
+              </div>
+              <div class="example">
+                <a href="{{ page.showcase.right_showcase.url }}"><img class="example-image" src="{{ page.showcase.right_showcase.img }}" alt="showcase"></a>
+              </div>
+          </div>
+      </div>
+
+  </div>
+
+  <hr>
+  {% endif %}
+
+  <div class="container m-t-xl m-b-xl">
+      <div class="row m-b-xl">
+          <div class="col-md-12">
+            <h1 class="text-black text-center">{{ page.social.title }}</h1>
+            <h3 class="text-center large-line-spacing">{{ page.social.subtitle }}</h3>
+          </div>
+      </div>
+      <div class="row">
+          {% for social in page.social.social_list %}
+          <div class="col-md-4 col-sm-4 social-card">
+              <div class="icon">
+                  <span class="hpe-icon {{ social.icon }}"></span>
+              </div>
+              <h2 class="title">{{ social.title }}</h2>
+              <p class="subtitle">{{ social.subtitle }}</p>
+              <a href="{{ social.link.url }}" class="link">{{ social.link.title }}</a>
+          </div>
+          {% endfor %}
+      </div>
+
+  </div>
+
+
+  <div class="splash-footer">
+      <p>{{ page.footer }}</p>
+  </div>
+
+    <script type="text/javascript">
+      (function() {
+        // var button_urls = JSON.parse('{{ page.button_urls | jsonify }}');
+        // var landingLink = document.getElementById('landing-link');
+        
+        // if (button_urls[localStorage.getItem("selected-language")] !== undefined)
+        //   landingLink.setAttribute("href", button_urls[localStorage.getItem("selected-language")]);
+        // else 
+        //   landingLink.setAttribute("href", button_urls["default"]);
+
+        var landingBackground = document.getElementsByClassName('splash-header')[0];
+        {% if page.background_image %}
+          landingBackground.style.backgroundImage = 'url({{ page.background_image }})';
+        {% else %}
+          landingBackground.style.backgroundImage = 'url(assets/img/landing_4.jpg)';
+        {% endif %}
+
+      })();
+    </script>
+
+    <!-- Get the required JSON files and give them and ID so we may use them in our directive -->
+    <script type="application/json" id="supported-languages">
+      {{ site.data.localizations.languages | jsonify }}
+    </script>
+
+    <script type="application/json" id="documentation-localization">
+      {{ site.data.localizations.documentation_localization_static | jsonify }}
+    </script>
+
+    <script type="application/json" id="footer-localization">
+      {{  site.data.footer_links | jsonify }}
+    </script>
+
+    <script type="application/json" id="current-page-urls">
+      {{ page.localized_urls | jsonify }}
+    </script>
+
+
+    <script type="text/javascript">
+      var baseUrl = '{{ site.baseurl }}';
+    </script>
+
+    <script src="{{ "/caf-templates/assets/js/third-party/jquery.min.js" | prepend: site.baseurl }}"></script>
+    <script src="{{ "/caf-templates/assets/js/third-party/bootstrap.min.js" | prepend: site.baseurl }}"></script>
+    <script src="{{ "/caf-templates/assets/js/polyfills.js" | prepend: site.baseurl }}"></script>
+    <!-- Formatter Plugins -->
+    <script src="{{ "/caf-templates/assets/js/third-party/jsonformatter.js" | prepend: site.baseurl }}"></script>
+    <script src="{{ "/caf-templates/assets/js/third-party/schemaview.min.js" | prepend: site.baseurl }}"></script>
+    <script src="{{ "/caf-templates/assets/js/third-party/ref-parser.js" | prepend: site.baseurl }}"></script>
+
+    <script src="{{ "/caf-templates/assets/js/third-party/angular.js" | prepend: site.baseurl }}"></script>
+    <script src="{{ "/caf-templates/assets/js/third-party/angular-recursion.js" | prepend: site.baseurl }}"></script>
+    <script src="{{ "/caf-templates/assets/js/third-party/moment.min.js" | prepend: site.baseurl }}"></script>
+    <script src="{{ "/caf-templates/assets/js/third-party/jquery.dotdotdot.min.js" | prepend: site.baseurl }}"></script>
+    <script src="{{ "/caf-templates/assets/js/third-party/lodash.min.js" | prepend: site.baseurl }}"></script>
+    <script src="{{ "/caf-templates/assets/js/elements/hpe-elements-angular.min.js" | prepend: site.baseurl }}"></script>
+    <script src="{{ "/caf-templates/assets/js/third-party/md2html.js" | prepend: site.baseurl }}"></script>
+    <script src="{{ "/caf-templates/assets/js/third-party/yaml2js.js" | prepend: site.baseurl }}"></script>
+    <script src="{{ "/caf-templates/assets/js/third-party/json-editor.js" | prepend: site.baseurl }}"></script>
+    <script src="{{ "/caf-templates/assets/js/third-party/schema-form.min.js" | prepend: site.baseurl }}"></script>
+    <script src="{{ "/caf-templates/assets/js/third-party/marked.js" | prepend: site.baseurl }}"></script>
+    <script src="{{ "/caf-templates/assets/js/third-party/angular-marked.min.js" | prepend: site.baseurl }}"></script>
+
+    <script src="{{ "/caf-templates/assets/js/app.js" | prepend: site.baseurl }}"></script>
+    <script src="{{ "/caf-templates/assets/js/localization.js" | prepend: site.baseurl }}"></script>
+    <script src="{{ "/caf-templates/assets/js/swagger.js" | prepend: site.baseurl }}"></script>
+    <script src="{{ "/caf-templates/assets/js/swagger_try.js" | prepend: site.baseurl }}"></script>
+
+  </body>
+
+</html>

@@ -1,0 +1,158 @@
+$hpegreen: #01A982;
+$accent: #60798d;
+$warning: #ff8d6d;
+$danger: #ff454f;
+$white: #ffffff;
+
+.swagger-container {
+  width: 100%;
+  max-width: 1000px;
+
+
+  .swagger-path {
+    margin-bottom: 30px;
+  }
+
+  .swagger-path-title {
+    margin-top: 40px;
+    margin-bottom: 20px;
+
+    &:first-of-type {
+      margin-top: 30px;
+    }
+  }
+
+  h1, h2, h3, h4, h5, h6 {
+    font-family: Metric;
+  }
+
+  .courier-style {
+    font-family: 'Courier New', Courier, 'Lucida Sans Typewriter', 'Lucida Typewriter', monospace !important;
+  }
+
+  .tag-label {
+    background-color: transparent;
+    margin: 2px 0 0 5px;
+  }
+
+  .panel {
+
+    &.panel-info {
+      border-color: $hpegreen;
+
+      .panel-heading {
+        color: $white;
+        background-color: $hpegreen;
+        border-color: $hpegreen;
+      }
+    }
+
+    &.panel-warning {
+      border-color: $warning;
+
+      .panel-heading {
+        color: $white;
+        background-color: $warning;
+        border-color: $warning;
+      }
+    }
+
+    &.panel-success {
+      border-color: $accent;
+
+      .panel-heading {
+        color: $white;
+        background-color: $accent;
+        border-color: $accent;
+      }
+    }
+
+    &.panel-danger {
+      border-color: $danger;
+
+      .panel-heading {
+        color: $white;
+        background-color: $danger;
+        border-color: $danger;
+      }
+    }
+
+    .panel-body {
+      padding: 0;
+
+      .panel-contents {
+        padding: 15px 25px;
+      }
+    }
+  }
+
+  .model-name {
+    font-size: 21px;
+    color: #333;
+    font-family: Metric-Light;
+    margin-top: 15px;
+  }
+
+  /*
+    Custom colors for Models
+  */
+  .json-schema-view {
+    .name {
+      font-size: 16px;
+      color: $accent !important;
+    }
+
+    .type {
+      font-size: 16px;
+      color: $hpegreen !important;
+    }
+
+    .required {
+      font-size: 16px;
+      color: $danger !important;
+    }
+
+    .description {
+      font-size: 16px;
+      color: #666 !important;
+    }
+  }
+
+  .swagger-type {
+    font-family: monospace;
+    color: $hpegreen !important;
+  }
+
+  .response-200 {
+    font-family: Metric-Semibold;
+    color: $hpegreen;
+  }
+  .response-300 {
+    font-family: Metric-Semibold;
+    color: $accent;
+  }
+  .response-400 {
+    font-family: Metric-Semibold;
+    color: $warning;
+  }
+  .response-500 {
+    font-family: Metric-Semibold;
+    color: $danger;
+  }
+
+  .swagger-try {
+    padding: 0;
+    margin: 0;
+    min-height: 0;
+
+    .swagger-try-contents {
+      padding: 19px;
+    }
+  }
+
+  .asterisk {
+    color: $danger;
+    font-family: Metric-Semibold;
+  }
+
+}

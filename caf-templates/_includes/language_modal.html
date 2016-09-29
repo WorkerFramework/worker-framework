@@ -1,0 +1,22 @@
+<div ng-controller="LocalizeModalCtrl as lmc" class="modal fade" id="language-modal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel">
+  <div class="modal-dialog modal-lg square-modal-window" role="document">
+    <div class="modal-content">
+      <div class="modal-body language-modal">
+        <h1 class="language-title"><span localize-text="'Choose A Region'"></span> <span class="hpe-icon hpe-close" data-dismiss="modal"></span></h1>
+
+        <div class="continent" ng-repeat="(continent, continent_data) in lmc.continents">
+          <p class="continent-title" ng-bind="continent"></p>
+          <div class="region-list">
+            <div class="region" ng-repeat="region in continent_data.countries" ng-click="lmc.select_region(region.abbreviation)">
+              <p class="region-name" ng-class="{ 'active': region.abbreviation === lmc.selected_language }">
+                <span ng-bind="region.country"></span>
+              </p>
+              <p class="region-language"><span ng-bind="region.language"></span> <span class="region-abbreviation">(<span ng-bind="region.abbreviation"></span>)</span></p>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </div>
+</div>

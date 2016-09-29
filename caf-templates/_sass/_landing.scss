@@ -1,0 +1,204 @@
+/*
+  landing page
+*/
+
+.splash-page .splash-header {
+	display: flex;
+  padding-top: 79px;
+	background-repeat: no-repeat;
+	background-size: cover;
+	width: 100%;
+	height: 750px;
+	overflow: hidden;
+	background-attachment: fixed;
+	align-items: center;
+	justify-content: center;
+	box-shadow: inset 0px -15px 40px 0px #000;
+}
+
+.splash-page .splash-header .caf-brand {
+	text-align: center;
+}
+
+.splash-page .splash-header .caf-brand .title {
+  color: #fff;
+  margin-top: 0;
+  font-family: Metric;
+  margin-bottom: 35px;
+  font-size: 40px;
+
+  small {
+    margin: 0;
+    color: #fff;
+  }
+}
+
+.splash-page .splash-header .caf-brand .logo {
+  width: 100px;
+}
+
+.splash-page .splash-header .caf-brand .slogan {
+    color: #fafafa;
+    margin-left: 30px;
+    margin-right: 30px;
+    line-height: 40px;
+}
+
+.splash-page .splash-header .caf-brand .download-caf {
+	height: 40px;
+	font-size: 16px;
+	text-transform: uppercase;
+	padding: 5px 25px;
+	font-family: Metric;
+	border: 0;
+	box-shadow: none !important;
+	margin-top: 20px;
+  line-height: 30px;
+
+  &:focus, &:visited, &:active {
+    color: #ffffff;
+  }
+}
+
+.splash-page .splash-header .caf-brand .version {
+		color: #ccc;
+		font-weight: 100;
+		padding-top: 15px;
+		opacity: 0.8;
+}
+
+.splash-page .feature-card,
+.splash-page .social-card {
+	text-align: center;
+}
+
+.splash-page .feature-card .icon,
+.splash-page .social-card .icon {
+	color: #333;
+	font-size: 80px;
+}
+
+.splash-page .feature-card .title,
+.splash-page .social-card .title {
+	color: #333;	
+	margin-top: 0;
+}
+
+.splash-page .feature-card .subtitle,
+.splash-page .social-card .subtitle {
+	font-size: 18px;
+	font-family: Metric-Light;
+}
+
+.splash-page .social-card .link {
+	display: block;
+	margin: 5px 0 10px;
+	font-family: Metric-Light;
+	font-size: 18px;
+}
+
+.splash-page hr {
+	border-top: 1px solid #ddd;
+}
+
+.splash-page .examples-container {
+	margin-bottom: 100px;
+}
+
+.splash-page .examples {
+	margin-top: 5px;
+}
+
+.splash-page .examples .example {
+	display: inline-block;
+	position: relative;
+	width: 33%;
+}
+
+.splash-page .examples .example.prominent {
+	z-index: 1000;
+}
+
+.splash-page .examples .example.prominent .example-image {
+  transform: scale(1.2);
+}
+
+.splash-page .examples .example.prominent .example-image:hover {
+  transform: scale(1.25);
+}
+
+.splash-page .examples .example .example-image {
+	width: 100%;
+	box-shadow: 0px 5px 35px 0px rgba(0, 0, 0, 0.7);	
+	cursor: pointer;
+	transform: scale(1);
+	-webkit-transition: transform 0.3s ease-in-out;
+	-moz-transition: transform 0.3s ease-in-out;
+	transition: transform 0.3s ease-in-out;
+}
+
+.splash-page .examples .example .example-image:hover {
+	transform: scale(1.05);
+}
+
+
+/*
+	Media queries for examples
+*/
+@media (max-width: 767px) {
+  .splash-page .examples .example {
+    display: block;
+    width: 100%;
+    padding: 25px;
+  }
+
+  .splash-page .examples .example.prominent .example-image {
+    transform: scale(1);
+  }
+
+  .splash-page .examples .example.prominent .example-image:hover {
+    transform: scale(1.05);
+  }
+}
+
+.splash-page .splash-footer {
+	width: 100%;
+	height: 100px;
+	text-align: center;
+	padding: 50px 30px 0;
+	margin-bottom: 20px;
+	font-family: Metric-Light;
+	font-size: 18px;
+}
+
+.splash-page .large-line-spacing {
+	line-height: 40px;
+}
+
+
+.feature-list {
+	display: flex;
+	justify-content: center;
+	flex-wrap: wrap;
+
+	.feature {
+		width: 265px;
+		text-align: center;
+		padding: 0 10px;
+
+		.icon {
+			color: #333;
+    	font-size: 80px;
+		}
+
+		.title {
+			color: #333;
+    	margin-top: 0;
+		}
+
+		.subtitle {
+			font-size: 18px;
+    	font-family: Metric-Light;
+		}
+	}
+}

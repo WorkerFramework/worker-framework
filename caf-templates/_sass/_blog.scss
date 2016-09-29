@@ -1,0 +1,34 @@
+/*
+	Blog Page
+*/
+
+.blog-post {
+
+  .blog-header {
+    display: flex;
+
+    .blog-title {
+      flex: 1;
+    }
+
+    .blog-title {
+      .title {
+        font-family: Metric;
+        margin-bottom: 0;
+      }
+      .post-info {
+        margin: 0;
+        font-size: 14px;
+
+        .author, .timestamp {
+          font-family: 'Metric-Light';
+        }
+      }
+    }
+  }
+}
+
+.pagination-container {
+    display: flex;
+    justify-content: flex-end;
+}

@@ -1,0 +1,41 @@
+---
+layout: default
+---
+
+
+<h1>{{ page.header }}</h1>
+
+<div class="business-card-container">
+
+    {% for team_member in page.team_members %}
+
+    <flippable-card flip-on="hover" flip-style="horizontal" class="m-md ng-isolate-scope">
+        <div class="flip-container">
+            <div class="flipper">
+                <div class="front">
+                    <div class="business-card">
+                        <img class="avatar" src="{{ team_member.avatar | prepend: site.baseurl }}">
+                        <div class="details">
+                            <h3 class="name">{{ team_member.name }}</h3>
+                            <p class="email">{{ team_member.email }}</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="back">
+                    <div class="business-card ng-scope">
+                        <ul class="social">
+                            {% for social_link in team_member.social %}
+                            <li class="social-link" open-link="{{ social_link.url }}">
+                                <i class="hpe-icon {{ social_link.icon }}"></i>
+                                <span class="platform">{{ social_link.title }}</span>
+                            </li>
+                            {% endfor %}
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </flippable-card>
+
+    {% endfor %}
+</div>

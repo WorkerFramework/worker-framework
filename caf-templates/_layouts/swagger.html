@@ -1,0 +1,553 @@
+---
+layout: default
+---
+<link rel="stylesheet" type="text/css" href="{{ "/caf-templates/assets/css/schemaview.min.css" | prepend: site.baseurl }}" />
+<link rel="stylesheet" type="text/css" href="{{ "/caf-templates/assets/css/jsonformatter.min.css" | prepend: site.baseurl }}" />
+<link rel="stylesheet" type="text/css" href="{{ "/caf-templates/assets/css/schema-form.min.css" | prepend: site.baseurl }}" />
+
+{% raw %}
+<div class="swagger-container" ng-controller="SwaggerCtrl as vm">
+
+  <!-- Loading Indicator -->
+  <div ng-show="vm.loading" class="indicator" style="margin: 0 auto;"></div>
+
+  <div class="ng-hide" ng-show="!vm.loading">
+
+    <!-- Swagger Information -->
+    <div class="swagger-info">
+
+      <!-- Swagger Title -->
+      <header class="swagger-info-header" ng-if="vm.schema.info.title">
+        <h1 class="swagger-info-title" ng-bind="vm.schema.info.title"></h1>
+      </header>
+
+      <!-- Swagger Description -->
+      <div class="swagger-info-description" ng-if="vm.schema.info.description" markdownify="vm.schema.info.description"></div>
+
+      <!-- Swagger Version -->
+      <p ng-if="vm.schema.info.version">
+        <b><span localize-text="'Version'"></span>: </b><span ng-bind="vm.schema.info.version"></span>
+      </p>
+
+      <!-- Swagger Contact -->
+      <div ng-if="vm.schema.info.contact">
+        <p><b localize-text="'Contact information'"></b></p>
+
+        <!-- Contact Name -->
+        <p ng-if="vm.schema.info.contact.name" ng-bind="vm.schema.info.contact.name"></p>
+
+        <!-- Contact Url -->
+        <p ng-if="vm.schema.info.contact.url"><a ng-href-bind="vm.schema.info.contact.url" ng-bind="vm.schema.info.contact.url"></a></p>
+
+        <!-- Contact Email -->
+        <p ng-if="vm.schema.info.contact.email"><a ng-href-bind="vm.schema.info.contact.email" ng-bind="vm.schema.info.contact.email"></a></p>
+      </div>
+
+      <!-- Swagger Terms of Service -->
+      <div ng-if="vm.schema.info.termsOfService">
+        <p><b localize-text="'Terms of service'"></b></p>
+
+        <p><a ng-bind="vm.schema.info.termsOfService" ng-href-bind="vm.schema.info.termsOfService"></a></p>
+      </div>
+
+      <!-- Swagger External Docs -->
+      <div ng-if="vm.schema.externalDocs">
+        <p><a ng-bind="vm.schema.externalDocs.description" ng-href-bind="vm.schema.externalDocs.url"></a></p>
+      </div>
+
+      <!-- Swagger License -->
+      <div ng-if="vm.schema.info.license">
+        <p><b localize-text="'License'"></b></p>
+
+        <p><a ng-bind="vm.schema.info.license.name" ng-href-bind="vm.schema.info.license.url"></a></p>
+      </div>
+
+    </div>
+
+    <!-- Swagger Filter By Tags -->
+    <div ng-if="vm.schema.tags">
+      <p><b><span localize-text="'Filter by tags'"></span>:</b></p>
+      <div class="tag-container">
+        <div ng-repeat="tag in vm.schema.tags" class="tag" ng-bind="tag.name" ng-click="vm.toggle_tag(tag.name)" ng-class="{ 'active': vm.tag_selected(tag.name) }"></div>
+        <div class="tag-clear" ng-show="vm.selected_tags.length > 0" ng-click="vm.selected_tags = []">
+          <span class="hpe-icon hpe-close" hover-tooltip="Clear all filters"></span>
+        </div>
+      </div>
+    </div>
+
+    <ng-include
+      src="'security.html'"
+      ng-if="vm.schema.securityDefinitions">
+    </ng-include>
+
+    <!-- Swagger Paths -->
+    <div ng-if="vm.schema.paths">
+
+      <h3 localize-text="'Paths'"></h3>
+
+      <!-- Iterate through each path -->
+      <div ng-repeat="(path_key, path_value) in vm.schema.paths">
+
+        <!-- Path Title -->
+        <h3 class="courier-style swagger-path-title" ng-bind="path_key"></h3>
+
+        <!-- Iterate through each path rest type -->
+        <div ng-repeat="(rest_key, rest_value) in path_value | restTypes">
+
+          <div class="panel" ng-class="{ 'deprecated': rest_value.deprecated }" collapsible-panel rest-colour="rest_key" ng-show="vm.panel_visible(rest_value.tags)">
+            <div class="panel-heading">
+              <span class="label label-secondary pull-right tag-label" ng-repeat="tag in rest_value.tags" ng-bind="tag"></span>
+              <span class="metric-semibold uppercase" ng-bind="rest_key"></span> <span class="rest-path courier-style" ng-bind="path_key"></span>
+            </div>
+            <div class="panel-body">
+              <div class="panel-contents">
+
+                  <!-- If API is deprecated show warning -->
+                  <p class="deprecated-warning" ng-if="rest_value.deprecated" localize-text="'Warning: Deprecated'"></p>
+
+                  <swagger-operation  operation-name="rest_key" path-name="path_key" path="path_value" operation="rest_value" schema="vm.schema"></swagger-operation>
+
+                  <!-- End Swagger Path Details -->
+
+              </div>
+            </div>
+          </div>
+
+        </div>
+        <!-- End iteration -->
+
+      </div>
+    </div>
+    <!-- End Swagger Paths -->
+
+    <!-- Swagger Definitions -->
+    <div ng-if="vm.schema.definitions">
+
+      <h3 localize-text="'Models'"></h3>
+
+      <div ng-repeat="(key, value) in vm.schema.definitions">
+
+        <p class="model-name" ng-bind="key"></p>
+        <definition definition-name="key"></definition>
+        <br />
+
+      </div>
+
+    </div>
+
+    <!-- End Swagger Definitions -->
+  </div>
+
+</div>
+
+
+<!-- Swagger Try Templates -->
+<script type="text/ng-template" id="auth/api-key.html">
+  <div class="modal-header">
+    <h3 class="modal-title" localize-text="'API Key Authentication'"></h3>
+  </div>
+  <div class="modal-body">
+    <form role="form" class="form-horizontal" ng-submit="authenticate(apiKey)">
+      <div class="form-group">
+        <label class="col-sm-3" localize-text="'API Key'"></label>
+        <div class="col-sm-9">
+          <input type="text" class="form-control" placeholder="key" ng-model="apiKey">
+        </div>
+      </div>
+    </form>
+  </div>
+  <div class="modal-footer">
+    <button class="btn button-secondary" ng-click="cancel()">Cancel</button>
+    <button class="btn btn-primary" ng-click="authenticate(apiKey)"
+      ng-disabled="!apiKey" localize-text="'Authenticate'"></button>
+  </div>
+</script>
+
+<script type="text/ng-template" id="auth/basic.html">
+  <div class="modal-header">
+    <h3 class="modal-title" localize-text="'HTTP Basic Authentication'"></h3>
+  </div>
+  <div class="modal-body">
+    <form role="form" class="form-horizontal" ng-submit="authenticate(username, password)">
+      <div class="form-group">
+        <label class="col-sm-3" localize-text="'User Name'"></label>
+        <div class="col-sm-9">
+          <input type="text" class="form-control" placeholder="User Name" ng-model="username">
+        </div>
+      </div>
+      <div class="form-group">
+        <label class="col-sm-3" localize-text="'Password'"></label>
+        <div class="col-sm-9">
+          <input type="password" class="form-control" placeholder="Password" ng-model="password">
+        </div>
+      </div>
+    </form>
+  </div>
+  <div class="modal-footer">
+    <button class="btn button-secondary" ng-click="cancel()" localize-text="'Cancel'"></button>
+    <button class="btn btn-primary" ng-click="authenticate(username, password)" localize-text="'Authenticate'"></button>
+  </div>
+</script>
+
+<script type="text/ng-template" id="auth/oauth2.html">
+  <div class="modal-header">
+    <h3 class="modal-title" localize-text="'OAuth 2.0 Authentication'"></h3>
+  </div>
+  <div class="modal-body">
+    <p localize-text="'Please follow OAuth flow, copy access token from OAuth and paste it here.'"></p>
+    <form role="form" class="form-horizontal" ng-submit="authenticate(accessToken)">
+      <div class="form-group">
+        <label class="col-sm-3" localize-text="'Access Token'"></label>
+        <div class="col-sm-9">
+          <input type="text" class="form-control" placeholder="access_token" ng-model="accessToken">
+        </div>
+      </div>
+    </form>
+  </div>
+  <div class="modal-footer">
+    <button class="btn button-secondary" ng-click="cancel()" localize-text="'Cancel'"></button>
+    <button class="btn btn-primary" ng-click="authenticate(accessToken)"
+      ng-disabled="!accessToken" localize-text="'Authenticate'"></button>
+  </div>
+</script>
+
+
+<script type="text/ng-template" id="security.html">
+  <div class="security" ng-controller="SecurityCtrl">
+    <header>
+      <h3 class="section-header m-b-md" localize-text="'Security'"></h3>
+    </header>
+
+    <div class="security-definitions">
+      <div ng-repeat="(securityDefinitionName, securityDefinition) in vm.schema.securityDefinitions" class="security-definition {{securityDefinition.type}}">
+        <header>
+          <h4>
+            <span class="authenticated" style="color:green" ng-if="isAuthenticated(securityDefinitionName)" title="Authenticated">✓</span>
+            <span>{{securityDefinitionName}}</span>
+            <span class="security-type">({{getHumanSecurityType(securityDefinition.type)}})</span>
+            <div class="authentication">
+              <div class="m-t-md m-b-md">
+                <button class="btn button-accent" ng-click="authenticate(securityDefinitionName, securityDefinition)" class="authenticate">{{isAuthenticated(securityDefinitionName) ? 'Change Authentication' : 'Authenticate'}}</button>
+              </div>
+            </div>
+          </h4>
+        </header>
+        <section>
+          <p ng-if="securityDefinition.description" marked="securityDefinition.description"></p>
+
+          <table class="table table-hover">
+            <tbody>
+              <tr ng-if="securityDefinition.name">
+                <td localize-text="'Name'"></td>
+                <td>{{securityDefinition.name}}</td>
+              </tr>
+              <tr ng-if="securityDefinition.in">
+                <td localize-text="'In'"></td>
+                <td>{{securityDefinition.in}}</td>
+              </tr>
+              <tr ng-if="securityDefinition.flow">
+                <td localize-text="'Flow'"></td>
+                <td>{{securityDefinition.flow}}</td>
+              </tr>
+              <tr ng-if="securityDefinition.authorizationUrl">
+                <td localize-text="'Authorization URL'"></td>
+                <td><a target="_blank" href="{{securityDefinition.authorizationUrl}}">{{securityDefinition.authorizationUrl}}</a></td>
+              </tr>
+              <tr ng-if="securityDefinition.tokenUrl">
+                <td localize-text="'Token URL'"></td>
+                <td><a target="_blank" href="{{securityDefinition.tokenUrl}}">{{securityDefinition.tokenUrl}}</a></td>
+              </tr>
+            </tbody>
+          </table>
+          <h4 ng-if="securityDefinition.scopes" localize-text="'Scopes'"></h4>
+          <table class="table table-hover" ng-if="securityDefinition.scopes">
+            <tbody>
+              <tr ng-repeat="(scopeName, scope) in securityDefinition.scopes" class='scopes-table'>
+                <td><strong>{{scopeName}}</strong></td>
+                <td>{{scope}}</td>
+              </tr>
+            </tbody>
+          </table>
+        </section>
+      </div>
+    </div>
+  </div>
+
+</script>
+
+
+<script type="text/ng-template" id="operation.html">
+
+    <div class='content'>
+
+      <section class="summary" ng-if="operation.summary">
+        <h3 class="m-t-nil" localize-text="'Summary'"></h3>
+        <p>{{operation.summary}}</p>
+      </section>
+
+      <section class="description" ng-if="operation.description">
+        <h3 localize-text="'Description'"></h3>
+        <div marked="operation.description"></div>
+      </section>
+
+      <section class="parameters" ng-if="getParameters().length">
+        <h3 localize-text="'Parameters'"></h3>
+        <div>
+          <table class="table table-hover">
+            <thead>
+              <tr>
+                <th class="text-black" localize-text="'Name'"></th>
+                <th class="text-black" localize-text="'Location'"></th>
+                <th class="text-black" localize-text="'Description'"></th>
+                <th class="text-black" localize-text="'Required'"></th>
+                <th class="text-black schema-col-sm" localize-text="'Schema'"></th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr ng-repeat="parameter in getParameters() track by $index">
+                <td><a class="mono default-cursor">{{parameter.name}}</a></td>
+                <td>{{parameter.in}}</td>
+                <td marked="parameter.description"></td>
+                <td>{{parameter.required ? 'Yes' : 'No'}}</td>
+                <td>
+                  <schema-model schema="parameter.schema" show-levels="0"></schema-model>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
+
+      <section class="responses" ng-if="operation">
+        <h3 localize-text="'Responses'"></h3>
+
+        <div>
+          <table class="table table-hover">
+            <thead>
+              <tr>
+                <th class="text-black" localize-text="'Code'"></th>
+                <th class="text-black" localize-text="'Description'"></th>
+                <th class="text-black" ng-if="hasAResponseWithHeaders(operation.responses)" localize-text="'Headers'"></th>
+                <th class="text-black schema-col-sm" ng-if="hasAResponseWithSchema(operation.responses)" localize-text="'Schema'"></th>
+                <th class="text-black" ng-if="hasAResponseWithExamples(operation.responses)" localize-text="'Examples'"></th>
+              </tr>
+            </thead>
+
+            <tbody>
+              <tr ng-repeat="(responseCode, response) in operation.responses">
+                <td>
+                  <a class="default-cursor">
+                      <span class="resp-code {{responseCodeClassFor(responseCode)}}">
+                        {{responseCode}}
+                      </span>
+                  </a>
+                </td>
+                <td marked="response.description"></td>
+                <td ng-if="hasAResponseWithHeaders(operation.responses)">
+                  <table ng-if="response.headers" class="respnse-headers">
+                    <thead>
+                      <tr>
+                        <th class="text-black" localize-text="'Name'"></th>
+                        <th class="text-black" localize-text="'Description'"></th>
+                        <th class="text-black" localize-text="'Type'"></th>
+                        <th class="text-black" localize-text="'Details'"></th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      <tr ng-repeat="(headerName, header) in response.headers">
+                        <td class="spaced-table">{{headerName}}</td>
+                        <td class="spaced-table">{{header.description}}</td>
+                        <td class="spaced-table">
+                          <try-json-formatter json="header.type"></try-json-formatter>
+                        </td>
+                        <td class="spaced-table">
+                          <try-json-formatter json="header"></try-json-formatter>
+                        </td>
+                      </tr>
+                    </tbody>
+                  </table>
+                </td>
+                <td ng-if="hasAResponseWithSchema(operation.responses)">
+                  <schema-model ng-if="response.schema" schema="response.schema" show-levels="0"></schema-model>
+                </td>
+                <td ng-if="hasAResponseWithExamples(operation.responses)">
+                  <table class="table table-hover">
+                    <tbody>
+                      <tr ng-repeat="(exampleMimeType, example) in response.examples">
+                        <td>{{exampleMimeType}}</td>
+                        <td>
+                          <try-json-formatter json="example" open="1"></try-json-formatter>
+                        </td>
+                      </tr>
+                    </tbody>
+                  </table>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
+
+      <section class="security" ng-if="operation.security && operation.security.length">
+        <h3>Security</h3>
+        <table class="table table-hover">
+          <thead>
+            <tr>
+              <th class="text-black" localize-text="'Security Schema'"></th>
+              <th class="text-black" localize-text="'Scopes'"></th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr ng-repeat="security in operation.security track by $index">
+              <td ng-repeat="(securityName, securityValues) in security">{{securityName}}</td>
+              <td ng-repeat="(securityName, securityValues) in security">
+                <strong
+                  class="security-value"
+                  ng-repeat="value in securityValues track by $index">
+                  {{value}}
+                </strong>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </section>
+
+      <section class="try-operation" ng-if="vm.swagger_try_enabled">
+
+        <div class="text-right">
+
+          <button class="btn button-secondary" ng-class="{trying: isTryOpen}" ng-click="toggleTry()" ng-if="!isTryOpen" track-event="try-operation" localize-text="'Try this operation'">
+
+          </button>
+
+          <button class="btn button-secondary" ng-class="{'is-open': isTryOpen}" ng-click="toggleTry()" ng-if="isTryOpen" localize-text="'Close'">
+          </button>
+        </div>
+
+        <div ng-include="'try-operation.html'" ng-if="isTryOpen">
+        </div>
+      </section>
+
+</script>
+
+
+<script type="text/ng-template" id="try-operation.html">
+  <div ng-controller="TryOperation" class="try-container">
+    <div class="request">
+      <form schema-form="requestSchema" ng-model="requestModel" name="requestFrom"></form>
+
+      <h3 localize-text="'Header Preview'"></h3>
+      <div class="raw-request raw">
+        <div class="line url">
+          {{operationName | uppercase}}
+          <a href="{{generateUrl()}}" target="_blank" tabindex="-1">{{generateUrl()}}</a>
+          {{httpProtocol}}
+        </div>
+        <div class="headers p-t-md p-b-md">
+          <div class="header" ng-repeat="(headerName, headerValue) in getHeaders()">
+          <strong>{{headerName}}</strong>: {{headerValue}}</div>
+        </div>
+        <pre ng-if="hasRequestBody() && !hasFileParam" class="json-body">{{getRequestBody()}}</pre>
+        <pre ng-if="hasFileParam" class="json-body">File</pre>
+      </div>
+      <div class="cors-warning" ng-if="isCrossOrigin()">
+        <p>
+          <span class="warning-icon">⚠️</span>
+          This is a cross-origin call. Make sure the server at
+          <code>{{specs.host}}</code>
+          accepts {{operationName | uppercase}} requests from
+          <code>{{locationHost}}</code>.
+          <a href="https://github.com/swagger-api/swagger-editor/blob/master/docs/cors.md" target="_blank">Learn more</a>
+        </p>
+      </div>
+      <button ng-click="makeCall()" class="m-t-md btn btn-primary" ng-disabled="xhrInProgress || !requestFrom.$valid">
+        <span ng-if="xhrInProgress">Sending...</span>
+        <span ng-if="!xhrInProgress">Send Request</span>
+      </button>
+    </div>
+
+    <h3 ng-if="xhr" localize-text="'Response'"></h3>
+    <div class="response" ng-if="xhr">
+      <p ng-show="statusCode"><b localize-text="'Response code:'"></b> <span>{{ statusCode }}</span></p>
+      <div class="response-info" ng-class="{error: error}">
+        <span class="status-text">{{textStatus | uppercase}}</span>
+        <span class="error-text" ng-if="error">{{error}}</span>
+      </div>
+      <tabset justified="true" class="responses-tabs">
+        <!-- <tab heading="Rendered">
+          <h6>Headers</h6>
+          <json-formatter json="responseHeaders" open="3"></json-formatter>
+          <h6>Body</h6>
+          <json-formatter ng-if="isJson(responseData)" json="responseData" open="3"></json-formatter>
+          <div ng-if="isType(responseHeaders, 'html')" ng-bind-html="responseData"></div>
+          <div ng-if="isType(responseHeaders, 'plain')">
+            <h5>Plain text:</h5>
+            <pre>{{responseData}}</pre>
+          </div>
+        </tab> -->
+        <tab heading="Pretty">
+          <pre>{{prettyPrint(xhr.responseText)}}</pre>
+        </tab>
+        <tab heading="Raw">
+          <div class="raw-response raw">
+            <div class="status">{{httpProtocol}} {{xhr.statusCode}} {{statusText}}</div>
+            <div class="resp-headers">{{xhr.getAllResponseHeaders()}}</div>
+            <div>{{xhr.responseText}}</div>
+          </div>
+        </tab>
+      </tabset>
+      </div>
+    </div>
+  </div>
+
+</script>
+
+<script type="text/ng-template" id="schema-model.html">
+  <table class="schema-model" ng-class="{hidden: !schema}">
+    <tr>
+      <td>
+        <a
+          class="toggle"
+          ng-click="switchMode()"
+          title="Switch to {{mode == 'schema' ? 'json' : 'schema'}}">
+
+          ⇄
+        </a>
+      </td>
+      <td class="view json" ng-show="mode === 'json'"></td>
+      <td class="view schema" ng-show="mode === 'schema'"></td>
+    </tr>
+  </table>
+
+
+</script>
+
+
+<!-- End Swagger Try Templates -->
+{% endraw %}
+
+<!-- Additional Script Tags -->
+<script id="swagger-json" type="application/json">
+  {% if page.swagger_json %}
+    {{ page.swagger_json | jsonify }}
+  {% else %}
+    {{ page | jsonify }}
+  {% endif %}
+</script>
+
+<script type="text/javascript">
+  // we need to know if we should allow the swagger try functionality
+  {% if page.swagger_try_enabled %}
+  var swagger_try_enabled = true;
+  {% else %}
+  var swagger_try_enabled = false;
+  {% endif %}
+
+  // We also need to know if we should load definition from a url
+  {% if page.swagger_url %}
+  var swagger_url = '{{ page.swagger_url }}';
+  {% else %}
+  var swagger_url = null;
+  {% endif %}
+
+</script>

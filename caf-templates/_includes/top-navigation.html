@@ -1,0 +1,19 @@
+{% raw %}
+<header class="top-header" ng-controller="TopNavCtrl as tnc" header-scroll>
+    <div class="container">
+        <a href="{{ tnc.logo_url }}" class="logo"></a>
+        <ul class="menu">
+                <li class="menu-item" ng-repeat="(key, value) in tnc.top_nav_data.navigation_items">
+                    <a localize-all="value"></a>
+                </li>
+        </ul>
+    </div>
+    <div class="menu-toggle" menu-toggle>
+      <span class="hpe-icon hpe-menu"></span>
+    </div>
+</header>
+{% endraw %}
+
+<script type="application/json" id="top-nav-localization">
+    {{ site.data.top_navigation | jsonify }}
+</script>

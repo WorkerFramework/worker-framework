@@ -1,0 +1,23 @@
+{
+    "navigation_items": [{
+        "title": {
+            "en-us": "Worker Framework"
+        },
+        "children": [{
+            "title": {
+                "en-us": "Overview"
+            },
+            "url": {
+                "en-us": "pages/en-us/Overview"
+            }
+        },
+		{
+            "title": {
+                "en-us": "Features"
+            },
+            "url": {
+                "en-us": "pages/en-us/Features"
+            }
+        }]
+    }]
+}

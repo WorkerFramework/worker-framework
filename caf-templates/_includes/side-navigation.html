@@ -1,0 +1,50 @@
+{% raw %}
+<div ng-controller="SideNavCtrl as snc">
+    <nav role="navigation" class="sidebar" ng-class="{ 'expanded': snc.side_nav_expanded }">
+
+        <div class="header">
+            <p class="title">CAF Documentation</p>
+            <div class="close-button" ng-click="snc.side_nav_expanded = false">
+                <i class="hpe-icon hpe-close"></i>
+            </div>
+        </div>
+
+        <ul class="nav sidenav" side-menu>
+            <li ng-repeat="(key, firstlevel) in snc.side_nav_data.navigation_items">
+                <a localize-all="firstlevel" class="root-section" default-url="firstlevel.url" ng-class="{ 'hover-effect': firstlevel.url }"></a>
+                <ul class="nav">
+                    <li ng-repeat="(key, secondlevel) in firstlevel.children">
+                        <a class="nav-item" localize-all="secondlevel" ng-if="secondlevel.url"></a>     
+                        <a ng-if="secondlevel.children" default-url="secondlevel.children[0].url">
+                            <span localize-all="secondlevel"></span>
+                        </a>
+                        <ul class="nav" ng-if="secondlevel.children">
+                            <li ng-repeat="(key, thirdlevel) in secondlevel.children">
+                                <a localize-all="thirdlevel" ng-if="thirdlevel.url"></a>
+                                <a ng-if="thirdlevel.children">
+                                    <span localize-all="thirdlevel"></span>
+                                </a>
+                                <ul class="nav" ng-if="thirdlevel.children">
+                                    <li ng-repeat="(key, fourthlevel) in thirdlevel.children">
+                                        <a localize-all="fourthlevel" ng-if="fourthlevel.url"></a>
+                                    </li>
+                                </ul>
+                            </li>
+                        </ul>               
+                    </li>
+                </ul>
+            </li>
+        </ul>
+
+    </nav>
+
+    <div class="side-nav-expand-btn visible-sm-block visible-xs-block" ng-click="snc.side_nav_expanded = true">
+        <i class="hpe-icon hpe-app"></i>
+    </div>
+</div>
+
+{% endraw %}
+
+<script type="application/json" id="side-nav-localization">
+    {{ site.data.side_navigation | jsonify }}
+</script>

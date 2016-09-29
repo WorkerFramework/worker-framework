@@ -1,0 +1,25 @@
+{% raw %}
+<footer class="link-footer container" ng-controller="FooterCtrl as ftc">
+    <div class="footer-container">
+      <ul class="footer-list">
+        <li class="footer-item" ng-repeat="(key, value) in ftc.footer_data.navigation_items">
+        	<a class="footer-link" localize-all="value"></a>
+    	</li>
+        <li class="footer-item">
+          <localize-button></localize-button>
+        </li>
+      </ul>
+    </div>
+</footer>
+{% endraw %}
+
+<!-- Language modal here -->
+{% include language_modal.html %}
+
+<script type="application/json" id="footer-localization">
+	{{  site.data.footer_links | jsonify }}
+</script>
+
+<script type="application/json" id="current-page-urls">
+  {{ page.localized_urls | jsonify }}
+</script>
