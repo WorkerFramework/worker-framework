@@ -179,7 +179,7 @@ Generate the new worker's back-end module from the `worker-archetype`:
 6. Click 'OK'
 7. Select the added 'com.hpe.caf.worker:worker-archetype' archetype
 8. Click 'Next'
-9. Enter GroupId, ArtifactId and Version of your Worker Back-end project, for example:
+9. Enter GroupId, ArtifactId and Version of your worker back-end project, for example:
 	- GroupId : com.hpe.comac.worker
 	- ArtifactId : worker-example
 	- Version : 1.0-SNAPSHOT
@@ -223,9 +223,10 @@ Generate the new Worker's Container module from the `worker-container-archetype`
 	- workerArtifactId : worker-example
 		- This is the name of the worker back-end module's artifactId property.
 11. Click 'Next'
-12. Name the Project after its ArtifactId and specify the location of the project > Click 'Finish', for example:
+12. Name the Project after its ArtifactId and specify the location of the project, for example:
 	- Project name : worker-example-container
 	- Project location : C:\MyWorkerProjects\
+13. Click 'Finish'
 
 Due to a bug with the Apache Maven Archetype, some place-holders that are preceded with underscores are not replaced. A manual step is required that you replace these. In the generated container project `.../configuration/marathon-template-config` and `.../test-configs` folders include container configuration files that with left over place-holders within their file names. Replace all occurrences of `__workerArtifactId__` with the name of the worker back-end module's artifactId property (workerArtifactId). See the **Renaming Container Marathon Configuration Files** and **Renaming Container Test Configuration Files** table in the Appendix.
 
@@ -235,7 +236,7 @@ NetBeans offers developers the ability to generate projects from archetypes via 
 
 ###### 1. Generate the New Worker's Shared Module
 
-Generate the new Worker's Shared module from the `worker-shared-archetype` by following these instructions:
+Generate the new worker's shared module from the `worker-shared-archetype` by following these instructions:
 
 1. 'File > New Project...'
 2. From the Categories Pane select Maven
@@ -246,7 +247,7 @@ Generate the new Worker's Shared module from the `worker-shared-archetype` by fo
 	- ArtifactId : worker-shared-archetype
 	- Version : 1.1-SNAPSHOT
 	- Repository : http://cbgmaven.hpeswlab.net/nexus/content/repositories/snapshots
-6. Click 'Next >'
+6. Click 'Next'
 7. Enter Project Name, Project Location, GroupId, Version and Package of your worker shared project, for example:
 	- Project Name : worker-example-shared
 	- Project Location : C:\MyWorkerProjects
@@ -257,11 +258,11 @@ Generate the new Worker's Shared module from the `worker-shared-archetype` by fo
 	- workerName : ExampleWorker
 9. Click 'Finish'
 
-The foundation for your new Worker's Shared module is now set up.
+The foundation for your new worker's shared module is now set up.
 
 ###### 2. Generate the New Worker's Back-end Module
 
-Generate the new Worker's Back-end module from the `worker-archetype` by following these instructions:
+Generate the new worker's back-end module from the `worker-archetype` by following these instructions:
 
 1. 'File > New Project...'
 2. From the Categories Pane select Maven
@@ -272,7 +273,7 @@ Generate the new Worker's Back-end module from the `worker-archetype` by followi
 	- ArtifactId : worker-archetype
 	- Version : 1.1-SNAPSHOT
 	- Repository : http://cbgmaven.hpeswlab.net/nexus/content/repositories/snapshots
-6. Click 'Next >'
+6. Click 'Next'
 7. Enter Project Name, Project Location, GroupId, Version and Package of your worker shared project, for example:
 	- Project Name : worker-example
 	- Project Location : C:\MyWorkerProjects
