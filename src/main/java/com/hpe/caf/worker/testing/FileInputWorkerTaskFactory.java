@@ -30,6 +30,14 @@ public abstract class FileInputWorkerTaskFactory<TTask, TInput extends FileTestI
         this.testSourcefileBaseFolder = testSourcefileBaseFolder;
     }
 
+    public FileInputWorkerTaskFactory(WorkerServices workerServices, String containerId, String testFilesFolder) {
+
+        this.workerServices = workerServices;
+        this.containerId = containerId;
+        this.testFilesFolder = testFilesFolder;
+        this.testSourcefileBaseFolder = "";
+    }
+
     @Override
     public TTask createTask(TestItem<TInput, TExpected> testItem) throws Exception {
         Path inputFile = Paths.get(testItem.getInputData().getInputFile());
