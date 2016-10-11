@@ -19,6 +19,7 @@ public class ValidatorFactory {
     private final Codec codec;
     private final String testDataFolder;
     private final boolean failOnUnknownProperty;
+    private final String testSourcefileBaseFolder;
 
     public ValidatorFactory(ValidationSettings validationSettings, DataStore dataStore, Codec codec, TestConfiguration testConfiguration) {
         this.validationSettings = validationSettings;
@@ -26,6 +27,7 @@ public class ValidatorFactory {
         this.codec = codec;
         this.testDataFolder = testConfiguration.getTestDataFolder();
         this.failOnUnknownProperty = testConfiguration.failOnUnknownProperty();
+        this.testSourcefileBaseFolder = testConfiguration.getTestSourcefileBaseFolder();
     }
 
     public PropertyValidator createRootValidator() {
@@ -38,13 +40,13 @@ public class ValidatorFactory {
                 return new IgnorePropertyValidator();
             }
             if (validationSettings.getReferencedDataProperties().contains(propertyName)) {
-                return new ReferenceDataValidator(dataStore, codec, testDataFolder);
+                return new ReferenceDataValidator(dataStore, codec, testDataFolder, testSourcefileBaseFolder);
             }
             if (validationSettings.getArrayReferencedDataProperties().contains(propertyName)){
-                return new ArrayReferencedDataValidator(dataStore,codec,testDataFolder);
+                return new ArrayReferencedDataValidator(dataStore,codec,testDataFolder, testSourcefileBaseFolder);
 			}
             if (validationSettings.getUnorderedArrayReferencedDataProperties().contains(propertyName)){
-                return new UnorderedArrayReferencedDataValidator(dataStore,codec,testDataFolder);
+                return new UnorderedArrayReferencedDataValidator(dataStore,codec,testDataFolder, testSourcefileBaseFolder);
 			}
             if (validationSettings.getBase64Properties().contains(propertyName)) {
                 return new Base64PropertyValidator();

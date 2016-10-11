@@ -36,4 +36,6 @@ public final class SettingNames {
     // If set to true this option will cause an exception to be thrown if there are additional properties within the
     // actual result when compared to the expected. Defaults to true
     public static final String failOnUnknownProperty = "fail.on.unknown.property";
+
+    public static final String testSourcefileBaseFolder = "test.sourcefile.base.folder";
 }

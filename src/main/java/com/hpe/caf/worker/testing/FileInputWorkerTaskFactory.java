@@ -17,10 +17,10 @@ public abstract class FileInputWorkerTaskFactory<TTask, TInput extends FileTestI
     private final String testFilesFolder;
 
     public FileInputWorkerTaskFactory(TestConfiguration configuration) throws Exception {
-        this(WorkerServices.getDefault(), configuration.getDataStoreContainerId(), configuration.getTestDataFolder() );
+        this(WorkerServices.getDefault(), configuration.getDataStoreContainerId(), configuration.getTestDataFolder(), configuration.getTestSourcefileBaseFolder() );
     }
 
-    public FileInputWorkerTaskFactory(WorkerServices workerServices, String containerId, String testFilesFolder) {
+    public FileInputWorkerTaskFactory(WorkerServices workerServices, String containerId, String testFilesFolder, String testSourcefileBaseFolder) {
 
         this.workerServices = workerServices;
         this.containerId = containerId;

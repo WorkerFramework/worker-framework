@@ -16,12 +16,14 @@ public class SerializedFilesTestItemProvider<TInput, TExpected> extends ContentF
 
     private final Class<TInput> inputClass;
     private final Class<TExpected> expectedClass;
+    private final String testSourcefileBaseFolder;
     private final ObjectMapper serializer;
 
     public SerializedFilesTestItemProvider(TestConfiguration configuration) {
         super(configuration.getTestDocumentsFolder(), configuration.getTestDataFolder(), "glob:*.testcase", configuration.isProcessSubFolders());
         this.inputClass = configuration.getInputClass();
         this.expectedClass = configuration.getExpectationClass();
+        this.testSourcefileBaseFolder = configuration.getTestSourcefileBaseFolder();
         serializer = configuration.getSerializer();
         serializer.registerModule(new GuavaModule());
     }
@@ -39,11 +41,17 @@ public class SerializedFilesTestItemProvider<TInput, TExpected> extends ContentF
             String sourceFileName = data.getInputFile();
             Path sourceFile = Paths.get(sourceFileName);
             if (Files.notExists(sourceFile)) {
-                sourceFile = Paths.get(getInputPath(), sourceFileName);
+                sourceFile = Paths.get(testSourcefileBaseFolder + data.getInputFile());
+                sourceFileName = testSourcefileBaseFolder + data.getInputFile();
                 if (Files.notExists(sourceFile)) {
-                    throw new Exception("Could not find input source file " + sourceFile);
+                    sourceFile = Paths.get(getInputPath(), data.getInputFile());
+                    sourceFileName = getInputPath() + data.getInputFile();
+                    if (Files.notExists(sourceFile)) {
+                        throw new Exception("Could not find input source file " + sourceFile);
+                    }
                 }
             }
+            ((FileTestInputData) item.getInputData()).setInputFile(sourceFileName);
         }
 
         return item;

@@ -45,6 +45,7 @@ public class TestConfiguration<TWorkerTask, TWorkerResult, TInput, TExpectation>
         boolean processSubFolders = SettingsProvider.defaultProvider.getBooleanSetting(SettingNames.processSubFolders, true);
         boolean storeTestCaseWithInput = SettingsProvider.defaultProvider.getBooleanSetting(SettingNames.storeTestCaseWithInput, true);
         boolean failOnUnknownProperty = SettingsProvider.defaultProvider.getBooleanSetting(SettingNames.failOnUnknownProperty, true);
+        String testSourcefileBaseFolder = settingsProvider.getSetting(SettingNames.testSourcefileBaseFolder);
         String inputFolder = settingsProvider.getSetting(SettingNames.inputFolder);
         String expectedFolder = settingsProvider.getSetting(SettingNames.expectedFolder);
 
@@ -52,8 +53,15 @@ public class TestConfiguration<TWorkerTask, TWorkerResult, TInput, TExpectation>
             inputFolder = expectedFolder;
         }
 
+        // Normalize the path of the source files base folder
+        testSourcefileBaseFolder = testSourcefileBaseFolder == null ? null : testSourcefileBaseFolder.replace("\\", "/");
+        // If the test source file base directory has not been supplied, set the string to be blank
+        if (Strings.isNullOrEmpty(testSourcefileBaseFolder)) {
+            testSourcefileBaseFolder = "";
+        }
+
         TestConfiguration<TWorkerTask, TWorkerResult, TInput, TExpectation> configuration = new TestConfiguration<>(
-                expectedFolder, inputFolder,
+                expectedFolder, inputFolder, testSourcefileBaseFolder,
                 processSubFolders, storeTestCaseWithInput, failOnUnknownProperty,
                 useDataStore, settingsProvider.getSetting(SettingNames.dataStoreContainerId),
                 mapper,
@@ -64,6 +72,8 @@ public class TestConfiguration<TWorkerTask, TWorkerResult, TInput, TExpectation>
     private String testDataFolder;
 
     private String testDocumentsFolder;
+
+    private String testSourcefileBaseFolder;
 
     private boolean useDataStore;
 
@@ -84,9 +94,10 @@ public class TestConfiguration<TWorkerTask, TWorkerResult, TInput, TExpectation>
 
     private boolean failOnUnknownProperty;
 
-    private TestConfiguration(String testDataFolder, String testDocumentsFolder, boolean processSubFolders, boolean storeTestCaseWithInput, boolean failOnUnknownProperty, boolean useDataStore, String dataStoreContainerId, ObjectMapper serializer, Class<TWorkerTask> workerTaskClass, Class<TWorkerResult> workerResultClass, Class<TInput> inputClass, Class<TExpectation> expectationClass) {
+    private TestConfiguration(String testDataFolder, String testDocumentsFolder, String testSourcefileBaseFolder, boolean processSubFolders, boolean storeTestCaseWithInput, boolean failOnUnknownProperty, boolean useDataStore, String dataStoreContainerId, ObjectMapper serializer, Class<TWorkerTask> workerTaskClass, Class<TWorkerResult> workerResultClass, Class<TInput> inputClass, Class<TExpectation> expectationClass) {
         this.testDataFolder = testDataFolder;
         this.testDocumentsFolder = testDocumentsFolder;
+        this.testSourcefileBaseFolder = testSourcefileBaseFolder;
         this.processSubFolders = processSubFolders;
         this.storeTestCaseWithInput = storeTestCaseWithInput;
         this.failOnUnknownProperty = failOnUnknownProperty;
@@ -115,6 +126,10 @@ public class TestConfiguration<TWorkerTask, TWorkerResult, TInput, TExpectation>
      */
     public String getTestDocumentsFolder() {
         return testDocumentsFolder;
+    }
+
+    public String getTestSourcefileBaseFolder() {
+        return testSourcefileBaseFolder;
     }
 
     /**
