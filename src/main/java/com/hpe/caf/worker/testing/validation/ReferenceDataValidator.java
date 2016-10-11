@@ -1,6 +1,7 @@
 package com.hpe.caf.worker.testing.validation;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.google.common.base.Strings;
 import com.hpe.caf.api.Codec;
 import com.hpe.caf.api.worker.DataStore;
 import com.hpe.caf.util.ref.DataSourceException;
@@ -77,11 +78,12 @@ public class ReferenceDataValidator extends PropertyValidator {
         try {
             String contentFileName = expectation.getExpectedContentFile();
             Path contentFile = Paths.get(contentFileName);
-            if (Files.notExists(contentFile)) {
+            if (Files.notExists(contentFile) && !Strings.isNullOrEmpty(testSourcefileBaseFolder)) {
                 contentFile = Paths.get(testSourcefileBaseFolder, contentFileName);
-                if (Files.notExists(contentFile)) {
-                    contentFile = Paths.get(testDataFolder, contentFileName);
-                }
+            }
+
+            if (Files.notExists(contentFile)) {
+                contentFile = Paths.get(testDataFolder, contentFileName);
             }
 
             byte[] expectedFileBytes = Files.readAllBytes(contentFile);
