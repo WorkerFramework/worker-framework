@@ -12,11 +12,13 @@ public class ArrayReferencedDataValidator extends PropertyValidator {
     private DataStore dataStore;
     private Codec codec;
     private String testDataLocation;
+    private String testSourcefileBaseFolder;
 
-    public ArrayReferencedDataValidator(DataStore store, Codec codec, String testDataLocation) {
+    public ArrayReferencedDataValidator(DataStore store, Codec codec, String testDataLocation, String testSourcefileBaseFolder) {
         this.dataStore = store;
         this.codec = codec;
         this.testDataLocation = testDataLocation;
+        this.testSourcefileBaseFolder = testSourcefileBaseFolder;
     }
 
 
@@ -34,7 +36,7 @@ public class ArrayReferencedDataValidator extends PropertyValidator {
         for (int i = 0; i < validationArray.length; i++) {
             Object testedValue = testedArray[i];
             Object validationValue = validationArray[i];
-            PropertyValidator validator = new ReferenceDataValidator(dataStore,codec,testDataLocation); //validatorFactory.create(null,testedValue,validationValue);
+            PropertyValidator validator = new ReferenceDataValidator(dataStore,codec,testDataLocation, testSourcefileBaseFolder); //validatorFactory.create(null,testedValue,validationValue);
             boolean valid = validator.isValid(testedValue, validationValue);
             if (!valid) return false;
         }

@@ -13,11 +13,13 @@ public class UnorderedArrayReferencedDataValidator extends PropertyValidator {
     private DataStore dataStore;
     private Codec codec;
     private String testDataLocation;
+    private String testSourcefileBaseFolder;
 
-    public UnorderedArrayReferencedDataValidator(DataStore store, Codec codec, String testDataLocation) {
+    public UnorderedArrayReferencedDataValidator(DataStore store, Codec codec, String testDataLocation, String testSourcefileBaseFolder) {
         this.dataStore = store;
         this.codec = codec;
         this.testDataLocation = testDataLocation;
+        this.testSourcefileBaseFolder = testSourcefileBaseFolder;
     }
 
 
@@ -34,7 +36,7 @@ public class UnorderedArrayReferencedDataValidator extends PropertyValidator {
         // Remove validationArray elements that match with testedArray elements.
         for (Object testedValue : testedArray) {
             Iterator<Object> validationArrayIterator = ((Collection) validatorPropertyValue).iterator();
-            PropertyValidator validator = new ReferenceDataValidator(false,dataStore,codec,testDataLocation);
+            PropertyValidator validator = new ReferenceDataValidator(false,dataStore,codec,testDataLocation,testSourcefileBaseFolder);
             // If the testedValue contains objects that we can iterate over, iterate over them and check their validity
             if (testedValue instanceof LinkedHashMap) {
                 HashMap fieldsToTest = (LinkedHashMap<Object, Object>) testedValue;

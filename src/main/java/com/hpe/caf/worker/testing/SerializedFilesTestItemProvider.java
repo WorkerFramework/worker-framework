@@ -4,6 +4,7 @@ import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.type.TypeFactory;
 import com.fasterxml.jackson.datatype.guava.GuavaModule;
+import com.google.common.base.Strings;
 
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -16,12 +17,14 @@ public class SerializedFilesTestItemProvider<TInput, TExpected> extends ContentF
 
     private final Class<TInput> inputClass;
     private final Class<TExpected> expectedClass;
+    private final String testSourcefileBaseFolder;
     private final ObjectMapper serializer;
 
     public SerializedFilesTestItemProvider(TestConfiguration configuration) {
         super(configuration.getTestDocumentsFolder(), configuration.getTestDataFolder(), "glob:*.testcase", configuration.isProcessSubFolders());
         this.inputClass = configuration.getInputClass();
         this.expectedClass = configuration.getExpectationClass();
+        this.testSourcefileBaseFolder = configuration.getTestSourcefileBaseFolder();
         serializer = configuration.getSerializer();
         serializer.registerModule(new GuavaModule());
     }
@@ -38,8 +41,15 @@ public class SerializedFilesTestItemProvider<TInput, TExpected> extends ContentF
             FileTestInputData data = (FileTestInputData) item.getInputData();
             String sourceFileName = data.getInputFile();
             Path sourceFile = Paths.get(sourceFileName);
+
+            if (Files.notExists(sourceFile) && !Strings.isNullOrEmpty(testSourcefileBaseFolder)) {
+                sourceFileName = testSourcefileBaseFolder + data.getInputFile();
+                sourceFile = Paths.get(sourceFileName);
+            }
+
             if (Files.notExists(sourceFile)) {
-                sourceFile = Paths.get(getInputPath(), sourceFileName);
+                sourceFileName = getInputPath() + data.getInputFile();
+                sourceFile = Paths.get(sourceFileName);
                 if (Files.notExists(sourceFile)) {
                     throw new Exception("Could not find input source file " + sourceFile);
                 }

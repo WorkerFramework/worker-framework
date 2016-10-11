@@ -1,6 +1,7 @@
 package com.hpe.caf.worker.testing.validation;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.google.common.base.Strings;
 import com.hpe.caf.api.Codec;
 import com.hpe.caf.api.worker.DataStore;
 import com.hpe.caf.util.ref.DataSourceException;
@@ -30,21 +31,23 @@ public class ReferenceDataValidator extends PropertyValidator {
     private final DataStore dataStore;
     private final Codec codec;
     private final String testDataFolder;
+    private final String testSourcefileBaseFolder;
 
-    public ReferenceDataValidator(DataStore dataStore, Codec codec, String testDataFolder) {
-
+    public ReferenceDataValidator(DataStore dataStore, Codec codec, String testDataFolder, String testSourcefileBaseFolder) {
         this.throwOnValidationFailure = true;
         this.dataStore = dataStore;
         this.codec = codec;
         this.testDataFolder = testDataFolder;
+        this.testSourcefileBaseFolder = testSourcefileBaseFolder;
     }
 
-    public ReferenceDataValidator(boolean throwOnValidationFailure, DataStore dataStore, Codec codec, String testDataFolder) {
+    public ReferenceDataValidator(boolean throwOnValidationFailure, DataStore dataStore, Codec codec, String testDataFolder, String testSourcefileBaseFolder) {
 
         this.throwOnValidationFailure = throwOnValidationFailure;
         this.dataStore = dataStore;
         this.codec = codec;
         this.testDataFolder = testDataFolder;
+        this.testSourcefileBaseFolder = testSourcefileBaseFolder;
     }
 
     @Override
@@ -75,6 +78,10 @@ public class ReferenceDataValidator extends PropertyValidator {
         try {
             String contentFileName = expectation.getExpectedContentFile();
             Path contentFile = Paths.get(contentFileName);
+            if (Files.notExists(contentFile) && !Strings.isNullOrEmpty(testSourcefileBaseFolder)) {
+                contentFile = Paths.get(testSourcefileBaseFolder, contentFileName);
+            }
+
             if (Files.notExists(contentFile)) {
                 contentFile = Paths.get(testDataFolder, contentFileName);
             }
