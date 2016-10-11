@@ -52,7 +52,14 @@ public class TestControllerSingle implements Closeable {
     }
 
     public void initialise() throws Exception{
-        queueManager.start((new ProcessorDeliveryHandler(resultProcessor, context, queueManager)));
+        try {
+            queueManager.start((new ProcessorDeliveryHandler(resultProcessor, context, queueManager)));
+        }
+        catch (Throwable e) {
+            System.out.println("Exception happened during queue initialization: " + e.toString());
+            e.printStackTrace();
+            throw e;
+        }
     }
 
     public void runTests(TestItem testItem) throws Exception

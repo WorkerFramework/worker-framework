@@ -16,15 +16,22 @@ public class TestRunnerSingle {
     private static boolean mode;
 
     public static Set<Object[]> setUpTest(TestControllerProvider controllerProvider) throws Exception{
-        Collection<TestItem> items = getItemProvider(controllerProvider,mode).getItems();
-        Set<Object[]> s= new HashSet<>();
-        for (TestItem i: items) {
-            s.add(new Object[]{i, i.getTag()});
+        try {
+            Collection<TestItem> items = getItemProvider(controllerProvider, mode).getItems();
+            Set<Object[]> s = new HashSet<>();
+            for (TestItem i : items) {
+                s.add(new Object[]{i, i.getTag()});
 
-            if(i.getInputIdentifier() == null)
-                i.setInputIdentifier(i.getTag());
+                if (i.getInputIdentifier() == null)
+                    i.setInputIdentifier(i.getTag());
+            }
+            return s;
         }
-        return s;
+        catch (Throwable e) {
+            System.out.println("Exception happened during testcase loading: " + e.toString());
+            e.printStackTrace();
+            throw e;
+        }
     }
 
     public static TestControllerSingle getTestController(TestControllerProvider controllerProvider, boolean dataGenerationMode) throws Exception {
