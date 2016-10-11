@@ -54,8 +54,6 @@ public class SerializedFilesTestItemProvider<TInput, TExpected> extends ContentF
                     throw new Exception("Could not find input source file " + sourceFile);
                 }
             }
-
-            ((FileTestInputData) item.getInputData()).setInputFile(sourceFileName);
         }
 
         return item;

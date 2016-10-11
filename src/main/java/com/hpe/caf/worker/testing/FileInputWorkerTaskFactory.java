@@ -1,5 +1,6 @@
 package com.hpe.caf.worker.testing;
 
+import com.google.common.base.Strings;
 import com.hpe.caf.util.ref.ReferencedData;
 
 import java.io.InputStream;
@@ -15,6 +16,7 @@ public abstract class FileInputWorkerTaskFactory<TTask, TInput extends FileTestI
     private final WorkerServices workerServices;
     private final String containerId;
     private final String testFilesFolder;
+    private final String testSourcefileBaseFolder;
 
     public FileInputWorkerTaskFactory(TestConfiguration configuration) throws Exception {
         this(WorkerServices.getDefault(), configuration.getDataStoreContainerId(), configuration.getTestDataFolder(), configuration.getTestSourcefileBaseFolder() );
@@ -25,11 +27,17 @@ public abstract class FileInputWorkerTaskFactory<TTask, TInput extends FileTestI
         this.workerServices = workerServices;
         this.containerId = containerId;
         this.testFilesFolder = testFilesFolder;
+        this.testSourcefileBaseFolder = testSourcefileBaseFolder;
     }
 
     @Override
     public TTask createTask(TestItem<TInput, TExpected> testItem) throws Exception {
         Path inputFile = Paths.get(testItem.getInputData().getInputFile());
+
+        if (Files.notExists(inputFile) && !Strings.isNullOrEmpty(testSourcefileBaseFolder)) {
+            inputFile = Paths.get(testSourcefileBaseFolder, testItem.getInputData().getInputFile());
+        }
+
         if (Files.notExists(inputFile)) {
             inputFile = Paths.get(testFilesFolder, testItem.getInputData().getInputFile());
         }
