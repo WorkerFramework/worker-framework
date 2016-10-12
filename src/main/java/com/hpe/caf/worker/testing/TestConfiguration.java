@@ -9,6 +9,8 @@ import com.fasterxml.jackson.datatype.guava.GuavaModule;
 import com.google.common.base.Strings;
 import com.hpe.caf.worker.testing.configuration.TestCaseFormat;
 
+import java.io.File;
+
 /**
  * Created by ploch on 25/11/2015.
  */
@@ -53,8 +55,8 @@ public class TestConfiguration<TWorkerTask, TWorkerResult, TInput, TExpectation>
             inputFolder = expectedFolder;
         }
 
-        if (!Strings.isNullOrEmpty(inputFolder) && !inputFolder.endsWith("\\")) {
-            inputFolder = inputFolder + "\\";
+        if (!Strings.isNullOrEmpty(inputFolder) && (!inputFolder.endsWith("\\") || !inputFolder.endsWith("/"))) {
+            inputFolder = inputFolder + File.separator;
         }
 
         // Normalize the path of the source files base folder
