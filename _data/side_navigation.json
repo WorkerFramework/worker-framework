@@ -34,6 +34,14 @@
             "url": {
                 "en-us": "pages/en-us/apidocs"
             }
+        },
+        {
+            "title": {
+                "en-us": "Architecture"
+            },
+            "url": {
+                "en-us": "pages/en-us/Architecture"
+            }
         }]
     }]
 }
