@@ -43,13 +43,11 @@ public class SerializedFilesTestItemProvider<TInput, TExpected> extends ContentF
             Path sourceFile = Paths.get(sourceFileName);
 
             if (Files.notExists(sourceFile) && !Strings.isNullOrEmpty(testSourcefileBaseFolder)) {
-                sourceFileName = testSourcefileBaseFolder + data.getInputFile();
-                sourceFile = Paths.get(sourceFileName);
+                sourceFile = Paths.get(testSourcefileBaseFolder,  data.getInputFile());
             }
 
             if (Files.notExists(sourceFile)) {
-                sourceFileName = getInputPath() + data.getInputFile();
-                sourceFile = Paths.get(sourceFileName);
+                sourceFile = Paths.get(getInputPath(), data.getInputFile());
                 if (Files.notExists(sourceFile)) {
                     throw new Exception("Could not find input source file " + sourceFile);
                 }

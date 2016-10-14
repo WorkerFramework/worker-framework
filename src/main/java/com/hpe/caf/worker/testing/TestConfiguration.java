@@ -55,10 +55,6 @@ public class TestConfiguration<TWorkerTask, TWorkerResult, TInput, TExpectation>
             inputFolder = expectedFolder;
         }
 
-        if (!Strings.isNullOrEmpty(inputFolder) && (!inputFolder.endsWith("\\") || !inputFolder.endsWith("/"))) {
-            inputFolder = inputFolder + File.separator;
-        }
-
         // Normalize the path of the source files base folder
         testSourcefileBaseFolder = testSourcefileBaseFolder == null ? null : testSourcefileBaseFolder.replace("\\", "/");
         // If the test source file base directory has not been supplied, set the string to be blank
