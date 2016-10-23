@@ -28,9 +28,10 @@ public interface Worker
      * @throws InterruptedException indicates that the task is being aborted as requested by the framework
      * @throws TaskRejectedException indicates this Worker wishes to abandon this task and defer its execution
      * @throws TaskFailedException if the Worker fails in an unrecoverable fashion
+     * @throws InvalidTaskException if the Worker fails to understand the task to process
      */
     WorkerResponse doWork()
-        throws InterruptedException, TaskRejectedException;
+        throws InterruptedException, TaskRejectedException, InvalidTaskException;
 
 
     /**
