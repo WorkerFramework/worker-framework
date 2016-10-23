@@ -3,6 +3,7 @@ package com.hpe.caf.worker.core;
 import com.google.common.base.MoreObjects;
 import com.hpe.caf.api.worker.*;
 import com.hpe.caf.naming.ServicePath;
+import java.nio.charset.StandardCharsets;
 import java.util.Collections;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -116,7 +117,10 @@ class WorkerTaskImpl implements WorkerTask
         final String taskClassifier =
             MoreObjects.firstNonNull(taskMessage.getTaskClassifier(), "");
         final int taskApiVersion = taskMessage.getTaskApiVersion();
-        final byte[] taskData = new byte[] {};
+        final String invalidTaskExceptionMessage = invalidTaskException.getMessage();
+        final byte[] taskData =
+                invalidTaskExceptionMessage == null ?
+                        new byte[] {} : invalidTaskExceptionMessage.getBytes(StandardCharsets.UTF_8);
         final TaskStatus taskStatus = TaskStatus.INVALID_TASK;
         final Map<String, byte[]> context = MoreObjects.firstNonNull(
             taskMessage.getContext(),

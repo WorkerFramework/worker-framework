@@ -43,6 +43,8 @@ class StreamingWorkerWrapper implements Runnable
             workerTask.setResponse(response);
         } catch (TaskRejectedException e) {
             workerTask.setResponse(e);
+        } catch (InvalidTaskException e) {
+            workerTask.setResponse(e);
         } catch (InterruptedException e) {
             workerTask.logInterruptedException(e);
         } catch (RuntimeException e) {
