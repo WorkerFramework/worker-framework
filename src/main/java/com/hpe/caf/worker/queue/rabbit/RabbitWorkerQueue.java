@@ -21,7 +21,6 @@ import java.util.*;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.TimeoutException;
-import java.util.stream.Collectors;
 
 
 /**
@@ -90,14 +89,13 @@ public final class RabbitWorkerQueue implements ManagedWorkerQueue
             incomingChannel = conn.createChannel();
             int prefetch = Math.max(1, maxTasks + config.getPrefetchBuffer());
             incomingChannel.basicQos(prefetch);
-            WorkerQueueConsumerImpl consumerImpl = new WorkerQueueConsumerImpl(callback, metrics, consumerQueue, incomingChannel, publisherQueue,
-                                                                               config.getRetryQueue(), config.getRejectedQueue(), config.getRetryLimit());
+            WorkerQueueConsumerImpl consumerImpl = new WorkerQueueConsumerImpl(callback, metrics, consumerQueue, incomingChannel,
+                    publisherQueue, config.getRetryQueue(), config.getRetryLimit());            
             consumer = new DefaultRabbitConsumer(consumerQueue, consumerImpl);
             WorkerPublisherImpl publisherImpl = new WorkerPublisherImpl(outgoingChannel, metrics, consumerQueue, confirmListener);
             publisher = new EventPoller<>(2, publisherQueue, publisherImpl);
             declareWorkerQueue(incomingChannel, config.getInputQueue());
             declareWorkerQueue(outgoingChannel, config.getRetryQueue());
-            declareWorkerQueue(outgoingChannel, config.getRejectedQueue());
             consumerTags.add(incomingChannel.basicConsume(config.getInputQueue(), consumer));
         } catch (IOException | TimeoutException e) {
             throw new QueueException("Failed to establish queues", e);

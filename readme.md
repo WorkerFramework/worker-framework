@@ -9,18 +9,10 @@
  The configuration source for this module is `RabbitWorkerQueueConfiguration`.
  The following configuration options are present:
 
- - prefetchBuffer: the number of additional messages (tasks) to request from
-  the RabbitMQ server beyond the number of tasks the worker can simultaneously
-  handle. Minimum 0, maximum 100000.
- - inputQueue: the routing key for a direct exchange (ie. queue name) to
-  receive input tasks from, this must be set
- - retryQueue: the routing key to use for sending messages to retry to, this
-  may be the same as the inputQueue, and will default to this if unset
- - rejectedQueue: the routing key to use for sending messages that are
-  rejected to, this can include messages deemed unparseable by the worker
-  application, and messages that exceed the retryLimit, this must be set
- - retryLimit: the maximum number of retries before sending the messages to
-  the rejectedQueue, must be at least 1
+- prefetchBuffer: the number of additional messages (tasks) to request from the RabbitMQ server beyond the number of tasks the worker can simultaneously handle. Minimum 0, Maximum 100000.
+- inputQueue: the routing key for a direct exchange (ie. queue name) to receive input tasks from, this must be set
+- retryQueue: the routing key to use for sending messages to retry to, this may be the same as the inputQueue, and will default to this if unset application, and messages that exceed the retryLimit, this must be set
+- retryLimit: the maximum number of retries before sending the messages to the rejectedQueue, must be at least 1
 
  Note this module expects a valid `RabbitConfiguration` file to be present.
  See the `caf-configs` module for more details on this.
@@ -50,8 +42,8 @@
  Consumed messages will only be acknowledged once the result has been published
  to the output queue, and the published response was confirmed by the server.
 
- Messages that the `worker-core` application deems as invalid (ie. unparseable)
- will be immediately discarded onto the rejected queue.
+ Messages that the `worker-core` application deems as invalid (i.e. unparseable)
+ will be placed on to the worker output queue with an associated error response.
 
  Messages the module encounters that are marked 'redelivered' by RabbitMQ are
  republished to the 'retry' queue with a retry count. This retry queue can be
@@ -61,14 +53,14 @@
  should have a separate retry queue and a Worker instance listening on this
  retry queue. The other scenario is when your Worker is running unmanaged
  code that can segfault/crash Java. In this case, all running tasks will be
- retried, and potentially valid tasks can then end up in the rejected queue.
+ retried and potentially valid tasks can then end up being in the output queue, with an associated error response.
  To avoid this, the simplest way is to have single-threaded Worker instances
  for unmanaged code listening on the retry queue and use the autoscaler to
  scale as necessary. The alternative is to have only the Worker instances on
  the retry queue to be single threaded.
 
  Messages that are marked 'redelivered' and already have a retry count stamp
- that exceeds the retry limit will be put on the rejected queue.
+ that exceeds the retry limit will be put on the output queue with associated error response.
 
  Messages that cause a `TaskRejectedException` at task registration time will
  be republished back onto the input queue, but do not count towards the retry
@@ -76,27 +68,28 @@
 
  ### Header stamping
 
- The module uses the following headers that may be stamped on messages:
+ The module uses the following headers that may be stamped on messages:  
  - `x-caf-worker-retry`: a numerical count of the number of retries
   attempted for this message, only present for retried messages
+ - `x-caf-worker-retry-lmit`: a numerical representation of the number of retries allowed before a message will be deemed poisoned and moved to the worker's output queue  
  - `x-caf-worker-rejected`: present for all messages published to the
   rejected queue, possible values are `TASKMESSAGE_INVALID` and
-  `RETRIES_EXCEEDED`.
+  `RETRIES_EXCEEDED`   
 
 
 ## Failure modes
 
  The following scenarios will prevent the module from initialising:
-
- - The configuration file is invalid
- - A connection to the RabbitMQ server cannot be established
- - A queue of a differing type has already been declared with the routing key
+ 
+- The configuration file is invalid
+- A connection to the RabbitMQ server cannot be established
+- A queue of a differing type has already been declared with the routing key
 
  The following scenarios have been identified as possible runtime failure modes
  for this module:
 
- - Non-transient RabbitMQ server failures
- - The prefetchBuffer exceeding the maximum backlog of the worker application
+- Non-transient RabbitMQ server failures
+- The prefetchBuffer exceeding the maximum backlog of the worker application
 
 
 ## Maintainers

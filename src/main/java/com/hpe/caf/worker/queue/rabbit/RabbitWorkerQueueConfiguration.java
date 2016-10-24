@@ -48,6 +48,7 @@ public class RabbitWorkerQueueConfiguration
      * The queue to put rejected messages on.
      * @since 10.6
      */
+    @Deprecated
     @NotNull
     @Size(min = 1)
     private String rejectedQueue;
@@ -98,7 +99,6 @@ public class RabbitWorkerQueueConfiguration
         this.inputQueue = inputQueue;
     }
 
-
     public String getRetryQueue()
     {
         return retryQueue == null ? inputQueue : retryQueue;
@@ -111,12 +111,14 @@ public class RabbitWorkerQueueConfiguration
     }
 
 
+    @Deprecated
     public String getRejectedQueue()
     {
         return rejectedQueue;
     }
 
 
+    @Deprecated
     public void setRejectedQueue(String rejectedQueue)
     {
         this.rejectedQueue = rejectedQueue;
