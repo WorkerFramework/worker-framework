@@ -30,7 +30,7 @@ public class WorkerExecutorTest
 
         WorkerExecutor executor = new WorkerExecutor(path, callback, factory, pool);
         TaskMessage tm = new TaskMessage("test", "test", 1, "test".getBytes(StandardCharsets.UTF_8), TaskStatus.NEW_TASK, new HashMap<>(), "testTo");
-        executor.executeTask(tm, "test");
+        executor.executeTask(tm, "test", false);
         Mockito.verify(factory, Mockito.times(1)).getWorker(Mockito.any());
     }
 
@@ -99,7 +99,7 @@ public class WorkerExecutorTest
 
         WorkerExecutor executor = new WorkerExecutor(path, callback, factory, pool);
         TaskMessage tm = new TaskMessage("test", "test", 1, "test".getBytes(StandardCharsets.UTF_8), TaskStatus.NEW_TASK, new HashMap<>(), "test");
-        executor.executeTask(tm, "test");
+        executor.executeTask(tm, "test", false);
     }
 
 
@@ -135,7 +135,7 @@ public class WorkerExecutorTest
         WorkerExecutor executor = new WorkerExecutor(path, callback, factory, pool);
 
         TaskMessage tm = new TaskMessage(taskId, classifier, ver, data, TaskStatus.NEW_TASK, new HashMap<>(), "queue");
-        executor.executeTask(tm, msgId);
+        executor.executeTask(tm, msgId, false);
         Mockito.verify(factory, Mockito.times(1)).getWorker(Mockito.any());
         Mockito.verify(callback, Mockito.times(1)).complete(Mockito.any(), Mockito.any(), Mockito.any());
     }
@@ -178,7 +178,7 @@ public class WorkerExecutorTest
         tm.setTaskData(null);
         tm.setContext(null);
 
-        executor.executeTask(tm, msgId);
+        executor.executeTask(tm, msgId, false);
         Mockito.verify(factory, Mockito.times(1)).getWorker(Mockito.any());
         Mockito.verify(callback, Mockito.times(1)).complete(Mockito.any(), Mockito.any(), Mockito.any());
     }
@@ -198,6 +198,6 @@ public class WorkerExecutorTest
 
         WorkerExecutor executor = new WorkerExecutor(path, callback, factory, pool);
         TaskMessage tm = new TaskMessage("test", "test", 1, "test".getBytes(StandardCharsets.UTF_8), TaskStatus.NEW_TASK, new HashMap<>(), "test");
-        executor.executeTask(tm, "test");
+        executor.executeTask(tm, "test", false);
     }
 }

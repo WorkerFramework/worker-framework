@@ -21,14 +21,16 @@ class WorkerTaskImpl implements WorkerTask
     private final String messageId;
     private final TaskMessage taskMessage;
     private final AtomicBoolean isResponseSet;
-
+    private final boolean poison;
+    
     public WorkerTaskImpl
     (
         final ServicePath servicePath,
         final WorkerCallback workerCallback,
         final WorkerFactory workerFactory,
         final String messageId,
-        final TaskMessage taskMessage
+        final TaskMessage taskMessage,
+        final boolean poison
     ) {
         this.servicePath = servicePath;
         this.workerCallback = workerCallback;
@@ -36,6 +38,7 @@ class WorkerTaskImpl implements WorkerTask
         this.messageId = messageId;
         this.taskMessage = taskMessage;
         this.isResponseSet = new AtomicBoolean();
+        this.poison = poison;
     }
 
     @Override
@@ -156,4 +159,10 @@ class WorkerTaskImpl implements WorkerTask
             throw new RuntimeException("Response already set!");
         }
     }
+
+    public boolean isPoison()
+    {
+        return poison;
+    }
+
 }

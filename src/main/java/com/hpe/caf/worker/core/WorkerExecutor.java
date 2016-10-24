@@ -49,10 +49,10 @@ final class WorkerExecutor
      * @param queueMessageId the reference to the message this task arrived on
      * @throws TaskRejectedException if the WorkerFactory indicates the task cannot be handled at this time
      */
-    public void executeTask(final TaskMessage tm, final String queueMessageId)
+    public void executeTask(final TaskMessage tm, final String queueMessageId, boolean poison)
         throws TaskRejectedException
     {
-        final WorkerTaskImpl workerTask = createWorkerTask(queueMessageId, tm);
+        final WorkerTaskImpl workerTask = createWorkerTask(queueMessageId, tm, poison);
 
         threadPool.submitWorkerTask(workerTask);
     }
@@ -89,8 +89,8 @@ final class WorkerExecutor
     /**
      * Creates a WorkerTask for the specified message
      */
-    private WorkerTaskImpl createWorkerTask(final String messageId, final TaskMessage taskMessage)
+    private WorkerTaskImpl createWorkerTask(final String messageId, final TaskMessage taskMessage, boolean poison)
     {
-        return new WorkerTaskImpl(servicePath, callback, factory, messageId, taskMessage);
+        return new WorkerTaskImpl(servicePath, callback, factory, messageId, taskMessage, poison);
     }
 }

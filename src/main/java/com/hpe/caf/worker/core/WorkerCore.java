@@ -6,6 +6,8 @@ import com.hpe.caf.api.CodecException;
 import com.hpe.caf.api.DecodeMethod;
 import com.hpe.caf.api.worker.*;
 import com.hpe.caf.naming.ServicePath;
+import com.hpe.caf.util.rabbitmq.RabbitHeaders;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -136,13 +138,16 @@ final class WorkerCore
         {
             try {
                 TaskMessage tm = codec.deserialise(taskMessage, TaskMessage.class, DecodeMethod.LENIENT);
+                
                 LOG.debug("Received task {} (message id: {})", tm.getTaskId(), queueMsgId);
+                
+                boolean poison = isTaskPoisoned(headers);
                 validateTaskMessage(tm);
                 boolean taskIsActive = checkStatus(tm);
                 if (taskIsActive) {
                     if (tm.getTo() == null || tm.getTo().equalsIgnoreCase(workerQueue.getInputQueue())) {
                         LOG.debug("Task {} (message id: {}) on input queue {} {}", tm.getTaskId(), queueMsgId, workerQueue.getInputQueue(), (tm.getTo() != null) ? "is intended for this worker" : "has no explicit destination, therefore assuming it is intended for this worker");
-                        executor.executeTask(tm, queueMsgId);
+                        executor.executeTask(tm, queueMsgId, poison);
                     } else {
                         LOG.debug("Task {} (message id: {}) is not intended for this worker: input queue {} does not match message destination queue {}", tm.getTaskId(), queueMsgId, workerQueue.getInputQueue(), tm.getTo());
                         executor.forwardTask(tm, queueMsgId, headers);
@@ -156,6 +161,29 @@ final class WorkerCore
             } catch (InvalidJobTaskIdException ijte) {
                 throw new InvalidTaskException("TaskMessage contains an invalid job task identifier", ijte);
             }
+        }
+
+        /**
+         * Check the headers for retry limit and retry count. If retry count is greater than
+         * or equal to retry limit, mark the message as poisoned.
+         * @param headers Map&lt;String, Object&gt; of headers associated with the current message
+         * @return boolean true if message is determined to be poisoned
+         */
+        private boolean isTaskPoisoned(Map<String, Object> headers)
+        {
+            int retryLimit = 0;
+            if (null != headers.get(RabbitHeaders.RABBIT_HEADER_CAF_WORKER_RETRY_LIMIT)) {
+                retryLimit = Integer.parseInt(headers.get(RabbitHeaders.RABBIT_HEADER_CAF_WORKER_RETRY_LIMIT).toString());
+            }
+            int retries = 0;
+            if (null != headers.get(RabbitHeaders.RABBIT_HEADER_CAF_WORKER_RETRY)) {
+                retries = Integer.parseInt(headers.get(RabbitHeaders.RABBIT_HEADER_CAF_WORKER_RETRY).toString());
+            }
+            boolean poison = false;
+            if (retryLimit > 0 && retries > 0 && retries >= retryLimit) {
+                poison = true;
+            }
+            return poison;
         }
 
         private void validateTaskMessage(TaskMessage tm) throws InvalidTaskException {
