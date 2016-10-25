@@ -1,21 +1,19 @@
 package com.hpe.caf.worker.testing.preparation;
 
-import com.fasterxml.jackson.databind.SerializationFeature;
 import com.hpe.caf.api.Codec;
 import com.hpe.caf.api.worker.TaskMessage;
 import com.hpe.caf.worker.testing.*;
 import org.apache.commons.io.FilenameUtils;
-import org.apache.commons.io.IOUtils;
 
-import java.awt.event.ItemEvent;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.nio.file.StandardOpenOption;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+
+import static java.nio.file.StandardCopyOption.REPLACE_EXISTING;
 
 /**
  * Created by ploch on 25/11/2015.
@@ -71,8 +69,6 @@ public class PreparationResultProcessor<TWorkerTask, TWorkerResult, TInput exten
 
 
     protected Path saveContentFile(TestItem<TInput, TExpected> testItem, String baseFileName, String extension, InputStream dataStream) throws IOException {
-        byte[] bytes = IOUtils.toByteArray(dataStream);
-
         String outputFolder = getOutputFolder();
         if (configuration.isStoreTestCaseWithInput()) {
 
@@ -84,7 +80,7 @@ public class PreparationResultProcessor<TWorkerTask, TWorkerResult, TInput exten
         baseFileName = Paths.get(baseFileName).getFileName().toString();
         Path contentFile = Paths.get(outputFolder, baseFileName + "." + extension + ".content");
         Files.deleteIfExists(contentFile);
-        Files.write(contentFile, bytes, StandardOpenOption.CREATE);
+        Files.copy(dataStream, contentFile, REPLACE_EXISTING);
 
         return getRelativeLocation(contentFile);
     }
