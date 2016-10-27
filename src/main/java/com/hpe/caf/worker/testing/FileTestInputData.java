@@ -10,6 +10,8 @@ public class FileTestInputData {
 
     private String inputFile;
 
+    private String storageReference;
+
     /**
      * Getter for property 'useDataStore'.
      *
@@ -64,4 +66,21 @@ public class FileTestInputData {
         this.inputFile = inputFile;
     }
 
+    /**
+     * Getter for property 'storageReference'.
+     *
+     * @return Value for property 'storageReference'.
+     */
+    public String getStorageReference() {
+        return storageReference;
+    }
+
+    /**
+     * Setter for property 'storageReference'.
+     *
+     * @param storageReference Value to set for property 'storageReference'.
+     */
+    public void setStorageReference(String storageReference) {
+        this.storageReference = storageReference;
+    }
 }

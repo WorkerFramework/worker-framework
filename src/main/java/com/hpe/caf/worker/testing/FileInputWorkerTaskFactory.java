@@ -40,25 +40,32 @@ public abstract class FileInputWorkerTaskFactory<TTask, TInput extends FileTestI
 
     @Override
     public TTask createTask(TestItem<TInput, TExpected> testItem) throws Exception {
-        Path inputFile = Paths.get(testItem.getInputData().getInputFile());
-
-        if (Files.notExists(inputFile) && !Strings.isNullOrEmpty(testSourcefileBaseFolder)) {
-            inputFile = Paths.get(testSourcefileBaseFolder, testItem.getInputData().getInputFile());
-        }
-
-        if (Files.notExists(inputFile)) {
-            inputFile = Paths.get(testFilesFolder, testItem.getInputData().getInputFile());
-        }
 
         ReferencedData sourceData;
-        if (testItem.getInputData().isUseDataStore()) {
+        if(Strings.isNullOrEmpty(testItem.getInputData().getInputFile()) && !Strings.isNullOrEmpty(testItem.getInputData().getStorageReference())){
+            sourceData = ReferencedData.getReferencedData(testItem.getInputData().getStorageReference());
+        }
+        else {
+            Path inputFile = Paths.get(testItem.getInputData().getInputFile());
 
-            InputStream inputStream = Files.newInputStream(inputFile);
-            String reference = workerServices.getDataStore().store(inputStream, containerId);
-            sourceData = ReferencedData.getReferencedData(reference);
-        } else {
-            byte[] fileContent = Files.readAllBytes(inputFile);
-            sourceData = ReferencedData.getWrappedData(fileContent);
+            if (Files.notExists(inputFile) && !Strings.isNullOrEmpty(testSourcefileBaseFolder)) {
+                inputFile = Paths.get(testSourcefileBaseFolder, testItem.getInputData().getInputFile());
+            }
+
+            if (Files.notExists(inputFile)) {
+                inputFile = Paths.get(testFilesFolder, testItem.getInputData().getInputFile());
+            }
+
+
+            if (testItem.getInputData().isUseDataStore()) {
+
+                InputStream inputStream = Files.newInputStream(inputFile);
+                String reference = workerServices.getDataStore().store(inputStream, containerId);
+                sourceData = ReferencedData.getReferencedData(reference);
+            } else {
+                byte[] fileContent = Files.readAllBytes(inputFile);
+                sourceData = ReferencedData.getWrappedData(fileContent);
+            }
         }
         return createTask(testItem, sourceData);
     }
