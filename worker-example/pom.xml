@@ -3,90 +3,32 @@
          xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
+    
+    <parent>
+        <groupId>com.hpe.caf</groupId>
+        <artifactId>caf-maven-latest</artifactId>
+        <version>1-SNAPSHOT</version>
+        <relativePath>../caf-maven-latest</relativePath>
+    </parent>
 
     <groupId>com.hpe.caf.worker</groupId>
-    <artifactId>worker-example</artifactId>
-    <version>1.0.0-SNAPSHOT</version>
+    <artifactId>worker-example-aggregator</artifactId>
+    <version>1.0.2-SNAPSHOT</version>
+    <packaging>pom</packaging>
+    <description>Builds Worker-Example projects together from a handy top level project.</description> 
 
+    <!-- This aggregator project is only used for building so we don't want to install or deploy the POM -->
     <properties>
-        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-        <maven.compiler.source>1.8</maven.compiler.source>
-        <maven.compiler.target>1.8</maven.compiler.target>
+        <maven.install.skip>true</maven.install.skip>
+        <maven.deploy.skip>true</maven.deploy.skip>
     </properties>
 
-    <dependencyManagement>
-        <dependencies>
-            <dependency>
-                <groupId>com.hpe.caf.worker</groupId>
-                <artifactId>worker-framework</artifactId>
-                <version>10.8-SNAPSHOT</version>
-                <type>pom</type>
-                <scope>import</scope>
-            </dependency>
-        </dependencies>
-    </dependencyManagement>
-
-    <dependencies>
-        <dependency>
-            <groupId>com.hpe.caf.worker</groupId>
-            <artifactId>worker-example-shared</artifactId>
-            <version>1.0-SNAPSHOT</version>
-        </dependency>
-        <dependency>
-            <groupId>com.hpe.caf.worker</groupId>
-            <artifactId>worker-caf</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>com.hpe.caf</groupId>
-            <artifactId>caf-api</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>com.hpe.caf.util</groupId>
-            <artifactId>util-moduleloader</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>commons-io</groupId>
-            <artifactId>commons-io</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>junit</groupId>
-            <artifactId>junit</artifactId>
-            <scope>test</scope>
-        </dependency>
-        <dependency>
-            <groupId>org.mockito</groupId>
-            <artifactId>mockito-all</artifactId>
-            <scope>test</scope>
-        </dependency>
-        <dependency>
-            <groupId>com.hpe.caf.codec</groupId>
-            <artifactId>codec-json</artifactId>
-            <scope>test</scope>
-        </dependency>
-        <dependency>
-            <groupId>org.hibernate</groupId>
-            <artifactId>hibernate-validator</artifactId>
-            <scope>test</scope>
-        </dependency>
-        <dependency>
-            <groupId>javax.el</groupId>
-            <artifactId>javax.el-api</artifactId>
-            <scope>test</scope>
-        </dependency>
-    </dependencies>
-
-    <distributionManagement>
-        <repository>
-            <id>cmbg-maven-releases</id>
-            <name>Internal Releases</name>
-            <url>http://cbgmaven.hpeswlab.net/nexus/content/repositories/releases</url>
-        </repository>
-        <snapshotRepository>
-            <id>cmbg-maven-snapshots</id>
-            <name>Internal Snapshots</name>
-            <url>http://cbgmaven.hpeswlab.net/nexus/content/repositories/snapshots</url>
-        </snapshotRepository>
-    </distributionManagement>
+    <modules>
+        <module>worker-example</module>
+        <module>worker-example-shared</module>
+        <module>worker-example-container</module>
+        <module>worker-example-message-builder</module>
+    </modules>
 
     <ciManagement>
         <system>hudson</system>
