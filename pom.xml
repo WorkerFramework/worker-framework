@@ -19,7 +19,7 @@
         </dependency>
         <dependency>
             <groupId>com.hpe.caf</groupId>
-            <artifactId>caf-configs</artifactId>
+            <artifactId>worker-configs</artifactId>
         </dependency>
         <dependency>
             <groupId>com.hpe.caf.util</groupId>
