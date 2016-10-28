@@ -1,0 +1,89 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+
+    <groupId>com.hpe.caf.worker</groupId>
+    <artifactId>standard-worker-container</artifactId>
+    <version>2.0.0-SNAPSHOT</version>
+    <packaging>pom</packaging>
+
+    <dependencies>
+        <dependency>
+            <groupId>com.hpe.caf</groupId>
+            <artifactId>caf-api</artifactId>
+            <version>UNSPECIFIED</version>
+        </dependency>
+        <dependency>
+            <groupId>com.hpe.caf.codec</groupId>
+            <artifactId>codec-json</artifactId>
+            <version>UNSPECIFIED</version>
+        </dependency>
+        <dependency>
+            <groupId>com.hpe.caf.config</groupId>
+            <artifactId>config-file</artifactId>
+            <version>UNSPECIFIED</version>
+        </dependency>
+        <dependency>
+            <groupId>com.hpe.caf.worker</groupId>
+            <artifactId>worker-core</artifactId>
+            <version>UNSPECIFIED</version>
+        </dependency>
+        <dependency>
+            <groupId>com.hpe.caf.worker</groupId>
+            <artifactId>worker-queue-rabbit</artifactId>
+            <version>UNSPECIFIED</version>
+        </dependency>
+        <dependency>
+            <groupId>com.hpe.caf.worker</groupId>
+            <artifactId>worker-store-cs</artifactId>
+            <version>UNSPECIFIED</version>
+        </dependency>
+    </dependencies>
+
+    <profiles>
+        <profile>
+            <id>cmbg</id>
+            <activation>
+                <property>
+                    <name>CAF_BUILD_TYPE</name>
+                    <value>official</value>
+                </property>
+            </activation>
+            <distributionManagement>
+                <repository>
+                    <id>cmbg-maven-releases</id>
+                    <name>Internal Releases</name>
+                    <url>http://cbgmaven.hpeswlab.net/nexus/content/repositories/releases</url>
+                </repository>
+                <snapshotRepository>
+                    <id>cmbg-maven-snapshots</id>
+                    <name>Internal Snapshots</name>
+                    <url>http://cbgmaven.hpeswlab.net/nexus/content/repositories/snapshots</url>
+                </snapshotRepository>
+            </distributionManagement>
+        </profile>
+        <profile>
+            <id>sunnyvale</id>
+            <distributionManagement>
+                <repository>
+                    <id>HPEreleases</id>
+                    <name>Internal Releases</name>
+                    <url>http://rh7-artifactory.svs.hpeswlab.net:8081/artifactory/libs-release-local</url>
+                </repository>
+                <snapshotRepository>
+                    <id>HPEsnapshots</id>
+                    <name>Internal Snapshots</name>
+                    <url>http://rh7-artifactory.svs.hpeswlab.net:8081/artifactory/libs-snapshot-local</url>
+                </snapshotRepository>
+            </distributionManagement>
+        </profile>
+    </profiles>
+
+    <ciManagement>
+        <system>hudson</system>
+        <url>http://cafbuilder.hpeswlab.net:8080/job/standard-worker-container/</url>
+    </ciManagement>
+
+</project>
