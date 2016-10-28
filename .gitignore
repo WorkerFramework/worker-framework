@@ -1,5 +1,0 @@
-*.iml
-**/dependency-reduced-pom.xml
-**/*.bak
-**/target/
-/target/
