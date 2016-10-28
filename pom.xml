@@ -24,7 +24,7 @@
     </properties>
 
     <modules>
-        <module>caf-configs</module>
+        <module>worker-configs</module>
         <module>util-rabbitmq</module>
         <module>util-ref</module>
         <module>standard-worker-container</module>

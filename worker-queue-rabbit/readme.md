@@ -15,7 +15,7 @@
 - retryLimit: the maximum number of retries before sending the messages to the rejectedQueue, must be at least 1
 
  Note this module expects a valid `RabbitConfiguration` file to be present.
- See the `caf-configs` module for more details on this.
+ See the `worker-configs` module for more details on this.
 
 
 ## Usage
