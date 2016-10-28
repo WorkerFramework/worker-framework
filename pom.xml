@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+    
+    <parent>
+        <groupId>com.hpe.caf</groupId>
+        <artifactId>caf-maven-latest</artifactId>
+        <version>1-SNAPSHOT</version>
+        <relativePath>../caf-maven-latest</relativePath>
+    </parent>
+
+    <groupId>com.hpe.caf.worker</groupId>
+    <artifactId>worker-framework-aggregator</artifactId>
+    <version>10.13.1-SNAPSHOT</version>
+    <packaging>pom</packaging>
+    <description>Builds Worker-Framework projects together from a handy top level project.</description> 
+
+    <!-- This aggregator project is only used for building so we don't want to install or deploy the POM -->
+    <properties>
+        <maven.install.skip>true</maven.install.skip>
+        <maven.deploy.skip>true</maven.deploy.skip>
+    </properties>
+
+    <modules>
+        <module>caf-configs</module>
+        <module>util-rabbitmq</module>
+        <module>util-ref</module>
+        <module>standard-worker-container</module>
+        <module>worker-caf</module>
+        <module>worker-core</module>
+        <module>worker-queue-rabbit</module>
+        <module>worker-store-cs</module>
+        <!-- module>worker-store-s3</module -->
+        <module>worker-store-fs</module>
+        <!-- module>worker-testing-util</module -->
+        <!-- module>worker-testing-integration</module -->
+        <module>worker-example</module>
+        <!-- module>worker-archetype</module -->
+    </modules>
+
+    <ciManagement>
+        <system>hudson</system>
+        <url>http://cafbuilder.hpeswlab.net:8080/job/worker-example/</url>
+    </ciManagement>
+
+</project>
