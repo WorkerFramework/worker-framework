@@ -1,0 +1,7 @@
+{
+        "prefetchBuffer": 0,
+        "inputQueue": "example-input-1",
+        "retryQueue": "example-input-1",
+        "rejectedQueue": "test-rejected-1",
+        "retryLimit": 2
+}

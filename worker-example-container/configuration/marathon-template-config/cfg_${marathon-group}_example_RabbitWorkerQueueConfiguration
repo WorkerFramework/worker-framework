@@ -1,0 +1,14 @@
+{
+	"rabbitConfiguration": {
+		"rabbitHost": "${rabbit-host}",
+		"rabbitUser": "${rabbit-user}",
+		"rabbitPassword": "${rabbit-password}",
+		"maxAttempts": "${rabbit-maxattempts}",
+		"backoffInterval": "${rabbit-backoffInterval}",
+		"maxBackoffInterval": "${rabbit-maxBackoffInterval}",
+		"rabbitPort": "${rabbit-port}"
+	},
+	"retryLimit": 10,
+	"prefetchBuffer": 1,
+	"inputQueue": "${marathon-group}-example-in"
+}

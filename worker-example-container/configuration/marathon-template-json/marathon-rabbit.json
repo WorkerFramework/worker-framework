@@ -1,0 +1,19 @@
+{
+  "id": "/${marathon-group}/${rabbit-id}",
+  "cpus": "${rabbit-cpus}",
+  "mem": "${rabbit-mem}",
+  "instances": "${rabbit-instances}",
+  "container": {
+    "docker": {
+      "image": "rabbitmq:3-management",
+      "network": "HOST",
+      "forcePullImage": "${force-pull}"
+    },
+    "type": "DOCKER"
+  },
+  "env": {
+    "RABBITMQ_DEFAULT_PASS": "${rabbit-password}",
+    "RABBITMQ_DEFAULT_USER": "${rabbit-user}",
+    "RABBITMQ_ERLANG_COOKIE": "${rabbit-erlang-cookie}"
+  }
+}
