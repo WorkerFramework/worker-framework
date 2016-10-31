@@ -38,6 +38,7 @@
         <module>worker-testing-integration</module>
         <module>worker-example</module>
         <!-- module>worker-archetype</module -->
+		<module>worker-api</module>
     </modules>
 
     <ciManagement>
