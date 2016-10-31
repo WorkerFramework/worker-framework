@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+
+    <groupId>com.hpe.caf.worker</groupId>
+    <artifactId>worker-store-s3</artifactId>
+    <version>1.0.0-SNAPSHOT</version>
+
+    <parent>
+        <groupId>com.hpe.caf</groupId>
+        <artifactId>caf-latest-develop</artifactId>
+        <version>1-SNAPSHOT</version>
+        <relativePath>../caf-latest-develop</relativePath>
+    </parent>
+
+    <dependencies>
+        <dependency>
+            <groupId>com.hpe.caf</groupId>
+            <artifactId>caf-api</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>com.hpe.caf.util</groupId>
+            <artifactId>util-naming</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.httpcomponents</groupId>
+            <artifactId>httpclient</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>com.amazonaws</groupId>
+            <artifactId>aws-java-sdk</artifactId>
+            <version>1.11.39</version>
+        </dependency>
+        <dependency>
+            <groupId>javax.validation</groupId>
+            <artifactId>validation-api</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>junit</groupId>
+            <artifactId>junit</artifactId>
+            <scope>test</scope>
+        </dependency>
+    </dependencies>
+
+    <ciManagement>
+        <system>hudson</system>
+        <url>http://cafbuilder.hpeswlab.net:8080/job/worker-store-s3/</url>
+    </ciManagement>
+
+</project>
