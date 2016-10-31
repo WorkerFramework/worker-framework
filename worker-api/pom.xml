@@ -3,7 +3,7 @@
          xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
-    
+
     <groupId>com.hpe.caf.worker</groupId>
     <artifactId>worker-api</artifactId>
     <version>1.0.0-SNAPSHOT</version>
@@ -14,14 +14,18 @@
         <version>1-SNAPSHOT</version>
         <relativePath>../caf-latest-develop</relativePath>
     </parent>
-    </parent>
-	
-	 <dependencies>
+
+    <dependencies>
         <dependency>
-            <groupId>com.hpe.caf</groupId>
-            <artifactId>caf-api</artifactId>
+           <groupId>com.hpe.caf</groupId>
+           <artifactId>caf-api</artifactId>
         </dependency>
-	</dependencies>
+        <dependency>
+            <groupId>javax.validation</groupId>
+            <artifactId>validation-api</artifactId>
+            <scope>provided</scope>
+        </dependency>
+    </dependencies>
 
     <build>
         <plugins>
