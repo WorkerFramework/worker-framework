@@ -15,7 +15,7 @@ features:
     feature_list:
         - icon: hpe-transaction 
           title: Fault Tolerant Messaging
-          subtitle: Hight Availability and Fault Tolerant Messaging.
+          subtitle: High Availability and Fault Tolerant Messaging.
         - icon: hpe-storage
           title: External Data Exchange
           subtitle: Data exchange with pluggable storage.
