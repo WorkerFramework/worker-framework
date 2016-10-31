@@ -1,0 +1,86 @@
+package com.hpe.caf.worker.testing;
+
+/**
+ * Created by ploch on 19/11/2015.
+ */
+public class FileTestInputData {
+
+    private boolean useDataStore;
+    private String containerId;
+
+    private String inputFile;
+
+    private String storageReference;
+
+    /**
+     * Getter for property 'useDataStore'.
+     *
+     * @return Value for property 'useDataStore'.
+     */
+    public boolean isUseDataStore() {
+        return useDataStore;
+    }
+
+    /**
+     * Setter for property 'useDataStore'.
+     *
+     * @param useDataStore Value to set for property 'useDataStore'.
+     */
+    public void setUseDataStore(boolean useDataStore) {
+        this.useDataStore = useDataStore;
+    }
+
+    /**
+     * Getter for property 'containerId'.
+     *
+     * @return Value for property 'containerId'.
+     */
+    public String getContainerId() {
+        return containerId;
+    }
+
+    /**
+     * Setter for property 'containerId'.
+     *
+     * @param containerId Value to set for property 'containerId'.
+     */
+    public void setContainerId(String containerId) {
+        this.containerId = containerId;
+    }
+
+    /**
+     * Getter for property 'inputFile'.
+     *
+     * @return Value for property 'inputFile'.
+     */
+    public String getInputFile() {
+        return inputFile;
+    }
+
+    /**
+     * Setter for property 'inputFile'.
+     *
+     * @param inputFile Value to set for property 'inputFile'.
+     */
+    public void setInputFile(String inputFile) {
+        this.inputFile = inputFile;
+    }
+
+    /**
+     * Getter for property 'storageReference'.
+     *
+     * @return Value for property 'storageReference'.
+     */
+    public String getStorageReference() {
+        return storageReference;
+    }
+
+    /**
+     * Setter for property 'storageReference'.
+     *
+     * @param storageReference Value to set for property 'storageReference'.
+     */
+    public void setStorageReference(String storageReference) {
+        this.storageReference = storageReference;
+    }
+}
