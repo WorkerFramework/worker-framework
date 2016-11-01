@@ -13,7 +13,7 @@
 
     <groupId>com.hpe.caf.worker</groupId>
     <artifactId>worker-framework-aggregator</artifactId>
-    <version>10.13.1-SNAPSHOT</version>
+    <version>10.13.0-SNAPSHOT</version>
     <packaging>pom</packaging>
     <description>Builds Worker-Framework projects together from a handy top level project.</description> 
 
@@ -25,10 +25,11 @@
 
     <modules>
         <module>worker-configs</module>
-        <module>util-rabbitmq</module>
-        <module>util-ref</module>
-        <module>standard-worker-container</module>
+        <module>worker-api</module>
         <module>worker-caf</module>
+        <module>util-ref</module>
+        <module>util-rabbitmq</module>
+        <module>standard-worker-container</module>
         <module>worker-core</module>
         <module>worker-queue-rabbit</module>
         <module>worker-store-cs</module>
@@ -39,7 +40,6 @@
         <module>worker-framework</module>
         <module>worker-example</module>
         <!-- module>worker-archetype</module -->
-        <module>worker-api</module>
     </modules>
 
     <ciManagement>
