@@ -38,12 +38,12 @@
         <module>worker-testing-integration</module>
         <module>worker-example</module>
         <!-- module>worker-archetype</module -->
-	<module>worker-api</module>
+        <module>worker-api</module>
     </modules>
 
     <ciManagement>
         <system>hudson</system>
-        <url>http://cafbuilder.hpeswlab.net:8080/job/worker-example/</url>
+        <url>http://cafbuilder.hpeswlab.net:8080/job/worker-framework/</url>
     </ciManagement>
 
 </project>
