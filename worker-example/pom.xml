@@ -30,9 +30,4 @@
         <module>worker-example-message-builder</module>
     </modules>
 
-    <ciManagement>
-        <system>hudson</system>
-        <url>http://cafbuilder.hpeswlab.net:8080/job/worker-example/</url>
-    </ciManagement>
-
 </project>

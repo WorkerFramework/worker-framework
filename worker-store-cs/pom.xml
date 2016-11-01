@@ -72,10 +72,4 @@
         </plugins>
     </build>
 
-
-    <ciManagement>
-        <system>hudson</system>
-        <url>http://cafbuilder.hpeswlab.net:8080/job/worker-store-cs/</url>
-    </ciManagement>
-
 </project>

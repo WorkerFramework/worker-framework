@@ -71,9 +71,4 @@
         </dependency>
     </dependencies>
 
-    <ciManagement>
-        <system>hudson</system>
-        <url>http://cafbuilder.hpeswlab.net:8080/job/worker-core/</url>
-    </ciManagement>
-
 </project>
