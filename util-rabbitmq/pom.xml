@@ -76,9 +76,4 @@
         </plugins>
     </build>
 
-    <ciManagement>
-        <system>hudson</system>
-        <url>http://cafbuilder.hpeswlab.net:8080/job/util-rabbitmq/</url>
-    </ciManagement>
-
 </project>
