@@ -1,0 +1,4 @@
+logging:
+  level: INFO
+  loggers:
+    com.hpe.caf: INFO
