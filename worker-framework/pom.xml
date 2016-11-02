@@ -33,6 +33,13 @@
                 <artifactId>worker-configs</artifactId>
                 <version>10.1.0-SNAPSHOT</version>
             </dependency>
+           
+            <!-- Will need to be removed prior to Open sourcing worker-framework -->
+            <dependency>
+                <groupId>com.hpe.caf</groupId>
+                <artifactId>caf-configs</artifactId>
+                <version>10.0</version>
+            </dependency>
             <dependency>
                 <groupId>com.hpe.caf</groupId>
                 <artifactId>container-cert-script</artifactId>
