@@ -67,7 +67,7 @@
             <dependency>
                 <groupId>com.hpe.caf.config</groupId>
                 <artifactId>config-file</artifactId>
-                <version>10.0</version>
+                <version>10.1.0-SNAPSHOT</version>
             </dependency>
             <dependency>
                 <groupId>com.hpe.caf.config</groupId>
