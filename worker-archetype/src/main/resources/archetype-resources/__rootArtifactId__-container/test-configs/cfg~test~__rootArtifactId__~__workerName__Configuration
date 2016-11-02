@@ -1,0 +1,6 @@
+{
+        "workerVersion": "${version}",
+        "outputQueue": "${workerName}-output-1",
+        "threads": 1,
+        "resultSizeThreshold": 1024
+}
