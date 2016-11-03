@@ -12,6 +12,7 @@ import com.hpe.caf.storage.sdk.model.DelegationTicketInfo;
 import com.hpe.caf.storage.sdk.model.requests.CreateDelegationTicketRequest;
 import org.apache.commons.io.IOUtils;
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.mockito.Mockito;
 
@@ -29,6 +30,10 @@ import java.util.List;
 import static junit.framework.Assert.assertEquals;
 import static junit.framework.Assert.assertTrue;
 
+/*
+ * Currently marked @Ignore due to bad credentials for the tests.  CAF-1803 has been opened to fix these tests.
+ */
+@Ignore
 public class StorageServiceDataStoreTestIT {
 
     private static final String SERVER_NAME = "a1-dev-mem035.lab.lynx-connected.com";
