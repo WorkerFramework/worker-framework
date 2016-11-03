@@ -37,7 +37,7 @@ public class SerializedFilesTestItemProvider<TInput, TExpected> extends ContentF
         TestItem<TInput, TExpected> item = serializer.readValue(Files.readAllBytes(inputFile), TypeFactory.defaultInstance().constructParametrizedType(TestItem.class, TestItem.class, inputClass, expectedClass));
 
         // Validate provided file exists
-        if (item.getInputData() instanceof FileTestInputData) {
+        if (item.getInputData() instanceof FileTestInputData && ((FileTestInputData) item.getInputData()).getStorageReference() == null) {
             FileTestInputData data = (FileTestInputData) item.getInputData();
             String sourceFileName = data.getInputFile();
             Path sourceFile = Paths.get(sourceFileName);
