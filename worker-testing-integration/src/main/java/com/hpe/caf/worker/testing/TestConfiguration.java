@@ -50,6 +50,7 @@ public class TestConfiguration<TWorkerTask, TWorkerResult, TInput, TExpectation>
         String testSourcefileBaseFolder = settingsProvider.getSetting(SettingNames.testSourcefileBaseFolder);
         String inputFolder = settingsProvider.getSetting(SettingNames.inputFolder);
         String expectedFolder = settingsProvider.getSetting(SettingNames.expectedFolder);
+        String overrideReference = settingsProvider.getSetting(SettingNames.overrideReference);
 
         if (Strings.isNullOrEmpty(inputFolder)) {
             inputFolder = expectedFolder;
@@ -67,7 +68,7 @@ public class TestConfiguration<TWorkerTask, TWorkerResult, TInput, TExpectation>
                 processSubFolders, storeTestCaseWithInput, failOnUnknownProperty,
                 useDataStore, settingsProvider.getSetting(SettingNames.dataStoreContainerId),
                 mapper,
-                workerTaskClass, workerResultClass, inputClass, expectationClass);
+                workerTaskClass, workerResultClass, inputClass, expectationClass, overrideReference);
         return configuration;
     }
 
@@ -96,7 +97,9 @@ public class TestConfiguration<TWorkerTask, TWorkerResult, TInput, TExpectation>
 
     private boolean failOnUnknownProperty;
 
-    private TestConfiguration(String testDataFolder, String testDocumentsFolder, String testSourcefileBaseFolder, boolean processSubFolders, boolean storeTestCaseWithInput, boolean failOnUnknownProperty, boolean useDataStore, String dataStoreContainerId, ObjectMapper serializer, Class<TWorkerTask> workerTaskClass, Class<TWorkerResult> workerResultClass, Class<TInput> inputClass, Class<TExpectation> expectationClass) {
+    private String overrideReference;
+
+    private TestConfiguration(String testDataFolder, String testDocumentsFolder, String testSourcefileBaseFolder, boolean processSubFolders, boolean storeTestCaseWithInput, boolean failOnUnknownProperty, boolean useDataStore, String dataStoreContainerId, ObjectMapper serializer, Class<TWorkerTask> workerTaskClass, Class<TWorkerResult> workerResultClass, Class<TInput> inputClass, Class<TExpectation> expectationClass, String overrideReference) {
         this.testDataFolder = testDataFolder;
         this.testDocumentsFolder = testDocumentsFolder;
         this.testSourcefileBaseFolder = testSourcefileBaseFolder;
@@ -110,6 +113,7 @@ public class TestConfiguration<TWorkerTask, TWorkerResult, TInput, TExpectation>
         this.workerResultClass = workerResultClass;
         this.inputClass = inputClass;
         this.expectationClass = expectationClass;
+        this.overrideReference = overrideReference;
     }
 
     /**
@@ -222,5 +226,14 @@ public class TestConfiguration<TWorkerTask, TWorkerResult, TInput, TExpectation>
      */
     public boolean failOnUnknownProperty() {
         return failOnUnknownProperty;
+    }
+
+    /**
+     * Getter for property 'overrideReference'.
+     *
+     * @return Value for property 'overrideReference'.
+     */
+    public String getOverrideReference() {
+        return overrideReference;
     }
 }
