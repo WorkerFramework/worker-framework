@@ -38,4 +38,6 @@ public final class SettingNames {
     public static final String failOnUnknownProperty = "fail.on.unknown.property";
 
     public static final String testSourcefileBaseFolder = "test.sourcefile.base.folder";
+
+    public static final String overrideReference = "override.reference";
 }

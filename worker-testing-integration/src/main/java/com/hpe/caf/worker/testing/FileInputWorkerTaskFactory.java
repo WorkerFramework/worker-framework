@@ -17,9 +17,11 @@ public abstract class FileInputWorkerTaskFactory<TTask, TInput extends FileTestI
     private final String containerId;
     private final String testFilesFolder;
     private final String testSourcefileBaseFolder;
+    private TestConfiguration testConfiguration;
 
     public FileInputWorkerTaskFactory(TestConfiguration configuration) throws Exception {
         this(WorkerServices.getDefault(), configuration.getDataStoreContainerId(), configuration.getTestDataFolder(), configuration.getTestSourcefileBaseFolder() );
+        this.testConfiguration = configuration;
     }
 
     public FileInputWorkerTaskFactory(WorkerServices workerServices, String containerId, String testFilesFolder, String testSourcefileBaseFolder) {
@@ -42,7 +44,11 @@ public abstract class FileInputWorkerTaskFactory<TTask, TInput extends FileTestI
     public TTask createTask(TestItem<TInput, TExpected> testItem) throws Exception {
 
         ReferencedData sourceData;
-        if(Strings.isNullOrEmpty(testItem.getInputData().getInputFile()) && !Strings.isNullOrEmpty(testItem.getInputData().getStorageReference())){
+        if(!Strings.isNullOrEmpty(testConfiguration.getOverrideReference())){
+            testItem.getInputData().setStorageReference(testConfiguration.getOverrideReference());
+            sourceData = ReferencedData.getReferencedData(testConfiguration.getOverrideReference());
+        }
+        else if(!Strings.isNullOrEmpty(testItem.getInputData().getStorageReference())){
             sourceData = ReferencedData.getReferencedData(testItem.getInputData().getStorageReference());
         }
         else {

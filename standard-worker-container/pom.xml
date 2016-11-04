@@ -4,29 +4,29 @@
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
 
-    <groupId>com.hpe.caf.worker</groupId>
+    <groupId>com.github.workerframework.worker</groupId>
     <artifactId>standard-worker-container</artifactId>
-    <version>2.0.0-SNAPSHOT</version>
+    <version>1.0.0-SNAPSHOT</version>
     <packaging>pom</packaging>
 
     <dependencies>
         <dependency>
-            <groupId>com.hpe.caf</groupId>
-            <artifactId>caf-api</artifactId>
-            <version>UNSPECIFIED</version>
+            <groupId>com.github.workerframework</groupId>
+            <artifactId>worker-api</artifactId>
+            <version>1.0.0-SNAPSHOT</version>
         </dependency>
         <dependency>
-            <groupId>com.hpe.caf.codec</groupId>
+            <groupId>com.github.cafapi.codec</groupId>
             <artifactId>codec-json</artifactId>
             <version>UNSPECIFIED</version>
         </dependency>
         <dependency>
-            <groupId>com.hpe.caf.config</groupId>
+            <groupId>com.github.cafapi.config</groupId>
             <artifactId>config-file</artifactId>
             <version>UNSPECIFIED</version>
         </dependency>
         <dependency>
-            <groupId>com.hpe.caf.worker</groupId>
+            <groupId>com.github.workerframework.worker</groupId>
             <artifactId>worker-core</artifactId>
             <version>UNSPECIFIED</version>
         </dependency>
@@ -36,7 +36,7 @@
             <version>UNSPECIFIED</version>
         </dependency>
         <dependency>
-            <groupId>com.hpe.caf.worker</groupId>
+            <groupId>com.github.workerframework.worker</groupId>
             <artifactId>worker-store-cs</artifactId>
             <version>UNSPECIFIED</version>
         </dependency>

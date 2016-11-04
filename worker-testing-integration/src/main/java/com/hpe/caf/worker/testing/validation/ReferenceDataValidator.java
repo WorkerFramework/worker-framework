@@ -63,6 +63,10 @@ public class ReferenceDataValidator extends PropertyValidator {
 
         InputStream dataStream;
 
+        if(expectation.getExpectedContentFile() == null && expectation.getExpectedSimilarityPercentage() == 0){
+            return true;
+        }
+
         try {
             System.out.println("About to retrieve content for " + referencedData.toString());
             dataStream = ContentDataHelper.retrieveReferencedData(dataStore, codec, referencedData);
