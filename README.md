@@ -9,7 +9,6 @@ The Worker Framework is written entirely in Java and features the necessary infr
 Manifest of the components which make up the CAF Worker Framework:
 * standard-worker-container
 * util-rabbitmq
-* util-ref
 * worker-api
 * worker-archetype
 * worker-caf
