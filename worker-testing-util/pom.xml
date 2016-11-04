@@ -4,34 +4,41 @@
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
 
-    <parent>
-        <artifactId>worker-testing</artifactId>
-        <groupId>com.hpe.caf.worker</groupId>
-        <version>2-SNAPSHOT</version>
-    </parent>
-
+    <groupId>com.github.workerframework</groupId>
     <artifactId>worker-testing-util</artifactId>
+    <version>1.0.0-SNAPSHOT</version>
+    
+    <parent>
+        <groupId>com.github.cafapi</groupId>
+        <artifactId>caf-parent</artifactId>
+        <version>1.0.0-SNAPSHOT</version>
+    </parent>
 
     <dependencies>
         <dependency>
-            <groupId>com.hpe.caf</groupId>
+            <groupId>com.github.cafapi</groupId>
             <artifactId>caf-api</artifactId>
+            <version>1.0.0-SNAPSHOT</version>
         </dependency>
         <dependency>
-            <groupId>com.hpe.caf</groupId>
+            <groupId>com.github.workerframework</groupId>
             <artifactId>worker-configs</artifactId>
+            <version>1.0.0-SNAPSHOT</version>
         </dependency>
         <dependency>
-            <groupId>com.hpe.caf.util</groupId>
+            <groupId>com.github.workerframework.util</groupId>
             <artifactId>util-rabbitmq</artifactId>
+            <version>1.0.0-SNAPSHOT</version>
         </dependency>
         <dependency>
-            <groupId>com.hpe.caf.worker</groupId>
+            <groupId>com.github.workerframework.worker</groupId>
             <artifactId>worker-core</artifactId>
+            <version>1.0.0-SNAPSHOT</version>
         </dependency>
         <dependency>
-            <groupId>com.hpe.caf.worker</groupId>
+            <groupId>com.github.workerframework.worker</groupId>
             <artifactId>worker-queue-rabbit</artifactId>
+            <version>1.0.0-SNAPSHOT</version>
         </dependency>
         <dependency>
             <groupId>com.google.guava</groupId>
@@ -54,10 +61,5 @@
             <artifactId>amqp-client</artifactId>
         </dependency>
     </dependencies>
-
-    <ciManagement>
-        <system>hudson</system>
-        <url>http://cafbuilder.hpswlabs.hp.com:8080/job/worker-testing-util/</url>
-    </ciManagement>
 
 </project>
