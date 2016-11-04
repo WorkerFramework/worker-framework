@@ -4,24 +4,23 @@
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
 
-    <groupId>com.hpe.caf.worker</groupId>
+    <groupId>com.github.workerframework.worker</groupId>
     <artifactId>worker-framework-tests</artifactId>
-    <version>1-SNAPSHOT</version>
+    <version>1.0.0-SNAPSHOT</version>
     <packaging>pom</packaging>
 
     <parent>
-        <groupId>com.hpe.caf</groupId>
-        <artifactId>caf-maven-latest</artifactId>
-        <version>1-SNAPSHOT</version>
-        <relativePath>../../caf-maven-latest</relativePath>
+        <groupId>com.github.cafapi</groupId>
+        <artifactId>caf-parent</artifactId>
+        <version>1.0.0-SNAPSHOT</version>
     </parent>
 
     <dependencyManagement>
         <dependencies>
             <dependency>
-                <groupId>com.hpe.caf.worker</groupId>
+                <groupId>com.github.workerframework.worker</groupId>
                 <artifactId>worker-framework</artifactId>
-                <version>10.13.0-SNAPSHOT</version>
+                <version>1.0.0-SNAPSHOT</version>
                 <type>pom</type>
                 <scope>import</scope>
             </dependency>

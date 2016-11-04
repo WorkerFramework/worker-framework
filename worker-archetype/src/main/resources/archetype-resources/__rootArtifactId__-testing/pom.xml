@@ -5,10 +5,9 @@
     <modelVersion>4.0.0</modelVersion>
 
     <parent>
-        <groupId>com.hpe.caf</groupId>
-        <artifactId>caf-maven-latest</artifactId>
-        <version>1-SNAPSHOT</version>
-        <relativePath>../../caf-maven-latest</relativePath>
+        <groupId>com.github.cafapi</groupId>
+        <artifactId>caf-parent</artifactId>
+        <version>1.0.0-SNAPSHOT</version>
     </parent>
 
     <groupId>${groupId}</groupId>
@@ -22,9 +21,9 @@
             <version>${version}</version>
         </dependency>
         <dependency>
-            <groupId>com.hpe.caf.worker</groupId>
+            <groupId>com.github.workerframework</groupId>
             <artifactId>worker-testing-integration</artifactId>
-            <version>2-SNAPSHOT</version>
+            <version>1.0.0-SNAPSHOT</version>
         </dependency>
         <dependency>
             <groupId>junit</groupId>

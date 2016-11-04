@@ -4,20 +4,19 @@
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
 
-    <groupId>com.github.workerframework</groupId>
+    <groupId>com.github.workerframework.worker</groupId>
     <artifactId>worker-queue-rabbit</artifactId>
     <version>1.0.0-SNAPSHOT</version>
 
     <parent>
-        <groupId>com.hpe.caf</groupId>
-        <artifactId>caf-latest-develop</artifactId>
-        <version>1-SNAPSHOT</version>
-        <relativePath>../caf-latest-develop</relativePath>
+        <groupId>com.github.cafapi</groupId>
+        <artifactId>caf-parent</artifactId>
+        <version>1.0.0-SNAPSHOT</version>
     </parent>
 
     <dependencies>
         <dependency>
-            <groupId>com.hpe.caf.worker</groupId>
+            <groupId>com.github.workerframework</groupId>
             <artifactId>worker-api</artifactId>
             <version>1.0.0-SNAPSHOT</version>
         </dependency>
@@ -26,12 +25,14 @@
             <artifactId>slf4j-api</artifactId>
         </dependency>
         <dependency>
-            <groupId>com.hpe.caf.util</groupId>
+            <groupId>com.github.workerframework.util</groupId>
             <artifactId>util-rabbitmq</artifactId>
+            <version>1.0.0-SNAPSHOT</version>
         </dependency>
         <dependency>
-            <groupId>com.hpe.caf</groupId>
+            <groupId>com.github.workerframework</groupId>
             <artifactId>worker-configs</artifactId>
+            <version>1.0.0-SNAPSHOT</version>
         </dependency>
         <dependency>
             <groupId>com.rabbitmq</groupId>
