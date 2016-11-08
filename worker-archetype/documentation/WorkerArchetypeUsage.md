@@ -104,7 +104,7 @@ Generate the new Worker's Aggregator from the `worker-archetype` by following th
 
 - 'File > New > Project...'
 - Select Maven from the left-hand pane > Tick 'Create from archetype' > Click 'Add Archetype...'
-- Specify the details of the 'worker-shared-archetype'
+- Specify the details of the 'worker-archetype'
 	- GroupId : com.hpe.caf.worker
 	- ArtifactId : worker-archetype
 	- Version : 2.0.0-SNAPSHOT
