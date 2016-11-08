@@ -8,12 +8,6 @@
     <artifactId>worker-example-message-builder</artifactId>
     <version>1.0.0-SNAPSHOT</version>
 
-    <parent>
-        <groupId>com.github.cafapi</groupId>
-        <artifactId>caf-parent</artifactId>
-        <version>1.0.0-SNAPSHOT</version>
-    </parent>  
-
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <maven.compiler.source>1.8</maven.compiler.source>
@@ -22,7 +16,7 @@
 
     <dependencies>
         <dependency>
-            <groupId>com.github.workerframework.worker</groupId>
+            <groupId>com.github.workerframework</groupId>
             <artifactId>worker-example-shared</artifactId>
             <version>1.0.0-SNAPSHOT</version>
         </dependency>

@@ -15,12 +15,6 @@
     <packaging>pom</packaging>
     <description>Builds Worker-Framework projects together from a handy top level project.</description>
 
-    <!-- This aggregator project is only used for building so we don't want to install or deploy the POM -->
-    <properties>
-        <maven.install.skip>true</maven.install.skip>
-        <maven.deploy.skip>true</maven.deploy.skip>
-    </properties>
-
     <modules>
         <module>worker-configs</module>
         <module>worker-api</module>

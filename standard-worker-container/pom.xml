@@ -4,7 +4,7 @@
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
 
-    <groupId>com.github.workerframework.worker</groupId>
+    <groupId>com.github.workerframework</groupId>
     <artifactId>standard-worker-container</artifactId>
     <version>1.0.0-SNAPSHOT</version>
     <packaging>pom</packaging>
@@ -26,17 +26,17 @@
             <version>UNSPECIFIED</version>
         </dependency>
         <dependency>
-            <groupId>com.github.workerframework.worker</groupId>
+            <groupId>com.github.workerframework</groupId>
             <artifactId>worker-core</artifactId>
             <version>UNSPECIFIED</version>
         </dependency>
         <dependency>
-            <groupId>com.hpe.caf.worker</groupId>
+            <groupId>com.github.workerframework</groupId>
             <artifactId>worker-queue-rabbit</artifactId>
             <version>UNSPECIFIED</version>
         </dependency>
         <dependency>
-            <groupId>com.github.workerframework.worker</groupId>
+            <groupId>com.github.workerframework</groupId>
             <artifactId>worker-store-cs</artifactId>
             <version>UNSPECIFIED</version>
         </dependency>
