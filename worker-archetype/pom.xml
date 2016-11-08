@@ -9,8 +9,6 @@
     <version>1.0.0-SNAPSHOT</version>
     <packaging>maven-archetype</packaging>
 
-    <name>worker-archetype</name>
-
     <build>
         <extensions>
             <extension>
