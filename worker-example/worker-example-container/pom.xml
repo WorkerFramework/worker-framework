@@ -21,7 +21,7 @@
         <test.configs>${project.basedir}/test-configs</test.configs>
         <maven.failsafe.version>2.19</maven.failsafe.version>
         <maven.compiler.version>3.3</maven.compiler.version>
-        <datastore.container.id>66d1c33ec8c74fee99d207e7521a93ec</datastore.container.id>
+        <datastore.container.id>b591d8c6615c4af99d7915719b01259c</datastore.container.id>
         <maven.compiler.source>1.8</maven.compiler.source>
         <maven.compiler.target>1.8</maven.compiler.target>
     </properties>
