@@ -15,7 +15,7 @@
     <dependencyManagement>
         <dependencies>
             <dependency>
-                <groupId>com.github.workerframework.worker</groupId>
+                <groupId>com.github.workerframework</groupId>
                 <artifactId>worker-framework</artifactId>
                 <version>1.0.0-SNAPSHOT</version>
                 <type>pom</type>
@@ -31,7 +31,7 @@
             <version>${version}</version>
         </dependency>
         <dependency>
-            <groupId>com.github.workerframework.worker</groupId>
+            <groupId>com.github.workerframework</groupId>
             <artifactId>worker-caf</artifactId>
         </dependency>
         <dependency>

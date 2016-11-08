@@ -31,7 +31,7 @@
     <dependencyManagement>
         <dependencies>
             <dependency>
-                <groupId>com.github.workerframework.worker</groupId>
+                <groupId>com.github.workerframework</groupId>
                 <artifactId>worker-framework</artifactId>
                 <version>${caf.worker-framework.version}</version>
                 <type>pom</type>
@@ -43,7 +43,7 @@
     <!-- CAF standard worker container dependency, ${workerName} dependency. -->
     <dependencies>
         <dependency>
-            <groupId>com.github.workerframework.worker</groupId>
+            <groupId>com.github.workerframework</groupId>
             <artifactId>standard-worker-container</artifactId>
             <type>pom</type>
         </dependency>
