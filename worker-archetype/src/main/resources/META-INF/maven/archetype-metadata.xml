@@ -1,15 +1,11 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <archetype-descriptor xsi:schemaLocation="http://maven.apache.org/plugins/maven-archetype-plugin/archetype-descriptor/1.0.0 http://maven.apache.org/xsd/archetype-descriptor-1.0.0.xsd" name="worker-archetype"
-    xmlns="http://maven.apache.org/plugins/maven-archetype-plugin/archetype-descriptor/1.0.0"
-    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
-  <requiredProperties>
-    <requiredProperty key="workerName">
-    </requiredProperty>
-
-      <requiredProperty key="artifactId">
-      </requiredProperty>
-
-  </requiredProperties>
+                      xmlns="http://maven.apache.org/plugins/maven-archetype-plugin/archetype-descriptor/1.0.0"
+                      xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+    <requiredProperties>
+        <requiredProperty key="workerName" />
+        <requiredProperty key="artifactId" />
+    </requiredProperties>
 
     <modules>
         <module id="${rootArtifactId}" dir="__rootArtifactId__" name="__rootArtifactId__">
