@@ -61,12 +61,6 @@
                     </includes>
                 </fileSet>
                 <fileSet filtered="true" encoding="UTF-8">
-                    <directory>documentation</directory>
-                    <includes>
-                        <include>**/*.md</include>
-                    </includes>
-                </fileSet>
-                <fileSet filtered="true" encoding="UTF-8">
                     <directory>test-configs</directory>
                     <includes>
                         <include>**/*</include>
