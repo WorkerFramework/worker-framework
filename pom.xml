@@ -4,16 +4,17 @@
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
 
+    <groupId>com.github.workerframework</groupId>
+    <artifactId>worker-framework-aggregator</artifactId>
+    <packaging>pom</packaging>
+    <description>Builds Worker-Framework projects together</description>
+
     <parent>
         <groupId>com.github.cafapi</groupId>
         <artifactId>caf-parent</artifactId>
         <version>1.0.0-SNAPSHOT</version>
+        <relativePath />
     </parent>
-
-    <groupId>com.github.workerframework</groupId>
-    <artifactId>worker-framework-aggregator</artifactId>
-    <packaging>pom</packaging>
-    <description>Builds Worker-Framework projects together from a handy top level project.</description>
 
     <modules>
         <module>worker-configs</module>
