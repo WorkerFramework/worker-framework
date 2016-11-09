@@ -49,7 +49,7 @@
             <artifactId>dropwizard-core</artifactId>
         </dependency>
         <dependency>
-            <groupId>com.github.workerframework.util</groupId>
+            <groupId>com.github.workerframework</groupId>
             <artifactId>util-rabbitmq</artifactId>
             <version>1.0.1-SNAPSHOT</version>
     	</dependency>
