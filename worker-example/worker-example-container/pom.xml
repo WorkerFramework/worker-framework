@@ -6,12 +6,12 @@
 
     <groupId>com.github.workerframework</groupId>
     <artifactId>worker-example-container</artifactId>
-    <version>1.0.0-SNAPSHOT</version>
+    <version>1.0.0</version>
     <packaging>pom</packaging>
 
     <!-- Properties for the worker. -->
     <properties>
-        <caf.worker-framework.version>1.0.0-SNAPSHOT</caf.worker-framework.version>
+        <caf.worker-framework.version>1.0.0</caf.worker-framework.version>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <maven.install.skip>true</maven.install.skip>
         <maven.deploy.skip>true</maven.deploy.skip>
@@ -52,12 +52,12 @@
         <dependency>
             <groupId>com.github.workerframework</groupId>
             <artifactId>worker-example</artifactId>
-            <version>1.0.0-SNAPSHOT</version>
+            <version>1.0.0</version>
         </dependency>
         <dependency>
             <groupId>com.github.workerframework</groupId>
             <artifactId>worker-testing-integration</artifactId>
-            <version>1.0.0-SNAPSHOT</version>
+            <version>1.0.0</version>
             <scope>test</scope>
         </dependency>
         <dependency>

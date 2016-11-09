@@ -6,13 +6,13 @@
 
     <groupId>com.github.workerframework</groupId>
     <artifactId>worker-framework</artifactId>
-    <version>1.0.0-SNAPSHOT</version>
+    <version>1.0.0</version>
     <packaging>pom</packaging>
 
     <parent>
         <groupId>com.github.workerframework</groupId>
-        <artifactId>worker-framework-aggregator</artifactId>
-        <version>1.0.0-SNAPSHOT</version>
+<artifactId>worker-framework-aggregator</artifactId>
+        <version>1.0.0</version>
     </parent>
 
     <dependencyManagement>
@@ -20,23 +20,23 @@
             <dependency>
                 <groupId>com.github.workerframework</groupId>
                 <artifactId>worker-api</artifactId>
-                <version>1.0.0-SNAPSHOT</version>
+                <version>1.0.0</version>
             </dependency>
             <dependency>
                 <groupId>com.github.cafapi</groupId>
                 <artifactId>caf-api</artifactId>
-                <version>1.0.0-SNAPSHOT</version>
+                <version>1.0.0</version>
             </dependency>
             <dependency>
                 <groupId>com.github.workerframework</groupId>
                 <artifactId>worker-configs</artifactId>
-                <version>1.0.0-SNAPSHOT</version>
+                <version>1.0.0</version>
             </dependency>
             <dependency>
                 <groupId>com.github.cafapi</groupId>
                 <artifactId>container-cert-script</artifactId>
                 <type>tar.gz</type>
-                <version>1.0.0-SNAPSHOT</version>
+                <version>1.0.0</version>
             </dependency>
             <dependency>
                 <groupId>com.hpe.caf</groupId>
@@ -46,37 +46,37 @@
             <dependency>
                 <groupId>com.github.cafapi.cipher</groupId>
                 <artifactId>cipher-null</artifactId>
-                <version>1.0.0-SNAPSHOT</version>
+                <version>1.0.0</version>
             </dependency>
             <dependency>
                 <groupId>com.github.cafapi.codec</groupId>
                 <artifactId>codec-json</artifactId>
-                <version>1.0.0-SNAPSHOT</version>
+                <version>1.0.0</version>
             </dependency>
             <dependency>
                 <groupId>com.github.cafapi.codec</groupId>
                 <artifactId>codec-yaml</artifactId>
-                <version>1.0.0-SNAPSHOT</version>
+                <version>1.0.0</version>
             </dependency>
             <dependency>
                 <groupId>com.github.cafapi.config</groupId>
                 <artifactId>config-caf</artifactId>
-                <version>1.0.0-SNAPSHOT</version>
+                <version>1.0.0</version>
             </dependency>
             <dependency>
                 <groupId>com.github.cafapi.config</groupId>
                 <artifactId>config-file</artifactId>
-                <version>1.0.0-SNAPSHOT</version>
+                <version>1.0.0</version>
             </dependency>
             <dependency>
                 <groupId>com.github.cafapi.config</groupId>
                 <artifactId>config-rest</artifactId>
-                <version>1.0.0-SNAPSHOT</version>
+                <version>1.0.0</version>
             </dependency>
             <dependency>
                 <groupId>com.github.cafapi.config</groupId>
                 <artifactId>config-system</artifactId>
-                <version>1.0.0-SNAPSHOT</version>
+                <version>1.0.0</version>
             </dependency>
             <dependency>
                 <groupId>com.hpe.caf.util</groupId>
@@ -86,53 +86,53 @@
             <dependency>
                 <groupId>com.github.cafapi.util</groupId>
                 <artifactId>util-jerseycompat</artifactId>
-                <version>1.0.0-SNAPSHOT</version>
+                <version>1.0.0</version>
             </dependency>
             <dependency>
                 <groupId>com.github.cafapi.util</groupId>
                 <artifactId>util-moduleloader</artifactId>
-                <version>1.0.0-SNAPSHOT</version>
+                <version>1.0.0</version>
             </dependency>
             <dependency>
                 <groupId>com.github.cafapi.util</groupId>
                 <artifactId>util-naming</artifactId>
-                <version>1.0.0-SNAPSHOT</version>
+                <version>1.0.0</version>
             </dependency>
             <dependency>
                 <groupId>com.github.workerframework</groupId>
                 <artifactId>util-rabbitmq</artifactId>
-                <version>1.0.0-SNAPSHOT</version>
+                <version>1.0.0</version>
             </dependency>
             <dependency>
                 <groupId>com.github.cafapi.util</groupId>
                 <artifactId>util-ref</artifactId>
-                <version>1.0.0-SNAPSHOT</version>
+                <version>1.0.0</version>
             </dependency>
             <dependency>
                 <groupId>com.github.workerframework</groupId>
                 <artifactId>standard-worker-container</artifactId>
                 <type>pom</type>
-                <version>1.0.0-SNAPSHOT</version>
+                <version>1.0.0</version>
             </dependency>
             <dependency>
                 <groupId>com.github.workerframework</groupId>
                 <artifactId>worker-caf</artifactId>
-                <version>1.0.0-SNAPSHOT</version>
+                <version>1.0.0</version>
             </dependency>
             <dependency>
                 <groupId>com.github.workerframework</groupId>
                 <artifactId>worker-core</artifactId>
-                <version>1.0.0-SNAPSHOT</version>
+                <version>1.0.0</version>
             </dependency>
             <dependency>
                 <groupId>com.github.workerframework</groupId>
                 <artifactId>worker-queue-rabbit</artifactId>
-                <version>1.0.0-SNAPSHOT</version>
+                <version>1.0.0</version>
             </dependency>
             <dependency>
                 <groupId>com.github.workerframework</groupId>
                 <artifactId>worker-store-cs</artifactId>
-                <version>1.0.0-SNAPSHOT</version>
+                <version>1.0.0</version>
                 <exclusions>
                     <exclusion>
                         <groupId>javax.ws.rs</groupId>
@@ -143,7 +143,7 @@
             <dependency>
                 <groupId>com.github.workerframework</groupId>
                 <artifactId>worker-store-fs</artifactId>
-                <version>1.0.0-SNAPSHOT</version>
+                <version>1.0.0</version>
             </dependency>
         </dependencies>
     </dependencyManagement>
