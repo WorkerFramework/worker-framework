@@ -6,12 +6,12 @@
 
     <groupId>com.github.workerframework</groupId>
     <artifactId>worker-core</artifactId>
-    <version>1.0.0-SNAPSHOT</version>
+    <version>1.0.1-SNAPSHOT</version>
 
     <parent>
         <groupId>com.github.workerframework</groupId>
         <artifactId>worker-framework-aggregator</artifactId>
-        <version>1.0.0-SNAPSHOT</version>
+        <version>1.0.1-SNAPSHOT</version>
     </parent>
 
     <dependencies>
@@ -22,27 +22,27 @@
         <dependency>
             <groupId>com.github.workerframework</groupId>
             <artifactId>worker-api</artifactId>
-            <version>1.0.0-SNAPSHOT</version>
+            <version>1.0.1-SNAPSHOT</version>
         </dependency>
         <dependency>
             <groupId>com.github.cafapi.cipher</groupId>
             <artifactId>cipher-null</artifactId>
-            <version>1.0.0-SNAPSHOT</version>
+            <version>1.0.1-SNAPSHOT</version>
         </dependency>
         <dependency>
             <groupId>com.github.cafapi.config</groupId>
             <artifactId>config-system</artifactId>
-            <version>1.0.0-SNAPSHOT</version>
+            <version>1.0.1-SNAPSHOT</version>
         </dependency>
         <dependency>
             <groupId>com.github.cafapi.util</groupId>
             <artifactId>util-moduleloader</artifactId>
-            <version>1.0.0-SNAPSHOT</version>
+            <version>1.0.1-SNAPSHOT</version>
         </dependency>
         <dependency>
             <groupId>com.github.cafapi.util</groupId>
             <artifactId>util-jerseycompat</artifactId>
-            <version>1.0.0-SNAPSHOT</version>
+            <version>1.0.1-SNAPSHOT</version>
         </dependency>
         <dependency>
             <groupId>io.dropwizard</groupId>
@@ -51,7 +51,7 @@
         <dependency>
             <groupId>com.github.workerframework.util</groupId>
             <artifactId>util-rabbitmq</artifactId>
-            <version>1.0.0-SNAPSHOT</version>
+            <version>1.0.1-SNAPSHOT</version>
     	</dependency>
         <dependency>
             <groupId>junit</groupId>
@@ -66,13 +66,13 @@
         <dependency>
             <groupId>com.github.cafapi.codec</groupId>
             <artifactId>codec-json</artifactId>
-            <version>1.0.0-SNAPSHOT</version>
+            <version>1.0.1-SNAPSHOT</version>
             <scope>test</scope>
         </dependency>
         <dependency>
             <groupId>com.github.workerframework</groupId>
             <artifactId>worker-caf</artifactId>
-            <version>1.0.0-SNAPSHOT</version>
+            <version>1.0.1-SNAPSHOT</version>
             <scope>test</scope>
         </dependency>
     </dependencies>

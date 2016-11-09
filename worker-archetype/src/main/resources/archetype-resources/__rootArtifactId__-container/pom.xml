@@ -55,7 +55,7 @@
         <dependency>
             <groupId>com.github.workerframework</groupId>
             <artifactId>worker-testing-integration</artifactId>
-            <version>1.0.0-SNAPSHOT</version>
+            <version>1.0.1-SNAPSHOT</version>
             <scope>test</scope>
         </dependency>
         <dependency>
