@@ -109,7 +109,7 @@
                         <rabbitmq.ctrl.port>${rabbitmq.ctrl.port}</rabbitmq.ctrl.port>
                         <input.folder>${test.data}</input.folder>
                         <expected.folder>${test.data}</expected.folder>
-                        <datastore.container.id>66d1c33ec8c74fee99d207e7521a93ec</datastore.container.id>
+                        <datastore.container.id>b591d8c6615c4af99d7915719b01259c</datastore.container.id>
                         <datastore.enabled>true</datastore.enabled>
                     </systemPropertyVariables>
                     <environmentVariables>
@@ -251,6 +251,21 @@
                                         </fileSets>
                                         <!-- Including the dependencies into the docker tar -->
                                         <dependencySets>
+                                            <dependencySet>
+                                                <useProjectArtifact>false</useProjectArtifact>
+                                                <scope>runtime</scope>
+                                                <excludes>
+                                                    <exclude>com.github.cafapi:container-cert-script</exclude>
+                                                </excludes>
+                                            </dependencySet>
+                                            <dependencySet>
+                                                <useProjectArtifact>false</useProjectArtifact>
+                                                <useTransitiveFiltering>true</useTransitiveFiltering>
+                                                <unpack>true</unpack>
+                                                <includes>
+                                                    <include>com.github.cafapi:container-cert-script</include>
+                                                </includes>
+                                            </dependencySet>
                                             <dependencySet>
                                                 <useProjectArtifact>false</useProjectArtifact>
                                                 <scope>runtime</scope>
