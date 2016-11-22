@@ -10,7 +10,7 @@
 
     <!-- This aggregator project is only used for building so we don't want to install or deploy the POM -->
     <properties>
-        <!--<maven.install.skip>true</maven.install.skip>-->
+        <maven.install.skip>true</maven.install.skip>
         <maven.deploy.skip>true</maven.deploy.skip>
     </properties>
 

@@ -80,7 +80,7 @@ The Maven CLI offers developers the ability to generate projects from archetypes
 
 Generate the new Worker's Aggregator from the `worker-archetype` with the following Maven command:
 
-<pre>mvn archetype:generate -DarchetypeRepository=http://cbgmaven.hpeswlab.net/nexus/content/repositories/snapshots -DarchetypeVersion=2.0.0-SNAPSHOT -DarchetypeArtifactId=worker-archetype -DarchetypeGroupId=com.hpe.caf.worker</pre>
+<pre>mvn archetype:generate -DarchetypeRepository=http://cbgmaven.hpeswlab.net/nexus/content/repositories/releases -DarchetypeVersion=1.0.0 -DarchetypeArtifactId=worker-archetype -DarchetypeGroupId=com.github.workerframework</pre>
 
 The CLI will prompt you for artifactId, groupId, version (default suggestion is 1.0.0-SNAPSHOT), package (default suggestion is the groupId, you should however adjust this to include the worker's purpose) and workerName properties required for the new worker project. See Figure 1.
 
@@ -104,13 +104,13 @@ Generate the new Worker's Aggregator from the `worker-archetype` by following th
 
 - 'File > New > Project...'
 - Select Maven from the left-hand pane > Tick 'Create from archetype' > Click 'Add Archetype...'
-- Specify the details of the 'worker-shared-archetype'
-	- GroupId : com.hpe.caf.worker
+- Specify the details of the 'worker-archetype'
+	- GroupId : com.github.workerframework
 	- ArtifactId : worker-archetype
-	- Version : 2.0.0-SNAPSHOT
-	- Repository : http://cbgmaven.hpeswlab.net/nexus/content/repositories/snapshots
+	- Version : 1.0.0
+	- Repository : http://cbgmaven.hpeswlab.net/nexus/content/repositories/releases
 	- Click 'OK'
-- Select the added 'com.hpe.caf.worker:worker-archetype' archetype > Click 'Next'
+- Select the added 'com.github.workerframework:worker-archetype' archetype > Click 'Next'
 - Enter GroupId, ArtifactId and Version of your Worker project > Click 'Next', e.g:
 	- GroupId : com.hpe.caf.worker
 	- ArtifactId : worker-example
@@ -140,10 +140,10 @@ Generate the new Worker's Aggregator from the `worker-archetype` by following th
 - 'File > New Project...'
 - From the Categories Pane select Maven > From the Select Pane select 'Project from Archetype' > Click 'Next >'
 - Specify the details of the 'worker-archetype'
-	- GroupId : com.hpe.caf.worker
+	- GroupId : com.github.workerframework
 	- ArtifactId : worker-archetype
-	- Version : 2.0.0-SNAPSHOT
-	- Repository : http://cbgmaven.hpeswlab.net/nexus/content/repositories/snapshots
+	- Version : 1.0.0
+	- Repository : http://cbgmaven.hpeswlab.net/nexus/content/repositories/releases
 	- Click 'Next >'
 - Enter Project Name, Project Location, GroupId, Version and Package of your Worker Shared project, e.g:
 	- Project Name : worker-example
