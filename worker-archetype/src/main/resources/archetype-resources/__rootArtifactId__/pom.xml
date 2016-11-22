@@ -6,12 +6,6 @@
     <artifactId>${artifactId}</artifactId>
     <version>${version}</version>
 
-    <parent>
-        <groupId>com.github.cafapi</groupId>
-        <artifactId>caf-parent</artifactId>
-        <version>1.0.0-SNAPSHOT</version>
-    </parent>
-
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <maven.compiler.source>1.8</maven.compiler.source>
@@ -21,9 +15,9 @@
     <dependencyManagement>
         <dependencies>
             <dependency>
-                <groupId>com.hpe.caf.worker</groupId>
+                <groupId>com.github.workerframework</groupId>
                 <artifactId>worker-framework</artifactId>
-                <version>10.12</version>
+                <version>1.0.1-SNAPSHOT</version>
                 <type>pom</type>
                 <scope>import</scope>
             </dependency>
@@ -37,19 +31,16 @@
             <version>${version}</version>
         </dependency>
         <dependency>
-            <groupId>com.github.workerframework.worker</groupId>
+            <groupId>com.github.workerframework</groupId>
             <artifactId>worker-caf</artifactId>
-            <version>1.0.0-SNAPSHOT</version>
         </dependency>
         <dependency>
             <groupId>com.github.workerframework</groupId>
             <artifactId>worker-api</artifactId>
-            <version>1.0.0-SNAPSHOT</version>
         </dependency>
         <dependency>
             <groupId>com.github.cafapi.util</groupId>
             <artifactId>util-moduleloader</artifactId>
-            <version>1.0.0-SNAPSHOT</version>
         </dependency>
         <dependency>
             <groupId>commons-io</groupId>
@@ -58,6 +49,7 @@
         <dependency>
             <groupId>junit</groupId>
             <artifactId>junit</artifactId>
+            <version>4.12</version>
             <scope>test</scope>
         </dependency>
         <dependency>
@@ -68,7 +60,6 @@
         <dependency>
             <groupId>com.github.cafapi.codec</groupId>
             <artifactId>codec-json</artifactId>
-            <version>1.0.0-SNAPSHOT</version>
             <scope>test</scope>
         </dependency>
         <dependency>

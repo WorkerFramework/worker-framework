@@ -30,24 +30,20 @@ import java.util.List;
 import static junit.framework.Assert.assertEquals;
 import static junit.framework.Assert.assertTrue;
 
-/*
- * Currently marked @Ignore due to bad credentials for the tests.  CAF-1803 has been opened to fix these tests.
- */
-@Ignore
 public class StorageServiceDataStoreTestIT {
 
     private static final String SERVER_NAME = "a1-dev-mem035.lab.lynx-connected.com";
     private static final int SERVER_PORT = 9444;
-    private static final String AUTH_CONFIG_SERVER_NAME = "a1-dev-hap012.lab.lynx-connected.com";
+    private static final String AUTH_CONFIG_SERVER_NAME = "a1-dev-hap111.lab.lynx-connected.com";
     private static final int AUTH_CONFIG_PORT = 8443;
-    private static final String AUTH_CONFIG_CREATE_TICKET_USERNAME = "SystemUser@88730611912541184.com";
-    private static final String AUTH_CONFIG_CREATE_TICKET_PASSWORD = "Dg$887306119125411!3";
-    private static final String AUTH_CONFIG_USERNAME = "CAFWorker053116@groups.int.hpe.com";
-    private static final String AUTH_CONFIG_PASSWORD = "1connected@ASPEN";
-    private static final String AUTH_CONFIG_CLIENT_NAME = "CAF_App";
-    private static final String AUTH_CONFIG_CLIENT_SECRET = "5532a380-2b97-40cd-a08f-403ce6a0f023";
-    private static final String AUTH_CONFIG_REALM = "caf";
-    private static final String CONTAINER_ID = "303602b2af2d4d44bca5ad4b3a844eb1";
+    private static final String AUTH_CONFIG_CREATE_TICKET_USERNAME = "SystemUser@149902470921847808.com";
+    private static final String AUTH_CONFIG_CREATE_TICKET_PASSWORD = "Dg$149902470921847!3";
+    private static final String AUTH_CONFIG_USERNAME = "cafuser-072916@hp.com";
+    private static final String AUTH_CONFIG_PASSWORD = "1Connected@@";
+    private static final String AUTH_CONFIG_CLIENT_NAME = "lynx-agent";
+    private static final String AUTH_CONFIG_CLIENT_SECRET = "bd8c2d37-ab43-41a2-ab8d-8bd371818472";
+    private static final String AUTH_CONFIG_REALM = "caf-dev";
+    private static final String CONTAINER_ID = "dfacaa3890b6413395a2338336a4572a";
 
     private static final String TEST_STRING = " ং ঃ অ আ ই ঈ উ ঊ ঋ ঌ এ ঐ ও ঔ ক খ গ ঘ ঙ চ ছ জ ঝ ঞ ট ঠ";
     private static final String TEST_STRING2 = " ং ঃ অ আ ই ঈ উ ঊ ঋ ঌ এ ঐ ও ঔ ক খ গ ঘ ঙ চ ছ জ ঝ ঞ ই ঈ উ ট ঠ";

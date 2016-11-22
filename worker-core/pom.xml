@@ -4,14 +4,14 @@
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
 
-    <groupId>com.github.workerframework.worker</groupId>
+    <groupId>com.github.workerframework</groupId>
     <artifactId>worker-core</artifactId>
-    <version>1.0.0-SNAPSHOT</version>
+    <version>1.0.1-SNAPSHOT</version>
 
     <parent>
-        <groupId>com.github.cafapi</groupId>
-        <artifactId>caf-parent</artifactId>
-        <version>1.0.0-SNAPSHOT</version>
+        <groupId>com.github.workerframework</groupId>
+        <artifactId>worker-framework-aggregator</artifactId>
+        <version>1.0.1-SNAPSHOT</version>
     </parent>
 
     <dependencies>
@@ -22,36 +22,36 @@
         <dependency>
             <groupId>com.github.workerframework</groupId>
             <artifactId>worker-api</artifactId>
-            <version>1.0.0-SNAPSHOT</version>
+            <version>1.0.1-SNAPSHOT</version>
         </dependency>
         <dependency>
             <groupId>com.github.cafapi.cipher</groupId>
             <artifactId>cipher-null</artifactId>
-            <version>1.0.0-SNAPSHOT</version>
+            <version>1.0.1-SNAPSHOT</version>
         </dependency>
         <dependency>
             <groupId>com.github.cafapi.config</groupId>
             <artifactId>config-system</artifactId>
-            <version>1.0.0-SNAPSHOT</version>
+            <version>1.0.1-SNAPSHOT</version>
         </dependency>
         <dependency>
             <groupId>com.github.cafapi.util</groupId>
             <artifactId>util-moduleloader</artifactId>
-            <version>1.0.0-SNAPSHOT</version>
+            <version>1.0.1-SNAPSHOT</version>
         </dependency>
         <dependency>
             <groupId>com.github.cafapi.util</groupId>
             <artifactId>util-jerseycompat</artifactId>
-            <version>1.0.0-SNAPSHOT</version>
+            <version>1.0.1-SNAPSHOT</version>
         </dependency>
         <dependency>
             <groupId>io.dropwizard</groupId>
             <artifactId>dropwizard-core</artifactId>
         </dependency>
         <dependency>
-            <groupId>com.github.workerframework.util</groupId>
+            <groupId>com.github.workerframework</groupId>
             <artifactId>util-rabbitmq</artifactId>
-            <version>1.0.0-SNAPSHOT</version>
+            <version>1.0.1-SNAPSHOT</version>
     	</dependency>
         <dependency>
             <groupId>junit</groupId>
@@ -66,13 +66,13 @@
         <dependency>
             <groupId>com.github.cafapi.codec</groupId>
             <artifactId>codec-json</artifactId>
-            <version>1.0.0-SNAPSHOT</version>
+            <version>1.0.1-SNAPSHOT</version>
             <scope>test</scope>
         </dependency>
         <dependency>
-            <groupId>com.github.workerframework.worker</groupId>
+            <groupId>com.github.workerframework</groupId>
             <artifactId>worker-caf</artifactId>
-            <version>1.0.0-SNAPSHOT</version>
+            <version>1.0.1-SNAPSHOT</version>
             <scope>test</scope>
         </dependency>
     </dependencies>

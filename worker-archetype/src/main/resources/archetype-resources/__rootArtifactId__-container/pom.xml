@@ -2,12 +2,6 @@
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
 
-    <parent>
-        <groupId>com.github.cafapi</groupId>
-        <artifactId>caf-parent</artifactId>
-        <version>1.0.0-SNAPSHOT</version>
-    </parent>
-
     <groupId>${groupId}</groupId>
     <artifactId>${artifactId}</artifactId>
     <version>${version}</version>
@@ -37,7 +31,7 @@
     <dependencyManagement>
         <dependencies>
             <dependency>
-                <groupId>com.github.workerframework.worker</groupId>
+                <groupId>com.github.workerframework</groupId>
                 <artifactId>worker-framework</artifactId>
                 <version>${caf.worker-framework.version}</version>
                 <type>pom</type>
@@ -49,9 +43,8 @@
     <!-- CAF standard worker container dependency, ${workerName} dependency. -->
     <dependencies>
         <dependency>
-            <groupId>com.github.workerframework.worker</groupId>
+            <groupId>com.github.workerframework</groupId>
             <artifactId>standard-worker-container</artifactId>
-            <version>1.0.0-SNAPSHOT</version>
             <type>pom</type>
         </dependency>
         <dependency>
@@ -62,13 +55,12 @@
         <dependency>
             <groupId>com.github.workerframework</groupId>
             <artifactId>worker-testing-integration</artifactId>
-            <version>1.0.0-SNAPSHOT</version>
+            <version>1.0.1-SNAPSHOT</version>
             <scope>test</scope>
         </dependency>
         <dependency>
             <groupId>com.github.cafapi</groupId>
             <artifactId>container-cert-script</artifactId>
-            <version>1.0.0-SNAPSHOT</version>
             <type>tar.gz</type>
         </dependency>
         <dependency>
@@ -117,7 +109,7 @@
                         <rabbitmq.ctrl.port>${rabbitmq.ctrl.port}</rabbitmq.ctrl.port>
                         <input.folder>${test.data}</input.folder>
                         <expected.folder>${test.data}</expected.folder>
-                        <datastore.container.id>66d1c33ec8c74fee99d207e7521a93ec</datastore.container.id>
+                        <datastore.container.id>b591d8c6615c4af99d7915719b01259c</datastore.container.id>
                         <datastore.enabled>true</datastore.enabled>
                     </systemPropertyVariables>
                     <environmentVariables>
@@ -259,6 +251,21 @@
                                         </fileSets>
                                         <!-- Including the dependencies into the docker tar -->
                                         <dependencySets>
+                                            <dependencySet>
+                                                <useProjectArtifact>false</useProjectArtifact>
+                                                <scope>runtime</scope>
+                                                <excludes>
+                                                    <exclude>com.github.cafapi:container-cert-script</exclude>
+                                                </excludes>
+                                            </dependencySet>
+                                            <dependencySet>
+                                                <useProjectArtifact>false</useProjectArtifact>
+                                                <useTransitiveFiltering>true</useTransitiveFiltering>
+                                                <unpack>true</unpack>
+                                                <includes>
+                                                    <include>com.github.cafapi:container-cert-script</include>
+                                                </includes>
+                                            </dependencySet>
                                             <dependencySet>
                                                 <useProjectArtifact>false</useProjectArtifact>
                                                 <scope>runtime</scope>
