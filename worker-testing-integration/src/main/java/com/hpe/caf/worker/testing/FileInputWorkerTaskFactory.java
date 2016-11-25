@@ -7,6 +7,7 @@ import java.io.InputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.Objects;
 
 /**
  * Created by ploch on 19/11/2015.
@@ -20,24 +21,11 @@ public abstract class FileInputWorkerTaskFactory<TTask, TInput extends FileTestI
     private TestConfiguration testConfiguration;
 
     public FileInputWorkerTaskFactory(TestConfiguration configuration) throws Exception {
-        this(WorkerServices.getDefault(), configuration.getDataStoreContainerId(), configuration.getTestDataFolder(), configuration.getTestSourcefileBaseFolder() );
-        this.testConfiguration = configuration;
-    }
-
-    public FileInputWorkerTaskFactory(WorkerServices workerServices, String containerId, String testFilesFolder, String testSourcefileBaseFolder) {
-
-        this.workerServices = workerServices;
-        this.containerId = containerId;
-        this.testFilesFolder = testFilesFolder;
-        this.testSourcefileBaseFolder = testSourcefileBaseFolder;
-    }
-
-    public FileInputWorkerTaskFactory(WorkerServices workerServices, String containerId, String testFilesFolder) {
-
-        this.workerServices = workerServices;
-        this.containerId = containerId;
-        this.testFilesFolder = testFilesFolder;
-        this.testSourcefileBaseFolder = "";
+        this.workerServices = WorkerServices.getDefault();
+        this.containerId = configuration.getDataStoreContainerId();
+        this.testFilesFolder = configuration.getTestDataFolder();
+        this.testSourcefileBaseFolder = configuration.getTestSourcefileBaseFolder();
+        this.testConfiguration = Objects.requireNonNull(configuration);
     }
 
     @Override
