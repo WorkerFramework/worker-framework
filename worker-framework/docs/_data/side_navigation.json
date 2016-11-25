@@ -18,6 +18,30 @@
             "url": {
                 "en-us": "pages/en-us/Features"
             }
+        },
+        {
+            "title": {
+                "en-us": "Getting Started"
+            },
+            "url": {
+                "en-us": "pages/en-us/Getting-Started"
+            }
+        },
+		{
+            "title": {
+                "en-us": "API"
+            },
+            "url": {
+                "en-us": "pages/en-us/apidocs"
+            }
+        },
+        {
+            "title": {
+                "en-us": "Architecture"
+            },
+            "url": {
+                "en-us": "pages/en-us/Architecture"
+            }
         }]
     }]
 }

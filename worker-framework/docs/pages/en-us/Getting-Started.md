@@ -268,7 +268,7 @@ Generate the new worker's back-end module from the `worker-archetype` by followi
 2. From the Categories Pane select Maven
 3. From the Select Pane select 'Project from Archetype'
 4. Click 'Next
-5. Specify the details of the 'worker-archetype':
+5. Specify the details of the 'worker-shared-archetype':
 	- GroupId : com.hpe.caf.worker
 	- ArtifactId : worker-archetype
 	- Version : 1.1-SNAPSHOT

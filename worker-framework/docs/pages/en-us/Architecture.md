@@ -25,8 +25,8 @@ The `worker-core` application manages the flow of data between infrastructure co
 
 ![Worker Flow](images/flow.png)
 
-#### Service Location
-The dependency loading mechanism, called servce location, relies on the `util-moduleloader` library which internally uses the [Java ServiceLoader](http://docs.oracle.com/javase/6/docs/api/java/util/ServiceLoader.html). To instantiate a service, the class has to have a parameter-less constructor. This is why all of the plug-ins use plug-in providers that instantiate the actual plug-in. They also need to be advertised using the [ServiceLoader](http://docs.oracle.com/javase/6/docs/api/java/util/ServiceLoader.html) mechanism.
+#### Servce Location
+The dependency loading mechanism, called servce location, relies on the `util-moduleloader` library which internally uses the [Java ServiceLoader](http://docs.oracle.com/javase/6/docs/api/java/util/ServiceLoader.html). To instantiate a service, the class has to have a parameterless constructor. This is why all of the plug-ins use plug-in providers that instantiate the actual plug-in. They also need to be advertised using the [ServiceLoader](http://docs.oracle.com/javase/6/docs/api/java/util/ServiceLoader.html) mechanism.
 Implementations of required components have to be packaged with the `worker-core` application to allow service locator to detect and use them.
 
 When running, application awaits for incoming messages. When a message is received, application will instantiate a [Worker](https://pages.github.hpe.com/caf/worker-framework/pages/en-us/apidocs/com/hpe/caf/api/worker/Worker.html) implementation and execute the `doWork` method.
