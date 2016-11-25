@@ -6,7 +6,7 @@ header: The Worker Framework Team
 team_members:
     - name: Dermot Hardy
       email: dermot.hardy:hpe.com
-      avatar: /assets/img/user.png
+      avatar: /assets/img/Dermot.jpg
       social:
         - title: GitHub
           icon: hpe-social-github
@@ -17,7 +17,7 @@ team_members:
           
     - name: Krzysztof Ploch
       email: krzysztof.ploch@hpe.com
-      avatar: /assets/img/user.png
+      avatar: /assets/img/Kris.jpg
       social:
        - title: GitHub
          icon: hpe-social-github

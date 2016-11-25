@@ -1,10 +1,10 @@
 {
     "navigation_items": [{
         "title": {
-            "en-us": "Overview"
+            "en-us": "Getting Started"
         },
         "url": {
-            "en-us": "pages/en-us/Overview"
+            "en-us": "pages/en-us/Getting-Started"
         },
         "icon": "",
         "primary": false

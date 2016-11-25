@@ -15,6 +15,6 @@
     "tests"
   ],
   "dependencies": {
-    "caf-templates": "^2.0.2"
+    "caf-templates": "^2.0.5"
   }
 }
