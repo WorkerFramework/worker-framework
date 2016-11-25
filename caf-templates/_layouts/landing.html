@@ -9,31 +9,41 @@
 
   <div class="splash-header">
       <div class="caf-brand">
-          <img class="logo" src="{{ page.logo }}" alt="">
-          <h2 class="title">{{ page.title }}</h2>
-          <h3 class="slogan">{{ page.slogan }}</h3>
-          <br>
-          <a class="btn button-primary download-caf" href="{{ page.button.url }}">{{ page.button.title }}</a>
-          {% if site.version %}
-          <p class="version">Currently v{{ site.version }}</p>
-          {% endif %}
+          <div class="content">
+            {% if page.logo %}
+            <img class="logo" src="{{ page.logo }}" alt="">
+            {% endif %}
+            <h2 class="title">{{ page.title }}</h2>
+            <h3 class="slogan">{{ page.slogan }}</h3>
+            <br>
+            <a class="btn button-primary download-caf" href="{{ page.button.url }}">{{ page.button.title }}</a>
+            {% if site.version %}
+            <p class="version">Currently v{{ site.version }}</p>
+            {% endif %}
+          </div>
       </div>
   </div>
 
   <div class="container m-t-xl m-b-xl">
       <div class="row m-b-xl">
           <div class="col-md-12">
-            <h1 class="text-black text-center">{{ page.features.title }}</h1>
-            <h3 class="text-center large-line-spacing">{{ page.features.subtitle }}</h3>
+            <h1 class="section-title text-center">{{ page.features.title }}</h1>
+            <h3 class="section-subtitle text-center large-line-spacing">{{ page.features.subtitle }}</h3>
           </div>
       </div>
       <div class="row">
           <div class="feature-list">
             {% for feature in page.features.feature_list %}
             <div class="feature">
+                {% if feature.icon %}
                 <div class="icon">
                     <span class="hpe-icon {{ feature.icon }}"></span>
                 </div>
+                {% elsif feature.image %}
+                <div class="image">
+                  <img src="{{ feature.image }}" alt="feature icon">
+                </div>
+                {% endif %}
                 <h2 class="title">{{ feature.title }}</h2>
                 <p class="subtitle">{{ feature.subtitle }}</p>
             </div>
@@ -48,8 +58,8 @@
   <div class="container m-t-xl m-b-xl examples-container">
       <div class="row m-b-lg">
           <div class="col-md-12">
-            <h1 class="text-black text-center">{{ page.showcase.title }}</h1>
-            <h3 class="text-center large-line-spacing">{{ page.showcase.subtitle }}</h3>
+            <h1 class="section-title text-center">{{ page.showcase.title }}</h1>
+            <h3 class="section-subtitle text-center large-line-spacing">{{ page.showcase.subtitle }}</h3>
           </div>
       </div>
       <div class="row">
@@ -74,8 +84,8 @@
   <div class="container m-t-xl m-b-xl">
       <div class="row m-b-xl">
           <div class="col-md-12">
-            <h1 class="text-black text-center">{{ page.social.title }}</h1>
-            <h3 class="text-center large-line-spacing">{{ page.social.subtitle }}</h3>
+            <h1 class="section-title text-center">{{ page.social.title }}</h1>
+            <h3 class="section-subtitle text-center large-line-spacing">{{ page.social.subtitle }}</h3>
           </div>
       </div>
       <div class="row">
@@ -98,21 +108,14 @@
       <p>{{ page.footer }}</p>
   </div>
 
+  {% include footer.html %}
+
     <script type="text/javascript">
       (function() {
-        // var button_urls = JSON.parse('{{ page.button_urls | jsonify }}');
-        // var landingLink = document.getElementById('landing-link');
-        
-        // if (button_urls[localStorage.getItem("selected-language")] !== undefined)
-        //   landingLink.setAttribute("href", button_urls[localStorage.getItem("selected-language")]);
-        // else 
-        //   landingLink.setAttribute("href", button_urls["default"]);
-
         var landingBackground = document.getElementsByClassName('splash-header')[0];
+        
         {% if page.background_image %}
           landingBackground.style.backgroundImage = 'url({{ page.background_image }})';
-        {% else %}
-          landingBackground.style.backgroundImage = 'url(assets/img/landing_4.jpg)';
         {% endif %}
 
       })();

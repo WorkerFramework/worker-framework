@@ -1,17 +1,59 @@
-{% raw %}
-<footer class="link-footer container" ng-controller="FooterCtrl as ftc">
-    <div class="footer-container">
-      <ul class="footer-list">
-        <li class="footer-item" ng-repeat="(key, value) in ftc.footer_data.navigation_items">
-        	<a class="footer-link" localize-all="value"></a>
-    	</li>
-        <li class="footer-item">
-          <localize-button></localize-button>
-        </li>
-      </ul>
+{% if site.data.footer_links.footer_columns %}
+
+  <footer class="footer-banner" ng-controller="FooterCtrl as ftc">
+
+    <div class="container">
+
+      <div class="columns-row row">
+
+          <div class="col-md-2 col-sm-4 col-xs-6" ng-repeat="(key, value) in ::ftc.footer_data.footer_columns">
+            <h4 class="footer-title" localize-all="value"></h4>
+            <a ng-repeat="link in ::value.links" class="footer-link" localize-all="link"></a>
+          </div>
+      </div>
+
+      <div class="row">
+        
+        <div class="col-md-4 col-sm-12 col-xs-12">
+          {% if site.data.footer_links.copyright %}
+          <p class="copyright">{{ site.data.footer_links.copyright }}</p>
+          {% endif %}
+        </div>
+
+        <div class="col-md-4 col-sm-12 col-xs-12">
+          {% if site.data.footer_links.footer_logo %}
+          <img class="footer-logo" src="{{ site.data.footer_links.footer_logo | prepend: '/' | prepend: site.baseurl }}" alt="">
+          {% endif %}
+        </div>
+
+        <div class="col-md-4 col-sm-12 col-xs-12">
+          {% if site.data.footer_links.feedback_url %}
+          <a href="{{ site.data.footer_links.feedback_url }}" class="feedback"><i class="hpe-icon hpe-contact-us p-r-xs"></i> Feedback</a>
+          {% endif %}
+        </div>
+
+      </div>
+
     </div>
-</footer>
-{% endraw %}
+
+  </footer>
+
+{% else %}
+
+  <footer class="link-footer container" ng-controller="FooterCtrl as ftc">
+      <div class="footer-container">
+        <ul class="footer-list">
+          <li class="footer-item" ng-repeat="(key, value) in ftc.footer_data.navigation_items">
+            <a class="footer-link" localize-all="value"></a>
+          </li>
+          <li class="footer-item">
+            <localize-button></localize-button>
+          </li>
+        </ul>
+      </div>
+  </footer>
+
+{% endif %}
 
 <!-- Language modal here -->
 {% include language_modal.html %}

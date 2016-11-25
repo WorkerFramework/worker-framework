@@ -11,4 +11,8 @@
   <link rel="stylesheet" href="{{ "/caf-templates/assets/css/bootstrap.min.css" | prepend: site.baseurl }}">
   <link rel="stylesheet" href="{{ "/caf-templates/assets/css/HPEElements.css" | prepend: site.baseurl }}">
   <link rel="canonical" href="{{ page.url | replace:'index.html','' | prepend: site.baseurl | prepend: site.url }}">
+
+  {% if site.custom_stylesheet %}
+  <link rel="stylesheet" href="{{ site.custom_stylesheet | prepend: '/' | prepend: site.baseurl }}">
+  {% endif %}
 </head>

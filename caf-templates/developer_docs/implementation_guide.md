@@ -43,7 +43,7 @@ Next, create a .bowerrc file in the documentation folder with the following cont
         "registry":
         {
             "search": [
-                "http://rh7-artifactory.hpswlabs.hp.com:8081/artifactory/api/bower/bower-virtual"
+                "http://rh7-artifactory.svs.hpeswlab.net:8081/artifactory/api/bower/bower-virtual"
             ]
         },
         "resolvers": [
@@ -252,6 +252,12 @@ To create our site we need to add a `_config.yml` file to the documentation dire
     description: My Service Description
     baseurl: "/documentation"
 
+    # Set a custom logo in the navigation bar
+    # navigation_image: 'assets/img/worker-framework-logo.png'
+
+    # Provide a custom stylesheet to style you site
+    # custom_stylesheet: 'assets/css/site.css'
+
     # Build settings
     exclude: ['node_modules']
 
@@ -360,15 +366,22 @@ Add the following files to the `_data` directory and update the values to reflec
 ##### footer_links.json
 
     {
-        "navigation_items": [{
+        "feedback_url": "https://github.hpe.com/caf/service/issues",
+        "copyright": "©2017 HPE Common Application Framework",
+        "footer_logo": "assets/img/footer-logo.png",
+        "footer_columns": [{
             "title": {
-                "en-us": "Contribute"
+            "en-us": "Social"
+            },
+            "links": [{
+            "title": {
+                "en-us": "GitHub"
             },
             "url": {
-                "en-us": "pages/en-us/contribute"
+                "en-us": "http://github.hpe.com"
             }
-        }],
-        "feedback_url": ""
+            }]
+        }]
     }
 
 #### Setting up Localization
@@ -631,6 +644,9 @@ To set these attributes, we simply have to set the layout to `landing` and defin
 Add any images you want to use to the `assets` directory you created in your documentation folder. 
 Update the paths used in the YAML below to point to the correct locations.
 
+The icons for features are from the [Elements Icon Set](https://pages.github.hpe.com/caf/elements/pages/en-us/css.html#icons), 
+however if you wish to use an image instead simply replace the `icon` property with an `image` property and se the value to the url of the image.
+
 This can be seen below:  
 ```yaml
 ---
@@ -638,7 +654,7 @@ layout: landing
 
 logo: assets/img/caflogo.png
 background_image: assets/img/landing_4.jpg
-title: Common Application Framework <br><small>from the Big Data group at Hewlett Packard Enterprise</small>
+title: Common Application Framework <br><small>From the Information Management and Governance Research and Development Team at Hewlett Packard Enterprise</small>
 slogan: The Microservices based solution to your Big Data Analytics problems the <br>Common Application Framework accelerates time to value.
 button:
     title: Learn More
@@ -682,7 +698,7 @@ social:
           title: Twitter
           subtitle: Follow us on Twitter to keep up with the latest news and updates from the CAF team or to get in touch with us!
           link:
-            title: '@caf'
+            title: '@twitterhandle'
             url: http://twitter.com
         - icon: hpe-social-github
           title: GitHub
@@ -698,6 +714,8 @@ social:
             url: pages/en-us/blog/index.html
 ---
 ```
+
+You should create a Twitter account for your service. We recommend creating a gmail or yahoo email account for the Twitter login credentials so they can be shared with your team allowing anyone to add content. Ensure to update the social links on this page to point to the correct locations.
 
 The above YAML would result in the following:
 
@@ -768,6 +786,30 @@ An example of how a page using this layout might look:
 
 ![Alt text](images/default_layout.PNG)
 
+
+#### Adding a Banner
+
+Provide quick access to the most important links at the top of pages by adding a banner. 
+
+```yaml
+---
+layout: default
+title: Getting Started
+
+banner:
+    icon: 'assets/img/hard-hat.png'
+    title: Worker Framework
+    subtitle: Analyze a Larger Range of Formats
+    links:
+        - title: GitHub
+          url: https://github.hpe.com/caf/worker-framework
+---
+```
+
+Which will look like the following:
+
+![Alt text](images/banner.png)
+
 ---------------------------------------
 
 ### Blog Layout
@@ -779,8 +821,11 @@ To use the `blog` layout add the following to the top of your HTML file. The blo
 ```yaml
 ---
 layout: blog
+no_posts_message: No Blog Posts
 ---
 ```
+
+The `no_posts_message` property allows you to define the message shown when no posts exist. If this is not specified 'No Blog Posts' will be shown.
 
 Add a `_posts` folder to the documentation folder which should contain the markdown files for each blog post. Blog posts should be named using the following format to ensure posts are ordered correctly: YEAR-MONTH-DAY-Blog_Title.md
 
@@ -964,6 +1009,23 @@ Below is an example of how a complete Swagger layout would look like:
 
 ![Alt text](images/swagger_example.PNG)
 
+
+## Customizing The Site
+
+Each service may have a specific logo associated with it. To make it appear in the top navigation bar add the following property to the `_config.yml` and giving it a value of the image url:
+
+```yaml
+navigation_image: 'assets/img/worker-framework-logo.png'
+```
+
+Further customization can be achieved by adding a custom stylesheet to override some of the default styles. 
+Add the following property to the `_config.yml` file with the url of the stylesheet you wish to use:
+
+```yaml
+custom_stylesheet: 'site.css'
+```
+
+
 ## Adding Showcase Entry
 
 A showcase site for CAF components can be found at [cafapi.github.io](http://cafapi.github.io) and provides a brief description of each service along with a link to each service's documentation site.
@@ -975,5 +1037,6 @@ To add your service to the showcase page:
 	+ Add a new markdown file under `showcase` -> `en-us` -> `services`
 	+ Update the showcase.json file found in the `_data` folder
 - Schedule review of showcase entry and service documentation with Frank. This review should be run from the fork and show the finished showcase entry and service docs.
+- Build your changes using the "grunt" task.
 - Submit pull request for Frank to review.
 - Frank will approve or reject content. If approved he will merge the changes.

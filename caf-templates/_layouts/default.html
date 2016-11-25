@@ -14,6 +14,32 @@
           <div class="wrapper-content">
             <div class="col-md-9">
               <div class="docs-content">
+
+                {% if page.banner %}
+                <div class="page-banner">
+
+                  {% if page.banner.icon %}
+                  <div class="page-banner-icon">
+                    <img src="{{ page.banner.icon | prepend: '/' | prepend: site.baseurl }}" alt="logo">
+                  </div>
+                  {% endif %}
+
+                  <div class="page-banner-contents">
+                    <h1 class="page-banner-brand">{{ page.banner.title }}</h1>
+                    <h3 class="page-banner-tagline">{{ page.banner.subtitle }}</h3>
+
+                    {% if page.banner.links %}
+                    <div class="page-banner-links">
+                      {% for link in page.banner.links %}
+                      <a href="{{ link.url }}" class="page-banner-link">{{ link.title }}</a>
+                      {% endfor %}
+                    </div>
+                    {% endif %}
+                    
+                  </div>
+                </div>
+                {% endif %}
+
                 {{ content | markdownify }}
 
 
@@ -21,7 +47,6 @@
                   {% if page.last_updated %}
                   <p class="pull-left text-muted m-nil">{{ page.last_updated }}</p>
                   {% endif %}
-                  <a class="pull-right" href="{{ site.data.footer_links.feedback_url }}"><span class="hpe-icon hpe-contact-us align-text-bottom"></span> <span localize-text="'Submit Feedback'"></span></a>
                 </div>
               </div>
             </div>

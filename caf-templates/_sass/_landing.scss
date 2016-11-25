@@ -3,6 +3,7 @@
 */
 
 .splash-page .splash-header {
+	flex: none;
 	display: flex;
   padding-top: 79px;
 	background-repeat: no-repeat;
@@ -141,6 +142,9 @@
 	transform: scale(1.05);
 }
 
+.splash-page .section-title {
+	color: #333333
+}
 
 /*
 	Media queries for examples
@@ -185,10 +189,15 @@
 		width: 265px;
 		text-align: center;
 		padding: 0 10px;
+		margin-bottom: 30px;
 
 		.icon {
 			color: #333;
     	font-size: 80px;
+		}
+
+		.image {
+			margin-bottom: 20px;
 		}
 
 		.title {

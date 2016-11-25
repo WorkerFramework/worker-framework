@@ -1,3 +1,17 @@
+body {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+
+  .content-container {
+    flex: 1 0 auto;
+  }
+
+  .footer-banner {
+    flex: none;
+  }
+}
+
 .top-header {
   position: fixed;
   z-index: 10000;
@@ -14,13 +28,14 @@
 		padding: 0 32px;
 
 		.logo {
-			background-image: url("../assets/img/caflogo.png");
-			background-repeat: no-repeat;
-			background-size: contain;
-			display: inline-block;
-			height: 70px;
-			margin: 5px 0 4px;
-			width: 115px;
+      display: inline-flex;
+      height: 79px;
+      align-items: center;
+
+      .image {
+        max-height: 79px;
+      }
+
 		}
 
 		.menu {
@@ -363,6 +378,7 @@
   font-size: 20px;
   cursor: pointer;
   transition: background-color .3s ease-in-out;
+  z-index: 99999;
 
   &:hover {
     background-color: #018f6e;
@@ -833,6 +849,124 @@ th {
         margin: 0;
       }
     }
+  }
+
+}
+
+/*
+  New Footer - With Columns
+*/
+
+.footer-banner {
+    background-color: #333333;
+    min-height: 350px;
+    width: 100%;
+    bottom: 0;
+    padding-top: 30px;
+    margin-top: 20px;
+
+    .columns-row {
+        height: 270px;
+    }
+
+    .footer-title {
+        color: #01a982;
+        text-transform: uppercase;
+        margin-top: 20px;
+        margin-bottom: 4px;
+    }
+
+    .footer-link {
+        display: table;
+        color: #A6A8AB;
+        transition: color 0.3s ease-in-out;
+
+        &:hover {
+            color: #fff;
+        }
+    }
+
+    .copyright,
+    .feedback {
+        opacity: 0.8;
+        color: #01a982;
+        text-transform: uppercase;
+        margin: 7px 0;
+        text-align: center;
+    }
+
+    .footer-logo {
+        max-height: 36px;
+        display: block;
+        margin: 0 auto;
+    }
+
+    .feedback {
+        display: block;
+        transition: opacity 0.3s ease-in-out;
+
+        &:hover {
+            opacity: 1;
+        }
+    }
+}
+
+
+/*
+  Page Banner
+*/
+.content-container .docs-content .page-banner {
+
+  display: flex;
+  flex-direction: row;
+
+  .page-banner-icon {
+    width: 130px;
+    padding-top: 30px;
+  }
+
+  .page-banner-contents {
+    display: flex;
+    flex-direction: column;
+    flex: 1;
+
+    .page-banner-brand {
+      border: none;
+      font-size: 53px;
+      padding: 0;
+      margin-bottom: 0;
+    }
+
+    .page-banner-tagline {
+      margin-top: 4px;
+      font-family: Metric-Light;
+      color: #676a6c;
+      text-transform: uppercase;
+      font-size: 20px;
+      letter-spacing: 1.3px;
+    }
+
+    .page-banner-links {
+      padding-top: 13px;
+
+      .page-banner-link {
+          display: inline-block;
+          height: 26px;
+          padding: 0 14px;
+          border: 2px solid #01a982;
+          color: #01a982;
+          border-radius: 2px;
+          text-transform: uppercase;
+          margin-right: 14px;
+          margin-bottom: 14px;
+          min-width: 120px;
+          text-align: center;
+      }
+    }
+  }
+
+  &+ h1:first-of-type {
+    margin-top: 1.4em;
   }
 
 }

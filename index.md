@@ -15,7 +15,7 @@ features:
     feature_list:
         - icon: hpe-transaction 
           title: Fault Tolerant Messaging
-          subtitle: Hight Availability and Fault Tolerant Messaging.
+          subtitle: High Availability and Fault Tolerant Messaging.
         - icon: hpe-storage
           title: External Data Exchange
           subtitle: Data exchange with pluggable storage.
@@ -40,8 +40,8 @@ social:
           title: Twitter
           subtitle: Follow us on Twitter to keep up with the latest news and updates from the team or to get in touch with us!
           link:
-            title: '@workerframework'
-            url: https://twitter.com/workerframework
+            title: '@caf'
+            url: http://twitter.com
         - icon: hpe-social-github
           title: GitHub
           subtitle: Fork Worker Framework on GitHub and submit a pull request to help contribute to the project! Or if you have discovered an issue, report it to us.
