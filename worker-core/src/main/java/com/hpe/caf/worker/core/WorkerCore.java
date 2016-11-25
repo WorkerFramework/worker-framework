@@ -343,7 +343,7 @@ final class WorkerCore
         public CoreWorkerCallback(final Codec codec, final WorkerQueue queue, final WorkerStats stats)
         {
             this.codec = Objects.requireNonNull(codec);
-            this.workerQueue = Objects.requireNonNull(queue);
+            this.workerQueue = queue;  // workerQueue can be null for a dead end worker
             this.stats = Objects.requireNonNull(stats);
         }
 
@@ -358,17 +358,27 @@ final class WorkerCore
         public void complete(final String queueMsgId, final String queue, final TaskMessage responseMessage)
         {
             Objects.requireNonNull(queueMsgId);
-            Objects.requireNonNull(queue);
             Objects.requireNonNull(responseMessage);
+            // queue can be null for a dead end worker
             LOG.debug("Task {} complete (message id: {})", responseMessage.getTaskId(), queueMsgId);
             LOG.debug("Setting destination {} in task {} (message id: {})", queue, responseMessage.getTaskId(), queueMsgId);
             responseMessage.setTo(queue);
             String targetQueue = getTargetQueue(queueMsgId, responseMessage, queue);
             checkForTrackingTermination(queueMsgId, targetQueue, responseMessage);
             try {
-                byte[] output = codec.serialise(responseMessage);
-                workerQueue.publish(queueMsgId, output, targetQueue, Collections.emptyMap());
-                stats.getOutputSizes().update(output.length);
+                if (null == targetQueue) {
+                    // **** Dead End Worker ****
+                    // If targetQueue is not set i.e. is null for a dead end worker. There remains a
+                    // need to acknowledge the message is processed and removed from the queue. This
+                    // is how a dead end worker will operate.
+                    workerQueue.acknowledgeTask(queueMsgId);
+                } else {
+                    // **** Normal Worker ****                    
+                    // A worker with an input and output queue.
+                    byte[] output = codec.serialise(responseMessage);
+                    workerQueue.publish(queueMsgId, output, targetQueue, Collections.emptyMap());
+                    stats.getOutputSizes().update(output.length);
+                }
                 stats.updatedLastTaskFinishedTime();
                 if ( TaskStatus.isSuccessfulResponse(responseMessage.getTaskStatus()) ) {
                     stats.incrementTasksSucceeded();
@@ -430,9 +440,9 @@ final class WorkerCore
          */
         private TrackingInfo checkForTrackingTermination(final String queueMsgId, final String queueToSend, TaskMessage tm) {
             Objects.requireNonNull(queueMsgId);
-            Objects.requireNonNull(queueToSend);
             Objects.requireNonNull(tm);
-
+            // queueToSend can be null for a dead end worker
+            
             TrackingInfo tracking = tm.getTracking();
             if (tracking != null) {
                 String trackTo = tracking.getTrackTo();

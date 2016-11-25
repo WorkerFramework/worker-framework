@@ -329,6 +329,9 @@ public class WorkerCoreTest
         public void discardTask(String messageId) {
         }
 
+        @Override
+        public void acknowledgeTask(String messageId) {   
+        }
 
         @Override
         public String getInputQueue() {
