@@ -164,44 +164,62 @@
 
 ### Handling errors with worker implementations
 
- The general following rules should be followed by all Worker implementations:
+ The general following rules should be adhered to by all Worker implementations:
 
- - For any explicit failure, prefer to return a failure result, not exceptions
- - If the input message is not parseable, throw InvalidTaskException
- - If the task cannot be accepted right now, throw TaskRejectedException
- - If the Worker receives an InterruptedException, propagate it
- - If there is a transient error in processing, throw TaskRejectedException
- - If there is a catastrophic error in processing, throw TaskFailedException
+ - For any explicit failures, return a failure result, not an exception
+ - If the input message is not parsable, throw an InvalidTaskException
+ - If the task cannot be accepted right now, throw a TaskRejectedException
+ - If a transient error occurs in processing, throw a TaskRejectedException
+ - If the worker receives an InterruptedException, propagate the InterruptedException
+ - If a catastrophic error occurs in processing, throw TaskFailedException
 
  The `WorkerFactory` should identify whether the task message data is
- parseable and this is the first opportunity to throw an InvalidTaskException.
+ parsable and this is the first opportunity to throw an `InvalidTaskException`.
  Once a Worker is created with a task object, the framework will verify the
  object's constraints (if there are any), which is the second chance to throw
- InvalidTaskException. The last chance is in the constructor of the `Worker`
- itself. Any complicated task verficiation rules should be checked there.
+ `InvalidTaskException`. The constructor of the `Worker` can throw an
+ `InvalidTaskException`. Finally a worker's `doWork()` method can thow an
+ `InvalidTaskException`.
 
- While InvalidTaskException is a non-retryable case, there may be retryable
- scenarios such as temporary disconnection from a temporary resources such as
+ While `InvalidTaskException` is a non-retryable case, there may be retryable
+ scenarios for instance a brief disconnection from a temporary resources such as
  a database. If you have a health check in your `WorkerFactory` and this is
- currently failing, you may wish to throw TaskRejectedException, which will
- push the task back onto the queue. Once inside a `Worker` itself, either the
+ currently failing, you may wish to throw `TaskRejectedException`, which will
+ push the task back onto the queue. Once inside a Worker itself, either the
  code or the libraries used should be able to tolerate some amount of transient
  failures in connected resources, but if this still cannot be rectified in a
- reasonable timeframe then it is also valid to throw TaskRejectedException from
- inside the `Worker`, with the understanding that any amount of work done so
+ reasonable time frame then it is also valid to throw `TaskRejectedException` from
+ inside the Worker, with the understanding that any amount of work done so
  far will be abandoned.
 
- Throwing TaskFailedException should be a last resort, for situations that
+ Throwing `TaskFailedException` should be a last resort, for situations that
  should not occur and are not recoverable. Most times, any checked exceptions
- that are caught and are a valid failure case should log (but not propagate)
- the exception and then call `createFailureResult(...)` perhaps using a
- sensible enumeration status code for your task.
+ that are caught and are a valid failure case should log the exception, (not
+ propagate the exception). Workers derived from `AbstractWorker<>` should then
+ call `createFailureResult(...)` perhaps using a sensible enumeration status code
+ for your task.
 
  You do not need to handle the following, as the framework will handle it:
 
- - The input wrapper not being parseable
+ - The input wrapper not being parsable
  - Connections to the queue dropping
 
+#### Poison Messages
+
+ A poison message is a message a worker is unable to handle. A message is
+ deemed poisonous during processing when repeated catastrophic failure of the
+ worker occurs. Regardless of how many times the message is retried, the worker
+ will not be able to handle the message in a graceful manor.
+
+ On receiving a message, a worker will attempt to process the message.  Should
+ the worker crash during processing, the message will be returned to the
+ `worker-input-queue` by the framework and a retry count append to the message
+ headers.  The number of permitted retries is configurable within the
+ `RabbitWorkerQueueConfiguration` file for a worker i.e. cfg_caf_dataprocessing_${worker}_RabbitWorkerQueueConfiguration.  
+ A message will be retried until successful or until the retry count exceeds the
+ permitted number of retries.  If the permitted number of retries is exceeded the
+ message will be placed on the `worker-output-queue` by the framework, with a
+ task status of “RESULT_EXCEPTION”.  
  
 ## Creating a container for a worker
  
