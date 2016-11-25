@@ -1,5 +1,6 @@
 package com.hpe.caf.worker.testing.preparation;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.hpe.caf.api.Codec;
 import com.hpe.caf.api.worker.TaskMessage;
 import com.hpe.caf.worker.testing.*;
@@ -39,7 +40,15 @@ public class PreparationResultProcessor<TWorkerTask, TWorkerResult, TInput exten
 
     @Override
     protected byte[] getOutputContent(TWorkerResult workerResult, TaskMessage message, TestItem<TInput, TExpected> testItem) throws Exception {
+        return getContent(testItem);
+    }
 
+    @Override
+    protected byte[] getFailedOutputContent(TaskMessage message, TestItem<TInput, TExpected> testItem) throws Exception {
+        return getContent(testItem);
+    }
+
+    public byte[] getContent(TestItem<TInput, TExpected> testItem) throws Exception {
         TestCaseInfo info = new TestCaseInfo();
         Matcher matcher = Pattern.compile(".*[/\\\\]").matcher(testItem.getTag());
         if (matcher.find()) {

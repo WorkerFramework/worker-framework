@@ -13,6 +13,7 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.Map;
 import java.util.function.Function;
 
 /**
@@ -63,6 +64,11 @@ public class ContentResultValidationProcessor<TResult, TInput extends FileTestIn
             }
         }
         return true;
+    }
+
+    @Override
+    protected boolean processFailedWorkerResult(TestItem<TInput, TExpected> testItem, TaskMessage message, Map<String, Object> result) throws Exception {
+        return false;
     }
 
 }

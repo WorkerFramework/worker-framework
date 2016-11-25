@@ -7,6 +7,8 @@ import com.hpe.caf.api.worker.TaskStatus;
 
 import java.io.IOException;
 import java.util.Collection;
+import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.Map;
 
 /**
@@ -44,6 +46,15 @@ public abstract class AbstractResultProcessor<TResult, TInput, TExpected> implem
 
     @Override
     public boolean process(TestItem testItem, TaskMessage resultMessage) throws Exception {
+        if (resultMessage.getTaskStatus() != TaskStatus.RESULT_SUCCESS && resultMessage.getTaskStatus() != TaskStatus.RESULT_FAILURE){
+            HashMap<String, String> mapResult = new HashMap();
+            mapResult.put("TaskStatus", resultMessage.getTaskStatus().toString());
+
+            Map<String, Object> map = new LinkedHashMap<>();
+            map.put("taskResultsFailure", mapResult);
+
+            return processFailedWorkerResult(testItem, resultMessage, map);
+        }
         TResult workerResult = deserializeMessage(resultMessage, resultClass);
         return processWorkerResult(testItem, resultMessage, workerResult);
     }
@@ -57,9 +68,6 @@ public abstract class AbstractResultProcessor<TResult, TInput, TExpected> implem
      * @throws CodecException the codec exception
      */
     protected TResult deserializeMessage(TaskMessage message, Class<TResult> resultClass) throws CodecException {
-        if (message.getTaskStatus() != TaskStatus.RESULT_SUCCESS && message.getTaskStatus() != TaskStatus.RESULT_FAILURE) {
-            throw new AssertionError("Task status was failure.");
-        }
         TResult workerResult = codec.deserialise(message.getTaskData(), resultClass);
         return workerResult;
     }
@@ -74,6 +82,8 @@ public abstract class AbstractResultProcessor<TResult, TInput, TExpected> implem
      * @throws Exception the exception
      */
     protected abstract boolean processWorkerResult(TestItem<TInput, TExpected> testItem, TaskMessage message, TResult result) throws Exception;
+
+    protected abstract boolean processFailedWorkerResult(TestItem<TInput, TExpected> testItem, TaskMessage message, Map<String, Object> map) throws Exception;
 
     public String getInputIdentifier(TaskMessage message) {return "";}
 }
