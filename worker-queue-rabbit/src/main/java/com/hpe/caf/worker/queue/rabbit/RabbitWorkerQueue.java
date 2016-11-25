@@ -152,6 +152,21 @@ public final class RabbitWorkerQueue implements ManagedWorkerQueue
     }
 
 
+
+    /**
+     * {@inheritDoc}
+     * 
+     * Add a ACKNOWLEDGE event that consumer will handle.
+     */
+    @Override
+    public void acknowledgeTask(String messageId)
+    {
+        Objects.requireNonNull(messageId);
+        LOG.debug("Generating acknowledge event for task {}", messageId);
+        consumerQueue.add(new ConsumerAckEvent(Long.parseLong(messageId)));
+    }
+    
+    
     /**
      * {@inheritDoc}
      *
@@ -250,4 +265,5 @@ public final class RabbitWorkerQueue implements ManagedWorkerQueue
             RabbitUtil.declareWorkerQueue(channel, queueName);
         }
     }
+
 }

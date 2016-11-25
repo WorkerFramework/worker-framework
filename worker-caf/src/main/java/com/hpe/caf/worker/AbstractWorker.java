@@ -36,8 +36,10 @@ public abstract class AbstractWorker<T,V> implements Worker
 
     /**
      * Create a Worker. The input task will be validated.
+     * 
      * @param task the input task for this Worker to operate on
-     * @param resultQueue the reference to the queue that should take results from this type of Worker
+     * @param resultQueue the reference to the queue that should take results from this type of
+     *        Worker.  This can be null if no resultQueue is provided for this type of worker
      * @param codec used to serialising result data
      * @throws InvalidTaskException if the input task does not validate successfully
      */
@@ -45,7 +47,7 @@ public abstract class AbstractWorker<T,V> implements Worker
         throws InvalidTaskException
     {
         this.task = Objects.requireNonNull(task);
-        this.resultQueue = Objects.requireNonNull(resultQueue);
+        this.resultQueue = resultQueue; // resultQueue can be null for a dead end worker
         this.codec = Objects.requireNonNull(codec);
         Set<ConstraintViolation<T>> violations = validator.validate(task);
         if ( violations.size() > 0 ) {
