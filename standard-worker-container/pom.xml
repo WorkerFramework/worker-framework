@@ -44,28 +44,12 @@
 
     <profiles>
         <profile>
-            <id>cmbg</id>
+            <id>sunnyvale</id>
             <activation>
                 <property>
-                    <name>CAF_BUILD_TYPE</name>
-                    <value>official</value>
+                    <name>RE_BUILD_TYPE</name>
                 </property>
-            </activation>
-            <distributionManagement>
-                <repository>
-                    <id>cmbg-maven-releases</id>
-                    <name>Internal Releases</name>
-                    <url>http://cbgmaven.hpeswlab.net/nexus/content/repositories/releases</url>
-                </repository>
-                <snapshotRepository>
-                    <id>cmbg-maven-snapshots</id>
-                    <name>Internal Snapshots</name>
-                    <url>http://cbgmaven.hpeswlab.net/nexus/content/repositories/snapshots</url>
-                </snapshotRepository>
-            </distributionManagement>
-        </profile>
-        <profile>
-            <id>sunnyvale</id>
+            </activation>                 
             <distributionManagement>
                 <repository>
                     <id>HPEreleases</id>
