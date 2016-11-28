@@ -1,6 +1,15 @@
 ---
 layout: default
 title: Getting Started
+
+banner:
+    icon: 'assets/img/hard-hat.png'
+    title: Worker Framework
+    subtitle: Analyze a Larger Range of Formats
+    links:
+        - title: GitHub
+          url: https://github.hpe.com/caf/worker-framework
+          
 ---
 
 # Getting Started
