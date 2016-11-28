@@ -2,7 +2,7 @@ title: Worker Framework
 email: caf@hpe.com
 
 description: Worker Framework Documentation
-baseurl: "https://pages.github.hpe.com/caf/worker-framework"
+baseurl: "https://workerframework.github.io/worker-framework"
 
 # Build settings
 exclude: ['node_modules']
