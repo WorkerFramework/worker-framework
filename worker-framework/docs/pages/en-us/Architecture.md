@@ -8,7 +8,7 @@ banner:
     subtitle: Analyze a Larger Range of Formats
     links:
         - title: GitHub
-          url: https://github.hpe.com/caf/worker-framework
+          url: https://github.com/WorkerFramework/worker-framework
           
 ---
 
@@ -82,6 +82,48 @@ It also includes:
 
 It should be used as a starting point whenever possible.
 
+#### Worker Error Handling
+
+The general following rules should be adhered to by all Worker implementations:
+
+ - For any explicit failures, return a failure result, not an exception
+ - If the input message is not parsable, throw an InvalidTaskException
+ - If the task cannot be accepted right now, throw a TaskRejectedException
+ - If a transient error occurs in processing, throw a TaskRejectedException
+ - If the worker receives an InterruptedException, propagate the InterruptedException
+ - If a catastrophic error occurs in processing, throw TaskFailedException
+
+ The `WorkerFactory` should identify whether the task message data is
+ parsable and this is the first opportunity to throw an `InvalidTaskException`.
+ Once a Worker is created with a task object, the framework will verify the
+ object's constraints (if there are any), which is the second chance to throw
+ `InvalidTaskException`. The constructor of the `Worker` can throw an
+ `InvalidTaskException`. Finally a worker's `doWork()` method can thow an
+ `InvalidTaskException`.
+
+ While `InvalidTaskException` is a non-retryable case, there may be retryable
+ scenarios for instance a brief disconnection from a temporary resources such as
+ a database. If you have a health check in your `WorkerFactory` and this is
+ currently failing, you may wish to throw `TaskRejectedException`, which will
+ push the task back onto the queue. Once inside a Worker itself, either the
+ code or the libraries used should be able to tolerate some amount of transient
+ failures in connected resources, but if this still cannot be rectified in a
+ reasonable time frame then it is also valid to throw `TaskRejectedException` from
+ inside the Worker, with the understanding that any amount of work done so
+ far will be abandoned.
+
+ Throwing `TaskFailedException` should be a last resort, for situations that
+ should not occur and are not recoverable. Most times, any checked exceptions
+ that are caught and are a valid failure case should log the exception, (not
+ propagate the exception). Workers derived from `AbstractWorker<>` should then
+ call `createFailureResult(...)` perhaps using a sensible enumeration status code
+ for your task.
+
+ You do not need to handle the following, as the framework will handle it:
+
+ - The input wrapper not being parsable
+ - Connections to the queue dropping
+ 
 ### Data Store
 
 Workers often need to interact with an external data storage. Worker Framework supports it by providing the  DataStore interface. A worker can use it to retrieve and store binary data identified by name.
