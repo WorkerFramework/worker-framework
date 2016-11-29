@@ -1,6 +1,6 @@
 # Worker Framework
 
-The Worker Framework provides a foundation for cross-platform, cloud-ready, distributed data-processing microservices (workers). The framework is designed for massive scalability, redundancy, elasticity and resilience, which are achieved through architectural choices and technologies like Docker, Apache Mesos, Marathon and queue-based messaging with RabbitMQ. You can extend this framework through integration with many external and internal components, such as storage services.
+The [Worker Framework](https://workerframework.github.io/worker-framework/) provides a foundation for cross-platform, cloud-ready, distributed data-processing microservices (workers). The framework is designed for massive scalability, redundancy, elasticity and resilience, which are achieved through architectural choices and technologies like Docker, Apache Mesos, Marathon and queue-based messaging with RabbitMQ. You can extend this framework through integration with many external and internal components, such as storage services.
 
 The Worker Framework is a good fit for any data-processing scenario, including both on-premise and cloud-based solutions delivered as SaaS. For example, the Worker Framework could benefit solutions for content processing, mathematical and statistical analysis, and image and audio processing.
 
