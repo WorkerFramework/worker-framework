@@ -124,6 +124,23 @@ The general following rules should be adhered to by all Worker implementations:
  - The input wrapper not being parsable
  - Connections to the queue dropping
  
+ #### Poison Messages
+
+ A poison message is a message a worker is unable to handle. A message is
+ deemed poisonous during processing when repeated catastrophic failure of the
+ worker occurs. Regardless of how many times the message is retried, the worker
+ will not be able to handle the message in a graceful manor.
+
+ On receiving a message, a worker will attempt to process the message.  Should
+ the worker crash during processing, the message will be returned to the
+ `worker-input-queue` by the framework and a retry count append to the message
+ headers.  The number of permitted retries is configurable within the
+ `RabbitWorkerQueueConfiguration` file for a worker i.e. cfg_caf_dataprocessing_${worker}_RabbitWorkerQueueConfiguration.  
+ A message will be retried until successful or until the retry count exceeds the
+ permitted number of retries.  If the permitted number of retries is exceeded the
+ message will be placed on the `worker-output-queue` by the framework, with a
+ task status of “RESULT_EXCEPTION”.
+ 
 ### Data Store
 
 Workers often need to interact with an external data storage. Worker Framework supports it by providing the  DataStore interface. A worker can use it to retrieve and store binary data identified by name.
