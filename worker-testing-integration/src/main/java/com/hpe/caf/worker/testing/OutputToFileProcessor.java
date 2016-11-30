@@ -9,6 +9,8 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.StandardOpenOption;
 import java.util.Map;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 /**
  * Created by ploch on 08/11/2015.
@@ -49,6 +51,24 @@ public abstract class OutputToFileProcessor<TResult, TInput, TExpected> extends 
         while(Files.exists(filePath)); // Wait till the file is really deleted.
         Files.write(filePath, content, StandardOpenOption.CREATE);
         return true;
+    }
+
+    // move to base type and rename to getSerializedTestItem(testItem)
+    public byte[] getSerializedTestItem(TestItem<TInput, TExpected> testItem, TestConfiguration configuration) throws Exception {
+        TestCaseInfo info = new TestCaseInfo();
+        Matcher matcher = Pattern.compile(".*[/\\\\]").matcher(testItem.getTag());
+        if (matcher.find()) {
+            String testCaseId = testItem.getTag().substring(matcher.start(), matcher.end() - 1);
+            info.setTestCaseId(testCaseId);
+        }
+        else {
+            info.setTestCaseId(testItem.getTag());
+        }
+        info.setComments(testItem.getTag());
+
+        testItem.setTestCaseInformation(info);
+
+        return configuration.getSerializer().writeValueAsBytes(testItem);
     }
 
     protected Path getSaveFilePath(TestItem<TInput, TExpected> testItem, TaskMessage message) {
