@@ -124,7 +124,7 @@ The general following rules should be adhered to by all Worker implementations:
  - The input wrapper not being parsable
  - Connections to the queue dropping
  
- #### Poison Messages
+#### Poison Messages
 
  A poison message is a message a worker is unable to handle. A message is
  deemed poisonous during processing when repeated catastrophic failure of the
