@@ -10,7 +10,8 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-# dropwizardConfig="/maven/worker.yaml"
+
+ dropwizardConfig="/maven/worker.yaml"
 
 ####################################################
 # Sets the dropwizard config file to a path passed in by environment variable if a variable was passed in and the file exists there.
