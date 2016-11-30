@@ -4,6 +4,10 @@ email: caf@hpe.com
 description: Worker Framework Documentation
 baseurl: "https://workerframework.github.io/worker-framework"
 
+navigation_image: 'assets/img/worker-framework-logo.png'
+
+custom_stylesheet: 'assets/css/site.css'
+
 # Build settings
 exclude: ['node_modules']
 

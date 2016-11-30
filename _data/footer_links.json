@@ -1,4 +1,35 @@
 {
   "navigation_items": [],
-  "feedback_url": "https://github.hpe.com/caf/worker-framework/issues"
+  "feedback_url": "https://github.com/WorkerFramework/worker-framework/issues",
+  "copyright": "© 2016 Hewlett Packard Enterprise",
+  "footer_logo": "assets/img/worker-framework-logo.png",
+  "footer_columns": [{
+    "title": {
+      "en-us": "Social"
+    },
+    "links": [{
+      "title": {
+        "en-us": "GitHub"
+      },
+      "url": {
+        "en-us": "https://github.com/WorkerFramework/worker-framework"
+      }
+    },
+    {
+      "title": {
+        "en-us": "Twitter"
+      },
+      "url": {
+        "en-us": "https://twitter.com/workerframework"
+      }
+    },
+    {
+      "title": {
+        "en-us": "Blog"
+      },
+      "url": {
+        "en-us": "pages/en-us/blog/"
+      }
+    }]
+  }]
 }

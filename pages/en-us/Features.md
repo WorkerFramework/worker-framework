@@ -1,6 +1,15 @@
 ---
 layout: default
 title: Features
+
+banner:
+    icon: 'assets/img/hard-hat.png'
+    title: Worker Framework
+    subtitle: Analyze a Larger Range of Formats
+    links:
+        - title: GitHub
+          url: https://github.com/WorkerFramework/worker-framework
+          
 ---
 
 # Key Features
