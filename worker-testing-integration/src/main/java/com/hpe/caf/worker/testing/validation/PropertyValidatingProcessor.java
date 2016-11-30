@@ -131,7 +131,9 @@ public abstract class PropertyValidatingProcessor<TResult, TInput, TExpected> ex
      * @param message  the message
      * @return the expectation map
      */
-    protected abstract Map<String, Object> getFailedExpectationMap(TestItem<TInput, TExpected> testItem, TaskMessage message);
+    protected  Map<String, Object> getFailedExpectationMap(TestItem<TInput, TExpected> testItem, TaskMessage message){
+        return null;
+    }
 
     /**
      * Gets validated object.
