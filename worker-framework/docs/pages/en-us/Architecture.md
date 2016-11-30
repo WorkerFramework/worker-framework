@@ -38,9 +38,9 @@ The `worker-core` application manages the flow of data between infrastructure co
 The dependency loading mechanism, called servce location, relies on the `util-moduleloader` library which internally uses the [Java ServiceLoader](http://docs.oracle.com/javase/6/docs/api/java/util/ServiceLoader.html). To instantiate a service, the class has to have a parameterless constructor. This is why all of the plug-ins use plug-in providers that instantiate the actual plug-in. They also need to be advertised using the [ServiceLoader](http://docs.oracle.com/javase/6/docs/api/java/util/ServiceLoader.html) mechanism.
 Implementations of required components have to be packaged with the `worker-core` application to allow service locator to detect and use them.
 
-When running, application awaits for incoming messages. When a message is received, application will instantiate a [Worker](https://pages.github.hpe.com/caf/worker-framework/pages/en-us/apidocs/com/hpe/caf/api/worker/Worker.html) implementation and execute the `doWork` method.
+When running, application awaits for incoming messages. When a message is received, application will instantiate a [Worker](https://workerframework.github.io/worker-framework/pages/en-us/apidocs/com/hpe/caf/api/worker/Worker.html) implementation and execute the `doWork` method.
 
-To do this, it will use a [WorkerFactoryProvider](https://pages.github.hpe.com/caf/worker-framework/pages/en-us/apidocs/com/hpe/caf/api/worker/WorkerFactoryProvider.html) located during start-up procedure to obtain a [WorkerFactory](https://pages.github.hpe.com/caf/worker-framework/pages/en-us/apidocs/com/hpe/caf/api/worker/WorkerFactory.html) which is responsible for construction of a [Worker](https://pages.github.hpe.com/caf/worker-framework/pages/en-us/apidocs/com/hpe/caf/api/worker/Worker.html) implementation.
+To do this, it will use a [WorkerFactoryProvider](https://workerframework.github.io/worker-framework/pages/en-us/apidocs/com/hpe/caf/api/worker/WorkerFactoryProvider.html) located during start-up procedure to obtain a [WorkerFactory](https://workerframework.github.io/worker-framework/pages/en-us/apidocs/com/hpe/caf/api/worker/WorkerFactory.html) which is responsible for construction of a [Worker](https://workerframework.github.io/worker-framework/pages/en-us/apidocs/com/hpe/caf/api/worker/Worker.html) implementation.
 
 #### Worker Factory Provider
 The `WorkerFactoryProvider` implementation is responsible for creating an instance of a `WorkerFactory`. It is resolved using the Java ServiceLoader which means it has to have a parameterless constructor. This interface has only a single method, `getWorkerFactory`, called during application start-up.
@@ -60,7 +60,7 @@ The `WorkerFactory` creates a new instance of a `Worker` for each message receiv
 
 Additionally, developer can implement a `shutdown` method to perform required clean-up of resources when the worker application is closed.
 
-There is a base implementation of the `WorkerFactory` interface, the [AbstractWorkerFactory](https://pages.github.hpe.com/caf/worker-framework/pages/en-us/apidocs/com/hpe/caf/worker/AbstractWorkerFactory.html), providing support for de-serialization and validation of a task message as well as worker configuration. It should be used whenever possible.
+There is a base implementation of the `WorkerFactory` interface, the [AbstractWorkerFactory](https://workerframework.github.io/worker-framework/pages/en-us/apidocs/com/hpe/caf/worker/AbstractWorkerFactory.html), providing support for de-serialization and validation of a task message as well as worker configuration. It should be used whenever possible.
 
 #### Worker
 
@@ -74,7 +74,7 @@ Other methods that require implementation are:
 - `getWorkerApiVersion` which should identify the worker input and output API version (task and result)
 - `getGeneralFailureResult` which should return a general failure result in case of unhandled exception.
 
-There is a base implementation of the `Worker` interface, the [AbstractWorker](https://pages.github.hpe.com/caf/worker-framework/pages/en-us/apidocs/com/hpe/caf/worker/AbstractWorker.html). This class provides default implementation of all abstract methods except `doWork`.
+There is a base implementation of the `Worker` interface, the [AbstractWorker](https://workerframework.github.io/worker-framework/pages/en-us/apidocs/com/hpe/caf/worker/AbstractWorker.html). This class provides default implementation of all abstract methods except `doWork`.
 It also includes:
 - utility functions for creating responses
 - default exception handling.
@@ -149,37 +149,37 @@ Implementations are pluggable and following are provided out-of-box:
 - HPE Storage Services: `worker-store-cs`
 - AWS S3: `worker-store-s3`
 
-To use a different technology, developers are required to implement the [DataStore](https://pages.github.hpe.com/caf/worker-framework/pages/en-us/apidocs/com/hpe/caf/api/worker/DataStore.html) interface as well as [DataStoreProvider](https://pages.github.hpe.com/caf/worker-framework/pages/en-us/apidocs/com/hpe/caf/api/worker/DataStoreProvider.html) supporting the service location.
+To use a different technology, developers are required to implement the [DataStore](https://workerframework.github.io/worker-framework/pages/en-us/apidocs/com/hpe/caf/api/worker/DataStore.html) interface as well as [DataStoreProvider](https://workerframework.github.io/worker-framework/pages/en-us/apidocs/com/hpe/caf/api/worker/DataStoreProvider.html) supporting the service location.
 
 
 ### Messaging Queue
 
 Workers use message queues to receive work and respond with results. All interactions are handled internally by the framework.
-Out-of-box, the Worker Framework uses RabbitMQ but this is a pluggable mechanism. Developers wishing to use a different technology are required to implement the [ManagedWorkerQueue](https://pages.github.hpe.com/caf/worker-framework/pages/en-us/apidocs/com/hpe/caf/api/worker/ManagedWorkerQueue.html) interface.
-[WorkerQueueProvider](https://pages.github.hpe.com/caf/worker-framework/pages/en-us/apidocs/com/hpe/caf/api/worker/WorkerQueueProvider.html) implementation is also required to support the service location mechanism.
+Out-of-box, the Worker Framework uses RabbitMQ but this is a pluggable mechanism. Developers wishing to use a different technology are required to implement the [ManagedWorkerQueue](https://workerframework.github.io/worker-framework/pages/en-us/apidocs/com/hpe/caf/api/worker/ManagedWorkerQueue.html) interface.
+[WorkerQueueProvider](https://workerframework.github.io/worker-framework/pages/en-us/apidocs/com/hpe/caf/api/worker/WorkerQueueProvider.html) implementation is also required to support the service location mechanism.
 
 ### Configuration
 
-In most cases, workers will require some sort of configuration provided to them. Worker Framework supports it by providing the [ConfigurationSource](https://pages.github.hpe.com/caf/worker-framework/pages/en-us/apidocs/com/hpe/caf/api/ConfigurationSource.html) interface. It has a single method, `getConfiguration`, that can be used by a worker to retrieve a particular configuration type.
+In most cases, workers will require some sort of configuration provided to them. Worker Framework supports it by providing the [ConfigurationSource](https://workerframework.github.io/worker-framework/pages/en-us/apidocs/com/hpe/caf/api/ConfigurationSource.html) interface. It has a single method, `getConfiguration`, that can be used by a worker to retrieve a particular configuration type.
 Configuration type is identified by a Java class. ConfigurationSource will retrieve a binary representation of this class from underlying source and de-serialize it.
 Out-of-box implementations provided with the framework are:
--  [FileConfigurationSource](https://pages.github.hpe.com/caf/worker-framework/pages/en-us/apidocs/com/hpe/caf/config/file/FileConfigurationSource.html), which reads configuration from a disk file.
--  [RestConfigurationSource](https://pages.github.hpe.com/caf/worker-framework/pages/en-us/apidocs/com/hpe/caf/config/rest/RestConfigurationSource.html) which retrieves JSON data from an HTTP REST source.
+-  [FileConfigurationSource](https://workerframework.github.io/worker-framework/pages/en-us/apidocs/com/hpe/caf/config/file/FileConfigurationSource.html), which reads configuration from a disk file.
+-  [RestConfigurationSource](https://workerframework.github.io/worker-framework/pages/en-us/apidocs/com/hpe/caf/config/rest/RestConfigurationSource.html) which retrieves JSON data from an HTTP REST source.
 
-To use a different source, developers are required to provide an implementation of the [ManagedConfigurationSource](https://pages.github.hpe.com/caf/worker-framework/pages/en-us/apidocs/com/hpe/caf/api/ManagedConfigurationSource.html) and [ConfigurationSourceProvider](https://pages.github.hpe.com/caf/worker-framework/pages/en-us/apidocs/com/hpe/caf/api/ConfigurationSourceProvider.html).
+To use a different source, developers are required to provide an implementation of the [ManagedConfigurationSource](https://workerframework.github.io/worker-framework/pages/en-us/apidocs/com/hpe/caf/api/ManagedConfigurationSource.html) and [ConfigurationSourceProvider](https://workerframework.github.io/worker-framework/pages/en-us/apidocs/com/hpe/caf/api/ConfigurationSourceProvider.html).
 
 #### Encryption of Configuration
 
-Configuration data can be encrypted. This is achieved by the use of [Cipher](https://pages.github.hpe.com/caf/worker-framework/pages/en-us/apidocs/com/hpe/caf/api/Cipher.html).
-By default, the `worker-core` application will use the [NullCipher](https://pages.github.hpe.com/caf/worker-framework/pages/en-us/apidocs/com/hpe/caf/cipher/NullCipher.html) implementation which does not encrypt or decrypt any data.
-Framework also includes the [JasyptCipher](https://pages.github.hpe.com/caf/worker-framework/pages/en-us/apidocs/com/hpe/caf/cipher/jasypt/JasyptCipher.html) which provides basic text encryption.
-Developers can implement their own encryption mechanism by providing an implementation of the Cipher and the [CipherProvider](https://pages.github.hpe.com/caf/worker-framework/pages/en-us/apidocs/com/hpe/caf/api/CipherProvider.html).
+Configuration data can be encrypted. This is achieved by the use of [Cipher](https://workerframework.github.io/worker-framework/pages/en-us/apidocs/com/hpe/caf/api/Cipher.html).
+By default, the `worker-core` application will use the [NullCipher](https://workerframework.github.io/worker-framework/pages/en-us/apidocs/com/hpe/caf/cipher/NullCipher.html) implementation which does not encrypt or decrypt any data.
+Framework also includes the [JasyptCipher](https://workerframework.github.io/worker-framework/pages/en-us/apidocs/com/hpe/caf/cipher/jasypt/JasyptCipher.html) which provides basic text encryption.
+Developers can implement their own encryption mechanism by providing an implementation of the Cipher and the [CipherProvider](https://workerframework.github.io/worker-framework/pages/en-us/apidocs/com/hpe/caf/api/CipherProvider.html).
 
 ### Serialization
 
-The framework operates on messages which carry a payload with all information required for processig. This information needs to be serialized and de-serialized before it can be used by `worker-core` or a `Worker`. Worker Framework takes care of that internally using the [Codec](https://pages.github.hpe.com/caf/worker-framework/pages/en-us/apidocs/com/hpe/caf/api/Codec.html) interface. This interface provides format-agnostic methods for serializing and deserializing of an object. There are following codecs provided with the framework:
-- [JsonCodec](https://pages.github.hpe.com/caf/worker-framework/pages/en-us/apidocs/com/hpe/caf/codec/JsonCodec.html) for the JSON format
-- [JsonLzfCodec](https://pages.github.hpe.com/caf/worker-framework/pages/en-us/apidocs/com/hpe/caf/codec/JsonLzfCodec.html) for the JSON format compressed with a high-speed LZF algorithm
-- [YamlCodec](https://pages.github.hpe.com/caf/worker-framework/pages/en-us/apidocs/com/hpe/caf/codec/YamlCodec.html) for the YAML format
+The framework operates on messages which carry a payload with all information required for processig. This information needs to be serialized and de-serialized before it can be used by `worker-core` or a `Worker`. Worker Framework takes care of that internally using the [Codec](https://workerframework.github.io/worker-framework/pages/en-us/apidocs/com/hpe/caf/api/Codec.html) interface. This interface provides format-agnostic methods for serializing and deserializing of an object. There are following codecs provided with the framework:
+- [JsonCodec](https://workerframework.github.io/worker-framework/pages/en-us/apidocs/com/hpe/caf/codec/JsonCodec.html) for the JSON format
+- [JsonLzfCodec](https://workerframework.github.io/worker-framework/pages/en-us/apidocs/com/hpe/caf/codec/JsonLzfCodec.html) for the JSON format compressed with a high-speed LZF algorithm
+- [YamlCodec](https://workerframework.github.io/worker-framework/pages/en-us/apidocs/com/hpe/caf/codec/YamlCodec.html) for the YAML format
 
 To use a different format, developer has to implement the `Codec` and `CodecProvider
