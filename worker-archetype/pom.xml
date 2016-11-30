@@ -37,14 +37,14 @@
 
     <distributionManagement>
         <repository>
-            <id>cmbg-maven-releases</id>
+            <id>HPEreleases</id>
             <name>Internal Releases</name>
-            <url>http://cbgmaven.hpeswlab.net/nexus/content/repositories/releases</url>
+            <url>http://rh7-artifactory.svs.hpeswlab.net:8081/artifactory/libs-release-local</url>
         </repository>
         <snapshotRepository>
-            <id>cmbg-maven-snapshots</id>
+            <id>HPEsnapshots</id>
             <name>Internal Snapshots</name>
-            <url>http://cbgmaven.hpeswlab.net/nexus/content/repositories/snapshots</url>
+            <url>http://rh7-artifactory.svs.hpeswlab.net:8081/artifactory/libs-snapshot-local</url>
         </snapshotRepository>
     </distributionManagement>
 </project>
