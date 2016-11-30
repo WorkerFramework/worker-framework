@@ -24,6 +24,7 @@
         <datastore.container.id>b591d8c6615c4af99d7915719b01259c</datastore.container.id>
         <maven.compiler.source>1.8</maven.compiler.source>
         <maven.compiler.target>1.8</maven.compiler.target>
+        <corporateDockerRegistry>rh7-artifactory.svs.hpeswlab.net:8443</corporateDockerRegistry>
     </properties>
 
     <!--
@@ -212,7 +213,7 @@
                         <!-- Configuration for the example-worker image -->
                         <image>
                             <alias>example-worker</alias>
-                            <name>rh7-artifactory.svs.hpeswlab.net:8443/caf/worker-example:${project.version}</name>
+                            <name>${corporateDockerRegistry}/caf/worker-example:${project.version}</name>
                             <build>
                                 <maintainer>conal.smith@hpe.com</maintainer>
                                 <from>java:8</from>
