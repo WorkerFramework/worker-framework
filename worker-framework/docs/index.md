@@ -45,7 +45,7 @@ social:
           subtitle: Fork Worker Framework on GitHub and submit a pull request to help contribute to the project! Or if you have discovered an issue, report it to us.
           link:
             title: Fork Worker Framework
-            url: https://github.hpe.com/caf/worker-framework
+            url: https://github.com/WorkerFramework/worker-framework
         - icon: hpe-chat
           title: Blog
           subtitle: Follow our blog to find out all of the exciting news and announcements regarding Worker Framework.
