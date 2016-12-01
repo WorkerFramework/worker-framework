@@ -55,29 +55,12 @@ public class PreparationResultProcessor<TWorkerTask, TWorkerResult, TInput exten
 
     @Override
     protected byte[] getOutputContent(TWorkerResult workerResult, TaskMessage message, TestItem<TInput, TExpected> testItem) throws Exception {
-        return getContent(testItem);
+        return getSerializedTestItem(testItem, configuration);
     }
 
     @Override
     protected byte[] getFailedOutputContent(TaskMessage message, TestItem<TInput, TExpected> testItem) throws Exception {
-        return getContent(testItem);
-    }
-
-    public byte[] getContent(TestItem<TInput, TExpected> testItem) throws Exception {
-        TestCaseInfo info = new TestCaseInfo();
-        Matcher matcher = Pattern.compile(".*[/\\\\]").matcher(testItem.getTag());
-        if (matcher.find()) {
-            String testCaseId = testItem.getTag().substring(matcher.start(), matcher.end() - 1);
-            info.setTestCaseId(testCaseId);
-        }
-        else {
-            info.setTestCaseId(testItem.getTag());
-        }
-        info.setComments(testItem.getTag());
-
-        testItem.setTestCaseInformation(info);
-
-        return configuration.getSerializer().writeValueAsBytes(testItem);
+        return getSerializedTestItem(testItem, configuration);
     }
 
     @Override
