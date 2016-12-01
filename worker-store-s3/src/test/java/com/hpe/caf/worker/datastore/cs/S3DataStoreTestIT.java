@@ -41,9 +41,11 @@ public class S3DataStoreTestIT
         s3DataStoreConfiguration.setProxyHost("proxy.sdc.hp.com");
         s3DataStoreConfiguration.setProxyPort(8080);
 
-        s3DataStoreConfiguration.setBucketName("andyreid-bucket");
-        s3DataStoreConfiguration.setAccessKey("AKIAILPGEXAERZOJHC6Q");
-        s3DataStoreConfiguration.setSecretKey("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");
+        // Before running tests, valid AWS Account setting will need to be added here.
+        // *** Do Not Check In Account Details ***
+        s3DataStoreConfiguration.setBucketName("username-bucket");
+        s3DataStoreConfiguration.setAccessKey("Access-Key");
+        s3DataStoreConfiguration.setSecretKey("Secret-Key");
     }
 
 
