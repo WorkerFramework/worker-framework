@@ -41,7 +41,7 @@ public class S3DataStoreTestIT
         s3DataStoreConfiguration.setProxyHost("proxy.sdc.hp.com");
         s3DataStoreConfiguration.setProxyPort(8080);
 
-        // Before running tests, valid AWS Account setting will need to be added here.
+        // Before running tests, a valid AWS Account setting will need to be added below
         // *** Do Not Check In Account Details ***
         s3DataStoreConfiguration.setBucketName("username-bucket");
         s3DataStoreConfiguration.setAccessKey("Access-Key");
