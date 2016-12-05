@@ -83,6 +83,9 @@ public abstract class AbstractResultProcessor<TResult, TInput, TExpected> implem
      * @throws CodecException the codec exception
      */
     protected TResult deserializeMessage(TaskMessage message, Class<TResult> resultClass) throws CodecException {
+        if (message.getTaskStatus() != TaskStatus.RESULT_SUCCESS && message.getTaskStatus() != TaskStatus.RESULT_FAILURE) {
+            throw new AssertionError("Task status was failure.");
+        }
         TResult workerResult = codec.deserialise(message.getTaskData(), resultClass);
         return workerResult;
     }
