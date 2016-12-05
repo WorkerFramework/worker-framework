@@ -61,15 +61,6 @@ public abstract class AbstractResultProcessor<TResult, TInput, TExpected> implem
 
     @Override
     public boolean process(TestItem testItem, TaskMessage resultMessage) throws Exception {
-        if (resultMessage.getTaskStatus() != TaskStatus.RESULT_SUCCESS && resultMessage.getTaskStatus() != TaskStatus.RESULT_FAILURE){
-            HashMap<String, String> mapResult = new HashMap();
-            mapResult.put("TaskStatus", resultMessage.getTaskStatus().toString());
-
-            Map<String, Object> map = new LinkedHashMap<>();
-            map.put("taskResultsFailure", mapResult);
-
-            return processFailedWorkerResult(testItem, resultMessage, map);
-        }
         TResult workerResult = deserializeMessage(resultMessage, resultClass);
         return processWorkerResult(testItem, resultMessage, workerResult);
     }
