@@ -24,6 +24,8 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.StandardOpenOption;
 import java.util.Map;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 /**
  * Created by ploch on 08/11/2015.
@@ -56,6 +58,23 @@ public abstract class OutputToFileProcessor<TResult, TInput, TExpected> extends 
     protected boolean processFailedWorkerResult(TestItem<TInput, TExpected> testItem, TaskMessage message, Map<String, Object> result) throws Exception {
         byte[] content = getFailedOutputContent(message, testItem);
         return processResult(testItem, message,content);
+    }
+
+    public byte[] getSerializedTestItem(TestItem<TInput, TExpected> testItem, TestConfiguration configuration) throws Exception {
+        TestCaseInfo info = new TestCaseInfo();
+        Matcher matcher = Pattern.compile(".*[/\\\\]").matcher(testItem.getTag());
+        if (matcher.find()) {
+            String testCaseId = testItem.getTag().substring(matcher.start(), matcher.end() - 1);
+            info.setTestCaseId(testCaseId);
+        }
+        else {
+            info.setTestCaseId(testItem.getTag());
+        }
+        info.setComments(testItem.getTag());
+
+        testItem.setTestCaseInformation(info);
+
+        return configuration.getSerializer().writeValueAsBytes(testItem);
     }
 
     public boolean processResult(TestItem<TInput, TExpected> testItem, TaskMessage message, byte[] content) throws IOException {
