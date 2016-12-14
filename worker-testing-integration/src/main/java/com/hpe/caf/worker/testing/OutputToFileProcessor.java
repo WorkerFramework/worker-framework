@@ -23,7 +23,6 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.StandardOpenOption;
-import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -51,12 +50,6 @@ public abstract class OutputToFileProcessor<TResult, TInput, TExpected> extends 
     @Override
     protected boolean processWorkerResult(TestItem<TInput, TExpected> testItem, TaskMessage message, TResult result) throws Exception {
         byte[] content = getOutputContent(result, message, testItem);
-        return processResult(testItem, message,content);
-    }
-
-    @Override
-    protected boolean processFailedWorkerResult(TestItem<TInput, TExpected> testItem, TaskMessage message, Map<String, Object> result) throws Exception {
-        byte[] content = getFailedOutputContent(message, testItem);
         return processResult(testItem, message,content);
     }
 
@@ -93,6 +86,4 @@ public abstract class OutputToFileProcessor<TResult, TInput, TExpected> extends 
     }
 
     protected abstract byte[] getOutputContent(TResult result, TaskMessage message, TestItem<TInput, TExpected> testItem) throws Exception;
-
-    protected abstract byte[] getFailedOutputContent(TaskMessage message, TestItem<TInput, TExpected> testItem) throws Exception;
 }

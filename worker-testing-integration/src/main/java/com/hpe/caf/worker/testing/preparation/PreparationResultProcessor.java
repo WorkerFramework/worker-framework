@@ -59,11 +59,6 @@ public class PreparationResultProcessor<TWorkerTask, TWorkerResult, TInput exten
     }
 
     @Override
-    protected byte[] getFailedOutputContent(TaskMessage message, TestItem<TInput, TExpected> testItem) throws Exception {
-        return getSerializedTestItem(testItem, configuration);
-    }
-
-    @Override
     protected Path getSaveFilePath(TestItem<TInput, TExpected> testItem, TaskMessage message) {
         Path saveFilePath = super.getSaveFilePath(testItem, message);
         if (configuration.isStoreTestCaseWithInput()) {

@@ -80,10 +80,4 @@ public class ContentResultValidationProcessor<TResult, TInput extends FileTestIn
         }
         return true;
     }
-
-    @Override
-    protected boolean processFailedWorkerResult(TestItem<TInput, TExpected> testItem, TaskMessage message, Map<String, Object> result) throws Exception {
-        return false;
-    }
-
 }
