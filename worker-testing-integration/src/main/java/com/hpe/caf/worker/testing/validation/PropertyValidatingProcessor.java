@@ -93,32 +93,6 @@ public abstract class PropertyValidatingProcessor<TResult, TInput, TExpected> ex
         return true;
     }
 
-    @Override
-    protected boolean processFailedWorkerResult(TestItem<TInput, TExpected> testItem, TaskMessage message, Map<String, Object> result) throws Exception {
-        Map<String, Object> expectation = getFailedExpectationMap(testItem, message);
-
-        if (expectation == null) {
-            System.err.println("Could not locate result in pre-defined testcase, item tag '" + testItem.getTag() + "'. Message id: '" + message.getTaskId() + "'. ");
-            return false;
-        }
-
-        ObjectMapper mapper = new ObjectMapper();
-        mapper.registerModule(new GuavaModule());
-
-        PropertyMap expectationPropertyMap = mapper.convertValue(expectation,PropertyMap.class); //new PropertyMap(expectation);
-
-        PropertyMap propertyMap = mapper.convertValue(result, PropertyMap.class);
-
-        PropertyValidator
-                validator = validatorFactory.createRootValidator();
-
-        validator.validate("taskResultsFailure", propertyMap, expectationPropertyMap);
-
-        testItem.setCompleted(isCompleted(testItem, message, null));
-
-        return true;
-    }
-
     /**
      * Is completed boolean.
      *
@@ -139,16 +113,6 @@ public abstract class PropertyValidatingProcessor<TResult, TInput, TExpected> ex
      */
     protected abstract Map<String, Object> getExpectationMap(TestItem<TInput, TExpected> testItem, TaskMessage message, TResult result);
 
-    /**
-     * Gets failed expectation map.
-     *
-     * @param testItem the test item
-     * @param message  the message
-     * @return the expectation map
-     */
-    protected  Map<String, Object> getFailedExpectationMap(TestItem<TInput, TExpected> testItem, TaskMessage message){
-        return null;
-    }
     /**
      * Gets validated object.
      *
