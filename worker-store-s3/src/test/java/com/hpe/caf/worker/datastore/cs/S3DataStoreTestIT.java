@@ -16,19 +16,18 @@
 package com.hpe.caf.worker.datastore.cs;
 
 
-import com.amazonaws.services.s3.model.AmazonS3Exception;
 import com.amazonaws.util.IOUtils;
 import com.hpe.caf.api.worker.DataStoreException;
 import com.hpe.caf.worker.datastore.s3.S3DataStore;
 import com.hpe.caf.worker.datastore.s3.S3DataStoreConfiguration;
 import org.junit.Assert;
+import org.junit.Ignore;
 import org.junit.Test;
 
 import java.io.IOException;
 import java.io.InputStream;
-import java.util.UUID;
 
-
+@Ignore
 public class S3DataStoreTestIT
 {
     S3DataStoreConfiguration s3DataStoreConfiguration;
