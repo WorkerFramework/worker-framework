@@ -21,12 +21,12 @@
 
     <groupId>com.github.workerframework</groupId>
     <artifactId>worker-framework-tests-worker-store-cs</artifactId>
-    <version>1.1.1-SNAPSHOT</version>
+    <version>1.1.1-61</version>
 
     <parent>
         <groupId>com.github.workerframework</groupId>
         <artifactId>worker-framework-tests</artifactId>
-        <version>1.1.1-SNAPSHOT</version>
+        <version>1.1.1-61</version>
     </parent>
 
     <dependencies>

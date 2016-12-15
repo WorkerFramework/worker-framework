@@ -21,12 +21,12 @@
 
     <groupId>com.github.workerframework</groupId>
     <artifactId>util-rabbitmq</artifactId>
-    <version>1.1.1-SNAPSHOT</version>
+    <version>1.1.1-61</version>
 
     <parent>
         <groupId>com.github.workerframework</groupId>
         <artifactId>worker-framework-aggregator</artifactId>
-        <version>1.1.1-SNAPSHOT</version>
+        <version>1.1.1-61</version>
     </parent>
 
     <dependencies>

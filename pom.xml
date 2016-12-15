@@ -21,7 +21,7 @@
 
     <groupId>com.github.workerframework</groupId>
     <artifactId>worker-framework-aggregator</artifactId>
-    <version>1.1.1-SNAPSHOT</version>
+    <version>1.1.1-61</version>
     <packaging>pom</packaging>
     <description>Builds Worker-Framework projects together</description>
 
