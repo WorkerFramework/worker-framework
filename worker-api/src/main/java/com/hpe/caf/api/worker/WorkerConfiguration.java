@@ -19,13 +19,21 @@ import com.hpe.caf.api.Configuration;
 
 @Configuration
 public class WorkerConfiguration {
+    private String workerName;
+
     private String workerVersion;
 
+    public String getWorkerName() {
+        return workerName;
+    }
 
     public String getWorkerVersion() {
         return workerVersion;
     }
 
+    public void setWorkerName(String workerName) {
+        this.workerName = workerName;
+    }
 
     public void setWorkerVersion(String workerVersion) {
         this.workerVersion = workerVersion;

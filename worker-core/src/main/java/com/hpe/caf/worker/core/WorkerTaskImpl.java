@@ -101,13 +101,14 @@ class WorkerTaskImpl implements WorkerTask
             responseContext.put(servicePath.toString(), workerResponseContext);
         }
 
+        final String responseMessageType = response.getMessageType();
+
         final TaskMessage responseMessage = new TaskMessage(
-            taskMessage.getTaskId(), response.getMessageType(),
+            taskMessage.getTaskId(), responseMessageType,
             response.getApiVersion(), response.getData(),
             response.getTaskStatus(), responseContext,
             response.getQueueReference(), taskMessage.getTracking(),
-            new TaskSourceInfo(response.getMessageType(),
-                    workerFactory.getWorkerConfiguration() == null ? WORKER_VERSION_UNKNOWN : workerFactory.getWorkerConfiguration().getWorkerVersion()));
+            new TaskSourceInfo(getWorkerName(responseMessageType), getWorkerVersion()));
 
         workerCallback.complete(
             messageId, response.getQueueReference(), responseMessage);
@@ -180,4 +181,33 @@ class WorkerTaskImpl implements WorkerTask
         return poison;
     }
 
+    private String getWorkerName(final String defaultName)
+    {
+        final com.hpe.caf.api.worker.WorkerConfiguration workerConfig = workerFactory.getWorkerConfiguration();
+
+        if (workerConfig != null) {
+            final String workerName = workerConfig.getWorkerName();
+
+            if (workerName != null) {
+                return workerName;
+            }
+        }
+
+        return defaultName;
+    }
+
+    private String getWorkerVersion()
+    {
+        final com.hpe.caf.api.worker.WorkerConfiguration workerConfig = workerFactory.getWorkerConfiguration();
+
+        if (workerConfig != null) {
+            final String workerVersion = workerConfig.getWorkerVersion();
+
+            if (workerVersion != null) {
+                return workerVersion;
+            }
+        }
+
+        return WORKER_VERSION_UNKNOWN;
+    }
 }
