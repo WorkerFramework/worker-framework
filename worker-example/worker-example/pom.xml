@@ -55,12 +55,10 @@
         <dependency>
             <groupId>com.github.cafapi</groupId>
             <artifactId>caf-api</artifactId>
-            <version>1.1.0-23</version>
         </dependency>
         <dependency>
             <groupId>com.github.cafapi.util</groupId>
             <artifactId>util-moduleloader</artifactId>
-            <version>1.1.0-23</version>
         </dependency>
         <dependency>
             <groupId>commons-io</groupId>
@@ -79,7 +77,6 @@
         <dependency>
             <groupId>com.github.cafapi.codec</groupId>
             <artifactId>codec-json</artifactId>
-            <version>1.1.0-23</version>
             <scope>test</scope>
         </dependency>
         <dependency>

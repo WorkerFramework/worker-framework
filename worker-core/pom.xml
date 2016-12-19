@@ -42,22 +42,18 @@
         <dependency>
             <groupId>com.github.cafapi.cipher</groupId>
             <artifactId>cipher-null</artifactId>
-            <version>1.1.0-23</version>
         </dependency>
         <dependency>
             <groupId>com.github.cafapi.config</groupId>
             <artifactId>config-system</artifactId>
-            <version>1.1.0-23</version>
         </dependency>
         <dependency>
             <groupId>com.github.cafapi.util</groupId>
             <artifactId>util-moduleloader</artifactId>
-            <version>1.1.0-23</version>
         </dependency>
         <dependency>
             <groupId>com.github.cafapi.util</groupId>
             <artifactId>util-jerseycompat</artifactId>
-            <version>1.1.0-23</version>
         </dependency>
         <dependency>
             <groupId>io.dropwizard</groupId>
@@ -81,7 +77,6 @@
         <dependency>
             <groupId>com.github.cafapi.codec</groupId>
             <artifactId>codec-json</artifactId>
-            <version>1.1.0-23</version>
             <scope>test</scope>
         </dependency>
         <dependency>

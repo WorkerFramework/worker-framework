@@ -33,12 +33,10 @@
         <dependency>
            <groupId>com.github.cafapi</groupId>
            <artifactId>caf-api</artifactId>
-           <version>1.1.0-23</version>
         </dependency>
         <dependency>
            <groupId>com.github.cafapi.util</groupId>
            <artifactId>util-ref</artifactId>
-           <version>1.1.0-23</version>
         </dependency>
         <dependency>
             <groupId>javax.validation</groupId>
