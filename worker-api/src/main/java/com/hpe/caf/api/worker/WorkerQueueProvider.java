@@ -21,7 +21,6 @@ import com.hpe.caf.api.ConfigurationSource;
 
 /**
  * Boilerplate for retrieving a WorkerQueue implementation.
- * @since 9.0
  */
 public interface WorkerQueueProvider
 {

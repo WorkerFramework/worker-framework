@@ -18,7 +18,6 @@ package com.hpe.caf.util.rabbitmq;
 
 /**
  * An acknowledge Event for a Consumer.
- * @since 1.0
  */
 public class ConsumerAckEvent implements Event<QueueConsumer>
 {

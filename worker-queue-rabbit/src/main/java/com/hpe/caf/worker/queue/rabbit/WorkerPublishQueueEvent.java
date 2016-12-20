@@ -25,7 +25,6 @@ import java.util.Objects;
 
 /**
  * Event for publishing via a WorkerPublisher.
- * @since 7.5
  */
 public class WorkerPublishQueueEvent implements Event<WorkerPublisher>
 {
@@ -41,7 +40,6 @@ public class WorkerPublishQueueEvent implements Event<WorkerPublisher>
      * @param routingKey the routing key to publish the data on
      * @param ackId the id of a message previously consumed to acknowledge
      * @param headers the map of key/value paired headers to be stamped on the message
-     * @since 10.6
      */
     public WorkerPublishQueueEvent(byte[] messageData, String routingKey, long ackId, Map<String, Object> headers)
     {
@@ -76,7 +74,6 @@ public class WorkerPublishQueueEvent implements Event<WorkerPublisher>
 
     /**
      * @return the routing key that will be used to publish this message with
-     * @since 10.6
      */
     public String getRoutingKey()
     {
@@ -95,7 +92,6 @@ public class WorkerPublishQueueEvent implements Event<WorkerPublisher>
 
     /**
      * @return the key/value map of header strings
-     * @since 10.6
      */
     public Map<String, Object> getHeaderMap()
     {

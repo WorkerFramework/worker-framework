@@ -25,7 +25,6 @@ import java.util.concurrent.atomic.AtomicBoolean;
 /**
  * An abstract class to poll a BlockingQueue for events and defer them for handling.
  * @param <T> the sort of Event this EventPoller will use
- * @since 1.0
  */
 public class EventPoller<T> implements Runnable
 {

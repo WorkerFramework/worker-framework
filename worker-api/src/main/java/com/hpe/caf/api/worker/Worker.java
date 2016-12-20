@@ -33,7 +33,6 @@ package com.hpe.caf.api.worker;
  * Finally, a Worker has methods to classify the type of work it is performing (an "identifier") and another
  * method that returns the integer API version of the task data. These are typically defined in your shareed
  * package that contains the task and result classes, but are used here for constructing a WorkerResponse.
- * @since 9.0
  */
 public interface Worker
 {

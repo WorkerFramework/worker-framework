@@ -38,7 +38,6 @@ import java.util.Set;
  *
  * @param <T> the task class for this Worker
  * @param <V> the result class for this Worker
- * @since 9.0
  */
 public abstract class AbstractWorker<T,V> implements Worker
 {

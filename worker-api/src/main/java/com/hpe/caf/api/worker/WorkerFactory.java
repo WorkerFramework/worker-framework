@@ -22,7 +22,6 @@ import com.hpe.caf.api.HealthReporter;
 /**
  * Instantiates a new instance of a Worker given task-specific data.
  * Most implementations of WorkerFactory should extend DefaultWorkerFactory.
- * @since 9.0
  */
 public interface WorkerFactory extends HealthReporter
 {

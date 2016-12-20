@@ -32,7 +32,6 @@ import java.util.Objects;
  *
  * @param <C> the Worker Configuration type parameter
  * @param <T> the Worker Task type parameter
- * @since 9.0
  */
 public abstract class AbstractWorkerFactory<C, T> implements WorkerFactory
 {

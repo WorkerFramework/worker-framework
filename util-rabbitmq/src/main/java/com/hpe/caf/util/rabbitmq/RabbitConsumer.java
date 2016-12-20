@@ -33,7 +33,6 @@ import java.util.concurrent.BlockingQueue;
  * A basic framework for handling consumption of messages from a RabbitMQ queue.
  * It decouples the RabbitMQ client threads delivering messages from the handling
  * and dispatching of these messages.
- * @since 1.0
  */
 public abstract class RabbitConsumer<T> extends EventPoller<T> implements Consumer
 {
@@ -101,7 +100,6 @@ public abstract class RabbitConsumer<T> extends EventPoller<T> implements Consum
      * @param data the actual message delivery
      * @param headers the message headers
      * @return an instance of this implementation's QueueEvent indicating a delivery
-     * @since 2.0
      */
     protected abstract Event<T> getDeliverEvent(Envelope envelope, byte[] data, Map<String, Object> headers);
 }

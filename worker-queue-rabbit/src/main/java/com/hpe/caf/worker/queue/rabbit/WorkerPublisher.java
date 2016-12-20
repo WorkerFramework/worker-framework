@@ -22,7 +22,6 @@ import java.util.Map;
 /**
  * A publisher that publishes to a specific queue and acknowledges another message
  * subsequent to publishing.
- * @since 7.5
  */
 public interface WorkerPublisher
 {
@@ -32,7 +31,6 @@ public interface WorkerPublisher
      * @param routingKey the routing key to publish the new message with
      * @param ackId the prior message id to acknowledge
      * @param headers key/value map of headers to add to the published message
-     * @since 10.6
      */
     void handlePublish(byte[] data, String routingKey, long ackId, Map<String, Object> headers);
 }

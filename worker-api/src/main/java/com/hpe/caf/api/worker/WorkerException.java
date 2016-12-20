@@ -18,7 +18,6 @@ package com.hpe.caf.api.worker;
 
 /**
  * Thrown by classes related to Worker when a request cannot be handled.
- * @since 1.0
  */
 public class WorkerException extends Exception
 {

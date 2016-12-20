@@ -25,7 +25,6 @@ import javax.validation.constraints.NotNull;
 /**
  * The generic task message class to be serialised from or to a queue.
  * This will contain the serialised worker-specific data inside.
- * @since 6.0
  */
 public final class TaskMessage
 {

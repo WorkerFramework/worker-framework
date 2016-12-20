@@ -35,7 +35,6 @@ import java.util.stream.Collectors;
  * A RabbitMQ publisher that uses a ConfirmListener, sending data as plain text with headers.
  * Messages that cannot be published at all cause a rejection of the input message (task) that
  * triggered this published response.
- * @since 7.5
  */
 public class WorkerPublisherImpl implements WorkerPublisher
 {
@@ -54,7 +53,6 @@ public class WorkerPublisherImpl implements WorkerPublisher
      * @param events the event queue of the consumer to ack/reject on
      * @param listener the listener callback that accepts ack/nack publisher confirms from the broker
      * @throws IOException if the channel cannot have confirmations enabled
-     * @since 10.7
      */
     public WorkerPublisherImpl(Channel ch, RabbitMetricsReporter metrics, BlockingQueue<Event<QueueConsumer>> events, WorkerConfirmListener listener)
         throws IOException

@@ -29,7 +29,6 @@ import java.util.Objects;
 
 /**
  * An implementation of a DataSource that uses a Worker DataStore and a CAF Codec.
- * @since 9.0
  */
 public class DataStoreSource extends DataSource
 {

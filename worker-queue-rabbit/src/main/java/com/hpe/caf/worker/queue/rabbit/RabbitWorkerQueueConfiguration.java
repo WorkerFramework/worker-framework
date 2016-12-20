@@ -28,7 +28,6 @@ import javax.validation.constraints.Size;
 
 /**
  * Configuration for the worker-queue-rabbit module.
- * @since 7.5
  */
 @Configuration
 public class RabbitWorkerQueueConfiguration
@@ -56,12 +55,10 @@ public class RabbitWorkerQueueConfiguration
     private String inputQueue;
     /**
      * The queue to put redelivered messages on. If this null, the inputQueue will be used.
-     * @since 10.6
      */
     private String retryQueue;
     /**
      * The queue to put rejected messages on.
-     * @since 10.6
      */
     @Deprecated
     @NotNull
@@ -70,7 +67,6 @@ public class RabbitWorkerQueueConfiguration
     /**
      * The maximum number of times for redelivered messages to be retried before moving them to the rejectedQueue.
      * This does not include messages explicitly rejected by the Worker at delivery time.
-     * @since 10.6
      */
     @Min(1)
     private int retryLimit;

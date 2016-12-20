@@ -49,7 +49,6 @@ import java.util.concurrent.TimeoutException;
  * queue) where redelivered messages get republished to, and the rejected queue which is where messages that
  * could not be handled are put. There are an unlimited number of possible output queues as defined by the
  * Worker's response. All published messages use RabbitMQ confirmations.
- * @since 7.5
  */
 public final class RabbitWorkerQueue implements ManagedWorkerQueue
 {

@@ -23,7 +23,6 @@ import com.hpe.caf.api.ConfigurationSource;
 /**
  * The responsibility of a WorkerFactory is to provide a mechanism to generate new Worker
  * objects and specify how many simultaneous workers should be running.
- * @since 5.0
  */
 public interface WorkerFactoryProvider
 {

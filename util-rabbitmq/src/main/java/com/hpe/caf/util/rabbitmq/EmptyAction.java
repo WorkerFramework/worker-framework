@@ -18,7 +18,6 @@ package com.hpe.caf.util.rabbitmq;
 
 /**
  * Possible actions to perform when a queue is empty for a RabbitMQ queue.
- * @since 1.0
  */
 public enum EmptyAction
 {

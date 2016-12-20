@@ -18,7 +18,6 @@ package com.hpe.caf.util.rabbitmq;
 
 /**
  * Possible states of durability for a RabbitMQ queue.
- * @since 1.0
  */
 public enum Durability
 {

@@ -18,7 +18,6 @@ package com.hpe.caf.util.rabbitmq;
 
 /**
  * A message reject Event for a Consumer.
- * @since 1.0
  */
 public class ConsumerRejectEvent implements Event<QueueConsumer>
 {

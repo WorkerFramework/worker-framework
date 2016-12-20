@@ -26,7 +26,6 @@ import java.util.Objects;
 
 /**
  * Builder pattern class to create queues with parameters and properties.
- * @since 2.0
  */
 public class QueueCreator
 {

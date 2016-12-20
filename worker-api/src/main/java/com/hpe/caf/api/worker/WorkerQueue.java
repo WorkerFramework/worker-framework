@@ -20,7 +20,6 @@ import java.util.Map;
 
 /**
  * A general representation of a queue for the purposes of a worker service.
- * @since 9.0
  */
 public interface WorkerQueue
 {

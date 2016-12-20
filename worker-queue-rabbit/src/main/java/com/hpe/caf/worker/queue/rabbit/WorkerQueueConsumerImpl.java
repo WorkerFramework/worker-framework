@@ -43,7 +43,6 @@ import java.util.concurrent.BlockingQueue;
  * This QueueConsumer hands off messages to worker-core upon delivery assuming the message is not marked 'redelivered'.
  * Redelivered messages are republished to the retry queue with an incremented retry count.
  * Redelivered messages that have exceeded the retry count are republished to the rejected queue.
- * @since 7.5
  */
 public class WorkerQueueConsumerImpl implements QueueConsumer
 {

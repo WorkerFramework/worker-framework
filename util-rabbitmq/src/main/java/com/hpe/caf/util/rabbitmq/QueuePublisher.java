@@ -18,7 +18,6 @@ package com.hpe.caf.util.rabbitmq;
 
 /**
  * Simplest possible RabbitMQ publishing API
- * @since 1.0
  */
 public interface QueuePublisher
 {

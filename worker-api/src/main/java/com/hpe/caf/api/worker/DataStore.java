@@ -23,7 +23,6 @@ import java.nio.file.Path;
 /**
  * A representation of a generic data store, for reading and writing data
  * typically used by workers in the course of their computation.
- * @since 9.0
  */
 public interface DataStore
 {
@@ -33,7 +32,6 @@ public interface DataStore
      * Delete asset identified by reference
      * @param reference a complete reference to be interpreted by the DataStore implementation
      * @throws DataStoreException if data store cannot service the request
-     * @since 11.0
      */
     void delete(String reference)
        throws DataStoreException;
@@ -53,7 +51,6 @@ public interface DataStore
      * @param reference a complete reference to be interpreted by the DataStore implementation
      * @return the size in bytes of the data being referred to
      * @throws DataStoreException if the data store cannot service the request
-     * @since 10.0
      */
     long size(String reference)
         throws DataStoreException;
@@ -67,7 +64,6 @@ public interface DataStore
      * @param partialReference the partial reference, which the data will be stored relative to
      * @return absolute reference to the stored data, which can be used to retrieve
      * @throws DataStoreException if the data store cannot service the request
-     * @since 10.0
      */
     String store(InputStream dataStream, String partialReference)
         throws DataStoreException;
@@ -80,7 +76,6 @@ public interface DataStore
      * @param partialReference the partial reference, which the data will be stored relative to
      * @return absolute reference to the stored data, which can be used to retrieve
      * @throws DataStoreException if the data store cannot service the request
-     * @since 10.0
      */
     String store(byte[] data, String partialReference)
         throws DataStoreException;
@@ -93,7 +88,6 @@ public interface DataStore
      * @param partialReference the partial reference, which the data will be stored relative to
      * @return absolute reference to the stored data, which can be used to retrieve
      * @throws DataStoreException if the data store cannot service the request
-     * @since 10.0
      */
     String store(Path dataPath, String partialReference)
         throws DataStoreException;

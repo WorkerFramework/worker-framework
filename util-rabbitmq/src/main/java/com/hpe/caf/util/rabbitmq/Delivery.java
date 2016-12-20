@@ -25,7 +25,6 @@ import java.util.Objects;
 
 /**
  * Structure that contains data and metadata from a RabbitMQ queue delivery.
- * @since 1.0
  */
 public class Delivery
 {
@@ -39,7 +38,6 @@ public class Delivery
      * @param env the RabbitMQ message envelope
      * @param data the RabbitMQ message body
      * @param headers the string-mapped key/value headers
-     * @since 2.0
      */
     public Delivery(Envelope env, byte[] data, Map<String, Object> headers)
     {
@@ -80,7 +78,6 @@ public class Delivery
 
     /**
      * @return headers for the message
-     * @since 2.0
      */
     public Map<String, Object> getHeaders()
     {

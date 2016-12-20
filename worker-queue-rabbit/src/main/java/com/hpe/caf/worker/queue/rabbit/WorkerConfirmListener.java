@@ -37,7 +37,6 @@ import java.util.stream.Collectors;
 
 /**
  * Ack incoming task messages when the outgoing response has been confirmed by the RabbitMQ broker.
- * @since 10.7
  */
 class WorkerConfirmListener implements ConfirmListener
 {

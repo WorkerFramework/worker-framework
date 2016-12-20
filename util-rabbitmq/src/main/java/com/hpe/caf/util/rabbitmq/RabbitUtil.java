@@ -34,7 +34,6 @@ import java.util.concurrent.TimeoutException;
 
 /**
  * Utility wrapper methods for interacting with RabbitMQ.
- * @since 1.0
  */
 public final class RabbitUtil
 {
@@ -147,7 +146,6 @@ public final class RabbitUtil
      * @param act the empty action setting of the queue
      * @param queueProps the queue properties map
      * @throws IOException if the queue already exists AND the parameter settings do not match the existing queue
-     * @since 2.0
      */
     public static void declareQueue(Channel channel, String queueName, Durability dur, Exclusivity excl, EmptyAction act, Map<String, Object> queueProps)
         throws IOException
