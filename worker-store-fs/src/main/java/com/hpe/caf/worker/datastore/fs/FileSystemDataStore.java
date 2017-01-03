@@ -209,7 +209,7 @@ public class FileSystemDataStore implements ManagedDataStore
     {
         Path p;
         if ( partialReference != null && !partialReference.isEmpty() ) {
-            p = verifyReference(partialReference);
+            p = verifyReference(validateReference(partialReference));
             if ( !Files.exists(p) ) {
                 Files.createDirectories(p);
             }
@@ -217,6 +217,22 @@ public class FileSystemDataStore implements ManagedDataStore
             p = dataStorePath;
         }
         return p.resolve(UUID.randomUUID().toString());
+    }
+
+
+    /**
+     * Prevents the use of data store references containing the backslash character.
+     * @param reference the data store reference to be validated
+     * @return the supplied reference, if valid
+     * @throws DataStoreException if the supplied reference is invalid
+     */
+    private String validateReference(final String reference)
+        throws DataStoreException
+    {
+        if ( reference.contains("\\") ) {
+            throw new DataStoreException("Invalid reference - contains the backslash character");
+        }
+        return reference;
     }
 
 
