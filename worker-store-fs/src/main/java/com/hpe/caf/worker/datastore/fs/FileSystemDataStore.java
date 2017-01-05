@@ -77,9 +77,19 @@ public class FileSystemDataStore implements ManagedDataStore
 
     @Override
     public void delete(String reference) throws DataStoreException {
-        // no-op
         // Not throwing not supported exception to avoid breaking things. FS store will be retired.
+        Objects.requireNonNull(reference);
+
+        Path path = FileSystems.getDefault().getPath(dataStorePath.toString(),reference);
+
+        try {
+            boolean success = Files.deleteIfExists(path);
+            LOG.debug("File deleted: ", success);
+        } catch (IOException | SecurityException e) {
+            LOG.error("File could not be deleted: ", e);
+        }
     }
+
 
     /**
      * {@inheritDoc}
