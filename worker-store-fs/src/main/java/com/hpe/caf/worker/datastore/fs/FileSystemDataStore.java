@@ -74,7 +74,11 @@ public class FileSystemDataStore implements ManagedDataStore
         // nothing to do
     }
 
-
+    /**
+     * Delete a file if it exists.
+     * @param reference the file to be deleted.
+     * @throws DataStoreException if the reference cannot be accessed or deleted
+     */
     @Override
     public void delete(String reference) throws DataStoreException {
         // Not throwing not supported exception to avoid breaking things. FS store will be retired.
@@ -86,7 +90,8 @@ public class FileSystemDataStore implements ManagedDataStore
             boolean success = Files.deleteIfExists(path);
             LOG.debug("File deleted: ", success);
         } catch (IOException | SecurityException e) {
-            LOG.error("File could not be deleted: ", e);
+            errors.incrementAndGet();
+            throw new DataStoreException("Failed to delete reference", e);
         }
     }
 
