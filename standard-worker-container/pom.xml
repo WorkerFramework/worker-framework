@@ -80,9 +80,4 @@
         </profile>
     </profiles>
 
-    <ciManagement>
-        <system>hudson</system>
-        <url>http://cafbuilder.hpeswlab.net:8080/job/standard-worker-container/</url>
-    </ciManagement>
-
 </project>
