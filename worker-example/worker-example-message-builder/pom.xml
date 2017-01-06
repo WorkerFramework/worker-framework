@@ -77,7 +77,7 @@
         <repository>
             <id>cmbg-maven-releases</id>
             <name>Internal Releases</name>
-            <url>http://cbgmaven.hpeswlab.net//nexus/content/repositories/releases</url>
+            <url>http://cbgmaven.hpeswlab.net/nexus/content/repositories/releases</url>
         </repository>
         <snapshotRepository>
             <id>cmbg-maven-snapshots</id>
