@@ -45,7 +45,9 @@ public class WorkerResponse
      */
     public WorkerResponse(final String queue, final TaskStatus status, final byte[] data, final String msgType, final int version, final byte[] context)
     {
-        this.queueReference = queue;  // queueReference can be null for a dead end worker
+        this.queueReference = queue; // queueReference can be 'null' for a dead end worker and
+                                     // 'null' for a worker who does not send success messages to
+                                     // it's output queue
         this.taskStatus = Objects.requireNonNull(status);
         this.data = data;
         this.messageType = Objects.requireNonNull(msgType);

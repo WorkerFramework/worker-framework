@@ -391,8 +391,6 @@ final class WorkerCore
                     // If a worker is designed to output only error messages the targetQueue will be
                     // null for success messages and set to the workers output queue for error
                     // messages.
-                    
-                    // TODO (Greg) : Adding error only output functionality
                     workerQueue.acknowledgeTask(queueMsgId);
                 } else {
                     // **** Normal Worker ****                    
