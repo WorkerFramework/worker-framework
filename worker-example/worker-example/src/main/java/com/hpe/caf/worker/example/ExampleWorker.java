@@ -75,7 +75,7 @@ public class ExampleWorker extends AbstractWorker<ExampleWorkerTask, ExampleWork
      * @throws InvalidTaskException 
      */
     @Override
-    public WorkerResponse doWork() throws InterruptedException, TaskRejectedException, InvalidTaskException {
+    public WorkerResponse doWork() throws InterruptedException, TaskRejectedException {
         ExampleWorkerResult result = processFile();
         if(result.workerStatus == ExampleWorkerStatus.COMPLETED){
             return createSuccessResult(result);
