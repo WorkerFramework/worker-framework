@@ -23,14 +23,62 @@
     <artifactId>worker-framework-aggregator</artifactId>
     <version>1.2.0-SNAPSHOT</version>
     <packaging>pom</packaging>
-    <description>Builds Worker-Framework projects together</description>
+
+    <name>Worker Framework</name>
+    <description>Provides a foundation for building cross-platform, cloud-ready, distributed data-processing microservices.</description>
+    <url>https://workerframework.github.io/worker-framework/</url>
 
     <parent>
         <groupId>com.github.cafapi</groupId>
-        <artifactId>caf-parent</artifactId>
+        <artifactId>caf-common</artifactId>
         <version>1.2.0-SNAPSHOT</version>
         <relativePath />
     </parent>
+
+    <licenses>
+        <license>
+            <name>Apache License, Version 2.0</name>
+            <url>http://www.apache.org/licenses/LICENSE-2.0.txt</url>
+        </license>
+    </licenses>
+
+    <developers>
+        <developer>
+            <id>andyreidz</id>
+            <name>Andy Reid</name>
+            <email>andrew.reid@hpe.com</email>
+        </developer>
+        <developer>
+            <id>arogan92</id>
+            <name>Adam Rogan</name>
+            <email>adam.pau.rogan@hpe.com</email>
+        </developer>
+        <developer>
+            <id>dermot-hardy</id>
+            <name>Dermot Hardy</name>
+            <email>dermot.hardy@hpe.com</email>
+        </developer>
+        <developer>
+            <id>glucy</id>
+            <name>Gregory Lucy</name>
+            <email>gregory.lucy@hpe.com</email>
+        </developer>
+        <developer>
+            <id>kploch</id>
+            <name>Krzysztof Ploch</name>
+            <email>krzysztof.ploch@hpe.com</email>
+        </developer>
+        <developer>
+            <id>pcrookshpe</id>
+            <name>Philip Crooks</name>
+            <email>philip.crooks@hpe.com</email>
+        </developer>
+        <developer>
+            <id>zaramckeown</id>
+            <name>Zara McKeown</name>
+            <email>zara.mckeown@hpe.com</email>
+        </developer>
+    </developers>
 
     <modules>
         <module>worker-configs</module>
@@ -50,9 +98,10 @@
         <module>worker-archetype</module>
     </modules>
 
-    <ciManagement>
-        <system>hudson</system>
-        <url>http://cafbuilder.hpeswlab.net:8080/job/worker-framework/</url>
-    </ciManagement>
+    <scm>
+        <connection>scm:git:https://github.com/WorkerFramework/worker-framework.git</connection>
+        <developerConnection>scm:git:https://github.com/WorkerFramework/worker-framework.git</developerConnection>
+        <url>https://github.com/WorkerFramework/worker-framework</url>
+    </scm>
 
 </project>

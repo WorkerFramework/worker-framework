@@ -91,7 +91,6 @@ public class TestItemStore {
      *
      * @param id the id
      * @return the test item
-     * @throws Exception the exception
      */
     public TestItem find(String id) {
         synchronized (items) {
