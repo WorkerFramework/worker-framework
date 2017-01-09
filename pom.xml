@@ -89,13 +89,13 @@
         <module>worker-core</module>
         <module>worker-queue-rabbit</module>
         <module>worker-store-cs</module>
-        <module>worker-store-s3</module>
         <module>worker-store-fs</module>
         <module>worker-testing-util</module>
         <module>worker-testing-integration</module>
         <module>worker-framework</module>
         <module>worker-example</module>
         <module>worker-archetype</module>
+        <module>worker-store-s3</module>
     </modules>
 
     <scm>
