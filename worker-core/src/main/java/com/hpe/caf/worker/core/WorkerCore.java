@@ -381,7 +381,7 @@ final class WorkerCore
             String targetQueue = getTargetQueue(queueMsgId, responseMessage, queue);
             checkForTrackingTermination(queueMsgId, targetQueue, responseMessage);
             try {
-                if (null == targetQueue || (errorsOnly && isNotAnError(responseMessage))) {
+                if (null == targetQueue) {
                     // **** Dead End Worker ****
                     // If targetQueue is not set i.e. is null for a dead end worker. There remains a
                     // need to acknowledge the message is processed and removed from the queue. This
