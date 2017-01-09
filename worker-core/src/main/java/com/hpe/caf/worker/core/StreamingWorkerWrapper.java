@@ -60,6 +60,9 @@ class StreamingWorkerWrapper implements Runnable
                 Timer.Context t = TIMER.time();
                 WorkerResponse response = worker.doWork();
                 t.stop();
+                // TODO (Greg) : At this point I need to have set the variable indicating success
+                // should not be replied in the response. This will need to be done inside a workers
+                // doWork method.
                 workerTask.setResponse(response);
             }
         } catch (TaskRejectedException e) {

@@ -64,6 +64,12 @@ public interface WorkerFactory extends HealthReporter
      * @return the number of threads to be used by the framework to host this Worker backend
      */
     int getWorkerThreads();
+    
+    
+    /**
+     * @return true if only errors should be placed on the workers output queue
+     */
+    boolean isErrorsOnly();
 
 
     /**

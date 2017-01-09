@@ -358,7 +358,7 @@ final class WorkerCore
         public CoreWorkerCallback(final Codec codec, final WorkerQueue queue, final WorkerStats stats)
         {
             this.codec = Objects.requireNonNull(codec);
-            this.workerQueue = queue;  // workerQueue can be null for a dead end worker
+            this.workerQueue = queue;  // workerQueue can be null for a dead end worker // TODO (Greg) : Check this, I believe this is not true. WorkerQueue can never be null.
             this.stats = Objects.requireNonNull(stats);
         }
 
@@ -370,7 +370,7 @@ final class WorkerCore
          * be serialised for any reason, we reject the task.
          */
         @Override
-        public void complete(final String queueMsgId, final String queue, final TaskMessage responseMessage)
+        public void complete(final String queueMsgId, final String queue, final TaskMessage responseMessage, final boolean errorsOnly)
         {
             Objects.requireNonNull(queueMsgId);
             Objects.requireNonNull(responseMessage);
@@ -381,11 +381,19 @@ final class WorkerCore
             String targetQueue = getTargetQueue(queueMsgId, responseMessage, queue);
             checkForTrackingTermination(queueMsgId, targetQueue, responseMessage);
             try {
-                if (null == targetQueue) {
+                if (null == targetQueue || (errorsOnly && isNotAnError(responseMessage))) {
                     // **** Dead End Worker ****
                     // If targetQueue is not set i.e. is null for a dead end worker. There remains a
                     // need to acknowledge the message is processed and removed from the queue. This
                     // is how a dead end worker will operate.
+                    
+                    // **** Error Only Worker ****
+                    // If errorsOnly is set to true and the message is not an error message only an
+                    // acknowledgement is required. No output message is required.
+                    // If errorsOnly is set to true and the message is an error message the error
+                    // messages will be placed on the worker's output queue.
+                    
+                    // TODO (Greg) : Adding error only output functionality
                     workerQueue.acknowledgeTask(queueMsgId);
                 } else {
                     // **** Normal Worker ****                    
@@ -495,5 +503,26 @@ final class WorkerCore
         private boolean isInputQueue(final String queue) {
             return queue == null ? false : queue.equalsIgnoreCase(workerQueue.getInputQueue());
         }
+
+
+        /**
+         * Checked the TaskStatus of a message and returns boolean true if the TaskStatus is
+         * NEW_TASK, RESULT_SUCCESS or RESULT_FAILURE
+         * 
+         * @param responseMessage
+         * @return boolean true if the TaskStatus is not NEW_TASK, RESULT_SUCCESS or RESULT_FAILURE
+         */
+        // TODO (Greg) : Check that the TaskMessage is not an error message
+        private boolean isNotAnError(TaskMessage responseMessage)
+        {
+            if (responseMessage.getTaskStatus().equals(TaskStatus.NEW_TASK)
+                    || responseMessage.getTaskStatus().equals(TaskStatus.RESULT_SUCCESS)
+                    || responseMessage.getTaskStatus().equals(TaskStatus.RESULT_FAILURE)) {
+                return true;
+            } else {
+                return false;
+            }
+        }
+        
     }
 }

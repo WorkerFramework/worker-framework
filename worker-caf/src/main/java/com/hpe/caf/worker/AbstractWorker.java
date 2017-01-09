@@ -113,21 +113,31 @@ public abstract class AbstractWorker<T,V> implements Worker
      */
     protected final WorkerResponse createSuccessResult(final V result)
     {
-        return createSuccessResult(result, null);
+        return createSuccessResult(result, false);
     }
 
-
+    /**
+     * Utility method for creating a WorkerReponse that represents a successful result.
+     * @param result the result from the Worker
+     * @return a WorkerResponse that represents a successful result containing the specified task-specific serialised message
+     */
+    protected final WorkerResponse createSuccessResult(final V result, final boolean errorsOnly)
+    {
+        return createSuccessResult(result, null, errorsOnly);
+    }
+    
     /**
      * Utility method for creating a WorkerReponse that represents a successful result with context data.
      * @param result the result from the Worker
      * @param context the context entries to add to the published message
      * @return a WorkerResponse that represents a successful result containing the specified task-specific serialised message
      */
-    protected final WorkerResponse createSuccessResult(final V result, final byte[] context)
+    protected final WorkerResponse createSuccessResult(final V result, final byte[] context, final boolean errorsOnly)
     {
         try {
             byte[] data = ( result != null ? getCodec().serialise(result) : new byte[]{} );
-            return new WorkerResponse(getResultQueue(), TaskStatus.RESULT_SUCCESS, data, getWorkerIdentifier(), getWorkerApiVersion(), context);
+            // TODO (Greg) : Calling the new Constructor for WorkerResponse accepting the errorsOnly param            
+            return new WorkerResponse(getResultQueue(), TaskStatus.RESULT_SUCCESS, data, getWorkerIdentifier(), getWorkerApiVersion(), context, errorsOnly);
         } catch (CodecException e) {
             throw new TaskFailedException("Failed to serialise result", e);
         }
@@ -141,21 +151,31 @@ public abstract class AbstractWorker<T,V> implements Worker
      */
     protected final WorkerResponse createFailureResult(final V result)
     {
-        return createFailureResult(result, null);
+        return createFailureResult(result, false);
     }
 
-
+    /**
+     * Utility method for creating a WorkerReponse that represents a failed result.
+     * @param result the result from the Worker
+     * @return a WorkerResponse that represents a failed result containing the specified task-specific serialised message
+     */
+    protected final WorkerResponse createFailureResult(final V result, boolean errorsOnly)
+    {
+        return createFailureResult(result, null, errorsOnly);
+    }
+    
     /**
      * Utility method for creating a WorkerReponse that represents a failed result with context data.
      * @param result the result from the Worker
      * @param context the context entries to add to the published message
      * @return a WorkerResponse that represents a failed result containing the specified task-specific serialised message
      */
-    protected final WorkerResponse createFailureResult(final V result, final byte[] context)
+    protected final WorkerResponse createFailureResult(final V result, final byte[] context, final boolean errorsOnly)
     {
         try {
             byte[] data = ( result != null ? getCodec().serialise(result) : new byte[]{} );
-            return new WorkerResponse(getResultQueue(), TaskStatus.RESULT_FAILURE, data, getWorkerIdentifier(), getWorkerApiVersion(), context);
+            // TODO (Greg) : Calling the new Constructor for WorkerResponse accepting the errorsOnly param
+            return new WorkerResponse(getResultQueue(), TaskStatus.RESULT_FAILURE, data, getWorkerIdentifier(), getWorkerApiVersion(), context, errorsOnly);
         } catch (CodecException e) {
             throw new TaskFailedException("Failed to serialise result", e);
         }

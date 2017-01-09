@@ -50,11 +50,17 @@ public class ExampleWorker extends AbstractWorker<ExampleWorkerTask, ExampleWork
      * Minimum size of result which should be wrapped as a datastore reference.
      */
     private final long resultSizeThreshold;
+    
+    /**
+     * Indicates if only errors should be placed on the worker's output queue.
+     */
+    private final boolean errorsOnly;
 
-    public ExampleWorker(final ExampleWorkerTask task, final DataStore dataStore, final String outputQueue, final Codec codec, final long resultSizeThreshold) throws InvalidTaskException {
+    public ExampleWorker(final ExampleWorkerTask task, final DataStore dataStore, final String outputQueue, final Codec codec, final long resultSizeThreshold, final boolean errorsOnly) throws InvalidTaskException {
         super(task, outputQueue, codec);
         this.dataStore = Objects.requireNonNull(dataStore);
         this.resultSizeThreshold = resultSizeThreshold;
+        this.errorsOnly = errorsOnly;
     }
 
     @Override
@@ -72,14 +78,15 @@ public class ExampleWorker extends AbstractWorker<ExampleWorkerTask, ExampleWork
      * @return WorkerResponse - a response from the operation.
      * @throws InterruptedException - if the task is interrupted.
      * @throws TaskRejectedException
+     * @throws InvalidTaskException 
      */
     @Override
-    public WorkerResponse doWork() throws InterruptedException, TaskRejectedException {
+    public WorkerResponse doWork() throws InterruptedException, TaskRejectedException, InvalidTaskException {
         ExampleWorkerResult result = processFile();
         if(result.workerStatus == ExampleWorkerStatus.COMPLETED){
-            return createSuccessResult(result);
+            return createSuccessResult(result, errorsOnly);
         } else {
-            return createFailureResult(result);
+            return createFailureResult(result, errorsOnly);
         }
     }
 

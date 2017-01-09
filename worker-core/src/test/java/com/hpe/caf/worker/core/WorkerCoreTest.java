@@ -264,7 +264,7 @@ public class WorkerCoreTest
             {
                 TestWorkerResult result = new TestWorkerResult();
                 result.setResultString(SUCCESS);
-                return createSuccessResult(result, SUCCESS.getBytes(StandardCharsets.UTF_8));
+                return createSuccessResult(result, SUCCESS.getBytes(StandardCharsets.UTF_8), false);
             }
 
 
