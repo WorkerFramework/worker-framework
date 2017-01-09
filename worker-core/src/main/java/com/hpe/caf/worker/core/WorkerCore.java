@@ -355,10 +355,10 @@ final class WorkerCore
         private final WorkerStats stats;
 
 
-        public CoreWorkerCallback(final Codec codec, final WorkerQueue queue, final WorkerStats stats)
+        public CoreWorkerCallback(final Codec codec, final WorkerQueue workerQueue, final WorkerStats stats)
         {
             this.codec = Objects.requireNonNull(codec);
-            this.workerQueue = queue;  // workerQueue can be null for a dead end worker
+            this.workerQueue = Objects.requireNonNull(workerQueue);
             this.stats = Objects.requireNonNull(stats);
         }
 
