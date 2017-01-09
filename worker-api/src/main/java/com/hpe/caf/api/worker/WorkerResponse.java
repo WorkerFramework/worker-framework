@@ -30,8 +30,7 @@ public class WorkerResponse
     private final String messageType;
     private final int apiVersion;
     private final byte[] context;
-    //TODO (Greg) : Adding errorsOnly flag to indicate that only errors should be placed on the worker's output queue    
-    private final boolean errorsOnly;
+
 
     /**
      * Create a new WorkerResponse.
@@ -52,33 +51,6 @@ public class WorkerResponse
         this.messageType = Objects.requireNonNull(msgType);
         this.apiVersion = version;
         this.context = context;
-        //TODO (Greg) : Setting errorsOnly to false if it is not passed to the constructor        
-        this.errorsOnly = false;
-    }
-    
-    /**
-     * Create a new WorkerResponse.
-     * 
-     * @param queue the reference to the queue that the response data should be put upon. This can
-     *        be null if no queue is provided
-     * @param status the status of the message the Worker is returning
-     * @param data the serialised task-specific data returned from the Worker internals
-     * @param msgType the task-specific message classifier
-     * @param version the task-specific message API version
-     * @param context the new context to add to the task message, can be null
-     * @param errorsOnly indicates that only error response data should be placed on the worker's
-     *        output queue. This can be null. Null will be treated as the equivalent to false.
-     */
-    //TODO (Greg) : Adding errorsOnly flag to indicate that only errors should be placed on the worker's output queue
-    public WorkerResponse(final String queue, final TaskStatus status, final byte[] data, final String msgType, final int version, final byte[] context, final boolean errorsOnly)
-    {
-        this.queueReference = queue;  // queueReference can be null for a dead end worker
-        this.taskStatus = Objects.requireNonNull(status);
-        this.data = data;
-        this.messageType = Objects.requireNonNull(msgType);
-        this.apiVersion = version;
-        this.context = context;
-        this.errorsOnly = errorsOnly;
     }
 
 
@@ -115,11 +87,5 @@ public class WorkerResponse
     public byte[] getContext()
     {
         return context;
-    }
-
-
-    public Boolean isErrorsOnly()
-    {
-        return errorsOnly;
     }
 }

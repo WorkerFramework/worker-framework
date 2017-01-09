@@ -61,7 +61,7 @@ public class ExampleWorkerTest {
         DataSource mockSource = new DataStoreSource(mockDataStore, codec);
 
         //Create the worker subject to testing
-        ExampleWorker worker = new ExampleWorker(createMockTask(ExampleWorkerAction.REVERSE), mockDataStore, "mockQueue", codec, 1024, false);
+        ExampleWorker worker = new ExampleWorker(createMockTask(ExampleWorkerAction.REVERSE), mockDataStore, "mockQueue", codec, 1024);
 
         //Test
         WorkerResponse response = worker.doWork();
@@ -94,7 +94,7 @@ public class ExampleWorkerTest {
         DataSource mockSource = new DataStoreSource(mockDataStore, codec);
 
         //Create the worker subject to testing
-        ExampleWorker worker = new ExampleWorker(createMockTask(ExampleWorkerAction.CAPITALISE), mockDataStore, "mockQueue", codec, 1024, false);
+        ExampleWorker worker = new ExampleWorker(createMockTask(ExampleWorkerAction.CAPITALISE), mockDataStore, "mockQueue", codec, 1024);
 
         //Test
         WorkerResponse response = worker.doWork();

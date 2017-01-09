@@ -141,7 +141,7 @@ public class WorkerExecutorTest
             Assert.assertEquals(ver, tm.getTaskApiVersion());
             return null;
         };
-        Mockito.doAnswer(a).when(callback).complete(Mockito.any(), Mockito.any(), Mockito.any(), Mockito.anyBoolean());
+        Mockito.doAnswer(a).when(callback).complete(Mockito.any(), Mockito.any(), Mockito.any());
         WorkerFactory factory = Mockito.mock(WorkerFactory.class);
         Mockito.when(factory.getInvalidTaskQueue()).thenReturn(invalidQueue);
         Mockito.when(factory.getWorker(Mockito.any())).thenThrow(
@@ -152,7 +152,7 @@ public class WorkerExecutorTest
         TaskMessage tm = new TaskMessage(taskId, classifier, ver, data, TaskStatus.NEW_TASK, new HashMap<>(), "queue");
         executor.executeTask(tm, msgId, false);
         Mockito.verify(factory, Mockito.times(1)).getWorker(Mockito.any());
-        Mockito.verify(callback, Mockito.times(1)).complete(Mockito.any(), Mockito.any(), Mockito.any(), Mockito.anyBoolean());
+        Mockito.verify(callback, Mockito.times(1)).complete(Mockito.any(), Mockito.any(), Mockito.any());
     }
 
 
@@ -179,7 +179,7 @@ public class WorkerExecutorTest
             Assert.assertEquals(ver, tm.getTaskApiVersion());
             return null;
         };
-        Mockito.doAnswer(a).when(callback).complete(Mockito.any(), Mockito.any(), Mockito.any(), Mockito.anyBoolean());
+        Mockito.doAnswer(a).when(callback).complete(Mockito.any(), Mockito.any(), Mockito.any());
         WorkerFactory factory = Mockito.mock(WorkerFactory.class);
         Mockito.when(factory.getInvalidTaskQueue()).thenReturn(invalidQueue);
         Mockito.when(factory.getWorker(Mockito.any())).thenThrow(
@@ -195,7 +195,7 @@ public class WorkerExecutorTest
 
         executor.executeTask(tm, msgId, false);
         Mockito.verify(factory, Mockito.times(1)).getWorker(Mockito.any());
-        Mockito.verify(callback, Mockito.times(1)).complete(Mockito.any(), Mockito.any(), Mockito.any(), Mockito.anyBoolean());
+        Mockito.verify(callback, Mockito.times(1)).complete(Mockito.any(), Mockito.any(), Mockito.any());
     }
 
 

@@ -47,11 +47,6 @@ public class ExampleWorkerConfiguration extends WorkerConfiguration {
     @Min(1024)
     @Max(100 * 1024)
     private int resultSizeThreshold;
-    
-    /**
-     * Indicates only errors should be placed on the worker's output queue.
-     */
-    private boolean errorsOnly;
 
     public ExampleWorkerConfiguration() { }
 
@@ -77,15 +72,5 @@ public class ExampleWorkerConfiguration extends WorkerConfiguration {
 
     public void setResultSizeThreshold(int resultSizeThreshold) {
         this.resultSizeThreshold = resultSizeThreshold;
-    }
-
-    public boolean isErrorsOnly()
-    {
-        return errorsOnly;
-    }
-
-    public void setErrorsOnly(boolean errorsOnly)
-    {
-        this.errorsOnly = errorsOnly;
     }
 }

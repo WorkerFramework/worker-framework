@@ -51,7 +51,7 @@ public class ExampleWorkerFactory extends AbstractWorkerFactory<ExampleWorkerCon
      */
     @Override
     public Worker createWorker(ExampleWorkerTask task) throws InvalidTaskException {
-        return new ExampleWorker(task, getDataStore(), getConfiguration().getOutputQueue(), getCodec(), getConfiguration().getResultSizeThreshold(), getConfiguration().isErrorsOnly());
+        return new ExampleWorker(task, getDataStore(), getConfiguration().getOutputQueue(), getCodec(), getConfiguration().getResultSizeThreshold());
     }
 
     @Override
@@ -62,11 +62,6 @@ public class ExampleWorkerFactory extends AbstractWorkerFactory<ExampleWorkerCon
     @Override
     public int getWorkerThreads() {
         return getConfiguration().getThreads();
-    }
-    
-    @Override 
-    public boolean isErrorsOnly() {
-        return getConfiguration().isErrorsOnly();
     }
 
     /**

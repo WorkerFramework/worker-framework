@@ -111,7 +111,7 @@ class WorkerTaskImpl implements WorkerTask
             new TaskSourceInfo(getWorkerName(responseMessageType), getWorkerVersion()));
 
         workerCallback.complete(
-            messageId, response.getQueueReference(), responseMessage, response.isErrorsOnly());
+            messageId, response.getQueueReference(), responseMessage);
     }
 
     @Override
@@ -149,7 +149,7 @@ class WorkerTaskImpl implements WorkerTask
             taskId, taskClassifier, taskApiVersion, taskData, taskStatus, context);
 
         workerCallback.complete(
-            messageId, workerFactory.getInvalidTaskQueue(), invalidResponse, workerFactory.isErrorsOnly());
+            messageId, workerFactory.getInvalidTaskQueue(), invalidResponse);
     }
 
     public Worker createWorker()

@@ -370,7 +370,7 @@ final class WorkerCore
          * be serialised for any reason, we reject the task.
          */
         @Override
-        public void complete(final String queueMsgId, final String queue, final TaskMessage responseMessage, final boolean errorsOnly)
+        public void complete(final String queueMsgId, final String queue, final TaskMessage responseMessage)
         {
             Objects.requireNonNull(queueMsgId);
             Objects.requireNonNull(responseMessage);
@@ -387,11 +387,10 @@ final class WorkerCore
                     // need to acknowledge the message is processed and removed from the queue. This
                     // is how a dead end worker will operate.
                     
-                    // **** Error Only Worker ****
-                    // If errorsOnly is set to true and the message is not an error message only an
-                    // acknowledgement is required. No output message is required.
-                    // If errorsOnly is set to true and the message is an error message the error
-                    // messages will be placed on the worker's output queue.
+                    // **** Only Output Errors Worker ****
+                    // If a worker is designed to output only error messages the targetQueue will be
+                    // null for success messages and set to the workers output queue for error
+                    // messages.
                     
                     // TODO (Greg) : Adding error only output functionality
                     workerQueue.acknowledgeTask(queueMsgId);
@@ -503,26 +502,5 @@ final class WorkerCore
         private boolean isInputQueue(final String queue) {
             return queue == null ? false : queue.equalsIgnoreCase(workerQueue.getInputQueue());
         }
-
-
-        /**
-         * Checked the TaskStatus of a message and returns boolean true if the TaskStatus is
-         * NEW_TASK, RESULT_SUCCESS or RESULT_FAILURE
-         * 
-         * @param responseMessage
-         * @return boolean true if the TaskStatus is not NEW_TASK, RESULT_SUCCESS or RESULT_FAILURE
-         */
-        // TODO (Greg) : Check that the TaskMessage is not an error message
-        private boolean isNotAnError(TaskMessage responseMessage)
-        {
-            if (responseMessage.getTaskStatus().equals(TaskStatus.NEW_TASK)
-                    || responseMessage.getTaskStatus().equals(TaskStatus.RESULT_SUCCESS)
-                    || responseMessage.getTaskStatus().equals(TaskStatus.RESULT_FAILURE)) {
-                return true;
-            } else {
-                return false;
-            }
-        }
-        
     }
 }

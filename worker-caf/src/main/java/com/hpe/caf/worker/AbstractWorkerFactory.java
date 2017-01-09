@@ -173,12 +173,6 @@ public abstract class AbstractWorkerFactory<C, T> implements WorkerFactory
 
 
     /**
-     * @return true if only errors should be placed on the workers output queue
-     */
-    public abstract boolean isErrorsOnly();
-
-
-    /**
      * Create a Worker instance with access to the tracking info associated with the task.
      * This method should be overridden by any Worker Factory creating Worker instances that need access to tracking info.
      * @param task the deserialised Worker task

@@ -28,9 +28,8 @@ public interface WorkerCallback
      * @param queueMsgId a queue-specific reference for the incoming message that generated the response
      * @param queue the queue to hold the message
      * @param responseMessage the message to put on the queue
-     * @param errorsOnly indicates on errors will be placed on a Worker's queue
      */
-    void complete(String queueMsgId, String queue, TaskMessage responseMessage, boolean errorsOnly);
+    void complete(String queueMsgId, String queue, TaskMessage responseMessage);
 
 
     /**

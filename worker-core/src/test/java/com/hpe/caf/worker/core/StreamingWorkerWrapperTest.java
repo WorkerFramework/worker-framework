@@ -161,7 +161,7 @@ public class StreamingWorkerWrapperTest
         Thread t = new Thread(wrapper);
         t.start();
         Thread.sleep(1000);
-        Mockito.verify(callback, Mockito.times(0)).complete(Mockito.any(), Mockito.any(), Mockito.any(), Mockito.anyBoolean());
+        Mockito.verify(callback, Mockito.times(0)).complete(Mockito.any(), Mockito.any(), Mockito.any());
     }
 
 
@@ -201,7 +201,7 @@ public class StreamingWorkerWrapperTest
             {
                 TestWorkerResult result = new TestWorkerResult();
                 result.setResultString(SUCCESS);
-                return createSuccessResult(result, SUCCESS_BYTES, false);
+                return createSuccessResult(result, SUCCESS_BYTES);
             }
 
 
@@ -258,7 +258,6 @@ public class StreamingWorkerWrapperTest
         private String queue;
         private String classifier;
         private Map<String, byte[]> context;
-        private Boolean errorsOnly;
         private final CountDownLatch latch;
 
 
@@ -269,7 +268,7 @@ public class StreamingWorkerWrapperTest
 
 
         @Override
-        public void complete(final String queueMsgId, final String queue, final TaskMessage tm, final boolean errorsOnly)
+        public void complete(final String queueMsgId, final String queue, final TaskMessage tm)
         {
             this.queueMsgId = queueMsgId;
             this.status = tm.getTaskStatus();
@@ -278,7 +277,6 @@ public class StreamingWorkerWrapperTest
             this.queue = queue;
             this.context = tm.getContext();
             this.classifier = tm.getTaskClassifier();
-            this.errorsOnly = errorsOnly;
             latch.countDown();
         }
 
