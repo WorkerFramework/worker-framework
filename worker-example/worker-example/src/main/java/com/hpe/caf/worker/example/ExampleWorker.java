@@ -72,7 +72,6 @@ public class ExampleWorker extends AbstractWorker<ExampleWorkerTask, ExampleWork
      * @return WorkerResponse - a response from the operation.
      * @throws InterruptedException - if the task is interrupted.
      * @throws TaskRejectedException
-     * @throws InvalidTaskException 
      */
     @Override
     public WorkerResponse doWork() throws InterruptedException, TaskRejectedException {
