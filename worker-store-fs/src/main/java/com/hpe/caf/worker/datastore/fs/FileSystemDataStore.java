@@ -141,7 +141,7 @@ public class FileSystemDataStore implements ManagedDataStore
         try {
             Path ref = getStoreReference(partialReference);
             Files.copy(dataStream, ref);
-            return dataStorePath.relativize(ref).toString();
+            return dataStorePath.relativize(ref).toString().replace('\\','/');
         } catch (IOException e) {
             errors.incrementAndGet();
             throw new DataStoreException("Failed to get output stream for store", e);
@@ -160,7 +160,7 @@ public class FileSystemDataStore implements ManagedDataStore
         try {
             Path ref = getStoreReference(partialReference);
             Files.write(ref, data);
-            return dataStorePath.relativize(ref).toString();
+            return dataStorePath.relativize(ref).toString().replace('\\','/');
         } catch (IOException e) {
             errors.incrementAndGet();
             throw new DataStoreException("Failed to get output stream for store", e);
@@ -179,7 +179,7 @@ public class FileSystemDataStore implements ManagedDataStore
         try {
             Path ref = getStoreReference(partialReference);
             Files.copy(dataPath, ref);
-            return dataStorePath.relativize(ref).toString();
+            return dataStorePath.relativize(ref).toString().replace('\\','/');
         } catch (IOException e) {
             errors.incrementAndGet();
             throw new DataStoreException("Failed to get output stream for store", e);
@@ -209,7 +209,7 @@ public class FileSystemDataStore implements ManagedDataStore
     {
         Path p;
         if ( partialReference != null && !partialReference.isEmpty() ) {
-            p = verifyReference(partialReference);
+            p = verifyReference(validateReference(partialReference));
             if ( !Files.exists(p) ) {
                 Files.createDirectories(p);
             }
@@ -217,6 +217,22 @@ public class FileSystemDataStore implements ManagedDataStore
             p = dataStorePath;
         }
         return p.resolve(UUID.randomUUID().toString());
+    }
+
+
+    /**
+     * Prevents the use of data store references containing the backslash character.
+     * @param reference the data store reference to be validated
+     * @return the supplied reference, if valid
+     * @throws DataStoreException if the supplied reference is invalid
+     */
+    private String validateReference(final String reference)
+        throws DataStoreException
+    {
+        if ( reference.contains("\\") ) {
+            throw new DataStoreException("Invalid reference - contains the backslash character");
+        }
+        return reference;
     }
 
 
