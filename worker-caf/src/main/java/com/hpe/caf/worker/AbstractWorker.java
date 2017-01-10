@@ -135,6 +135,34 @@ public abstract class AbstractWorker<T,V> implements Worker
 
 
     /**
+     * Utility method for creating a WorkerReponse that represents a successful result, but does not send a message to the output message.
+     * @param result the result from the Worker
+     * @return a WorkerResponse that represents a successful result containing the specified task-specific serialised message
+     */
+    protected final WorkerResponse createSuccessResultNoOutput(final V result)
+    {
+        return createSuccessResultNoOutput(result, null);
+    }
+
+
+    /**
+     * Utility method for creating a WorkerReponse that represents a successful result, but does not send a message to the output message.
+     * @param result the result from the Worker
+     * @param context the context entries to add to the published message
+     * @return a WorkerResponse that represents a successful result containing the specified task-specific serialised message
+     */
+    protected final WorkerResponse createSuccessResultNoOutput(final V result, final byte[] context)
+    {
+        try {
+            byte[] data = ( result != null ? getCodec().serialise(result) : new byte[]{} );            
+            return new WorkerResponse(null, TaskStatus.RESULT_SUCCESS, data, getWorkerIdentifier(), getWorkerApiVersion(), context);
+        } catch (CodecException e) {
+            throw new TaskFailedException("Failed to serialise result", e);
+        }
+    }
+
+
+    /**
      * Utility method for creating a WorkerReponse that represents a failed result.
      * @param result the result from the Worker
      * @return a WorkerResponse that represents a failed result containing the specified task-specific serialised message

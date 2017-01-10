@@ -386,6 +386,11 @@ final class WorkerCore
                     // If targetQueue is not set i.e. is null for a dead end worker. There remains a
                     // need to acknowledge the message is processed and removed from the queue. This
                     // is how a dead end worker will operate.
+                    
+                    // **** Only Output Errors Worker ****
+                    // If a worker is designed to output only error messages the targetQueue will be
+                    // null for success messages and set to the workers output queue for error
+                    // messages.
                     workerQueue.acknowledgeTask(queueMsgId);
                 } else {
                     // **** Normal Worker ****                    
