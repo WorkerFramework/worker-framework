@@ -26,10 +26,7 @@ import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.io.InputStream;
-import java.nio.file.FileSystems;
-import java.nio.file.Files;
-import java.nio.file.InvalidPathException;
-import java.nio.file.Path;
+import java.nio.file.*;
 import java.util.Objects;
 import java.util.UUID;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -46,6 +43,7 @@ public class FileSystemDataStore implements ManagedDataStore
     private final AtomicInteger errors = new AtomicInteger(0);
     private final AtomicInteger numRx = new AtomicInteger(0);
     private final AtomicInteger numTx = new AtomicInteger(0);
+    private final AtomicInteger numDx = new AtomicInteger(0);
     private final DataStoreMetricsReporter metrics = new FileSystemDataStoreMetricsReporter();
     private static final Logger LOG = LoggerFactory.getLogger(FileSystemDataStore.class);
 
@@ -74,12 +72,27 @@ public class FileSystemDataStore implements ManagedDataStore
         // nothing to do
     }
 
-
+    /**
+     * Delete a file.
+     * @param reference the file to be deleted.
+     * @throws DataStoreException if the reference cannot be accessed or deleted
+     */
     @Override
-    public void delete(String reference) throws DataStoreException {
-        // no-op
-        // Not throwing not supported exception to avoid breaking things. FS store will be retired.
+    public void delete(String reference)
+            throws DataStoreException
+    {
+        Objects.requireNonNull(reference);
+        try {
+            numDx.incrementAndGet();
+            LOG.debug("Deleting {}", reference);
+            Path path = FileSystems.getDefault().getPath(dataStorePath.toString(),reference);
+            Files.delete(path);
+        } catch ( IOException | SecurityException | InvalidPathException e) {
+            errors.incrementAndGet();
+            throw new DataStoreException("Failed to delete reference", e);
+        }
     }
+
 
     /**
      * {@inheritDoc}
@@ -274,11 +287,7 @@ public class FileSystemDataStore implements ManagedDataStore
     private class FileSystemDataStoreMetricsReporter implements DataStoreMetricsReporter
     {
         @Override
-        public int getDeleteRequests() {
-            // delete is not implemented for FS datastore but it'll be no-op instead of
-            // exception to avoid breaking things. FS datastore will be retired.
-            return 0;
-        }
+        public int getDeleteRequests() { return numDx.get(); }
 
         @Override
         public int getStoreRequests()

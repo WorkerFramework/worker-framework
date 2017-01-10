@@ -149,4 +149,33 @@ public class FileSystemDataStoreTest
         DataStore store = new FileSystemDataStore(conf);
         store.retrieve(UUID.randomUUID().toString());
     }
+
+
+    @Test
+    public void testDeleteWithValidReference()
+            throws DataStoreException, IOException
+    {
+        FileSystemDataStoreConfiguration conf = new FileSystemDataStoreConfiguration();
+        conf.setDataDir(temp.getAbsolutePath());
+        DataStore store = new FileSystemDataStore(conf);
+        final byte[] data = testData.getBytes(StandardCharsets.UTF_8);
+        String storeRef = store.store(data, "test");
+
+        Path p = Paths.get(temp.toString(),storeRef);
+
+        Assert.assertTrue(Files.exists(p));
+        store.delete(storeRef);
+        Assert.assertFalse(Files.exists(p));
+    }
+
+
+    @Test(expected = DataStoreException.class)
+    public void testDeleteWithInvalidReference()
+            throws DataStoreException
+    {
+        FileSystemDataStoreConfiguration conf = new FileSystemDataStoreConfiguration();
+        conf.setDataDir(temp.getAbsolutePath());
+        DataStore store = new FileSystemDataStore(conf);
+        store.delete(UUID.randomUUID().toString());
+    }
 }
