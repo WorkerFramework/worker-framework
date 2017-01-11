@@ -49,7 +49,7 @@
         </dependency>
     </dependencies>
 
-    <distributionManagement>
+    <!-- distributionManagement>
         <repository>
             <id>cmbg-maven-releases</id>
             <name>Internal Releases</name>
@@ -60,6 +60,6 @@
             <name>Internal Snapshots</name>
             <url>http://cbgmaven.hpeswlab.net/nexus/content/repositories/snapshots</url>
         </snapshotRepository>
-    </distributionManagement>
+    </distributionManagement -->
 
 </project>

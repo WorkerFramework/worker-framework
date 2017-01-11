@@ -28,7 +28,7 @@
         <maven.install.skip>true</maven.install.skip>
         <maven.deploy.skip>true</maven.deploy.skip>
         <docker.maven.version>0.13.6</docker.maven.version>
-        <${rootArtifactId}.container.name>rh7-artifactory.svs.hpeswlab.net:8443/caf/${rootArtifactId}:${project.version}</${rootArtifactId}.container.name>
+        <${rootArtifactId}.container.name>${rootArtifactId}:${project.version}</${rootArtifactId}.container.name>
         <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
         <test.data>${project.basedir}/test-data/input</test.data>
         <test.configs>${project.basedir}/test-configs</test.configs>
@@ -166,7 +166,7 @@
                         </goals>
                     </execution>
                     <!-- Push the docker image for the worker to Artifactory in deploy phase -->
-                    <execution>
+                    <!-- execution>
                         <id>upload-docker-container</id>
                         <phase>deploy</phase>
                         <goals>
@@ -175,7 +175,7 @@
                         <configuration>
                             <image>${rootArtifactId}</image>
                         </configuration>
-                    </execution>
+                    </execution -->
                 </executions>
                 <configuration>
                     <watchInterval>500</watchInterval>
