@@ -1,2 +1,2 @@
 DISABLE_AUTOTAGGING=true
-INDIVDUALLY_VERSIONED_POMS=worker-example/worker-example-container,worker-example/worker-example,worker-example/worker-example-message-builder,worker-example/worker-example-shared,worker-framework/tests,standard-worker-container,worker-archetype
+INDIVDUALLY_VERSIONED_POMS=worker-example/worker-example-container,worker-example/worker-example,worker-example/worker-example-message-builder,worker-example/worker-example-shared,worker-framework/tests,worker-archetype
