@@ -23,7 +23,7 @@
 
     <!-- Properties for the worker. -->
     <properties>
-        <caf.worker-framework.version>1.0.0-SNAPSHOT</caf.worker-framework.version>
+        <caf.worker-framework.version>1.2.0-SNAPSHOT</caf.worker-framework.version>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <maven.install.skip>true</maven.install.skip>
         <maven.deploy.skip>true</maven.deploy.skip>
@@ -165,17 +165,6 @@
                             <goal>stop</goal>
                         </goals>
                     </execution>
-                    <!-- Push the docker image for the worker to Artifactory in deploy phase -->
-                    <!-- execution>
-                        <id>upload-docker-container</id>
-                        <phase>deploy</phase>
-                        <goals>
-                            <goal>push</goal>
-                        </goals>
-                        <configuration>
-                            <image>${rootArtifactId}</image>
-                        </configuration>
-                    </execution -->
                 </executions>
                 <configuration>
                     <watchInterval>500</watchInterval>
