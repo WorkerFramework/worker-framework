@@ -1,7 +1,7 @@
-# worker-example [![Build Status](http://cafbuilder.hpswlabs.hp.com:8080/buildStatus/icon?job=worker-example)](http://cafbuilder.hpswlabs.hp.com:8080/job/worker-example)
+# worker-example
 
 This code includes an implementation of a simple example worker for the CAF Worker framework. It performs
-a text conversion on a text file based on an `Action` enumeration passed in from the [ExampleWorkerTask](https://github.hpe.com/caf/worker-example-shared/blob/develop/src/main/java/com/hpe/caf/worker/example/ExampleWorkerTask.java) class. It retrieves
+a text conversion on a text file based on an `Action` enumeration passed in from the [ExampleWorkerTask](https://github.com/WorkerFramework/worker-framework/blob/develop/worker-example/worker-example-shared/src/main/java/com/hpe/caf/worker/example/ExampleWorkerTask.java) class. It retrieves
 the text from a data source and returns a result message containing either a reference to the result in the `DataStore` or
 the result itself.
 
@@ -15,7 +15,7 @@ will then be made available either directly as a byte array or as a reference vi
 ## Configuration
 
 This Worker uses the standard `caf-api` system of `ConfigurationSource` only.
-The configuration class is [ExampleWorkerConfiguration](https://github.hpe.com/caf/worker-example/blob/develop/src/main/java/com/hpe/caf/worker/example/ExampleWorkerConfiguration.java), which has several options:
+The configuration class is [ExampleWorkerConfiguration](https://github.com/WorkerFramework/worker-framework/blob/develop/worker-example/worker-example/src/main/java/com/hpe/caf/worker/example/ExampleWorkerConfiguration.java), which has several options:
 
 - `workerVersion`: the version number of the worker
 - `outputQueue`: the name of the queue to put results upon
@@ -26,7 +26,7 @@ will be written to the DataStore rather than held in a byte array
 
 ## Input message (task) format
 
-The task class is [ExampleWorkerTask](https://github.hpe.com/caf/worker-example-shared/blob/develop/src/main/java/com/hpe/caf/worker/example/ExampleWorkerTask.java) and has the following entries:
+The task class is [ExampleWorkerTask](https://github.com/WorkerFramework/worker-framework/blob/develop/worker-example/worker-example-shared/src/main/java/com/hpe/caf/worker/example/ExampleWorkerTask.java) and has the following entries:
 
 - `sourceData` (required): a reference to the data accessible either directly
 or via the `DataStore`.
@@ -37,7 +37,7 @@ relative to which data will be stored.
 
 ## Output message (result) format
 
-The result class is [ExampleWorkerResult](https://github.hpe.com/caf/worker-example-shared/blob/develop/src/main/java/com/hpe/caf/worker/example/ExampleWorkerResult.java) and has the following entries:
+The result class is [ExampleWorkerResult](https://github.com/WorkerFramework/worker-framework/blob/develop/worker-example/worker-example-shared/src/main/java/com/hpe/caf/worker/example/ExampleWorkerResult.java) and has the following entries:
 
 - `workerStatus` (always present): processing result status. Any value other
 than `COMPLETED` means failure. Failure means other entries will not be set.
