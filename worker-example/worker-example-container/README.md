@@ -1,6 +1,6 @@
 # worker-example-container
 ---
-This is a docker container for the Example Worker. It consists of two sub modules, `build` and `test`. The `build` sub-module
+This is a docker container for the [Example Worker]https://github.com/WorkerFramework/worker-framework/tree/develop/worker-example/worker-example-container). It consists of two sub modules, `build` and `test`. The `build` sub-module
 is responsible for building the worker image and pushing it to docker. The example worker uses 'java:8' as a base image. The
 `test` sub-module is responsible for starting containers for the worker and RabbitMQ, assembling the configuration files in the
 test-configs folder, and running the integration tests.
