@@ -20,6 +20,12 @@
     <artifactId>${artifactId}</artifactId>
     <version>${version}</version>
     <packaging>pom</packaging>
+    
+    <parent>
+        <groupId>${groupId}</groupId>
+        <artifactId>${rootArtifactId}-aggregator</artifactId>
+        <version>${version}</version>
+    </parent>
 
     <!-- Properties for the worker. -->
     <properties>

@@ -19,6 +19,12 @@
     <groupId>${groupId}</groupId>
     <artifactId>${artifactId}</artifactId>
     <version>${version}</version>
+    
+    <parent>
+        <groupId>${groupId}</groupId>
+        <artifactId>${rootArtifactId}-aggregator</artifactId>
+        <version>${version}</version>
+    </parent>    
 
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>

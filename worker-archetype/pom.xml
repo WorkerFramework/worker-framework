@@ -24,6 +24,12 @@
     <version>1.2.0-SNAPSHOT</version>
     <packaging>maven-archetype</packaging>
 
+    <parent>
+        <groupId>com.github.workerframework</groupId>
+        <artifactId>worker-framework-aggregator</artifactId>
+        <version>1.2.0-SNAPSHOT</version>
+    </parent>
+
     <build>
         <extensions>
             <extension>
@@ -50,16 +56,4 @@
         </pluginManagement>
     </build>
 
-    <distributionManagement>
-        <repository>
-            <id>HPEreleases</id>
-            <name>Internal Releases</name>
-            <url>http://rh7-artifactory.svs.hpeswlab.net:8081/artifactory/libs-release-local</url>
-        </repository>
-        <snapshotRepository>
-            <id>HPEsnapshots</id>
-            <name>Internal Snapshots</name>
-            <url>http://rh7-artifactory.svs.hpeswlab.net:8081/artifactory/libs-snapshot-local</url>
-        </snapshotRepository>
-    </distributionManagement>
 </project>
