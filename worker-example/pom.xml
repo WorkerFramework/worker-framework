@@ -18,7 +18,24 @@
          xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
-    
+
+	<!-- The use of worker-framework-aggregator as a parent is not required 
+		for the Example Worker. Nor is it required for a clone of the Example Worker 
+		should a developer wish to create a new worker based upon the Example Worker. -->
+
+	<!-- However should a developer wish to create a new worker similar in structure 
+		to the Example Worker, it is recommended the developer generates a new project 
+		from the provided worker-archetype project under worker-framework. The worker-archetype 
+		project will provide a clean well structured starting point for a developer 
+		to create a new worker. -->
+
+	<!-- The worker-framework-aggregator parent is only used here to provide 
+		shared distribution management configuration for the Example Worker. A developer 
+		creating a new project will most likely wish to provide their own distribution 
+		management configuration or remove any distribution management configuration. 
+		Should a developer wish to provide distribution management configuration 
+		for their project they could place the configuration in this aggregator pom.xml 
+		or in each child pom.xml belong to their project. -->
     <parent>
         <groupId>com.github.workerframework</groupId>
         <artifactId>worker-framework-aggregator</artifactId>
