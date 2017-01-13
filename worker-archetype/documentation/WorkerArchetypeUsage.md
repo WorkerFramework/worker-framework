@@ -107,8 +107,7 @@ Generate the new Worker's Aggregator from the `worker-archetype` by following th
 - Specify the details of the 'worker-archetype'
 	- GroupId : com.github.workerframework
 	- ArtifactId : worker-archetype
-	- Version : 1.0.0
-	- Repository : https://oss.sonatype.org/content/repositories/releases
+	- Version : 1.2.0
 	- Click 'OK'
 - Select the added 'com.github.workerframework:worker-archetype' archetype > Click 'Next'
 - Enter GroupId, ArtifactId and Version of your Worker project > Click 'Next', e.g:
@@ -142,8 +141,7 @@ Generate the new Worker's Aggregator from the `worker-archetype` by following th
 - Specify the details of the 'worker-archetype'
 	- GroupId : com.github.workerframework
 	- ArtifactId : worker-archetype
-	- Version : 1.0.0
-	- Repository : https://oss.sonatype.org/content/repositories/releases
+	- Version : 1.2.0
 	- Click 'Next >'
 - Enter Project Name, Project Location, GroupId, Version and Package of your Worker Shared project, e.g:
 	- Project Name : worker-example
