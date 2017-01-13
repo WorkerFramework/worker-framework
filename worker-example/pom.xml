@@ -35,7 +35,7 @@
         management configuration or remove any distribution management configuration. 
         Should a developer wish to provide distribution management configuration 
         for their project they could place the configuration in this aggregator pom.xml 
-        or in each child pom.xml belong to their project. -->
+        or in each child pom.xml belonging to their project. -->
     <parent>
         <groupId>com.github.workerframework</groupId>
         <artifactId>worker-framework-aggregator</artifactId>
