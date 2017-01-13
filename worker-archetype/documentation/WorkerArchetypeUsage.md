@@ -2,8 +2,7 @@
 
 ## Prerequisites
 
-- Connection to Cambridge Maven Nexus [http://cbgmaven.hpeswlab.net/nexus/](http://cbgmaven.hpeswlab.net/nexus/) 
-	- If you do not have DNS resolution to Cambridge Maven Nexus you may be able to use the direct IP [http://16.26.25.50/nexus/](http://16.26.25.50/nexus/) in place of [http://cbgmaven.hpeswlab.net/nexus/](http://cbgmaven.hpeswlab.net/nexus/)
+- Internet connection
 - Maven
 - Docker VM
 - IntelliJ (Optional)
@@ -80,7 +79,7 @@ The Maven CLI offers developers the ability to generate projects from archetypes
 
 Generate the new Worker's Aggregator from the `worker-archetype` with the following Maven command:
 
-<pre>mvn archetype:generate -DarchetypeRepository=http://cbgmaven.hpeswlab.net/nexus/content/repositories/releases -DarchetypeVersion=1.0.0 -DarchetypeArtifactId=worker-archetype -DarchetypeGroupId=com.github.workerframework</pre>
+<pre>mvn archetype:generate -DarchetypeVersion=1.2.0 -DarchetypeArtifactId=worker-archetype -DarchetypeGroupId=com.github.workerframework</pre>
 
 The CLI will prompt you for artifactId, groupId, version (default suggestion is 1.0.0-SNAPSHOT), package (default suggestion is the groupId, you should however adjust this to include the worker's purpose) and workerName properties required for the new worker project. See Figure 1.
 
@@ -107,8 +106,7 @@ Generate the new Worker's Aggregator from the `worker-archetype` by following th
 - Specify the details of the 'worker-archetype'
 	- GroupId : com.github.workerframework
 	- ArtifactId : worker-archetype
-	- Version : 1.0.0
-	- Repository : http://cbgmaven.hpeswlab.net/nexus/content/repositories/releases
+	- Version : 1.2.0
 	- Click 'OK'
 - Select the added 'com.github.workerframework:worker-archetype' archetype > Click 'Next'
 - Enter GroupId, ArtifactId and Version of your Worker project > Click 'Next', e.g:
@@ -142,8 +140,7 @@ Generate the new Worker's Aggregator from the `worker-archetype` by following th
 - Specify the details of the 'worker-archetype'
 	- GroupId : com.github.workerframework
 	- ArtifactId : worker-archetype
-	- Version : 1.0.0
-	- Repository : http://cbgmaven.hpeswlab.net/nexus/content/repositories/releases
+	- Version : 1.2.0
 	- Click 'Next >'
 - Enter Project Name, Project Location, GroupId, Version and Package of your Worker Shared project, e.g:
 	- Project Name : worker-example
