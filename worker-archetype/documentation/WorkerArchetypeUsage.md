@@ -3,7 +3,6 @@
 ## Prerequisites
 
 - Internet connection
-    - Connectivity OSS Sonatype [https://oss.sonatype.org/content/repositories/](https://oss.sonatype.org/content/repositories/) 
 - Maven
 - Docker VM
 - IntelliJ (Optional)
