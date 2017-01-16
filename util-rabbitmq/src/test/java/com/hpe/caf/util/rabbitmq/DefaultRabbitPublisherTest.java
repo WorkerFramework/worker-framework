@@ -16,17 +16,19 @@
 package com.hpe.caf.util.rabbitmq;
 
 
-import com.rabbitmq.client.Channel;
-import org.junit.Assert;
-import org.junit.Test;
-import org.mockito.Mockito;
-
 import java.nio.charset.StandardCharsets;
 import java.util.Objects;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.TimeUnit;
+
+import org.mockito.Mockito;
+import org.testng.Assert;
+import org.testng.annotations.Test;
+import org.testng.internal.junit.ArrayAsserts;
+
+import com.rabbitmq.client.Channel;
 
 
 public class DefaultRabbitPublisherTest
@@ -47,7 +49,7 @@ public class DefaultRabbitPublisherTest
         t.start();
         events.offer(new PublisherPublishEvent(DATA));
         Assert.assertTrue(latch.await(DefaultRabbitPublisher.POLL_PERIOD, TimeUnit.MILLISECONDS));
-        Assert.assertArrayEquals(DATA, impl.getLastData());
+        ArrayAsserts.assertArrayEquals(DATA, impl.getLastData());
         pub.shutdown();
     }
 

@@ -16,11 +16,6 @@
 package com.hpe.caf.util.rabbitmq;
 
 
-import com.rabbitmq.client.Envelope;
-import org.junit.Assert;
-import org.junit.Test;
-import org.mockito.Mockito;
-
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.util.Objects;
@@ -28,6 +23,13 @@ import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.TimeUnit;
+
+import org.mockito.Mockito;
+import org.testng.Assert;
+import org.testng.annotations.Test;
+import org.testng.internal.junit.ArrayAsserts;
+
+import com.rabbitmq.client.Envelope;
 
 
 public class DefaultRabbitConsumerTest
@@ -47,7 +49,7 @@ public class DefaultRabbitConsumerTest
         Mockito.when(env.getDeliveryTag()).thenReturn(tag);
         events.offer(new ConsumerDeliverEvent(new Delivery(env, body)));
         Assert.assertTrue(latch.await(DefaultRabbitConsumer.POLL_PERIOD, TimeUnit.MILLISECONDS));
-        Assert.assertArrayEquals(body, impl.getLastDelivery().getMessageData());
+        ArrayAsserts.assertArrayEquals(body, impl.getLastDelivery().getMessageData());
     }
 
 

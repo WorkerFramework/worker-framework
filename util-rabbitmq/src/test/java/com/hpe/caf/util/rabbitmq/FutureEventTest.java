@@ -16,8 +16,8 @@
 package com.hpe.caf.util.rabbitmq;
 
 
-import org.junit.Assert;
-import org.junit.Test;
+import org.testng.Assert;
+import org.testng.annotations.Test;
 import org.mockito.Mockito;
 
 import java.util.concurrent.ExecutionException;
@@ -35,11 +35,11 @@ public class FutureEventTest
         TestInterface it = Mockito.mock(TestInterface.class);
         Mockito.when(it.test()).thenReturn(true);
         t.handleEvent(it);
-        Assert.assertEquals(true, t.ask().get(1, TimeUnit.SECONDS));
+        Assert.assertTrue(t.ask().get(1, TimeUnit.SECONDS));
     }
 
 
-    @Test(expected = TimeoutException.class)
+    @Test(expectedExceptions = TimeoutException.class)
     public void testAskTimeout()
         throws InterruptedException, ExecutionException, TimeoutException
     {
@@ -48,7 +48,7 @@ public class FutureEventTest
     }
 
 
-    @Test(expected = ExecutionException.class)
+    @Test(expectedExceptions = ExecutionException.class)
     public void testException()
         throws Exception
     {
