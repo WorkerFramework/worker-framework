@@ -48,12 +48,6 @@
     <packaging>pom</packaging>
     <description>Builds Worker-Example projects together from a handy top level project.</description> 
 
-    <!-- This aggregator project is only used for building so we don't want to install or deploy the POM -->
-    <properties>
-        <maven.install.skip>true</maven.install.skip>
-        <skipNexusStagingDeployMojo>true</skipNexusStagingDeployMojo>
-    </properties>
-
     <modules>
         <module>worker-example</module>
         <module>worker-example-shared</module>
