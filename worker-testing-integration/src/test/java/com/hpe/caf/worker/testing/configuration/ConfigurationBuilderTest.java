@@ -15,12 +15,10 @@
 
 package com.hpe.caf.worker.testing.configuration;
 
-import org.junit.Test;
+import org.testng.Assert;
+import org.testng.annotations.Test;
 
 import java.util.UUID;
-
-import static org.hamcrest.CoreMatchers.equalTo;
-import static org.junit.Assert.assertThat;
 
 /**
  * Created by ploch on 04/12/2015.
@@ -47,14 +45,14 @@ public class ConfigurationBuilderTest {
                 .setDocumentFolder("test-data/documents")
                 .build();
 
-        assertThat(settings.getDataStoreSettings().getDataStoreContainerId(), equalTo(containerId));
-        assertThat(settings.getDataStoreSettings().isUseDataStore(), equalTo(true));
-        assertThat(settings.getTestDataSettings().getTestCaseFolder(), equalTo("test-data"));
-        assertThat(settings.getTestDataSettings().getDocumentFolder(), equalTo("test-data/documents"));
-        assertThat(settings.getWorkerClasses().getWorkerTaskClass(), equalTo(TestTask.class));
-        assertThat(settings.getWorkerClasses().getWorkerResultClass(), equalTo(TestResult.class));
-        assertThat(settings.getTestCaseClasses().getInputClass(), equalTo(TestIn.class));
-        assertThat(settings.getTestCaseClasses().getExpectationClass(), equalTo(TestExpectation.class));
+        Assert.assertEquals(settings.getDataStoreSettings().getDataStoreContainerId(), containerId);
+        Assert.assertEquals(settings.getDataStoreSettings().isUseDataStore(), true);
+        Assert.assertEquals(settings.getTestDataSettings().getTestCaseFolder(), "test-data");
+        Assert.assertEquals(settings.getTestDataSettings().getDocumentFolder(), "test-data/documents");
+        Assert.assertEquals(settings.getWorkerClasses().getWorkerTaskClass(), TestTask.class);
+        Assert.assertEquals(settings.getWorkerClasses().getWorkerResultClass(), TestResult.class);
+        Assert.assertEquals(settings.getTestCaseClasses().getInputClass(), TestIn.class);
+        Assert.assertEquals(settings.getTestCaseClasses().getExpectationClass(), TestExpectation.class);
 
     }
 

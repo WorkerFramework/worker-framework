@@ -20,8 +20,8 @@ import com.hpe.caf.util.rabbitmq.ConsumerAckEvent;
 import com.hpe.caf.util.rabbitmq.ConsumerRejectEvent;
 import com.hpe.caf.util.rabbitmq.Event;
 import com.hpe.caf.util.rabbitmq.QueueConsumer;
-import org.junit.Assert;
-import org.junit.Test;
+import org.testng.Assert;
+import org.testng.annotations.Test;
 
 import java.io.IOException;
 import java.util.concurrent.BlockingQueue;
@@ -46,7 +46,7 @@ public class WorkerConfirmListenerTest
     }
 
 
-    @Test(expected = IllegalStateException.class)
+    @Test(expectedExceptions = IllegalStateException.class)
     public void testAckSingleMissing()
         throws IOException, InterruptedException
     {
@@ -56,7 +56,7 @@ public class WorkerConfirmListenerTest
     }
 
 
-    @Test(expected = IllegalStateException.class)
+    @Test(expectedExceptions = IllegalStateException.class)
     public void testAckSingleDuplicate()
         throws IOException, InterruptedException
     {
@@ -87,7 +87,7 @@ public class WorkerConfirmListenerTest
     }
 
 
-    @Test(expected = IllegalStateException.class)
+    @Test(expectedExceptions = IllegalStateException.class)
     public void testNackSingleMissing()
         throws IOException, InterruptedException
     {
@@ -97,7 +97,7 @@ public class WorkerConfirmListenerTest
     }
 
 
-    @Test(expected = IllegalStateException.class)
+    @Test(expectedExceptions = IllegalStateException.class)
     public void testNackSingleDuplicate()
         throws IOException, InterruptedException
     {
@@ -141,7 +141,7 @@ public class WorkerConfirmListenerTest
     }
 
 
-    @Test(expected = IllegalStateException.class)
+    @Test(expectedExceptions = IllegalStateException.class)
     public void testAckMultipleDuplicate()
         throws IOException, InterruptedException
     {
@@ -191,7 +191,7 @@ public class WorkerConfirmListenerTest
     }
 
 
-    @Test(expected = IllegalStateException.class)
+    @Test(expectedExceptions = IllegalStateException.class)
     public void testNackMultipleDuplicate()
         throws IOException, InterruptedException
     {
@@ -232,7 +232,7 @@ public class WorkerConfirmListenerTest
     }
 
 
-    @Test(expected = IllegalStateException.class)
+    @Test(expectedExceptions = IllegalStateException.class)
     public void testDuplicateRegister()
     {
         BlockingQueue<Event<QueueConsumer>> q = new LinkedBlockingQueue<>();

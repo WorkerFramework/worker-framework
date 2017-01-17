@@ -20,14 +20,13 @@ import com.amazonaws.util.IOUtils;
 import com.hpe.caf.api.worker.DataStoreException;
 import com.hpe.caf.worker.datastore.s3.S3DataStore;
 import com.hpe.caf.worker.datastore.s3.S3DataStoreConfiguration;
-import org.junit.Assert;
-import org.junit.Ignore;
-import org.junit.Test;
+import org.testng.Assert;
+import org.testng.annotations.Test;
 
 import java.io.IOException;
 import java.io.InputStream;
 
-@Ignore
+@Test(enabled=false)
 public class S3DataStoreTestIT
 {
     S3DataStoreConfiguration s3DataStoreConfiguration;
@@ -49,7 +48,7 @@ public class S3DataStoreTestIT
 
 
     /** Test that a complete reference string can be processed **/
-    @Test
+    @Test(enabled=false)
     public void testEverything()
         throws DataStoreException, IOException
     {

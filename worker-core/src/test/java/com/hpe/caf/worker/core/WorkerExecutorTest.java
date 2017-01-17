@@ -17,8 +17,8 @@ package com.hpe.caf.worker.core;
 
 import com.hpe.caf.api.worker.*;
 import com.hpe.caf.naming.ServicePath;
-import org.junit.Assert;
-import org.junit.Test;
+import org.testng.Assert;
+import org.testng.annotations.Test;
 import org.mockito.Mockito;
 import org.mockito.invocation.InvocationOnMock;
 import org.mockito.stubbing.Answer;
@@ -101,7 +101,7 @@ public class WorkerExecutorTest
     }
 
 
-    @Test(expected = TaskRejectedException.class)
+    @Test(expectedExceptions = TaskRejectedException.class)
     public void testRejectTask()
         throws InvalidNameException, InvalidTaskException, TaskRejectedException
     {
@@ -199,7 +199,7 @@ public class WorkerExecutorTest
     }
 
 
-    @Test(expected = TaskRejectedException.class)
+    @Test(expectedExceptions = TaskRejectedException.class)
     public void testQueueFull()
         throws InvalidNameException, InvalidTaskException, TaskRejectedException
     {

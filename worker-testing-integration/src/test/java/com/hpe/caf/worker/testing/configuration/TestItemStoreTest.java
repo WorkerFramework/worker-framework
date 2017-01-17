@@ -17,9 +17,9 @@ package com.hpe.caf.worker.testing.configuration;
 
 import com.hpe.caf.worker.testing.TestItem;
 import com.hpe.caf.worker.testing.TestItemStore;
-import org.junit.Assert;
-import org.junit.Before;
-import org.junit.Test;
+import org.testng.Assert;
+import org.testng.annotations.BeforeMethod;
+import org.testng.annotations.Test;
 
 import java.util.HashMap;
 
@@ -33,7 +33,7 @@ public class TestItemStoreTest {
     private final String inputIdToGet = "18d1aaab-a9c4-4698-acc2-f65a822ff718";
     private final String inputIdNotToGet = "fb414821-06b8-4686-9cea-eeb3d0904628";
 
-    @Before
+    @BeforeMethod
     public void prepareTest() {
         // First TestItem to add to the Map
         TestItem testItem1 = new TestItem("ThreeFilesZip\\input\\ThreeFiles.zip", null, null);

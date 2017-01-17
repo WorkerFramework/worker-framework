@@ -24,9 +24,10 @@ import com.hpe.caf.api.worker.*;
 import com.hpe.caf.codec.JsonCodec;
 import com.hpe.caf.naming.ServicePath;
 import com.hpe.caf.worker.AbstractWorker;
-import org.junit.Assert;
-import org.junit.Test;
+import org.testng.Assert;
+import org.testng.annotations.Test;
 import org.mockito.Mockito;
+import org.testng.internal.junit.ArrayAsserts;
 
 import javax.naming.InvalidNameException;
 import java.nio.charset.StandardCharsets;
@@ -77,7 +78,7 @@ public class WorkerCoreTest
         TestWorkerResult workerResult = codec.deserialise(taskMessage.getTaskData(), TestWorkerResult.class);
         Assert.assertEquals(SUCCESS, workerResult.getResultString());
         Assert.assertTrue(taskMessage.getContext().containsKey(path.toString()));
-        Assert.assertArrayEquals(SUCCESS.getBytes(StandardCharsets.UTF_8), taskMessage.getContext().get(path.toString()));
+        ArrayAsserts.assertArrayEquals(SUCCESS.getBytes(StandardCharsets.UTF_8), taskMessage.getContext().get(path.toString()));
     }
 
 
@@ -112,12 +113,12 @@ public class WorkerCoreTest
         TestWorkerResult workerResult = codec.deserialise(taskMessage.getTaskData(), TestWorkerResult.class);
         Assert.assertEquals(SUCCESS, workerResult.getResultString());
         Assert.assertTrue(taskMessage.getContext().containsKey(path.toString()));
-        Assert.assertArrayEquals(SUCCESS.getBytes(StandardCharsets.UTF_8), taskMessage.getContext().get(path.toString()));
+        ArrayAsserts.assertArrayEquals(SUCCESS.getBytes(StandardCharsets.UTF_8), taskMessage.getContext().get(path.toString()));
     }
 
 
     /** Test WorkerCore when the input message doesn't even decode to a TaskWrapper - should be an InvalidTaskException **/
-    @Test(expected = InvalidTaskException.class)
+    @Test(expectedExceptions = InvalidTaskException.class)
     public void testInvalidWrapper()
         throws InvalidNameException, WorkerException, QueueException, CodecException
     {
@@ -165,7 +166,7 @@ public class WorkerCoreTest
         Assert.assertEquals(WORKER_NAME, taskMessage.getTaskClassifier());
         Assert.assertEquals(WORKER_API_VER, taskMessage.getTaskApiVersion());
         Assert.assertTrue(taskMessage.getContext().containsKey(testContext));
-        Assert.assertArrayEquals(testContextData, taskMessage.getContext().get(testContext));
+        ArrayAsserts.assertArrayEquals(testContextData, taskMessage.getContext().get(testContext));
         Assert.assertEquals(QUEUE_OUT, queue.getLastQueue());
     }
 

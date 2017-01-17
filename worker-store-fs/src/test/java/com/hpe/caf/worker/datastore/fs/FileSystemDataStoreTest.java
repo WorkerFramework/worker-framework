@@ -20,11 +20,11 @@ import com.hpe.caf.api.ConfigurationException;
 import com.hpe.caf.api.worker.DataStore;
 import com.hpe.caf.api.worker.DataStoreException;
 import com.hpe.caf.api.worker.ReferenceNotFoundException;
-import org.junit.Assert;
-import org.junit.Before;
-import org.junit.Rule;
-import org.junit.Test;
-import org.junit.rules.TemporaryFolder;
+import org.testng.annotations.AfterMethod;
+import org.testng.annotations.BeforeMethod;
+import org.testng.annotations.Test;
+import org.testng.Assert;
+import org.testng.internal.junit.ArrayAsserts;
 
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
@@ -40,19 +40,32 @@ import java.util.UUID;
 
 public class FileSystemDataStoreTest
 {
-    @Rule
-    public TemporaryFolder tempDir = new TemporaryFolder();
     private File temp;
     private final String testData = "test123";
 
 
-    @Before
+    @BeforeMethod
     public void setUp()
-        throws IOException
     {
-        temp = tempDir.newFolder();
+        temp = new File("temp");
+    }
+    
+    @AfterMethod
+    public void tearDown() 
+    {
+        deleteDir(temp);
     }
 
+    private void deleteDir(File file)
+    {
+        File[] contents = file.listFiles();
+        if (contents != null) {
+            for (File f : contents) {
+                deleteDir(f);
+            }
+        }
+        file.delete();
+    } 
 
     @Test
     public void testDataStoreStream()
@@ -70,7 +83,7 @@ public class FileSystemDataStoreTest
                     bos.write(data, 0, nRead);
                 }
                 bos.flush();
-                Assert.assertArrayEquals(data, bos.toByteArray());
+                ArrayAsserts.assertArrayEquals(data, bos.toByteArray());
             }
         }
         Assert.assertEquals(testData.length(), store.size(storeRef));
@@ -93,7 +106,7 @@ public class FileSystemDataStoreTest
                     bos.write(data, 0, nRead);
                 }
                 bos.flush();
-                Assert.assertArrayEquals(data, bos.toByteArray());
+                ArrayAsserts.assertArrayEquals(data, bos.toByteArray());
             }
         }
         Assert.assertEquals(testData.length(), store.size(storeRef));
@@ -118,14 +131,14 @@ public class FileSystemDataStoreTest
                     bos.write(data, 0, nRead);
                 }
                 bos.flush();
-                Assert.assertArrayEquals(data, bos.toByteArray());
+                ArrayAsserts.assertArrayEquals(data, bos.toByteArray());
             }
         }
         Assert.assertEquals(testData.length(), store.size(storeRef));
     }
 
 
-    @Test(expected = DataStoreException.class)
+    @Test(expectedExceptions = DataStoreException.class)
     public void testInvalidReference()
         throws DataStoreException, IOException
     {
@@ -140,7 +153,7 @@ public class FileSystemDataStoreTest
     }
 
 
-    @Test(expected = ReferenceNotFoundException.class)
+    @Test(expectedExceptions = ReferenceNotFoundException.class)
     public void testMissingRef()
         throws DataStoreException
     {
@@ -169,7 +182,7 @@ public class FileSystemDataStoreTest
     }
 
 
-    @Test(expected = DataStoreException.class)
+    @Test(expectedExceptions = DataStoreException.class)
     public void testDeleteWithInvalidReference()
             throws DataStoreException
     {

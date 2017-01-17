@@ -17,10 +17,10 @@ package com.hpe.caf.worker.core;
 
 
 import com.google.common.io.CharStreams;
-import junit.framework.Assert;
-import org.junit.Before;
-import org.junit.BeforeClass;
-import org.junit.Test;
+import org.testng.Assert;
+import org.testng.annotations.BeforeMethod;
+import org.testng.annotations.BeforeClass;
+import org.testng.annotations.Test;
 import org.mockito.Mockito;
 
 import java.io.IOException;
@@ -51,7 +51,7 @@ public class JobStatusResponseCacheTest {
     }
 
 
-    @Before
+    @BeforeMethod
     public void perTestSetup() throws Exception {
         mockRequestHeaders = new HashMap<>();
 

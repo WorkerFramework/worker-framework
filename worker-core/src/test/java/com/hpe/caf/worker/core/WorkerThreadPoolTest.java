@@ -18,7 +18,7 @@ package com.hpe.caf.worker.core;
 import com.hpe.caf.api.worker.InvalidTaskException;
 import com.hpe.caf.api.worker.TaskRejectedException;
 import com.hpe.caf.api.worker.Worker;
-import org.junit.Test;
+import org.testng.annotations.Test;
 
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;

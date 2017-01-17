@@ -21,8 +21,8 @@ import com.hpe.caf.util.rabbitmq.Event;
 import com.hpe.caf.util.rabbitmq.EventPoller;
 import com.hpe.caf.util.rabbitmq.QueueConsumer;
 import com.rabbitmq.client.Channel;
-import org.junit.Assert;
-import org.junit.Test;
+import org.testng.Assert;
+import org.testng.annotations.Test;
 import org.mockito.Mockito;
 import org.mockito.stubbing.Answer;
 

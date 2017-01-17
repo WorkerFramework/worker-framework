@@ -20,7 +20,7 @@ package ${package};
 
 import com.hpe.caf.api.worker.TaskMessage;
 import com.hpe.caf.worker.testing.*;
-import org.junit.Assert;
+import org.testng.Assert;
 
 /**
  * Processor for validation of the worker result, compares with the expected result in the test item.

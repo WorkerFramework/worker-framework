@@ -24,13 +24,11 @@ import com.hpe.caf.util.rabbitmq.*;
 import com.rabbitmq.client.AMQP;
 import com.rabbitmq.client.Channel;
 import com.rabbitmq.client.Envelope;
-import org.junit.Assert;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.testng.Assert;
+import org.testng.annotations.Test;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.mockito.Mockito;
-import org.mockito.runners.MockitoJUnitRunner;
 import org.mockito.stubbing.Answer;
 
 import java.io.IOException;
@@ -44,7 +42,6 @@ import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.TimeUnit;
 
 
-@RunWith(MockitoJUnitRunner.class)
 public class RabbitWorkerQueueConsumerTest
 {
     private String testQueue = "testQueue";
@@ -54,8 +51,7 @@ public class RabbitWorkerQueueConsumerTest
     private Envelope redeliveredEnv = new Envelope(id, true, "", testQueue);
     private String retryKey = "retry";
     private RabbitMetricsReporter metrics = new RabbitMetricsReporter();
-    @Mock
-    private TaskCallback mockCallback;
+    private TaskCallback mockCallback = Mockito.mock(TaskCallback.class);
 
 
     /**

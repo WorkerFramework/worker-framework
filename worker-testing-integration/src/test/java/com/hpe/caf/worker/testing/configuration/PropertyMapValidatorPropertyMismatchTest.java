@@ -20,8 +20,8 @@ import com.hpe.caf.worker.testing.TestConfiguration;
 import com.hpe.caf.worker.testing.validation.PropertyMap;
 import com.hpe.caf.worker.testing.validation.PropertyMapValidator;
 import com.hpe.caf.worker.testing.validation.ValidatorFactory;
-import org.junit.Assert;
-import org.junit.Test;
+import org.testng.Assert;
+import org.testng.annotations.Test;
 
 /**
  * Created by Christopher Comac on 15/09/2016.
@@ -52,7 +52,7 @@ public class PropertyMapValidatorPropertyMismatchTest {
         try {
             propertyMapValidator.process(mapOfActualProps, mapOfExpectedProps);
         } catch (AssertionError error) {
-            Assert.assertTrue("Should throw AssertionError on actual to expected property mismatch", error.getMessage().contains("unknownField3"));
+            Assert.assertTrue(error.getMessage().contains("unknownField3"), "Should throw AssertionError on actual to expected property mismatch");
             propertyMismatch = true;
         }
 

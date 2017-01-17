@@ -21,9 +21,10 @@ import com.hpe.caf.api.worker.*;
 import com.hpe.caf.codec.JsonCodec;
 import com.hpe.caf.naming.ServicePath;
 import com.hpe.caf.worker.AbstractWorker;
-import org.junit.Assert;
-import org.junit.Test;
+import org.testng.Assert;
+import org.testng.annotations.Test;
 import org.mockito.Mockito;
+import org.testng.internal.junit.ArrayAsserts;
 
 import javax.naming.InvalidNameException;
 import java.nio.charset.StandardCharsets;
@@ -72,7 +73,7 @@ public class StreamingWorkerWrapperTest
         Assert.assertEquals(TASK_ID, callback.getTaskId());
         Assert.assertEquals(QUEUE_OUT, callback.getQueue());
         Assert.assertTrue(callback.getContext().containsKey(path.toString()));
-        Assert.assertArrayEquals(SUCCESS_BYTES, callback.getContext().get(path.toString()));
+        ArrayAsserts.assertArrayEquals(SUCCESS_BYTES, callback.getContext().get(path.toString()));
     }
 
 
@@ -97,7 +98,7 @@ public class StreamingWorkerWrapperTest
         latch.await(5, TimeUnit.SECONDS);
         Assert.assertEquals(queueMsgId, callback.getQueueMsgId());
         Assert.assertEquals(TaskStatus.NEW_TASK, callback.getStatus());
-        Assert.assertArrayEquals(SUCCESS_BYTES, callback.getResultData());
+        ArrayAsserts.assertArrayEquals(SUCCESS_BYTES, callback.getResultData());
         Assert.assertEquals(TASK_ID, callback.getTaskId());
         Assert.assertEquals(REDIRECT_NAME, callback.getClassifier());
         Assert.assertEquals(QUEUE_REDIRECT, callback.getQueue());
@@ -134,7 +135,7 @@ public class StreamingWorkerWrapperTest
         Assert.assertEquals(TASK_ID, callback.getTaskId());
         Assert.assertEquals(QUEUE_OUT, callback.getQueue());
         Assert.assertTrue(callback.getContext().containsKey(path.toString()));
-        Assert.assertArrayEquals(SUCCESS_BYTES, callback.getContext().get(path.toString()));
+        ArrayAsserts.assertArrayEquals(SUCCESS_BYTES, callback.getContext().get(path.toString()));
         String s = codec.deserialise(callback.getResultData(), String.class);
         Assert.assertEquals(true, s.contains("class com.hpe.caf.api.worker.TaskFailedException whoops"));
     }

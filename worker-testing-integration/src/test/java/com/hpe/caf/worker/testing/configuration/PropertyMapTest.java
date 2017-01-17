@@ -17,14 +17,11 @@ package com.hpe.caf.worker.testing.configuration;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.hpe.caf.worker.testing.validation.PropertyMap;
-import org.junit.Test;
+import org.testng.Assert;
+import org.testng.annotations.Test;
 
 import java.time.Instant;
 import java.util.*;
-
-import static org.hamcrest.CoreMatchers.*;
-import static org.junit.matchers.JUnitMatchers.*;
-import static org.junit.Assert.assertThat;
 
 /**
  * Created by ploch on 05/12/2015.
@@ -211,9 +208,9 @@ public class PropertyMapTest {
 
         PropertyMap propertyMap = convertToMap(testClass);
 
-        assertThat(propertyMap.isComplexProperty("complexProp1"), equalTo(true));
-        assertThat(propertyMap.isComplexProperty("complexProp2"), equalTo(true));
-        assertThat(propertyMap.isComplexProperty("simpleProp1"), equalTo(false));
+        Assert.assertEquals(propertyMap.isComplexProperty("complexProp1"), true);
+        Assert.assertEquals(propertyMap.isComplexProperty("complexProp2"), true);
+        Assert.assertEquals(propertyMap.isComplexProperty("simpleProp1"), false);
     }
 
     @Test
@@ -222,12 +219,12 @@ public class PropertyMapTest {
         PropertyMap propertyMap = convertToMap(testClass);
 
         PropertyMap complexProp1 = propertyMap.getComplex("complexProp1");
-        assertThat(complexProp1.get("stringProp1"), equalTo(testClass.getComplexProp1().getStringProp1()));
-        assertThat(complexProp1.get("intProp1"), equalTo(testClass.getComplexProp1().getIntProp1()));
+        Assert.assertEquals(complexProp1.get("stringProp1"), testClass.getComplexProp1().getStringProp1());
+        Assert.assertEquals(complexProp1.get("intProp1"), testClass.getComplexProp1().getIntProp1());
 
         PropertyMap complexProp2 = propertyMap.getComplex("complexProp2");
-        assertThat(complexProp2.get("dateProp1"), equalTo(testClass.getComplexProp2().getDateProp1().getTime()));
-        assertThat(complexProp2.get("boolProp1"), equalTo(testClass.getComplexProp2().isBoolProp1()));
+        Assert.assertEquals(complexProp2.get("dateProp1"), testClass.getComplexProp2().getDateProp1().getTime());
+        Assert.assertEquals(complexProp2.get("boolProp1"), testClass.getComplexProp2().isBoolProp1());
 
     }
 

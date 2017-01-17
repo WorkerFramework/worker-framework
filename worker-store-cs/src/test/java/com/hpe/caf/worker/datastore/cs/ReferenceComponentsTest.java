@@ -16,8 +16,8 @@
 package com.hpe.caf.worker.datastore.cs;
 
 import org.apache.http.NameValuePair;
-import org.junit.Assert;
-import org.junit.Test;
+import org.testng.Assert;
+import org.testng.annotations.Test;
 
 import java.util.List;
 

@@ -17,8 +17,8 @@ package com.hpe.caf.worker.datastore.cs;
 
 
 import com.hpe.caf.api.worker.DataStoreException;
-import org.junit.Assert;
-import org.junit.Test;
+import org.testng.Assert;
+import org.testng.annotations.Test;
 
 import java.util.UUID;
 
@@ -56,7 +56,7 @@ public class CafStoreReferenceTest
 
 
     /** Check that a non-UUID container is invalid **/
-    @Test(expected = DataStoreException.class)
+    @Test(expectedExceptions = DataStoreException.class)
     public void testInvalidContainer()
         throws DataStoreException
     {
@@ -67,7 +67,7 @@ public class CafStoreReferenceTest
 
 
     /** Check that a non-UUID asset is invalid **/
-    @Test(expected = DataStoreException.class)
+    @Test(expectedExceptions = DataStoreException.class)
     public void testInvalidAsset()
         throws DataStoreException
     {
@@ -78,7 +78,7 @@ public class CafStoreReferenceTest
 
 
     /** Test that a reference is not generated from too many components **/
-    @Test(expected = DataStoreException.class)
+    @Test(expectedExceptions = DataStoreException.class)
     public void testInvalidReference()
         throws DataStoreException
     {
@@ -89,7 +89,7 @@ public class CafStoreReferenceTest
 
 
     /** Test that a reference is not generated when components are missing **/
-    @Test(expected = DataStoreException.class)
+    @Test(expectedExceptions = DataStoreException.class)
     public void testMissingReference()
         throws DataStoreException
     {

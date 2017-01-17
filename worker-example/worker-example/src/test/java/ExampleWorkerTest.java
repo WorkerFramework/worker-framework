@@ -26,24 +26,21 @@ import com.hpe.caf.worker.example.ExampleWorkerAction;
 import com.hpe.caf.worker.example.ExampleWorkerResult;
 import com.hpe.caf.worker.example.ExampleWorkerTask;
 import org.apache.commons.io.IOUtils;
-import org.junit.Assert;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.testng.Assert;
+import org.testng.annotations.Test;
 import org.mockito.Mockito;
-import org.mockito.runners.MockitoJUnitRunner;
 
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.StringWriter;
 
 /**
- * JUnit test to verify the worker correctly performs the desired action.
+ * Unit test to verify the worker correctly performs the desired action.
  */
-@RunWith(MockitoJUnitRunner.class)
 public class ExampleWorkerTest {
 
     /**
-     * JUnit test for testing the worker's reverse action.
+     * Unit test for testing the worker's reverse action.
      * Create a referenced data object,
      * Create a worker task using the referenced data object,
      * Create a worker using the factory provider,
@@ -76,7 +73,7 @@ public class ExampleWorkerTest {
     }
 
     /**
-     * JUnit test for testing the worker's capitalise action.
+     * Unit test for testing the worker's capitalise action.
      * Create a referenced data object,
      * Create a worker task using the referenced data object,
      * Create a worker using the factory provider,

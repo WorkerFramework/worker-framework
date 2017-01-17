@@ -26,9 +26,9 @@ import com.hpe.caf.storage.sdk.model.DelegationTicket;
 import com.hpe.caf.storage.sdk.model.DelegationTicketInfo;
 import com.hpe.caf.storage.sdk.model.requests.CreateDelegationTicketRequest;
 import org.apache.commons.io.IOUtils;
-import org.junit.Before;
-import org.junit.Ignore;
-import org.junit.Test;
+import org.testng.Assert;
+import org.testng.annotations.BeforeMethod;
+import org.testng.annotations.Test;
 import org.mockito.Mockito;
 
 import java.io.ByteArrayInputStream;
@@ -41,9 +41,6 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
-
-import static junit.framework.Assert.assertEquals;
-import static junit.framework.Assert.assertTrue;
 
 public class StorageServiceDataStoreTestIT {
 
@@ -78,7 +75,7 @@ public class StorageServiceDataStoreTestIT {
     String delegationTicketValue;
     String reference;
 
-    @Before
+    @BeforeMethod
     public void setUp() throws Exception {
         StorageServiceDataStoreConfiguration storageServiceDataStoreConfiguration = new StorageServiceDataStoreConfiguration();
         storageServiceDataStoreConfiguration.setServerName(SERVER_NAME);
@@ -203,7 +200,7 @@ public class StorageServiceDataStoreTestIT {
             cafStoreReference = cafStoreReference + "?delegationTicket=" + URLEncoder.encode(delegationTicketValue,"UTF-8");
             validateReferenceContainsExpected(cafStoreReference, TEST_STRING3);
             long size = storageServiceDataStore.size(cafStoreReference);
-            assertTrue(size > 0);
+            Assert.assertTrue(size > 0);
         } catch (final Exception e) {
 
             System.err.println("Unexpected error: " + e.getMessage());
@@ -243,7 +240,7 @@ public class StorageServiceDataStoreTestIT {
     void validateReferenceContainsExpected(String reference, String testString) throws DataStoreException, IOException {
         InputStream inputStream = storageServiceDataStore.retrieve(reference);
         String storedString = IOUtils.toString(inputStream, StandardCharsets.UTF_8);
-        assertEquals(testString, storedString);
+        Assert.assertEquals(testString, storedString);
     }
 
     /**
