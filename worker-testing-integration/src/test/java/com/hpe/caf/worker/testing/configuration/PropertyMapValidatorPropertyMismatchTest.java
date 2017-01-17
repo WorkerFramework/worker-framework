@@ -23,9 +23,6 @@ import com.hpe.caf.worker.testing.validation.ValidatorFactory;
 import org.testng.Assert;
 import org.testng.annotations.Test;
 
-/**
- * Created by Christopher Comac on 15/09/2016.
- */
 public class PropertyMapValidatorPropertyMismatchTest {
 
     /* This tests that the PropertyMapValidator throws an AssertionError if there is a new property within the actual

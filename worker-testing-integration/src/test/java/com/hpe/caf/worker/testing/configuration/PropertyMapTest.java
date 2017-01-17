@@ -23,9 +23,6 @@ import org.testng.annotations.Test;
 import java.time.Instant;
 import java.util.*;
 
-/**
- * Created by ploch on 05/12/2015.
- */
 public class PropertyMapTest {
 
     public class TestClassSimple1 {

@@ -20,9 +20,6 @@ import org.testng.annotations.Test;
 
 import java.util.UUID;
 
-/**
- * Created by ploch on 04/12/2015.
- */
 public class ConfigurationBuilderTest {
 
     class TestIn{}

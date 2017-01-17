@@ -23,9 +23,6 @@ import org.testng.annotations.Test;
 
 import java.util.HashMap;
 
-/**
- * Created by comac on 05/05/2016.
- */
 public class TestItemStoreTest {
 
     private final TestItemStore testItemStore = new TestItemStore(null);
