@@ -31,7 +31,7 @@
     <parent>
         <groupId>com.github.cafapi</groupId>
         <artifactId>caf-common</artifactId>
-        <version>1.3.0-110</version>
+        <version>1.4.0-111</version>
         <relativePath />
     </parent>
 
