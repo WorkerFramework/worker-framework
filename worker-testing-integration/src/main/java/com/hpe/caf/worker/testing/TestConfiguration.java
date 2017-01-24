@@ -71,8 +71,6 @@ public class TestConfiguration<TWorkerTask, TWorkerResult, TInput, TExpectation>
             inputFolder = expectedFolder;
         }
 
-        // Normalize the path of the source files base folder
-        testSourcefileBaseFolder = testSourcefileBaseFolder == null ? null : testSourcefileBaseFolder.replace("\\", "/");
         // If the test source file base directory has not been supplied, set the string to be blank
         if (Strings.isNullOrEmpty(testSourcefileBaseFolder)) {
             testSourcefileBaseFolder = "";
