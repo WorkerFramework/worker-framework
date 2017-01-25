@@ -129,27 +129,32 @@ class WorkerTaskImpl implements WorkerTask
         ensureSingleResponse();
 
         LOG.error("Task data is invalid for {}, returning status {}",
-            taskMessage.getTaskId(), TaskStatus.INVALID_TASK, invalidTaskException);
+                taskMessage.getTaskId(), TaskStatus.INVALID_TASK, invalidTaskException);
 
-        final String taskId =
-            MoreObjects.firstNonNull(taskMessage.getTaskId(), "");
-        final String taskClassifier =
-            MoreObjects.firstNonNull(taskMessage.getTaskClassifier(), "");
-        final int taskApiVersion = taskMessage.getTaskApiVersion();
+        final String taskClassifier = MoreObjects.firstNonNull(taskMessage.getTaskClassifier(), "");
+
         final String invalidTaskExceptionMessage = invalidTaskException.getMessage();
         final byte[] taskData =
                 invalidTaskExceptionMessage == null ?
                         new byte[] {} : invalidTaskExceptionMessage.getBytes(StandardCharsets.UTF_8);
-        final TaskStatus taskStatus = TaskStatus.INVALID_TASK;
+
         final Map<String, byte[]> context = MoreObjects.firstNonNull(
-            taskMessage.getContext(),
-            Collections.<String, byte[]>emptyMap());
+                taskMessage.getContext(),
+                Collections.<String, byte[]>emptyMap());
 
         final TaskMessage invalidResponse = new TaskMessage(
-            taskId, taskClassifier, taskApiVersion, taskData, taskStatus, context);
+                MoreObjects.firstNonNull(taskMessage.getTaskId(), ""),
+                taskClassifier,
+                taskMessage.getTaskApiVersion(),
+                taskData,
+                TaskStatus.INVALID_TASK,
+                context,
+                workerFactory.getInvalidTaskQueue(),
+                taskMessage.getTracking(),
+                new TaskSourceInfo(getWorkerName(taskClassifier), getWorkerVersion()));
 
         workerCallback.complete(
-            messageId, workerFactory.getInvalidTaskQueue(), invalidResponse);
+                messageId, workerFactory.getInvalidTaskQueue(), invalidResponse);
     }
 
     public Worker createWorker()
