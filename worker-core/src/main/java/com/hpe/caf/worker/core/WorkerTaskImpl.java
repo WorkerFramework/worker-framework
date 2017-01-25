@@ -131,6 +131,8 @@ class WorkerTaskImpl implements WorkerTask
         LOG.error("Task data is invalid for {}, returning status {}",
                 taskMessage.getTaskId(), TaskStatus.INVALID_TASK, invalidTaskException);
 
+        final String taskClassifier = MoreObjects.firstNonNull(taskMessage.getTaskClassifier(), "");
+
         final String invalidTaskExceptionMessage = invalidTaskException.getMessage();
         final byte[] taskData =
                 invalidTaskExceptionMessage == null ?
@@ -142,14 +144,14 @@ class WorkerTaskImpl implements WorkerTask
 
         final TaskMessage invalidResponse = new TaskMessage(
                 MoreObjects.firstNonNull(taskMessage.getTaskId(), ""),
-                MoreObjects.firstNonNull(taskMessage.getTaskClassifier(), ""),
+                taskClassifier,
                 taskMessage.getTaskApiVersion(),
                 taskData,
                 TaskStatus.INVALID_TASK,
                 context,
                 workerFactory.getInvalidTaskQueue(),
                 taskMessage.getTracking(),
-                new TaskSourceInfo(getWorkerName(MoreObjects.firstNonNull(taskMessage.getTaskClassifier(), "")), getWorkerVersion()));
+                new TaskSourceInfo(getWorkerName(taskClassifier), getWorkerVersion()));
 
         workerCallback.complete(
                 messageId, workerFactory.getInvalidTaskQueue(), invalidResponse);
