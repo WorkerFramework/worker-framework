@@ -160,7 +160,7 @@ final class WorkerCore
                 validateTaskMessage(tm);
                 boolean taskIsActive = checkStatus(tm);
                 if (taskIsActive) {
-                    if (tm.getTo() == null || tm.getTo().equalsIgnoreCase(workerQueue.getInputQueue())) {
+                    if (tm.getTo() != null && tm.getTo().equalsIgnoreCase(workerQueue.getInputQueue())) {
                         LOG.debug("Task {} (message id: {}) on input queue {} {}", tm.getTaskId(), queueMsgId, workerQueue.getInputQueue(), (tm.getTo() != null) ? "is intended for this worker" : "has no explicit destination, therefore assuming it is intended for this worker");
                         executor.executeTask(tm, queueMsgId, poison);
                     } else {
@@ -424,16 +424,22 @@ final class WorkerCore
         @Override
         public void forward(String queueMsgId, String queue, TaskMessage forwardedMessage, Map<String, Object> headers) {
             Objects.requireNonNull(queueMsgId);
-            Objects.requireNonNull(queue);
             Objects.requireNonNull(forwardedMessage);
+            // queue can be null for a dead end worker
             LOG.debug("Task {} (message id: {}) being forwarded to queue {}", forwardedMessage.getTaskId(), queueMsgId, queue);
             checkForTrackingTermination(queueMsgId, queue, forwardedMessage);
             try {
-                byte[] output = codec.serialise(forwardedMessage);
-                workerQueue.publish(queueMsgId, output, queue, headers);
-                stats.incrementTasksForwarded();
-                //TODO - I'm guessing this stat should not be updated for forwarded messages:
-                // stats.getOutputSizes().update(output.length);
+                // If the queue is null, acknowledge the task rather than forwarding it
+                if(queue == null){
+                    workerQueue.acknowledgeTask(queueMsgId);
+                } else {
+                    // Else forward the task
+                    byte[] output = codec.serialise(forwardedMessage);
+                    workerQueue.publish(queueMsgId, output, queue, headers);
+                    stats.incrementTasksForwarded();
+                    //TODO - I'm guessing this stat should not be updated for forwarded messages:
+                    // stats.getOutputSizes().update(output.length);
+                }
             } catch (CodecException | QueueException e) {
                 LOG.error("Cannot publish data for forwarded task {}, rejecting", forwardedMessage.getTaskId(), e);
                 abandon(queueMsgId);
