@@ -46,12 +46,29 @@
     <artifactId>worker-example-aggregator</artifactId>
     <version>1.3.1-SNAPSHOT</version>
     <packaging>pom</packaging>
-    <description>Builds Worker-Example projects together from a handy top level project.</description> 
+    <description>Builds Worker-Example projects together from a handy top level project.</description>
+
+    <!--
+    The dependency management section is a mechanism for centralizing dependency information.
+    The CAF worker framework is specified.
+-->
+    <dependencyManagement>
+        <dependencies>
+            <dependency>
+                <groupId>com.github.workerframework</groupId>
+                <artifactId>worker-framework</artifactId>
+                <version>${project.version}</version>
+                <type>pom</type>
+                <scope>import</scope>
+            </dependency>
+        </dependencies>
+    </dependencyManagement>
 
     <modules>
         <module>worker-example</module>
         <module>worker-example-shared</module>
         <module>worker-example-container</module>
+        <module>worker-example-container-fs</module>
         <module>worker-example-message-builder</module>
     </modules>
 

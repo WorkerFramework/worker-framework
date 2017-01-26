@@ -20,7 +20,7 @@
     <modelVersion>4.0.0</modelVersion>
 
     <groupId>com.github.workerframework</groupId>
-    <artifactId>worker-example-container</artifactId>
+    <artifactId>worker-example-container-fs</artifactId>
     <version>1.3.1-SNAPSHOT</version>
     <packaging>pom</packaging>
     
@@ -32,22 +32,20 @@
 
     <!-- Properties for the worker. -->
     <properties>
-        <container.directory>${project.basedir}/../worker-example-container-fs</container.directory>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <maven.install.skip>true</maven.install.skip>
         <maven.deploy.skip>true</maven.deploy.skip>
         <docker.maven.version>0.13.6</docker.maven.version>
         <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
-        <test.data>${container.directory}/test-data/input</test.data>
-        <test.configs>${container.directory}/test-configs</test.configs>
+        <test.data>test-data/input</test.data>
+        <test.configs>test-configs</test.configs>
         <maven.failsafe.version>2.19</maven.failsafe.version>
         <maven.compiler.version>3.3</maven.compiler.version>
-        <datastore.container.id>b591d8c6615c4af99d7915719b01259c</datastore.container.id>
         <maven.compiler.source>1.8</maven.compiler.source>
         <maven.compiler.target>1.8</maven.compiler.target>
         <corporateDockerRegistry>rh7-artifactory.svs.hpeswlab.net:8443</corporateDockerRegistry>
-        <caf.worker-store.impl>worker-store-cs</caf.worker-store.impl>
-        <worker-example.container.name>${corporateDockerRegistry}/caf/worker-example:${project.version}</worker-example.container.name>
+        <caf.worker-store.impl>worker-store-fs</caf.worker-store.impl>
+        <worker-example.container.name>${corporateDockerRegistry}/caf/worker-example-fs:${project.version}</worker-example.container.name>
     </properties>
 
     <!-- CAF standard worker container dependency, example worker dependency. -->
@@ -55,7 +53,14 @@
         <dependency>
             <groupId>com.github.workerframework</groupId>
             <artifactId>standard-worker-container</artifactId>
+            <version>${project.version}</version>
             <type>pom</type>
+            <exclusions>
+                <exclusion>
+                    <groupId>com.github.workerframework</groupId>
+                    <artifactId>worker-store-cs</artifactId>
+                </exclusion>
+            </exclusions>
         </dependency>
         <dependency>
             <groupId>com.github.workerframework</groupId>
@@ -64,7 +69,12 @@
         </dependency>
         <dependency>
             <groupId>com.github.workerframework</groupId>
+            <artifactId>${caf.worker-store.impl}</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>com.github.workerframework</groupId>
             <artifactId>worker-testing-integration</artifactId>
+            <version>${project.version}</version>
             <scope>test</scope>
         </dependency>
         <dependency>
@@ -111,12 +121,12 @@
                         <rabbitmq.ctrl.port>${rabbitmq.ctrl.port}</rabbitmq.ctrl.port>
                         <input.folder>${test.data}</input.folder>
                         <expected.folder>${test.data}</expected.folder>
-                        <datastore.container.id>${datastore.container.id}</datastore.container.id>
                         <datastore.enabled>true</datastore.enabled>
                     </systemPropertyVariables>
                     <environmentVariables>
                         <CAF_APPNAME>test/worker-example</CAF_APPNAME>
                         <CAF_CONFIG_PATH>${test.configs}</CAF_CONFIG_PATH>
+                        <CAF_INTEGRATIONTESTS_FS_PATH>${caf.integrationtests.fs.path}</CAF_INTEGRATIONTESTS_FS_PATH>
                     </environmentVariables>
                 </configuration>
             </plugin>
@@ -170,6 +180,35 @@
                     <logDate>default</logDate>
                     <verbose>true</verbose>
                     <images>
+                        <!-- Run the webdav image. -->
+                        <image>
+                            <alias>webdav</alias>
+                            <name>cloudesire/webdav</name>
+                            <run>
+                                <volumes>
+                                    <bind>
+                                        <volume>/srv/common/webdav</volume>
+                                    </bind>
+                                </volumes>
+                                <ports>
+                                    <port>${webdav.apache.port}:8080</port>
+                                </ports>
+                                <env>
+                                    <APACHE_PORT>8080</APACHE_PORT>
+                                </env>
+                                <wait>
+                                    <log>WebDAV Server startup complete</log>
+                                    <http>
+                                        <url>http://${docker.host.address}:${webdav.apache.port}</url>
+                                    </http>
+                                    <time>120000</time>
+                                    <shutdown>500</shutdown>
+                                </wait>
+                                <log>
+                                    <enabled>true</enabled>
+                                </log>
+                            </run>
+                        </image>
                         <!-- Run the RabbitMQ image. -->
                         <image>
                             <alias>rabbitmq</alias>
@@ -204,7 +243,7 @@
                                     <inline>
                                         <fileSets>
                                             <fileSet>
-                                                <directory>${test.configs}</directory>
+                                                <directory>test-configs</directory>
                                                 <outputDirectory>/</outputDirectory>
                                                 <includes>
                                                     <include>*</include>
@@ -218,7 +257,7 @@
 
                         <!-- Configuration for the example-worker image -->
                         <image>
-                            <alias>example-worker</alias>
+                            <alias>example-worker-fs</alias>
                             <name>${worker-example.container.name}</name>
                             <build>
                                 <maintainer>conal.smith@hpe.com</maintainer>
@@ -241,8 +280,6 @@
                                         <!-- Including the executable worker.sh and worker.yaml files in the docker tar -->
                                         <fileSets>
                                             <fileSet>
-                                                <directory>${container.directory}</directory>
-                                                <outputDirectory>/</outputDirectory>
                                                 <lineEnding>unix</lineEnding>
                                                 <includes>
                                                     <include>worker.sh</include>
@@ -250,8 +287,6 @@
                                                 <fileMode>0755</fileMode>
                                             </fileSet>
                                             <fileSet>
-                                                <directory>${container.directory}</directory>
-                                                <outputDirectory>/</outputDirectory>
                                                 <lineEnding>unix</lineEnding>
                                                 <includes>
                                                     <include>worker.yaml</include>
@@ -290,6 +325,7 @@
                                 <volumes>
                                     <from>
                                         <image>config</image>
+                                        <image>webdav</image>
                                     </from>
                                 </volumes>
                                 <links>
@@ -312,7 +348,6 @@
                 </configuration>
             </plugin>
         </plugins>
-        <testSourceDirectory>${container.directory}/src/test/java</testSourceDirectory>
     </build>
 
     <!-- Use this profile if your virtual machine setup must use fixed ports. -->
