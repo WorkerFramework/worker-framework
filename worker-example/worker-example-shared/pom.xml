@@ -21,7 +21,6 @@
 
     <groupId>com.github.workerframework</groupId>
     <artifactId>worker-example-shared</artifactId>
-    <version>1.4.0-SNAPSHOT</version>
     
     <parent>
         <groupId>com.github.workerframework</groupId>

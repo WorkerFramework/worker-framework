@@ -21,7 +21,6 @@
 
     <groupId>com.github.workerframework</groupId>
     <artifactId>worker-example-container</artifactId>
-    <version>1.4.0-SNAPSHOT</version>
     <packaging>pom</packaging>
     
     <parent>
@@ -73,7 +72,7 @@
         <dependency>
             <groupId>com.github.workerframework</groupId>
             <artifactId>worker-example</artifactId>
-            <version>1.4.0-SNAPSHOT</version>
+            <version>${parent.version}</version>
         </dependency>
         <dependency>
             <groupId>com.github.workerframework</groupId>

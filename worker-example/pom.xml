@@ -44,7 +44,6 @@
 
     <groupId>com.github.workerframework</groupId>
     <artifactId>worker-example-aggregator</artifactId>
-    <version>1.4.0-SNAPSHOT</version>
     <packaging>pom</packaging>
     <description>Builds Worker-Example projects together from a handy top level project.</description> 
 
