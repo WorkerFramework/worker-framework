@@ -429,11 +429,11 @@ final class WorkerCore
             LOG.debug("Task {} (message id: {}) being forwarded to queue {}", forwardedMessage.getTaskId(), queueMsgId, queue);
             checkForTrackingTermination(queueMsgId, queue, forwardedMessage);
             try {
-                // If the queue is null we will acknowledge the task rather than forwarding it.
+                // If the queue is null, acknowledge the task rather than forwarding it
                 if(queue == null){
                     workerQueue.acknowledgeTask(queueMsgId);
                 } else {
-                    // else do what is already here
+                    // Else forward the task
                     byte[] output = codec.serialise(forwardedMessage);
                     workerQueue.publish(queueMsgId, output, queue, headers);
                     stats.incrementTasksForwarded();
