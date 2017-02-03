@@ -89,4 +89,19 @@
         </dependency>
     </dependencies>
 
+    <build>
+        <plugins>
+            <!-- Exclude the banner file when checking license headers -->
+            <plugin>
+                <groupId>com.mycila</groupId>
+                <artifactId>license-maven-plugin</artifactId>
+                <configuration>
+                    <excludes combine.children="append">
+                        <exclude>src/main/resources/banner.txt</exclude>
+                    </excludes>
+                </configuration>
+            </plugin>
+        </plugins>
+    </build>
+
 </project>
