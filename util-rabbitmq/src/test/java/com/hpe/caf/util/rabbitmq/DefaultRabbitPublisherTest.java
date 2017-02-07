@@ -34,6 +34,7 @@ import com.rabbitmq.client.Channel;
 public class DefaultRabbitPublisherTest
 {
     private static final byte[] DATA = "data".getBytes(StandardCharsets.UTF_8);
+    private static final int TEST_TIMEOUT_MS = 5000;
 
 
     @Test
@@ -48,7 +49,7 @@ public class DefaultRabbitPublisherTest
         Thread t = new Thread(pub);
         t.start();
         events.offer(new PublisherPublishEvent(DATA));
-        Assert.assertTrue(latch.await(DefaultRabbitPublisher.POLL_PERIOD, TimeUnit.MILLISECONDS));
+        Assert.assertTrue(latch.await(TEST_TIMEOUT_MS, TimeUnit.MILLISECONDS));
         ArrayAsserts.assertArrayEquals(DATA, impl.getLastData());
         pub.shutdown();
     }
@@ -67,7 +68,7 @@ public class DefaultRabbitPublisherTest
         t.start();
         pub.shutdown();
         events.offer(new PublisherPublishEvent(DATA));
-        Assert.assertFalse(latch.await(DefaultRabbitPublisher.POLL_PERIOD, TimeUnit.MILLISECONDS));
+        Assert.assertFalse(latch.await(TEST_TIMEOUT_MS, TimeUnit.MILLISECONDS));
     }
 
 

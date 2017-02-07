@@ -25,7 +25,7 @@ import java.util.concurrent.BlockingQueue;
  */
 public class DefaultRabbitPublisher extends EventPoller<QueuePublisher>
 {
-    public static final int POLL_PERIOD = 2;
+    private static final int POLL_PERIOD = 2;
 
 
     /**

@@ -28,7 +28,7 @@ import java.util.concurrent.BlockingQueue;
  */
 public class DefaultRabbitConsumer extends RabbitConsumer<QueueConsumer>
 {
-    public static final int POLL_PERIOD = 1000;
+    private static final int POLL_PERIOD = 2;
 
 
     /**

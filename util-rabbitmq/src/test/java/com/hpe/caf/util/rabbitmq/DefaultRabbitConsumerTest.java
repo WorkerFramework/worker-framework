@@ -34,6 +34,8 @@ import com.rabbitmq.client.Envelope;
 
 public class DefaultRabbitConsumerTest
 {
+    private static final int TEST_TIMEOUT_MS = 5000;
+
     @Test
     public void testProcessDelivery()
         throws InterruptedException, IOException
@@ -48,7 +50,7 @@ public class DefaultRabbitConsumerTest
         Envelope env = Mockito.mock(Envelope.class);
         Mockito.when(env.getDeliveryTag()).thenReturn(tag);
         events.offer(new ConsumerDeliverEvent(new Delivery(env, body)));
-        Assert.assertTrue(latch.await(DefaultRabbitConsumer.POLL_PERIOD, TimeUnit.MILLISECONDS));
+        Assert.assertTrue(latch.await(TEST_TIMEOUT_MS, TimeUnit.MILLISECONDS));
         ArrayAsserts.assertArrayEquals(body, impl.getLastDelivery().getMessageData());
     }
 
@@ -64,7 +66,7 @@ public class DefaultRabbitConsumerTest
         new Thread(con).start();
         long tag = 100L;
         events.offer(new ConsumerAckEvent(tag));
-        Assert.assertTrue(latch.await(DefaultRabbitConsumer.POLL_PERIOD, TimeUnit.MILLISECONDS));
+        Assert.assertTrue(latch.await(TEST_TIMEOUT_MS, TimeUnit.MILLISECONDS));
         Assert.assertEquals(tag, impl.getLastTag());
     }
 
@@ -80,7 +82,7 @@ public class DefaultRabbitConsumerTest
         new Thread(con).start();
         long tag = 100L;
         events.offer(new ConsumerRejectEvent(tag));
-        Assert.assertTrue(latch.await(DefaultRabbitConsumer.POLL_PERIOD, TimeUnit.MILLISECONDS));
+        Assert.assertTrue(latch.await(TEST_TIMEOUT_MS, TimeUnit.MILLISECONDS));
         Assert.assertEquals(tag, impl.getLastTag());
     }
 
@@ -96,7 +98,7 @@ public class DefaultRabbitConsumerTest
         new Thread(con).start();
         long tag = 100L;
         events.offer(new ConsumerDropEvent(tag));
-        Assert.assertTrue(latch.await(DefaultRabbitConsumer.POLL_PERIOD, TimeUnit.MILLISECONDS));
+        Assert.assertTrue(latch.await(TEST_TIMEOUT_MS, TimeUnit.MILLISECONDS));
         Assert.assertEquals(tag, impl.getLastTag());
     }
 
@@ -113,7 +115,7 @@ public class DefaultRabbitConsumerTest
         long tag = 100L;
         con.shutdown();
         events.offer(new ConsumerDropEvent(tag));
-        Assert.assertFalse(latch.await(DefaultRabbitConsumer.POLL_PERIOD, TimeUnit.MILLISECONDS));
+        Assert.assertFalse(latch.await(TEST_TIMEOUT_MS, TimeUnit.MILLISECONDS));
     }
 
 
