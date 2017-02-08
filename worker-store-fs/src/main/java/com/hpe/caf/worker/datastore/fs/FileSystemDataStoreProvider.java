@@ -21,6 +21,7 @@ import com.hpe.caf.api.ConfigurationSource;
 import com.hpe.caf.api.worker.DataStoreException;
 import com.hpe.caf.api.worker.DataStoreProvider;
 import com.hpe.caf.api.worker.ManagedDataStore;
+import com.hpe.caf.worker.testing.SystemSettingsProvider;
 
 
 public class FileSystemDataStoreProvider implements DataStoreProvider
@@ -34,7 +35,8 @@ public class FileSystemDataStoreProvider implements DataStoreProvider
                     configurationSource.getConfiguration(FileSystemDataStoreConfiguration.class);
             // If 'dataDir' system property or environment variable is set, intended to override that defined within
             // FileSystemDataStoreConfiguration, use it
-            String overridingDataDir = System.getProperty("dataDir", System.getenv("dataDir"));
+            SystemSettingsProvider systemSettingsProvider = new SystemSettingsProvider();
+            String overridingDataDir = systemSettingsProvider.getSetting("dataDir");
             if (overridingDataDir != null && !overridingDataDir.isEmpty()) {
                 fileSystemDataStoreConfiguration.setDataDir(overridingDataDir);
             }
