@@ -30,15 +30,7 @@ public class FileSystemDataStoreProvider implements DataStoreProvider
             throws DataStoreException
     {
         try {
-            FileSystemDataStoreConfiguration fileSystemDataStoreConfiguration =
-                    configurationSource.getConfiguration(FileSystemDataStoreConfiguration.class);
-            // If 'dataDir' system property or environment variable is set, intended to override that defined within
-            // FileSystemDataStoreConfiguration, use it
-            String overridingDataDir = System.getProperty("dataDir", System.getenv("dataDir"));
-            if (overridingDataDir != null && !overridingDataDir.isEmpty()) {
-                fileSystemDataStoreConfiguration.setDataDir(overridingDataDir);
-            }
-            return new FileSystemDataStore(fileSystemDataStoreConfiguration);
+            return new FileSystemDataStore(configurationSource.getConfiguration(FileSystemDataStoreConfiguration.class));
         } catch (ConfigurationException e) {
             throw new DataStoreException("Cannot create data store", e);
         }
