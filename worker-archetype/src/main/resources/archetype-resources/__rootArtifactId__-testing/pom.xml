@@ -29,13 +29,7 @@
         <groupId>${groupId}</groupId>
         <artifactId>${rootArtifactId}-aggregator</artifactId>
         <version>${version}</version>
-    </parent>    
-
-    <properties>
-        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-        <maven.compiler.source>1.8</maven.compiler.source>
-        <maven.compiler.target>1.8</maven.compiler.target>
-    </properties>
+    </parent>
 
     <dependencies>
         <dependency>
@@ -46,7 +40,7 @@
         <dependency>
             <groupId>com.github.workerframework</groupId>
             <artifactId>worker-testing-integration</artifactId>
-            <version>1.2.0-SNAPSHOT</version>
+            <version>${workerFrameworkVersion}</version>
         </dependency>
         <dependency>
             <groupId>org.testng</groupId>
