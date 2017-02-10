@@ -32,8 +32,6 @@
 
     <!-- Properties for the worker. -->
     <properties>
-        <caf.worker-framework.version>1.2.0-SNAPSHOT</caf.worker-framework.version>
-        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <maven.install.skip>true</maven.install.skip>
         <maven.deploy.skip>true</maven.deploy.skip>
         <docker.maven.version>0.13.6</docker.maven.version>
@@ -43,8 +41,6 @@
         <test.configs>${project.basedir}/test-configs</test.configs>
         <maven.failsafe.version>2.19</maven.failsafe.version>
         <maven.compiler.version>3.3</maven.compiler.version>
-        <maven.compiler.source>1.8</maven.compiler.source>
-        <maven.compiler.target>1.8</maven.compiler.target>
     </properties>
 
     <!--
@@ -56,7 +52,7 @@
             <dependency>
                 <groupId>com.github.workerframework</groupId>
                 <artifactId>worker-framework</artifactId>
-                <version>${caf.worker-framework.version}</version>
+                <version>${workerFrameworkVersion}</version>
                 <type>pom</type>
                 <scope>import</scope>
             </dependency>
@@ -234,7 +230,7 @@
                                 <maintainer>conal.smith@hpe.com</maintainer>
                                 <from>java:8</from>
                                 <labels>
-                                    <caf.worker-framework.version>${caf.worker-framework.version}</caf.worker-framework.version>
+                                    <caf.worker-framework.version>${workerFrameworkVersion}</caf.worker-framework.version>
                                 </labels>
                                 <!-- The entry point will be the worker.sh executable. -->
                                 <entryPoint>
