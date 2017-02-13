@@ -16,40 +16,46 @@
 package com.hpe.caf.worker.testing;
 
 import com.google.common.base.Strings;
+import com.hpe.caf.api.worker.DataStore;
 import com.hpe.caf.util.ref.ReferencedData;
 
 import java.io.InputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.Objects;
 
 /**
  * Created by ploch on 19/11/2015.
  */
 public abstract class FileInputWorkerTaskFactory<TTask, TInput extends FileTestInputData, TExpected> implements WorkerTaskFactory<TTask, TInput, TExpected> {
 
-    private final WorkerServices workerServices;
+    private final DataStore dataStore;
     private final String containerId;
     private final String testFilesFolder;
     private final String testSourcefileBaseFolder;
-    private TestConfiguration testConfiguration;
+    private final String overrideReference;
 
     public FileInputWorkerTaskFactory(TestConfiguration configuration) throws Exception {
-        this.workerServices = WorkerServices.getDefault();
-        this.containerId = configuration.getDataStoreContainerId();
-        this.testFilesFolder = configuration.getTestDataFolder();
-        this.testSourcefileBaseFolder = configuration.getTestSourcefileBaseFolder();
-        this.testConfiguration = Objects.requireNonNull(configuration);
+        this(WorkerServices.getDefault().getDataStore(), configuration.getDataStoreContainerId(),
+                configuration.getTestDataFolder(), configuration.getTestSourcefileBaseFolder(),
+                configuration.getOverrideReference());
+    }
+
+    public FileInputWorkerTaskFactory(DataStore dataStore, String containerId, String testFilesFolder, String testSourcefileBaseFolder, String overrideReference) {
+        this.dataStore = dataStore;
+        this.containerId = containerId;
+        this.testFilesFolder = testFilesFolder;
+        this.testSourcefileBaseFolder = testSourcefileBaseFolder;
+        this.overrideReference = overrideReference;
     }
 
     @Override
     public TTask createTask(TestItem<TInput, TExpected> testItem) throws Exception {
 
         ReferencedData sourceData;
-        if(!Strings.isNullOrEmpty(testConfiguration.getOverrideReference())){
-            testItem.getInputData().setStorageReference(testConfiguration.getOverrideReference());
-            sourceData = ReferencedData.getReferencedData(testConfiguration.getOverrideReference());
+        if(!Strings.isNullOrEmpty(overrideReference)){
+            testItem.getInputData().setStorageReference(overrideReference);
+            sourceData = ReferencedData.getReferencedData(overrideReference);
         }
         else if(!Strings.isNullOrEmpty(testItem.getInputData().getStorageReference())){
             sourceData = ReferencedData.getReferencedData(testItem.getInputData().getStorageReference());
@@ -69,8 +75,9 @@ public abstract class FileInputWorkerTaskFactory<TTask, TInput extends FileTestI
             if (testItem.getInputData().isUseDataStore()) {
 
                 InputStream inputStream = Files.newInputStream(inputFile);
-                String reference = workerServices.getDataStore().store(inputStream, containerId);
+                String reference = dataStore.store(inputStream, containerId);
                 sourceData = ReferencedData.getReferencedData(reference);
+                inputStream.close();
             } else {
                 byte[] fileContent = Files.readAllBytes(inputFile);
                 sourceData = ReferencedData.getWrappedData(fileContent);
