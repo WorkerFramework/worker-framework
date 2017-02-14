@@ -16,7 +16,6 @@
 package com.hpe.caf.worker.testing.configuration;
 
 import com.hpe.caf.api.worker.DataStore;
-import com.hpe.caf.api.worker.DataStoreException;
 import com.hpe.caf.util.ref.ReferencedData;
 import com.hpe.caf.worker.testing.FileInputWorkerTaskFactory;
 import com.hpe.caf.worker.testing.FileTestInputData;
@@ -77,28 +76,28 @@ public class FileInputWorkerTaskFactoryTest {
                 mockDataStore, containerId, testFilesFolder, testSourcefileBaseFolder, null);
 
         OperatingSystemMXBean os = ManagementFactory.getOperatingSystemMXBean();
-        int numberOfTimesToRun = 3000;
         if(os instanceof UnixOperatingSystemMXBean){
-            numberOfTimesToRun = (int) ((UnixOperatingSystemMXBean) os).getMaxFileDescriptorCount() + 1;
-            System.out.println("Number of open fd: " + ((UnixOperatingSystemMXBean) os).getMaxFileDescriptorCount());
-        }
+            int numberOfTimesToRun = (int) ((UnixOperatingSystemMXBean) os).getMaxFileDescriptorCount() + 1;
+            System.out.println("Number of times to run create task: " + numberOfTimesToRun);
+            for (int i = 0; i < numberOfTimesToRun; i++) {
+                FileTestInputData fileTestInputData = new FileTestInputData();
+                fileTestInputData.setInputFile("src\\test\\resources\\mockFile.txt");
+                fileTestInputData.setUseDataStore(true);
 
-        for (int i = 0; i < numberOfTimesToRun; i++) {
-            FileTestInputData fileTestInputData = new FileTestInputData();
-            fileTestInputData.setInputFile("src\\test\\resources\\mockFile.txt");
-            fileTestInputData.setUseDataStore(true);
-
-            TestItem testItem = new TestItem("mockFile.txt", fileTestInputData, null);
-            testItem.setInputIdentifier(UUID.randomUUID().toString());
-            try {
-                testFileInputWorkerTaskFactory.createTask(testItem);
-            } catch (DataStoreException exception) {
-                String exceptionStackTrace = ExceptionUtils.getStackTrace(exception);
-                if (exception.getCause() instanceof FileSystemException) {
-                    Assert.fail(String.format("Failed for FileSystemException cause: %s", exceptionStackTrace));
+                TestItem testItem = new TestItem("mockFile.txt", fileTestInputData, null);
+                testItem.setInputIdentifier(UUID.randomUUID().toString());
+                try {
+                    testFileInputWorkerTaskFactory.createTask(testItem);
+                } catch (Exception exception) {
+                    String exceptionStackTrace = ExceptionUtils.getStackTrace(exception);
+                    if (exception.getCause() instanceof FileSystemException) {
+                        Assert.fail(String.format("Failed for FileSystemException cause: %s", exceptionStackTrace));
+                    }
+                    Assert.fail(String.format("Failed for: %s", exceptionStackTrace));
                 }
-                Assert.fail(String.format("Failed for: %s", exceptionStackTrace));
             }
+        } else {
+            System.out.println("Non Unix OS");
         }
     }
 
