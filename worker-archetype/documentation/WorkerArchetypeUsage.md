@@ -79,7 +79,7 @@ The Maven CLI offers developers the ability to generate projects from archetypes
 
 Generate the new Worker's Aggregator from the `worker-archetype` with the following Maven command:
 
-<pre>mvn archetype:generate -DarchetypeVersion=1.2.0 -DarchetypeArtifactId=worker-archetype -DarchetypeGroupId=com.github.workerframework</pre>
+<pre>mvn archetype:generate -DarchetypeGroupId=com.github.workerframework -DarchetypeArtifactId=worker-archetype</pre>
 
 The CLI will prompt you for artifactId, groupId, version (default suggestion is 1.0.0-SNAPSHOT), package (default suggestion is the groupId, you should however adjust this to include the worker's purpose) and workerName properties required for the new worker project. See Figure 1.
 
@@ -106,7 +106,7 @@ Generate the new Worker's Aggregator from the `worker-archetype` by following th
 - Specify the details of the 'worker-archetype'
 	- GroupId : com.github.workerframework
 	- ArtifactId : worker-archetype
-	- Version : 1.2.0
+	- Version : 1.4.0-142
 	- Click 'OK'
 - Select the added 'com.github.workerframework:worker-archetype' archetype > Click 'Next'
 - Enter GroupId, ArtifactId and Version of your Worker project > Click 'Next', e.g:
@@ -140,7 +140,7 @@ Generate the new Worker's Aggregator from the `worker-archetype` by following th
 - Specify the details of the 'worker-archetype'
 	- GroupId : com.github.workerframework
 	- ArtifactId : worker-archetype
-	- Version : 1.2.0
+	- Version : 1.4.0-142
 	- Click 'Next >'
 - Enter Project Name, Project Location, GroupId, Version and Package of your Worker Shared project, e.g:
 	- Project Name : worker-example
