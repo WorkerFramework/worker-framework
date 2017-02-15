@@ -52,19 +52,4 @@
         </dependency>
     </dependencies>
 
-    <build>
-        <plugins>
-            <!-- Exclude the test configuration file when checking license headers -->
-            <plugin>
-                <groupId>com.mycila</groupId>
-                <artifactId>license-maven-plugin</artifactId>
-                <configuration>
-                    <excludes combine.children="append">
-                        <exclude>src/test/resources/InMemoryDataStoreConfiguration</exclude>
-                    </excludes>
-                </configuration>
-            </plugin>
-        </plugins>
-    </build>
-
 </project>
