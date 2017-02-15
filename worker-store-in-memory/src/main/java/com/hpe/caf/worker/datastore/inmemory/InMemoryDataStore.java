@@ -1,14 +1,16 @@
 package com.hpe.caf.worker.datastore.inmemory;
 
+import com.google.common.io.Files;
 import com.hpe.caf.api.HealthResult;
-import com.hpe.caf.api.worker.*;
+import com.hpe.caf.api.worker.DataStoreException;
+import com.hpe.caf.api.worker.DataStoreMetricsReporter;
+import com.hpe.caf.api.worker.ManagedDataStore;
 import org.apache.commons.io.IOUtils;
 
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.file.Path;
-import com.google.common.io.Files;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
@@ -16,10 +18,19 @@ import java.util.concurrent.atomic.AtomicInteger;
 
 
 /**
- * ManagedDataStore implementation for Amazon S3.
+ * ManagedDataStore implementation for an In Memory Datastore which uses a HashMap.
  */
 public class InMemoryDataStore implements ManagedDataStore
 {
+
+    public InMemoryDataStore()
+    {
+        // No need to do anything in constructor
+    }
+
+    /**
+     * We will use a HashMap as the data storage structure.
+     */
     Map<String, byte[]> dataMap = new HashMap<>();
 
     /**
@@ -53,6 +64,10 @@ public class InMemoryDataStore implements ManagedDataStore
     public InputStream retrieve(String reference) throws DataStoreException
     {
         numRetrieveRequests.incrementAndGet();
+        if(!dataMap.containsKey(reference)){
+            errors.incrementAndGet();
+            throw new DataStoreException("Failed to retrieve data, the reference does not exist.");
+        }
         return new ByteArrayInputStream(dataMap.get(reference));
     }
 
@@ -113,34 +128,47 @@ public class InMemoryDataStore implements ManagedDataStore
     public String store(Path dataPath, String partialReference) throws DataStoreException
     {
         try {
-            return store(Files.asByteSource(dataPath.toFile()), partialReference);
+            return store(Files.asByteSource(dataPath.toFile()).read(), partialReference);
         } catch (IOException e) {
             errors.incrementAndGet();
             throw new DataStoreException("Could not store file path.", e);
         }
     }
 
+    /**
+     * Get the Metrics for the in memory data store.
+     * @return
+     */
     @Override
     public DataStoreMetricsReporter getMetrics()
     {
         return metrics;
     }
 
+    /**
+     * Perform necessary shut down operations.
+     */
     @Override
     public void shutdown()
     {
         // nothing to do
     }
 
+    /**
+     * Always return a RESULT_HEALTHY health check as the data store is in memory.
+     * @return RESULT_HEALTHY
+     */
     @Override
     public HealthResult healthCheck()
     {
         return HealthResult.RESULT_HEALTHY;
     }
 
+    /**
+     * In memory data store metrics reporter implementation
+     */
     private class InMemoryMetricsReporter implements DataStoreMetricsReporter
     {
-
         @Override
         public int getDeleteRequests()
         {
