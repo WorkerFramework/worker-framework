@@ -7,14 +7,10 @@ import com.hpe.caf.api.worker.ManagedDataStore;
 public class InMemoryDataStoreProvider implements DataStoreProvider
 {
     /**
-     * Get the InMemoryDataStore object, which requires no configuration.
+     * Return a InMemoryDataStore. The configurationSource can be null as InMemoryDataStore currently does not take a configuration.
+     * @param configurationSource set this as null
      * @return the InMemoryDataStore
      */
-    public final ManagedDataStore getDataStore()
-    {
-        return getDataStore(null);
-    }
-
     @Override
     public final ManagedDataStore getDataStore(final ConfigurationSource configurationSource)
     {

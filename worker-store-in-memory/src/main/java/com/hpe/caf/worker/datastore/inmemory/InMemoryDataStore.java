@@ -1,6 +1,5 @@
 package com.hpe.caf.worker.datastore.inmemory;
 
-import com.google.common.io.Files;
 import com.hpe.caf.api.HealthResult;
 import com.hpe.caf.api.worker.DataStoreException;
 import com.hpe.caf.api.worker.DataStoreMetricsReporter;
@@ -10,6 +9,7 @@ import org.apache.commons.io.IOUtils;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.HashMap;
 import java.util.Map;
@@ -128,7 +128,7 @@ public class InMemoryDataStore implements ManagedDataStore
     public String store(Path dataPath, String partialReference) throws DataStoreException
     {
         try {
-            return store(Files.asByteSource(dataPath.toFile()).read(), partialReference);
+            return store(Files.readAllBytes(dataPath), partialReference);
         } catch (IOException e) {
             errors.incrementAndGet();
             throw new DataStoreException("Could not store file path.", e);
