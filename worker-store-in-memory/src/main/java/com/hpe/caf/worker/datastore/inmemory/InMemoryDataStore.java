@@ -70,7 +70,7 @@ public class InMemoryDataStore implements ManagedDataStore
     }
 
     /**
-     * Provide a stream to get data with the key reference.
+     * Provide a stream to get data identified by the reference.
      * @param reference a complete reference to be interpreted by the DataStore implementation
      * @return
      * @throws DataStoreException
@@ -81,13 +81,13 @@ public class InMemoryDataStore implements ManagedDataStore
         numRetrieveRequests.incrementAndGet();
         if(!dataMap.containsKey(reference)){
             errors.incrementAndGet();
-            throw new DataStoreException("Failed to retrieve data, the reference does not exist.");
+            throw new DataStoreException("Failed to retrieve data, the asset does not exist.");
         }
         return new ByteArrayInputStream(dataMap.get(reference));
     }
 
     /**
-     * Return the byte size of the data at the reference.
+     * Return the byte size of the data identified by the reference.
      * @param reference a complete reference to be interpreted by the DataStore implementation
      * @return the byte size
      * @throws DataStoreException
@@ -95,11 +95,14 @@ public class InMemoryDataStore implements ManagedDataStore
     @Override
     public long size(String reference) throws DataStoreException
     {
+        if(!dataMap.containsKey(reference)){
+            throw new DataStoreException("Failed to retrieve data, the asset does not exist.");
+        }
         return dataMap.get(reference).length;
     }
 
     /**
-     * Store data from a stream, in the key given by the partial reference.
+     * Store data from a stream in the key given by the partial reference.
      * @param dataStream the stream of data which will be read and stored in the in memory data store.
      * @param partialReference the partial reference, which the data will be stored relative to.
      * @return absolute reference to the stored data which can be used to retrieve.
@@ -117,7 +120,7 @@ public class InMemoryDataStore implements ManagedDataStore
     }
 
     /**
-     * Store data from a byte array, in the key given by the partial reference.
+     * Store data from a byte array in the key given by the partial reference.
      * @param data the raw byte data to store in the in-memory data store.
      * @param partialReference the partial reference, which the data will be stored relative to.
      * @return absolute reference to the stored data which can be used to retrieve.
@@ -133,7 +136,7 @@ public class InMemoryDataStore implements ManagedDataStore
     }
 
     /**
-     * Store data from a local file, in the key given by the partial reference.
+     * Store data from a local file in the key given by the partial reference.
      * @param dataPath path to a file on the local filesystem to store in the in-memory data store.
      * @param partialReference the partial reference, which the data will be stored relative to.
      * @return absolute reference to the stored data which can be used to retrieve.
@@ -152,7 +155,7 @@ public class InMemoryDataStore implements ManagedDataStore
 
     /**
      * Get the Metrics for the in memory data store.
-     * @return
+     * @return metrics
      */
     @Override
     public DataStoreMetricsReporter getMetrics()
@@ -180,7 +183,7 @@ public class InMemoryDataStore implements ManagedDataStore
     }
 
     /**
-     * In memory data store metrics reporter implementation
+     * In memory data store metrics reporter.
      */
     private class InMemoryMetricsReporter implements DataStoreMetricsReporter
     {
