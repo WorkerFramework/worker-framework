@@ -98,6 +98,7 @@
         <module>worker-example</module>
         <module>worker-archetype</module>
         <module>worker-store-s3</module>
+        <module>worker-store-in-memory</module>
     </modules>
 
     <scm>
