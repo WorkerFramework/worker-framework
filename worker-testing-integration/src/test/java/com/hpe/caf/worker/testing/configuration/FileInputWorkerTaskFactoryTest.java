@@ -26,6 +26,7 @@ import org.mockito.Mockito;
 import org.testng.Assert;
 import org.testng.annotations.Test;
 
+import java.io.File;
 import java.io.InputStream;
 import java.lang.management.ManagementFactory;
 import java.lang.management.OperatingSystemMXBean;
@@ -81,7 +82,9 @@ public class FileInputWorkerTaskFactoryTest {
             System.out.println("Number of times to run create task: " + numberOfTimesToRun);
             for (int i = 0; i < numberOfTimesToRun; i++) {
                 FileTestInputData fileTestInputData = new FileTestInputData();
-                fileTestInputData.setInputFile("src\\test\\resources\\mockFile.txt");
+                ClassLoader classLoader = getClass().getClassLoader();
+                String mockFilePath = new File(classLoader.getResource("mockFile.txt").getFile()).getAbsolutePath();
+                fileTestInputData.setInputFile(mockFilePath);
                 fileTestInputData.setUseDataStore(true);
 
                 TestItem testItem = new TestItem("mockFile.txt", fileTestInputData, null);
