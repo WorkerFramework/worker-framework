@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.hpe.caf.worker.datastore.inmemory;
+package com.hpe.caf.worker.datastore.mem;
 
 import com.hpe.caf.api.ConfigurationSource;
 import com.hpe.caf.api.worker.DataStoreProvider;
