@@ -73,11 +73,11 @@ public abstract class FileInputWorkerTaskFactory<TTask, TInput extends FileTestI
 
 
             if (testItem.getInputData().isUseDataStore()) {
-
-                InputStream inputStream = Files.newInputStream(inputFile);
-                String reference = dataStore.store(inputStream, containerId);
-                sourceData = ReferencedData.getReferencedData(reference);
-                inputStream.close();
+                try (InputStream inputStream = Files.newInputStream(inputFile)) {
+                    String reference = dataStore.store(inputStream, containerId);
+                    sourceData = ReferencedData.getReferencedData(reference);
+                    inputStream.close();
+                }
             } else {
                 byte[] fileContent = Files.readAllBytes(inputFile);
                 sourceData = ReferencedData.getWrappedData(fileContent);

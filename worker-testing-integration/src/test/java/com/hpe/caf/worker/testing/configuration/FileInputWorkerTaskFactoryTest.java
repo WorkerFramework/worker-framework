@@ -77,6 +77,7 @@ public class FileInputWorkerTaskFactoryTest {
                 mockDataStore, containerId, testFilesFolder, testSourcefileBaseFolder, null);
 
         OperatingSystemMXBean os = ManagementFactory.getOperatingSystemMXBean();
+        // If the OS is UNIX test that the max file descriptor count can be exceeded without an exception being thrown.
         if(os instanceof UnixOperatingSystemMXBean){
             int numberOfTimesToRun = (int) ((UnixOperatingSystemMXBean) os).getMaxFileDescriptorCount() + 1;
             System.out.println("Number of times to run create task: " + numberOfTimesToRun);
@@ -89,15 +90,7 @@ public class FileInputWorkerTaskFactoryTest {
 
                 TestItem testItem = new TestItem("mockFile.txt", fileTestInputData, null);
                 testItem.setInputIdentifier(UUID.randomUUID().toString());
-                try {
-                    testFileInputWorkerTaskFactory.createTask(testItem);
-                } catch (Exception exception) {
-                    String exceptionStackTrace = ExceptionUtils.getStackTrace(exception);
-                    if (exception.getCause() instanceof FileSystemException) {
-                        Assert.fail(String.format("Failed for FileSystemException cause: %s", exceptionStackTrace));
-                    }
-                    Assert.fail(String.format("Failed for: %s", exceptionStackTrace));
-                }
+                testFileInputWorkerTaskFactory.createTask(testItem);
             }
         } else {
             System.out.println("Non Unix OS");
