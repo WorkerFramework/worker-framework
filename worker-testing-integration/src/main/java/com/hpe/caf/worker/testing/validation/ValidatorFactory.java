@@ -67,6 +67,11 @@ public class ValidatorFactory {
                 return new Base64PropertyValidator();
             }
         }
+        for (CustomPropertyValidator customPropertyValidator : validationSettings.getCustomValidationProperties()) {
+            if (customPropertyValidator.canValidate(propertyName, sourcePropertyValue, validatorPropertyValue)) {
+                return customPropertyValidator;
+            }
+        }
         if (sourcePropertyValue instanceof Map && validatorPropertyValue instanceof Map) {
             return new PropertyMapValidator(this);
         }
