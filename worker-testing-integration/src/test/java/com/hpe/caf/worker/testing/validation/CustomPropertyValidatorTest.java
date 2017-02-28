@@ -24,9 +24,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 
-import static org.testng.Assert.assertEquals;
-import static org.testng.Assert.assertNotEquals;
-import static org.testng.Assert.assertTrue;
+import static org.testng.Assert.*;
 
 public class CustomPropertyValidatorTest {
 
@@ -34,7 +32,7 @@ public class CustomPropertyValidatorTest {
      * Tests "happy-path" custom validation.
      */
     @Test
-    public void testCustomPropertyValidation() {
+    public void testCustomValidatorsUsed() {
         final ValidationSettings validationSettings = ValidationSettings.configure()
                 .customValidators(new CustomIntByNamePropertyValidator("intProp1", "intProp2"), new CustomStringPropertyValidator())
                 .build();
@@ -56,6 +54,32 @@ public class CustomPropertyValidatorTest {
         final PropertyValidator stringProp2Validator = validatorFactory.create(null, "go away", "go away");
         assertTrue(stringProp2Validator.isValid("go away", "go away"));
         assertEquals(stringProp1Validator, stringProp2Validator, "Expected the same validator to be used for named and unnamed string property validations");
+    }
+
+    @Test
+    public void testCustomValidatorNotUsed() {
+        final ValidationSettings validationSettings = ValidationSettings.configure()
+                .customValidators(new CustomIntByNamePropertyValidator("intProp1", "intProp2"))
+                .build();
+
+        final ValidatorFactory validatorFactory = new ValidatorFactory(validationSettings, null, null, TestConfiguration.createDefault(null, null, null, null));
+
+        final PropertyValidator validator = validatorFactory.create("intProp3", 42, 42);
+        assertTrue(validator.isValid(42, 42));
+        assertFalse(validator instanceof CustomPropertyValidator, "Did not expect validator to be a CustomPropertyValidator");
+    }
+
+    @Test
+    public void testValidationFailureForTypeIncompatibility() {
+        final ValidationSettings validationSettings = ValidationSettings.configure()
+                .customValidators(new CustomIntByNamePropertyValidator("intProp4"))
+                .build();
+
+        final ValidatorFactory validatorFactory = new ValidatorFactory(validationSettings, null, null, TestConfiguration.createDefault(null, null, null, null));
+
+        final PropertyValidator validator = validatorFactory.create("intProp4", 42, 42);
+        assertTrue(validator instanceof CustomPropertyValidator, "Expected validator to be a CustomPropertyValidator");
+        assertFalse(validator.isValid("not-an-int", "not-an-int"), "Expected validation failure as validator is testing types for which it was not created to validate");
     }
 
 
