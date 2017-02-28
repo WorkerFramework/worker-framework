@@ -67,7 +67,7 @@ public class ValidatorFactory {
                 return new Base64PropertyValidator();
             }
         }
-        for (CustomPropertyValidator customPropertyValidator : validationSettings.getCustomValidationProperties()) {
+        for (final CustomPropertyValidator customPropertyValidator : validationSettings.getCustomValidators()) {
             if (customPropertyValidator.canValidate(propertyName, sourcePropertyValue, validatorPropertyValue)) {
                 return customPropertyValidator;
             }

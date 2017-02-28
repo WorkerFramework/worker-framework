@@ -36,7 +36,7 @@ public class CustomPropertyValidatorTest {
     @Test
     public void testCustomPropertyValidation() {
         final ValidationSettings validationSettings = ValidationSettings.configure()
-                .customValidationProperties(new CustomIntByNamePropertyValidator("intProp1", "intProp2"), new CustomStringPropertyValidator())
+                .customValidators(new CustomIntByNamePropertyValidator("intProp1", "intProp2"), new CustomStringPropertyValidator())
                 .build();
 
         final ValidatorFactory validatorFactory = new ValidatorFactory(validationSettings, null, null, TestConfiguration.createDefault(null, null, null, null));

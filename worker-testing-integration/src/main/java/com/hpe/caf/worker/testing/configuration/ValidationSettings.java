@@ -57,8 +57,8 @@ public class ValidationSettings {
             return this;
         }
 
-        public ValidationSettingsBuilder customValidationProperties(CustomPropertyValidator... customPropertyValidators) {
-            settings.customValidationProperties = Arrays.asList(customPropertyValidators);
+        public ValidationSettingsBuilder customValidators(CustomPropertyValidator... customPropertyValidators) {
+            settings.customValidators = Arrays.asList(customPropertyValidators);
             return this;
         }
 
@@ -72,7 +72,7 @@ public class ValidationSettings {
     private Set<String> ignoredProperties = new HashSet<>();
     private Set<String> referencedDataProperties = new HashSet<>();
     private Set<String> base64Properties = new HashSet<>();
-    private List<CustomPropertyValidator> customValidationProperties = new ArrayList<>();
+    private List<CustomPropertyValidator> customValidators = new ArrayList<>();
 
     public static ValidationSettingsBuilder configure() {
         return new ValidationSettingsBuilder(new ValidationSettings());
@@ -117,7 +117,7 @@ public class ValidationSettings {
         return base64Properties;
     }
 
-    public List<CustomPropertyValidator> getCustomValidationProperties() {
-        return customValidationProperties;
+    public List<CustomPropertyValidator> getCustomValidators() {
+        return customValidators;
     }
 }
