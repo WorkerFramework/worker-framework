@@ -267,6 +267,10 @@
                                                     <include>worker.yaml</include>
                                                 </includes>
                                             </fileSet>
+                                            <fileSet>
+                                                <directory>src/main/config</directory>
+                                                <outputDirectory>config</outputDirectory>
+                                            </fileSet>
                                         </fileSets>
                                         <!-- Including the dependencies into the docker tar -->
                                         <dependencySets>
@@ -319,6 +323,17 @@
                         </image>
 
                     </images>
+                </configuration>
+            </plugin>
+
+            <!-- Exclude the configuration files -->
+            <plugin>
+                <groupId>com.mycila</groupId>
+                <artifactId>license-maven-plugin</artifactId>
+                <configuration>
+                    <excludes combine.children="append">
+                        <exclude>src/main/config/cfg*</exclude>
+                    </excludes>
                 </configuration>
             </plugin>
         </plugins>

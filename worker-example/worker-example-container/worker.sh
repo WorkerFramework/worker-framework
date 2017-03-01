@@ -36,5 +36,14 @@ function install_certificate(){
 
 install_certificate
 
+# If the CAF_APPNAME and CAF_CONFIG_PATH environment variables are not set, then use the
+# JavaScript-encoded config files that are built into the container
+if [ -z "$CAF_APPNAME" ] && [ -z "$CAF_CONFIG_PATH" ];
+then
+  export CAF_APPNAME=caf/worker
+  export CAF_CONFIG_PATH=/maven/config
+  export CAF_CONFIG_DECODER=JavascriptDecoder
+fi
+
 cd /maven
 exec java -cp "*" com.hpe.caf.worker.core.WorkerApplication server ${dropwizardConfig}
