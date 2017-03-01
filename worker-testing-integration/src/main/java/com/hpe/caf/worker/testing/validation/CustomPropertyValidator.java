@@ -19,5 +19,18 @@ package com.hpe.caf.worker.testing.validation;
  * Base for single-property validators that apply custom validation.
  */
 public abstract class CustomPropertyValidator extends PropertyValidator {
+    /**
+     * Determines whether this validator can validate properties with the specified name whose type matches that indicated by the
+     * type of the sourcePropertyValue and validatorPropertyValue parameters.
+     * @param propertyName if not null then this method verifies whether the validator can validate properties with this property
+     *                     name whose type matches the type of the sourcePropertyValue and validatorPropertyValue arguments.
+     *                     If propertyName is null then this method indicates whether this validator can validate properties whose
+     *                     type matches the type of the sourcePropertyValue and validatorPropertyValue arguments, regardless of their
+     *                     property name; if the validator insists on including a property name check when validating then this method
+     *                     will return false if supplied with a null propertyName argument.
+     * @param sourcePropertyValue an exemplar of the type of value to be validated
+     * @param validatorPropertyValue an exemplar of the type of value against which property values will be validated
+     * @return whether the validator can validate properties with the specified name (if supplied) and value types
+     */
     public abstract boolean canValidate(String propertyName, Object sourcePropertyValue, Object validatorPropertyValue);
 }
