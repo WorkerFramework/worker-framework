@@ -37,7 +37,8 @@ public class WorkerServicesFactory {
     public static WorkerServices create() throws ModuleLoaderException, CipherException, ConfigurationException, DataStoreException {
 
         Codec codec = ModuleLoader.getService(Codec.class);
-        Decoder decoder = ModuleLoader.getServiceOrElse(Decoder.class, codec);
+        ConfigurationDecoderProvider decoderProvider = ModuleLoader.getService(ConfigurationDecoderProvider.class);
+        Decoder decoder = decoderProvider.getDecoder(bootstrapConfiguration, codec);
         Cipher cipher = ModuleLoader.getService(CipherProvider.class, NullCipherProvider.class).getCipher(bootstrapConfiguration);
         ServicePath path = bootstrapConfiguration.getServicePath();
         ConfigurationSource configurationSource = ModuleLoader.getService(ConfigurationSourceProvider.class).getConfigurationSource(bootstrapConfiguration, cipher, path, decoder);

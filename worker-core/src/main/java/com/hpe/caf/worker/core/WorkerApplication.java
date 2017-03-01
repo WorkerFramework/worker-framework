@@ -22,6 +22,7 @@ import com.hpe.caf.api.Cipher;
 import com.hpe.caf.api.CipherException;
 import com.hpe.caf.api.CipherProvider;
 import com.hpe.caf.api.Codec;
+import com.hpe.caf.api.ConfigurationDecoderProvider;
 import com.hpe.caf.api.ConfigurationException;
 import com.hpe.caf.api.ConfigurationSourceProvider;
 import com.hpe.caf.api.Decoder;
@@ -97,7 +98,8 @@ public final class WorkerApplication extends Application<WorkerConfiguration>
         Cipher cipher = ModuleLoader.getService(CipherProvider.class, NullCipherProvider.class).getCipher(bootstrap);
         ServicePath path = bootstrap.getServicePath();
         Codec codec = ModuleLoader.getService(Codec.class);
-        Decoder decoder = ModuleLoader.getServiceOrElse(Decoder.class, codec);
+        ConfigurationDecoderProvider decoderProvider = ModuleLoader.getService(ConfigurationDecoderProvider.class);
+        Decoder decoder = decoderProvider.getDecoder(bootstrap, codec);
         ManagedConfigurationSource config = ModuleLoader.getService(ConfigurationSourceProvider.class).getConfigurationSource(bootstrap, cipher, path, decoder);
         WorkerFactoryProvider workerProvider = ModuleLoader.getService(WorkerFactoryProvider.class);
         WorkerQueueProvider queueProvider = ModuleLoader.getService(WorkerQueueProvider.class);
