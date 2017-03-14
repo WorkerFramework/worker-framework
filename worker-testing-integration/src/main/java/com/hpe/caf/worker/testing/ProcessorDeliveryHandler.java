@@ -109,6 +109,8 @@ public class ProcessorDeliveryHandler implements ResultHandler {
     }
 
     private void checkForFinished() {
+        System.out.println("Test case item store contains: " + context.getItemStore().size() + " items.");
+        
         if (context.getItemStore().size() == 0) {
             context.finishedSuccessfully();
         }
