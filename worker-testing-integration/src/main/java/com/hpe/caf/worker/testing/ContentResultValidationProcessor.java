@@ -65,7 +65,7 @@ public class ContentResultValidationProcessor<TResult, TInput extends FileTestIn
             String contentFileName = testItem.getExpectedOutputData().getExpectedContentFile();
             if (contentFileName != null && contentFileName.length() > 0) {
 
-                log(func + " aquire from source: " + referencedData.getReference() == null ? referencedData.getReference() : "<blob info>");
+                log(func + " aquire from source: " + referencedData.getReference() == null ? "<blob info>" : referencedData.getReference());
                 InputStream dataStream = referencedData.acquire(dataSource);
                 log(func + " aquire from source finished");
 
