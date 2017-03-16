@@ -109,8 +109,13 @@ public class ProcessorDeliveryHandler implements ResultHandler {
     }
 
     private void checkForFinished() {
+        
         if (context.getItemStore().size() == 0) {
+            System.out.println("Test case has no remaining items awaiting processing.");
             context.finishedSuccessfully();
+        }
+        else {
+            System.out.println("Test case has " + context.getItemStore().size() + " result items yet to be processed.");
         }
     }
 
