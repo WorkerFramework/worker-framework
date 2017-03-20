@@ -43,6 +43,7 @@ then
   export CAF_APPNAME=caf/worker
   export CAF_CONFIG_PATH=/maven/config
   export CAF_CONFIG_DECODER=JavascriptDecoder
+  export CAF_CONFIG_ENABLE_SUBSTITUTOR=false
 fi
 
 cd /maven
