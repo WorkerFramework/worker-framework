@@ -1,7 +1,0 @@
-{
-        "prefetchBuffer": 0,
-        "inputQueue": "${workerName}-input-1",
-        "retryQueue": "${workerName}-input-1",
-        "rejectedQueue": "${workerName}-rejected-1",
-        "retryLimit": 2
-}

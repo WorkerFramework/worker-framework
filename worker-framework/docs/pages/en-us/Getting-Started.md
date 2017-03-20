@@ -46,11 +46,11 @@ The following modules are required to create a worker. Each contains its own pom
 	3. **ExampleWorkerFactory** – Creates a worker, extends AbstractWorkerFactory.
 	4. **ExampleWorkerFactoryProvider** - Creates a worker factory, extends WorkerFactoryProvider.
 	5. **ExampleWorkerHealthCheck** - Provides a basic health check for marathon GUI display, implements HealthReporter.
-- `worker-example-container` builds the docker image for the worker. It has two submodules named build and test. The **build** module is responsible for building the docker image of the worker and pushing the image to docker. The **test** module is responsible for starting a container for RabbitMQ, test-configs and the worker, and running the integration tests. These tests runs locally and send task messages to the worker via RabbitMQ. It waits for a response from the worker, which will be published by the worker and retrieved from the configured queue.
+- `worker-example-container` builds the docker image for the worker. It has two submodules named build and test. The **build** module is responsible for building the docker image of the worker and pushing the image to docker. The **test** module is responsible for starting containers for RabbitMQ and the worker, and running the integration tests. These tests runs locally and send task messages to the worker via RabbitMQ. It waits for a response from the worker, which will be published by the worker and retrieved from the configured queue.
 	1. **build**
 		1. **pom.xml** - Specifies the docker maven plugin and configurations to build the image for the worker
 	2. **test**
-		1. **pom.xml** - Specifies maven compiler and failsafe plugin for compiling and running integration tests, docker maven plugin to run containers for RabbitMQ, the test-configs and the worker.
+		1. **pom.xml** - Specifies maven compiler and failsafe plugin for compiling and running integration tests, docker maven plugin to run containers for RabbitMQ and the worker.
 		2. **ExampleWorkerResultPreparationProvider** – Creates test items, extends PreparationItemProvider or some subclass of ContentFilesTestItemProvider.
 		3. **ExampleWorkerTestControllerProvider** – Provides classes required for test execution, extends AbstractTestControllerProvider.
 		4. **ExampleWorkerTestExpectation** – Test item expected output for comparison with actual output, extends ContentFileTestExpectation.
@@ -134,7 +134,7 @@ The CLI will prompt you for the worker's common properties; groupId, version (de
 
 If you are satisfied with the properties you have set, confirm these by typing 'Y'. Otherwise, type 'N' or any other character to re-enter property values. After confirming your properties Maven will generate the new worker's container module.
 
-Due to a bug with the Apache Maven Archetype, some place-holders that are preceded with underscores are not replaced. A manual step is required that you replace these manually. In the generated container project `.../configuration/marathon-template-config` and `.../test-configs` folders include container configuration files that with left over place-holders within their file names. Replace all occurrences of `__workerArtifactId__` with the name of the Worker Back-end module's artifactId property (workerArtifactId). See the **Renaming Container Marathon Configuration Files** and **Renaming Container Test Configuration Files** table in the Appendix.
+Due to a bug with the Apache Maven Archetype, some place-holders that are preceded with underscores are not replaced. A manual step is required that you replace these manually. In the generated container project `.../configuration/marathon-template-config` folder includes container configuration files that with left over place-holders within their file names. Replace all occurrences of `__workerArtifactId__` with the name of the Worker Back-end module's artifactId property (workerArtifactId). See the **Renaming Container Marathon Configuration Files** and **Renaming Container Test Configuration Files** table in the Appendix.
 
 ##### IntelliJ IDE
 
@@ -237,7 +237,7 @@ Generate the new Worker's Container module from the `worker-container-archetype`
 	- Project location : C:\MyWorkerProjects\
 13. Click 'Finish'
 
-Due to a bug with the Apache Maven Archetype, some place-holders that are preceded with underscores are not replaced. A manual step is required that you replace these. In the generated container project `.../configuration/marathon-template-config` and `.../test-configs` folders include container configuration files that with left over place-holders within their file names. Replace all occurrences of `__workerArtifactId__` with the name of the worker back-end module's artifactId property (workerArtifactId). See the **Renaming Container Marathon Configuration Files** and **Renaming Container Test Configuration Files** table in the Appendix.
+Due to a bug with the Apache Maven Archetype, some place-holders that are preceded with underscores are not replaced. A manual step is required that you replace these. In the generated container project `.../configuration/marathon-template-config` folder includes container configuration files that with left over place-holders within their file names. Replace all occurrences of `__workerArtifactId__` with the name of the Worker Back-end module's artifactId property (workerArtifactId). See the **Renaming Container Marathon Configuration Files** and **Renaming Container Test Configuration Files** table in the Appendix.
 
 ##### NetBeans IDE
 
@@ -323,7 +323,7 @@ Generate the new Worker's Back-end module from the `worker-archetype` by followi
 		- This is the name of the worker back-end module's artifactId property.
 9. Click 'Finish'
 
-Due to a bug with the Apache Maven Archetype, some place-holders that are preceded with underscores are not replaced. A manual step is required that you replace these. In the generated container project `.../configuration/marathon-template-config` and `.../test-configs` folders include container configuration files that with left over place-holders within their file names. Replace all occurrences of `__workerArtifactId__` with the name of the worker back-end module's artifactId property (workerArtifactId). See the **Renaming Container Marathon Configuration Files** and **Renaming Container Test Configuration Files** table in the Appendix.
+Due to a bug with the Apache Maven Archetype, some place-holders that are preceded with underscores are not replaced. A manual step is required that you replace these. In the generated container project `.../configuration/marathon-template-config` folder includes container configuration files that with left over place-holders within their file names. Replace all occurrences of `__workerArtifactId__` with the name of the Worker Back-end module's artifactId property (workerArtifactId). See the **Renaming Container Marathon Configuration Files** and **Renaming Container Test Configuration Files** table in the Appendix.
 
 ## Appendix
 

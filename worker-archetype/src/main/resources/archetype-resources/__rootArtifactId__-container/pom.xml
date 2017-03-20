@@ -38,7 +38,6 @@
         <${rootArtifactId}.container.name>${rootArtifactId}:${project.version}</${rootArtifactId}.container.name>
         <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
         <test.data>${project.basedir}/test-data/input</test.data>
-        <test.configs>${project.basedir}/test-configs</test.configs>
         <maven.failsafe.version>2.19</maven.failsafe.version>
         <maven.compiler.version>3.3</maven.compiler.version>
     </properties>
@@ -132,8 +131,10 @@
                         <datastore.enabled>true</datastore.enabled>
                     </systemPropertyVariables>
                     <environmentVariables>
-                        <CAF_APPNAME>test/${rootArtifactId}</CAF_APPNAME>
-                        <CAF_CONFIG_PATH>${test.configs}</CAF_CONFIG_PATH>
+                        <CAF_APPNAME>caf/worker</CAF_APPNAME>
+                        <CAF_CONFIG_PATH>${project.basedir}/src/main/config</CAF_CONFIG_PATH>
+                        <CAF_CONFIG_DECODER>JavascriptDecoder</CAF_CONFIG_DECODER>
+                        <CAF_CONFIG_ENABLE_SUBSTITUTOR>false</CAF_CONFIG_ENABLE_SUBSTITUTOR>
                     </environmentVariables>
                 </configuration>
             </plugin>
@@ -199,29 +200,6 @@
                             </run>
                         </image>
 
-                        <!-- Assemble the config files from the test-configs folder to an image in /config on the host. -->
-                        <image>
-                            <alias>config</alias>
-                            <name>${project.artifactId}-test-config:${project.version}</name>
-                            <build>
-                                <maintainer>conal.smith@hpe.com</maintainer>
-                                <assembly>
-                                    <basedir>/config</basedir>
-                                    <inline>
-                                        <fileSets>
-                                            <fileSet>
-                                                <directory>test-configs</directory>
-                                                <outputDirectory>/</outputDirectory>
-                                                <includes>
-                                                    <include>*</include>
-                                                </includes>
-                                            </fileSet>
-                                        </fileSets>
-                                    </inline>
-                                </assembly>
-                            </build>
-                        </image>
-
                         <!-- Configuration for the ${rootArtifactId} image -->
                         <image>
                             <alias>${rootArtifactId}</alias>
@@ -256,6 +234,10 @@
                                                     <include>worker.yaml</include>
                                                 </includes>
                                             </fileSet>
+                                            <fileSet>
+                                                <directory>src/main/config</directory>
+                                                <outputDirectory>config</outputDirectory>
+                                            </fileSet>
                                         </fileSets>
                                         <!-- Including the dependencies into the docker tar -->
                                         <dependencySets>
@@ -286,15 +268,6 @@
                                 <ports>
                                     <port>${worker.adminport}:8081</port>
                                 </ports>
-                                <env>
-                                    <CAF_APPNAME>test/${rootArtifactId}</CAF_APPNAME>
-                                    <CAF_CONFIG_PATH>/config</CAF_CONFIG_PATH>
-                                </env>
-                                <volumes>
-                                    <from>
-                                        <image>config</image>
-                                    </from>
-                                </volumes>
                                 <links>
                                     <link>rabbitmq</link>
                                 </links>
@@ -310,7 +283,6 @@
                                 </wait>
                             </run>
                         </image>
-
                     </images>
                 </configuration>
             </plugin>
