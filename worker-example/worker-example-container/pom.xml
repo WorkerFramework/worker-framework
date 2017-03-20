@@ -132,6 +132,7 @@
                         <CAF_APPNAME>caf/worker</CAF_APPNAME>
                         <CAF_CONFIG_PATH>${project.basedir}/src/main/config</CAF_CONFIG_PATH>
                         <CAF_CONFIG_DECODER>JavascriptDecoder</CAF_CONFIG_DECODER>
+                        <CAF_CONFIG_ENABLE_SUBSTITUTOR>false</CAF_CONFIG_ENABLE_SUBSTITUTOR>
                     </environmentVariables>
                 </configuration>
             </plugin>
@@ -274,8 +275,6 @@
                                 <ports>
                                     <port>${worker.adminport}:8081</port>
                                 </ports>
-                                <env>
-                                </env>
                                 <links>
                                     <link>rabbitmq</link>
                                 </links>

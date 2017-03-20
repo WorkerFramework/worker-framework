@@ -23,7 +23,7 @@ import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Size;
 
 /**
- * Configuration for the ExampleWorker, read in from test-configs/cfg_test_worker-example-ExampleWorkerConfiguration.
+ * Configuration for the ExampleWorker, read in from src/main/config/cfg~caf~worker~ExampleWorkerConfiguration.
  */
 public class ExampleWorkerConfiguration extends WorkerConfiguration {
 
