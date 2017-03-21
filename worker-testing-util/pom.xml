@@ -37,6 +37,10 @@
             <artifactId>caf-api</artifactId>
         </dependency>
         <dependency>
+            <groupId>com.github.cafapi.config</groupId>
+            <artifactId>config-decoder</artifactId>
+        </dependency>
+        <dependency>
             <groupId>com.github.workerframework</groupId>
             <artifactId>worker-configs</artifactId>
             <version>1.6.0-SNAPSHOT</version>
