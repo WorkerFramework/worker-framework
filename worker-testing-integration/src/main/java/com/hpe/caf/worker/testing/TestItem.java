@@ -16,6 +16,7 @@
 package com.hpe.caf.worker.testing;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonPropertyOrder;
 
 /**
  * The {@code TestItem} class represents a single test case.
@@ -29,6 +30,7 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
  *                    representing all data required to validate a
  *                    worker result (or results)
  */
+@JsonPropertyOrder({"tag", "testCaseInformation", "inputData", "expectedData"})
 public class TestItem<TInput, TExpected> {
 
     private String tag;
