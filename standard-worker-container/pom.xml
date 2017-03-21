@@ -41,10 +41,6 @@
             <artifactId>config-file</artifactId>
         </dependency>
         <dependency>
-            <groupId>com.github.cafapi.config</groupId>
-            <artifactId>config-decoder</artifactId>
-        </dependency>
-        <dependency>
             <groupId>com.github.cafapi.decoder</groupId>
             <artifactId>decoder-js</artifactId>
         </dependency>

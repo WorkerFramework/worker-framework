@@ -18,6 +18,7 @@ package com.hpe.caf.worker.core;
 import com.codahale.metrics.Gauge;
 import com.codahale.metrics.MetricRegistry;
 import com.hpe.caf.api.BootstrapConfiguration;
+import com.hpe.caf.api.CafConfigurationDecoderProvider;
 import com.hpe.caf.api.Cipher;
 import com.hpe.caf.api.CipherException;
 import com.hpe.caf.api.CipherProvider;
@@ -98,7 +99,8 @@ public final class WorkerApplication extends Application<WorkerConfiguration>
         Cipher cipher = ModuleLoader.getService(CipherProvider.class, NullCipherProvider.class).getCipher(bootstrap);
         ServicePath path = bootstrap.getServicePath();
         Codec codec = ModuleLoader.getService(Codec.class);
-        ConfigurationDecoderProvider decoderProvider = ModuleLoader.getService(ConfigurationDecoderProvider.class);
+        ConfigurationDecoderProvider decoderProvider = ModuleLoader.getService(ConfigurationDecoderProvider.class,
+                                                                               CafConfigurationDecoderProvider.class);
         Decoder decoder = decoderProvider.getDecoder(bootstrap, codec);
         ManagedConfigurationSource config = ModuleLoader.getService(ConfigurationSourceProvider.class).getConfigurationSource(bootstrap, cipher, path, decoder);
         WorkerFactoryProvider workerProvider = ModuleLoader.getService(WorkerFactoryProvider.class);
