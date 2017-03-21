@@ -46,11 +46,11 @@ The following modules are required to create a worker. Each contains its own pom
 	3. **ExampleWorkerFactory** – Creates a worker, extends AbstractWorkerFactory.
 	4. **ExampleWorkerFactoryProvider** - Creates a worker factory, extends WorkerFactoryProvider.
 	5. **ExampleWorkerHealthCheck** - Provides a basic health check for marathon GUI display, implements HealthReporter.
-- `worker-example-container` builds the docker image for the worker. It has two submodules named build and test. The **build** module is responsible for building the docker image of the worker and pushing the image to docker. The **test** module is responsible for starting a container for RabbitMQ, test-configs and the worker, and running the integration tests. These tests runs locally and send task messages to the worker via RabbitMQ. It waits for a response from the worker, which will be published by the worker and retrieved from the configured queue.
+- `worker-example-container` builds the docker image for the worker. It has two submodules named build and test. The **build** module is responsible for building the docker image of the worker and pushing the image to docker. The **test** module is responsible for starting containers for RabbitMQ and the worker, and running the integration tests. These tests runs locally and send task messages to the worker via RabbitMQ. It waits for a response from the worker, which will be published by the worker and retrieved from the configured queue.
 	1. **build**
 		1. **pom.xml** - Specifies the docker maven plugin and configurations to build the image for the worker
 	2. **test**
-		1. **pom.xml** - Specifies maven compiler and failsafe plugin for compiling and running integration tests, docker maven plugin to run containers for RabbitMQ, the test-configs and the worker.
+		1. **pom.xml** - Specifies maven compiler and failsafe plugin for compiling and running integration tests, docker maven plugin to run containers for RabbitMQ and the worker.
 		2. **ExampleWorkerResultPreparationProvider** – Creates test items, extends PreparationItemProvider or some subclass of ContentFilesTestItemProvider.
 		3. **ExampleWorkerTestControllerProvider** – Provides classes required for test execution, extends AbstractTestControllerProvider.
 		4. **ExampleWorkerTestExpectation** – Test item expected output for comparison with actual output, extends ContentFileTestExpectation.

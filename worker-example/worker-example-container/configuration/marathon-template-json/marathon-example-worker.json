@@ -28,7 +28,7 @@
     },
     "volumes": [
       {
-        "containerPath": "/etc/store",
+        "containerPath": "/mnt/caf-datastore-root",
         "hostPath": "${caf-fs-storage-hostPath}",
         "mode": "RW"
       }
@@ -36,7 +36,20 @@
   },
   "env": {
     "_JAVA_OPTIONS": "-Xms${example-java-mem-min}m -Xmx${example-java-mem-max}m",
-    "CAF_CONFIG_PATH": "/mnt/mesos/sandbox"
+    "CAF_WORKER_VERSION": "${example-version}",
+    "CAF_WORKER_INPUT_QUEUE": "${marathon-group}-example-in",
+    "CAF_WORKER_OUTPUT_QUEUE": "${marathon-group}-workflow-in",
+    "CAF_WORKER_THREADS": "${example-threads}",
+    "CAF_EXAMPLE_WORKER_RESULT_SIZE_THRESHOLD": "${example-resultSizeThreshold}",
+    "CAF_RABBITMQ_HOST": "${rabbit-host}",
+    "CAF_RABBITMQ_PORT": "${rabbit-port}",
+    "CAF_RABBITMQ_USERNAME": "${rabbit-user}",
+    "CAF_RABBITMQ_PASSWORD": "${rabbit-password}",
+    "CAF_RABBITMQ_BACKOFF_INTERVAL": "${rabbit-backoffInterval}",
+    "CAF_RABBITMQ_MAX_BACKOFF_INTERVAL": "${rabbit-maxBackoffInterval}",
+    "CAF_RABBITMQ_MAX_ATTEMPTS": "${rabbit-maxattempts}",
+    "CAF_STORAGE_HOST": "${storage_service-server}",
+    "CAF_STORAGE_PORT": "${storage_service-port}"
   },
   "labels": {
     "autoscale.metric": "${example-autoscale.metric}",

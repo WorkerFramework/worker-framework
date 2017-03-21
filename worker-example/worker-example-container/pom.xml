@@ -40,7 +40,6 @@
         <docker.maven.version>0.13.6</docker.maven.version>
         <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
         <test.data>${project.basedir}/test-data/input</test.data>
-        <test.configs>${project.basedir}/test-configs</test.configs>
         <maven.failsafe.version>2.19</maven.failsafe.version>
         <maven.compiler.version>3.3</maven.compiler.version>
         <datastore.container.id>b591d8c6615c4af99d7915719b01259c</datastore.container.id>
@@ -130,8 +129,27 @@
                         <datastore.enabled>true</datastore.enabled>
                     </systemPropertyVariables>
                     <environmentVariables>
-                        <CAF_APPNAME>test/worker-example</CAF_APPNAME>
-                        <CAF_CONFIG_PATH>${test.configs}</CAF_CONFIG_PATH>
+                        <CAF_APPNAME>caf/worker</CAF_APPNAME>
+                        <CAF_CONFIG_PATH>${project.basedir}/src/main/config</CAF_CONFIG_PATH>
+                        <CAF_CONFIG_DECODER>JavascriptDecoder</CAF_CONFIG_DECODER>
+                        <CAF_CONFIG_ENABLE_SUBSTITUTOR>false</CAF_CONFIG_ENABLE_SUBSTITUTOR>
+
+                        <!-- TODO: Study which of these the integration tests actually need -->
+                        <CAF_WORKER_VERSION>${project.version}</CAF_WORKER_VERSION>
+                        <CAF_RABBITMQ_BACKOFF_INTERVAL>1</CAF_RABBITMQ_BACKOFF_INTERVAL>
+                        <CAF_RABBITMQ_MAX_BACKOFF_INTERVAL>30</CAF_RABBITMQ_MAX_BACKOFF_INTERVAL>
+                        <CAF_RABBITMQ_MAX_ATTEMPTS>20</CAF_RABBITMQ_MAX_ATTEMPTS>
+                        <CAF_RABBITMQ_PREFETCH_BUFFER>0</CAF_RABBITMQ_PREFETCH_BUFFER>
+                        <CAF_WORKER_RETRY_LIMIT>2</CAF_WORKER_RETRY_LIMIT>
+                        <CAF_KEYCLOAK_HOST>a1-dev-hap012.lab.lynx-connected.com</CAF_KEYCLOAK_HOST>
+                        <CAF_KEYCLOAK_PORT>8443</CAF_KEYCLOAK_PORT>
+                        <CAF_KEYCLOAK_REALM>caf</CAF_KEYCLOAK_REALM>
+                        <CAF_STORAGE_HOST>a1-dev-mem031.lab.lynx-connected.com</CAF_STORAGE_HOST>
+                        <CAF_STORAGE_PORT>9444</CAF_STORAGE_PORT>
+                        <CAF_STORAGE_USERNAME>caf_store_bfs5@groups.ext.hpe.com</CAF_STORAGE_USERNAME>
+                        <CAF_STORAGE_PASSWORD>Password1@</CAF_STORAGE_PASSWORD>
+                        <CAF_STORAGE_CLIENT_NAME>CAF_App</CAF_STORAGE_CLIENT_NAME>
+                        <CAF_STORAGE_CLIENT_SECRET>5532a380-2b97-40cd-a08f-403ce6a0f023</CAF_STORAGE_CLIENT_SECRET>
                     </environmentVariables>
                 </configuration>
             </plugin>
@@ -208,29 +226,6 @@
                             </run>
                         </image>
 
-                        <!-- Assemble the config files from the test-configs folder to an image in /config on the host. -->
-                        <image>
-                            <alias>config</alias>
-                            <name>${project.artifactId}-test-config:${project.version}</name>
-                            <build>
-                                <maintainer>conal.smith@hpe.com</maintainer>
-                                <assembly>
-                                    <basedir>/config</basedir>
-                                    <inline>
-                                        <fileSets>
-                                            <fileSet>
-                                                <directory>test-configs</directory>
-                                                <outputDirectory>/</outputDirectory>
-                                                <includes>
-                                                    <include>*</include>
-                                                </includes>
-                                            </fileSet>
-                                        </fileSets>
-                                    </inline>
-                                </assembly>
-                            </build>
-                        </image>
-
                         <!-- Configuration for the example-worker image -->
                         <image>
                             <alias>example-worker</alias>
@@ -243,6 +238,9 @@
                                     <Build.Date>${maven.build.timestamp}</Build.Date>
                                     <caf.worker-framework.version>${project.version}</caf.worker-framework.version>
                                 </labels>
+                                <env>
+                                    <CAF_WORKER_VERSION>${project.version}</CAF_WORKER_VERSION>
+                                </env>
                                 <!-- The entry point will be the worker.sh executable. -->
                                 <entryPoint>
                                     <exec>
@@ -266,6 +264,10 @@
                                                 <includes>
                                                     <include>worker.yaml</include>
                                                 </includes>
+                                            </fileSet>
+                                            <fileSet>
+                                                <directory>src/main/config</directory>
+                                                <outputDirectory>config</outputDirectory>
                                             </fileSet>
                                         </fileSets>
                                         <!-- Including the dependencies into the docker tar -->
@@ -294,14 +296,21 @@
                                     <port>${worker.adminport}:8081</port>
                                 </ports>
                                 <env>
-                                    <CAF_APPNAME>test/worker-example</CAF_APPNAME>
-                                    <CAF_CONFIG_PATH>/config</CAF_CONFIG_PATH>
+                                    <CAF_RABBITMQ_BACKOFF_INTERVAL>1</CAF_RABBITMQ_BACKOFF_INTERVAL>
+                                    <CAF_RABBITMQ_MAX_BACKOFF_INTERVAL>30</CAF_RABBITMQ_MAX_BACKOFF_INTERVAL>
+                                    <CAF_RABBITMQ_MAX_ATTEMPTS>20</CAF_RABBITMQ_MAX_ATTEMPTS>
+                                    <CAF_RABBITMQ_PREFETCH_BUFFER>0</CAF_RABBITMQ_PREFETCH_BUFFER>
+                                    <CAF_WORKER_RETRY_LIMIT>2</CAF_WORKER_RETRY_LIMIT>
+                                    <CAF_KEYCLOAK_HOST>a1-dev-hap012.lab.lynx-connected.com</CAF_KEYCLOAK_HOST>
+                                    <CAF_KEYCLOAK_PORT>8443</CAF_KEYCLOAK_PORT>
+                                    <CAF_KEYCLOAK_REALM>caf</CAF_KEYCLOAK_REALM>
+                                    <CAF_STORAGE_HOST>a1-dev-mem031.lab.lynx-connected.com</CAF_STORAGE_HOST>
+                                    <CAF_STORAGE_PORT>9444</CAF_STORAGE_PORT>
+                                    <CAF_STORAGE_USERNAME>caf_store_bfs5@groups.ext.hpe.com</CAF_STORAGE_USERNAME>
+                                    <CAF_STORAGE_PASSWORD>Password1@</CAF_STORAGE_PASSWORD>
+                                    <CAF_STORAGE_CLIENT_NAME>CAF_App</CAF_STORAGE_CLIENT_NAME>
+                                    <CAF_STORAGE_CLIENT_SECRET>5532a380-2b97-40cd-a08f-403ce6a0f023</CAF_STORAGE_CLIENT_SECRET>
                                 </env>
-                                <volumes>
-                                    <from>
-                                        <image>config</image>
-                                    </from>
-                                </volumes>
                                 <links>
                                     <link>rabbitmq</link>
                                 </links>
@@ -317,7 +326,6 @@
                                 </wait>
                             </run>
                         </image>
-
                     </images>
                 </configuration>
             </plugin>
