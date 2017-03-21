@@ -15,26 +15,36 @@
  */
 package com.hpe.caf.worker.testing;
 
+import com.google.common.base.Strings;
+import java.util.ArrayList;
 import org.apache.commons.lang3.StringUtils;
 
 /**
- * Created by ploch on 25/11/2015.
+ * Used to compare the similarity between 2 strings which may not be identical.
  */
 public class ContentComparer {
 
     private ContentComparer(){}
 
-    public static double calculateSimilarity(String s1, String s2) {
+    private static final int MAX_CHAR_OFFSET = 20;
+    
+    public static double calculateSimilarity(final String s1, final String s2, final int thresh) {
         String longer = s1, shorter = s2;
         if (s1.length() < s2.length()) { // longer should always have greater length
             longer = s2; shorter = s1;
         }
         int longerLength = longer.length();
         if (longerLength == 0) { return 1.0; /* both strings are zero length */ }
-        return (longerLength - StringUtils.getLevenshteinDistance(longer, shorter)) / (double) longerLength;
+        return (longerLength - Sift4Comparator.sift4Distance_Simple(longer, shorter, thresh)) / (double) longerLength;
     }
 
-    public static double calculateSimilarityPercentage(String s1, String s2){
-        return calculateSimilarity(s1, s2) * 100;
+    public static double calculateSimilarityPercentage(final String s1, final String s2){
+        return calculateSimilarityPercentage(s1, s2, MAX_CHAR_OFFSET);
     }
+    
+    public static double calculateSimilarityPercentage(final String s1, final String s2, final int thresh){
+        return calculateSimilarity(s1, s2, thresh) * 100;
+    }
+    
+   
 }
