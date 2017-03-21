@@ -1,6 +1,5 @@
-/**
- * Copyright 2016 Hewlett Packard Enterprise.
- * Copyright 2017 Hewlett Packard Enterprise Development LP.
+/*
+ * Copyright 2015-2017 Hewlett Packard Enterprise Development LP.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,7 +13,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 package com.hpe.caf.worker.testing;
 
 import com.google.common.base.Strings;
