@@ -1,6 +1,0 @@
-{
-    "workerVersion": "${example-version}",
-    "outputQueue":"${marathon-group}-workflow-in",
-    "threads":"${example-threads}", 
-    "resultSizeThreshold": "${example-resultSizeThreshold}"
-}

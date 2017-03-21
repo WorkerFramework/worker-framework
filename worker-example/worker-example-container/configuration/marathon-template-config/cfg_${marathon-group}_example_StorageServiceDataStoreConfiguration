@@ -1,4 +1,0 @@
-{
-    "serverName": "${storage_service-server}",
-    "port": "${storage_service-port}"
-}

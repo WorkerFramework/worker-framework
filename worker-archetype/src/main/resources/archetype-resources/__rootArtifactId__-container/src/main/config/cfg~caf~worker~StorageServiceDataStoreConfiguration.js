@@ -13,16 +13,24 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-({
-    serverName: "a1-dev-mem031.lab.lynx-connected.com",
-    port: 9444,
-    authenticationConfiguration: {
-        serverName: "a1-dev-hap012.lab.lynx-connected.com",
-        port: 8443,
-        userName: "caf_store_bfs5@groups.ext.hpe.com",
-        password: "Password1@",
-        clientName: "CAF_App",
-        clientSecret: "5532a380-2b97-40cd-a08f-403ce6a0f023",
-        realm: "caf"
+(function () {
+    var storageConfig = {
+        serverName: getenv("CAF_STORAGE_HOST") || "caf-storage",
+        port: getenv("CAF_STORAGE_PORT") || 9110
+    };
+
+    var keycloakServer = getenv("CAF_STORAGE_KEYCLOAK_HOST") || getenv("CAF_KEYCLOAK_HOST");
+    if (keycloakServer) {
+        storageConfig.authenticationConfiguration = {
+            serverName: keycloakServer,
+            port: getenv("CAF_STORAGE_KEYCLOAK_PORT") || getenv("CAF_KEYCLOAK_PORT") || 9020,
+            userName: getenv("CAF_STORAGE_USERNAME") || undefined,
+            password: getenv("CAF_STORAGE_PASSWORD") || undefined,
+            clientName: getenv("CAF_STORAGE_CLIENT_NAME") || "CAF_App",
+            clientSecret: getenv("CAF_STORAGE_CLIENT_SECRET") || undefined,
+            realm: getenv("CAF_STORAGE_KEYCLOAK_REALM") || getenv("CAF_KEYCLOAK_REALM") || "caf"
+        };
     }
-});
+
+    return storageConfig;
+})();

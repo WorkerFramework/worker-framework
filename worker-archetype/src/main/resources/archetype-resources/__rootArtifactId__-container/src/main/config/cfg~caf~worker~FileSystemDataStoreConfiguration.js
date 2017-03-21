@@ -14,5 +14,5 @@
  * limitations under the License.
  */
 ({
-    dataDir: getenv("CAF_WORKER_DATASTORE_PATH") || "datastore"
+    dataDir: getenv("CAF_WORKER_DATASTORE_PATH") || "/mnt/caf-datastore-root"
 });

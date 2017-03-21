@@ -14,8 +14,8 @@
  * limitations under the License.
  */
 ({
-    workerVersion: "1.0-SNAPSHOT",
-    outputQueue: getenv("CAF_WORKER_OUTPUT_QUEUE") || "example-output-1",
-    threads: 1,
-    resultSizeThreshold: 1024
+    workerVersion: getenv("CAF_WORKER_VERSION") || undefined,
+    outputQueue: getenv("CAF_WORKER_OUTPUT_QUEUE") || "example-out",
+    threads: getenv("CAF_WORKER_THREADS") || 1,
+    resultSizeThreshold: getenv("CAF_EXAMPLE_WORKER_RESULT_SIZE_THRESHOLD") || 1024
 });

@@ -14,9 +14,9 @@
  * limitations under the License.
  */
 ({
-    prefetchBuffer: 0,
-    inputQueue: getenv("CAF_WORKER_INPUT_QUEUE") || "example-input-1",
-    retryQueue: getenv("CAF_WORKER_RETRY_QUEUE") || getenv("CAF_WORKER_INPUT_QUEUE") || "example-input-1",
-    rejectedQueue: getenv("CAF_WORKER_REJECTED_QUEUE") || "test-rejected-1",
-    retryLimit: getenv("CAF_WORKER_RETRY_LIMIT") || 2
+    prefetchBuffer: getenv("CAF_RABBITMQ_PREFETCH_BUFFER") || 1,
+    inputQueue: getenv("CAF_WORKER_INPUT_QUEUE") || "example-in",
+    retryQueue: getenv("CAF_WORKER_RETRY_QUEUE") || undefined,
+    rejectedQueue: getenv("CAF_WORKER_REJECTED_QUEUE") || "example-rejected",
+    retryLimit: getenv("CAF_WORKER_RETRY_LIMIT") || 10
 });

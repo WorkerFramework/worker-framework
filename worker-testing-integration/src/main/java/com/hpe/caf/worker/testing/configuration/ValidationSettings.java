@@ -15,9 +15,9 @@
  */
 package com.hpe.caf.worker.testing.configuration;
 
-import java.util.Arrays;
-import java.util.HashSet;
-import java.util.Set;
+import com.hpe.caf.worker.testing.validation.CustomPropertyValidator;
+
+import java.util.*;
 
 /**
  * Created by ploch on 07/12/2015.
@@ -57,6 +57,11 @@ public class ValidationSettings {
             return this;
         }
 
+        public ValidationSettingsBuilder customValidators(CustomPropertyValidator... customPropertyValidators) {
+            settings.customValidators = Arrays.asList(customPropertyValidators);
+            return this;
+        }
+
         public ValidationSettings build(){
             return settings;
         }
@@ -67,6 +72,7 @@ public class ValidationSettings {
     private Set<String> ignoredProperties = new HashSet<>();
     private Set<String> referencedDataProperties = new HashSet<>();
     private Set<String> base64Properties = new HashSet<>();
+    private List<CustomPropertyValidator> customValidators = new ArrayList<>();
 
     public static ValidationSettingsBuilder configure() {
         return new ValidationSettingsBuilder(new ValidationSettings());
@@ -109,5 +115,9 @@ public class ValidationSettings {
      */
     public Set<String> getBase64Properties() {
         return base64Properties;
+    }
+
+    public List<CustomPropertyValidator> getCustomValidators() {
+        return customValidators;
     }
 }
