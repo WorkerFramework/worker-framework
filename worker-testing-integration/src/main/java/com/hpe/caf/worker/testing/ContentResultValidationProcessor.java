@@ -28,8 +28,8 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.Map;
 import java.util.function.Function;
+import org.apache.commons.io.FileUtils;
 import org.joda.time.DateTime;
 
 /**
@@ -54,51 +54,41 @@ public class ContentResultValidationProcessor<TResult, TInput extends FileTestIn
     protected boolean processWorkerResult(TestItem<TInput, TExpected> testItem, TaskMessage message, TResult workerResult) throws Exception
     {
         final String func = "Process Worker Result";
+        
+        DataSource dataSource = new DataStoreSource(dataStore, getCodec());
 
-        try {
-            log(func + " starting....");
+        ReferencedData referencedData = getContentFunc.apply(workerResult);
 
-            DataSource dataSource = new DataStoreSource(dataStore, getCodec());
+        String contentFileName = testItem.getExpectedOutputData().getExpectedContentFile();
+        if (contentFileName != null && contentFileName.length() > 0) {
 
-            ReferencedData referencedData = getContentFunc.apply(workerResult);
+            logWithTimestamp(func + " aquire from source: " + referencedData.getReference() == null ? "<blob info>" : referencedData.getReference());
+            InputStream dataStream = referencedData.acquire(dataSource);
+            logWithTimestamp(func + " aquire from source finished");
 
-            String contentFileName = testItem.getExpectedOutputData().getExpectedContentFile();
-            if (contentFileName != null && contentFileName.length() > 0) {
+            String ocrText = IOUtils.toString(dataStream, StandardCharsets.UTF_8);
 
-                log(func + " aquire from source: " + referencedData.getReference() == null ? "<blob info>" : referencedData.getReference());
-                InputStream dataStream = referencedData.acquire(dataSource);
-                log(func + " aquire from source finished");
-
-                String ocrText = IOUtils.toString(dataStream, StandardCharsets.UTF_8);
-
-                log(func + " got string from source to compare.");
-
-                Path contentFile = Paths.get(contentFileName);
-                if (Files.notExists(contentFile)) {
-                    contentFile = Paths.get(testDataFolder, contentFileName);
-                }
-                String expectedOcrText = new String(Files.readAllBytes(contentFile));
-
-                log(func + " got string from expected result to compare.");
-
-                double similarity = ContentComparer.calculateSimilarityPercentage(expectedOcrText, ocrText);
-
-                System.out.println("Test item: " + testItem.getTag() + ". Similarity: " + similarity + "%");
-                if (similarity < testItem.getExpectedOutputData().getExpectedSimilarityPercentage()) {
-                    TestResultHelper.testFailed(testItem, "Expected similarity of " + testItem.getExpectedOutputData().getExpectedSimilarityPercentage() + "% but actual similarity was " + similarity + "%");
-                }
-            } else if (referencedData != null) {
-                TestResultHelper.testFailed(testItem, "Expected null result.");
+            Path contentFile = Paths.get(contentFileName);
+            if (Files.notExists(contentFile)) {
+                contentFile = Paths.get(testDataFolder, contentFileName);
             }
+            // Make sure we read the expect file in the same character set as the input stream for the returned result content.
+            String expectedOcrText = FileUtils.readFileToString(contentFile.toFile(), StandardCharsets.UTF_8);
 
-            log(func + " returning.");
-            return true;
-        } finally {
-            log(func + " finished....");
+            double similarity = ContentComparer.calculateSimilarityPercentage(expectedOcrText, ocrText);
+
+            logWithTimestamp(func + " Test item: " + testItem.getTag() + ". Similarity: " + similarity + "%");
+            if (similarity < testItem.getExpectedOutputData().getExpectedSimilarityPercentage()) {
+                TestResultHelper.testFailed(testItem, "Expected similarity of " + testItem.getExpectedOutputData().getExpectedSimilarityPercentage() + "% but actual similarity was " + similarity + "%");
+            }
+        } else if (referencedData != null) {
+            TestResultHelper.testFailed(testItem, "Expected null result.");
         }
+
+        return true;
     }
 
-    private void log(final String debugInfo)
+    private void logWithTimestamp(final String debugInfo)
     {
         System.out.println(DateTime.now().toLocalTime().toString() + debugInfo);
     }
