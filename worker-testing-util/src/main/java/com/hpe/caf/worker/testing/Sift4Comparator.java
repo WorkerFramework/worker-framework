@@ -29,10 +29,10 @@ public class Sift4Comparator {
     /**
      * sift4 simple algorithm Based on JS algorithm @ https://siderite.blogspot.com/2014/11/super-fast-and-accurate-string-distance.html
      *
-     * @param s1
-     * @param s2
+     * @param s1 First String to compare
+     * @param s2 Second String to compare
      * @param maxOffsetValue is the number of characters to search for matching letters
-     * @return
+     * @return Distance between the 2 strings.
      */
     public static int sift4Distance_Simple(final String s1, final String s2, final Integer maxOffsetValue)
     {
@@ -122,12 +122,12 @@ public class Sift4Comparator {
     /**
      * Sift4 - common version Based on JS algorithm @ https://siderite.blogspot.com/2014/11/super-fast-and-accurate-string-distance.html
      *
-     * @param s1
-     * @param s2
+     * @param s1 First String to compare
+     * @param s2 Second String to compare
      * @param maxOffset is the number of characters to search for matching letters
      * @param maxDistance is the distance at which the algorithm should stop computing the value and just exit (the strings are too
      * different anyway)
-     * @return
+     * @return Distance between the 2 strings.
      */
     public static int sift4Distance_Common(final String s1, final String s2, final int maxOffset, final int maxDistance)
     {
