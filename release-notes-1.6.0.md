@@ -2,6 +2,10 @@
 ${version-number}
 
 #### New Features
+- [CAF-2284](https://jira.autonomy.com/browse/CAF-2284): 
+    - Content similarity algorithm changed over to use Sift4 for better performance as the content size grows.
+    - Changed default character set for similarity comparisons to be UTF8.
+
 
  - [CAF-2334](https://jira.autonomy.com/browse/CAF-2334): JavaScript-based configuration  
     The Worker Framework has been enhanced to support using JavaScript as a configuration language.  This allows for more complex configuration than is possible via JSON files (and also allows the configuration file to contain comments!).
