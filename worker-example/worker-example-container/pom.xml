@@ -276,7 +276,7 @@
                                                 <useProjectArtifact>false</useProjectArtifact>
                                                 <scope>runtime</scope>
                                                 <excludes>
-                                                      <exclude>com.hpe.caf:container-cert-script</exclude>
+                                                    <exclude>com.github.cafapi:container-cert-script</exclude>
                                                 </excludes>
                                             </dependencySet>
                                             <dependencySet>
@@ -284,7 +284,7 @@
                                                 <useTransitiveFiltering>true</useTransitiveFiltering>
                                                 <unpack>true</unpack>
                                                 <includes>
-                                                    <include>com.hpe.caf:container-cert-script</include>
+                                                    <include>com.github.cafapi:container-cert-script</include>
                                                 </includes>
                                             </dependencySet>
                                         </dependencySets>
