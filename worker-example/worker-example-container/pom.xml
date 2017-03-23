@@ -90,6 +90,55 @@
 
     <build>
         <plugins>
+            <!-- Unpack the base worker configuration files -->
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-dependency-plugin</artifactId>
+                <executions>
+                    <execution>
+                        <id>process-config-files</id>
+                        <goals>
+                            <goal>unpack</goal>
+                        </goals>
+                        <configuration>
+                            <artifactItems>
+                                <artifactItem>
+                                    <groupId>com.github.workerframework</groupId>
+                                    <artifactId>worker-default-configs</artifactId>
+                                    <outputDirectory>${project.build.directory}/config-files</outputDirectory>
+                                    <excludes>**/META-INF/**</excludes>
+                                </artifactItem>
+                            </artifactItems>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+
+            <!-- Process the local configuration files -->
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-resources-plugin</artifactId>
+                <version>3.0.2</version>
+                <executions>
+                    <execution>
+                        <id>process-config-files</id>
+                        <phase>process-resources</phase>
+                        <goals>
+                            <goal>copy-resources</goal>
+                        </goals>
+                        <configuration>
+                            <outputDirectory>${project.build.directory}/config-files</outputDirectory>
+                            <resources>
+                                <resource>
+                                    <directory>src/main/config</directory>
+                                    <filtering>true</filtering>
+                                </resource>
+                            </resources>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+
             <!-- Plugin for compiling the test source files. -->
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
@@ -130,12 +179,11 @@
                     </systemPropertyVariables>
                     <environmentVariables>
                         <CAF_APPNAME>caf/worker</CAF_APPNAME>
-                        <CAF_CONFIG_PATH>${project.basedir}/src/main/config</CAF_CONFIG_PATH>
+                        <CAF_CONFIG_PATH>${project.build.directory}/config-files</CAF_CONFIG_PATH>
                         <CAF_CONFIG_DECODER>JavascriptDecoder</CAF_CONFIG_DECODER>
                         <CAF_CONFIG_ENABLE_SUBSTITUTOR>false</CAF_CONFIG_ENABLE_SUBSTITUTOR>
 
                         <!-- TODO: Study which of these the integration tests actually need -->
-                        <CAF_WORKER_VERSION>${project.version}</CAF_WORKER_VERSION>
                         <CAF_RABBITMQ_BACKOFF_INTERVAL>1</CAF_RABBITMQ_BACKOFF_INTERVAL>
                         <CAF_RABBITMQ_MAX_BACKOFF_INTERVAL>30</CAF_RABBITMQ_MAX_BACKOFF_INTERVAL>
                         <CAF_RABBITMQ_MAX_ATTEMPTS>20</CAF_RABBITMQ_MAX_ATTEMPTS>
@@ -238,9 +286,6 @@
                                     <Build.Date>${maven.build.timestamp}</Build.Date>
                                     <caf.worker-framework.version>${project.version}</caf.worker-framework.version>
                                 </labels>
-                                <env>
-                                    <CAF_WORKER_VERSION>${project.version}</CAF_WORKER_VERSION>
-                                </env>
                                 <!-- The entry point will be the worker.sh executable. -->
                                 <entryPoint>
                                     <exec>
@@ -266,7 +311,7 @@
                                                 </includes>
                                             </fileSet>
                                             <fileSet>
-                                                <directory>src/main/config</directory>
+                                                <directory>${project.build.directory}/config-files</directory>
                                                 <outputDirectory>config</outputDirectory>
                                             </fileSet>
                                         </fileSets>

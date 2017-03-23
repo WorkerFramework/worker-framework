@@ -36,7 +36,6 @@
   },
   "env": {
     "_JAVA_OPTIONS": "-Xms${example-java-mem-min}m -Xmx${example-java-mem-max}m",
-    "CAF_WORKER_VERSION": "${example-version}",
     "CAF_WORKER_INPUT_QUEUE": "${marathon-group}-example-in",
     "CAF_WORKER_OUTPUT_QUEUE": "${marathon-group}-workflow-in",
     "CAF_WORKER_THREADS": "${example-threads}",
