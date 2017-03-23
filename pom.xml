@@ -84,6 +84,7 @@
 
     <modules>
         <module>worker-configs</module>
+        <module>worker-default-configs</module>
         <module>worker-api</module>
         <module>worker-caf</module>
         <module>util-rabbitmq</module>
