@@ -20,12 +20,12 @@ import java.util.ArrayList;
 
 /**
  * Sift4Comparator which uses the sift4 algorithms to allow string distance comparisons to take place efficiently.
- * 
- * 
+ *
+ *
  */
-public class Sift4Comparator {
+public class Sift4Comparator
+{
 
-     
     /**
      * sift4 simple algorithm Based on JS algorithm @ https://siderite.blogspot.com/2014/11/super-fast-and-accurate-string-distance.html
      *
@@ -217,7 +217,10 @@ public class Sift4Comparator {
         return Math.round(Math.max(l1, l2) - lcss + trans); //add the cost of transpositions to the final result
     }
 
-    protected static class OffsetObject
+    /**
+     * Internal class to hold the information about the distance or offset between 2 characters.
+     */
+    private static class OffsetObject
     {
         int c1;
         int c2;

@@ -18,6 +18,8 @@ import static com.hpe.caf.worker.testing.Sift4Comparator.sift4Distance_Common;
 import static com.hpe.caf.worker.testing.Sift4Comparator.sift4Distance_Simple;
 import java.io.IOException;
 import java.io.InputStream;
+import java.nio.charset.Charset;
+import java.nio.charset.StandardCharsets;
 import junit.framework.Assert;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -38,7 +40,7 @@ public class ContentComparerTest
         WINKLER
     }
 
-    private static final int maxOffsetToFindCharacters = 20;
+    private static final int MAX_OFFSET_TO_FIND_CHARACTERS = 20;
 
     // simple seems good enough for most use cases for now, just test its similarity is high enough.
     @Test
@@ -50,8 +52,8 @@ public class ContentComparerTest
 
         final double minPercentage = 99;
 
-        Assert.assertTrue("Sift4 Algorithm: " + Algorithms.SIFT_SIMPLE + " must return > " + minPercentage + "% similarity", calculateSimilarityChoicePercentage(source, source2, maxOffsetToFindCharacters, Algorithms.SIFT_SIMPLE) > minPercentage);
-        Assert.assertTrue("Sift4 Algorithm: " + Algorithms.SIFT_COMMON + " must return > " + minPercentage + "% similarity", calculateSimilarityChoicePercentage(source, source2, maxOffsetToFindCharacters, Algorithms.SIFT_COMMON) > minPercentage);
+        Assert.assertTrue("Sift4 Algorithm: " + Algorithms.SIFT_SIMPLE + " must return > " + minPercentage + "% similarity", calculateSimilarityChoicePercentage(source, source2, MAX_OFFSET_TO_FIND_CHARACTERS, Algorithms.SIFT_SIMPLE) > minPercentage);
+        Assert.assertTrue("Sift4 Algorithm: " + Algorithms.SIFT_COMMON + " must return > " + minPercentage + "% similarity", calculateSimilarityChoicePercentage(source, source2, MAX_OFFSET_TO_FIND_CHARACTERS, Algorithms.SIFT_COMMON) > minPercentage);
     }
 
     @Test
@@ -64,23 +66,28 @@ public class ContentComparerTest
 
         final double minPercentage = 95;
 
-        Assert.assertTrue("Sift4 Algorithm: " + Algorithms.SIFT_SIMPLE + " must return > " + minPercentage + "% similarity", calculateSimilarityChoicePercentage(source, source2, maxOffsetToFindCharacters, Algorithms.SIFT_SIMPLE) > minPercentage);
-        Assert.assertTrue("Sift4 Algorithm: " + Algorithms.SIFT_COMMON + " must return > " + minPercentage + "% similarity", calculateSimilarityChoicePercentage(source, source2, maxOffsetToFindCharacters, Algorithms.SIFT_COMMON) > minPercentage);
+        Assert.assertTrue("Sift4 Algorithm: " + Algorithms.SIFT_SIMPLE + " must return > " + minPercentage + "% similarity", calculateSimilarityChoicePercentage(source, source2, MAX_OFFSET_TO_FIND_CHARACTERS, Algorithms.SIFT_SIMPLE) > minPercentage);
+        Assert.assertTrue("Sift4 Algorithm: " + Algorithms.SIFT_COMMON + " must return > " + minPercentage + "% similarity", calculateSimilarityChoicePercentage(source, source2, MAX_OFFSET_TO_FIND_CHARACTERS, Algorithms.SIFT_COMMON) > minPercentage);
+    }
+
+    private String getStringFromResource(final String resourceName, Charset encoding) throws IOException
+    {
+        InputStream is = this.getClass().getResourceAsStream(resourceName);
+        Assert.assertNotNull("source content: " + resourceName, is);
+        final String source = IOUtils.toString(is, encoding);
+        return source;
     }
 
     private String getStringFromResource(final String resourceName) throws IOException
     {
-        InputStream is = this.getClass().getResourceAsStream(resourceName);
-        Assert.assertNotNull("source content: " + resourceName, is);
-        final String source = IOUtils.toString(is);
-        return source;
+        return getStringFromResource(resourceName, StandardCharsets.UTF_8);
     }
 
     private static double calculateSimilarityChoicePercentage(final String s1, final String s2, final int maxOffset, final Algorithms algorithm)
     {
         System.out.println(DateTime.now().toLocalTime() + " Starting");
         final double percentage = calculateSimilarityChoice(s1, s2, maxOffset, algorithm) * 100;
-        System.out.println(DateTime.now().toLocalTime() + " Finished with similarity percentage: " + percentage);
+        System.out.println(DateTime.now().toLocalTime() + " Finished algorithm: " + algorithm + " with similarity percentage: " + percentage);
         return percentage;
     }
 
