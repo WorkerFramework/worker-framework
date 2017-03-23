@@ -28,19 +28,22 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.Map;
 import java.util.function.Function;
+import org.apache.commons.io.FileUtils;
+import org.joda.time.DateTime;
 
 /**
  * Created by ploch on 25/11/2015.
  */
-public class ContentResultValidationProcessor<TResult, TInput extends FileTestInputData, TExpected extends ContentFileTestExpectation> extends AbstractResultProcessor<TResult, TInput, TExpected> {
+public class ContentResultValidationProcessor<TResult, TInput extends FileTestInputData, TExpected extends ContentFileTestExpectation> extends AbstractResultProcessor<TResult, TInput, TExpected>
+{
 
     private final DataStore dataStore;
     private final Function<TResult, ReferencedData> getContentFunc;
     private final String testDataFolder;
 
-    public ContentResultValidationProcessor(final DataStore dataStore, final Codec codec, final Class<TResult> resultClass, final Function<TResult, ReferencedData> getContentFunc, final String testDataFolder) {
+    public ContentResultValidationProcessor(final DataStore dataStore, final Codec codec, final Class<TResult> resultClass, final Function<TResult, ReferencedData> getContentFunc, final String testDataFolder)
+    {
         super(codec, resultClass);
         this.dataStore = dataStore;
         this.getContentFunc = getContentFunc;
@@ -48,8 +51,10 @@ public class ContentResultValidationProcessor<TResult, TInput extends FileTestIn
     }
 
     @Override
-    protected boolean processWorkerResult(TestItem<TInput, TExpected> testItem, TaskMessage message, TResult workerResult) throws Exception {
-
+    protected boolean processWorkerResult(TestItem<TInput, TExpected> testItem, TaskMessage message, TResult workerResult) throws Exception
+    {
+        final String func = "Process Worker Result";
+        
         DataSource dataSource = new DataStoreSource(dataStore, getCodec());
 
         ReferencedData referencedData = getContentFunc.apply(workerResult);
@@ -57,27 +62,34 @@ public class ContentResultValidationProcessor<TResult, TInput extends FileTestIn
         String contentFileName = testItem.getExpectedOutputData().getExpectedContentFile();
         if (contentFileName != null && contentFileName.length() > 0) {
 
+            logWithTimestamp(func + " aquire from source: " + referencedData.getReference() == null ? "<blob info>" : referencedData.getReference());
             InputStream dataStream = referencedData.acquire(dataSource);
+            logWithTimestamp(func + " aquire from source finished");
+
             String ocrText = IOUtils.toString(dataStream, StandardCharsets.UTF_8);
+
             Path contentFile = Paths.get(contentFileName);
             if (Files.notExists(contentFile)) {
                 contentFile = Paths.get(testDataFolder, contentFileName);
             }
-            String expectedOcrText = new String(Files.readAllBytes(contentFile));
+            // Make sure we read the expect file in the same character set as the input stream for the returned result content.
+            String expectedOcrText = FileUtils.readFileToString(contentFile.toFile(), StandardCharsets.UTF_8);
 
             double similarity = ContentComparer.calculateSimilarityPercentage(expectedOcrText, ocrText);
 
-            System.out.println("Test item: " + testItem.getTag() + ". Similarity: " + similarity + "%");
-            if (similarity < testItem.getExpectedOutputData().getExpectedSimilarityPercentage() ) {
+            logWithTimestamp(func + " Test item: " + testItem.getTag() + ". Similarity: " + similarity + "%");
+            if (similarity < testItem.getExpectedOutputData().getExpectedSimilarityPercentage()) {
                 TestResultHelper.testFailed(testItem, "Expected similarity of " + testItem.getExpectedOutputData().getExpectedSimilarityPercentage() + "% but actual similarity was " + similarity + "%");
             }
+        } else if (referencedData != null) {
+            TestResultHelper.testFailed(testItem, "Expected null result.");
         }
-        else {
 
-            if (referencedData != null) {
-                TestResultHelper.testFailed(testItem, "Expected null result.");
-            }
-        }
         return true;
+    }
+
+    private void logWithTimestamp(final String debugInfo)
+    {
+        System.out.println(DateTime.now().toLocalTime().toString() + debugInfo);
     }
 }
