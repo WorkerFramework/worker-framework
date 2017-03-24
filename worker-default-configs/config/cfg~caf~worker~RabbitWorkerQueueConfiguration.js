@@ -18,7 +18,6 @@
     inputQueue: getenv("CAF_WORKER_INPUT_QUEUE")
             || (getenv("CAF_WORKER_BASE_QUEUE_NAME") || getenv("CAF_WORKER_NAME") || "worker") + "-in",
     retryQueue: getenv("CAF_WORKER_RETRY_QUEUE") || undefined,
-    rejectedQueue: getenv("CAF_WORKER_REJECTED_QUEUE")
-            || (getenv("CAF_WORKER_BASE_QUEUE_NAME") || getenv("CAF_WORKER_NAME") || "worker") + "-rejected",
+    rejectedQueue: "worker-rejected",
     retryLimit: getenv("CAF_WORKER_RETRY_LIMIT") || 10
 });
