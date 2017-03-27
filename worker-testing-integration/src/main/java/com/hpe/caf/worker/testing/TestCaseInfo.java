@@ -20,10 +20,10 @@ package com.hpe.caf.worker.testing;
  */
 public class TestCaseInfo {
 
-    private String testCaseId;
     private String associatedTickets;
-    private String description;
     private String comments;
+    private String description;
+    private String testCaseId;
 
     /**
      * Getter for property 'testCaseId'.
