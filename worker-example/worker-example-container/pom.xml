@@ -23,13 +23,13 @@
 
     <groupId>com.github.workerframework</groupId>
     <artifactId>worker-example-container</artifactId>
-    <version>1.6.0-SNAPSHOT</version>
+    <version>1.6.0-181</version>
     <packaging>pom</packaging>
     
     <parent>
         <groupId>com.github.workerframework</groupId>
         <artifactId>worker-example-aggregator</artifactId>
-        <version>1.6.0-SNAPSHOT</version>
+        <version>1.6.0-181</version>
     </parent>    
 
     <!-- Properties for the worker. -->
@@ -84,7 +84,7 @@
         <dependency>
             <groupId>com.github.workerframework</groupId>
             <artifactId>worker-example</artifactId>
-            <version>1.6.0-SNAPSHOT</version>
+            <version>1.6.0-181</version>
         </dependency>
         <dependency>
             <groupId>com.github.workerframework</groupId>
