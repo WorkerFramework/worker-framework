@@ -34,7 +34,7 @@ The `worker-core` application manages the flow of data between infrastructure co
 
 ![Worker Flow](images/flow.png)
 
-#### Servce Location
+#### Service Location
 The dependency loading mechanism, called servce location, relies on the `util-moduleloader` library which internally uses the [Java ServiceLoader](http://docs.oracle.com/javase/6/docs/api/java/util/ServiceLoader.html). To instantiate a service, the class has to have a parameterless constructor. This is why all of the plug-ins use plug-in providers that instantiate the actual plug-in. They also need to be advertised using the [ServiceLoader](http://docs.oracle.com/javase/6/docs/api/java/util/ServiceLoader.html) mechanism.
 Implementations of required components have to be packaged with the `worker-core` application to allow service locator to detect and use them.
 
@@ -174,6 +174,25 @@ Configuration data can be encrypted. This is achieved by the use of [Cipher](htt
 By default, the `worker-core` application will use the [NullCipher](https://workerframework.github.io/worker-framework/pages/en-us/apidocs/com/hpe/caf/cipher/NullCipher.html) implementation which does not encrypt or decrypt any data.
 Framework also includes the [JasyptCipher](https://workerframework.github.io/worker-framework/pages/en-us/apidocs/com/hpe/caf/cipher/jasypt/JasyptCipher.html) which provides basic text encryption.
 Developers can implement their own encryption mechanism by providing an implementation of the Cipher and the [CipherProvider](https://workerframework.github.io/worker-framework/pages/en-us/apidocs/com/hpe/caf/api/CipherProvider.html).
+
+#### Decoding Configuration Files
+
+The way in which Configuration files are read may be further controlled through the use of a specific Decoder. These can be used to add additional parsing functionality to the contents of configuration. The decoder used is controlled by the `CAF_CONFIG_DECODER` environment variable. If this is not specified then the `Codec` supplied will be used instead to read the contents of configuration.
+
+An example of using a decoder for additional parsing functionality is the JavaScript Decoder which adds supports for reading configuration written in JavaScript files. The decoder also provides a method `getenv` which can be used in the configuration definition to access environment variables when the configuration is read.
+
+e.g.
+```
+({
+    name: getenv("MY_STRING") || "Default name"
+});
+```
+
+In the above example, the name property will be either the value of the environment variable `MY_STRING`, or if that environment variable is not present at the runtime then the name property will be set to "Default name".
+
+Developers can create and use their own decoder by providing an implementation of the Decoder and providing the name of the implementation class in the environment variable `CAF_CONFIG_DECODER`.
+
+e.g. To use the JavaScript decoder, `CAF_CONFIG_DECODER` should be set to `JavascriptDecoder`.
 
 ### Serialization
 
