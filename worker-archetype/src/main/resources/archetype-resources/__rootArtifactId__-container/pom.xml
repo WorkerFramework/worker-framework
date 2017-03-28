@@ -184,12 +184,7 @@
                         <CAF_CONFIG_DECODER>JavascriptDecoder</CAF_CONFIG_DECODER>
                         <CAF_CONFIG_ENABLE_SUBSTITUTOR>false</CAF_CONFIG_ENABLE_SUBSTITUTOR>
 
-                        <!-- TODO: Study which of these the integration tests actually need -->
-                        <CAF_RABBITMQ_BACKOFF_INTERVAL>1</CAF_RABBITMQ_BACKOFF_INTERVAL>
-                        <CAF_RABBITMQ_MAX_BACKOFF_INTERVAL>30</CAF_RABBITMQ_MAX_BACKOFF_INTERVAL>
-                        <CAF_RABBITMQ_MAX_ATTEMPTS>20</CAF_RABBITMQ_MAX_ATTEMPTS>
-                        <CAF_RABBITMQ_PREFETCH_BUFFER>0</CAF_RABBITMQ_PREFETCH_BUFFER>
-                        <CAF_WORKER_RETRY_LIMIT>2</CAF_WORKER_RETRY_LIMIT>
+                        <!-- CAF Storage Connection Details required by the integration tests -->
                         <CAF_KEYCLOAK_HOST>a1-dev-hap012.lab.lynx-connected.com</CAF_KEYCLOAK_HOST>
                         <CAF_KEYCLOAK_PORT>8443</CAF_KEYCLOAK_PORT>
                         <CAF_KEYCLOAK_REALM>caf</CAF_KEYCLOAK_REALM>
