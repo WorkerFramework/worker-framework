@@ -21,23 +21,23 @@
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
 
-    <groupId>${groupId}</groupId>
-    <artifactId>${artifactId}-aggregator</artifactId>
-    <version>${version}</version>
+    <groupId>\${groupId}</groupId>
+    <artifactId>\${artifactId}-aggregator</artifactId>
+    <version>\${version}</version>
     <packaging>pom</packaging>
     
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <maven.compiler.source>1.8</maven.compiler.source>
         <maven.compiler.target>1.8</maven.compiler.target>
-        <workerFrameworkVersion>${archetypeVersion}</workerFrameworkVersion>
+        <workerFrameworkVersion>${project.version}</workerFrameworkVersion>
     </properties>
 
     <modules>
-        <module>${artifactId}-shared</module>
-        <module>${artifactId}</module>
-        <module>${artifactId}-container</module>
-        <module>${artifactId}-testing</module>
+        <module>\${artifactId}-shared</module>
+        <module>\${artifactId}</module>
+        <module>\${artifactId}-container</module>
+        <module>\${artifactId}-testing</module>
     </modules>
 
 </project>

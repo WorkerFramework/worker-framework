@@ -22,7 +22,6 @@
     <requiredProperties>
         <requiredProperty key="workerName" />
         <requiredProperty key="artifactId" />
-        <requiredProperty key="archetypeVersion" />
     </requiredProperties>
 
     <modules>
