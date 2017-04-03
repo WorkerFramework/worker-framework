@@ -5,7 +5,7 @@ title: Worker Framework Overview
 banner:
     icon: 'assets/img/hard-hat.png'
     title: Worker Framework
-    subtitle: Analyze a Larger Range of Formats
+    subtitle: Introductory overview to the Worker Framework
     links:
         - title: GitHub
           url: https://github.com/WorkerFramework/worker-framework

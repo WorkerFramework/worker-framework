@@ -5,7 +5,7 @@ title: Architecture
 banner:
     icon: 'assets/img/hard-hat.png'
     title: Worker Framework
-    subtitle: Analyze a Larger Range of Formats
+    subtitle: Architecture underpinning the Worker Framework
     links:
         - title: GitHub
           url: https://github.com/WorkerFramework/worker-framework
