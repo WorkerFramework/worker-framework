@@ -5,7 +5,7 @@ title: Features
 banner:
     icon: 'assets/img/hard-hat.png'
     title: Worker Framework
-    subtitle: Highlights of the key features, characteristics and qualities of the Worker Framework
+    subtitle: Cross Platform, Cloud Ready, Microservice Framework
     links:
         - title: GitHub
           url: https://github.com/WorkerFramework/worker-framework

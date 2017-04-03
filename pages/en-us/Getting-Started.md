@@ -5,7 +5,7 @@ title: Getting Started
 banner:
     icon: 'assets/img/hard-hat.png'
     title: Worker Framework
-    subtitle: Guide to creating workers based on the Worker Framework
+    subtitle: Cross Platform, Cloud Ready, Microservice Framework
     links:
         - title: GitHub
           url: https://github.com/WorkerFramework/worker-framework

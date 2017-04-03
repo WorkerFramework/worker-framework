@@ -5,7 +5,7 @@ title: Architecture
 banner:
     icon: 'assets/img/hard-hat.png'
     title: Worker Framework
-    subtitle: Architecture underpinning the Worker Framework
+    subtitle: Cross Platform, Cloud Ready, Microservice Framework
     links:
         - title: GitHub
           url: https://github.com/WorkerFramework/worker-framework
