@@ -34,7 +34,7 @@ import com.hpe.caf.worker.testing.util.*;
  */
 public class TestBuilder {
 
-    private WorkerServices workerServices;
+    private final WorkerServices workerServices;
 
     public TestBuilder() {
         try {

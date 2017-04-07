@@ -23,7 +23,7 @@ import java.util.List;
  */
 public class TestContext {
 
-    private TestItem currentTestItem;
+    private final TestItem currentTestItem;
 
     private final CompletionSignal signal;
 

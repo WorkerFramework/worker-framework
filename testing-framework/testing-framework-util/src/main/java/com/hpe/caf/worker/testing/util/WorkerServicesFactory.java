@@ -30,7 +30,7 @@ import com.hpe.caf.util.ModuleLoaderException;
  */
 public class WorkerServicesFactory {
 
-    private static BootstrapConfiguration bootstrapConfiguration = new SystemBootstrapConfiguration();
+    private static final BootstrapConfiguration bootstrapConfiguration = new SystemBootstrapConfiguration();
 
     private WorkerServicesFactory(){}
 

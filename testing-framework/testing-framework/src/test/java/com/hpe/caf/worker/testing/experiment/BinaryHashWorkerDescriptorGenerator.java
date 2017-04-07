@@ -35,7 +35,7 @@ import java.util.List;
 public class BinaryHashWorkerDescriptorGenerator implements DescriptorGenerator {
 
     private final String location;
-    private String globPattern = null;
+    private final String globPattern = null;
 
     public BinaryHashWorkerDescriptorGenerator(String location) {
 

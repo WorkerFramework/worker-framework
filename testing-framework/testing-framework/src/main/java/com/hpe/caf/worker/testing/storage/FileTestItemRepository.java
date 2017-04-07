@@ -49,10 +49,7 @@ public class FileTestItemRepository implements TestItemRepository {
             @Override
             public boolean test(Path path, BasicFileAttributes basicFileAttributes) {
                 if (Files.isDirectory(path)) return false;
-                if (path.getFileName().toString().endsWith(".test.descriptor")) {
-                    return true;
-                }
-                return false;
+                return path.getFileName().toString().endsWith(".test.descriptor");
             }
         });
 

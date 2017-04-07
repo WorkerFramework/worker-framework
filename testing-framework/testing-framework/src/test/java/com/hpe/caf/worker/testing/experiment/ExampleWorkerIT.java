@@ -46,7 +46,7 @@ public class ExampleWorkerIT {
 
     public class HashWorkerTaskFactory implements WorkerTaskFactory<BinaryHashWorkerTestInput, BinaryHashWorkerResult> {
 
-        private DataStore dataStore;
+        private final DataStore dataStore;
 
         public HashWorkerTaskFactory(DataStore dataStore) {
             this.dataStore = dataStore;

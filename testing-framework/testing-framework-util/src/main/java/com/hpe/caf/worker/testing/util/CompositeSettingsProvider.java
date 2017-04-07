@@ -26,7 +26,7 @@ import java.util.Collections;
  */
 public class CompositeSettingsProvider extends SettingsProvider {
 
-    private Collection<SettingsProvider> settingsProviders = new ArrayList<>();
+    private final Collection<SettingsProvider> settingsProviders = new ArrayList<>();
 
     public CompositeSettingsProvider(SettingsProvider... settingsProviders) {
 
