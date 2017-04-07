@@ -1,0 +1,10 @@
+---
+testCaseInfo:
+  testCaseId: "test-2"
+  associatedTickets: null
+  description: "test-2"
+  comments: "test-2"
+inputData:
+  inputFileData:
+    filePath: "test2.txt"
+    storageReference: null

@@ -1,0 +1,9 @@
+{
+    "backoffInterval": 1,
+    "maxBackoffInterval": 30,
+    "maxAttempts": 20,
+    "rabbitHost": "localhost",
+    "rabbitPort": 5672,
+    "rabbitUser": "guest",
+    "rabbitPassword": "guest"
+}

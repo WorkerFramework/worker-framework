@@ -1,0 +1,7 @@
+{
+    "prefetchBuffer": 0,
+    "inputQueue": "${TEST_QUEUE_NAME:-BinaryHashWorker-input-1}",
+    "retryQueue": "BinaryHashWorker-input-1",
+    "rejectedQueue": "BinaryHashWorker-rejected-1",
+    "retryLimit": 2
+}

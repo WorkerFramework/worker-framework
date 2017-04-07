@@ -1,0 +1,339 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+
+    Copyright 2015-2017 Hewlett Packard Enterprise Development LP.
+
+    Licensed under the Apache License, Version 2.0 (the "License");
+    you may not use this file except in compliance with the License.
+    You may obtain a copy of the License at
+
+         http://www.apache.org/licenses/LICENSE-2.0
+
+    Unless required by applicable law or agreed to in writing, software
+    distributed under the License is distributed on an "AS IS" BASIS,
+    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+    See the License for the specific language governing permissions and
+    limitations under the License.
+
+-->
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+
+    <groupId>com.github.workerframework</groupId>
+    <artifactId>worker-example-container</artifactId>
+    <version>1.6.0-SNAPSHOT</version>
+    <packaging>pom</packaging>
+    
+    <parent>
+        <groupId>com.github.workerframework</groupId>
+        <artifactId>worker-example-aggregator</artifactId>
+        <version>1.6.0-SNAPSHOT</version>
+    </parent>    
+
+    <!-- Properties for the worker. -->
+    <properties>
+        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+        <maven.install.skip>true</maven.install.skip>
+        <maven.deploy.skip>true</maven.deploy.skip>
+        <docker.maven.version>0.13.6</docker.maven.version>
+        <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
+        <test.data>${project.basedir}/test-data/input</test.data>
+        <test.configs>${project.basedir}/test-configs</test.configs>
+        <maven.failsafe.version>2.19</maven.failsafe.version>
+        <maven.compiler.version>3.3</maven.compiler.version>
+        <datastore.container.id>b591d8c6615c4af99d7915719b01259c</datastore.container.id>
+        <maven.compiler.source>1.8</maven.compiler.source>
+        <maven.compiler.target>1.8</maven.compiler.target>
+        <corporateDockerRegistry>rh7-artifactory.svs.hpeswlab.net:8443</corporateDockerRegistry>
+    </properties>
+
+    <!--
+        The dependency management section is a mechanism for centralizing dependency information.
+        The CAF worker framework is specified.
+    -->
+    <dependencyManagement>
+        <dependencies>
+            <dependency>
+                <groupId>com.github.workerframework</groupId>
+                <artifactId>worker-framework</artifactId>
+                <version>${project.version}</version>
+                <type>pom</type>
+                <scope>import</scope>
+            </dependency>
+        </dependencies>
+    </dependencyManagement>
+
+    <!-- CAF standard worker container dependency, example worker dependency. -->
+    <dependencies>
+        <dependency>
+            <groupId>com.github.workerframework</groupId>
+            <artifactId>standard-worker-container</artifactId>
+            <type>pom</type>
+        </dependency>
+        <dependency>
+            <groupId>com.github.workerframework</groupId>
+            <artifactId>worker-example</artifactId>
+            <version>1.6.0-SNAPSHOT</version>
+        </dependency>
+        <dependency>
+            <groupId>com.github.workerframework</groupId>
+            <artifactId>worker-testing-integration</artifactId>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>com.github.cafapi</groupId>
+            <artifactId>container-cert-script</artifactId>
+            <type>tar.gz</type>
+        </dependency>
+    </dependencies>
+
+    <build>
+        <plugins>
+            <!-- Plugin for compiling the test source files. -->
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-compiler-plugin</artifactId>
+                <version>${maven.compiler.version}</version>
+                <executions>
+                    <execution>
+                        <phase>test-compile</phase>
+                        <goals>
+                            <goal>testCompile</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
+
+            <!-- Plugin for running integration tests in the integration-test phase -->
+            <plugin>
+                <artifactId>maven-failsafe-plugin</artifactId>
+                <version>${maven.failsafe.version}</version>
+                <executions>
+                    <execution>
+                        <goals>
+                            <goal>integration-test</goal>
+                            <goal>verify</goal>
+                        </goals>
+                    </execution>
+                </executions>
+                <configuration>
+                    <systemPropertyVariables>
+                        <docker.host.address>${docker.host.address}</docker.host.address>
+                        <worker.adminport>${worker.adminport}</worker.adminport>
+                        <rabbitmq.node.port>${rabbitmq.node.port}</rabbitmq.node.port>
+                        <rabbitmq.ctrl.port>${rabbitmq.ctrl.port}</rabbitmq.ctrl.port>
+                        <input.folder>${test.data}</input.folder>
+                        <expected.folder>${test.data}</expected.folder>
+                        <datastore.container.id>${datastore.container.id}</datastore.container.id>
+                        <datastore.enabled>true</datastore.enabled>
+                    </systemPropertyVariables>
+                    <environmentVariables>
+                        <CAF_APPNAME>test/worker-example</CAF_APPNAME>
+                        <CAF_CONFIG_PATH>${test.configs}</CAF_CONFIG_PATH>
+                    </environmentVariables>
+                </configuration>
+            </plugin>
+            <!--
+                Builds the Docker image for the Example Worker, starts RabbitMQ and assembles the configuration files
+                for running the integration tests.
+            -->
+            <plugin>
+                <groupId>org.jolokia</groupId>
+                <artifactId>docker-maven-plugin</artifactId>
+                <version>${docker.maven.version}</version>
+                <executions>
+                    <!-- Build the container in compile phase. -->
+                    <execution>
+                        <id>build-docker-container</id>
+                        <phase>compile</phase>
+                        <goals>
+                            <goal>build</goal>
+                        </goals>
+                    </execution>
+                    <!-- Start the containers in pre-integration-test phase. -->
+                    <execution>
+                        <id>start</id>
+                        <phase>pre-integration-test</phase>
+                        <goals>
+                            <goal>start</goal>
+                        </goals>
+                    </execution>
+                    <!-- Stop the containers in post-integration-test phase. -->
+                    <execution>
+                        <id>stop</id>
+                        <phase>post-integration-test</phase>
+                        <goals>
+                            <goal>stop</goal>
+                        </goals>
+                    </execution>
+                    <!-- Push the docker image for the worker to Artifactory in deploy phase -->
+                    <execution>
+                        <id>upload-docker-container</id>
+                        <phase>deploy</phase>
+                        <goals>
+                            <goal>push</goal>
+                        </goals>
+                        <configuration>
+                            <image>example-worker</image>
+                        </configuration>
+                    </execution>
+                </executions>
+                <configuration>
+                    <watchInterval>500</watchInterval>
+                    <logDate>default</logDate>
+                    <verbose>true</verbose>
+                    <images>
+                        <!-- Run the RabbitMQ image. -->
+                        <image>
+                            <alias>rabbitmq</alias>
+                            <name>rabbitmq:3-management</name>
+                            <run>
+                                <ports>
+                                    <port>${rabbitmq.ctrl.port}:15672</port>
+                                    <port>${rabbitmq.node.port}:5672</port>
+                                </ports>
+                                <wait>
+                                    <log>Server startup complete</log>
+                                    <http>
+                                        <url>http://${docker.host.address}:${rabbitmq.ctrl.port}</url>
+                                    </http>
+                                    <time>120000</time>
+                                    <shutdown>500</shutdown>
+                                </wait>
+                                <log>
+                                    <enabled>true</enabled>
+                                </log>
+                            </run>
+                        </image>
+
+                        <!-- Assemble the config files from the test-configs folder to an image in /config on the host. -->
+                        <image>
+                            <alias>config</alias>
+                            <name>${project.artifactId}-test-config:${project.version}</name>
+                            <build>
+                                <maintainer>conal.smith@hpe.com</maintainer>
+                                <assembly>
+                                    <basedir>/config</basedir>
+                                    <inline>
+                                        <fileSets>
+                                            <fileSet>
+                                                <directory>test-configs</directory>
+                                                <outputDirectory>/</outputDirectory>
+                                                <includes>
+                                                    <include>*</include>
+                                                </includes>
+                                            </fileSet>
+                                        </fileSets>
+                                    </inline>
+                                </assembly>
+                            </build>
+                        </image>
+
+                        <!-- Configuration for the example-worker image -->
+                        <image>
+                            <alias>example-worker</alias>
+                            <name>${corporateDockerRegistry}/caf/worker-example:${project.version}</name>
+                            <build>
+                                <maintainer>conal.smith@hpe.com</maintainer>
+                                <from>java:8</from>
+                                <labels>
+                                    <Build.Number>${project.version}</Build.Number>
+                                    <Build.Date>${maven.build.timestamp}</Build.Date>
+                                    <caf.worker-framework.version>${project.version}</caf.worker-framework.version>
+                                </labels>
+                                <!-- The entry point will be the worker.sh executable. -->
+                                <entryPoint>
+                                    <exec>
+                                        <args>/maven/worker.sh</args>
+                                    </exec>
+                                </entryPoint>
+                                <assembly>
+                                    <mode>tar</mode>
+                                    <inline>
+                                        <!-- Including the executable worker.sh and worker.yaml files in the docker tar -->
+                                        <fileSets>
+                                            <fileSet>
+                                                <lineEnding>unix</lineEnding>
+                                                <includes>
+                                                    <include>worker.sh</include>
+                                                </includes>
+                                                <fileMode>0755</fileMode>
+                                            </fileSet>
+                                            <fileSet>
+                                                <lineEnding>unix</lineEnding>
+                                                <includes>
+                                                    <include>worker.yaml</include>
+                                                </includes>
+                                            </fileSet>
+                                        </fileSets>
+                                        <!-- Including the dependencies into the docker tar -->
+                                        <dependencySets>
+                                            <dependencySet>
+                                                <useProjectArtifact>false</useProjectArtifact>
+                                                <scope>runtime</scope>
+                                                <excludes>
+                                                      <exclude>com.hpe.caf:container-cert-script</exclude>
+                                                </excludes>
+                                            </dependencySet>
+                                            <dependencySet>
+                                                <useProjectArtifact>false</useProjectArtifact>
+                                                <useTransitiveFiltering>true</useTransitiveFiltering>
+                                                <unpack>true</unpack>
+                                                <includes>
+                                                    <include>com.hpe.caf:container-cert-script</include>
+                                                </includes>
+                                            </dependencySet>
+                                        </dependencySets>
+                                    </inline>
+                                </assembly>
+                            </build>
+                            <run>
+                                <ports>
+                                    <port>${worker.adminport}:8081</port>
+                                </ports>
+                                <env>
+                                    <CAF_APPNAME>test/worker-example</CAF_APPNAME>
+                                    <CAF_CONFIG_PATH>/config</CAF_CONFIG_PATH>
+                                </env>
+                                <volumes>
+                                    <from>
+                                        <image>config</image>
+                                    </from>
+                                </volumes>
+                                <links>
+                                    <link>rabbitmq</link>
+                                </links>
+                                <log>
+                                    <enabled>true</enabled>
+                                </log>
+                                <wait>
+                                    <http>
+                                        <url>http://${docker.host.address}:${worker.adminport}</url>
+                                    </http>
+                                    <time>120000</time>
+                                    <shutdown>500</shutdown>
+                                </wait>
+                            </run>
+                        </image>
+
+                    </images>
+                </configuration>
+            </plugin>
+        </plugins>
+    </build>
+
+    <!-- Use this profile if your virtual machine setup must use fixed ports. -->
+    <profiles>
+        <profile>
+            <id>use-default-fixed-ports</id>
+            <properties>
+                <rabbitmq.ctrl.port>15672</rabbitmq.ctrl.port>
+                <rabbitmq.node.port>5672</rabbitmq.node.port>
+                <worker.adminport>8081</worker.adminport>
+            </properties>
+        </profile>
+    </profiles>
+
+</project>
