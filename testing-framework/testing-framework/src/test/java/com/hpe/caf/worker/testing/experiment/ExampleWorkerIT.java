@@ -15,25 +15,23 @@
  */
 package com.hpe.caf.worker.testing.experiment;
 
-
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.base.Strings;
-import com.hpe.caf.api.worker.*;
-import com.hpe.caf.util.ModuleLoader;
+import com.hpe.caf.api.worker.DataStore;
+import com.hpe.caf.api.worker.DataStoreException;
 import com.hpe.caf.util.ref.ReferencedData;
 import com.hpe.caf.worker.binaryhash.BinaryHashWorkerConstants;
 import com.hpe.caf.worker.binaryhash.BinaryHashWorkerResult;
 import com.hpe.caf.worker.binaryhash.BinaryHashWorkerTask;
-import com.hpe.caf.worker.queue.rabbit.RabbitWorkerQueueConfiguration;
-import com.hpe.caf.worker.testing.*;
+import com.hpe.caf.worker.testing.TestBuilder;
+import com.hpe.caf.worker.testing.TestController;
 import com.hpe.caf.worker.testing.api.*;
 import com.hpe.caf.worker.testing.preparation.ContentFilesGenerator;
 import com.hpe.caf.worker.testing.preparation.DefaultPathTestCaseInfoFactory;
 import com.hpe.caf.worker.testing.storage.FileTestItemRepository;
 import com.hpe.caf.worker.testing.storage.TestItemDescriptor;
-import com.hpe.caf.worker.testing.storage.TestItemRepository;
 import com.hpe.caf.worker.testing.storage.YamlTestCaseSerializer;
-import com.hpe.caf.worker.testing.util.*;
+import com.hpe.caf.worker.testing.util.TestFilesUtil;
 import org.testng.annotations.Test;
 
 import java.nio.file.Paths;
@@ -42,55 +40,30 @@ import java.util.Collection;
 /**
  * Created by ploch on 06/03/2017.
  */
-public class ExampleWorkerIT {
-
-    public class HashWorkerTaskFactory implements WorkerTaskFactory<BinaryHashWorkerTestInput, BinaryHashWorkerResult> {
-
-        private final DataStore dataStore;
-
-        public HashWorkerTaskFactory(DataStore dataStore) {
-            this.dataStore = dataStore;
-        }
-
-        @Override
-        public Object createTask(TestItem<BinaryHashWorkerTestInput, BinaryHashWorkerResult> testItem) throws DataStoreException {
-            BinaryHashWorkerTask workerTask = new BinaryHashWorkerTask();
-            ObjectMapper mapper = new ObjectMapper();
-            BinaryHashWorkerTestInput binaryHashWorkerTestInput = mapper.convertValue(testItem.getInputData(), BinaryHashWorkerTestInput.class);
-            InputFileData fileData = binaryHashWorkerTestInput.getInputFileData();
-
-            String path = Paths.get(testItem.getLocation()).getParent().toAbsolutePath().toString();
-            if (!Strings.isNullOrEmpty(fileData.getStorageReference())) {
-                workerTask.sourceData = ReferencedData.getReferencedData(fileData.getStorageReference());
-            } else {
-                String reference = dataStore.store(Paths.get(path, fileData.getFilePath()), null);
-                workerTask.sourceData = ReferencedData.getReferencedData(reference);
-            }
-            return workerTask;
-        }
-    }
+public class ExampleWorkerIT
+{
 
     @Test
-    public void testGenerateDescriptors() throws Exception {
-     //   BinaryHashWorkerDescriptorGenerator generator = new BinaryHashWorkerDescriptorGenerator()
+    public void testGenerateDescriptors() throws Exception
+    {
+        //   BinaryHashWorkerDescriptorGenerator generator = new BinaryHashWorkerDescriptorGenerator()
 
         String root = Paths.get(TestFilesUtil.getTestDataRootPath(), "content-files", "in-folders").toAbsolutePath().toString();
         ContentFilesGenerator generator = new ContentFilesGenerator(root, true, null,
-                new DefaultPathTestCaseInfoFactory(root),
-                new BinaryHashWorkerTestInputFactory(),
-                new FileTestItemRepository(root, new YamlTestCaseSerializer()));
+                                                                    new DefaultPathTestCaseInfoFactory(root),
+                                                                    new BinaryHashWorkerTestInputFactory(),
+                                                                    new FileTestItemRepository(root, new YamlTestCaseSerializer()));
 
         Collection<TestItemDescriptor> generate = generator.generate();
     }
 
-
     @Test
-    public void testWorker3() throws Exception {
+    public void testWorker3() throws Exception
+    {
         WorkerInfo workerInfo = new WorkerInfo(BinaryHashWorkerConstants.WORKER_API_VER, BinaryHashWorkerConstants.WORKER_NAME, BinaryHashWorkerTask.class, BinaryHashWorkerResult.class);
 
         TestBuilder builder = new TestBuilder();
         HashWorkerTaskFactory factory = new HashWorkerTaskFactory(builder.getWorkerServices().getDataStore());
-
 
         TestController controller = builder.createDefault(workerInfo, factory);
         String root = Paths.get(TestFilesUtil.getTestDataRootPath(), "content-files", "in-folders").toAbsolutePath().toString();
@@ -107,6 +80,19 @@ public class ExampleWorkerIT {
 
         System.out.println(testResult.isSuccess());
 
+    }
+
+    private TestItem createTestItem()
+    {
+        BinaryHashWorkerTestInput testInput = new BinaryHashWorkerTestInput();
+        InputFileData inputFileData = new InputFileData();
+        inputFileData.setFilePath("C:\\git\\caf\\worker-binaryhash\\worker-binaryhash-container-fs\\test-data\\input\\FirstTest.txt");
+        testInput.setInputFileData(inputFileData);
+
+        TestItem<BinaryHashWorkerTestInput, BinaryHashWorkerResult> testItem = new TestItem<BinaryHashWorkerTestInput, BinaryHashWorkerResult>(
+                new TestCaseInfo("binary-hash-test-1", null, "Binary hash worker test", null), testInput, null, "C:\\git\\caf\\worker-framework\\testing-framework\\testing-framework\\src\\test\\test-data\\content-files\\in-folders");
+
+        return testItem;
     }
 
    /* @Test
@@ -158,17 +144,34 @@ public class ExampleWorkerIT {
         repository.saveDescriptor(testItem);
     }*/
 
-    private TestItem createTestItem() {
-        BinaryHashWorkerTestInput testInput = new BinaryHashWorkerTestInput();
-        InputFileData inputFileData = new InputFileData();
-        inputFileData.setFilePath("C:\\git\\caf\\worker-binaryhash\\worker-binaryhash-container-fs\\test-data\\input\\FirstTest.txt");
-        testInput.setInputFileData(inputFileData);
+    public class HashWorkerTaskFactory implements WorkerTaskFactory<BinaryHashWorkerTestInput, BinaryHashWorkerResult>
+    {
 
-        TestItem<BinaryHashWorkerTestInput, BinaryHashWorkerResult> testItem = new TestItem<BinaryHashWorkerTestInput, BinaryHashWorkerResult>(
-                new TestCaseInfo("binary-hash-test-1", null, "Binary hash worker test", null), testInput, null, "C:\\git\\caf\\worker-framework\\testing-framework\\testing-framework\\src\\test\\test-data\\content-files\\in-folders");
+        private final DataStore dataStore;
 
-        return testItem;
+        public HashWorkerTaskFactory(DataStore dataStore)
+        {
+            this.dataStore = dataStore;
+        }
+
+        @Override
+        public Object createTask(TestItem<BinaryHashWorkerTestInput, BinaryHashWorkerResult> testItem) throws DataStoreException
+        {
+            BinaryHashWorkerTask workerTask = new BinaryHashWorkerTask();
+            ObjectMapper mapper = new ObjectMapper();
+            BinaryHashWorkerTestInput binaryHashWorkerTestInput = mapper.convertValue(testItem.getInputData(), BinaryHashWorkerTestInput.class);
+            InputFileData fileData = binaryHashWorkerTestInput.getInputFileData();
+
+            String path = Paths.get(testItem.getLocation()).getParent().toAbsolutePath().toString();
+            if (!Strings.isNullOrEmpty(fileData.getStorageReference())) {
+                workerTask.sourceData = ReferencedData.getReferencedData(fileData.getStorageReference());
+            }
+            else {
+                String reference = dataStore.store(Paths.get(path, fileData.getFilePath()), null);
+                workerTask.sourceData = ReferencedData.getReferencedData(reference);
+            }
+            return workerTask;
+        }
     }
-
 
 }

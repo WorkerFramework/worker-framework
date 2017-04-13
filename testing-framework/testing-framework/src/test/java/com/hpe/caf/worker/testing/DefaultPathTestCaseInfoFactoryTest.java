@@ -18,16 +18,20 @@ package com.hpe.caf.worker.testing;
 import com.hpe.caf.worker.testing.api.TestCaseInfo;
 import com.hpe.caf.worker.testing.preparation.DefaultPathTestCaseInfoFactory;
 import org.testng.annotations.Test;
-import static org.hamcrest.MatcherAssert.*;
-import static org.hamcrest.Matchers.*;
+
 import java.nio.file.Paths;
+
+import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.Matchers.is;
 
 /**
  * Created by ploch on 17/03/2017.
  */
-public class DefaultPathTestCaseInfoFactoryTest {
+public class DefaultPathTestCaseInfoFactoryTest
+{
     @Test
-    public void testCreateUsingFileName() throws Exception {
+    public void testCreateUsingFileName() throws Exception
+    {
 
         DefaultPathTestCaseInfoFactory sut = new DefaultPathTestCaseInfoFactory("C:\\test-data");
 
@@ -37,7 +41,8 @@ public class DefaultPathTestCaseInfoFactoryTest {
     }
 
     @Test
-    public void testCreateUsingParentFolderName() throws Exception {
+    public void testCreateUsingParentFolderName() throws Exception
+    {
 
         DefaultPathTestCaseInfoFactory sut = new DefaultPathTestCaseInfoFactory("C:\\test-data");
 

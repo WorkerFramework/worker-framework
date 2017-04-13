@@ -24,17 +24,20 @@ import java.nio.file.Paths;
 /**
  * Created by ploch on 17/03/2017.
  */
-public class DefaultPathTestCaseInfoFactory implements TestCaseInfoFactory {
+public class DefaultPathTestCaseInfoFactory implements TestCaseInfoFactory
+{
 
     private final String rootPath;
 
-    public DefaultPathTestCaseInfoFactory(String rootPath) {
+    public DefaultPathTestCaseInfoFactory(String rootPath)
+    {
 
         this.rootPath = rootPath;
     }
 
     @Override
-    public TestCaseInfo create(Path file) {
+    public TestCaseInfo create(Path file)
+    {
 
         if (Files.isDirectory(file)) {
             throw new IllegalArgumentException("Directory provided but only file is accepted.");

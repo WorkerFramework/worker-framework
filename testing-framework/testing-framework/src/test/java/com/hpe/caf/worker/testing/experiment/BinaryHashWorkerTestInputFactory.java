@@ -23,10 +23,12 @@ import java.nio.file.Path;
 /**
  * Created by ploch on 17/03/2017.
  */
-public class BinaryHashWorkerTestInputFactory implements TestInputFactory<BinaryHashWorkerTestInput> {
+public class BinaryHashWorkerTestInputFactory implements TestInputFactory<BinaryHashWorkerTestInput>
+{
 
     @Override
-    public BinaryHashWorkerTestInput createTestInput(Path file) {
+    public BinaryHashWorkerTestInput createTestInput(Path file)
+    {
         BinaryHashWorkerTestInput result = new BinaryHashWorkerTestInput();
         InputFileData fileData = new InputFileData();
         fileData.setFilePath(file.getFileName().toString());

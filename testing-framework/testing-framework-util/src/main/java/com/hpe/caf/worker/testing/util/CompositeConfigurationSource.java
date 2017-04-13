@@ -28,30 +28,35 @@ import java.util.Objects;
 /**
  * Created by ploch on 15/02/2017.
  */
-public class CompositeConfigurationSource implements ConfigurationSource {
+public class CompositeConfigurationSource implements ConfigurationSource
+{
 
     private static final Logger LOG = LoggerFactory.getLogger(CompositeConfigurationSource.class);
 
     private final List<ConfigurationSource> configurationSources = new ArrayList<>();
 
-    public CompositeConfigurationSource(ConfigurationSource... configurationSources) {
+    public CompositeConfigurationSource(ConfigurationSource... configurationSources)
+    {
         if (configurationSources != null) {
             Collections.addAll(this.configurationSources, configurationSources);
         }
     }
 
-    public CompositeConfigurationSource addConfigurationSource(ConfigurationSource configurationSource) {
+    public CompositeConfigurationSource addConfigurationSource(ConfigurationSource configurationSource)
+    {
         configurationSources.add(configurationSource);
         return this;
     }
 
-    public CompositeConfigurationSource insertConfigurationSource(int index, ConfigurationSource configurationSource) {
+    public CompositeConfigurationSource insertConfigurationSource(int index, ConfigurationSource configurationSource)
+    {
         configurationSources.add(index, configurationSource);
         return this;
     }
 
     @Override
-    public <T> T getConfiguration(Class<T> aClass) throws ConfigurationException {
+    public <T> T getConfiguration(Class<T> aClass) throws ConfigurationException
+    {
         Objects.requireNonNull(aClass);
 
         for (ConfigurationSource configurationSource : configurationSources) {
@@ -61,7 +66,8 @@ public class CompositeConfigurationSource implements ConfigurationSource {
                 if (configuration != null) {
                     return configuration;
                 }
-            } catch (ConfigurationException e) {
+            }
+            catch (ConfigurationException e) {
                 LOG.debug("Failet to retrieve configuration for {} using {}. Exception message: {}", aClass.getName(), configurationSource.getClass().getName(), e.getMessage());
             }
         }

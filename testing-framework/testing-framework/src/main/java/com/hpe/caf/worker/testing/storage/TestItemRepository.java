@@ -23,8 +23,10 @@ import java.io.IOException;
 /**
  * Created by ploch on 08/03/2017.
  */
-public interface TestItemRepository {
+public interface TestItemRepository
+{
 
     void saveDescriptor(TestItem testItem) throws CodecException, IOException;
+
     void saveExpectation(TestItem testItem) throws CodecException, IOException;
 }

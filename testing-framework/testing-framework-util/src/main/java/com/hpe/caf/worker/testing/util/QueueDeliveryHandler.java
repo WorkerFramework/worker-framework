@@ -20,7 +20,6 @@ import com.hpe.caf.api.CodecException;
 import com.hpe.caf.api.DecodeMethod;
 import com.hpe.caf.api.worker.*;
 import com.hpe.caf.worker.testing.api.TaskMessageHandler;
-import com.hpe.caf.worker.testing.api.TestContext;
 import com.hpe.caf.worker.testing.api.TestFailedException;
 
 import java.util.Map;
@@ -29,21 +28,21 @@ import java.util.Objects;
 /**
  * Created by ploch on 06/03/2017.
  */
-public class QueueDeliveryHandler implements TaskCallback {
+public class QueueDeliveryHandler implements TaskCallback
+{
 
     private final Codec codec;
 
     private final TaskMessageHandler messageHandler;
     private final ManagedWorkerQueue workerQueue;
 
-
-    public QueueDeliveryHandler(final TaskMessageHandler messageHandler, final ManagedWorkerQueue workerQueue, final Codec codec) {
+    public QueueDeliveryHandler(final TaskMessageHandler messageHandler, final ManagedWorkerQueue workerQueue, final Codec codec)
+    {
         this.codec = Objects.requireNonNull(codec);
 
         this.messageHandler = messageHandler;
         this.workerQueue = workerQueue;
     }
-
 
     /**
      * {@inheritDoc}
@@ -53,22 +52,24 @@ public class QueueDeliveryHandler implements TaskCallback {
      */
     @Override
     public void registerNewTask(final String queueMsgId, final byte[] taskMessage, Map<String, Object> headers)
-            throws InvalidTaskException, TaskRejectedException {
+            throws InvalidTaskException, TaskRejectedException
+    {
         Objects.requireNonNull(queueMsgId);
-
 
         try {
             TaskMessage tm = codec.deserialise(taskMessage, TaskMessage.class, DecodeMethod.LENIENT);
             messageHandler.handle(tm);
             workerQueue.acknowledgeTask(queueMsgId);
-        } catch (CodecException e) {
+        }
+        catch (CodecException e) {
             throw new TestFailedException("QueueDeliveryHandler failed.", e);
 
         }
     }
 
     @Override
-    public void abortTasks() {
+    public void abortTasks()
+    {
 
     }
 }

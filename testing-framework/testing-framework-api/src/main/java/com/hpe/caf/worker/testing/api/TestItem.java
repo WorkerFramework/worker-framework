@@ -21,13 +21,14 @@ package com.hpe.caf.worker.testing.api;
  * as well as expectations for the worker result for this
  * particular input.
  *
- * @param <TInput>    the test case input type parameter representing
- *                    all data required to create a worker task
+ * @param <TInput>       the test case input type parameter representing
+ *                       all data required to create a worker task
  * @param <TExpectation> the test case expectation type parameter
- *                    representing all data required to handle a
- *                    worker result (or results)
+ *                       representing all data required to handle a
+ *                       worker result (or results)
  */
-public class TestItem<TInput, TExpectation> {
+public class TestItem<TInput, TExpectation>
+{
 
     /**
      * Specifies test item location
@@ -42,7 +43,9 @@ public class TestItem<TInput, TExpectation> {
     /**
      * Instantiates a new Test item.
      */
-    public TestItem(){}
+    public TestItem()
+    {
+    }
 
     /**
      * Instantiates a new Test item.
@@ -52,14 +55,16 @@ public class TestItem<TInput, TExpectation> {
      * @param expectedOutputData the expected output data
      * @param location
      */
-    public TestItem(TestCaseInfo testCaseInfo, TInput inputData, TExpectation expectedOutputData, String location) {
+    public TestItem(TestCaseInfo testCaseInfo, TInput inputData, TExpectation expectedOutputData, String location)
+    {
         this.testCaseInformation = testCaseInfo;
         this.inputData = inputData;
         this.expectedOutputData = expectedOutputData;
         this.location = location;
     }
 
-    public String getLocation() {
+    public String getLocation()
+    {
         return location;
     }
 
@@ -68,7 +73,8 @@ public class TestItem<TInput, TExpectation> {
      *
      * @return Value for property 'testCaseInformation'.
      */
-    public TestCaseInfo getTestCaseInformation() {
+    public TestCaseInfo getTestCaseInformation()
+    {
         return testCaseInformation;
     }
 
@@ -77,7 +83,8 @@ public class TestItem<TInput, TExpectation> {
      *
      * @param testCaseInformation Value to set for property 'testCaseInformation'.
      */
-    public void setTestCaseInformation(TestCaseInfo testCaseInformation) {
+    public void setTestCaseInformation(TestCaseInfo testCaseInformation)
+    {
         this.testCaseInformation = testCaseInformation;
     }
 
@@ -87,8 +94,14 @@ public class TestItem<TInput, TExpectation> {
      *
      * @return Value for property 'inputData'.
      */
-    public TInput getInputData() {
+    public TInput getInputData()
+    {
         return inputData;
+    }
+
+    public void setInputData(TInput inputData)
+    {
+        this.inputData = inputData;
     }
 
     /**
@@ -98,15 +111,13 @@ public class TestItem<TInput, TExpectation> {
      *
      * @return Value for property 'expectedOutputData'.
      */
-    public TExpectation getExpectedOutputData() {
+    public TExpectation getExpectedOutputData()
+    {
         return expectedOutputData;
     }
 
-    public void setInputData(TInput inputData) {
-        this.inputData = inputData;
-    }
-
-    public void setExpectedOutputData(TExpectation expectedOutputData) {
+    public void setExpectedOutputData(TExpectation expectedOutputData)
+    {
         this.expectedOutputData = expectedOutputData;
     }
 }

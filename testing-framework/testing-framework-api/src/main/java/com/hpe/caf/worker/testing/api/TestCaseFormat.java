@@ -18,7 +18,8 @@ package com.hpe.caf.worker.testing.api;
 /**
  * Created by ploch on 07/12/2015.
  */
-public enum TestCaseFormat {
+public enum TestCaseFormat
+{
 
     XML,
     YAML,

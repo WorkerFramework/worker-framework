@@ -15,27 +15,30 @@
  */
 package com.hpe.caf.worker.testing.api;
 
-import java.util.ArrayList;
 import java.util.List;
 
 /**
  * Created by ploch on 07/03/2017.
  */
-public class TestResult {
+public class TestResult
+{
 
     private final List<ValidationResult> validationResults;
     private final boolean success;
 
-    public TestResult(List<ValidationResult> validationResults, boolean success) {
+    public TestResult(List<ValidationResult> validationResults, boolean success)
+    {
         this.validationResults = validationResults;
         this.success = success;
     }
 
-    public List<ValidationResult> getValidationResults() {
+    public List<ValidationResult> getValidationResults()
+    {
         return validationResults;
     }
 
-    public boolean isSuccess() {
+    public boolean isSuccess()
+    {
         return success;
     }
 }

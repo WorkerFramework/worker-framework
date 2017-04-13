@@ -18,31 +18,37 @@ package com.hpe.caf.worker.testing.api;
 /**
  * Created by ploch on 07/03/2017.
  */
-public class TestFailedException extends RuntimeException {
+public class TestFailedException extends RuntimeException
+{
 
     private final TestContext testContext;
 
-    public TestContext getTestContext() {
+    public TestFailedException(String message)
+    {
+        super(message);
+        testContext = null;
+    }
+
+    public TestFailedException(String message, Throwable cause)
+    {
+        super(message, cause);
+        testContext = null;
+    }
+
+    public TestFailedException(String message, TestContext testContext)
+    {
+        super(message);
+        this.testContext = testContext;
+    }
+
+    public TestFailedException(String message, Throwable cause, TestContext testContext)
+    {
+        super(message, cause);
+        this.testContext = testContext;
+    }
+
+    public TestContext getTestContext()
+    {
         return testContext;
-    }
-
-    public TestFailedException(String message) {
-        super(message);
-        testContext = null;
-    }
-
-    public TestFailedException(String message, Throwable cause) {
-        super(message, cause);
-        testContext = null;
-    }
-
-    public TestFailedException(String message, TestContext testContext) {
-        super(message);
-        this.testContext = testContext;
-    }
-
-    public TestFailedException(String message, Throwable cause, TestContext testContext) {
-        super(message, cause);
-        this.testContext = testContext;
     }
 }

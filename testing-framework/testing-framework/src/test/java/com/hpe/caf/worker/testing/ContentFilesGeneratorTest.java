@@ -15,23 +15,20 @@
  */
 package com.hpe.caf.worker.testing;
 
-import com.hpe.caf.worker.testing.preparation.ContentFilesGenerator;
-import com.hpe.caf.worker.testing.storage.TestItemDescriptor;
 import com.hpe.caf.worker.testing.util.TestFilesUtil;
 import org.testng.annotations.Test;
-import org.testng.AssertJUnit.*;
+
 import java.nio.file.Paths;
-import java.util.Collection;
-import static org.hamcrest.MatcherAssert.*;
-import static org.hamcrest.Matchers.*;
 
 /**
  * Created by ploch on 17/03/2017.
  */
-public class ContentFilesGeneratorTest {
+public class ContentFilesGeneratorTest
+{
 
     @Test
-    public void testGenerate() throws Exception {
+    public void testGenerate() throws Exception
+    {
 
         String testDataRootPath = TestFilesUtil.getTestDataRootPath();
         //C:\git\caf\worker-framework\testing-framework\testing-framework\src\test\test-data\content-files\flat
@@ -41,8 +38,6 @@ public class ContentFilesGeneratorTest {
         //Collection<TestItemDescriptor> descriptors = sut.generate();
 
         //assertThat(descriptors, hasSize(2));
-
-
 
     }
 }

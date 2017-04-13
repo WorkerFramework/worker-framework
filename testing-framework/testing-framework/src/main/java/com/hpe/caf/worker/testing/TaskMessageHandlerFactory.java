@@ -21,7 +21,8 @@ import com.hpe.caf.worker.testing.api.TestContext;
 /**
  * Created by ploch on 17/03/2017.
  */
-public interface TaskMessageHandlerFactory {
+public interface TaskMessageHandlerFactory
+{
 
     TaskMessageHandler create(TestContext testContext);
 }

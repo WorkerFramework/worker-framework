@@ -20,30 +20,36 @@ import java.util.Date;
 /**
  * Created by ploch on 08/03/2017.
  */
-public class TestRunInfo {
+public class TestRunInfo
+{
 
     private Date started;
     private Date finished;
 
-    public static TestRunInfo createStartedNow() {
+    public static TestRunInfo createStartedNow()
+    {
         TestRunInfo testRunInfo = new TestRunInfo();
         testRunInfo.setStarted(new Date());
         return testRunInfo;
     }
 
-    public Date getStarted() {
+    public Date getStarted()
+    {
         return started;
     }
 
-    public void setStarted(Date started) {
+    public void setStarted(Date started)
+    {
         this.started = started;
     }
 
-    public Date getFinished() {
+    public Date getFinished()
+    {
         return finished;
     }
 
-    public void setFinished(Date finished) {
+    public void setFinished(Date finished)
+    {
         this.finished = finished;
     }
 }

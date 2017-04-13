@@ -23,7 +23,8 @@ import java.util.Collection;
 /**
  * Created by ploch on 08/03/2017.
  */
-public interface DescriptorGenerator {
+public interface DescriptorGenerator
+{
 
     Collection<TestItemDescriptor> generate() throws IOException;
 }

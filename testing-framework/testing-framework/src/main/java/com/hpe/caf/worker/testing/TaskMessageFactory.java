@@ -28,7 +28,8 @@ import java.util.Map;
 /**
  * The {@code TaskMessageFactory} class creates messages for publishing to the worker queue.
  */
-public class TaskMessageFactory {
+public class TaskMessageFactory
+{
 
     private final String CONTEXT_KEY = "context";
     private final byte[] CONTEXT_DATA = "testData".getBytes(StandardCharsets.UTF_8);
@@ -44,8 +45,8 @@ public class TaskMessageFactory {
      * @param workerName the worker name
      * @param apiVersion the api version
      */
-    public TaskMessageFactory(final Codec codec, final String workerName, final String workerInputQueueName, final int apiVersion) {
-
+    public TaskMessageFactory(final Codec codec, final String workerName, final String workerInputQueueName, final int apiVersion)
+    {
         this.codec = codec;
         this.workerName = workerName;
         this.workerInputQueueName = workerInputQueueName;
@@ -60,7 +61,8 @@ public class TaskMessageFactory {
      * @return the task message
      * @throws CodecException the codec exception
      */
-    public TaskMessage create(final Object workerTask, TrackingInfo tracking, final String taskId) throws CodecException {
+    public TaskMessage create(final Object workerTask, TrackingInfo tracking, final String taskId) throws CodecException
+    {
 
         Map<String, byte[]> context = Collections.singletonMap(CONTEXT_KEY, CONTEXT_DATA);
 

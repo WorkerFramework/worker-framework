@@ -41,13 +41,12 @@ import java.util.Set;
 
 /**
  * Hello world!
- *
  */
-public class App 
+public class App
 {
-    public static void main( String[] args )
+    public static void main(String[] args)
     {
-        System.out.println( "Hello World!" );
+        System.out.println("Hello World!");
         try {
             testFiles(args[0], args[1]);
         }
@@ -85,7 +84,7 @@ public class App
         try (DirectoryStream<Path> directoryStream = Files.newDirectoryStream(directory)) {
             for (Path path : directoryStream) {
 
-                if (Files.isDirectory(path)){
+                if (Files.isDirectory(path)) {
                     if (includeSubFolders) {
                         fileNames.addAll(getFiles(path, includeSubFolders));
                     }
@@ -97,7 +96,8 @@ public class App
                     }
                 }
             }
-        } catch (IOException ex) {
+        }
+        catch (IOException ex) {
             System.out.println(ex);
             throw ex;
         }
@@ -144,13 +144,11 @@ public class App
         //    executor.performOperation(OperationNames.EXTRACT_FILE_TYPE, context);
         //   executor.<DocumentInfo>performOperation(OperationNames.EXTRACT_CHILDREN, context, t ->  process(t));
 
-
         WorkerTextExtractFactory factory = new WorkerTextExtractFactory();
         DocumentWorker documentWorker = factory.createDocumentWorker(document.getApplication());
         try {
 
             documentWorker.processDocument(document);
-
 
             YAMLMapper mapper = new YAMLMapper();
             FieldsImpl fields = (FieldsImpl) document.getFields();
@@ -158,9 +156,7 @@ public class App
 
             mapper.writeValue(new File(testFilePath.toAbsolutePath().toString() + ".result"), fieldsChanges);
 
-           // InMemoryDataStore dataStore = (InMemoryDataStore) services.getDataStore();
-
-
+            // InMemoryDataStore dataStore = (InMemoryDataStore) services.getDataStore();
 
             //  Map<String, byte[]> dataMap = dataStore.getDataMap();
           /*  for (Map.Entry<String, byte[]> assetEntry : dataMap.entrySet()) {
@@ -175,6 +171,7 @@ public class App
         }
 
     }
+
     private static void process(DocumentInfo documentInfo)
     {
         for (Map.Entry<String, Set<String>> entry : documentInfo.getMetadata().entrySet()) {
@@ -185,7 +182,6 @@ public class App
             }
             System.out.println("---------------");
         }
-
 
     }
 }

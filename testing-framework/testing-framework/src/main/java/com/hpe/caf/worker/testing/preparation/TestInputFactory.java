@@ -20,7 +20,8 @@ import java.nio.file.Path;
 /**
  * Created by ploch on 17/03/2017.
  */
-public interface TestInputFactory<TTestInput> {
+public interface TestInputFactory<TTestInput>
+{
 
     TTestInput createTestInput(Path file);
 

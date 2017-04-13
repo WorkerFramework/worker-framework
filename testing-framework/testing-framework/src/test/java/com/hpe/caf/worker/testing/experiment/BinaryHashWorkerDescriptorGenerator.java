@@ -32,17 +32,21 @@ import java.util.List;
 /**
  * Created by ploch on 08/03/2017.
  */
-public class BinaryHashWorkerDescriptorGenerator implements DescriptorGenerator {
+public class BinaryHashWorkerDescriptorGenerator implements DescriptorGenerator
+{
 
     private final String location;
     private final String globPattern = null;
 
-    public BinaryHashWorkerDescriptorGenerator(String location) {
+    public BinaryHashWorkerDescriptorGenerator(String location)
+    {
 
         this.location = location;
     }
+
     @Override
-    public Collection<TestItemDescriptor> generate() throws IOException {
+    public Collection<TestItemDescriptor> generate() throws IOException
+    {
         Path path = Paths.get(location);
 
         List<Path> files = getFiles(path);
@@ -55,7 +59,7 @@ public class BinaryHashWorkerDescriptorGenerator implements DescriptorGenerator 
             TestItemDescriptor descriptor = new TestItemDescriptor();
             descriptor.setInputData(testInput);
 
-            TestCaseInfo info = new TestCaseInfo(file.toFile().getName(), null, "Test case for file " + file.toString(), null );
+            TestCaseInfo info = new TestCaseInfo(file.toFile().getName(), null, "Test case for file " + file.toString(), null);
 
             descriptor.setTestCaseInfo(info);
 
@@ -65,17 +69,18 @@ public class BinaryHashWorkerDescriptorGenerator implements DescriptorGenerator 
         return descriptors;
     }
 
-    private List<Path> getFiles(Path directory) throws IOException {
+    private List<Path> getFiles(Path directory) throws IOException
+    {
         List<Path> fileNames = new ArrayList<>();
         try (DirectoryStream<Path> directoryStream = Files.newDirectoryStream(directory)) {
             for (Path path : directoryStream) {
 
-                    if (globPattern == null || path.getFileSystem().getPathMatcher(globPattern).matches(path.getFileName())) {
-                        fileNames.add(path);
-                    }
+                if (globPattern == null || path.getFileSystem().getPathMatcher(globPattern).matches(path.getFileName())) {
+                    fileNames.add(path);
                 }
             }
-         catch (IOException ex) {
+        }
+        catch (IOException ex) {
             System.out.println(ex);
             throw ex;
         }

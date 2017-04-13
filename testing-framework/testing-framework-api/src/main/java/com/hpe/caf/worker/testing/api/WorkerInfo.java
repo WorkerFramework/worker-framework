@@ -18,14 +18,16 @@ package com.hpe.caf.worker.testing.api;
 /**
  * Created by ploch on 07/03/2017.
  */
-public class WorkerInfo {
+public class WorkerInfo
+{
 
     private final int apiVersion;
     private final String workerName;
     private final Class workerTaskClass;
     private final Class workerResultClass;
 
-    public WorkerInfo(int apiVersion, String workerName, Class workerTaskClass, Class workerResultClass) {
+    public WorkerInfo(int apiVersion, String workerName, Class workerTaskClass, Class workerResultClass)
+    {
 
         this.apiVersion = apiVersion;
         this.workerName = workerName;
@@ -33,19 +35,23 @@ public class WorkerInfo {
         this.workerResultClass = workerResultClass;
     }
 
-    public int getApiVersion() {
+    public int getApiVersion()
+    {
         return apiVersion;
     }
 
-    public String getWorkerName() {
+    public String getWorkerName()
+    {
         return workerName;
     }
 
-    public Class getWorkerTaskClass() {
+    public Class getWorkerTaskClass()
+    {
         return workerTaskClass;
     }
 
-    public Class getWorkerResultClass() {
+    public Class getWorkerResultClass()
+    {
         return workerResultClass;
     }
 }

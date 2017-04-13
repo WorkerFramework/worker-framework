@@ -18,17 +18,21 @@ package com.hpe.caf.worker.testing;
 /**
  * Created by ploch on 17/03/2017.
  */
-public class TestExecutionException extends RuntimeException {
+public class TestExecutionException extends RuntimeException
+{
 
-    public TestExecutionException(String message) {
+    public TestExecutionException(String message)
+    {
         super(message);
     }
 
-    public TestExecutionException(String message, Throwable cause) {
+    public TestExecutionException(String message, Throwable cause)
+    {
         super(message, cause);
     }
 
-    public TestExecutionException(Throwable cause) {
+    public TestExecutionException(Throwable cause)
+    {
         super(cause);
     }
 }

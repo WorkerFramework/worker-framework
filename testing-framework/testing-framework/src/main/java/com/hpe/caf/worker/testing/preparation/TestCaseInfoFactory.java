@@ -22,7 +22,8 @@ import java.nio.file.Path;
 /**
  * Created by ploch on 17/03/2017.
  */
-public interface TestCaseInfoFactory {
+public interface TestCaseInfoFactory
+{
 
     TestCaseInfo create(Path file);
 }

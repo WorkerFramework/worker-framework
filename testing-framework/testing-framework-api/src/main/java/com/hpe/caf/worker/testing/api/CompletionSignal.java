@@ -18,26 +18,31 @@ package com.hpe.caf.worker.testing.api;
 /**
  * Created by ploch on 16/11/2015.
  */
-public class CompletionSignal {
-
-    private static class MonitorObject {}
+public class CompletionSignal
+{
 
     MonitorObject myMonitorObject = new MonitorObject();
     boolean wasSignalled = false;
 
-    public void doWait() throws InterruptedException {
-        synchronized(myMonitorObject){
-            while(!wasSignalled){
-                    myMonitorObject.wait();
+    public void doWait() throws InterruptedException
+    {
+        synchronized (myMonitorObject) {
+            while (!wasSignalled) {
+                myMonitorObject.wait();
             }
             wasSignalled = false;
         }
     }
 
-    public void doNotifyCompleted(){
-        synchronized(myMonitorObject){
+    public void doNotifyCompleted()
+    {
+        synchronized (myMonitorObject) {
             wasSignalled = true;
             myMonitorObject.notify();
         }
+    }
+
+    private static class MonitorObject
+    {
     }
 }

@@ -26,18 +26,19 @@ import java.io.IOException;
 import java.util.List;
 import java.util.UUID;
 
-
 /**
  * Manages a test execution.
  */
-public class TestController {
+public class TestController
+{
 
     private final QueueManager queueManager;
     private final TaskMessageFactory factory;
     private final WorkerTaskFactory workerTaskFactory;
     private final TaskMessageHandlerFactory taskMessageHandlerFactory;
 
-    public TestController(QueueManager queueManager, TaskMessageFactory factory, WorkerTaskFactory workerTaskFactory, TaskMessageHandlerFactory taskMessageHandlerFactory) {
+    public TestController(QueueManager queueManager, TaskMessageFactory factory, WorkerTaskFactory workerTaskFactory, TaskMessageHandlerFactory taskMessageHandlerFactory)
+    {
 
         this.queueManager = queueManager;
         this.factory = factory;
@@ -45,14 +46,15 @@ public class TestController {
         this.taskMessageHandlerFactory = taskMessageHandlerFactory;
     }
 
-    public TestResult executeTest(TestItem testItem) throws QueueException, CodecException, InterruptedException, DataStoreException, IOException {
+    public TestResult executeTest(TestItem testItem) throws QueueException, CodecException, InterruptedException, DataStoreException, IOException
+    {
 
         CompletionSignal signal = new CompletionSignal();
         TestContext context = new TestContext(testItem, signal);
-       // TestItemRepository repository = new FileTestItemRepository(SettingsProvider.defaultProvider.getSetting("input.folder"), new YamlTestCaseSerializer());
+        // TestItemRepository repository = new FileTestItemRepository(SettingsProvider.defaultProvider.getSetting("input.folder"), new YamlTestCaseSerializer());
 
         String taskId = UUID.randomUUID().toString();
-    //    queueManager.start(new RecordingTaskHandler(context, codec, repository, workerInfo));
+        //    queueManager.start(new RecordingTaskHandler(context, codec, repository, workerInfo));
         TaskMessageHandler taskMessageHandler = taskMessageHandlerFactory.create(context);
         queueManager.start(taskMessageHandler);
         Object workerTask = workerTaskFactory.createTask(testItem);
@@ -67,8 +69,6 @@ public class TestController {
         boolean success = validationResults.stream().allMatch(validationResult -> validationResult.getStatus() == ValidationStatus.VALIDATION_SUCCESS);
 
         TestResult testResult = new TestResult(validationResults, success);
-
-
 
         return testResult;
         //queueManager.getWorkerQueue().publish("1", workerServices.getCodec().serialise(taskMessage), queueName,  new HashMap<>());

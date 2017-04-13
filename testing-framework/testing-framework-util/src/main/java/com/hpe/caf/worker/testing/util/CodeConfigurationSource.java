@@ -21,18 +21,19 @@ import com.hpe.caf.api.ConfigurationSource;
 import java.util.HashMap;
 import java.util.Objects;
 
-
 /**
  * The configuration source which allows to set configuration classes in code.
  */
-public class CodeConfigurationSource implements ConfigurationSource {
+public class CodeConfigurationSource implements ConfigurationSource
+{
 
     private final HashMap<Class, Object> configurations = new HashMap<>();
 
     /**
      * Instantiates a new CodeConfigurationSource.
      */
-    public CodeConfigurationSource() {
+    public CodeConfigurationSource()
+    {
     }
 
     /**
@@ -41,7 +42,8 @@ public class CodeConfigurationSource implements ConfigurationSource {
      * @param configurations the configurations
      * @throws IllegalArgumentException if multiple configurations of the same type are passed.
      */
-    public CodeConfigurationSource(Object... configurations) {
+    public CodeConfigurationSource(Object... configurations)
+    {
         Objects.requireNonNull(configurations);
 
         for (Object configuration : configurations) {
@@ -51,13 +53,15 @@ public class CodeConfigurationSource implements ConfigurationSource {
 
     /**
      * Retrieves a configuration object.
+     *
      * @param configClass the class that represents your configuration
      * @param <T>
      * @return configuration object.
      * @throws ConfigurationException
      */
     @Override
-    public <T> T getConfiguration(Class<T> configClass) throws ConfigurationException {
+    public <T> T getConfiguration(Class<T> configClass) throws ConfigurationException
+    {
         Objects.requireNonNull(configClass);
         if (!configurations.containsKey(configClass)) {
             throw new ConfigurationException("Could not find " + configClass.getName());
@@ -72,7 +76,8 @@ public class CodeConfigurationSource implements ConfigurationSource {
      * @return the code configuration source
      * @throws IllegalArgumentException if this configuration source already contains configuration object of the same type.
      */
-    public CodeConfigurationSource addConfiguration(Object configuration) {
+    public CodeConfigurationSource addConfiguration(Object configuration)
+    {
         return addConfiguration(configuration, false);
     }
 
@@ -83,7 +88,8 @@ public class CodeConfigurationSource implements ConfigurationSource {
      * @param overrideIfExists if true, it will replace existing configuration object, if false, method will throw                         IllegalArgumentException in case of existing class.
      * @return this CodeConfigurationSource instance.
      */
-    public CodeConfigurationSource addConfiguration(Object configuration, boolean overrideIfExists) {
+    public CodeConfigurationSource addConfiguration(Object configuration, boolean overrideIfExists)
+    {
         Class<?> configurationClass = configuration.getClass();
         if (!overrideIfExists && configurations.containsKey(configurationClass)) {
             throw new IllegalArgumentException(String.format("Configuration for %s already set.", configurationClass.getName()));

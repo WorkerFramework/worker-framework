@@ -20,7 +20,8 @@ import com.hpe.caf.api.worker.DataStoreException;
 /**
  * Created by ploch on 07/03/2017.
  */
-public interface WorkerTaskFactory<TInput, TExpectation> {
+public interface WorkerTaskFactory<TInput, TExpectation>
+{
 
     Object createTask(TestItem<TInput, TExpectation> testItem) throws DataStoreException;
 }

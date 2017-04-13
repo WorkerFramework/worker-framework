@@ -23,7 +23,8 @@ import com.hpe.caf.api.worker.DataStore;
 /**
  * Created by ploch on 22/10/2015.
  */
-public class WorkerServices {
+public class WorkerServices
+{
 
     private final BootstrapConfiguration bootstrapConfiguration;
     private final Codec codec;
@@ -31,7 +32,8 @@ public class WorkerServices {
     private final CompositeConfigurationSource configurationSource;
     private final DataStore dataStore;
 
-    public WorkerServices(final BootstrapConfiguration bootstrapConfiguration, final Codec codec, final Cipher cipher, final CompositeConfigurationSource configurationSource, final DataStore dataStore) {
+    public WorkerServices(final BootstrapConfiguration bootstrapConfiguration, final Codec codec, final Cipher cipher, final CompositeConfigurationSource configurationSource, final DataStore dataStore)
+    {
         this.bootstrapConfiguration = bootstrapConfiguration;
         this.codec = codec;
 
@@ -45,7 +47,8 @@ public class WorkerServices {
      *
      * @return Value for property 'bootstrapConfiguration'.
      */
-    public BootstrapConfiguration getBootstrapConfiguration() {
+    public BootstrapConfiguration getBootstrapConfiguration()
+    {
         return bootstrapConfiguration;
     }
 
@@ -54,7 +57,8 @@ public class WorkerServices {
      *
      * @return Value for property 'codec'.
      */
-    public Codec getCodec() {
+    public Codec getCodec()
+    {
         return codec;
     }
 
@@ -63,7 +67,8 @@ public class WorkerServices {
      *
      * @return Value for property 'cipher'.
      */
-    public Cipher getCipher() {
+    public Cipher getCipher()
+    {
         return cipher;
     }
 
@@ -72,7 +77,8 @@ public class WorkerServices {
      *
      * @return Value for property 'configurationSource'.
      */
-    public CompositeConfigurationSource getConfigurationSource() {
+    public CompositeConfigurationSource getConfigurationSource()
+    {
         return configurationSource;
     }
 
@@ -81,9 +87,9 @@ public class WorkerServices {
      *
      * @return Value for property 'dataStore'.
      */
-    public DataStore getDataStore() {
+    public DataStore getDataStore()
+    {
         return dataStore;
     }
-
 
 }

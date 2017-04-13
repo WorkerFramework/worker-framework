@@ -29,39 +29,39 @@ import java.io.IOException;
 /**
  * Created by ploch on 07/03/2017.
  */
-public class RecordingTaskHandler implements TaskMessageHandler {
+public class RecordingTaskHandler implements TaskMessageHandler
+{
 
     private final Codec codec;
     private final TestItemRepository repository;
     private final WorkerInfo workerInfo;
     private final TestContext testContext;
 
-    public RecordingTaskHandler(TestContext testContext, Codec codec, TestItemRepository repository, WorkerInfo workerInfo) {
+    public RecordingTaskHandler(TestContext testContext, Codec codec, TestItemRepository repository, WorkerInfo workerInfo)
+    {
         this.testContext = testContext;
-
         this.codec = codec;
         this.repository = repository;
         this.workerInfo = workerInfo;
     }
 
     @Override
-    public void handle(TaskMessage resultMessage)  {
-
+    public void handle(TaskMessage resultMessage)
+    {
         byte[] taskData = resultMessage.getTaskData();
         Object workerResult = null;
         try {
             workerResult = codec.deserialise(taskData, workerInfo.getWorkerResultClass());
-        } catch (CodecException e) {
+        }
+        catch (CodecException e) {
             throw new TestExecutionException("Failed to deserialize message.", e);
         }
-
         TestItem currentTestItem = testContext.getCurrentTestItem();
-
         currentTestItem.setExpectedOutputData(workerResult);
-
         try {
             repository.saveExpectation(currentTestItem);
-        } catch (CodecException | IOException e) {
+        }
+        catch (CodecException | IOException e) {
             throw new TestExecutionException("Failed to save expectation.", e);
         }
         testContext.notifyCompleted();

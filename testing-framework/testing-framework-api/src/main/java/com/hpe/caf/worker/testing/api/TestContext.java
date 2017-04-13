@@ -21,39 +21,44 @@ import java.util.List;
 /**
  * Created by ploch on 07/03/2017.
  */
-public class TestContext {
+public class TestContext
+{
 
     private final TestItem currentTestItem;
 
     private final CompletionSignal signal;
-
-    private Object workerTask;
-
-    public Object getWorkerTask() {
-        return workerTask;
-    }
-
-    public void setWorkerTask(Object workerTask) {
-        this.workerTask = workerTask;
-    }
-
     /*private TestResult testResult = new TestResult();*/
     private final List<ValidationResult> validationResults = new ArrayList<>();
+    private Object workerTask;
 
-    public List<ValidationResult> getValidationResults() {
-        return validationResults;
-    }
-
-    public TestContext(TestItem currentTestItem, CompletionSignal signal) {
+    public TestContext(TestItem currentTestItem, CompletionSignal signal)
+    {
         this.currentTestItem = currentTestItem;
         this.signal = signal;
     }
 
-    public TestItem getCurrentTestItem() {
+    public Object getWorkerTask()
+    {
+        return workerTask;
+    }
+
+    public void setWorkerTask(Object workerTask)
+    {
+        this.workerTask = workerTask;
+    }
+
+    public List<ValidationResult> getValidationResults()
+    {
+        return validationResults;
+    }
+
+    public TestItem getCurrentTestItem()
+    {
         return currentTestItem;
     }
 
-    public void notifyCompleted() {
+    public void notifyCompleted()
+    {
         signal.doNotifyCompleted();
     }
 

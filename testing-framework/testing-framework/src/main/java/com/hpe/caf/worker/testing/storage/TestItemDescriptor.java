@@ -20,24 +20,29 @@ import com.hpe.caf.worker.testing.api.TestCaseInfo;
 /**
  * Created by ploch on 08/03/2017.
  */
-public class TestItemDescriptor {
+public class TestItemDescriptor
+{
 
     private TestCaseInfo testCaseInfo;
     private Object inputData;
 
-    public TestCaseInfo getTestCaseInfo() {
+    public TestCaseInfo getTestCaseInfo()
+    {
         return testCaseInfo;
     }
 
-    public void setTestCaseInfo(TestCaseInfo testCaseInfo) {
+    public void setTestCaseInfo(TestCaseInfo testCaseInfo)
+    {
         this.testCaseInfo = testCaseInfo;
     }
 
-    public Object getInputData() {
+    public Object getInputData()
+    {
         return inputData;
     }
 
-    public void setInputData(Object inputData) {
+    public void setInputData(Object inputData)
+    {
         this.inputData = inputData;
     }
 }

@@ -18,9 +18,11 @@ package com.hpe.caf.worker.testing.util;
 /**
  * Created by ploch on 17/03/2017.
  */
-public class TestFilesUtil {
+public class TestFilesUtil
+{
 
-    public static String getTestDataRootPath() {
+    public static String getTestDataRootPath()
+    {
         return SettingsProvider.defaultProvider.getSetting("test.data.root");
     }
 }

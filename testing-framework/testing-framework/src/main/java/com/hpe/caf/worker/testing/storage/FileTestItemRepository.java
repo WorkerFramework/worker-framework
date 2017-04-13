@@ -21,7 +21,9 @@ import org.apache.commons.io.FileUtils;
 
 import java.io.File;
 import java.io.IOException;
-import java.nio.file.*;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.nio.file.attribute.BasicFileAttributes;
 import java.util.Collection;
 import java.util.Date;
@@ -33,21 +35,26 @@ import java.util.stream.Stream;
 /**
  * Created by ploch on 08/03/2017.
  */
-public class FileTestItemRepository implements TestItemRepository {
+public class FileTestItemRepository implements TestItemRepository
+{
 
     private final String repositoryPath;
     private final TestCaseSerializer serializer;
 
-    public FileTestItemRepository(String repositoryPath, TestCaseSerializer serializer) {
+    public FileTestItemRepository(String repositoryPath, TestCaseSerializer serializer)
+    {
 
         this.repositoryPath = repositoryPath;
         this.serializer = serializer;
     }
 
-    public Collection<TestItem> retrieveTestItems() throws IOException {
-        Stream<Path> pathStream = Files.find(Paths.get(repositoryPath), 3, new BiPredicate<Path, BasicFileAttributes>() {
+    public Collection<TestItem> retrieveTestItems() throws IOException
+    {
+        Stream<Path> pathStream = Files.find(Paths.get(repositoryPath), 3, new BiPredicate<Path, BasicFileAttributes>()
+        {
             @Override
-            public boolean test(Path path, BasicFileAttributes basicFileAttributes) {
+            public boolean test(Path path, BasicFileAttributes basicFileAttributes)
+            {
                 if (Files.isDirectory(path)) return false;
                 return path.getFileName().toString().endsWith(".test.descriptor");
             }
@@ -59,23 +66,27 @@ public class FileTestItemRepository implements TestItemRepository {
 
     }
 
-    private TestItem createFromDescriptorFile(Path descriptorPath) {
+    private TestItem createFromDescriptorFile(Path descriptorPath)
+    {
         TestItemDescriptor descriptor = deserializeDescriptor(descriptorPath);
 
         return new TestItem(descriptor.getTestCaseInfo(), descriptor.getInputData(), null, descriptorPath.toAbsolutePath().toString());
 
     }
 
-    private TestItemDescriptor deserializeDescriptor(Path path) {
+    private TestItemDescriptor deserializeDescriptor(Path path)
+    {
         try {
             return serializer.deserialise(Files.readAllBytes(path), TestItemDescriptor.class);
-        } catch (IOException e) {
+        }
+        catch (IOException e) {
             throw new TestExecutionException("Failed to deserialize descriptor.", e);
         }
     }
 
     @Override
-    public void saveDescriptor(TestItem testItem) throws IOException {
+    public void saveDescriptor(TestItem testItem) throws IOException
+    {
         TestItemDescriptor descriptor = new TestItemDescriptor();
         descriptor.setTestCaseInfo(testItem.getTestCaseInformation());
         descriptor.setInputData(testItem.getInputData());
@@ -89,7 +100,8 @@ public class FileTestItemRepository implements TestItemRepository {
     }
 
     @Override
-    public void saveExpectation(TestItem testItem) throws IOException {
+    public void saveExpectation(TestItem testItem) throws IOException
+    {
         TestItemExpectation expectation = new TestItemExpectation();
         expectation.setCreated(new Date());
         expectation.setExpectation(testItem.getExpectedOutputData());
@@ -101,7 +113,8 @@ public class FileTestItemRepository implements TestItemRepository {
         FileUtils.writeByteArrayToFile(new File(repositoryPath, expectationFileName), expectationBytes);*/
     }
 
-    private void saveToFile(String testItemLocation, String testId, String extensionSuffix, Object obj) throws IOException {
+    private void saveToFile(String testItemLocation, String testId, String extensionSuffix, Object obj) throws IOException
+    {
         byte[] bytes = serializer.serialise(obj);
         String fileName = String.format("%s.test.%s", testId, extensionSuffix);
         String location = testItemLocation == null ? repositoryPath : testItemLocation;

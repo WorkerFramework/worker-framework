@@ -24,17 +24,20 @@ import java.util.Collections;
 /**
  * Created by ploch on 17/03/2017.
  */
-public class CompositeSettingsProvider extends SettingsProvider {
+public class CompositeSettingsProvider extends SettingsProvider
+{
 
     private final Collection<SettingsProvider> settingsProviders = new ArrayList<>();
 
-    public CompositeSettingsProvider(SettingsProvider... settingsProviders) {
+    public CompositeSettingsProvider(SettingsProvider... settingsProviders)
+    {
 
         Collections.addAll(this.settingsProviders, settingsProviders);
     }
 
     @Override
-    public String getSetting(String name) {
+    public String getSetting(String name)
+    {
         for (SettingsProvider settingsProvider : settingsProviders) {
             String setting = settingsProvider.getSetting(name);
             if (!Strings.isNullOrEmpty(setting)) {

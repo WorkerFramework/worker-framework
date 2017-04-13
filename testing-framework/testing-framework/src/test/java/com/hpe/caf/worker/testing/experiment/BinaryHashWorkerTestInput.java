@@ -20,15 +20,18 @@ import com.hpe.caf.worker.testing.api.InputFileData;
 /**
  * Created by ploch on 08/03/2017.
  */
-public class BinaryHashWorkerTestInput {
+public class BinaryHashWorkerTestInput
+{
 
     private InputFileData inputFileData;
 
-    public InputFileData getInputFileData() {
+    public InputFileData getInputFileData()
+    {
         return inputFileData;
     }
 
-    public void setInputFileData(InputFileData inputFileData) {
+    public void setInputFileData(InputFileData inputFileData)
+    {
         this.inputFileData = inputFileData;
     }
 }

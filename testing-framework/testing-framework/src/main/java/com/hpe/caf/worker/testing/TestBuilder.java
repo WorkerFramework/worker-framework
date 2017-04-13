@@ -23,7 +23,8 @@ import com.hpe.caf.api.worker.WorkerQueueProvider;
 import com.hpe.caf.util.ModuleLoader;
 import com.hpe.caf.util.ModuleLoaderException;
 import com.hpe.caf.worker.queue.rabbit.RabbitWorkerQueueConfiguration;
-import com.hpe.caf.worker.testing.api.*;
+import com.hpe.caf.worker.testing.api.WorkerInfo;
+import com.hpe.caf.worker.testing.api.WorkerTaskFactory;
 import com.hpe.caf.worker.testing.storage.FileTestItemRepository;
 import com.hpe.caf.worker.testing.storage.TestItemRepository;
 import com.hpe.caf.worker.testing.storage.YamlTestCaseSerializer;
@@ -32,27 +33,33 @@ import com.hpe.caf.worker.testing.util.*;
 /**
  * Created by ploch on 17/03/2017.
  */
-public class TestBuilder {
+public class TestBuilder
+{
 
     private final WorkerServices workerServices;
 
-    public TestBuilder() {
+    public TestBuilder()
+    {
         try {
             this.workerServices = WorkerServicesFactory.create();
-        } catch (ModuleLoaderException | CipherException | ConfigurationException | DataStoreException  e) {
+        }
+        catch (ModuleLoaderException | CipherException | ConfigurationException | DataStoreException e) {
             throw new TestExecutionException("Couldn't initialize WorkerServices.", e);
         }
     }
 
-    public TestBuilder(WorkerServices workerServices) {
+    public TestBuilder(WorkerServices workerServices)
+    {
         this.workerServices = workerServices;
     }
 
-    public WorkerServices getWorkerServices() {
+    public WorkerServices getWorkerServices()
+    {
         return workerServices;
     }
 
-    public TestController createDefault(WorkerInfo workerInfo, WorkerTaskFactory workerTaskFactory)  {
+    public TestController createDefault(WorkerInfo workerInfo, WorkerTaskFactory workerTaskFactory)
+    {
         try {
 
             RabbitWorkerQueueConfiguration rabbitConfig = workerServices.getConfigurationSource().getConfiguration(RabbitWorkerQueueConfiguration.class);
@@ -60,7 +67,7 @@ public class TestBuilder {
             rabbitConfig.setInputQueue("BinaryHashWorker-output-1");
 
             CodeConfigurationSource codeConfigurationSource = new CodeConfigurationSource(rabbitConfig);
-            workerServices.getConfigurationSource().insertConfigurationSource(0,codeConfigurationSource);
+            workerServices.getConfigurationSource().insertConfigurationSource(0, codeConfigurationSource);
 
             WorkerQueueProvider provider = ModuleLoader.getService(WorkerQueueProvider.class);
             ManagedWorkerQueue workerQueue = provider.getWorkerQueue(workerServices.getConfigurationSource(), 1);
@@ -68,14 +75,14 @@ public class TestBuilder {
             QueueManager queueManager = new QueueManager(workerServices.getCodec(), workerQueue, queueName);
             TaskMessageFactory taskMessageFactory = new TaskMessageFactory(workerServices.getCodec(), workerInfo.getWorkerName(), queueName, workerInfo.getApiVersion());
 
-
             TestItemRepository repository = new FileTestItemRepository(SettingsProvider.defaultProvider.getSetting("input.folder"), new YamlTestCaseSerializer());
             TaskMessageHandlerFactory messageHandlerFactory = new RecordingTaskMessageHandlerFactory(repository, workerServices.getCodec(), workerInfo);
             TestController controller = new TestController(queueManager, taskMessageFactory, workerTaskFactory, messageHandlerFactory);
 
             return controller;
 
-        } catch (Exception e) {
+        }
+        catch (Exception e) {
             throw new TestExecutionException("Test initialization failed.", e);
         }
 

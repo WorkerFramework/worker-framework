@@ -18,6 +18,7 @@ package com.hpe.caf.worker.testing.experiment;
 /**
  * Created by ploch on 08/03/2017.
  */
-public class BinaryHashWorkerExpectation {
+public class BinaryHashWorkerExpectation
+{
 
 }

@@ -24,13 +24,15 @@ import com.hpe.caf.worker.testing.storage.TestItemRepository;
 /**
  * Created by ploch on 17/03/2017.
  */
-public class RecordingTaskMessageHandlerFactory implements TaskMessageHandlerFactory {
+public class RecordingTaskMessageHandlerFactory implements TaskMessageHandlerFactory
+{
 
     private final TestItemRepository repository;
     private final WorkerInfo workerInfo;
     private final Codec codec;
 
-    public RecordingTaskMessageHandlerFactory(TestItemRepository repository, Codec codec, WorkerInfo workerInfo) {
+    public RecordingTaskMessageHandlerFactory(TestItemRepository repository, Codec codec, WorkerInfo workerInfo)
+    {
 
         this.repository = repository;
         this.workerInfo = workerInfo;
@@ -38,7 +40,8 @@ public class RecordingTaskMessageHandlerFactory implements TaskMessageHandlerFac
     }
 
     @Override
-    public TaskMessageHandler create(TestContext testContext) {
+    public TaskMessageHandler create(TestContext testContext)
+    {
         return new RecordingTaskHandler(testContext, codec, repository, workerInfo);
     }
 }

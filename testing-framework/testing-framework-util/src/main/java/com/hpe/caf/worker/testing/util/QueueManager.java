@@ -27,14 +27,16 @@ import java.util.HashMap;
 /**
  * Created by ploch on 06/03/2017.
  */
-public class QueueManager {
+public class QueueManager
+{
 
     private final Codec codec;
 
     private final ManagedWorkerQueue workerQueue;
     private final String targetQueueName;
 
-    public QueueManager(Codec codec, ManagedWorkerQueue workerQueue, String targetQueueName) {
+    public QueueManager(Codec codec, ManagedWorkerQueue workerQueue, String targetQueueName)
+    {
         this.codec = codec;
         this.workerQueue = workerQueue;
         this.targetQueueName = targetQueueName;
@@ -48,16 +50,19 @@ public class QueueManager {
 
     }*/
 
-    public void start(TaskMessageHandler taskMessageHandler) throws QueueException {
+    public void start(TaskMessageHandler taskMessageHandler) throws QueueException
+    {
         workerQueue.start(new QueueDeliveryHandler(taskMessageHandler, workerQueue, codec));
 
     }
 
-    public void publish(TaskMessage taskMessage) throws CodecException, QueueException {
-         workerQueue.publish("1", codec.serialise(taskMessage), targetQueueName,  new HashMap<>());
+    public void publish(TaskMessage taskMessage) throws CodecException, QueueException
+    {
+        workerQueue.publish("1", codec.serialise(taskMessage), targetQueueName, new HashMap<>());
     }
 
-    public ManagedWorkerQueue getWorkerQueue() {
+    public ManagedWorkerQueue getWorkerQueue()
+    {
         return workerQueue;
     }
 }

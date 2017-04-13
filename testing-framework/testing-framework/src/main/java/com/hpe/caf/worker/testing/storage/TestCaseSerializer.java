@@ -23,21 +23,25 @@ import java.io.IOException;
 /**
  * Created by ploch on 16/03/2017.
  */
-public abstract class TestCaseSerializer  {
+public abstract class TestCaseSerializer
+{
 
     private final ObjectMapper mapper;
 
-    protected TestCaseSerializer() {
+    protected TestCaseSerializer()
+    {
         this.mapper = createConfiguredMapper();
     }
 
     protected abstract ObjectMapper createConfiguredMapper();
 
-    public byte[] serialise(Object object) throws JsonProcessingException {
+    public byte[] serialise(Object object) throws JsonProcessingException
+    {
         return mapper.writeValueAsBytes(object);
     }
 
-    public <T> T deserialise(byte[] data, Class<T> clazz) throws IOException {
+    public <T> T deserialise(byte[] data, Class<T> clazz) throws IOException
+    {
 
         return mapper.readValue(data, clazz);
     }

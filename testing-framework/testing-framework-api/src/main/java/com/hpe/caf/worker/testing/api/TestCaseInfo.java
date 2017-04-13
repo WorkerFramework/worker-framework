@@ -18,21 +18,24 @@ package com.hpe.caf.worker.testing.api;
 /**
  * This should be called TestInstanceInfo....
  */
-public class TestCaseInfo {
+public class TestCaseInfo
+{
 
     private String testCaseId;
     private String associatedTickets;
     private String description;
     private String comments;
 
-    public TestCaseInfo(String testCaseId, String associatedTickets, String description, String comments) {
+    public TestCaseInfo(String testCaseId, String associatedTickets, String description, String comments)
+    {
         this.testCaseId = testCaseId;
         this.associatedTickets = associatedTickets;
         this.description = description;
         this.comments = comments;
     }
 
-    public TestCaseInfo() {
+    public TestCaseInfo()
+    {
     }
 
     /**
@@ -40,7 +43,8 @@ public class TestCaseInfo {
      *
      * @return Value for property 'testCaseId'.
      */
-    public String getTestCaseId() {
+    public String getTestCaseId()
+    {
         return testCaseId;
     }
 
@@ -49,7 +53,8 @@ public class TestCaseInfo {
      *
      * @param testCaseId Value to set for property 'testCaseId'.
      */
-    public void setTestCaseId(String testCaseId) {
+    public void setTestCaseId(String testCaseId)
+    {
         this.testCaseId = testCaseId;
     }
 
@@ -58,7 +63,8 @@ public class TestCaseInfo {
      *
      * @return Value for property 'associatedTickets'.
      */
-    public String getAssociatedTickets() {
+    public String getAssociatedTickets()
+    {
         return associatedTickets;
     }
 
@@ -67,7 +73,8 @@ public class TestCaseInfo {
      *
      * @param associatedTickets Value to set for property 'associatedTickets'.
      */
-    public void setAssociatedTickets(String associatedTickets) {
+    public void setAssociatedTickets(String associatedTickets)
+    {
         this.associatedTickets = associatedTickets;
     }
 
@@ -76,7 +83,8 @@ public class TestCaseInfo {
      *
      * @return Value for property 'comments'.
      */
-    public String getComments() {
+    public String getComments()
+    {
         return comments;
     }
 
@@ -85,7 +93,8 @@ public class TestCaseInfo {
      *
      * @param comments Value to set for property 'comments'.
      */
-    public void setComments(String comments) {
+    public void setComments(String comments)
+    {
         this.comments = comments;
     }
 
@@ -94,7 +103,8 @@ public class TestCaseInfo {
      *
      * @return Value for property 'description'.
      */
-    public String getDescription() {
+    public String getDescription()
+    {
         return description;
     }
 
@@ -103,7 +113,8 @@ public class TestCaseInfo {
      *
      * @param description Value to set for property 'description'.
      */
-    public void setDescription(String description) {
+    public void setDescription(String description)
+    {
         this.description = description;
     }
 

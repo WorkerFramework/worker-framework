@@ -18,7 +18,8 @@ package com.hpe.caf.worker.testing;
 /**
  * Created by ploch on 08/03/2017.
  */
-public interface ResultConverter<TExpectation, TWorkerResult> {
+public interface ResultConverter<TExpectation, TWorkerResult>
+{
 
-    TExpectation toExpectation(TWorkerResult workerResult );
+    TExpectation toExpectation(TWorkerResult workerResult);
 }

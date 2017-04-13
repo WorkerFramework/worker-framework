@@ -18,7 +18,8 @@ package com.hpe.caf.worker.testing.api;
 /**
  * Created by ploch on 05/11/2016.
  */
-public enum  ValidationStatus {
+public enum ValidationStatus
+{
     VALIDATION_SUCCESS,
     VALIDATION_FAILED,
     ERROR

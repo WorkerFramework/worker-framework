@@ -18,7 +18,8 @@ package com.hpe.caf.worker.testing.api;
 /**
  * Provides information about a file which will be used in a test.
  */
-public class InputFileData {
+public class InputFileData
+{
 
     private String filePath;
     private String storageReference;
@@ -28,7 +29,8 @@ public class InputFileData {
      *
      * @return the file path
      */
-    public String getFilePath() {
+    public String getFilePath()
+    {
         return filePath;
     }
 
@@ -37,7 +39,8 @@ public class InputFileData {
      *
      * @param filePath the file path
      */
-    public void setFilePath(String filePath) {
+    public void setFilePath(String filePath)
+    {
         this.filePath = filePath;
     }
 
@@ -47,7 +50,8 @@ public class InputFileData {
      *
      * @return the storage reference
      */
-    public String getStorageReference() {
+    public String getStorageReference()
+    {
         return storageReference;
     }
 
@@ -57,7 +61,8 @@ public class InputFileData {
      *
      * @param storageReference the storage reference
      */
-    public void setStorageReference(String storageReference) {
+    public void setStorageReference(String storageReference)
+    {
         this.storageReference = storageReference;
     }
 }

@@ -15,10 +15,7 @@
  */
 package com.hpe.caf.worker.testing.api;
 
-import com.hpe.caf.api.CodecException;
 import com.hpe.caf.api.worker.TaskMessage;
-
-import java.io.IOException;
 
 /**
  * The interface for worker result processors.
@@ -26,7 +23,8 @@ import java.io.IOException;
  * results - messages created as a result of a worker execution.
  * Processing can include validation or saving of results.
  */
-public interface TaskMessageHandler {
+public interface TaskMessageHandler
+{
 
     /**
      * Process method is called when a worker under test produces a result.

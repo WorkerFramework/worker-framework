@@ -20,6 +20,7 @@ import com.hpe.caf.api.worker.TaskMessage;
 /**
  * Created by ploch on 05/11/2016.
  */
-public interface TestItemCallback {
+public interface TestItemCallback
+{
     TestItem get(TaskMessage message);
 }

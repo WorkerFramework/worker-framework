@@ -19,18 +19,19 @@ import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
 import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
-import com.fasterxml.jackson.dataformat.yaml.YAMLMapper;
 import com.fasterxml.jackson.datatype.guava.GuavaModule;
 
 /**
  * Created by ploch on 16/03/2017.
  */
-public class YamlTestCaseSerializer extends TestCaseSerializer {
+public class YamlTestCaseSerializer extends TestCaseSerializer
+{
 
     @Override
-    protected ObjectMapper createConfiguredMapper() {
+    protected ObjectMapper createConfiguredMapper()
+    {
         ObjectMapper mapper = new ObjectMapper(new YAMLFactory());
-       // YAMLMapper
+        // YAMLMapper
         mapper.disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES);
         mapper.enable(SerializationFeature.INDENT_OUTPUT);
         mapper.enable(SerializationFeature.ORDER_MAP_ENTRIES_BY_KEYS);

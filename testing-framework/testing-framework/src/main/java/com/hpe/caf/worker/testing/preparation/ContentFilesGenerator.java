@@ -33,7 +33,8 @@ import java.util.Collection;
 /**
  * Created by ploch on 17/03/2017.
  */
-public class ContentFilesGenerator implements DescriptorGenerator {
+public class ContentFilesGenerator implements DescriptorGenerator
+{
 
     private final String inputFilesLocation;
     private final boolean recursive;
@@ -42,7 +43,8 @@ public class ContentFilesGenerator implements DescriptorGenerator {
     private final TestInputFactory testInputFactory;
     private final TestItemRepository repository;
 
-    public ContentFilesGenerator(String inputFilesLocation, boolean recursive, String globPattern, TestCaseInfoFactory testCaseInfoFactory, TestInputFactory testInputFactory, TestItemRepository repository) {
+    public ContentFilesGenerator(String inputFilesLocation, boolean recursive, String globPattern, TestCaseInfoFactory testCaseInfoFactory, TestInputFactory testInputFactory, TestItemRepository repository)
+    {
 
         this.inputFilesLocation = inputFilesLocation;
         this.recursive = recursive;
@@ -53,7 +55,8 @@ public class ContentFilesGenerator implements DescriptorGenerator {
     }
 
     @Override
-    public Collection<TestItemDescriptor> generate() throws IOException {
+    public Collection<TestItemDescriptor> generate() throws IOException
+    {
         Path path = Paths.get(inputFilesLocation);
         Collection<TestItemDescriptor> descriptors = new ArrayList<>();
 
@@ -61,12 +64,13 @@ public class ContentFilesGenerator implements DescriptorGenerator {
         return descriptors;
     }
 
-    private void processPath(Path directory, Collection<TestItemDescriptor> descriptors) throws IOException {
+    private void processPath(Path directory, Collection<TestItemDescriptor> descriptors) throws IOException
+    {
 
         try (DirectoryStream<Path> directoryStream = Files.newDirectoryStream(directory)) {
             for (Path path : directoryStream) {
 
-                if (Files.isDirectory(path)){
+                if (Files.isDirectory(path)) {
                     if (recursive) {
                         //fileNames.addAll(getFiles(path));
                         processPath(path, descriptors);
@@ -75,7 +79,7 @@ public class ContentFilesGenerator implements DescriptorGenerator {
                 else {
 
                     if (globPattern == null || path.getFileSystem().getPathMatcher(globPattern).matches(path.getFileName())) {
-                       // fileNames.add(path);
+                        // fileNames.add(path);
 
                         TestItemDescriptor descriptor = createDescriptor(path);
                         descriptors.add(descriptor);
@@ -85,15 +89,18 @@ public class ContentFilesGenerator implements DescriptorGenerator {
                     }
                 }
             }
-        } catch (IOException ex) {
+        }
+        catch (IOException ex) {
             System.out.println(ex);
             throw ex;
-        } catch (CodecException e) {
+        }
+        catch (CodecException e) {
             throw new TestExecutionException("Generation failed", e);
         }
     }
 
-    private TestItemDescriptor createDescriptor(Path path) {
+    private TestItemDescriptor createDescriptor(Path path)
+    {
         TestItemDescriptor descriptor = new TestItemDescriptor();
         TestCaseInfo info = testCaseInfoFactory.create(path);
         descriptor.setTestCaseInfo(info);

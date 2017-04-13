@@ -15,23 +15,17 @@
  */
 package com.hpe.caf.worker.testing.util;
 
-import com.hpe.caf.api.ConfigurationException;
 import org.testng.annotations.Test;
+
 import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.containsString;
 import static org.hamcrest.Matchers.is;
 
-import org.testng.AssertJUnit;
-
-public class CodeConfigurationSourceTest {
-
-    class TestSource1{}
-    class TestSource2{}
-    class TestSource3{}
-
+public class CodeConfigurationSourceTest
+{
 
     @Test
-    public void testRetrievesConfigurationSuppliedInConstructor() throws Exception {
+    public void testRetrievesConfigurationSuppliedInConstructor() throws Exception
+    {
 
         TestSource1 source1 = new TestSource1();
         TestSource2 source2 = new TestSource2();
@@ -47,7 +41,8 @@ public class CodeConfigurationSourceTest {
     }
 
     @Test
-    public void testRetrievesAddedConfiguration() throws Exception {
+    public void testRetrievesAddedConfiguration() throws Exception
+    {
         TestSource1 source1 = new TestSource1();
         TestSource2 source2 = new TestSource2();
 
@@ -62,7 +57,8 @@ public class CodeConfigurationSourceTest {
     }
 
     @Test(expectedExceptions = IllegalArgumentException.class)
-    public void testThrowsWhenConfigurationExists() throws Exception {
+    public void testThrowsWhenConfigurationExists() throws Exception
+    {
         TestSource1 source1 = new TestSource1();
         TestSource2 source2 = new TestSource2();
         TestSource2 anotherSource2 = new TestSource2();
@@ -73,7 +69,8 @@ public class CodeConfigurationSourceTest {
     }
 
     @Test
-    public void testCanOverrideConfiguration() throws Exception {
+    public void testCanOverrideConfiguration() throws Exception
+    {
         TestSource1 source1 = new TestSource1();
         TestSource2 source2 = new TestSource2();
         TestSource2 anotherSource2 = new TestSource2();
@@ -86,5 +83,17 @@ public class CodeConfigurationSourceTest {
 
         assertThat(actualSource1, is(source1));
         assertThat(actualSource2, is(anotherSource2));
+    }
+
+    class TestSource1
+    {
+    }
+
+    class TestSource2
+    {
+    }
+
+    class TestSource3
+    {
     }
 }

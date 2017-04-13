@@ -20,25 +20,30 @@ import java.util.Date;
 /**
  * Created by ploch on 08/03/2017.
  */
-public class TestItemExpectation {
+public class TestItemExpectation
+{
 
     private Date created;
 
     private Object expectation;
 
-    public Date getCreated() {
+    public Date getCreated()
+    {
         return created;
     }
 
-    public void setCreated(Date created) {
+    public void setCreated(Date created)
+    {
         this.created = created;
     }
 
-    public Object getExpectation() {
+    public Object getExpectation()
+    {
         return expectation;
     }
 
-    public void setExpectation(Object expectation) {
+    public void setExpectation(Object expectation)
+    {
         this.expectation = expectation;
     }
 }

@@ -21,7 +21,8 @@ import java.util.Set;
 /**
  * Created by ploch on 05/11/2016.
  */
-public class ValidationResult {
+public class ValidationResult
+{
 
     private ValidationStatus status;
     private Object actualObject;
@@ -33,31 +34,38 @@ public class ValidationResult {
 
     private Set<ValidationResult> validationResults;
 
-    public ValidationStatus getStatus() {
+    public ValidationStatus getStatus()
+    {
         return status;
     }
 
-    public Object getActualObject() {
+    public Object getActualObject()
+    {
         return actualObject;
     }
 
-    public Object getExpectedObject() {
+    public Object getExpectedObject()
+    {
         return expectedObject;
     }
 
-    public String getMessage() {
+    public String getMessage()
+    {
         return message;
     }
 
-    public Map<String, Object> getAdditionalData() {
+    public Map<String, Object> getAdditionalData()
+    {
         return additionalData;
     }
 
-    public String getValidatorName() {
+    public String getValidatorName()
+    {
         return validatorName;
     }
 
-    public Set<ValidationResult> getValidationResults() {
+    public Set<ValidationResult> getValidationResults()
+    {
         return validationResults;
     }
 }
