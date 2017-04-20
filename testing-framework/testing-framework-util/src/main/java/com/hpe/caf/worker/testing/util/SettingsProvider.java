@@ -15,6 +15,9 @@
  */
 package com.hpe.caf.worker.testing.util;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 /**
  * Created by ploch on 23/11/2015.
  */
@@ -22,9 +25,17 @@ package com.hpe.caf.worker.testing.util;
 public abstract class SettingsProvider
 {
 
+    private static final Logger LOG = LoggerFactory.getLogger(SettingsProvider.class);
+
     public static final SettingsProvider defaultProvider = new CompositeSettingsProvider(new SystemSettingsProvider());
 
-    public abstract String getSetting(String name);
+    public String getSetting(String name){
+        String setting = doGetSetting(name);
+        LOG.debug("Got setting: '{}' = '{}", name, setting);
+        return setting;
+    }
+
+    protected abstract String doGetSetting(String name);
 
     public boolean getBooleanSetting(String name)
     {

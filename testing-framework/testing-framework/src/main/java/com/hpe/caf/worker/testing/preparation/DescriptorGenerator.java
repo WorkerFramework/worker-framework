@@ -15,10 +15,9 @@
  */
 package com.hpe.caf.worker.testing.preparation;
 
-import com.hpe.caf.worker.testing.storage.TestItemDescriptor;
+import com.hpe.caf.worker.testing.api.TestDataException;
 
 import java.io.IOException;
-import java.util.Collection;
 
 /**
  * Created by ploch on 08/03/2017.
@@ -26,5 +25,5 @@ import java.util.Collection;
 public interface DescriptorGenerator
 {
 
-    Collection<TestItemDescriptor> generate() throws IOException;
+    void generate() throws IOException, TestDataException;
 }

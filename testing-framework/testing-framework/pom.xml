@@ -43,17 +43,17 @@
         <dependency>
             <groupId>com.github.cafapi.codec</groupId>
             <artifactId>codec-json</artifactId>
-            <version>1.7.0-SNAPSHOT</version>
+            <!--<version>1.7.0-SNAPSHOT</version>-->
         </dependency>
         <dependency>
             <groupId>com.github.cafapi.config</groupId>
             <artifactId>config-file</artifactId>
-            <version>1.7.0-SNAPSHOT</version>
+            <!--<version>1.10.0-SNAPSHOT</version>-->
         </dependency>
         <dependency>
             <groupId>com.github.cafapi.config</groupId>
             <artifactId>config-caf</artifactId>
-            <version>1.7.0-SNAPSHOT</version>
+            <!--<version>1.10.0-SNAPSHOT</version>-->
         </dependency>
         <dependency>
             <groupId>com.github.workerframework</groupId>
@@ -68,8 +68,9 @@
             <artifactId>worker-queue-rabbit</artifactId>
         </dependency>
         <dependency>
-            <groupId>org.apache.commons</groupId>
+            <groupId>commons-io</groupId>
             <artifactId>commons-io</artifactId>
+            <version>2.5</version>
         </dependency>
         <dependency>
             <groupId>com.github.workerframework</groupId>
@@ -78,7 +79,7 @@
         <dependency>
             <groupId>com.github.cafapi</groupId>
             <artifactId>caf-api</artifactId>
-            <version>1.7.0-SNAPSHOT</version>
+            <!--<version>1.7.0-SNAPSHOT</version>-->
         </dependency>
         <dependency>
             <groupId>org.testng</groupId>
@@ -86,9 +87,14 @@
             <scope>test</scope>
         </dependency>
         <dependency>
+            <groupId>com.hpe.caf.worker</groupId>
+            <artifactId>worker-document-shared</artifactId>
+            <version>1.2.0-SNAPSHOT</version>
+        </dependency>
+        <dependency>
             <groupId>com.github.workerframework</groupId>
             <artifactId>testing-framework-util</artifactId>
-            <version>1.7.0-SNAPSHOT</version>
+            <version>${project.version}</version>
         </dependency>
         <dependency>
             <groupId>com.fasterxml.jackson.dataformat</groupId>
@@ -108,6 +114,93 @@
             <artifactId>hamcrest-all</artifactId>
             <version>1.3</version>
         </dependency>
-    </dependencies>
+        <dependency>
+            <groupId>commons-beanutils</groupId>
+            <artifactId>commons-beanutils</artifactId>
+            <version>1.7.0</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.azeckoski</groupId>
+            <artifactId>reflectutils</artifactId>
+            <version>0.9.20</version>
+        </dependency>
+        <dependency>
+            <groupId>io.github.benas</groupId>
+            <artifactId>random-beans</artifactId>
+            <version>3.6.0</version>
+        </dependency>
+        <dependency>
+            <groupId>com.hpe.caf.worker</groupId>
+            <artifactId>worker-document-shared</artifactId>
+            <version>1.2.0-SNAPSHOT</version>
+        </dependency>
+        <dependency>
+            <groupId>com.hpe.caf.worker</groupId>
+            <artifactId>worker-keyview-shared</artifactId>
+            <version>7.5.0-SNAPSHOT</version>
+        </dependency>
+        <dependency>
+            <groupId>com.github.cafapi.decoder</groupId>
+            <artifactId>decoder-js</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>com.hpe.caf.worker</groupId>
+            <artifactId>worker-textextract-core</artifactId>
+            <version>1.0.0-SNAPSHOT</version>
+        </dependency>
 
+    </dependencies>
+    <build>
+        <plugins>
+            <!-- Unpack the base worker configuration files -->
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-dependency-plugin</artifactId>
+                <executions>
+                    <execution>
+                        <id>process-config-files</id>
+                        <goals>
+                            <goal>unpack</goal>
+                        </goals>
+                        <configuration>
+                            <artifactItems>
+                                <artifactItem>
+                                    <groupId>com.github.workerframework</groupId>
+                                    <artifactId>worker-default-configs</artifactId>
+                                    <outputDirectory>${project.build.directory}/config-files</outputDirectory>
+                                    <excludes>**/META-INF/**</excludes>
+                                </artifactItem>
+                            </artifactItems>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+
+            <!-- Process the local configuration files -->
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-resources-plugin</artifactId>
+                <version>3.0.2</version>
+                <executions>
+                    <execution>
+                        <id>process-config-files</id>
+                        <phase>process-resources</phase>
+                        <goals>
+                            <goal>copy-resources</goal>
+                        </goals>
+                        <configuration>
+                            <outputDirectory>${project.build.directory}/config-files</outputDirectory>
+                            <resources>
+                                <resource>
+                                    <directory>src/main/config</directory>
+                                    <filtering>true</filtering>
+                                </resource>
+                            </resources>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+        </plugins>
+    </build>
 </project>

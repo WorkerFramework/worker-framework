@@ -61,7 +61,7 @@ public class RecordingTaskHandler implements TaskMessageHandler
         try {
             repository.saveExpectation(currentTestItem);
         }
-        catch (CodecException | IOException e) {
+        catch (IOException e) {
             throw new TestExecutionException("Failed to save expectation.", e);
         }
         testContext.notifyCompleted();

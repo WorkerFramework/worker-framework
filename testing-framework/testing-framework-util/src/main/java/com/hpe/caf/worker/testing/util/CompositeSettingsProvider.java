@@ -36,7 +36,7 @@ public class CompositeSettingsProvider extends SettingsProvider
     }
 
     @Override
-    public String getSetting(String name)
+    protected String doGetSetting(String name)
     {
         for (SettingsProvider settingsProvider : settingsProviders) {
             String setting = settingsProvider.getSetting(name);

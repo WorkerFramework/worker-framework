@@ -16,7 +16,9 @@
 package com.hpe.caf.worker.testing.storage;
 
 import com.hpe.caf.worker.testing.TestExecutionException;
+import com.hpe.caf.worker.testing.api.TestCaseInfo;
 import com.hpe.caf.worker.testing.api.TestItem;
+import com.hpe.caf.worker.testing.util.DirectoryWalker;
 import org.apache.commons.io.FileUtils;
 
 import java.io.File;
@@ -24,11 +26,9 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.nio.file.attribute.BasicFileAttributes;
 import java.util.Collection;
 import java.util.Date;
 import java.util.List;
-import java.util.function.BiPredicate;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -41,6 +41,11 @@ public class FileTestItemRepository implements TestItemRepository
     private final String repositoryPath;
     private final TestCaseSerializer serializer;
 
+    public FileTestItemRepository(String repositoryPath)
+    {
+        this(repositoryPath, TestCaseSerializer.defaultSerializer);
+    }
+
     public FileTestItemRepository(String repositoryPath, TestCaseSerializer serializer)
     {
 
@@ -50,7 +55,14 @@ public class FileTestItemRepository implements TestItemRepository
 
     public Collection<TestItem> retrieveTestItems() throws IOException
     {
-        Stream<Path> pathStream = Files.find(Paths.get(repositoryPath), 3, new BiPredicate<Path, BasicFileAttributes>()
+        Stream<Path> testDescriptorsStream = DirectoryWalker
+                .walk(Paths.get(repositoryPath), TestFileNames.TEST_DESCRIPTOR_GLOB_FILTER, null)
+                .filter(path -> !Files.isDirectory(path));
+        List<TestItem> collect = testDescriptorsStream.map(path -> createFromDescriptorFile(path)).collect(Collectors.toList());
+
+        return collect;
+
+        /*Stream<Path> pathStream = Files.find(Paths.get(repositoryPath), 3, new BiPredicate<Path, BasicFileAttributes>()
         {
             @Override
             public boolean test(Path path, BasicFileAttributes basicFileAttributes)
@@ -63,7 +75,7 @@ public class FileTestItemRepository implements TestItemRepository
         List<TestItem> testItems = pathStream.map(path -> createFromDescriptorFile(path)).collect(Collectors.toList());
 
         return testItems;
-
+*/
     }
 
     private TestItem createFromDescriptorFile(Path descriptorPath)
@@ -82,6 +94,16 @@ public class FileTestItemRepository implements TestItemRepository
         catch (IOException e) {
             throw new TestExecutionException("Failed to deserialize descriptor.", e);
         }
+    }
+
+    public void saveDescriptor(TestItemDescriptor descriptor, String location) throws IOException
+    {
+        saveToFile(location, getFullTestId(descriptor.getTestCaseInfo()), TestFileNames.DESCRIPTOR_SUFFIX_EXTENTION, descriptor);
+    }
+
+    private String getFullTestId(TestCaseInfo testCaseInfo)
+    {
+        return testCaseInfo.getTestCaseId() + "_" + testCaseInfo.getTestId();
     }
 
     @Override

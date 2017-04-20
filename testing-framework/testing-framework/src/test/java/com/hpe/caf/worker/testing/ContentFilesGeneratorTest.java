@@ -15,10 +15,7 @@
  */
 package com.hpe.caf.worker.testing;
 
-import com.hpe.caf.worker.testing.util.TestFilesUtil;
 import org.testng.annotations.Test;
-
-import java.nio.file.Paths;
 
 /**
  * Created by ploch on 17/03/2017.
@@ -30,9 +27,9 @@ public class ContentFilesGeneratorTest
     public void testGenerate() throws Exception
     {
 
-        String testDataRootPath = TestFilesUtil.getTestDataRootPath();
+       // String testDataRootPath = TestFilesUtil.getTestDataRootPath();
         //C:\git\caf\worker-framework\testing-framework\testing-framework\src\test\test-data\content-files\flat
-        String flatContentFilesPath = Paths.get(testDataRootPath, "content-files", "flat").toAbsolutePath().toString();
+       // String flatContentFilesPath = Paths.get(testDataRootPath, "content-files", "flat").toAbsolutePath().toString();
         //ContentFilesGenerator sut = new ContentFilesGenerator(flatContentFilesPath, true, null);
 
         //Collection<TestItemDescriptor> descriptors = sut.generate();

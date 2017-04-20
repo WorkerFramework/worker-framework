@@ -1,0 +1,5 @@
+---
+created: 1489718924939
+expectation:
+  workerStatus: "COMPLETED"
+  hashResult: "d4addd6261eff5690d91c73b38a825cddc2bfe7d"

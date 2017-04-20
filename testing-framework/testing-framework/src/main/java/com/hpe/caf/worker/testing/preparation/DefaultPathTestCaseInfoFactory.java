@@ -16,6 +16,8 @@
 package com.hpe.caf.worker.testing.preparation;
 
 import com.hpe.caf.worker.testing.api.TestCaseInfo;
+import com.hpe.caf.worker.testing.api.TestDataException;
+import com.hpe.caf.worker.testing.api.TestDataSource;
 
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -36,11 +38,14 @@ public class DefaultPathTestCaseInfoFactory implements TestCaseInfoFactory
     }
 
     @Override
-    public TestCaseInfo create(Path file)
+    public TestCaseInfo create(TestDataSource dataSource) throws TestDataException
     {
-
-        if (Files.isDirectory(file)) {
-            throw new IllegalArgumentException("Directory provided but only file is accepted.");
+        Path file = dataSource.getData(Path.class, TestDataSourceIds.CONTENT_FILE);
+        if (file == null) {
+            throw new TestDataException("Directory provided but only file is accepted.");
+        }
+        if ( Files.isDirectory(file)) {
+            throw new TestDataException("Directory provided but only file is accepted.");
         }
 
         String rootPath = Paths.get(this.rootPath).toAbsolutePath().toString();
@@ -55,7 +60,7 @@ public class DefaultPathTestCaseInfoFactory implements TestCaseInfoFactory
             testCaseId = fileParentPath.getFileName().toString();
         }
 
-        TestCaseInfo info = new TestCaseInfo(testCaseId, null, testCaseId, testCaseId);
+        TestCaseInfo info = new TestCaseInfo(testCaseId, file.getFileName().toString(), null, testCaseId, testCaseId);
         return info;
     }
 }

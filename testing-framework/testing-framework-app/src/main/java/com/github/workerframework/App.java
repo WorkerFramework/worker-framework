@@ -119,8 +119,8 @@ public class App
         extractWorkerConfiguration.setExtractText(true);
         extractWorkerConfiguration.setGenerateHashes(true);
         extractWorkerConfiguration.setContentSizeThreshold(1024);
-        extractWorkerConfiguration.setDiskBackedSize(102400);
-        extractWorkerConfiguration.setExtractToMemoryLimit(1024);
+       // extractWorkerConfiguration.setDiskBackedSize(102400);
+      //  extractWorkerConfiguration.setExtractToMemoryLimit(1024);
         extractWorkerConfiguration.setExtractPath("C:\\temp\\kv");
 
         services.getConfigurationSource().addConfiguration(keyviewConfig).addConfiguration(extractWorkerConfiguration);

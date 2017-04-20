@@ -17,6 +17,7 @@ package com.hpe.caf.worker.testing.storage;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.SerializationFeature;
 
 import java.io.IOException;
 
@@ -25,6 +26,8 @@ import java.io.IOException;
  */
 public abstract class TestCaseSerializer
 {
+
+    public static final TestCaseSerializer defaultSerializer = new YamlTestCaseSerializer();
 
     private final ObjectMapper mapper;
 
@@ -37,6 +40,7 @@ public abstract class TestCaseSerializer
 
     public byte[] serialise(Object object) throws JsonProcessingException
     {
+        mapper.disable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS);
         return mapper.writeValueAsBytes(object);
     }
 

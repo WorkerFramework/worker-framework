@@ -1,0 +1,11 @@
+---
+testCaseInfo:
+  testCaseId: "binary-hash-test-1"
+  associatedTickets: null
+  description: "Binary hash worker test"
+  comments: null
+inputData:
+  inputFileData:
+    filePath: "C:\\git\\caf\\worker-binaryhash\\worker-binaryhash-container-fs\\test-data\\\
+      input\\FirstTest.txt"
+    storageReference: null

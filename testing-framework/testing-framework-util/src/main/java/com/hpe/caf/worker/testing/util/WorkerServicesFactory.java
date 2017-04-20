@@ -40,10 +40,17 @@ public class WorkerServicesFactory
     public static WorkerServices create(ConfigurationSource... additionalConfigSources) throws ModuleLoaderException, CipherException, ConfigurationException, DataStoreException
     {
 
+
+
+        //Codec codec = ModuleLoader.getService(Codec.class);
         Codec codec = ModuleLoader.getService(Codec.class);
+        ConfigurationDecoderProvider decoderProvider = ModuleLoader.getService(ConfigurationDecoderProvider.class,
+                                                                               CafConfigurationDecoderProvider.class);
+        Decoder decoder = decoderProvider.getDecoder(bootstrapConfiguration, codec);
+
         Cipher cipher = ModuleLoader.getService(CipherProvider.class, NullCipherProvider.class).getCipher(bootstrapConfiguration);
         ServicePath path = bootstrapConfiguration.getServicePath();
-        ConfigurationSource defaultConfigurationSource = ModuleLoader.getService(ConfigurationSourceProvider.class).getConfigurationSource(bootstrapConfiguration, cipher, path, codec);
+        ConfigurationSource defaultConfigurationSource = ModuleLoader.getService(ConfigurationSourceProvider.class).getConfigurationSource(bootstrapConfiguration, cipher, path, decoder);
 
         CompositeConfigurationSource configurationSource = new CompositeConfigurationSource(additionalConfigSources);
         configurationSource.addConfigurationSource(defaultConfigurationSource);

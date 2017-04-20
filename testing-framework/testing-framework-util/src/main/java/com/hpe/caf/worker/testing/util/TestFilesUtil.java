@@ -15,14 +15,40 @@
  */
 package com.hpe.caf.worker.testing.util;
 
+import com.google.common.base.Strings;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import java.nio.file.Path;
+import java.nio.file.Paths;
+
 /**
  * Created by ploch on 17/03/2017.
  */
 public class TestFilesUtil
 {
+    private static final Logger LOG = LoggerFactory.getLogger(TestFilesUtil.class);
 
-    public static String getTestDataRootPath()
+    public static Path getTestDataRootPath()
     {
-        return SettingsProvider.defaultProvider.getSetting("test.data.root");
+        String testDataRootSetting = SettingsProvider.defaultProvider.getSetting(TestingConstants.EnvironmentVariables.TEST_DATA_ROOT);
+
+        Path testDataRootPath = Strings.isNullOrEmpty(testDataRootSetting) ?
+                Paths.get(".", "src", "test", "test-data") : Paths.get(testDataRootSetting);
+
+        testDataRootPath = testDataRootPath.normalize();
+
+        LOG.debug("Resolved TestDataRootPath: {} (absolute: {})", testDataRootPath, testDataRootPath.toAbsolutePath().toString());
+        return testDataRootPath.normalize();
+    }
+
+    public static Path getTestDataPath(String... subFolders)
+    {
+        return Paths.get(getTestDataRootPathString(), subFolders);
+    }
+
+    public static String getTestDataRootPathString()
+    {
+        return getTestDataRootPath().toString();
     }
 }

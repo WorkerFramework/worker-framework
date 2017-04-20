@@ -15,7 +15,6 @@
  */
 package com.hpe.caf.worker.testing.storage;
 
-import com.hpe.caf.api.CodecException;
 import com.hpe.caf.worker.testing.api.TestItem;
 
 import java.io.IOException;
@@ -26,7 +25,9 @@ import java.io.IOException;
 public interface TestItemRepository
 {
 
-    void saveDescriptor(TestItem testItem) throws CodecException, IOException;
+    void saveDescriptor(TestItemDescriptor descriptor, String location) throws IOException;
 
-    void saveExpectation(TestItem testItem) throws CodecException, IOException;
+    void saveDescriptor(TestItem testItem) throws IOException;
+
+    void saveExpectation(TestItem testItem) throws IOException;
 }

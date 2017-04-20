@@ -15,7 +15,7 @@
  */
 package com.hpe.caf.worker.testing.preparation;
 
-import java.nio.file.Path;
+import com.hpe.caf.worker.testing.api.TestDataSource;
 
 /**
  * Created by ploch on 17/03/2017.
@@ -23,6 +23,6 @@ import java.nio.file.Path;
 public interface TestInputFactory<TTestInput>
 {
 
-    TTestInput createTestInput(Path file);
+    TTestInput createTestInput(TestDataSource testDataSource);
 
 }

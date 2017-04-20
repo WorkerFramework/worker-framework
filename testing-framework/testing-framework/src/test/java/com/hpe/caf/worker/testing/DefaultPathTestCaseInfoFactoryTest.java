@@ -16,6 +16,7 @@
 package com.hpe.caf.worker.testing;
 
 import com.hpe.caf.worker.testing.api.TestCaseInfo;
+import com.hpe.caf.worker.testing.api.TestDataSource;
 import com.hpe.caf.worker.testing.preparation.DefaultPathTestCaseInfoFactory;
 import org.testng.annotations.Test;
 
@@ -35,7 +36,10 @@ public class DefaultPathTestCaseInfoFactoryTest
 
         DefaultPathTestCaseInfoFactory sut = new DefaultPathTestCaseInfoFactory("C:\\test-data");
 
-        TestCaseInfo info = sut.create(Paths.get("C:\\test-data", "my-test-file.txt"));
+        TestDataSource dataSource = new TestDataSource();
+        dataSource.addData(Paths.get("C:\\test-data", "my-test-file.txt"));
+
+        TestCaseInfo info = sut.create(dataSource);
 
         assertThat(info.getTestCaseId(), is("my-test-file.txt"));
     }
@@ -46,7 +50,10 @@ public class DefaultPathTestCaseInfoFactoryTest
 
         DefaultPathTestCaseInfoFactory sut = new DefaultPathTestCaseInfoFactory("C:\\test-data");
 
-        TestCaseInfo info = sut.create(Paths.get("C:\\test-data", "test-case-1", "my-test-file.txt"));
+        TestDataSource dataSource = new TestDataSource();
+        dataSource.addData(Paths.get("C:\\test-data", "test-case-1", "my-test-file.txt"));
+
+        TestCaseInfo info = sut.create(dataSource);
 
         assertThat(info.getTestCaseId(), is("test-case-1"));
     }

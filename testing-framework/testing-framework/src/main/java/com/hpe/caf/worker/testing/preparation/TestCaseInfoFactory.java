@@ -16,8 +16,8 @@
 package com.hpe.caf.worker.testing.preparation;
 
 import com.hpe.caf.worker.testing.api.TestCaseInfo;
-
-import java.nio.file.Path;
+import com.hpe.caf.worker.testing.api.TestDataException;
+import com.hpe.caf.worker.testing.api.TestDataSource;
 
 /**
  * Created by ploch on 17/03/2017.
@@ -25,5 +25,5 @@ import java.nio.file.Path;
 public interface TestCaseInfoFactory
 {
 
-    TestCaseInfo create(Path file);
+    TestCaseInfo create(TestDataSource dataSource) throws TestDataException;
 }

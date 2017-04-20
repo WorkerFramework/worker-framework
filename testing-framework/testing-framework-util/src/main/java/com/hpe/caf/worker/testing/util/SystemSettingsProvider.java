@@ -22,9 +22,8 @@ import java.util.Objects;
  */
 public class SystemSettingsProvider extends SettingsProvider
 {
-
     @Override
-    public String getSetting(String name)
+    protected String doGetSetting(String name)
     {
         Objects.requireNonNull(name);
         return System.getProperty(name, System.getenv(name));

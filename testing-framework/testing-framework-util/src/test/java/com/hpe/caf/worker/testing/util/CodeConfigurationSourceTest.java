@@ -15,7 +15,9 @@
  */
 package com.hpe.caf.worker.testing.util;
 
-import org.testng.annotations.Test;
+
+
+import org.junit.Test;
 
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.is;
@@ -56,7 +58,7 @@ public class CodeConfigurationSourceTest
         assertThat(actualSource2, is(source2));
     }
 
-    @Test(expectedExceptions = IllegalArgumentException.class)
+    @Test(expected = IllegalArgumentException.class)
     public void testThrowsWhenConfigurationExists() throws Exception
     {
         TestSource1 source1 = new TestSource1();

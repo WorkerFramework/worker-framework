@@ -22,13 +22,15 @@ public class TestCaseInfo
 {
 
     private String testCaseId;
+    private String testId;
     private String associatedTickets;
     private String description;
     private String comments;
 
-    public TestCaseInfo(String testCaseId, String associatedTickets, String description, String comments)
+    public TestCaseInfo(String testCaseId, String testId, String associatedTickets, String description, String comments)
     {
         this.testCaseId = testCaseId;
+        this.testId = testId;
         this.associatedTickets = associatedTickets;
         this.description = description;
         this.comments = comments;
@@ -118,4 +120,23 @@ public class TestCaseInfo
         this.description = description;
     }
 
+    /**
+     * Getter for property 'testId'.
+     *
+     * @return Value for property 'testId'.
+     */
+    public String getTestId()
+    {
+        return testId;
+    }
+
+    /**
+     * Setter for property 'testId'.
+     *
+     * @param testId Value to set for property 'testId'.
+     */
+    public void setTestId(String testId)
+    {
+        this.testId = testId;
+    }
 }

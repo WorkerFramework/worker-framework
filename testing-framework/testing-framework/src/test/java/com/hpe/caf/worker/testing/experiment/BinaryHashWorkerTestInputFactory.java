@@ -16,6 +16,7 @@
 package com.hpe.caf.worker.testing.experiment;
 
 import com.hpe.caf.worker.testing.api.InputFileData;
+import com.hpe.caf.worker.testing.api.TestDataSource;
 import com.hpe.caf.worker.testing.preparation.TestInputFactory;
 
 import java.nio.file.Path;
@@ -27,12 +28,14 @@ public class BinaryHashWorkerTestInputFactory implements TestInputFactory<Binary
 {
 
     @Override
-    public BinaryHashWorkerTestInput createTestInput(Path file)
+    public BinaryHashWorkerTestInput createTestInput(TestDataSource testDataSource)
     {
+        Path file = testDataSource.getData(Path.class);
         BinaryHashWorkerTestInput result = new BinaryHashWorkerTestInput();
         InputFileData fileData = new InputFileData();
         fileData.setFilePath(file.getFileName().toString());
         result.setInputFileData(fileData);
         return result;
+
     }
 }
