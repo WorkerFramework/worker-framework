@@ -1,0 +1,14 @@
+---
+testCaseInfo:
+  testCaseId: "CAF_3004"
+  testId: "CAF Test Extract - simple.eml"
+  associatedTickets: null
+  description: "CAF_3004"
+  comments: "CAF_3004"
+inputData:
+  customData:
+    outputPartialReference: "TST"
+  fields:
+    storageReference:
+    - filePath: "CAF Test Extract - simple.eml"
+      storageReference: null

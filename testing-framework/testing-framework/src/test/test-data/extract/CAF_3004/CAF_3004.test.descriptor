@@ -1,0 +1,13 @@
+---
+testCaseInfo:
+  testCaseId: "CAF_3004"
+  associatedTickets: null
+  description: "CAF_3004"
+  comments: "CAF_3004"
+inputData:
+  customData:
+    outputPartialReference: "TST"
+  fields:
+    storageReference:
+    - filePath: "JITC Mailing Address.msg"
+      storageReference: null

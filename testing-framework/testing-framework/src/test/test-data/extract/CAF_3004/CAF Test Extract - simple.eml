@@ -1,0 +1,70 @@
+X-Notes-Item: Thu, 19 Nov 2015 09:25:21 +0000;
+ type=400; name=OriginalModTime
+X-Notes-Item: Memo;
+ name=Form
+X-Notes-Item: StdNotesLtr25;
+ name=Logo
+X-Notes-Item: StdNotesLtr25;
+ name=dLogo
+X-Notes-Item: True;
+ name=useApplet
+X-Notes-Item: 1;
+ name=DefaultMailSaveOptions
+X-Notes-Item: 1;
+ name=ExpandPersonalGroups
+X-Notes-Item: ;
+ name=tmpImp
+X-Notes-Item: ;
+ name=Sign
+X-Notes-Item: This is a simple Lotus Notes email to test Text Extract functionality from
+ CAF.;
+ flags=6; name=$Abstract
+X-Notes-Item: Confidential;
+ name=ConfidentialString
+X-Notes-Item: ;
+ name=Classification
+Subject: CAF Test Extract - simple
+X-KeepSent: A0D54B04:397109CC-80257F02:0033AF4F;
+ type=4; name=$KeepSent
+To: Admin/hpq%hpq@hpswlabs.hp.com
+X-Notes-Item: ;
+ flags=45; name=InetCopyTo
+X-Notes-Item: 1;
+ name=$StorageTo
+X-Mailer: Lotus Notes Release 8.5.3 September 15, 2011
+Message-ID: <OFA0D54B04.397109CC-ON80257F02.0033AF4F-80257F02.0033C294@LocalDomain>
+From: Admin/hpq%HPQ@hpswlabs.hp.com
+Date: Thu, 19 Nov 2015 09:25:21 +0000
+X-Notes-Item: 0;
+ name=Encrypt
+X-Notes-Item: CN=v-mop-notes/O=hpq;
+ type=501; flags=44; name=$UpdatedBy
+X-Notes-Item: A0D54B04:397109CC-80257F02:0033AF4F;
+ type=4; name=$Orig
+X-Notes-Item: ;
+ type=501; name=Categories
+X-Notes-Item: ;
+ type=401; name=$Revisions
+X-Notes-Item: CN=v-mop-notes/O=hpq;
+ type=501; flags=0; name=RouteServers
+X-Notes-Item: 19-Nov-2015 09:25:21 GMT/19-Nov-2015 09:25:21 GMT;
+ type=401; flags=0; name=RouteTimes
+X-Notes-Item: Thu, 19 Nov 2015 09:25:21 +0000;
+ type=400; name=DeliveredDate
+X-Notes-Item: 4F748BE3:5E6CA3EF-80257F02:0033C2A0;
+ type=4; name=$TUA
+X-Notes-Item: 1;
+ name=$NoteHasNativeMIME
+X-Notes-Item: CN=Admin/O=hpq@hpq;
+ name=OriginalTo
+X-Notes-Item: CN=Admin/O=hpq;
+ name=OriginalFrom
+X-MIMETrack: Serialize by Notes Client on Admin/hpq(Release 8.5.3|September 15, 2011) at
+ 19/11/2015 09:35:59
+MIME-Version: 1.0
+Content-type: text/html; charset=US-ASCII
+Content-Disposition: inline
+
+<html><body>
+<p><font size="2" face="sans-serif">This is a simple Lotus Notes email to test Text Extract functionality from CAF.</font></body></html>
+

@@ -1,0 +1,14 @@
+---
+testCaseInfo:
+  testCaseId: "CAF_3011"
+  testId: "KV_errors.rar"
+  associatedTickets: null
+  description: "CAF_3011"
+  comments: "CAF_3011"
+inputData:
+  customData:
+    outputPartialReference: "TST"
+  fields:
+    storageReference:
+    - filePath: "KV_errors.rar"
+      storageReference: null

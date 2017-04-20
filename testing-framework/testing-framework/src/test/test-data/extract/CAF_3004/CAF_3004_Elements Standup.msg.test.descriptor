@@ -1,0 +1,14 @@
+---
+testCaseInfo:
+  testCaseId: "CAF_3004"
+  testId: "Elements Standup.msg"
+  associatedTickets: null
+  description: "CAF_3004"
+  comments: "CAF_3004"
+inputData:
+  customData:
+    outputPartialReference: "TST"
+  fields:
+    storageReference:
+    - filePath: "Elements Standup.msg"
+      storageReference: null

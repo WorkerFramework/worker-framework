@@ -1,0 +1,14 @@
+---
+testCaseInfo:
+  testCaseId: "CAF_3011"
+  testId: "kv_error.msg"
+  associatedTickets: null
+  description: "CAF_3011"
+  comments: "CAF_3011"
+inputData:
+  customData:
+    outputPartialReference: "TST"
+  fields:
+    storageReference:
+    - filePath: "kv_error.msg"
+      storageReference: null
