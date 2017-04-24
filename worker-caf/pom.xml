@@ -23,19 +23,19 @@
 
     <groupId>com.github.workerframework</groupId>
     <artifactId>worker-caf</artifactId>
-    <version>1.7.0-SNAPSHOT</version>
+    <version>1.7.0-211</version>
 
     <parent>
         <groupId>com.github.workerframework</groupId>
         <artifactId>worker-framework-aggregator</artifactId>
-        <version>1.7.0-SNAPSHOT</version>
+        <version>1.7.0-211</version>
     </parent>
 
     <dependencies>
         <dependency>
             <groupId>com.github.workerframework</groupId>
             <artifactId>worker-api</artifactId>
-            <version>1.7.0-SNAPSHOT</version>
+            <version>1.7.0-211</version>
         </dependency>
         <dependency>
             <groupId>javax.validation</groupId>
