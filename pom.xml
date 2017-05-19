@@ -44,6 +44,10 @@
         </license>
     </licenses>
 
+    <properties>
+        <skipLocalStaging>true</skipLocalStaging>
+    </properties>
+
     <developers>
         <developer>
             <id>andyreidz</id>
