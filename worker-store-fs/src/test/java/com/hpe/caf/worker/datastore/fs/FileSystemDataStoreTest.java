@@ -105,7 +105,7 @@ public class FileSystemDataStoreTest
             }
         }
         Assert.assertEquals(testData.length(), store.size(storeResult.getReference()));
-        Assert.assertEquals(DigestUtils.sha256Hex(data), storeResult.getHash());
+        Assert.assertEquals(DigestUtils.sha1Hex(data), storeResult.getHash());
     }
 
 
@@ -152,7 +152,7 @@ public class FileSystemDataStoreTest
             }
         }
         Assert.assertEquals(testData.length(), store.size(storeResult.getReference()));
-        Assert.assertEquals(DigestUtils.sha256Hex(data), storeResult.getHash());
+        Assert.assertEquals(DigestUtils.sha1Hex(data), storeResult.getHash());
     }
 
 
@@ -203,7 +203,7 @@ public class FileSystemDataStoreTest
             }
         }
         Assert.assertEquals(testData.length(), store.size(storeResult.getReference()));
-        Assert.assertEquals(DigestUtils.sha256Hex(data), storeResult.getHash());
+        Assert.assertEquals(DigestUtils.sha1Hex(data), storeResult.getHash());
     }
 
 

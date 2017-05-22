@@ -120,7 +120,7 @@ public interface DataStore
             final InputStream bufferedSource = new BufferedInputStream(dataStream);
             try {
                 final HashingOutputStream hashStream =
-                        new HashingOutputStream(Hashing.sha256(), new PipedOutputStream(streamToStore.get()));
+                        new HashingOutputStream(Hashing.sha1(), new PipedOutputStream(streamToStore.get()));
 
                 final Callable<Throwable> hashTask = () -> {
                     try {
@@ -174,7 +174,7 @@ public interface DataStore
     default HashStoreResult hashStore(byte[] data, String partialReference)
         throws DataStoreException
     {
-        return new HashStoreResult(store(data, partialReference), DigestUtils.sha256Hex(data));
+        return new HashStoreResult(store(data, partialReference), DigestUtils.sha1Hex(data));
     }
 
 
@@ -192,7 +192,7 @@ public interface DataStore
     {
         String hash;
         try (final InputStream dataStream = Files.newInputStream(dataPath)) {
-            hash = DigestUtils.sha256Hex(dataStream);
+            hash = DigestUtils.sha1Hex(dataStream);
         } catch (IOException e) {
             throw new DataStoreException("Failed to hash data from a provided filepath", e);
         }
