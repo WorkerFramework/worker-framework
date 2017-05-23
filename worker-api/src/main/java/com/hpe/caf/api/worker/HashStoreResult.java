@@ -26,14 +26,12 @@ public final class HashStoreResult
     /**
      * Absolute reference to the stored data, which can be used to retrieve.
      */
-    private String reference;
+    private final String reference;
 
     /**
      * SHA-1 hash of the stored data.
      */
-    private String hash;
-
-    public HashStoreResult(){}
+    private final String hash;
 
     public HashStoreResult(final String reference, final String hash)
     {
