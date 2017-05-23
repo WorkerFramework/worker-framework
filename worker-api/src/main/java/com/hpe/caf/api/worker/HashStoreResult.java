@@ -29,7 +29,7 @@ public final class HashStoreResult
     private String reference;
 
     /**
-     * SHA-256 hash of the stored data.
+     * SHA-1 hash of the stored data.
      */
     private String hash;
 
@@ -46,18 +46,8 @@ public final class HashStoreResult
         return reference;
     }
 
-    public void setReference(final String reference)
-    {
-        this.reference = reference;
-    }
-
     public String getHash()
     {
         return hash;
-    }
-
-    public void setHash(final String hash)
-    {
-        this.hash = hash;
     }
 }

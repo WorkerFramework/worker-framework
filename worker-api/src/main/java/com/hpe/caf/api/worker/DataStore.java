@@ -105,10 +105,10 @@ public interface DataStore
     /**
      * Store data from a stream, which should be closed by the caller. The data will be
      * stored relative to the partial reference supplied, and the absolute reference of
-     * the final location will be returned along with a SHA-256 hash of the data.
+     * the final location will be returned along with a SHA-1 hash of the data.
      * @param dataStream the stream of data which will be read and put into the DataStore
      * @param partialReference the partial reference, which the data will be stored relative to
-     * @return absolute reference to the stored data, which can be used to retrieve, plus a SHA-256 hash of the stored data
+     * @return absolute reference to the stored data, which can be used to retrieve, plus a SHA-1 hash of the stored data
      * @throws DataStoreException if the data store cannot service the request
      */
     default HashStoreResult hashStore(InputStream dataStream, String partialReference)
@@ -165,10 +165,10 @@ public interface DataStore
     /**
      * Store data from a byte array. The data will be stored relative to the partial
      * reference supplied, and the absolute reference of the final location will be returned
-     * along with a SHA-256 hash of the data.
+     * along with a SHA-1 hash of the data.
      * @param data the raw byte data to store
      * @param partialReference the partial reference, which the data will be stored relative to
-     * @return absolute reference to the stored data, which can be used to retrieve, plus a SHA-256 hash of the stored data
+     * @return absolute reference to the stored data, which can be used to retrieve, plus a SHA-1 hash of the stored data
      * @throws DataStoreException if the data store cannot service the request
      */
     default HashStoreResult hashStore(byte[] data, String partialReference)
@@ -181,10 +181,10 @@ public interface DataStore
     /**
      * Store data from a local file. The data will be stored relative to the partial
      * reference supplied, and the absolute reference of the final location will be returned
-     * along with a SHA-256 hash of the data.
+     * along with a SHA-1 hash of the data.
      * @param dataPath path to a file on the local filesystem to store on the remote DataStore
      * @param partialReference the partial reference, which the data will be stored relative to
-     * @return absolute reference to the stored data, which can be used to retrieve, plus a SHA-256 hash of the stored data
+     * @return absolute reference to the stored data, which can be used to retrieve, plus a SHA-1 hash of the stored data
      * @throws DataStoreException if the data store cannot service the request
      */
     default HashStoreResult hashStore(Path dataPath, String partialReference)
