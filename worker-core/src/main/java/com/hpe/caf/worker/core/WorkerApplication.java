@@ -15,6 +15,7 @@
  */
 package com.hpe.caf.worker.core;
 
+import ch.qos.logback.classic.Level;
 import com.codahale.metrics.Gauge;
 import com.codahale.metrics.MetricRegistry;
 import com.hpe.caf.api.BootstrapConfiguration;
@@ -44,6 +45,7 @@ import com.hpe.caf.util.ModuleLoader;
 import com.hpe.caf.util.ModuleLoaderException;
 import com.hpe.caf.util.jerseycompat.Jersey2ServiceIteratorProvider;
 import io.dropwizard.Application;
+import io.dropwizard.logging.LoggingFactory;
 import io.dropwizard.setup.Environment;
 import org.glassfish.jersey.internal.ServiceFinder;
 import org.slf4j.Logger;
@@ -96,6 +98,7 @@ public final class WorkerApplication extends Application<WorkerConfiguration>
         LOG.debug("Starting up");
         ResponseCache.setDefault(new JobStatusResponseCache());
         BootstrapConfiguration bootstrap = new SystemBootstrapConfiguration();
+        setWorkerLogLevel(workerConfiguration, bootstrap);
         Cipher cipher = ModuleLoader.getService(CipherProvider.class, NullCipherProvider.class).getCipher(bootstrap);
         ServicePath path = bootstrap.getServicePath();
         Codec codec = ModuleLoader.getService(Codec.class);
@@ -140,6 +143,39 @@ public final class WorkerApplication extends Application<WorkerConfiguration>
         core.start();
     }
 
+    private static void setWorkerLogLevel(
+        final WorkerConfiguration workerConfig,
+        final BootstrapConfiguration bootstrapConfig
+    )
+    {
+        final String LOG_LEVEL_CONFIG_KEY = "CAF_LOG_LEVEL";
+
+        if (!bootstrapConfig.isConfigurationPresent(LOG_LEVEL_CONFIG_KEY)) {
+            return;
+        }
+
+        if (workerConfig == null) {
+            return;
+        }
+
+        final LoggingFactory loggingFactory = workerConfig.getLoggingFactory();
+        if (loggingFactory == null) {
+            return;
+        }
+
+        final String logLevelStr;
+        try {
+            logLevelStr = bootstrapConfig.getConfiguration(LOG_LEVEL_CONFIG_KEY);
+        } catch (final ConfigurationException ex) {
+            // Throw a RuntimeException since this shouldn't happen
+            // (since isConfigurationPresent() has already been called)
+            throw new RuntimeException(ex);
+        }
+
+        final Level logLevel = Level.toLevel(logLevelStr);
+
+        loggingFactory.setLevel(logLevel);
+    }
 
     private void initCoreMetrics(final MetricRegistry metrics, final WorkerCore core)
     {
