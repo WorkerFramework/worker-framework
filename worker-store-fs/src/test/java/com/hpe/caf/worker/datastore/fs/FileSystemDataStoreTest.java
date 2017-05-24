@@ -18,6 +18,8 @@ package com.hpe.caf.worker.datastore.fs;
 
 import com.hpe.caf.api.ConfigurationException;
 import com.hpe.caf.api.worker.*;
+import com.hpe.caf.util.store.HashStoreResult;
+import com.hpe.caf.util.store.StoreUtil;
 import org.apache.commons.codec.digest.DigestUtils;
 import org.testng.annotations.AfterMethod;
 import org.testng.annotations.BeforeMethod;
@@ -93,7 +95,7 @@ public class FileSystemDataStoreTest
         conf.setDataDir(temp.getAbsolutePath());
         DataStore store = new FileSystemDataStore(conf);
         final byte[] data = testData.getBytes(StandardCharsets.UTF_8);
-        HashStoreResult storeResult = store.hashStore(new ByteArrayInputStream(data), "test");
+        final HashStoreResult storeResult = StoreUtil.hashStore(store, new ByteArrayInputStream(data), "test");
         try (InputStream inStr = store.retrieve(storeResult.getReference())) {
             try (ByteArrayOutputStream bos = new ByteArrayOutputStream()) {
                 int nRead;
@@ -140,7 +142,7 @@ public class FileSystemDataStoreTest
         conf.setDataDir(temp.getAbsolutePath());
         DataStore store = new FileSystemDataStore(conf);
         final byte[] data = testData.getBytes(StandardCharsets.UTF_8);
-        HashStoreResult storeResult = store.hashStore(data, "test");
+        final HashStoreResult storeResult = StoreUtil.hashStore(store, data, "test");
         try (InputStream inStr = store.retrieve(storeResult.getReference())) {
             try (ByteArrayOutputStream bos = new ByteArrayOutputStream()) {
                 int nRead;
@@ -191,7 +193,7 @@ public class FileSystemDataStoreTest
         final byte[] data = testData.getBytes(StandardCharsets.UTF_8);
         Path p = Paths.get(temp.getAbsolutePath()).resolve(UUID.randomUUID().toString());
         Files.write(p, data);
-        HashStoreResult storeResult = store.hashStore(p, "test");
+        final HashStoreResult storeResult = StoreUtil.hashStore(store, p, "test");
         try (InputStream inStr = store.retrieve(storeResult.getReference())) {
             try (ByteArrayOutputStream bos = new ByteArrayOutputStream()) {
                 int nRead;

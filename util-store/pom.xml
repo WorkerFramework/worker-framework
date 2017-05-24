@@ -22,7 +22,7 @@
     <modelVersion>4.0.0</modelVersion>
 
     <groupId>com.github.workerframework</groupId>
-    <artifactId>worker-api</artifactId>
+    <artifactId>util-store</artifactId>
     <version>1.8.0-SNAPSHOT</version>
 
     <parent>
@@ -33,17 +33,23 @@
 
     <dependencies>
         <dependency>
-           <groupId>com.github.cafapi</groupId>
-           <artifactId>caf-api</artifactId>
-        </dependency>
-        <dependency>
-           <groupId>com.github.cafapi.util</groupId>
-           <artifactId>util-ref</artifactId>
+            <groupId>com.github.workerframework</groupId>
+            <artifactId>worker-api</artifactId>
+            <version>1.8.0-SNAPSHOT</version>
         </dependency>
         <dependency>
             <groupId>javax.validation</groupId>
             <artifactId>validation-api</artifactId>
             <scope>provided</scope>
+        </dependency>
+        <dependency>
+            <groupId>commons-codec</groupId>
+            <artifactId>commons-codec</artifactId>
+            <type>jar</type>
+        </dependency>
+        <dependency>
+            <groupId>com.google.guava</groupId>
+            <artifactId>guava</artifactId>
         </dependency>
     </dependencies>
 
