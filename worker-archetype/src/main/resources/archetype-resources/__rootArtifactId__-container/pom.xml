@@ -404,6 +404,63 @@
                 <worker.adminport>8081</worker.adminport>
             </properties>
         </profile>
+        
+        <profile>
+            <id>windows</id>
+            <activation>
+                <os>
+                    <family>windows</family>
+                </os>
+            </activation>
+            <properties>
+                <caf.integrationtests.fs.path>\\${docker.host.address}@${webdav.apache.port}\webdav</caf.integrationtests.fs.path>
+            </properties>
+        </profile>       
+        <profile>
+            <id>linux</id>
+            <activation>
+                <os>
+                    <family>unix</family>
+                    <name>linux</name>
+                </os>
+            </activation>
+            <properties>
+                <caf.integrationtests.fs.path>/mnt/vm-${webdav.apache.port}-webdav</caf.integrationtests.fs.path>
+            </properties>
+            <build>
+                <plugins>
+                    <plugin>
+                        <groupId>org.codehaus.mojo</groupId>
+                        <artifactId>exec-maven-plugin</artifactId>
+                        <version>1.5.0</version>
+                        <executions>
+                            <execution>
+                                <id>create-filestore-dir</id>
+                                <phase>pre-integration-test</phase>
+                                <goals>
+                                    <goal>exec</goal>
+                                </goals>
+                                <configuration>
+                                    <executable>/bin/bash</executable>
+                                    <commandlineArgs>-c 'sudo mkdir -m 755 ${caf.integrationtests.fs.path} &amp;&amp; echo | sudo http_proxy= https_proxy= mount -t davfs http://${docker.host.address}:${webdav.apache.port}/webdav ${caf.integrationtests.fs.path} -o rw,user,noauto,uid=$USER,file_mode=600,dir_mode=700,username=" "'</commandlineArgs>
+                                </configuration>
+                            </execution>
+                            <execution>
+                                <id>remove-filestore-dir</id>
+                                <phase>post-integration-test</phase>
+                                <goals>
+                                    <goal>exec</goal>
+                                </goals>
+                                <configuration>
+                                    <executable>/bin/bash</executable>
+                                    <commandlineArgs>-c 'sudo umount ${caf.integrationtests.fs.path} ; sudo rm -rf ${caf.integrationtests.fs.path}'</commandlineArgs>
+                                </configuration>
+                            </execution>
+                        </executions>
+                    </plugin>
+                </plugins>
+            </build>
+        </profile>
     </profiles>
 
 </project>
