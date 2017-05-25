@@ -72,7 +72,6 @@
     "${marathon-uris-root}/${worker-config-location}/cfg_${marathon-group}_example_FileSystemDataStoreConfiguration",
     "${marathon-uris-root}/${worker-config-location}/cfg_${marathon-group}_example_ExampleWorkerConfiguration",
     "${marathon-uris-root}/${worker-config-location}/cfg_${marathon-group}_example_RabbitWorkerQueueConfiguration",
-    "${marathon-uris-root}/${worker-config-location}/cfg_${marathon-group}_example_StorageServiceDataStoreConfiguration",
     "${marathon-uris-root}/${docker-login-config}"
   ]
 }
