@@ -17,7 +17,10 @@ package com.hpe.caf.worker.datastore.fs;
 
 
 import com.hpe.caf.api.ConfigurationException;
-import com.hpe.caf.api.worker.*;
+import com.hpe.caf.api.worker.DataStore;
+import com.hpe.caf.api.worker.DataStoreException;
+import com.hpe.caf.api.worker.FilePathProvider;
+import com.hpe.caf.api.worker.ReferenceNotFoundException;
 import com.hpe.caf.util.store.HashStoreResult;
 import com.hpe.caf.util.store.StoreUtil;
 import org.apache.commons.codec.digest.DigestUtils;
@@ -27,7 +30,11 @@ import org.testng.annotations.Test;
 import org.testng.Assert;
 import org.testng.internal.junit.ArrayAsserts;
 
-import java.io.*;
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
+import java.io.File;
+import java.io.IOException;
+import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -73,16 +80,7 @@ public class FileSystemDataStoreTest
         DataStore store = new FileSystemDataStore(conf);
         final byte[] data = testData.getBytes(StandardCharsets.UTF_8);
         String storeRef = store.store(new ByteArrayInputStream(data), "test");
-        try (InputStream inStr = store.retrieve(storeRef)) {
-            try (ByteArrayOutputStream bos = new ByteArrayOutputStream()) {
-                int nRead;
-                while ( (nRead = inStr.read(data, 0, data.length)) != -1 ) {
-                    bos.write(data, 0, nRead);
-                }
-                bos.flush();
-                ArrayAsserts.assertArrayEquals(data, bos.toByteArray());
-            }
-        }
+        verifyStoredData(store, data, storeRef);
         Assert.assertEquals(testData.length(), store.size(storeRef));
     }
 
@@ -96,16 +94,7 @@ public class FileSystemDataStoreTest
         DataStore store = new FileSystemDataStore(conf);
         final byte[] data = testData.getBytes(StandardCharsets.UTF_8);
         final HashStoreResult storeResult = StoreUtil.hashStore(store, new ByteArrayInputStream(data), "test");
-        try (InputStream inStr = store.retrieve(storeResult.getReference())) {
-            try (ByteArrayOutputStream bos = new ByteArrayOutputStream()) {
-                int nRead;
-                while ( (nRead = inStr.read(data, 0, data.length)) != -1 ) {
-                    bos.write(data, 0, nRead);
-                }
-                bos.flush();
-                ArrayAsserts.assertArrayEquals(data, bos.toByteArray());
-            }
-        }
+        verifyStoredData(store, data, storeResult.getReference());
         Assert.assertEquals(testData.length(), store.size(storeResult.getReference()));
         Assert.assertEquals(DigestUtils.sha1Hex(data), storeResult.getHash());
     }
@@ -120,16 +109,7 @@ public class FileSystemDataStoreTest
         DataStore store = new FileSystemDataStore(conf);
         final byte[] data = testData.getBytes(StandardCharsets.UTF_8);
         String storeRef = store.store(data, "test");
-        try (InputStream inStr = store.retrieve(storeRef)) {
-            try (ByteArrayOutputStream bos = new ByteArrayOutputStream()) {
-                int nRead;
-                while ( (nRead = inStr.read(data, 0, data.length)) != -1 ) {
-                    bos.write(data, 0, nRead);
-                }
-                bos.flush();
-                ArrayAsserts.assertArrayEquals(data, bos.toByteArray());
-            }
-        }
+        verifyStoredData(store, data, storeRef);
         Assert.assertEquals(testData.length(), store.size(storeRef));
     }
 
@@ -143,16 +123,7 @@ public class FileSystemDataStoreTest
         DataStore store = new FileSystemDataStore(conf);
         final byte[] data = testData.getBytes(StandardCharsets.UTF_8);
         final HashStoreResult storeResult = StoreUtil.hashStore(store, data, "test");
-        try (InputStream inStr = store.retrieve(storeResult.getReference())) {
-            try (ByteArrayOutputStream bos = new ByteArrayOutputStream()) {
-                int nRead;
-                while ( (nRead = inStr.read(data, 0, data.length)) != -1 ) {
-                    bos.write(data, 0, nRead);
-                }
-                bos.flush();
-                ArrayAsserts.assertArrayEquals(data, bos.toByteArray());
-            }
-        }
+        verifyStoredData(store, data, storeResult.getReference());
         Assert.assertEquals(testData.length(), store.size(storeResult.getReference()));
         Assert.assertEquals(DigestUtils.sha1Hex(data), storeResult.getHash());
     }
@@ -169,16 +140,7 @@ public class FileSystemDataStoreTest
         Path p = Paths.get(temp.getAbsolutePath()).resolve(UUID.randomUUID().toString());
         Files.write(p, data);
         String storeRef = store.store(p, "test");
-        try (InputStream inStr = store.retrieve(storeRef)) {
-            try (ByteArrayOutputStream bos = new ByteArrayOutputStream()) {
-                int nRead;
-                while ( (nRead = inStr.read(data, 0, data.length)) != -1 ) {
-                    bos.write(data, 0, nRead);
-                }
-                bos.flush();
-                ArrayAsserts.assertArrayEquals(data, bos.toByteArray());
-            }
-        }
+        verifyStoredData(store, data, storeRef);
         Assert.assertEquals(testData.length(), store.size(storeRef));
     }
 
@@ -195,14 +157,7 @@ public class FileSystemDataStoreTest
         Files.write(p, data);
         final HashStoreResult storeResult = StoreUtil.hashStore(store, p, "test");
         try (InputStream inStr = store.retrieve(storeResult.getReference())) {
-            try (ByteArrayOutputStream bos = new ByteArrayOutputStream()) {
-                int nRead;
-                while ( (nRead = inStr.read(data, 0, data.length)) != -1 ) {
-                    bos.write(data, 0, nRead);
-                }
-                bos.flush();
-                ArrayAsserts.assertArrayEquals(data, bos.toByteArray());
-            }
+            verifyData(data, inStr);
         }
         Assert.assertEquals(testData.length(), store.size(storeResult.getReference()));
         Assert.assertEquals(DigestUtils.sha1Hex(data), storeResult.getHash());
@@ -222,14 +177,7 @@ public class FileSystemDataStoreTest
         String storeRef = store.store(p, "test");
         final Path dataStoreFilePath = ((FilePathProvider)store).getFilePath(storeRef);
         try (InputStream inStr = Files.newInputStream(dataStoreFilePath)) {
-            try (ByteArrayOutputStream bos = new ByteArrayOutputStream()) {
-                int nRead;
-                while ( (nRead = inStr.read(data, 0, data.length)) != -1 ) {
-                    bos.write(data, 0, nRead);
-                }
-                bos.flush();
-                ArrayAsserts.assertArrayEquals(data, bos.toByteArray());
-            }
+            verifyData(data, inStr);
         }
         //Verify that repeatable values are returned for the file path of the same stored file.
         Assert.assertEquals(((FilePathProvider)store).getFilePath(storeRef), dataStoreFilePath);
@@ -314,5 +262,32 @@ public class FileSystemDataStoreTest
         conf.setDataDir(temp.getAbsolutePath());
         DataStore store = new FileSystemDataStore(conf);
         store.delete(UUID.randomUUID().toString());
+    }
+
+
+    private static void verifyStoredData(final DataStore dataStore, final byte[] expectedData, final String actualReference)
+        throws IOException, DataStoreException
+    {
+        try (InputStream inStr = dataStore.retrieve(actualReference))
+        {
+            verifyData(expectedData, inStr);
+        }
+    }
+
+
+    private static void verifyData(final byte[] expected, final InputStream actual)
+        throws IOException
+    {
+        try (final ByteArrayOutputStream bos = new ByteArrayOutputStream())
+        {
+            int nRead;
+            final byte[] buffer = new byte[1024];
+            while ( (nRead = actual.read(buffer, 0, expected.length)) != -1 )
+            {
+                bos.write(buffer, 0, nRead);
+            }
+            bos.flush();
+            ArrayAsserts.assertArrayEquals(expected, bos.toByteArray());
+        }
     }
 }

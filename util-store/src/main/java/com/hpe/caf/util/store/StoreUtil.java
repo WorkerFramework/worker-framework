@@ -17,12 +17,15 @@ package com.hpe.caf.util.store;
 
 import com.google.common.hash.Hashing;
 import com.google.common.hash.HashingInputStream;
+import com.hpe.caf.api.QuietResource;
 import com.hpe.caf.api.worker.DataStore;
 import com.hpe.caf.api.worker.DataStoreException;
 import org.apache.commons.codec.binary.Hex;
-import org.apache.commons.codec.digest.DigestUtils;
 
-import java.io.*;
+import java.io.BufferedInputStream;
+import java.io.ByteArrayInputStream;
+import java.io.IOException;
+import java.io.InputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
 
@@ -66,7 +69,9 @@ public final class StoreUtil
     public static HashStoreResult hashStore(final DataStore dataStore, final byte[] data, final String partialReference)
         throws DataStoreException
     {
-        return new HashStoreResult(dataStore.store(data, partialReference), DigestUtils.sha1Hex(data));
+        try (final QuietResource<InputStream> dataStream = new QuietResource<>(new ByteArrayInputStream(data))) {
+            return hashStore(dataStore, dataStream.get(), partialReference);
+        }
     }
 
 
@@ -83,13 +88,11 @@ public final class StoreUtil
     public static HashStoreResult hashStore(final DataStore dataStore, final Path dataPath, final String partialReference)
         throws DataStoreException
     {
-        String hash;
         try (final InputStream dataStream = Files.newInputStream(dataPath)) {
-            hash = DigestUtils.sha1Hex(dataStream);
+            return hashStore(dataStore, dataStream, partialReference);
         } catch (IOException e) {
-            throw new DataStoreException("Failed to hash data from a provided filepath", e);
+            throw new DataStoreException("Failed to hash and store data from a provided filepath", e);
         }
-        return new HashStoreResult(dataStore.store(dataPath, partialReference), hash);
     }
 
 }
