@@ -20,12 +20,6 @@
 ####docker-login-config
 - Following the steps [here](https://mesosphere.github.io/marathon/docs/native-docker-private-registry.html) this property specifies the path to the tar containing your docker login configuration file. This is required for each container to be able to pull their image down from Artifactory. **Note this value must be replaced.**
 
-####storage_service-server
-- If using the CAF Storage Service Datastore, this property specifies the URL of the Storage Service. This will be used by all workers to send storage requests. **Note this value must be replaced.**
-
-####storage_service-port
-- If using the CAF Storage Service Datastore, this property specifies the port number of the storage Service. **Note this value must be replaced.**
-
 ###Rabbit properties
 ####rabbit-id
 - Specifies the name of the RabbitMQ Server application in Marathon. Changing this will allow the creation of distinct RabbitMQ applications.

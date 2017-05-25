@@ -47,8 +47,6 @@
     "CAF_RABBITMQ_BACKOFF_INTERVAL": "${rabbit-backoffInterval}",
     "CAF_RABBITMQ_MAX_BACKOFF_INTERVAL": "${rabbit-maxBackoffInterval}",
     "CAF_RABBITMQ_MAX_ATTEMPTS": "${rabbit-maxattempts}",
-    "CAF_STORAGE_HOST": "${storage_service-server}",
-    "CAF_STORAGE_PORT": "${storage_service-port}"
   },
   "labels": {
     "autoscale.metric": "${example-autoscale.metric}",
@@ -72,7 +70,6 @@
     "${marathon-uris-root}/${worker-config-location}/cfg_${marathon-group}_example_FileSystemDataStoreConfiguration",
     "${marathon-uris-root}/${worker-config-location}/cfg_${marathon-group}_example_ExampleWorkerConfiguration",
     "${marathon-uris-root}/${worker-config-location}/cfg_${marathon-group}_example_RabbitWorkerQueueConfiguration",
-    "${marathon-uris-root}/${worker-config-location}/cfg_${marathon-group}_example_StorageServiceDataStoreConfiguration",
     "${marathon-uris-root}/${docker-login-config}"
   ]
 }

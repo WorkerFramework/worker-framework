@@ -9,9 +9,6 @@
   	"worker-config-location":"marathon-config",
 	"docker-login-config": "<MUST_REPLACE: Location of docker login config tar>",
 
-	"storage_service-server": "<MUST_REPLACE: Server for storage service>",
-	"storage_service-port": "<MUST_REPLACE: Port for storage service>",
-
 	"rabbit-id":"rabbit-01",
 	"rabbit-cpus":0.4,
 	"rabbit-mem":"512",
