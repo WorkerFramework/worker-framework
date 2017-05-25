@@ -185,7 +185,6 @@
                         <rabbitmq.ctrl.port>${rabbitmq.ctrl.port}</rabbitmq.ctrl.port>
                         <input.folder>${test.data}</input.folder>
                         <expected.folder>${test.data}</expected.folder>
-<!--                        <datastore.container.id>b591d8c6615c4af99d7915719b01259c</datastore.container.id>-->
                         <datastore.enabled>false</datastore.enabled>
                     </systemPropertyVariables>
                     <environmentVariables>
@@ -394,8 +393,9 @@
         </plugins>
     </build>
 
-    <!-- Use this profile if your virtual machine setup must use fixed ports. -->
     <profiles>
+        
+        <!-- Use this profile if your virtual machine setup must use fixed ports. -->
         <profile>
             <id>use-default-fixed-ports</id>
             <properties>
@@ -405,6 +405,9 @@
             </properties>
         </profile>
         
+        
+        <!-- The profiles below are for setting the "caf.integrationtests.fs.path" property for fs-storage. The location changes -->
+        <!-- depending on which operating system the archetype is being built on                                                 -->
         <profile>
             <id>windows</id>
             <activation>
@@ -415,7 +418,8 @@
             <properties>
                 <caf.integrationtests.fs.path>\\${docker.host.address}@${webdav.apache.port}\webdav</caf.integrationtests.fs.path>
             </properties>
-        </profile>       
+        </profile>  
+             
         <profile>
             <id>linux</id>
             <activation>
