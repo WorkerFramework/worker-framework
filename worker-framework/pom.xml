@@ -56,6 +56,11 @@
             </dependency>
             <dependency>
                 <groupId>com.github.workerframework</groupId>
+                <artifactId>util-store</artifactId>
+                <version>1.8.0-SNAPSHOT</version>
+            </dependency>
+            <dependency>
+                <groupId>com.github.workerframework</groupId>
                 <artifactId>standard-worker-container</artifactId>
                 <type>pom</type>
                 <version>1.8.0-SNAPSHOT</version>
