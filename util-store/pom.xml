@@ -23,19 +23,19 @@
 
     <groupId>com.github.workerframework</groupId>
     <artifactId>util-store</artifactId>
-    <version>1.8.0-SNAPSHOT</version>
+    <version>1.8.0-249</version>
 
     <parent>
         <groupId>com.github.workerframework</groupId>
         <artifactId>worker-framework-aggregator</artifactId>
-        <version>1.8.0-SNAPSHOT</version>
+        <version>1.8.0-249</version>
     </parent>
 
     <dependencies>
         <dependency>
             <groupId>com.github.workerframework</groupId>
             <artifactId>worker-api</artifactId>
-            <version>1.8.0-SNAPSHOT</version>
+            <version>1.8.0-249</version>
         </dependency>
         <dependency>
             <groupId>javax.validation</groupId>
