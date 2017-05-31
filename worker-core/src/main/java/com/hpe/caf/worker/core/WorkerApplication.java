@@ -45,7 +45,11 @@ import com.hpe.caf.util.ModuleLoader;
 import com.hpe.caf.util.ModuleLoaderException;
 import com.hpe.caf.util.jerseycompat.Jersey2ServiceIteratorProvider;
 import io.dropwizard.Application;
+import io.dropwizard.configuration.EnvironmentVariableSubstitutor;
+import io.dropwizard.configuration.SubstitutingSourceProvider;
 import io.dropwizard.logging.LoggingFactory;
+import io.dropwizard.servlets.tasks.LogConfigurationTask;
+import io.dropwizard.setup.Bootstrap;
 import io.dropwizard.setup.Environment;
 import org.glassfish.jersey.internal.ServiceFinder;
 import org.slf4j.Logger;
@@ -96,6 +100,7 @@ public final class WorkerApplication extends Application<WorkerConfiguration>
         throws QueueException, ModuleLoaderException, CipherException, ConfigurationException, DataStoreException, WorkerException
     {
         LOG.debug("Starting up");
+        
         ResponseCache.setDefault(new JobStatusResponseCache());
         BootstrapConfiguration bootstrap = new SystemBootstrapConfiguration();
         setWorkerLogLevel(workerConfiguration, bootstrap);
@@ -141,6 +146,15 @@ public final class WorkerApplication extends Application<WorkerConfiguration>
         environment.healthChecks().register("store", new WorkerHealthCheck(store));
         environment.healthChecks().register("worker", new WorkerHealthCheck(workerFactory));
         core.start();
+    }
+    
+    @Override
+    public void initialize(Bootstrap<WorkerConfiguration> bootstrap){
+        bootstrap.setConfigurationSourceProvider(
+                new SubstitutingSourceProvider(bootstrap.getConfigurationSourceProvider(),
+                                                   new EnvironmentVariableSubstitutor()
+                )
+        );
     }
 
     private static void setWorkerLogLevel(
