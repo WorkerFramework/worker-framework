@@ -45,6 +45,7 @@ public class StreamingWorkerWrapperTest
     private static final int WORKER_API_VER = 1;
     private static final String TASK_ID = "testTask";
     private static final String SERVICE_NAME = "/test/group";
+    private static final Integer PRIORITY = 2;
 
 
     @Test
@@ -55,13 +56,15 @@ public class StreamingWorkerWrapperTest
         WorkerFactory happyWorkerFactory = Mockito.mock(WorkerFactory.class);
         Worker happyWorker = getWorker(new TestWorkerTask(), codec);
         Mockito.when(happyWorkerFactory.getWorker(Mockito.any())).thenReturn(happyWorker);
+        MessagePriorityManager priorityManager = Mockito.mock(MessagePriorityManager.class);
+        Mockito.when(priorityManager.getResponsePriority(Mockito.any())).thenReturn(PRIORITY);
         String queueMsgId = "success";
         CountDownLatch latch = new CountDownLatch(1);
         TestCallback callback = new TestCallback(latch);
         TaskMessage m = new TaskMessage();
         m.setTaskId(TASK_ID);
         ServicePath path = new ServicePath(SERVICE_NAME);
-        WorkerTaskImpl workerTask = new WorkerTaskImpl(path, callback, happyWorkerFactory, queueMsgId, m, false);
+        WorkerTaskImpl workerTask = new WorkerTaskImpl(path, callback, happyWorkerFactory, queueMsgId, m, false, priorityManager);
         StreamingWorkerWrapper wrapper = new StreamingWorkerWrapper(workerTask);
         Thread t = new Thread(wrapper);
         t.start();
@@ -70,6 +73,7 @@ public class StreamingWorkerWrapperTest
         Assert.assertEquals(TaskStatus.RESULT_SUCCESS, callback.getStatus());
         TestWorkerResult res = codec.deserialise(callback.getResultData(), TestWorkerResult.class);
         Assert.assertEquals(SUCCESS, res.getResultString());
+        Assert.assertEquals(PRIORITY, callback.getPriority());
         Assert.assertEquals(TASK_ID, callback.getTaskId());
         Assert.assertEquals(QUEUE_OUT, callback.getQueue());
         Assert.assertTrue(callback.getContext().containsKey(path.toString()));
@@ -85,13 +89,16 @@ public class StreamingWorkerWrapperTest
         WorkerFactory happyWorkerFactory = Mockito.mock(WorkerFactory.class);
         Worker happyWorker = getRedirectWorker(new TestWorkerTask(), codec);
         Mockito.when(happyWorkerFactory.getWorker(Mockito.any())).thenReturn(happyWorker);
+        MessagePriorityManager priorityManager = Mockito.mock(MessagePriorityManager.class);
+        Mockito.when(priorityManager.getResponsePriority(Mockito.any())).thenReturn(PRIORITY);
+
         String queueMsgId = "success";
         CountDownLatch latch = new CountDownLatch(1);
         TestCallback callback = new TestCallback(latch);
         TaskMessage m = new TaskMessage();
         m.setTaskId(TASK_ID);
         ServicePath path = new ServicePath(SERVICE_NAME);
-        WorkerTaskImpl workerTask = new WorkerTaskImpl(path, callback, happyWorkerFactory, queueMsgId, m, false);
+        WorkerTaskImpl workerTask = new WorkerTaskImpl(path, callback, happyWorkerFactory, queueMsgId, m, false, priorityManager);
         StreamingWorkerWrapper wrapper = new StreamingWorkerWrapper(workerTask);
         Thread t = new Thread(wrapper);
         t.start();
@@ -116,6 +123,8 @@ public class StreamingWorkerWrapperTest
         Mockito.when(happyWorker.doWork()).thenAnswer(invocationOnMock -> {
             throw new TaskFailedException("whoops");
         });
+        MessagePriorityManager priorityManager = Mockito.mock(MessagePriorityManager.class);
+        Mockito.when(priorityManager.getResponsePriority(Mockito.any())).thenReturn(PRIORITY);
         String queueMsgId = "exception";
         CountDownLatch latch = new CountDownLatch(1);
         TestCallback callback = new TestCallback(latch);
@@ -125,7 +134,7 @@ public class StreamingWorkerWrapperTest
         contextMap.put(path.toString(), SUCCESS_BYTES);
         m.setTaskId(TASK_ID);
         m.setContext(contextMap);
-        WorkerTaskImpl workerTask = new WorkerTaskImpl(path, callback, happyWorkerFactory, queueMsgId, m, false);
+        WorkerTaskImpl workerTask = new WorkerTaskImpl(path, callback, happyWorkerFactory, queueMsgId, m, false, priorityManager);
         StreamingWorkerWrapper wrapper = new StreamingWorkerWrapper(workerTask);
         Thread t = new Thread(wrapper);
         t.start();
@@ -152,12 +161,14 @@ public class StreamingWorkerWrapperTest
         Mockito.when(happyWorker.doWork()).thenAnswer(invocationOnMock -> {
             throw new InterruptedException("interrupting!");
         });
+        MessagePriorityManager priorityManager = Mockito.mock(MessagePriorityManager.class);
+        Mockito.when(priorityManager.getResponsePriority(Mockito.any())).thenReturn(PRIORITY);
         String queueMsgId = "interrupt";
         WorkerCallback callback = Mockito.mock(WorkerCallback.class);
         TaskMessage m = new TaskMessage();
         ServicePath path = new ServicePath(SERVICE_NAME);
         m.setTaskId(TASK_ID);
-        WorkerTaskImpl workerTask = new WorkerTaskImpl(path, callback, happyWorkerFactory, queueMsgId, m, false);
+        WorkerTaskImpl workerTask = new WorkerTaskImpl(path, callback, happyWorkerFactory, queueMsgId, m, false, priorityManager);
         StreamingWorkerWrapper wrapper = new StreamingWorkerWrapper(workerTask);
         Thread t = new Thread(wrapper);
         t.start();
@@ -177,13 +188,15 @@ public class StreamingWorkerWrapperTest
         Mockito.when(happyWorker.doWork()).thenAnswer(invocationOnMock -> {
             throw new TaskRejectedException("bye!");
         });
+        MessagePriorityManager priorityManager = Mockito.mock(MessagePriorityManager.class);
+        Mockito.when(priorityManager.getResponsePriority(Mockito.any())).thenReturn(PRIORITY);
         String queueMsgId = "abandon";
         CountDownLatch latch = new CountDownLatch(1);
         TestCallback callback = new TestCallback(latch);
         TaskMessage m = new TaskMessage();
         ServicePath path = new ServicePath(SERVICE_NAME);
         m.setTaskId(TASK_ID);
-        WorkerTaskImpl workerTask = new WorkerTaskImpl(path, callback, happyWorkerFactory, queueMsgId, m, false);
+        WorkerTaskImpl workerTask = new WorkerTaskImpl(path, callback, happyWorkerFactory, queueMsgId, m, false, priorityManager);
         StreamingWorkerWrapper wrapper = new StreamingWorkerWrapper(workerTask);
         Thread t = new Thread(wrapper);
         t.start();
@@ -249,7 +262,6 @@ public class StreamingWorkerWrapperTest
         };
     }
 
-
     private final class TestCallback implements WorkerCallback
     {
         private String queueMsgId;
@@ -259,6 +271,7 @@ public class StreamingWorkerWrapperTest
         private String queue;
         private String classifier;
         private Map<String, byte[]> context;
+        private Integer priority;
         private final CountDownLatch latch;
 
 
@@ -278,6 +291,7 @@ public class StreamingWorkerWrapperTest
             this.queue = queue;
             this.context = tm.getContext();
             this.classifier = tm.getTaskClassifier();
+            this.priority = tm.getPriority();
             latch.countDown();
         }
 
@@ -342,6 +356,11 @@ public class StreamingWorkerWrapperTest
         public String getQueue()
         {
             return queue;
+        }
+
+        public Integer getPriority()
+        {
+            return priority;
         }
     }
 }

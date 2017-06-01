@@ -32,6 +32,7 @@ final class WorkerExecutor
     private final WorkerCallback callback;
     private final WorkerFactory factory;
     private final WorkerThreadPool threadPool;
+    private final MessagePriorityManager priorityManager;
     private static final Logger LOG = LoggerFactory.getLogger(WorkerExecutor.class);
 
 
@@ -47,13 +48,15 @@ final class WorkerExecutor
         final ServicePath path,
         final WorkerCallback callback,
         final WorkerFactory workerFactory,
-        final WorkerThreadPool pool
+        final WorkerThreadPool pool,
+        final MessagePriorityManager priorityManager
     )
     {
         this.servicePath = Objects.requireNonNull(path);
         this.callback = Objects.requireNonNull(callback);
         this.factory = Objects.requireNonNull(workerFactory);
         this.threadPool = Objects.requireNonNull(pool);
+        this.priorityManager = Objects.requireNonNull(priorityManager);
     }
 
 
@@ -106,6 +109,6 @@ final class WorkerExecutor
      */
     private WorkerTaskImpl createWorkerTask(final String messageId, final TaskMessage taskMessage, boolean poison)
     {
-        return new WorkerTaskImpl(servicePath, callback, factory, messageId, taskMessage, poison);
+        return new WorkerTaskImpl(servicePath, callback, factory, messageId, taskMessage, poison, priorityManager);
     }
 }

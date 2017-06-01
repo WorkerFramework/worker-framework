@@ -91,7 +91,7 @@ public final class RabbitWorkerQueue implements ManagedWorkerQueue
      */
     @Override
     public void start(TaskCallback callback)
-        throws QueueException
+            throws QueueException
     {
         if ( conn != null ) {
             throw new IllegalStateException("Already started");
@@ -104,12 +104,12 @@ public final class RabbitWorkerQueue implements ManagedWorkerQueue
             int prefetch = Math.max(1, maxTasks + config.getPrefetchBuffer());
             incomingChannel.basicQos(prefetch);
             WorkerQueueConsumerImpl consumerImpl = new WorkerQueueConsumerImpl(callback, metrics, consumerQueue, incomingChannel,
-                    publisherQueue, config.getRetryQueue(), config.getRetryLimit());            
+                                                                               publisherQueue, config.getRetryQueue(), config.getRetryLimit());
             consumer = new DefaultRabbitConsumer(consumerQueue, consumerImpl);
             WorkerPublisherImpl publisherImpl = new WorkerPublisherImpl(outgoingChannel, metrics, consumerQueue, confirmListener);
             publisher = new EventPoller<>(2, publisherQueue, publisherImpl);
-            declareWorkerQueue(incomingChannel, config.getInputQueue());
-            declareWorkerQueue(outgoingChannel, config.getRetryQueue());
+            declareWorkerQueue(incomingChannel, config.getInputQueue(), config.getMaxPriority());
+            declareWorkerQueue(outgoingChannel, config.getRetryQueue(), config.getMaxPriority());
             consumerTags.add(incomingChannel.basicConsume(config.getInputQueue(), consumer));
         } catch (IOException | TimeoutException e) {
             throw new QueueException("Failed to establish queues", e);
@@ -120,6 +120,16 @@ public final class RabbitWorkerQueue implements ManagedWorkerQueue
         consumerThread.start();
     }
 
+    @Override
+    public void publish(String acknowledgeId, byte[] taskMessage, String targetQueue, Map<String, Object> headers, int priority) throws QueueException
+    {
+        try {
+            declareWorkerQueue(outgoingChannel, targetQueue, config.getMaxPriority());
+        } catch (IOException e) {
+            throw new QueueException("Failed to submit task", e);
+        }
+        publisherQueue.add(new WorkerPublishQueueEvent(taskMessage, targetQueue, Long.parseLong(acknowledgeId), headers, priority));
+    }
 
     /**
      * {@inheritDoc}
@@ -128,14 +138,9 @@ public final class RabbitWorkerQueue implements ManagedWorkerQueue
      */
     @Override
     public void publish(String acknowledgeId, byte[] taskMessage, String targetQueue, Map<String, Object> headers)
-        throws QueueException
+            throws QueueException
     {
-        try {
-            declareWorkerQueue(outgoingChannel, targetQueue);
-        } catch (IOException e) {
-            throw new QueueException("Failed to submit task", e);
-        }
-        publisherQueue.add(new WorkerPublishQueueEvent(taskMessage, targetQueue, Long.parseLong(acknowledgeId), headers));
+        publish(acknowledgeId, taskMessage, targetQueue, headers, 0);
     }
 
 
@@ -169,7 +174,7 @@ public final class RabbitWorkerQueue implements ManagedWorkerQueue
 
     /**
      * {@inheritDoc}
-     * 
+     *
      * Add a ACKNOWLEDGE event that consumer will handle.
      */
     @Override
@@ -179,8 +184,8 @@ public final class RabbitWorkerQueue implements ManagedWorkerQueue
         LOG.debug("Generating acknowledge event for task {}", messageId);
         consumerQueue.add(new ConsumerAckEvent(Long.parseLong(messageId)));
     }
-    
-    
+
+
     /**
      * {@inheritDoc}
      *
@@ -190,7 +195,6 @@ public final class RabbitWorkerQueue implements ManagedWorkerQueue
     public String getInputQueue() {
         return config.getInputQueue();
     }
-
 
     /**
      * {@inheritDoc}
@@ -262,7 +266,7 @@ public final class RabbitWorkerQueue implements ManagedWorkerQueue
 
 
     private void createConnection(TaskCallback callback, WorkerConfirmListener listener)
-        throws IOException, TimeoutException
+            throws IOException, TimeoutException
     {
         RabbitConfiguration rc = config.getRabbitConfiguration();
         ConnectionOptions lyraOpts = RabbitUtil.createLyraConnectionOptions(rc.getRabbitHost(), rc.getRabbitPort(), rc.getRabbitUser(), rc.getRabbitPassword());
@@ -272,11 +276,12 @@ public final class RabbitWorkerQueue implements ManagedWorkerQueue
     }
 
 
-    private void declareWorkerQueue(Channel channel, String queueName)
-        throws IOException
+    private void declareWorkerQueue(Channel channel, String queueName, int maxPriority)
+            throws IOException
     {
         if ( !declaredQueues.contains(queueName) ) {
-            RabbitUtil.declareWorkerQueue(channel, queueName);
+
+            RabbitUtil.declareWorkerQueue(channel, queueName, maxPriority);
         }
     }
 

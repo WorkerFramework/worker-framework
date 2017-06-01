@@ -23,7 +23,6 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
 
-
 /**
  * Builder pattern class to create queues with parameters and properties.
  */
@@ -35,6 +34,7 @@ public class QueueCreator
     private Durability durability;
     private EmptyAction emptyAction;
     private Exclusivity exclusivity;
+    private int maxPriority = 0;
     private String queueName;
     private Map<String, Object> propsMap = new HashMap<>();
 
@@ -90,12 +90,17 @@ public class QueueCreator
         return this;
     }
 
+    public QueueCreator withMaxPriority(int maxPriority)
+    {
+        this.maxPriority = maxPriority;
+        return this;
+    }
 
     public void create(Channel channel)
         throws IOException
     {
         validate();
-        RabbitUtil.declareQueue(channel, queueName, durability, exclusivity, emptyAction, propsMap);
+        RabbitUtil.declareQueue(channel, queueName, durability, exclusivity, emptyAction, propsMap, maxPriority);
     }
 
 

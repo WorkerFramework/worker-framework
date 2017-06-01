@@ -28,15 +28,7 @@ import com.hpe.caf.api.ConfigurationException;
 import com.hpe.caf.api.ConfigurationSourceProvider;
 import com.hpe.caf.api.Decoder;
 import com.hpe.caf.api.ManagedConfigurationSource;
-import com.hpe.caf.api.worker.DataStoreException;
-import com.hpe.caf.api.worker.DataStoreProvider;
-import com.hpe.caf.api.worker.ManagedDataStore;
-import com.hpe.caf.api.worker.ManagedWorkerQueue;
-import com.hpe.caf.api.worker.QueueException;
-import com.hpe.caf.api.worker.WorkerException;
-import com.hpe.caf.api.worker.WorkerFactory;
-import com.hpe.caf.api.worker.WorkerFactoryProvider;
-import com.hpe.caf.api.worker.WorkerQueueProvider;
+import com.hpe.caf.api.worker.*;
 import com.hpe.caf.cipher.NullCipherProvider;
 import com.hpe.caf.config.system.SystemBootstrapConfiguration;
 import com.hpe.caf.naming.ServicePath;
@@ -110,7 +102,10 @@ public final class WorkerApplication extends Application<WorkerConfiguration>
         WorkerThreadPool wtp = WorkerThreadPool.create(workerFactory);
         final int nThreads = workerFactory.getWorkerThreads();
         ManagedWorkerQueue workerQueue = queueProvider.getWorkerQueue(config, nThreads);
-        WorkerCore core = new WorkerCore(codec, wtp, workerQueue, workerFactory, path);
+        MessagePriorityManagerProvider priorityManagerProvider = ModuleLoader.getService(MessagePriorityManagerProvider.class);
+        MessagePriorityManager priorityManager = priorityManagerProvider.getMessagePriorityManager(config);
+
+        WorkerCore core = new WorkerCore(codec, wtp, workerQueue, priorityManager, workerFactory, path);
         Runtime.getRuntime().addShutdownHook(new Thread()
         {
             @Override

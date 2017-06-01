@@ -18,7 +18,6 @@ package com.hpe.caf.api.worker;
 
 import com.hpe.caf.api.HealthReporter;
 
-
 /**
  * A WorkerQueue for use at an application level, supporting management methods.
  */
@@ -49,4 +48,5 @@ public interface ManagedWorkerQueue extends HealthReporter, WorkerQueue
      * @return the metrics implementation for this WorkerQueue
      */
     WorkerQueueMetricsReporter getMetrics();
+
 }

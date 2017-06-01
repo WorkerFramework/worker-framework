@@ -31,6 +31,7 @@ public interface WorkerPublisher
      * @param routingKey the routing key to publish the new message with
      * @param ackId the prior message id to acknowledge
      * @param headers key/value map of headers to add to the published message
+     * @param priority message priority, greater value means higher priority
      */
-    void handlePublish(byte[] data, String routingKey, long ackId, Map<String, Object> headers);
+    void handlePublish(byte[] data, String routingKey, long ackId, Map<String, Object> headers, int priority);
 }

@@ -67,7 +67,7 @@ public class WorkerPublisherImpl implements WorkerPublisher
 
 
     @Override
-    public void handlePublish(byte[] data, String routingKey, long ackId, Map<String, Object> headers)
+    public void handlePublish(byte[] data, String routingKey, long ackId, Map<String, Object> headers, int priority)
     {
         try {
             LOG.debug("Publishing message with ack id {}", ackId);
@@ -75,7 +75,7 @@ public class WorkerPublisherImpl implements WorkerPublisher
             builder.headers(headers);
             builder.contentType("text/plain");
             builder.deliveryMode(2);
-            builder.priority(0);
+            builder.priority(priority);
             confirmListener.registerResponseSequence(channel.getNextPublishSeqNo(), ackId);
             channel.basicPublish("", routingKey, builder.build(), data);
             metrics.incrementPublished();

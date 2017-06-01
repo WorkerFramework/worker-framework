@@ -86,6 +86,11 @@ public final class TaskMessage
      */
     private TaskSourceInfo sourceInfo;
 
+    /**
+     * Task message priority.
+     */
+    private Integer priority;
+
 
     public TaskMessage(){ }
 
@@ -237,5 +242,15 @@ public final class TaskMessage
 
     public void setSourceInfo(TaskSourceInfo sourceInfo) {
         this.sourceInfo = sourceInfo;
+    }
+
+    public Integer getPriority()
+    {
+        return priority;
+    }
+
+    public void setPriority(Integer priority)
+    {
+        this.priority = priority;
     }
 }

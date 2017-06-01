@@ -13,12 +13,20 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-({
-    prefetchBuffer: getenv("CAF_RABBITMQ_PREFETCH_BUFFER") || 1,
-    inputQueue: getenv("CAF_WORKER_INPUT_QUEUE")
-            || (getenv("CAF_WORKER_BASE_QUEUE_NAME") || getenv("CAF_WORKER_NAME") || "worker") + "-in",
-    retryQueue: getenv("CAF_WORKER_RETRY_QUEUE") || undefined,
-    rejectedQueue: "worker-rejected",
-    retryLimit: getenv("CAF_WORKER_RETRY_LIMIT") || 10,
-    maxPriority: getenv("CAF_RABBITMQ_MAX_PRIORITY") || 255
-});
+package com.hpe.caf.worker.queue.rabbit;
+
+import com.hpe.caf.api.worker.MessagePriorityManager;
+import com.hpe.caf.api.worker.TaskMessage;
+
+/**
+ * Implementation of MessagePriorityManager which always return zero.
+ * It should be used when priorities are disabled or queue implementation doesn't support them.
+ */
+public class ZeroMessagePriorityManager implements MessagePriorityManager
+{
+    @Override
+    public Integer getResponsePriority(TaskMessage originalTaskMessage)
+    {
+        return 0;
+    }
+}
