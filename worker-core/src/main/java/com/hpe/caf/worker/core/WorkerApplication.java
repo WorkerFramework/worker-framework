@@ -143,16 +143,14 @@ public final class WorkerApplication extends Application<WorkerConfiguration>
         environment.healthChecks().register("worker", new WorkerHealthCheck(workerFactory));
         core.start();
     }
-    
+
     @Override
-    public void initialize(Bootstrap<WorkerConfiguration> bootstrap){
+    public void initialize(Bootstrap<WorkerConfiguration> bootstrap)
+    {
         bootstrap.setConfigurationSourceProvider(
-                new SubstitutingSourceProvider(bootstrap.getConfigurationSourceProvider(),
-                                                   new EnvironmentVariableSubstitutor()
-                )
+            new SubstitutingSourceProvider(bootstrap.getConfigurationSourceProvider(), new EnvironmentVariableSubstitutor(false, true))
         );
     }
-
 
     private void initCoreMetrics(final MetricRegistry metrics, final WorkerCore core)
     {
