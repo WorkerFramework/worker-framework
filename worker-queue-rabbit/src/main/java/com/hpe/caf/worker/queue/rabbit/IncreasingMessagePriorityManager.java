@@ -18,14 +18,18 @@ package com.hpe.caf.worker.queue.rabbit;
 import com.hpe.caf.api.worker.MessagePriorityManager;
 import com.hpe.caf.api.worker.TaskMessage;
 
+import java.util.Objects;
+
 /**
- * Created by ploch on 30/05/2017.
+ * Implementation of MessagePriorityManager which increases a message priority on
+ * each response.
  */
 public class IncreasingMessagePriorityManager implements MessagePriorityManager
 {
     @Override
-    public Integer getResponsePriority(TaskMessage originalTaskMessage)
+    public Integer getResponsePriority(final TaskMessage originalTaskMessage)
     {
+        Objects.requireNonNull(originalTaskMessage);
         return originalTaskMessage.getPriority() == null ? 1 : originalTaskMessage.getPriority() + 1;
     }
 }

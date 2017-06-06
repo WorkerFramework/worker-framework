@@ -16,9 +16,14 @@
 package com.hpe.caf.api.worker;
 
 /**
- * Created by ploch on 30/05/2017.
+ * An interface for setting up message priorities as they progress.
  */
 public interface MessagePriorityManager
 {
-    Integer getResponsePriority(TaskMessage originalTaskMessage);
+    /**
+     * Gets the priority of response message.
+     * @param originalTaskMessage A worker input (request) message.
+     * @return Priority
+     */
+    Integer getResponsePriority(final TaskMessage originalTaskMessage);
 }

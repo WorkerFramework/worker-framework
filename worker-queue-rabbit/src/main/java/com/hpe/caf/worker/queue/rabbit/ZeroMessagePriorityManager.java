@@ -25,7 +25,7 @@ import com.hpe.caf.api.worker.TaskMessage;
 public class ZeroMessagePriorityManager implements MessagePriorityManager
 {
     @Override
-    public Integer getResponsePriority(TaskMessage originalTaskMessage)
+    public Integer getResponsePriority(final TaskMessage originalTaskMessage)
     {
         return 0;
     }
