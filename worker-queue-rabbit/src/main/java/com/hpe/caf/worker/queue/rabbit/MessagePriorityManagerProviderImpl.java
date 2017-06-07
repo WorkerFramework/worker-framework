@@ -21,7 +21,9 @@ import com.hpe.caf.api.worker.MessagePriorityManager;
 import com.hpe.caf.api.worker.MessagePriorityManagerProvider;
 
 /**
- * Created by ploch on 30/05/2017.
+ * An implementation of {@link MessagePriorityManagerProvider} which, depending on configuration, creates
+ * a priority manager which increases a message priority on each response ({@link IncreasingMessagePriorityManager})
+ * or a priority manager which always returns zero ({@link ZeroMessagePriorityManager}).
  */
 public class MessagePriorityManagerProviderImpl implements MessagePriorityManagerProvider
 {

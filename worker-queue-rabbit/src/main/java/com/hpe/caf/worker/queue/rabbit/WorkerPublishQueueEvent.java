@@ -36,10 +36,10 @@ public class WorkerPublishQueueEvent implements Event<WorkerPublisher>
 
     /**
      * Create a new WorkerPublishQueueEvent
- * @param messageData the raw message data to publish
+     * @param messageData the raw message data to publish
      * @param routingKey the routing key to publish the data on
- * @param ackId the id of a message previously consumed to acknowledge
- * @param headers the map of key/value paired headers to be stamped on the message
+     * @param ackId the id of a message previously consumed to acknowledge
+     * @param headers the map of key/value paired headers to be stamped on the message
      */
     public WorkerPublishQueueEvent(byte[] messageData, String routingKey, long ackId, Map<String, Object> headers)
     {

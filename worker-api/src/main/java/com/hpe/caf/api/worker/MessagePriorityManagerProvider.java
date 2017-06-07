@@ -19,7 +19,7 @@ import com.hpe.caf.api.ConfigurationException;
 import com.hpe.caf.api.ConfigurationSource;
 
 /**
- * Created by ploch on 30/05/2017.
+ * Responsible for creating an appropriate {@link MessagePriorityManager}.
  */
 public interface MessagePriorityManagerProvider
 {

@@ -31,6 +31,7 @@ public class QueueCreator
     public static final String RABBIT_PROP_KEY_DEAD_EXCHANGE = "x-dead-letter-exchange";
     public static final String RABBIT_PROP_KEY_TTL = "x-message-ttl";
     public static final String RABBIT_PROP_KEY_DEAD_ROUTING_KEY = "x-dead-letter-routing-key";
+    public static final String RABBIT_PROP_KEY_MAX_PRIORITY = "x-max-priority";
     private Durability durability;
     private EmptyAction emptyAction;
     private Exclusivity exclusivity;
@@ -92,7 +93,7 @@ public class QueueCreator
 
     public QueueCreator withMaxPriority(int maxPriority)
     {
-        this.maxPriority = maxPriority;
+        propsMap.put(RABBIT_PROP_KEY_MAX_PRIORITY, maxPriority);
         return this;
     }
 
@@ -100,7 +101,7 @@ public class QueueCreator
         throws IOException
     {
         validate();
-        RabbitUtil.declareQueue(channel, queueName, durability, exclusivity, emptyAction, propsMap, maxPriority);
+        RabbitUtil.declareQueue(channel, queueName, durability, exclusivity, emptyAction, propsMap);
     }
 
 

@@ -134,7 +134,12 @@ public final class RabbitUtil
     public static void declareWorkerQueue(Channel channel, String queueName, int maxPriority)
         throws IOException
     {
-        declareQueue(channel, queueName, Durability.DURABLE, Exclusivity.NON_EXCLUSIVE, EmptyAction.LEAVE_EMPTY, Collections.emptyMap(), maxPriority);
+        Map<String, Object> args = new HashMap<>();
+        if (maxPriority > 0) {
+            LOG.trace("Setting up priority to: {}", maxPriority);
+            args.put(QueueCreator.RABBIT_PROP_KEY_MAX_PRIORITY, maxPriority);
+        }
+        declareQueue(channel, queueName, Durability.DURABLE, Exclusivity.NON_EXCLUSIVE, EmptyAction.LEAVE_EMPTY, args);
     }
 
 
@@ -150,7 +155,7 @@ public final class RabbitUtil
     public static void declareQueue(Channel channel, String queueName, Durability dur, Exclusivity excl, EmptyAction act)
         throws IOException
     {
-        declareQueue(channel, queueName, dur, excl, act, Collections.emptyMap(), 0);
+        declareQueue(channel, queueName, dur, excl, act, Collections.emptyMap());
     }
 
     /**
@@ -166,35 +171,17 @@ public final class RabbitUtil
     public static void declareQueue(Channel channel, String queueName, Durability dur, Exclusivity excl, EmptyAction act, Map<String, Object> queueProps)
         throws IOException
     {
-        declareQueue(channel, queueName, dur, excl, act, queueProps, 0);
-    }
-
-    /**
-     * Declare a queue with arbitrary parameters and properties.
-     * @param channel the channel to use to declare the queue
-     * @param queueName the name of the queue
-     * @param dur the durability setting of the queue
-     * @param excl the exclusivity setting of the queue
-     * @param act the empty action setting of the queue
-     * @param queueProps the queue properties map
-     * @throws IOException if the queue already exists AND the parameter settings do not match the existing queue
-     */
-    public static void declareQueue(Channel channel, String queueName, Durability dur, Exclusivity excl, EmptyAction act, Map<String, Object> queueProps, int maxPriority)
-        throws IOException
-    {
         Objects.requireNonNull(queueName);
         Objects.requireNonNull(dur);
         Objects.requireNonNull(excl);
         Objects.requireNonNull(act);
         Objects.requireNonNull(queueProps);
-
-        LOG.debug("Declaring worker queue {} with maxPriority={}", queueName, maxPriority);
-
-        Map<String, Object> args = new HashMap<>(queueProps);
-        if (maxPriority > 0) {
-            args.put("x-max-priority", maxPriority);
+        try {
+            channel.queueDeclare(queueName, dur == Durability.DURABLE, excl == Exclusivity.EXCLUSIVE, act == EmptyAction.AUTO_REMOVE, queueProps);
         }
-
-        channel.queueDeclare(queueName, dur == Durability.DURABLE, excl == Exclusivity.EXCLUSIVE, act == EmptyAction.AUTO_REMOVE, args);
+        catch (IOException e) {
+            LOG.warn("IO Exception encountered during queueDeclare. Will try do declare passively.", e);
+            channel.queueDeclarePassive(queueName);
+        }
     }
 }
