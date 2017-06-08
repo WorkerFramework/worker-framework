@@ -17,7 +17,6 @@ package com.hpe.caf.worker.core;
 
 import com.hpe.caf.api.worker.*;
 import com.hpe.caf.naming.ServicePath;
-import org.mockito.Mock;
 import org.testng.Assert;
 import org.testng.annotations.Test;
 import org.mockito.Mockito;

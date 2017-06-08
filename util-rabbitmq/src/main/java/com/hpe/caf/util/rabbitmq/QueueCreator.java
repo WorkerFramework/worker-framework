@@ -35,7 +35,6 @@ public class QueueCreator
     private Durability durability;
     private EmptyAction emptyAction;
     private Exclusivity exclusivity;
-    private int maxPriority = 0;
     private String queueName;
     private Map<String, Object> propsMap = new HashMap<>();
 
