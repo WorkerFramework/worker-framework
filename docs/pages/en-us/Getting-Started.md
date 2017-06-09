@@ -350,10 +350,6 @@ Due to a bug with the Apache Maven Archetype, some place-holders that are preced
   <td>cfg_${marathon-group}___workerArtifactId___RabbitWorkerQueueConfiguration</td>
   <td>cfg_${marathon-group}_worker-example_RabbitWorkerQueueConfiguration</td>
 </tr>
-<tr>
-  <td>cfg_${marathon-group}___workerArtifactId___StorageServiceDataStoreConfiguration</td>
-  <td>cfg_${marathon-group}_worker-example_StorageServiceDataStoreConfiguration</td>
-</tr>
 </tbody>
 </table>
 
@@ -383,10 +379,6 @@ Due to a bug with the Apache Maven Archetype, some place-holders that are preced
 <tr>
   <td>cfg_test___workerArtifactId___RabbitWorkerQueueConfiguration</td>
   <td>cfg_test_worker-example_RabbitWorkerQueueConfiguration</td>
-</tr>
-<tr>
-  <td>cfg_test___workerArtifactId___StorageServiceDataStoreConfiguration</td>
-  <td>cfg_test_worker-example_StorageServiceDataStoreConfiguration</td>
 </tr>
 </tbody>
 </table>
