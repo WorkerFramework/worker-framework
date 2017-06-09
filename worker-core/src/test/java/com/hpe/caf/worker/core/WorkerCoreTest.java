@@ -190,7 +190,7 @@ public class WorkerCoreTest
     {
         BlockingQueue<byte[]> q = new LinkedBlockingQueue<>();
         Codec codec = new JsonCodec();
-        WorkerThreadPool wtp = WorkerThreadPool.create(2);
+        WorkerThreadPool wtp = WorkerThreadPool.create(2, () -> System.out.println("Hit runnable due to interruption"));
         ConfigurationSource config = Mockito.mock(ConfigurationSource.class);
         ServicePath path = new ServicePath(SERVICE_PATH);
         TestWorkerTask task = new TestWorkerTask();

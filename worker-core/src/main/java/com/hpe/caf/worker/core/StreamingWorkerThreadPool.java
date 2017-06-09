@@ -25,6 +25,9 @@ import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.RunnableFuture;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.CancellationException;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.Future;
 import java.util.concurrent.atomic.AtomicInteger;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -119,6 +122,17 @@ final class StreamingWorkerThreadPool implements WorkerThreadPool {
         public void afterExecute(Runnable r, Throwable t) {
             try {
                 super.afterExecute(r, t);
+                if (t == null && r instanceof Future<?>) {
+                    try {
+                        ((Future<?>) r).get();
+                    } catch (CancellationException ce) {
+                        t = ce;
+                    } catch (ExecutionException ee) {
+                        t = ee.getCause();
+                    } catch (InterruptedException ie) {
+                        Thread.currentThread().interrupt(); // ignore/reset
+                    }
+                }
                 if ( t != null ) {
                     LOG.error("Worker thread terminated with unhandled throwable, terminating service", t);
                     throwableHandler.run();
