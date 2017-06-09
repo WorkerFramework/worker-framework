@@ -47,12 +47,11 @@ final class WorkerCore
     private final TaskCallback callback;
     private static final Logger LOG = LoggerFactory.getLogger(WorkerCore.class);
 
-
-    public WorkerCore(final Codec codec, final WorkerThreadPool pool, final ManagedWorkerQueue queue, final WorkerFactory factory, final ServicePath path)
+    public WorkerCore(final Codec codec, final WorkerThreadPool pool, final ManagedWorkerQueue queue, final MessagePriorityManager priorityManager, final WorkerFactory factory, final ServicePath path)
     {
         WorkerCallback taskCallback =  new CoreWorkerCallback(codec, queue, stats);
         this.threadPool = Objects.requireNonNull(pool);
-        this.callback = new CoreTaskCallback(codec, stats, new WorkerExecutor(path, taskCallback, factory, pool), pool, queue);
+        this.callback = new CoreTaskCallback(codec, stats, new WorkerExecutor(path, taskCallback, factory, pool, priorityManager), pool, queue);
         this.workerQueue = Objects.requireNonNull(queue);
     }
 
@@ -354,7 +353,6 @@ final class WorkerCore
         private final WorkerQueue workerQueue;
         private final WorkerStats stats;
 
-
         public CoreWorkerCallback(final Codec codec, final WorkerQueue workerQueue, final WorkerStats stats)
         {
             this.codec = Objects.requireNonNull(codec);
@@ -396,7 +394,7 @@ final class WorkerCore
                     // **** Normal Worker ****                    
                     // A worker with an input and output queue.
                     byte[] output = codec.serialise(responseMessage);
-                    workerQueue.publish(queueMsgId, output, targetQueue, Collections.emptyMap());
+                    workerQueue.publish(queueMsgId, output, targetQueue, Collections.emptyMap(), responseMessage.getPriority() == null ? 0 : responseMessage.getPriority());
                     stats.getOutputSizes().update(output.length);
                 }
                 stats.updatedLastTaskFinishedTime();
@@ -435,7 +433,7 @@ final class WorkerCore
                 } else {
                     // Else forward the task
                     byte[] output = codec.serialise(forwardedMessage);
-                    workerQueue.publish(queueMsgId, output, queue, headers);
+                    workerQueue.publish(queueMsgId, output, queue, headers, forwardedMessage.getPriority());
                     stats.incrementTasksForwarded();
                     //TODO - I'm guessing this stat should not be updated for forwarded messages:
                     // stats.getOutputSizes().update(output.length);

@@ -13,12 +13,17 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-({
-    prefetchBuffer: getenv("CAF_RABBITMQ_PREFETCH_BUFFER") || 1,
-    inputQueue: getenv("CAF_WORKER_INPUT_QUEUE")
-            || (getenv("CAF_WORKER_BASE_QUEUE_NAME") || getenv("CAF_WORKER_NAME") || "worker") + "-in",
-    retryQueue: getenv("CAF_WORKER_RETRY_QUEUE") || undefined,
-    rejectedQueue: "worker-rejected",
-    retryLimit: getenv("CAF_WORKER_RETRY_LIMIT") || 10,
-    maxPriority: getenv("CAF_RABBITMQ_MAX_PRIORITY") || 0
-});
+package com.hpe.caf.api.worker;
+
+/**
+ * An interface for setting up message priorities as they progress.
+ */
+public interface MessagePriorityManager
+{
+    /**
+     * Gets the priority of response message.
+     * @param originalTaskMessage A worker input (request) message.
+     * @return Priority
+     */
+    Integer getResponsePriority(final TaskMessage originalTaskMessage);
+}

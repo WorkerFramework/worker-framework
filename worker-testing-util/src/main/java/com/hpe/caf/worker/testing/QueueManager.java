@@ -65,15 +65,15 @@ public class QueueManager implements Closeable {
         connection = queueServices.getConnection();
         pubChan = connection.createChannel();
         conChan = connection.createChannel();
-        RabbitUtil.declareWorkerQueue(pubChan, queueServices.getWorkerInputQueue());
-        RabbitUtil.declareWorkerQueue(conChan, queueServices.getWorkerResultsQueue());
+        RabbitUtil.declareWorkerQueue(pubChan, queueServices.getWorkerInputQueue(), queueServices.getMaxPriority());
+        RabbitUtil.declareWorkerQueue(conChan, queueServices.getWorkerResultsQueue(), queueServices.getMaxPriority());
         purgeQueues();
 
         if (debugEnabled) {
             debugPubChan = connection.createChannel();
             debugConChan = connection.createChannel();
-            RabbitUtil.declareWorkerQueue(debugPubChan, debugInputQueueName);
-            RabbitUtil.declareWorkerQueue(debugConChan, debugOutputQueueName);
+            RabbitUtil.declareWorkerQueue(debugPubChan, debugInputQueueName, queueServices.getMaxPriority());
+            RabbitUtil.declareWorkerQueue(debugConChan, debugOutputQueueName, queueServices.getMaxPriority());
             debugPubChan.queuePurge(debugInputQueueName);
             debugConChan.queuePurge(debugOutputQueueName);
         }

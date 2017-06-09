@@ -52,10 +52,10 @@ public class QueueServicesFactory {
         Channel pubChan = connection.createChannel();
         Channel conChan = connection.createChannel();
 
-        RabbitUtil.declareWorkerQueue(pubChan, configuration.getInputQueue());
-        RabbitUtil.declareWorkerQueue(conChan, resultsQueueName);
+        RabbitUtil.declareWorkerQueue(pubChan, configuration.getInputQueue(), configuration.getMaxPriority());
+        RabbitUtil.declareWorkerQueue(conChan, resultsQueueName, configuration.getMaxPriority());
 
-        return new QueueServices(connection, pubChan, configuration.getInputQueue(), conChan, resultsQueueName, codec);
+        return new QueueServices(connection, pubChan, configuration.getInputQueue(), conChan, resultsQueueName, codec, configuration.getMaxPriority());
     }
 
     private static Connection createConnection(RabbitWorkerQueueConfiguration configuration, final TaskCallback callback)

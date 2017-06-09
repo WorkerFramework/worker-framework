@@ -46,7 +46,7 @@ public class WorkerCoreTest
     private static final String QUEUE_IN = "inQueue";
     private static final String QUEUE_OUT = "outQueue";
     private static final String SERVICE_PATH = "/test/group";
-
+    private static final int PRIORITY = 2;
 
     /** Send a message all the way through WorkerCore and verify the result output message **/
     @Test
@@ -60,7 +60,10 @@ public class WorkerCoreTest
         ServicePath path = new ServicePath(SERVICE_PATH);
         TestWorkerTask task = new TestWorkerTask();
         TestWorkerQueue queue = new TestWorkerQueueProvider(q).getWorkerQueue(config, 50);
-        WorkerCore core = new WorkerCore(codec, wtp, queue, getWorkerFactory(task, codec), path);
+        MessagePriorityManager priorityManager = Mockito.mock(MessagePriorityManager.class);
+        Mockito.when(priorityManager.getResponsePriority(Mockito.any())).thenReturn(PRIORITY);
+
+        WorkerCore core = new WorkerCore(codec, wtp, queue, priorityManager, getWorkerFactory(task, codec), path);
         core.start();
         // at this point, the queue should hand off the task to the app, the app should get a worker from the mocked WorkerFactory,
         // and the Worker itself is a mock wrapped in a WorkerWrapper, which should return success and the appropriate result data
@@ -94,7 +97,10 @@ public class WorkerCoreTest
         ServicePath path = new ServicePath(SERVICE_PATH);
         TestWorkerTask task = new TestWorkerTask();
         TestWorkerQueue queue = new TestWorkerQueueProvider(q).getWorkerQueue(config, 50);
-        WorkerCore core = new WorkerCore(codec, wtp, queue, getWorkerFactory(task, codec), path);
+        MessagePriorityManager priorityManager = Mockito.mock(MessagePriorityManager.class);
+        Mockito.when(priorityManager.getResponsePriority(Mockito.any())).thenReturn(PRIORITY);
+
+        WorkerCore core = new WorkerCore(codec, wtp, queue, priorityManager, getWorkerFactory(task, codec), path);
         core.start();
         // at this point, the queue should hand off the task to the app, the app should get a worker from the mocked WorkerFactory,
         // and the Worker itself is a mock wrapped in a WorkerWrapper, which should return success and the appropriate result data
@@ -129,7 +135,10 @@ public class WorkerCoreTest
         ServicePath path = new ServicePath(SERVICE_PATH);
         TestWorkerTask task = new TestWorkerTask();
         TestWorkerQueue queue = new TestWorkerQueueProvider(q).getWorkerQueue(config, 50);
-        WorkerCore core = new WorkerCore(codec, wtp, queue, getWorkerFactory(task, codec), path);
+        MessagePriorityManager priorityManager = Mockito.mock(MessagePriorityManager.class);
+        Mockito.when(priorityManager.getResponsePriority(Mockito.any())).thenReturn(PRIORITY);
+
+        WorkerCore core = new WorkerCore(codec, wtp, queue, priorityManager, getWorkerFactory(task, codec), path);
         core.start();
         byte[] stuff = codec.serialise("nonsense");
         queue.submitTask(QUEUE_MSG_ID, stuff);
@@ -148,7 +157,10 @@ public class WorkerCoreTest
         ServicePath path = new ServicePath(SERVICE_PATH);
         TestWorkerTask task = new TestWorkerTask();
         TestWorkerQueue queue = new TestWorkerQueueProvider(q).getWorkerQueue(config, 50);
-        WorkerCore core = new WorkerCore(codec, wtp, queue, getInvalidTaskWorkerFactory(), path);
+        MessagePriorityManager priorityManager = Mockito.mock(MessagePriorityManager.class);
+        Mockito.when(priorityManager.getResponsePriority(Mockito.any())).thenReturn(PRIORITY);
+
+        WorkerCore core = new WorkerCore(codec, wtp, queue, priorityManager, getInvalidTaskWorkerFactory(), path);
         core.start();
         TaskMessage tm = getTaskMessage(task, codec, WORKER_NAME);
         tm.setTaskData(codec.serialise("invalid task data"));
@@ -184,7 +196,10 @@ public class WorkerCoreTest
         TestWorkerTask task = new TestWorkerTask();
         CountDownLatch latch = new CountDownLatch(2);
         TestWorkerQueue queue = new TestWorkerQueueProvider(q).getWorkerQueue(config, 20);
-        WorkerCore core = new WorkerCore(codec, wtp, queue, getSlowWorkerFactory(latch, task, codec), path);
+        MessagePriorityManager priorityManager = Mockito.mock(MessagePriorityManager.class);
+        Mockito.when(priorityManager.getResponsePriority(Mockito.any())).thenReturn(PRIORITY);
+
+        WorkerCore core = new WorkerCore(codec, wtp, queue, priorityManager, getSlowWorkerFactory(latch, task, codec), path);
         core.start();
         byte[] task1 = codec.serialise(getTaskMessage(task, codec, UUID.randomUUID().toString()));
         byte[] task2 = codec.serialise(getTaskMessage(task, codec, UUID.randomUUID().toString()));
@@ -325,6 +340,12 @@ public class WorkerCoreTest
             this.callback = Objects.requireNonNull(callback);
         }
 
+        @Override
+        public void publish(String acknowledgeId, byte[] taskMessage, String targetQueue, Map<String, Object> headers, int priority)
+        {
+            this.lastQueue = targetQueue;
+            results.offer(taskMessage);
+        }
 
         @Override
         public void publish(String acknowledgeId, byte[] taskMessage, String targetQueue, Map<String, Object> headers)
@@ -353,7 +374,6 @@ public class WorkerCoreTest
         public String getInputQueue() {
             return QUEUE_IN;
         }
-
 
         @Override
         public void shutdownIncoming()

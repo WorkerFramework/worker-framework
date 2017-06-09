@@ -29,6 +29,17 @@ public interface WorkerQueue
      * @param taskMessage the message to publish
      * @param targetQueue the queue to put the message upon
      * @param headers the map of key/value paired headers to be stamped on the message
+     * @param priority the message priority, greater value means higher priority
+     * @throws QueueException if the message cannot be submitted
+     */
+    void publish(String acknowledgeId, byte[] taskMessage, String targetQueue, Map<String, Object> headers, int priority) throws QueueException;
+
+    /**
+     * Acknowledge the original received message but send out a new message to a target queue.
+     * @param acknowledgeId the internal queue message id of the message to acknowledge
+     * @param taskMessage the message to publish
+     * @param targetQueue the queue to put the message upon
+     * @param headers the map of key/value paired headers to be stamped on the message
      * @throws QueueException if the message cannot be submitted
      */
     void publish(String acknowledgeId, byte[] taskMessage, String targetQueue, Map<String, Object> headers)
@@ -62,4 +73,5 @@ public interface WorkerQueue
      * @return the name of the input queue
      */
     String getInputQueue();
+
 }

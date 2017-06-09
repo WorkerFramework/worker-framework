@@ -23,7 +23,6 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
 
-
 /**
  * Builder pattern class to create queues with parameters and properties.
  */
@@ -32,6 +31,7 @@ public class QueueCreator
     public static final String RABBIT_PROP_KEY_DEAD_EXCHANGE = "x-dead-letter-exchange";
     public static final String RABBIT_PROP_KEY_TTL = "x-message-ttl";
     public static final String RABBIT_PROP_KEY_DEAD_ROUTING_KEY = "x-dead-letter-routing-key";
+    public static final String RABBIT_PROP_KEY_MAX_PRIORITY = "x-max-priority";
     private Durability durability;
     private EmptyAction emptyAction;
     private Exclusivity exclusivity;
@@ -90,6 +90,11 @@ public class QueueCreator
         return this;
     }
 
+    public QueueCreator withMaxPriority(int maxPriority)
+    {
+        propsMap.put(RABBIT_PROP_KEY_MAX_PRIORITY, maxPriority);
+        return this;
+    }
 
     public void create(Channel channel)
         throws IOException

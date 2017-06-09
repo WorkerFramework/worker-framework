@@ -30,8 +30,9 @@ public class QueueServices {
     private final Channel consumerChannel;
     private final String workerResultsQueue;
     private final Codec codec;
+    private final int maxPriority;
 
-    public QueueServices(Connection connection, Channel publisherChannel, String workerInputQueue, Channel consumerChannel, String workerResultsQueue, Codec codec) {
+    public QueueServices(Connection connection, Channel publisherChannel, String workerInputQueue, Channel consumerChannel, String workerResultsQueue, Codec codec, int maxPriority) {
 
         this.connection = connection;
         this.publisherChannel = publisherChannel;
@@ -39,6 +40,7 @@ public class QueueServices {
         this.consumerChannel = consumerChannel;
         this.workerResultsQueue = workerResultsQueue;
         this.codec = codec;
+        this.maxPriority = maxPriority;
     }
 
     /**
@@ -93,6 +95,16 @@ public class QueueServices {
      */
     public Codec getCodec() {
         return codec;
+    }
+
+    /**
+     * Getter for property 'maxPriority'.
+     *
+     * @return Value for property 'maxPriority'.
+     */
+    public int getMaxPriority()
+    {
+        return maxPriority;
     }
 
     /*public void publish(TaskMessage taskMessage) throws CodecException, IOException {

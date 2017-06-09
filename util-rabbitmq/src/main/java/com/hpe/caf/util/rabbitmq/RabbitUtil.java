@@ -24,9 +24,12 @@ import net.jodah.lyra.config.Config;
 import net.jodah.lyra.config.RecoveryPolicy;
 import net.jodah.lyra.config.RetryPolicy;
 import net.jodah.lyra.util.Duration;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
 import java.util.concurrent.TimeoutException;
@@ -37,6 +40,7 @@ import java.util.concurrent.TimeoutException;
  */
 public final class RabbitUtil
 {
+    private static final Logger LOG = LoggerFactory.getLogger(RabbitUtil.class);
     private RabbitUtil() { }
 
 
@@ -106,7 +110,6 @@ public final class RabbitUtil
         return new Config().withRetryPolicy(retryPolicy).withRecoveryPolicy(recoveryPolicy.withMaxAttempts(maxAttempts));
     }
 
-
     /**
      * Ensure a queue for a worker has been declared. Both a consumer *and* a publisher should call this before they
      * attempt to use a worker queue for the first time.
@@ -117,7 +120,26 @@ public final class RabbitUtil
     public static void declareWorkerQueue(Channel channel, String queueName)
         throws IOException
     {
-        declareQueue(channel, queueName, Durability.DURABLE, Exclusivity.NON_EXCLUSIVE, EmptyAction.LEAVE_EMPTY);
+        declareWorkerQueue(channel, queueName, 0);
+    }
+
+    /**
+     * Ensure a queue for a worker has been declared. Both a consumer *and* a publisher should call this before they
+     * attempt to use a worker queue for the first time.
+     * @param channel the channel to use to declare the queue
+     * @param queueName the name of the worker queue
+     * @param maxPriority the maximum supported priority, pass 0 to disable priority
+     * @throws IOException if the queue is not valid and cannot be used, this is likely NOT retryable
+     */
+    public static void declareWorkerQueue(Channel channel, String queueName, int maxPriority)
+        throws IOException
+    {
+        Map<String, Object> args = new HashMap<>();
+        if (maxPriority > 0) {
+            LOG.trace("Setting up priority to: {}", maxPriority);
+            args.put(QueueCreator.RABBIT_PROP_KEY_MAX_PRIORITY, maxPriority);
+        }
+        declareQueue(channel, queueName, Durability.DURABLE, Exclusivity.NON_EXCLUSIVE, EmptyAction.LEAVE_EMPTY, args);
     }
 
 
@@ -135,7 +157,6 @@ public final class RabbitUtil
     {
         declareQueue(channel, queueName, dur, excl, act, Collections.emptyMap());
     }
-
 
     /**
      * Declare a queue with arbitrary parameters and properties.
@@ -155,6 +176,12 @@ public final class RabbitUtil
         Objects.requireNonNull(excl);
         Objects.requireNonNull(act);
         Objects.requireNonNull(queueProps);
-        channel.queueDeclare(queueName, dur == Durability.DURABLE, excl == Exclusivity.EXCLUSIVE, act == EmptyAction.AUTO_REMOVE, queueProps);
+        try {
+            channel.queueDeclare(queueName, dur == Durability.DURABLE, excl == Exclusivity.EXCLUSIVE, act == EmptyAction.AUTO_REMOVE, queueProps);
+        }
+        catch (IOException e) {
+            LOG.warn("IO Exception encountered during queueDeclare. Will try do declare passively.", e);
+            channel.queueDeclarePassive(queueName);
+        }
     }
 }

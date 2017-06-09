@@ -32,6 +32,8 @@ import com.hpe.caf.api.worker.DataStoreException;
 import com.hpe.caf.api.worker.DataStoreProvider;
 import com.hpe.caf.api.worker.ManagedDataStore;
 import com.hpe.caf.api.worker.ManagedWorkerQueue;
+import com.hpe.caf.api.worker.MessagePriorityManager;
+import com.hpe.caf.api.worker.MessagePriorityManagerProvider;
 import com.hpe.caf.api.worker.QueueException;
 import com.hpe.caf.api.worker.WorkerException;
 import com.hpe.caf.api.worker.WorkerFactory;
@@ -114,7 +116,10 @@ public final class WorkerApplication extends Application<WorkerConfiguration>
         WorkerThreadPool wtp = WorkerThreadPool.create(workerFactory);
         final int nThreads = workerFactory.getWorkerThreads();
         ManagedWorkerQueue workerQueue = queueProvider.getWorkerQueue(config, nThreads);
-        WorkerCore core = new WorkerCore(codec, wtp, workerQueue, workerFactory, path);
+        MessagePriorityManagerProvider priorityManagerProvider = ModuleLoader.getService(MessagePriorityManagerProvider.class);
+        MessagePriorityManager priorityManager = priorityManagerProvider.getMessagePriorityManager(config);
+
+        WorkerCore core = new WorkerCore(codec, wtp, workerQueue, priorityManager, workerFactory, path);
         Runtime.getRuntime().addShutdownHook(new Thread()
         {
             @Override

@@ -21,6 +21,7 @@ import com.hpe.caf.naming.ServicePath;
 import java.nio.charset.StandardCharsets;
 import java.util.Collections;
 import java.util.Map;
+import java.util.Objects;
 import java.util.concurrent.atomic.AtomicBoolean;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -35,6 +36,7 @@ class WorkerTaskImpl implements WorkerTask
     private final WorkerFactory workerFactory;
     private final String messageId;
     private final TaskMessage taskMessage;
+    private final MessagePriorityManager priorityManager;
     private final AtomicBoolean isResponseSet;
     private final boolean poison;
     
@@ -45,13 +47,15 @@ class WorkerTaskImpl implements WorkerTask
         final WorkerFactory workerFactory,
         final String messageId,
         final TaskMessage taskMessage,
-        final boolean poison
+        final boolean poison,
+        final MessagePriorityManager priorityManager
     ) {
         this.servicePath = servicePath;
         this.workerCallback = workerCallback;
         this.workerFactory = workerFactory;
         this.messageId = messageId;
         this.taskMessage = taskMessage;
+        this.priorityManager = Objects.requireNonNull(priorityManager);
         this.isResponseSet = new AtomicBoolean();
         this.poison = poison;
     }
@@ -109,7 +113,7 @@ class WorkerTaskImpl implements WorkerTask
             response.getTaskStatus(), responseContext,
             response.getQueueReference(), taskMessage.getTracking(),
             new TaskSourceInfo(getWorkerName(responseMessageType), getWorkerVersion()));
-
+        responseMessage.setPriority(priorityManager.getResponsePriority(taskMessage));
         workerCallback.complete(
             messageId, response.getQueueReference(), responseMessage);
     }

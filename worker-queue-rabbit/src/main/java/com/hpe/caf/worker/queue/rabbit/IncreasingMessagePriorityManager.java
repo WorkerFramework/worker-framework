@@ -13,12 +13,23 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-({
-    prefetchBuffer: getenv("CAF_RABBITMQ_PREFETCH_BUFFER") || 1,
-    inputQueue: getenv("CAF_WORKER_INPUT_QUEUE")
-            || (getenv("CAF_WORKER_BASE_QUEUE_NAME") || getenv("CAF_WORKER_NAME") || "worker") + "-in",
-    retryQueue: getenv("CAF_WORKER_RETRY_QUEUE") || undefined,
-    rejectedQueue: "worker-rejected",
-    retryLimit: getenv("CAF_WORKER_RETRY_LIMIT") || 10,
-    maxPriority: getenv("CAF_RABBITMQ_MAX_PRIORITY") || 0
-});
+package com.hpe.caf.worker.queue.rabbit;
+
+import com.hpe.caf.api.worker.MessagePriorityManager;
+import com.hpe.caf.api.worker.TaskMessage;
+
+import java.util.Objects;
+
+/**
+ * Implementation of MessagePriorityManager which increases a message priority on
+ * each response.
+ */
+public class IncreasingMessagePriorityManager implements MessagePriorityManager
+{
+    @Override
+    public Integer getResponsePriority(final TaskMessage originalTaskMessage)
+    {
+        Objects.requireNonNull(originalTaskMessage);
+        return originalTaskMessage.getPriority() == null ? 1 : originalTaskMessage.getPriority() + 1;
+    }
+}
