@@ -17,6 +17,7 @@ package com.hpe.caf.worker.testing;
 
 import com.hpe.caf.api.Codec;
 import com.hpe.caf.api.CodecException;
+import com.hpe.caf.api.DecodeMethod;
 import com.hpe.caf.api.worker.TaskMessage;
 import com.hpe.caf.util.rabbitmq.Delivery;
 import com.hpe.caf.util.rabbitmq.Event;
@@ -55,7 +56,7 @@ public class SimpleQueueConsumerImpl implements QueueConsumer {
 
        // eventQueue.add(new ConsumerAckEvent(delivery.getEnvelope().getDeliveryTag()));
         try {
-            TaskMessage taskMessage = codec.deserialise(delivery.getMessageData(), TaskMessage.class);
+            TaskMessage taskMessage = codec.deserialise(delivery.getMessageData(), TaskMessage.class, DecodeMethod.LENIENT);
             System.out.println(taskMessage.getTaskId() + ", status: " + taskMessage.getTaskStatus());
             synchronized (syncLock)
             {
