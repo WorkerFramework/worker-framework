@@ -126,7 +126,7 @@ final class StreamingWorkerThreadPool implements WorkerThreadPool {
                     try {
                         ((Future<?>) r).get();
                     } catch (CancellationException ce) {
-                        t = ce;
+                        LOG.error("Thread returned a CancellationException with message " + ce.getMessage(), ce);
                     } catch (ExecutionException ee) {
                         t = ee.getCause();
                     } catch (InterruptedException ie) {
