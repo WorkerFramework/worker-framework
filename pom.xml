@@ -93,7 +93,6 @@
         <module>standard-worker-container</module>
         <module>worker-core</module>
         <module>worker-queue-rabbit</module>
-        <module>worker-store-cs</module>
         <module>worker-store-fs</module>
         <module>worker-testing-util</module>
         <module>worker-testing-integration</module>

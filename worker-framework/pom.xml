@@ -45,11 +45,6 @@
                 <version>1.9.0-SNAPSHOT</version>
             </dependency>
             <dependency>
-                <groupId>com.hpe.caf</groupId>
-                <artifactId>storage-sdk</artifactId>
-                <version>3.0.0.79</version>
-            </dependency>
-            <dependency>
                 <groupId>com.github.workerframework</groupId>
                 <artifactId>util-rabbitmq</artifactId>
                 <version>1.9.0-SNAPSHOT</version>
@@ -79,17 +74,6 @@
                 <groupId>com.github.workerframework</groupId>
                 <artifactId>worker-queue-rabbit</artifactId>
                 <version>1.9.0-SNAPSHOT</version>
-            </dependency>
-            <dependency>
-                <groupId>com.github.workerframework</groupId>
-                <artifactId>worker-store-cs</artifactId>
-                <version>1.9.0-SNAPSHOT</version>
-                <exclusions>
-                    <exclusion>
-                        <groupId>javax.ws.rs</groupId>
-                        <artifactId>jsr311-api</artifactId>
-                    </exclusion>
-                </exclusions>
             </dependency>
             <dependency>
                 <groupId>com.github.workerframework</groupId>
@@ -123,8 +107,5 @@
         This is present so that the tests are run when the framework is built.
         The tests themselves don't need to be released.
     -->
-    <modules>
-        <module>tests</module>
-    </modules>
 
 </project>

@@ -146,7 +146,6 @@ The general following rules should be adhered to by all Worker implementations:
 Workers often need to interact with an external data storage. Worker Framework supports it by providing the  DataStore interface. A worker can use it to retrieve and store binary data identified by name.
 Implementations are pluggable and following are provided out-of-box:
 - FileSystem: `worker-store-fs`
-- HPE Storage Services: `worker-store-cs`
 - AWS S3: `worker-store-s3`
 
 To use a different technology, developers are required to implement the [DataStore](https://workerframework.github.io/worker-framework/pages/en-us/apidocs/com/hpe/caf/api/worker/DataStore.html) interface as well as [DataStoreProvider](https://workerframework.github.io/worker-framework/pages/en-us/apidocs/com/hpe/caf/api/worker/DataStoreProvider.html) supporting the service location.

@@ -63,13 +63,7 @@
         <dependency>
             <groupId>com.github.workerframework</groupId>
             <artifactId>standard-worker-container</artifactId>
-            <type>pom</type>
-            <exclusions>
-                <exclusion>
-                    <groupId>com.github.workerframework</groupId>
-                    <artifactId>worker-store-cs</artifactId>
-                </exclusion>
-            </exclusions>
+            <type>pom</type>            
         </dependency>
         <dependency>
             <groupId>com.github.workerframework</groupId>
