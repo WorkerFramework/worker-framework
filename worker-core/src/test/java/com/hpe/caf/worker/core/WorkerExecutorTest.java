@@ -34,14 +34,16 @@ public class WorkerExecutorTest
 {
     @Test
     public void testExecuteTask()
-        throws InvalidNameException, TaskRejectedException, InvalidTaskException
+        throws InvalidNameException, TaskRejectedException, InvalidTaskException, InterruptedException
     {
         ServicePath path = new ServicePath("/unitTest/test");
         WorkerCallback callback = Mockito.mock(WorkerCallback.class);
         Worker worker = Mockito.mock(Worker.class);
+        WorkerResponse workerResponse = new WorkerResponse("testQueue", TaskStatus.NEW_TASK, new byte[0], "testType", 1, new byte[0]);
+        Mockito.when(worker.doWork()).thenReturn(workerResponse);
         WorkerFactory factory = Mockito.mock(WorkerFactory.class);
         Mockito.when(factory.getWorker(Mockito.any())).thenReturn(worker);
-        WorkerThreadPool pool = WorkerThreadPool.create(5, () -> System.out.println("testExecuteTask"));
+        WorkerThreadPool pool = WorkerThreadPool.create(5);
         MessagePriorityManager priorityManager = Mockito.mock(MessagePriorityManager.class);
         Mockito.when(priorityManager.getResponsePriority(Mockito.any())).thenReturn(2);
 
@@ -118,7 +120,7 @@ public class WorkerExecutorTest
         WorkerFactory factory = Mockito.mock(WorkerFactory.class);
         Mockito.when(factory.getWorker(Mockito.any())).thenThrow(
             TaskRejectedException.class);
-        WorkerThreadPool pool = WorkerThreadPool.create(5, () -> System.out.println("testRejectTask"));
+        WorkerThreadPool pool = WorkerThreadPool.create(5);
 
         WorkerExecutor executor = new WorkerExecutor(path, callback, factory, pool, priorityManager);
         TaskMessage tm = new TaskMessage("test", "test", 1, "test".getBytes(StandardCharsets.UTF_8), TaskStatus.NEW_TASK, new HashMap<>(), "test");
@@ -157,7 +159,7 @@ public class WorkerExecutorTest
         MessagePriorityManager priorityManager = Mockito.mock(MessagePriorityManager.class);
         Mockito.when(priorityManager.getResponsePriority(Mockito.any())).thenReturn(2);
 
-        WorkerThreadPool pool = WorkerThreadPool.create(5, () -> System.out.println("testInvalidTask"));
+        WorkerThreadPool pool = WorkerThreadPool.create(5);
         WorkerExecutor executor = new WorkerExecutor(path, callback, factory, pool, priorityManager);
 
         TaskMessage tm = new TaskMessage(taskId, classifier, ver, data, TaskStatus.NEW_TASK, new HashMap<>(), "queue");
@@ -197,7 +199,7 @@ public class WorkerExecutorTest
             InvalidTaskException.class);
         MessagePriorityManager priorityManager = Mockito.mock(MessagePriorityManager.class);
         Mockito.when(priorityManager.getResponsePriority(Mockito.any())).thenReturn(2);
-        WorkerThreadPool pool = WorkerThreadPool.create(5, () -> System.out.println("testEvenMoreInvalidTask"));
+        WorkerThreadPool pool = WorkerThreadPool.create(5);
         WorkerExecutor executor = new WorkerExecutor(path, callback, factory, pool, priorityManager);
 
         TaskMessage tm = new TaskMessage(taskId, classifier, ver, data, TaskStatus.NEW_TASK, new HashMap<>(), "queue");
