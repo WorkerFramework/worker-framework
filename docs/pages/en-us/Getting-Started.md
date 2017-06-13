@@ -16,18 +16,11 @@ banner:
 
 ## Prerequisites
 
-- Connection to Cambridge Maven Nexus [http://cbgmaven.hpeswlab.net/nexus/](http://cbgmaven.hpeswlab.net/nexus/) 
-	- If you do not have DNS resolution to Cambridge Maven Nexus you may be able to use the direct IP [http://16.26.25.50/nexus/](http://16.26.25.50/nexus/) in place of [http://cbgmaven.hpeswlab.net/nexus/](http://cbgmaven.hpeswlab.net/nexus/)
+- Internet connection
 - Maven
-- Docker
+- Docker VM
 - IntelliJ (Optional)
 - NetBeans (Optional)
-
-At the time this guide was written with:
-
-- Apache Maven 3.3.3
-- NetBeans 8.1
-- IntelliJ 15
 
 ## Components of a Worker
 
@@ -174,3 +167,11 @@ The foundations for your new Worker is now set up. The generated project will co
 - `<artifactId>` - submodule containing the Worker's backend code.
 - `<artifactId>-container` - submodule containing the Worker's container and testing configurations.
 - `<artifactId>-testing` - submodule containing the Worker's acceptance integration testing classes.
+
+## Further Information
+
+At the time this guide was written with:
+
+- Apache Maven 3.3.3
+- NetBeans 8.1
+- IntelliJ 15
