@@ -14,9 +14,7 @@ banner:
 
 # Getting Started
 
-## Creating a Worker
-
-### Prerequisites
+## Prerequisites
 
 - Connection to Cambridge Maven Nexus [http://cbgmaven.hpeswlab.net/nexus/](http://cbgmaven.hpeswlab.net/nexus/) 
 	- If you do not have DNS resolution to Cambridge Maven Nexus you may be able to use the direct IP [http://16.26.25.50/nexus/](http://16.26.25.50/nexus/) in place of [http://cbgmaven.hpeswlab.net/nexus/](http://cbgmaven.hpeswlab.net/nexus/)
@@ -31,7 +29,7 @@ At the time this guide was written with:
 - NetBeans 8.1
 - IntelliJ 15
 
-### Components of a Worker
+## Components of a Worker
 
 The following modules are required to create a worker. Each contains its own pom.xml with its own dependencies and plugins:
 
@@ -61,7 +59,7 @@ The following modules are required to create a worker. Each contains its own pom
 	8. **ExampleWorkerTaskFactory** – for creating tasks, extends FileInputWorkerTaskFactory.
 	9. **ExampleWorkerResultAccessors** – for accessing ExampleWorkerResult fields.
 
-### Using the Worker Archetypes
+## Using the Worker Archetypes
 
 A Maven Archetype is a template for which you can base a project on.
 
@@ -70,7 +68,7 @@ Excerpt from [Apache Maven Archetype Introduction](https://maven.apache.org/guid
 <pre>"Archetype is a Maven project templating toolkit.
 An archetype is defined as an original pattern or model from which all other things of the same kind are made."</pre>
 
-#### Maven Archetypes for Worker projects
+### Maven Archetypes for Worker projects
 
 You can create the foundations of a new Worker project by using the `worker-archetype` module.
 
@@ -78,7 +76,7 @@ The Example Worker project was used to base the Worker Archetype project upon an
 
 It performs a text conversion on a text file based on an `Action` enumeration passed in from the `ExampleWorkerTask` class. It retrieves the text from a data source and returns a result message containing either a reference to the result in the `DataStore` or the result itself.
 
-#### Creating a new Worker from Worker Archetypes
+### Creating a new Worker from Worker Archetypes
 
 A new worker aggregator project generated from the Worker Archetype has a set of properties that are shared between its submodules:
 
@@ -90,11 +88,11 @@ A new worker aggregator project generated from the Worker Archetype has a set of
 
 The following subsections provide instructions on how you can use Maven Command Line Interface (CLI), IntelliJ Integrated Development Environment (IDE) or NetBeans IDE to create the components of a Worker from the Worker Archetype.
 
-##### Maven CLI
+#### Maven CLI
 
 The Maven CLI offers developers the ability to generate projects from archetypes with the `mvn archetype:generate` command. The location where you run the command is where the projects are created.
 
-###### Generate the New Worker's Aggregator
+##### Generate the New Worker's Aggregator
 
 Generate the new Worker's Aggregator from the `worker-archetype` with the following Maven command:
 
@@ -112,11 +110,11 @@ If you are satisfied with the properties you have set, confirm these by typing '
 - `<artifactId>-container` - submodule containing the Worker's container and testing configurations.
 - `<artifactId>-testing` - submodule containing the Worker's acceptance integration testing classes.
 
-##### IntelliJ IDE
+#### IntelliJ IDE
 
 IntelliJ offers the ability to generate projects from archetypes via its GUI.
 
-###### Generate the New Worker's Aggregator
+##### Generate the New Worker's Aggregator
 
 Generate the new Worker's Aggregator from the `worker-archetype` by following these instructions:
 
@@ -146,11 +144,11 @@ The foundations for your new Worker is now set up. The generated project will co
 - `<artifactId>-container` - submodule containing the Worker's container and testing configurations.
 - `<artifactId>-testing` - submodule containing the Worker's acceptance integration testing classes.
 
-##### NetBeans IDE
+#### NetBeans IDE
 
 NetBeans offers developers the ability to generate projects from archetypes via its GUI.
 
-###### Generate the New Worker's Aggregator
+##### Generate the New Worker's Aggregator
 
 Generate the new Worker's Aggregator from the `worker-archetype` by following these instructions:
 
