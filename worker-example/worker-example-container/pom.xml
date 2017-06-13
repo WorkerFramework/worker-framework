@@ -74,10 +74,6 @@
         </dependency>
         <dependency>
             <groupId>com.github.workerframework</groupId>
-            <artifactId>worker-store-fs</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>com.github.workerframework</groupId>
             <artifactId>worker-example</artifactId>
             <version>${project.version}</version>
         </dependency>

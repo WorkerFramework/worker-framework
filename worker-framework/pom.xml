@@ -103,9 +103,4 @@
         </dependencies>
     </dependencyManagement>
 
-    <!--
-        This is present so that the tests are run when the framework is built.
-        The tests themselves don't need to be released.
-    -->
-
 </project>
