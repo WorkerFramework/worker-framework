@@ -34,11 +34,13 @@ public class WorkerExecutorTest
 {
     @Test
     public void testExecuteTask()
-        throws InvalidNameException, TaskRejectedException, InvalidTaskException
+        throws InvalidNameException, TaskRejectedException, InvalidTaskException, InterruptedException
     {
         ServicePath path = new ServicePath("/unitTest/test");
         WorkerCallback callback = Mockito.mock(WorkerCallback.class);
         Worker worker = Mockito.mock(Worker.class);
+        WorkerResponse workerResponse = new WorkerResponse("testQueue", TaskStatus.NEW_TASK, new byte[0], "testType", 1, new byte[0]);
+        Mockito.when(worker.doWork()).thenReturn(workerResponse);
         WorkerFactory factory = Mockito.mock(WorkerFactory.class);
         Mockito.when(factory.getWorker(Mockito.any())).thenReturn(worker);
         WorkerThreadPool pool = WorkerThreadPool.create(5);
