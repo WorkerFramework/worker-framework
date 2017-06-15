@@ -61,23 +61,4 @@
         </dependency>
     </dependencies>
 
-    <repositories>
-        <repository>
-            <id>cmbg-maven-releases</id>
-            <name>Cambridge Nexus Releases</name>
-            <url>http://cbgmaven.hpeswlab.net/nexus/content/repositories/releases</url>
-            <snapshots>
-                <enabled>false</enabled>
-            </snapshots>
-        </repository>
-        <repository>
-            <id>cmbg-maven-snapshots</id>
-            <name>Cambridge Nexus Snapshots</name>
-            <url>http://cbgmaven.hpeswlab.net/nexus/content/repositories/snapshots</url>
-            <releases>
-                <enabled>false</enabled>
-            </releases>
-        </repository>
-    </repositories>
-
 </project>
