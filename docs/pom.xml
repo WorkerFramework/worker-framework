@@ -119,7 +119,7 @@
                         <!-- Used to compile the source code -->
                         <image>
                             <alias>compile-source</alias>
-                            <name>rh7-artifactory.svs.hpeswlab.net:8443/caf/doc-site-compiler:1.0.0-SNAPSHOT</name>
+                            <name>cafapi/doc-site-compiler:1.0.0</name>
                             <run>
                                 <env>
                                     <!-- Enable internet access -->
