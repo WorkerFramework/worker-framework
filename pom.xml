@@ -83,7 +83,7 @@
     </developers>
 
     <modules>
-        <module>docs</module>
+<!--         <module>docs</module> -->
         <module>worker-configs</module>
         <module>worker-default-configs</module>
         <module>worker-api</module>
