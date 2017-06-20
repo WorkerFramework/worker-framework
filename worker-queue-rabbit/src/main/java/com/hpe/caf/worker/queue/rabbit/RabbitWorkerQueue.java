@@ -216,6 +216,40 @@ public final class RabbitWorkerQueue implements ManagedWorkerQueue
     }
 
 
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public void disconnectIncoming()
+    {
+        LOG.debug("Disconnecting incoming queues");
+        for ( String consumerTag : consumerTags ) {
+            try {
+                incomingChannel.basicCancel(consumerTag);
+            } catch (IOException ioe) {
+                LOG.error("Failed to cancel consumer {}", consumerTag, ioe);
+            }
+        }
+    }
+
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public void reconnectIncoming()
+    {
+        LOG.debug("Reconnecting incoming queues");
+        for (String consumerTag : consumerTags) {
+            try {
+                incomingChannel.basicConsume(config.getInputQueue(), consumer);
+            } catch (IOException ioe) {
+                LOG.error("Failed to reconnect consumer {}", consumerTag, ioe);
+            }
+        }
+    }
+
+
     @Override
     public void shutdown()
     {

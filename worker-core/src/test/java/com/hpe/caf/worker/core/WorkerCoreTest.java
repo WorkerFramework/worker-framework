@@ -419,6 +419,17 @@ public class WorkerCoreTest
             callback.registerNewTask(taskId, stuff, new HashMap<>());
         }
 
+
+        @Override
+        public void disconnectIncoming()
+        {
+        }
+
+        @Override
+        public void reconnectIncoming()
+        {
+        }
+
     }
 
 

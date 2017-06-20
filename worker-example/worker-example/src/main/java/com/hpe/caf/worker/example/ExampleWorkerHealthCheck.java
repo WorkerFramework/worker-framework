@@ -17,6 +17,8 @@ package com.hpe.caf.worker.example;
 
 import com.hpe.caf.api.HealthReporter;
 import com.hpe.caf.api.HealthResult;
+import com.hpe.caf.api.HealthStatus;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -27,6 +29,8 @@ public class ExampleWorkerHealthCheck implements HealthReporter {
 
     //for logging.
     private static final Logger LOG = LoggerFactory.getLogger(ExampleWorker.class);
+    
+    private static final String CAF_EXAMPLE_WORKER_HEALTHY = "CAF_EXAMPLE_WORKER_HEALTHY";
 
     public ExampleWorkerHealthCheck() {
     }
@@ -42,6 +46,16 @@ public class ExampleWorkerHealthCheck implements HealthReporter {
         // In this scenario, the example worker does not depend on any external components. It will always return HealthResult.RESULT_HEALTHY.
         // If a service was not available, catch any exceptions, log a warning and return a UNHEALTHY health result.
 
-        return HealthResult.RESULT_HEALTHY;
+        // If the environment variable CAF_EXAMPLE_WORKER_HEALTHY is set to false the healthCheck()
+        // will return unhealthy otherwise it will always return healthy. This adds to the Example
+        // Worker's testing and demonstration ability.
+        HealthResult result = new HealthResult(HealthStatus.HEALTHY);
+        String cafExampleWorkerHealth = System.getProperty(CAF_EXAMPLE_WORKER_HEALTHY, System.getenv(CAF_EXAMPLE_WORKER_HEALTHY));
+        if (null != cafExampleWorkerHealth && cafExampleWorkerHealth.equalsIgnoreCase("false")) {
+            LOG.debug("The Example Worker's Health Check is set to Unhealthy");
+            result = new HealthResult(HealthStatus.UNHEALTHY);
+        }
+        return result;
     }
+
 }
