@@ -218,6 +218,13 @@ public final class RabbitWorkerQueue implements ManagedWorkerQueue
 
     /**
      * {@inheritDoc}
+     * 
+     * This method can be used is stop a worker consuming messages from it's input queue.
+     * 
+     * This is useful in, (for example), an instance where a worker's health check has failed.
+     * 
+     * The worker is disconnected from the incoming channel and the consumerTag removed from the
+     * list of consumerTags.
      */
     @Override
     public void disconnectIncoming()
@@ -239,6 +246,15 @@ public final class RabbitWorkerQueue implements ManagedWorkerQueue
 
     /**
      * {@inheritDoc}
+     * 
+     * This method can be used to reconnect a worker to it's input queue therefore allowing to
+     * resume consuming messages.
+     * 
+     * This is useful in, (for example), an instance where a worker's health check indicates the worker
+     * has become healthy again and should resume consuming messages.
+     * 
+     * The worker is reconnected to the incoming channel and the returned consumerTag added to the
+     * list of consumerTags.
      */
     @Override
     public String reconnectIncoming()

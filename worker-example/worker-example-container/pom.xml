@@ -356,7 +356,6 @@
                             <run>
                                 <ports>
                                     <port>${worker.adminport}:8081</port>
-                                    <port>15005:5005</port>
                                 </ports>
                                 <env>
                                     <CAF_RABBITMQ_BACKOFF_INTERVAL>1</CAF_RABBITMQ_BACKOFF_INTERVAL>
@@ -366,7 +365,6 @@
                                     <CAF_WORKER_RETRY_LIMIT>2</CAF_WORKER_RETRY_LIMIT>
                                     <CAF_WORKER_DATASTORE_PATH>/srv/common/webdav</CAF_WORKER_DATASTORE_PATH>
                                     <CAF_EXAMPLE_WORKER_HEALTHY>true</CAF_EXAMPLE_WORKER_HEALTHY>
-                                    <_JAVA_OPTIONS>-agentlib:jdwp=transport=dt_socket,server=y,suspend=y,address=5005</_JAVA_OPTIONS>
                                 </env>
                                 <volumes>
                                     <from>
@@ -383,7 +381,7 @@
                                     <http>
                                         <url>http://${docker.host.address}:${worker.adminport}</url>
                                     </http>
-                                    <time>1200000</time>
+                                    <time>120000</time>
                                     <shutdown>500</shutdown>
                                 </wait>
                             </run>
