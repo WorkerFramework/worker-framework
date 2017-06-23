@@ -61,12 +61,17 @@ final class GatedHealthProvider
                 if (!result.isHealthy()) {
                     // Add the name of the failed health check to the set of unhealthy checks
                     unhealthySet.add(name);
+                } else if (!unhealthySet.isEmpty()) {
+                    // Remove the name of the health check if it is present in the unhealthy set
+                    unhealthySet.remove(name);
+                }
 
+                if (unhealthySet.isEmpty()) {
+                    LOG.debug("Reconnecting the incoming queue as all health checks are passing");
+                    workerQueue.reconnectIncoming();
+                } else {
                     LOG.debug("Disconnecting the incoming queue due to the [{}] health check failing", name);
                     workerQueue.disconnectIncoming();
-                } else if (!unhealthySet.isEmpty() && unhealthySet.remove(name) && unhealthySet.isEmpty()) {
-                    LOG.debug("Reconnecting the incoming queue as all health checks now passing again");
-                    workerQueue.reconnectIncoming();
                 }
 
                 return result;
