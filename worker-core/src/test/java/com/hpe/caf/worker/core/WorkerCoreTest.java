@@ -425,12 +425,11 @@ public class WorkerCoreTest
         {
         }
 
-        @Override
-        public String reconnectIncoming()
-        {
-            return null;
-        }
 
+        @Override
+        public void reconnectIncoming()
+        {
+        }
     }
 
 

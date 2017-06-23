@@ -257,19 +257,17 @@ public final class RabbitWorkerQueue implements ManagedWorkerQueue
      * list of consumerTags.
      */
     @Override
-    public String reconnectIncoming()
+    public void reconnectIncoming()
     {
         LOG.debug("Reconnecting incoming queues");
-        String consumerTag = null;
         try {
             if (incomingChannel.isOpen()) {
-                consumerTag = incomingChannel.basicConsume(config.getInputQueue(), consumer);
+                final String consumerTag = incomingChannel.basicConsume(config.getInputQueue(), consumer);
                 consumerTags.add(consumerTag);
             }
         } catch (IOException ioe) {
             LOG.error("Failed to reconnect consumer {}", ioe);
         }
-        return consumerTag;
     }
 
 
