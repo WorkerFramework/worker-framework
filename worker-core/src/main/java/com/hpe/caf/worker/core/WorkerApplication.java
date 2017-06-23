@@ -45,6 +45,7 @@ import com.hpe.caf.naming.ServicePath;
 import com.hpe.caf.util.ModuleLoader;
 import com.hpe.caf.util.ModuleLoaderException;
 import com.hpe.caf.util.jerseycompat.Jersey2ServiceIteratorProvider;
+import com.hpe.caf.worker.core.GatedHealthProvider.GatedHealthCheck;
 import io.dropwizard.Application;
 import io.dropwizard.configuration.EnvironmentVariableSubstitutor;
 import io.dropwizard.configuration.SubstitutingSourceProvider;
@@ -142,12 +143,12 @@ public final class WorkerApplication extends Application<WorkerConfiguration>
         });
         initCoreMetrics(environment.metrics(), core);
         initComponentMetrics(environment.metrics(), config, store, core);
-        
-        GatedHealthProvider gatedHealthProvider = new GatedHealthProvider(workerQueue);
-        environment.healthChecks().register("queue", new GatedHealthCheck("queue", gatedHealthProvider, new WorkerHealthCheck(core.getWorkerQueue())));
-        environment.healthChecks().register("configuration", new GatedHealthCheck("configuration", gatedHealthProvider, new WorkerHealthCheck(config)));
-        environment.healthChecks().register("store", new GatedHealthCheck("store", gatedHealthProvider, new WorkerHealthCheck(store)));
-        environment.healthChecks().register("worker", new GatedHealthCheck("worker", gatedHealthProvider, new WorkerHealthCheck(workerFactory)));
+
+        final GatedHealthProvider gatedHealthProvider = new GatedHealthProvider(workerQueue);
+        environment.healthChecks().register("queue", gatedHealthProvider.new GatedHealthCheck("queue", new WorkerHealthCheck(core.getWorkerQueue())));
+        environment.healthChecks().register("configuration", gatedHealthProvider.new GatedHealthCheck("configuration", new WorkerHealthCheck(config)));
+        environment.healthChecks().register("store", gatedHealthProvider.new GatedHealthCheck("store", new WorkerHealthCheck(store)));
+        environment.healthChecks().register("worker", gatedHealthProvider.new GatedHealthCheck("worker", new WorkerHealthCheck(workerFactory)));
         
         core.start();
     }

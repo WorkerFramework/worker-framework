@@ -15,55 +15,62 @@
  */
 package com.hpe.caf.worker.core;
 
+import com.codahale.metrics.health.HealthCheck;
+import com.hpe.caf.api.worker.ManagedWorkerQueue;
 import java.util.HashSet;
 import java.util.Set;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
-import com.hpe.caf.api.worker.ManagedWorkerQueue;
-
-public class GatedHealthProvider
+final class GatedHealthProvider
 {
+    private static final Logger LOG = LoggerFactory.getLogger(GatedHealthProvider.class);
 
-    private Set<String> unhealthySet;
-    private ManagedWorkerQueue managedWorkerQueue;
-    
-    public GatedHealthProvider(ManagedWorkerQueue managedWorkerQueue)
+    private final Set<String> unhealthySet;
+    private final ManagedWorkerQueue workerQueue;
+    private final Object healthCheckLock;
+
+    public GatedHealthProvider(final ManagedWorkerQueue workerQueue)
     {
-        this.managedWorkerQueue = managedWorkerQueue;
         this.unhealthySet = new HashSet<>();
+        this.workerQueue = workerQueue;
+        this.healthCheckLock = new Object();
     }
 
-    public Set<String> getUnhealthySet()
+    public final class GatedHealthCheck extends HealthCheck
     {
-        return unhealthySet;
-    }
+        private final String name;
+        private final HealthCheck healthCheck;
 
-    public void setUnhealthyCount(Set<String >unhealthySet)
-    {
-        this.unhealthySet = unhealthySet;
-    }
-    
-    public void addUnhealthy(String unhealthyItem) {
-        if (null == unhealthySet) {
-            unhealthySet = new HashSet<>();
+        public GatedHealthCheck(final String name, final HealthCheck healthCheck)
+        {
+            this.name = name;
+            this.healthCheck = healthCheck;
         }
-        this.unhealthySet.add(unhealthyItem);
-    }
-    
-    public void removeHealthy(String healthyItem) {
-        if (null == unhealthySet) {
-            unhealthySet = new HashSet<>();
+
+        /**
+         * Disconnects the queue if any health check fails and re-connects it when the worker becomes healthy again.
+         */
+        @Override
+        protected Result check() throws Exception
+        {
+            synchronized (healthCheckLock) {
+
+                final Result result = healthCheck.execute();
+
+                if (!result.isHealthy()) {
+                    // Add the name of the failed health check to the set of unhealthy checks
+                    unhealthySet.add(name);
+
+                    LOG.debug("Disconnecting the incoming queue due to the [{}] health check failing", name);
+                    workerQueue.disconnectIncoming();
+                } else if (!unhealthySet.isEmpty() && unhealthySet.remove(name) && unhealthySet.isEmpty()) {
+                    LOG.debug("Reconnecting the incoming queue as all health checks now passing again");
+                    workerQueue.reconnectIncoming();
+                }
+
+                return result;
+            }
         }
-        this.unhealthySet.remove(healthyItem);
     }
-
-    public ManagedWorkerQueue getManagedWorkerQueue()
-    {
-        return managedWorkerQueue;
-    }
-
-    public void setManagedWorkerQueue(ManagedWorkerQueue managedWorkerQueue)
-    {
-        this.managedWorkerQueue = managedWorkerQueue;
-    }
-
 }
