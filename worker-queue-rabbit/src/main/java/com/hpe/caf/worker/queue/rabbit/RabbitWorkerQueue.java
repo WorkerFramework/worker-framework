@@ -230,14 +230,13 @@ public final class RabbitWorkerQueue implements ManagedWorkerQueue
     public void disconnectIncoming()
     {
         LOG.debug("Disconnecting incoming queues");
-        for (String consumerTag : consumerTags) {
-            try {
-                if (incomingChannel.isOpen()) {
+        for (final String consumerTag : consumerTags) {
+            if (incomingChannel.isOpen()) {
+                try {
                     incomingChannel.basicCancel(consumerTag);
-                    consumerTags.remove(consumerTag);
+                } catch (IOException ioe) {
+                    LOG.error("Failed to cancel consumer {}", consumerTag, ioe);
                 }
-            } catch (IOException ioe) {
-                LOG.error("Failed to cancel consumer {}", consumerTag, ioe);
                 consumerTags.remove(consumerTag);
             }
         }
