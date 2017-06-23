@@ -55,8 +55,9 @@ public interface ManagedWorkerQueue extends HealthReporter, WorkerQueue
     void disconnectIncoming();
     
     /**
-     * Reconnects the incoming queue so tasks consumption can resume  
+     * Reconnects the incoming queue so tasks consumption can resume
+     * @return String consumerTag  
      */
-    void reconnectIncoming();
+    String reconnectIncoming();
 
 }

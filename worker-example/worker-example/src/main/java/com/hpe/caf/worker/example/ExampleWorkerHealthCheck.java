@@ -32,7 +32,8 @@ public class ExampleWorkerHealthCheck implements HealthReporter {
     
     private static final String CAF_EXAMPLE_WORKER_HEALTHY = "CAF_EXAMPLE_WORKER_HEALTHY";
 
-    public ExampleWorkerHealthCheck() {
+    public ExampleWorkerHealthCheck() 
+    {
     }
 
     /**

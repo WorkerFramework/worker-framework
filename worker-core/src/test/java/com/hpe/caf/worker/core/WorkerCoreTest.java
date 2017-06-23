@@ -426,8 +426,9 @@ public class WorkerCoreTest
         }
 
         @Override
-        public void reconnectIncoming()
+        public String reconnectIncoming()
         {
+            return null;
         }
 
     }
