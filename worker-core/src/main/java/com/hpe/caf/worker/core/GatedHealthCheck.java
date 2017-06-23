@@ -37,6 +37,26 @@ public class GatedHealthCheck extends HealthCheck
     }
 
     @Override
+    /**
+     * This method executes the available health checks and can disconnect or reconnect a worker to
+     * it's input queue depending on the workers overall health.
+     * 
+     * If a health check fails the health check is added to the set of unhealthy checks and the
+     * worker is disconnecting from it's input queue.
+     * 
+     * If a health check passes and the set of unhealthy checks was previously empty nothing further
+     * is required.
+     * 
+     * If a health check passes and the set of unhealthy checks is not empty an attempt to remove
+     * the passing health check from the set of unhealthy checks is made.
+     * 
+     * If the set of unhealthy checks was previously of size 1 and is still of size 1, a different
+     * health check has previously failed and the work remains unhealthy and disconnected from it's
+     * input queue.
+     * 
+     * If the set of unhealthy checks was previously of size 1 and is now of size 0 the worker is
+     * healthy again and reconnected to it's input queue.
+     */
     protected Result check() throws Exception
     {
         Result result = healthCheck.execute();
