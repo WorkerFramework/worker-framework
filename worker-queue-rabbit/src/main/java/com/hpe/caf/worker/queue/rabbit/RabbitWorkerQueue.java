@@ -219,7 +219,7 @@ public final class RabbitWorkerQueue implements ManagedWorkerQueue
     /**
      * {@inheritDoc}
      * 
-     * This method can be used is stop a worker consuming messages from it's input queue.
+     * This method can be used to stop a worker consuming messages from it's input queue.
      * 
      * This is useful in, (for example), an instance where a worker's health check has failed.
      * 
