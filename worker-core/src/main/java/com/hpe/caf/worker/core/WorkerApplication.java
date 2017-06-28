@@ -45,7 +45,6 @@ import com.hpe.caf.naming.ServicePath;
 import com.hpe.caf.util.ModuleLoader;
 import com.hpe.caf.util.ModuleLoaderException;
 import com.hpe.caf.util.jerseycompat.Jersey2ServiceIteratorProvider;
-import com.hpe.caf.worker.core.GatedHealthProvider.GatedHealthCheck;
 import io.dropwizard.Application;
 import io.dropwizard.configuration.EnvironmentVariableSubstitutor;
 import io.dropwizard.configuration.SubstitutingSourceProvider;
@@ -119,8 +118,8 @@ public final class WorkerApplication extends Application<WorkerConfiguration>
         ManagedWorkerQueue workerQueue = queueProvider.getWorkerQueue(config, nThreads);
         MessagePriorityManagerProvider priorityManagerProvider = ModuleLoader.getService(MessagePriorityManagerProvider.class);
         MessagePriorityManager priorityManager = priorityManagerProvider.getMessagePriorityManager(config);
-
-        WorkerCore core = new WorkerCore(codec, wtp, workerQueue, priorityManager, workerFactory, path);
+        TransientHealthCheck transientHealthCheck = new TransientHealthCheck();        
+        WorkerCore core = new WorkerCore(codec, wtp, workerQueue, priorityManager, workerFactory, path, environment.healthChecks(), transientHealthCheck);
         Runtime.getRuntime().addShutdownHook(new Thread()
         {
             @Override
@@ -149,7 +148,7 @@ public final class WorkerApplication extends Application<WorkerConfiguration>
         environment.healthChecks().register("configuration", gatedHealthProvider.new GatedHealthCheck("configuration", new WorkerHealthCheck(config)));
         environment.healthChecks().register("store", gatedHealthProvider.new GatedHealthCheck("store", new WorkerHealthCheck(store)));
         environment.healthChecks().register("worker", gatedHealthProvider.new GatedHealthCheck("worker", new WorkerHealthCheck(workerFactory)));
-        
+        environment.healthChecks().register("transient", gatedHealthProvider.new GatedHealthCheck("transient", new WorkerHealthCheck(transientHealthCheck)));
         core.start();
     }
 

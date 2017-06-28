@@ -32,10 +32,6 @@ public class ExampleWorkerHealthCheck implements HealthReporter {
     
     private static final String CAF_EXAMPLE_WORKER_HEALTHY = "CAF_EXAMPLE_WORKER_HEALTHY";
 
-    public ExampleWorkerHealthCheck() 
-    {
-    }
-
     /**
      * The health check checks if all the external components that the worker depends on are available.
      * The health result is displayed on Marathon GUI.
