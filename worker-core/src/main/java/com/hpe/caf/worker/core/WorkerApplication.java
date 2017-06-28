@@ -118,8 +118,8 @@ public final class WorkerApplication extends Application<WorkerConfiguration>
         ManagedWorkerQueue workerQueue = queueProvider.getWorkerQueue(config, nThreads);
         MessagePriorityManagerProvider priorityManagerProvider = ModuleLoader.getService(MessagePriorityManagerProvider.class);
         MessagePriorityManager priorityManager = priorityManagerProvider.getMessagePriorityManager(config);
-
-        WorkerCore core = new WorkerCore(codec, wtp, workerQueue, priorityManager, workerFactory, path);
+        TransientHealthCheck transientHealthCheck = new TransientHealthCheck();
+        WorkerCore core = new WorkerCore(codec, wtp, workerQueue, priorityManager, workerFactory, path, environment.healthChecks(), transientHealthCheck);
         Runtime.getRuntime().addShutdownHook(new Thread()
         {
             @Override
@@ -142,10 +142,13 @@ public final class WorkerApplication extends Application<WorkerConfiguration>
         });
         initCoreMetrics(environment.metrics(), core);
         initComponentMetrics(environment.metrics(), config, store, core);
-        environment.healthChecks().register("queue", new WorkerHealthCheck(core.getWorkerQueue()));
-        environment.healthChecks().register("configuration", new WorkerHealthCheck(config));
-        environment.healthChecks().register("store", new WorkerHealthCheck(store));
-        environment.healthChecks().register("worker", new WorkerHealthCheck(workerFactory));
+
+        final GatedHealthProvider gatedHealthProvider = new GatedHealthProvider(workerQueue);
+        environment.healthChecks().register("queue", gatedHealthProvider.new GatedHealthCheck("queue", new WorkerHealthCheck(core.getWorkerQueue())));
+        environment.healthChecks().register("configuration", gatedHealthProvider.new GatedHealthCheck("configuration", new WorkerHealthCheck(config)));
+        environment.healthChecks().register("store", gatedHealthProvider.new GatedHealthCheck("store", new WorkerHealthCheck(store)));
+        environment.healthChecks().register("worker", gatedHealthProvider.new GatedHealthCheck("worker", new WorkerHealthCheck(workerFactory)));
+        environment.healthChecks().register("transient", gatedHealthProvider.new GatedHealthCheck("transient", new WorkerHealthCheck(transientHealthCheck)));
         core.start();
     }
 

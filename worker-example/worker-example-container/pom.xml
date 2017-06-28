@@ -364,6 +364,7 @@
                                     <CAF_RABBITMQ_PREFETCH_BUFFER>0</CAF_RABBITMQ_PREFETCH_BUFFER>
                                     <CAF_WORKER_RETRY_LIMIT>2</CAF_WORKER_RETRY_LIMIT>
                                     <CAF_WORKER_DATASTORE_PATH>/srv/common/webdav</CAF_WORKER_DATASTORE_PATH>
+                                    <CAF_EXAMPLE_WORKER_HEALTHY>true</CAF_EXAMPLE_WORKER_HEALTHY>
                                 </env>
                                 <volumes>
                                     <from>

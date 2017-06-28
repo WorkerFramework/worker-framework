@@ -36,8 +36,9 @@ public interface WorkerCallback
      * Indicates the Worker wishes to abandon this task, but return it to the queue so that it can be
      * retried by this or another Worker instance.
      * @param queueMsgId the id of the task's queue message to reject
+     * @param e the Exception causing the task's queue message to be rejected
      */
-    void abandon(String queueMsgId);
+    void abandon(String queueMsgId, Exception e);
 
 
     /**

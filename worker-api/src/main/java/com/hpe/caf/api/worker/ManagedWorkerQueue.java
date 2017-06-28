@@ -49,4 +49,13 @@ public interface ManagedWorkerQueue extends HealthReporter, WorkerQueue
      */
     WorkerQueueMetricsReporter getMetrics();
 
+    /**
+     * Disconnects the incoming queue so that no more tasks are consumed.
+     */
+    void disconnectIncoming();
+
+    /**
+     * Reconnects the incoming queue so tasks consumption can resume.
+     */
+    void reconnectIncoming();
 }

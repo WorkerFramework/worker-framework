@@ -297,7 +297,7 @@ public class StreamingWorkerWrapperTest
 
 
         @Override
-        public void abandon(final String queueMsgId)
+        public void abandon(final String queueMsgId, final Exception exception)
         {
             this.queueMsgId = queueMsgId;
             latch.countDown();

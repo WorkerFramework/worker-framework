@@ -125,7 +125,7 @@ class WorkerTaskImpl implements WorkerTask
         LOG.info("Worker requested to abandon task {} (message id: {})",
             taskMessage.getTaskId(), taskMessage, taskRejectedException);
 
-        workerCallback.abandon(messageId);
+        workerCallback.abandon(messageId, taskRejectedException);
     }
 
     @Override

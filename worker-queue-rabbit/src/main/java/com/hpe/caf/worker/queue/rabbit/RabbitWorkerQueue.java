@@ -59,7 +59,8 @@ public final class RabbitWorkerQueue implements ManagedWorkerQueue
     private Channel outgoingChannel;
     private Thread publisherThread;
     private Thread consumerThread;
-    private final List<String> consumerTags = new LinkedList<>();
+    private String consumerTag;
+    private final Object consumerLock = new Object();
     private final Set<String> declaredQueues = new HashSet<>();
     private final BlockingQueue<Event<QueueConsumer>> consumerQueue = new LinkedBlockingQueue<>();
     private final BlockingQueue<Event<WorkerPublisher>> publisherQueue = new LinkedBlockingQueue<>();
@@ -110,7 +111,9 @@ public final class RabbitWorkerQueue implements ManagedWorkerQueue
             publisher = new EventPoller<>(2, publisherQueue, publisherImpl);
             declareWorkerQueue(incomingChannel, config.getInputQueue(), config.getMaxPriority());
             declareWorkerQueue(outgoingChannel, config.getRetryQueue(), config.getMaxPriority());
-            consumerTags.add(incomingChannel.basicConsume(config.getInputQueue(), consumer));
+            synchronized (consumerLock) {
+                consumerTag = incomingChannel.basicConsume(config.getInputQueue(), consumer);
+            }
         } catch (IOException | TimeoutException e) {
             throw new QueueException("Failed to establish queues", e);
         }
@@ -205,12 +208,70 @@ public final class RabbitWorkerQueue implements ManagedWorkerQueue
     public void shutdownIncoming()
     {
         LOG.debug("Closing incoming queues");
-        for ( String consumerTag : consumerTags ) {
-            try {
-                incomingChannel.basicCancel(consumerTag);
-            } catch (IOException e) {
-                metrics.incremementErrors();
-                LOG.warn("Failed to cancel consumer {}", consumerTag, e);
+        synchronized (consumerLock) {
+            if (consumerTag != null) {
+                try {
+                    incomingChannel.basicCancel(consumerTag);
+                    consumerTag = null;
+                } catch (IOException e) {
+                    metrics.incremementErrors();
+                    LOG.warn("Failed to cancel consumer {}", consumerTag, e);
+                }
+            }
+        }
+    }
+
+
+    /**
+     * {@inheritDoc}
+     * 
+     * This method can be used to stop a worker consuming messages from it's input queue.
+     * 
+     * This is useful in, (for example), an instance where a worker's health check has failed.
+     * 
+     * The worker is disconnected from the incoming channel and the consumerTag removed from the
+     * list of consumerTags.
+     */
+    @Override
+    public void disconnectIncoming()
+    {
+        LOG.debug("Disconnecting incoming queues");
+        synchronized (consumerLock) {
+            if (consumerTag != null && incomingChannel.isOpen()) {
+                try {
+                    incomingChannel.basicCancel(consumerTag);
+                    consumerTag = null;
+                } catch (IOException ioe) {
+                    LOG.error("Failed to cancel consumer {}", consumerTag, ioe);
+                }
+            }
+        }
+    }
+
+
+    /**
+     * {@inheritDoc}
+     * 
+     * This method can be used to reconnect a worker to it's input queue therefore allowing to
+     * resume consuming messages.
+     * 
+     * This is useful in, (for example), an instance where a worker's health check indicates the worker
+     * has become healthy again and should resume consuming messages.
+     * 
+     * The worker is reconnected to the incoming channel and the returned consumerTag added to the
+     * list of consumerTags.
+     */
+    @Override
+    public void reconnectIncoming()
+    {
+        LOG.debug("Reconnecting incoming queues");
+        synchronized (consumerLock) {
+            if (consumerTag == null && incomingChannel.isOpen()) {
+                try {
+                    consumerTag = incomingChannel.basicConsume(config.getInputQueue(), consumer);
+                } catch (IOException ioe) {
+                    LOG.error("Failed to reconnect consumer {}", ioe);
+                }
             }
         }
     }

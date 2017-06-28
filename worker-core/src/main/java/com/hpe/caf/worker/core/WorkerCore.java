@@ -16,6 +16,7 @@
 package com.hpe.caf.worker.core;
 
 
+import com.codahale.metrics.health.HealthCheckRegistry;
 import com.hpe.caf.api.Codec;
 import com.hpe.caf.api.CodecException;
 import com.hpe.caf.api.DecodeMethod;
@@ -47,9 +48,9 @@ final class WorkerCore
     private final TaskCallback callback;
     private static final Logger LOG = LoggerFactory.getLogger(WorkerCore.class);
 
-    public WorkerCore(final Codec codec, final WorkerThreadPool pool, final ManagedWorkerQueue queue, final MessagePriorityManager priorityManager, final WorkerFactory factory, final ServicePath path)
+    public WorkerCore(final Codec codec, final WorkerThreadPool pool, final ManagedWorkerQueue queue, final MessagePriorityManager priorityManager, final WorkerFactory factory, final ServicePath path, final HealthCheckRegistry healthCheckRegistry, final TransientHealthCheck transientHealthCheck)
     {
-        WorkerCallback taskCallback =  new CoreWorkerCallback(codec, queue, stats);
+        WorkerCallback taskCallback =  new CoreWorkerCallback(codec, queue, stats, healthCheckRegistry, transientHealthCheck);
         this.threadPool = Objects.requireNonNull(pool);
         this.callback = new CoreTaskCallback(codec, stats, new WorkerExecutor(path, taskCallback, factory, pool, priorityManager), pool, queue);
         this.workerQueue = Objects.requireNonNull(queue);
@@ -350,14 +351,18 @@ final class WorkerCore
     private static class CoreWorkerCallback implements WorkerCallback
     {
         private final Codec codec;
-        private final WorkerQueue workerQueue;
+        private final ManagedWorkerQueue workerQueue;
         private final WorkerStats stats;
+        private final HealthCheckRegistry healthCheckRegistry;
+        private final TransientHealthCheck transientHealthCheck;
 
-        public CoreWorkerCallback(final Codec codec, final WorkerQueue workerQueue, final WorkerStats stats)
+        public CoreWorkerCallback(final Codec codec, final ManagedWorkerQueue workerQueue, final WorkerStats stats, final HealthCheckRegistry healthCheckRegistry, final TransientHealthCheck transientHealthCheck)
         {
             this.codec = Objects.requireNonNull(codec);
             this.workerQueue = Objects.requireNonNull(workerQueue);
             this.stats = Objects.requireNonNull(stats);
+            this.healthCheckRegistry = Objects.requireNonNull(healthCheckRegistry);
+            this.transientHealthCheck = Objects.requireNonNull(transientHealthCheck);
         }
 
 
@@ -405,17 +410,20 @@ final class WorkerCore
                 }
             } catch (CodecException | QueueException e) {
                 LOG.error("Cannot publish data for task {}, rejecting", responseMessage.getTaskId(), e);
-                abandon(queueMsgId);
+                abandon(queueMsgId, e);
             }
         }
 
 
         @Override
-        public void abandon(final String queueMsgId)
+        public void abandon(final String queueMsgId, final Exception e)
         {
             LOG.debug("Rejecting message id {}", queueMsgId);
             workerQueue.rejectTask(queueMsgId);
             stats.incrementTasksRejected();
+            workerQueue.disconnectIncoming();
+            transientHealthCheck.addTransientExceptionToRegistry(e.getMessage());
+            healthCheckRegistry.runHealthCheck("transient");
         }
 
 
@@ -440,7 +448,7 @@ final class WorkerCore
                 }
             } catch (CodecException | QueueException e) {
                 LOG.error("Cannot publish data for forwarded task {}, rejecting", forwardedMessage.getTaskId(), e);
-                abandon(queueMsgId);
+                abandon(queueMsgId, e);
             }
         }
 
