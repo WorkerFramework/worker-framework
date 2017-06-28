@@ -63,7 +63,7 @@ public class TransientHealthCheck implements HealthReporter
                 LOG.debug("Transient Health Check is currently Healthy, therefore clearing the Transient Exception Registry");
                 transientExceptionRegistry.clear();
             }
-            LOG.debug("Transient Health Check is currently [{}]", healthResult.toString());
+            LOG.debug("Transient Health Check is currently [{}]", healthResult.getMessage());
             return healthResult;
         }
     }
@@ -78,7 +78,7 @@ public class TransientHealthCheck implements HealthReporter
     public void addTransientExceptionToRegistry(String exceptionMsg)
     {
         LocalDateTime now = LocalDateTime.now();
-        LOG.debug("Adding the following exception and time to the Transient Exception Registry[{}, {}]", exceptionMsg, now);
+        LOG.debug("Adding the following exception and time to the Transient Exception Registry [{}, {}]", exceptionMsg, now);
         synchronized (transientExceptionRegistryLock) {
             transientExceptionRegistry.put(exceptionMsg, now);
         }
