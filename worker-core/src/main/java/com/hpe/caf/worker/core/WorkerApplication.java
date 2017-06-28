@@ -118,7 +118,7 @@ public final class WorkerApplication extends Application<WorkerConfiguration>
         ManagedWorkerQueue workerQueue = queueProvider.getWorkerQueue(config, nThreads);
         MessagePriorityManagerProvider priorityManagerProvider = ModuleLoader.getService(MessagePriorityManagerProvider.class);
         MessagePriorityManager priorityManager = priorityManagerProvider.getMessagePriorityManager(config);
-        TransientHealthCheck transientHealthCheck = new TransientHealthCheck();        
+        TransientHealthCheck transientHealthCheck = new TransientHealthCheck();
         WorkerCore core = new WorkerCore(codec, wtp, workerQueue, priorityManager, workerFactory, path, environment.healthChecks(), transientHealthCheck);
         Runtime.getRuntime().addShutdownHook(new Thread()
         {

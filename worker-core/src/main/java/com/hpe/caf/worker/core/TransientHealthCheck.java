@@ -32,6 +32,7 @@ public class TransientHealthCheck implements HealthReporter
     private static final Logger LOG = LoggerFactory.getLogger(TransientHealthCheck.class);
     
     private Map<String, LocalDateTime> transientExceptionRegistry = new HashMap<>();
+    private Object transientExceptionRegistryLock = new Object();
     private long elapsedTime = 30;
     
     /**
@@ -47,23 +48,24 @@ public class TransientHealthCheck implements HealthReporter
     {
         LOG.debug("Transient Health Check executing");
         HealthResult healthResult = HealthResult.RESULT_HEALTHY;
-        
-        for(Map.Entry<String, LocalDateTime> entry : transientExceptionRegistry.entrySet()) {
-            
-            if(entry.getValue().toEpochSecond(ZoneOffset.UTC) < LocalDateTime.now().minusSeconds(elapsedTime).toEpochSecond(ZoneOffset.UTC)) {
+        synchronized (transientExceptionRegistryLock) {
+            for(Map.Entry<String, LocalDateTime> entry : transientExceptionRegistry.entrySet()) {
                 
-                healthResult = HealthResult.RESULT_HEALTHY;
-            } else {
-                healthResult = new HealthResult(HealthStatus.UNHEALTHY);
-                break;
+                if(entry.getValue().toEpochSecond(ZoneOffset.UTC) < LocalDateTime.now().minusSeconds(elapsedTime).toEpochSecond(ZoneOffset.UTC)) {
+                    
+                    healthResult = HealthResult.RESULT_HEALTHY;
+                } else {
+                    healthResult = new HealthResult(HealthStatus.UNHEALTHY);
+                    break;
+                }
             }
+            if(healthResult.equals(HealthResult.RESULT_HEALTHY)) {
+                LOG.debug("Transient Health Check is currently Healthy, therefore clearing the Transient Exception Registry");
+                transientExceptionRegistry.clear();
+            }
+            LOG.debug("Transient Health Check is currently [{}]", healthResult.toString());
+            return healthResult;
         }
-        if(healthResult.equals(HealthResult.RESULT_HEALTHY)) {
-            LOG.debug("Transient Health Check is currently Healthy, therefore clearing the Transient Exception Registry");
-            transientExceptionRegistry.clear();
-        }
-        LOG.debug("Transient Health Check is currently [{}]", healthResult.toString());
-        return healthResult;
     }
     
     /**
@@ -77,7 +79,9 @@ public class TransientHealthCheck implements HealthReporter
     {
         LocalDateTime now = LocalDateTime.now();
         LOG.debug("Adding the following exception and time to the Transient Exception Registry[{}, {}]", exceptionMsg, now);
-        transientExceptionRegistry.put(exceptionMsg, now);
+        synchronized (transientExceptionRegistryLock) {
+            transientExceptionRegistry.put(exceptionMsg, now);
+        }
     }
 
 }

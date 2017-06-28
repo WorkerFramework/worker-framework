@@ -416,7 +416,7 @@ final class WorkerCore
 
 
         @Override
-        public void abandon(final String queueMsgId, Exception e)
+        public void abandon(final String queueMsgId, final Exception e)
         {
             LOG.debug("Rejecting message id {}", queueMsgId);
             workerQueue.rejectTask(queueMsgId);
