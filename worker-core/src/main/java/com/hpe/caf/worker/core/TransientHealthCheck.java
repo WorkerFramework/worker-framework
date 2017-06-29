@@ -63,7 +63,7 @@ public class TransientHealthCheck implements HealthReporter
                 LOG.debug("Transient Health Check is currently Healthy, therefore clearing the Transient Exception Registry");
                 transientExceptionRegistry.clear();
             }
-            LOG.debug("Transient Health Check is currently [{}]", healthResult.getMessage());
+            LOG.debug("Transient Health Check is currently [{}]", healthResult.getStatus().toString());
             return healthResult;
         }
     }
