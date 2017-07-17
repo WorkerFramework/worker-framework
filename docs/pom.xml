@@ -119,7 +119,7 @@
                         <!-- Used to compile the source code -->
                         <image>
                             <alias>compile-source</alias>
-                            <name>cafapi/doc-site-compiler:1.0.0</name>
+                            <name>cafapi/doc-site-compiler:1.0</name>
                             <run>
                                 <env>
                                     <!-- Enable internet access -->
