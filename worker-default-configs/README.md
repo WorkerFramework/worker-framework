@@ -38,27 +38,3 @@ The default RabbitWorkerQueue configuration file checks for values as below;
 | retryQueue  |  `CAF_WORKER_RETRY_QUEUE` |   |
 | rejectedQueue  |   | worker-rejected  |
 | retryLimit  |  `CAF_WORKER_RETRY_LIMIT` | 10  |
-
-## StorageServiceDataStoreConfiguration
-
-The default StorageServiceDataStore configuration file checks for values as below;
-
-| Property | Checked Environment Variables | Default               |
-|----------|-------------------------------|-----------------------|
-| serverName  |  `CAF_STORAGE_HOST` | caf-storage  |
-| port  |  `CAF_STORAGE_PORT` | 9110  |
-
-If either `CAF_STORAGE_KEYCLOAK_HOST` or `CAF_KEYCLOAK_HOST` is set, then the 'authenticationConfiguration' property is configured as below;
-
-| Property | Checked Environment Variables | Default               |
-|----------|-------------------------------|-----------------------|
-| serverName  |  `CAF_STORAGE_KEYCLOAK_HOST` |                |
-|             |  `CAF_KEYCLOAK_HOST`         |                |
-| port        |  `CAF_STORAGE_KEYCLOAK_PORT` |  9020          |
-|             |  `CAF_KEYCLOAK_PORT`        |                 |
-| userName  |  `CAF_STORAGE_USERNAME` |   |
-|  password   |   `CAF_STORAGE_PASSWORD`   |    |
-|  clientName  |   `CAF_STORAGE_CLIENT_NAME`   | CAF_App   |
-|   clientSecret   |  `CAF_STORAGE_CLIENT_SECRET`   |    |
-|   realm    |   `CAF_STORAGE_KEYCLOAK_REALM`   |   caf |
-|             |  `CAF_KEYCLOAK_REALM`     |        |
