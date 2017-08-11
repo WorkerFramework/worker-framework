@@ -31,9 +31,9 @@ public class TransientHealthCheck implements HealthReporter
 {
     private static final Logger LOG = LoggerFactory.getLogger(TransientHealthCheck.class);
     
-    private Map<String, LocalDateTime> transientExceptionRegistry = new HashMap<>();
-    private Object transientExceptionRegistryLock = new Object();
-    private long elapsedTime = 30;
+    private final Map<String, LocalDateTime> transientExceptionRegistry = new HashMap<>();
+    private final Object transientExceptionRegistryLock = new Object();
+    private final long elapsedTime = 30;
     
     /**
      * This method checks if any entry in the Transient Exception Registry is newer than the time
