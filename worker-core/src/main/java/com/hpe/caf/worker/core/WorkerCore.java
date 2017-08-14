@@ -366,6 +366,34 @@ final class WorkerCore
         }
 
 
+        @Override
+        public void send(final String queueMsgId, final TaskMessage responseMessage)
+        {
+            Objects.requireNonNull(queueMsgId);
+            Objects.requireNonNull(responseMessage);
+            LOG.debug("Sending task {} complete (message id: {})", responseMessage.getTaskId(), queueMsgId);
+
+            final String queue = responseMessage.getTo();
+            final String targetQueue = getTargetQueue(queueMsgId, responseMessage, queue);
+            checkForTrackingTermination(queueMsgId, targetQueue, responseMessage);
+
+            final byte[] output;
+            try {
+                output = codec.serialise(responseMessage);
+            } catch (final CodecException ex) {
+                throw new RuntimeException(ex);
+            }
+
+            final int priority = responseMessage.getPriority() == null ? 0 : responseMessage.getPriority();
+
+            try {
+                workerQueue.publish("-1", output, targetQueue, Collections.emptyMap(), priority);
+            } catch (final QueueException ex) {
+                throw new RuntimeException(ex);
+            }
+        }
+
+
         /**
          * {@inheritDoc}
          *

@@ -104,6 +104,10 @@ public class WorkerQueueConsumerImpl implements QueueConsumer
     @Override
     public void processAck(long tag)
     {
+        if (tag == -1) {
+            return;
+        }
+        
         try {
             LOG.debug("Acknowledging message {}", tag);
             channel.basicAck(tag, false);
@@ -138,6 +142,10 @@ public class WorkerQueueConsumerImpl implements QueueConsumer
      */
     private void processReject(long id, boolean requeue)
     {
+        if (id == -1) {
+            return;
+        }
+
         try {
             channel.basicReject(id, requeue);
             if ( requeue ) {

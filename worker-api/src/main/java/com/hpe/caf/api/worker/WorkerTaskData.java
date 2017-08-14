@@ -53,4 +53,12 @@ public interface WorkerTaskData {
      * Retrieves information relating to the source of the task
      */
     TaskSourceInfo getSourceInfo();
+
+    /**
+     * Used when a task needs to return multiple responses. This method can be called to return responses prior to the final response.
+     *
+     * @param response the response to be sent
+     * @param includeTaskContext whether or not the calling task context should be sent with the response
+     */
+    void addResponse(WorkerResponse response, boolean includeTaskContext);
 }

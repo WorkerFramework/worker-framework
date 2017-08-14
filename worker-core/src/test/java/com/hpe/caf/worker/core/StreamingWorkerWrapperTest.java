@@ -282,6 +282,12 @@ public class StreamingWorkerWrapperTest
 
 
         @Override
+        public void send(String queueMsgId, TaskMessage responseMessage)
+        {
+        }
+
+
+        @Override
         public void complete(final String queueMsgId, final String queue, final TaskMessage tm)
         {
             this.queueMsgId = queueMsgId;
