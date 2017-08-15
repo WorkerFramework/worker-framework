@@ -24,6 +24,15 @@ import java.util.Map;
 public interface WorkerCallback
 {
     /**
+     * Used to send responses prior to the final response (when complete should be used instead).
+     *
+     * @param queueMsgId a queue-specific reference for the incoming message that generated the response
+     * @param responseMessage the message to put on the queue (target specified by the {@code to} property)
+     */
+    void send(String queueMsgId, TaskMessage responseMessage);
+
+
+    /**
      * Indicate a task was completed.
      * @param queueMsgId a queue-specific reference for the incoming message that generated the response
      * @param queue the queue to hold the message

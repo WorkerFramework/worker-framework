@@ -80,6 +80,15 @@ public class TrackingInfo {
     }
 
 
+    public TrackingInfo(final TrackingInfo trackingInfo) {
+        this.jobTaskId = trackingInfo.jobTaskId;
+        this.statusCheckTime = nullSafeCloneDate(trackingInfo.statusCheckTime);
+        this.statusCheckUrl = trackingInfo.statusCheckUrl;
+        this.trackingPipe = trackingInfo.trackingPipe;
+        this.trackTo = trackingInfo.trackTo;
+    }
+
+
     public String getJobTaskId() {
         return jobTaskId;
     }
@@ -144,5 +153,15 @@ public class TrackingInfo {
         }
 
         throw new InvalidJobTaskIdException(MessageFormat.format("Failed to extract the job identifier from the job task ID {0}", getJobTaskId()));
+    }
+
+
+    /**
+     * Clones the specified date, taking care to return {@code null} if the original date was {@code null}.
+     */
+    private static Date nullSafeCloneDate(final Date date) {
+        return (date == null)
+            ? null
+            : (Date) date.clone();
     }
 }
