@@ -143,6 +143,7 @@ public class WorkerQueueConsumerImpl implements QueueConsumer
     private void processReject(long id, boolean requeue)
     {
         if (id == -1) {
+            LOG.error("Non-final response has not been acknowledged. This message has been lost!");
             return;
         }
 
