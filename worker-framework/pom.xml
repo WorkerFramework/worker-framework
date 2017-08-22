@@ -23,13 +23,13 @@
 
     <groupId>com.github.workerframework</groupId>
     <artifactId>worker-framework</artifactId>
-    <version>2.3.1-SNAPSHOT</version>
+    <version>2.4.0-SNAPSHOT</version>
     <packaging>pom</packaging>
 
     <parent>
         <groupId>com.github.workerframework</groupId>
         <artifactId>worker-framework-aggregator</artifactId>
-        <version>2.3.1-SNAPSHOT</version>
+        <version>2.4.0-SNAPSHOT</version>
     </parent>
 
     <dependencyManagement>
@@ -37,68 +37,68 @@
             <dependency>
                 <groupId>com.github.workerframework</groupId>
                 <artifactId>worker-api</artifactId>
-                <version>2.3.1-SNAPSHOT</version>
+                <version>2.4.0-SNAPSHOT</version>
             </dependency>
             <dependency>
                 <groupId>com.github.workerframework</groupId>
                 <artifactId>worker-configs</artifactId>
-                <version>2.3.1-SNAPSHOT</version>
+                <version>2.4.0-SNAPSHOT</version>
             </dependency>
             <dependency>
                 <groupId>com.github.workerframework</groupId>
                 <artifactId>util-rabbitmq</artifactId>
-                <version>2.3.1-SNAPSHOT</version>
+                <version>2.4.0-SNAPSHOT</version>
             </dependency>
             <dependency>
                 <groupId>com.github.workerframework</groupId>
                 <artifactId>util-store</artifactId>
-                <version>2.3.1-SNAPSHOT</version>
+                <version>2.4.0-SNAPSHOT</version>
             </dependency>
             <dependency>
                 <groupId>com.github.workerframework</groupId>
                 <artifactId>standard-worker-container</artifactId>
                 <type>pom</type>
-                <version>2.3.1-SNAPSHOT</version>
+                <version>2.4.0-SNAPSHOT</version>
             </dependency>
             <dependency>
                 <groupId>com.github.workerframework</groupId>
                 <artifactId>worker-caf</artifactId>
-                <version>2.3.1-SNAPSHOT</version>
+                <version>2.4.0-SNAPSHOT</version>
             </dependency>
             <dependency>
                 <groupId>com.github.workerframework</groupId>
                 <artifactId>worker-core</artifactId>
-                <version>2.3.1-SNAPSHOT</version>
+                <version>2.4.0-SNAPSHOT</version>
             </dependency>
             <dependency>
                 <groupId>com.github.workerframework</groupId>
                 <artifactId>worker-queue-rabbit</artifactId>
-                <version>2.3.1-SNAPSHOT</version>
+                <version>2.4.0-SNAPSHOT</version>
             </dependency>
             <dependency>
                 <groupId>com.github.workerframework</groupId>
                 <artifactId>worker-store-fs</artifactId>
-                <version>2.3.1-SNAPSHOT</version>
+                <version>2.4.0-SNAPSHOT</version>
             </dependency>
             <dependency>
                 <groupId>com.github.workerframework</groupId>
                 <artifactId>worker-store-mem</artifactId>
-                <version>2.3.1-SNAPSHOT</version>
+                <version>2.4.0-SNAPSHOT</version>
             </dependency>
             <dependency>
                 <groupId>com.github.workerframework</groupId>
                 <artifactId>worker-testing-integration</artifactId>
-                <version>2.3.1-SNAPSHOT</version>
+                <version>2.4.0-SNAPSHOT</version>
             </dependency>
             <dependency>
                 <groupId>com.github.workerframework</groupId>
                 <artifactId>worker-testing-util</artifactId>
-                <version>2.3.1-SNAPSHOT</version>
+                <version>2.4.0-SNAPSHOT</version>
             </dependency>
             <dependency>
                 <groupId>com.github.workerframework</groupId>
                 <artifactId>worker-default-configs</artifactId>
-                <version>2.3.1-SNAPSHOT</version>
+                <version>2.4.0-SNAPSHOT</version>
             </dependency>
         </dependencies>
     </dependencyManagement>
