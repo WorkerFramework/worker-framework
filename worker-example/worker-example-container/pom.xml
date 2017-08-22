@@ -23,13 +23,13 @@
 
     <groupId>com.github.workerframework</groupId>
     <artifactId>worker-example-container</artifactId>
-    <version>2.3.1-SNAPSHOT</version>
+    <version>2.3.1-301</version>
     <packaging>pom</packaging>
     
     <parent>
         <groupId>com.github.workerframework</groupId>
         <artifactId>worker-example-aggregator</artifactId>
-        <version>2.3.1-SNAPSHOT</version>
+        <version>2.3.1-301</version>
     </parent>    
 
     <!-- Properties for the worker. -->

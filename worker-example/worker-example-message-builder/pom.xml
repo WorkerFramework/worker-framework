@@ -23,12 +23,12 @@
 
     <groupId>com.github.workerframework.messagebuilder</groupId>
     <artifactId>worker-example-message-builder</artifactId>
-    <version>2.3.1-SNAPSHOT</version>
+    <version>2.3.1-301</version>
     
     <parent>
         <groupId>com.github.workerframework</groupId>
         <artifactId>worker-example-aggregator</artifactId>
-        <version>2.3.1-SNAPSHOT</version>
+        <version>2.3.1-301</version>
     </parent>
 
     <properties>
@@ -41,7 +41,7 @@
         <dependency>
             <groupId>com.github.workerframework</groupId>
             <artifactId>worker-example-shared</artifactId>
-            <version>2.3.1-SNAPSHOT</version>
+            <version>2.3.1-301</version>
         </dependency>
         <dependency>
             <groupId>com.github.jobservice</groupId>
