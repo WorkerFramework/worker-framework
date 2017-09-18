@@ -25,8 +25,8 @@ import javax.validation.constraints.Size;
 /**
  * Configuration for the ExampleWorker, read in from src/main/config/cfg~caf~worker~ExampleWorkerConfiguration.
  */
-public class ExampleWorkerConfiguration extends WorkerConfiguration {
-
+public class ExampleWorkerConfiguration extends WorkerConfiguration
+{
     /**
      * Output queue to return results to RabbitMQ.
      */
@@ -48,29 +48,37 @@ public class ExampleWorkerConfiguration extends WorkerConfiguration {
     @Max(100 * 1024)
     private int resultSizeThreshold;
 
-    public ExampleWorkerConfiguration() { }
+    public ExampleWorkerConfiguration()
+    {
+    }
 
-    public String getOutputQueue() {
+    public String getOutputQueue()
+    {
         return outputQueue;
     }
 
-    public void setOutputQueue(String outputQueue) {
+    public void setOutputQueue(String outputQueue)
+    {
         this.outputQueue = outputQueue;
     }
 
-    public int getThreads() {
+    public int getThreads()
+    {
         return threads;
     }
 
-    public void setThreads(int threads) {
+    public void setThreads(int threads)
+    {
         this.threads = threads;
     }
 
-    public int getResultSizeThreshold() {
+    public int getResultSizeThreshold()
+    {
         return resultSizeThreshold;
     }
 
-    public void setResultSizeThreshold(int resultSizeThreshold) {
+    public void setResultSizeThreshold(int resultSizeThreshold)
+    {
         this.resultSizeThreshold = resultSizeThreshold;
     }
 }

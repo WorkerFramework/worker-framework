@@ -23,15 +23,16 @@ import org.testng.annotations.Test;
 
 import java.util.HashMap;
 
-public class TestItemStoreTest {
-
+public class TestItemStoreTest
+{
     private final TestItemStore testItemStore = new TestItemStore(null);
     private final HashMap<String, TestItem> items = new HashMap<>();
     private final String inputIdToGet = "18d1aaab-a9c4-4698-acc2-f65a822ff718";
     private final String inputIdNotToGet = "fb414821-06b8-4686-9cea-eeb3d0904628";
 
     @BeforeMethod
-    public void prepareTest() {
+    public void prepareTest()
+    {
         // First TestItem to add to the Map
         TestItem testItem1 = new TestItem("ThreeFilesZip\\input\\ThreeFiles.zip", null, null);
         testItem1.setInputIdentifier("ec39fcde-2278-4200-acbc-9c2a2f5d9c72");
@@ -44,7 +45,8 @@ public class TestItemStoreTest {
     }
 
     @Test
-    public void testTestItemStoreFindMethod () {
+    public void testTestItemStoreFindMethod()
+    {
         // An Input ID that is within the Map of TestItems
         Assert.assertNotNull(testItemStore.find(inputIdToGet));
         // An Input ID that is not within the Map of TestItems

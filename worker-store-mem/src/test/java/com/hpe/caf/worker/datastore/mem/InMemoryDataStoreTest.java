@@ -88,7 +88,7 @@ public class InMemoryDataStoreTest
     {
         byte[] input = testStr.getBytes();
         String absoluteReference = dataStore.store(input, partialReference);
-        long size  = dataStore.size(absoluteReference);
+        long size = dataStore.size(absoluteReference);
         Assert.assertEquals("Test string bytes length should equal the retrieved size.", testStr.getBytes().length, size);
     }
 
@@ -98,6 +98,6 @@ public class InMemoryDataStoreTest
         byte[] input = testStr.getBytes();
         String absoluteReference = dataStore.store(input, partialReference);
         dataStore.delete(absoluteReference);
-        long size  = dataStore.size(absoluteReference);
+        long size = dataStore.size(absoluteReference);
     }
 }

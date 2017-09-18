@@ -23,18 +23,19 @@ import java.util.Set;
 /**
  * Created by ploch on 10/02/2016.
  */
-public class ConsoleTestReporter implements TestResultsReporter {
-
+public class ConsoleTestReporter implements TestResultsReporter
+{
     private Map<String, TestCaseReport> reportMap = new HashMap<>();
 
-    private class TestCaseReport {
-
+    private class TestCaseReport
+    {
         private final String testCaseId;
 
         private final Set<TestCaseInfo> successful = new HashSet<>();
         private final Set<TestCaseInfo> failures = new HashSet<>();
 
-        public TestCaseReport(String testCaseId) {
+        public TestCaseReport(String testCaseId)
+        {
             this.testCaseId = testCaseId;
         }
 
@@ -43,7 +44,8 @@ public class ConsoleTestReporter implements TestResultsReporter {
          *
          * @return Value for property 'testCaseId'.
          */
-        public String getTestCaseId() {
+        public String getTestCaseId()
+        {
             return testCaseId;
         }
 
@@ -52,7 +54,8 @@ public class ConsoleTestReporter implements TestResultsReporter {
          *
          * @return Value for property 'successful'.
          */
-        public Set<TestCaseInfo> getSuccessful() {
+        public Set<TestCaseInfo> getSuccessful()
+        {
             return successful;
         }
 
@@ -61,23 +64,22 @@ public class ConsoleTestReporter implements TestResultsReporter {
          *
          * @return Value for property 'failures'.
          */
-        public Set<TestCaseInfo> getFailures() {
+        public Set<TestCaseInfo> getFailures()
+        {
             return failures;
         }
     }
 
-
     @Override
-    public void reportResults(TestResult result) {
+    public void reportResults(TestResult result)
+    {
         println("================================================================================");
         println(" EXECUTION REPORT ");
         println("================================================================================");
         println();
-        if (result.isSuccess())
-        {
-            println(" Completed successfully all test cases." );
-        }
-        else {
+        if (result.isSuccess()) {
+            println(" Completed successfully all test cases.");
+        } else {
             println(" Did not complete successfully.");
         }
         println();
@@ -90,8 +92,7 @@ public class ConsoleTestReporter implements TestResultsReporter {
             TestCaseInfo info = testCaseResult.getTestCaseInfo();
             if (info == null) {
                 println(" No details about test case. Please update test case file.");
-            }
-            else {
+            } else {
                 TestCaseReport testCaseReport = reportMap.get(info.getTestCaseId());
                 if (testCaseReport == null) {
                     testCaseReport = new TestCaseReport(info.getTestCaseId());
@@ -99,8 +100,7 @@ public class ConsoleTestReporter implements TestResultsReporter {
                 }
                 if (testCaseResult.isSucceeded()) {
                     testCaseReport.getSuccessful().add(info);
-                }
-                else {
+                } else {
                     testCaseReport.getFailures().add(info);
                 }
                 printTestCaseInfo(info);
@@ -108,8 +108,7 @@ public class ConsoleTestReporter implements TestResultsReporter {
 
             if (testCaseResult.isSucceeded()) {
                 successes++;
-            }
-            else {
+            } else {
                 failures++;
             }
 
@@ -140,8 +139,7 @@ public class ConsoleTestReporter implements TestResultsReporter {
             println("Failed: " + entry.getValue().getFailures().size());
             if (entry.getValue().getFailures().size() > 0) {
                 failedTestCases++;
-            }
-            else {
+            } else {
                 successfulTestCases++;
             }
             println();
@@ -170,28 +168,31 @@ public class ConsoleTestReporter implements TestResultsReporter {
         println();
         println("================================================================================");
 
-
     }
 
-    private void printTestInstanceInfo(TestCaseInfo info) {
+    private void printTestInstanceInfo(TestCaseInfo info)
+    {
         println("Description: " + info.getDescription());
         println("Associated tickets: " + info.getAssociatedTickets());
         println("Comments: " + info.getComments());
         println();
     }
 
-    private void printTestCaseInfo(TestCaseInfo info) {
+    private void printTestCaseInfo(TestCaseInfo info)
+    {
         println("Test case id: " + info.getTestCaseId());
         println("Description: " + info.getDescription());
         println("Associated tickets: " + info.getAssociatedTickets());
         println("Comments: " + info.getComments());
     }
 
-    private void println() {
+    private void println()
+    {
         println("");
     }
 
-    private void println(String str) {
+    private void println(String str)
+    {
         System.out.println(str);
     }
 }

@@ -20,27 +20,35 @@ import org.testng.annotations.Test;
 
 import java.util.UUID;
 
-public class ConfigurationBuilderTest {
+public class ConfigurationBuilderTest
+{
+    class TestIn
+    {
+    }
 
-    class TestIn{}
+    class TestExpectation
+    {
+    }
 
-    class TestExpectation {}
+    class TestTask
+    {
+    }
 
-    class TestTask {}
-
-    class TestResult {}
+    class TestResult
+    {
+    }
 
     @Test
-    public void testAllSettingsWithSpecifiedDocumentFolder() throws Exception {
-
+    public void testAllSettingsWithSpecifiedDocumentFolder() throws Exception
+    {
         String containerId = UUID.randomUUID().toString();
         TestCaseSettings settings = ConfigurationBuilder
-                .configure(TestTask.class, TestResult.class, TestIn.class, TestExpectation.class)
-                .setUseDataStore(true)
-                .setDataStoreContainerId(containerId)
-                .setTestCaseFolder("test-data")
-                .setDocumentFolder("test-data/documents")
-                .build();
+            .configure(TestTask.class, TestResult.class, TestIn.class, TestExpectation.class)
+            .setUseDataStore(true)
+            .setDataStoreContainerId(containerId)
+            .setTestCaseFolder("test-data")
+            .setDocumentFolder("test-data/documents")
+            .build();
 
         Assert.assertEquals(settings.getDataStoreSettings().getDataStoreContainerId(), containerId);
         Assert.assertEquals(settings.getDataStoreSettings().isUseDataStore(), true);
@@ -50,7 +58,5 @@ public class ConfigurationBuilderTest {
         Assert.assertEquals(settings.getWorkerClasses().getWorkerResultClass(), TestResult.class);
         Assert.assertEquals(settings.getTestCaseClasses().getInputClass(), TestIn.class);
         Assert.assertEquals(settings.getTestCaseClasses().getExpectationClass(), TestExpectation.class);
-
     }
-
 }

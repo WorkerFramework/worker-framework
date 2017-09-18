@@ -15,7 +15,6 @@
  */
 package com.hpe.caf.worker.queue.rabbit;
 
-
 import com.hpe.caf.util.rabbitmq.ConsumerRejectEvent;
 import com.hpe.caf.util.rabbitmq.Event;
 import com.hpe.caf.util.rabbitmq.EventPoller;
@@ -33,14 +32,12 @@ import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.TimeUnit;
 
-
 public class RabbitWorkerQueuePublisherTest
 {
     private String testQueue = "testQueue";
     private long id = 101L;
     private byte[] data = "test123".getBytes(StandardCharsets.UTF_8);
     private RabbitMetricsReporter metrics = new RabbitMetricsReporter();
-
 
     @Test
     public void testSetup()
@@ -54,10 +51,9 @@ public class RabbitWorkerQueuePublisherTest
         Mockito.verify(channel, Mockito.times(1)).addConfirmListener(listener);
     }
 
-
     @Test
     public void testHandlePublish()
-            throws IOException, InterruptedException
+        throws IOException, InterruptedException
     {
         BlockingQueue<Event<QueueConsumer>> consumerEvents = new LinkedBlockingQueue<>();
         BlockingQueue<Event<WorkerPublisher>> publisherEvents = new LinkedBlockingQueue<>();
@@ -80,10 +76,9 @@ public class RabbitWorkerQueuePublisherTest
         Assert.assertEquals(0, consumerEvents.size());
     }
 
-
     @Test
     public void testHandlePublishFail()
-            throws IOException, InterruptedException
+        throws IOException, InterruptedException
     {
         BlockingQueue<Event<QueueConsumer>> consumerEvents = new LinkedBlockingQueue<>();
         BlockingQueue<Event<WorkerPublisher>> publisherEvents = new LinkedBlockingQueue<>();

@@ -15,7 +15,6 @@
  */
 package com.hpe.caf.util.rabbitmq;
 
-
 /**
  * A message drop Event for a Consumer.
  */
@@ -23,16 +22,15 @@ public class ConsumerDropEvent implements Event<QueueConsumer>
 {
     private final long tag;
 
-
     /**
      * Create a ConsumerDropEvent.
+     *
      * @param tag the RabbitMQ id of the message to drop
      */
     public ConsumerDropEvent(final long tag)
     {
         this.tag = tag;
     }
-
 
     /**
      * {@inheritDoc}
@@ -44,7 +42,6 @@ public class ConsumerDropEvent implements Event<QueueConsumer>
     {
         target.processDrop(tag);
     }
-
 
     /**
      * @return the RabbitMQ id of the message this Event will trigger a Consumer to drop

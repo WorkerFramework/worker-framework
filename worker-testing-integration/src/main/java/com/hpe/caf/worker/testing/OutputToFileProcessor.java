@@ -29,8 +29,8 @@ import java.util.regex.Pattern;
 /**
  * Created by ploch on 08/11/2015.
  */
-public abstract class OutputToFileProcessor<TResult, TInput, TExpected> extends AbstractResultProcessor<TResult, TInput, TExpected> {
-
+public abstract class OutputToFileProcessor<TResult, TInput, TExpected> extends AbstractResultProcessor<TResult, TInput, TExpected>
+{
     private final String outputFolder;
 
     /**
@@ -38,29 +38,32 @@ public abstract class OutputToFileProcessor<TResult, TInput, TExpected> extends 
      *
      * @return Value for property 'outputFolder'.
      */
-    protected String getOutputFolder() {
+    protected String getOutputFolder()
+    {
         return outputFolder;
     }
 
-    protected OutputToFileProcessor(final Codec codec, final Class<TResult> resultClass, final String outputFolder) {
+    protected OutputToFileProcessor(final Codec codec, final Class<TResult> resultClass, final String outputFolder)
+    {
         super(codec, resultClass);
         this.outputFolder = outputFolder;
     }
 
     @Override
-    protected boolean processWorkerResult(TestItem<TInput, TExpected> testItem, TaskMessage message, TResult result) throws Exception {
+    protected boolean processWorkerResult(TestItem<TInput, TExpected> testItem, TaskMessage message, TResult result) throws Exception
+    {
         byte[] content = getOutputContent(result, message, testItem);
-        return processResult(testItem, message,content);
+        return processResult(testItem, message, content);
     }
 
-    public byte[] getSerializedTestItem(TestItem<TInput, TExpected> testItem, TestConfiguration configuration) throws Exception {
+    public byte[] getSerializedTestItem(TestItem<TInput, TExpected> testItem, TestConfiguration configuration) throws Exception
+    {
         TestCaseInfo info = new TestCaseInfo();
         Matcher matcher = Pattern.compile(".*[/\\\\]").matcher(testItem.getTag());
         if (matcher.find()) {
             String testCaseId = testItem.getTag().substring(matcher.start(), matcher.end() - 1);
             info.setTestCaseId(testCaseId);
-        }
-        else {
+        } else {
             info.setTestCaseId(testItem.getTag());
         }
         info.setComments(testItem.getTag());
@@ -70,15 +73,17 @@ public abstract class OutputToFileProcessor<TResult, TInput, TExpected> extends 
         return configuration.getSerializer().writeValueAsBytes(testItem);
     }
 
-    public boolean processResult(TestItem<TInput, TExpected> testItem, TaskMessage message, byte[] content) throws IOException {
+    public boolean processResult(TestItem<TInput, TExpected> testItem, TaskMessage message, byte[] content) throws IOException
+    {
         Path filePath = getSaveFilePath(testItem, message);
         Files.deleteIfExists(filePath);
-        while(Files.exists(filePath)); // Wait till the file is really deleted.
+        while (Files.exists(filePath)); // Wait till the file is really deleted.
         Files.write(filePath, content, StandardOpenOption.CREATE);
         return true;
     }
 
-    protected Path getSaveFilePath(TestItem<TInput, TExpected> testItem, TaskMessage message) {
+    protected Path getSaveFilePath(TestItem<TInput, TExpected> testItem, TaskMessage message)
+    {
         String baseFileName = testItem.getTag() == null ? message.getTaskId() : testItem.getTag();
         baseFileName = baseFileName + ".testcase";
         Path filePath = Paths.get(outputFolder, baseFileName);

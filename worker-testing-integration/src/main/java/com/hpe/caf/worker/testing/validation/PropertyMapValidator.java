@@ -23,17 +23,20 @@ import java.util.Map;
 /**
  * Created by ploch on 05/12/2015.
  */
-public class PropertyMapValidator extends PropertyValidator {
+public class PropertyMapValidator extends PropertyValidator
+{
     private final ValidatorFactory validatorFactory;
     private final boolean failOnUnknownProperty;
 
-    public PropertyMapValidator(ValidatorFactory validatorFactory) {
+    public PropertyMapValidator(ValidatorFactory validatorFactory)
+    {
 
         this.validatorFactory = validatorFactory;
         this.failOnUnknownProperty = validatorFactory.shouldFailOnUnknownProperty();
     }
 
-    public boolean process(PropertyMap itemUnderTest, PropertyMap validationMap) {
+    public boolean process(PropertyMap itemUnderTest, PropertyMap validationMap)
+    {
         // For each expected property (validationPropertyName) in the expected properties (validationMap)
         // check if the actual properties (itemUnderTest) contains the expected property
         for (String validationPropertyName : validationMap.keySet()) {
@@ -71,7 +74,7 @@ public class PropertyMapValidator extends PropertyValidator {
             Object sourcePropertyValue = itemUnderTest.get(validationPropertyName);
             Object validationPropertyValue = validationMap.get(validationPropertyName);
 
-            System.out.println("*** Validating '" + validationPropertyName + "'" );
+            System.out.println("*** Validating '" + validationPropertyName + "'");
             PropertyValidator validator = validatorFactory.create(validationPropertyName, sourcePropertyValue, validationPropertyValue);
 
             System.out.println("*** Created validator: " + validator.getClass().getSimpleName());
@@ -80,7 +83,7 @@ public class PropertyMapValidator extends PropertyValidator {
 
         Object[] unknownProperties = itemUnderTest.keySet().stream().filter(item -> !validationMap.containsKey(item)).toArray();
 
-        if ( unknownProperties.length > 0 ) {
+        if (unknownProperties.length > 0) {
             System.out.println("Unknown properties returned in the test:");
             StringBuilder unknownPropertiesString = new StringBuilder();
             for (Object key : unknownProperties) {
@@ -91,7 +94,7 @@ public class PropertyMapValidator extends PropertyValidator {
                 unknownPropertiesString.append(System.lineSeparator());
             }
             System.out.println(unknownPropertiesString.toString());
-            if ( failOnUnknownProperty ) {
+            if (failOnUnknownProperty) {
                 throw new AssertionError(unknownPropertiesString.toString());
             }
         }
@@ -99,10 +102,15 @@ public class PropertyMapValidator extends PropertyValidator {
     }
 
     @Override
-    public boolean isValid(Object testedPropertyValue, Object validatorPropertyValue) {
+    public boolean isValid(Object testedPropertyValue, Object validatorPropertyValue)
+    {
 
-        if (!(testedPropertyValue instanceof Map)) return false;
-        if (!(validatorPropertyValue instanceof Map)) return false;
+        if (!(testedPropertyValue instanceof Map)) {
+            return false;
+        }
+        if (!(validatorPropertyValue instanceof Map)) {
+            return false;
+        }
 
         PropertyMap sourceProperties = new PropertyMap((Map<? extends String, ?>) testedPropertyValue);
         PropertyMap validationProperties = new PropertyMap((Map<? extends String, ?>) validatorPropertyValue);

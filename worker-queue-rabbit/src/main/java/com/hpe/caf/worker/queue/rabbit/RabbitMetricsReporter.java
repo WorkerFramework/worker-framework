@@ -15,11 +15,9 @@
  */
 package com.hpe.caf.worker.queue.rabbit;
 
-
 import com.hpe.caf.api.worker.WorkerQueueMetricsReporter;
 
 import java.util.concurrent.atomic.AtomicInteger;
-
 
 public class RabbitMetricsReporter implements WorkerQueueMetricsReporter
 {
@@ -29,12 +27,10 @@ public class RabbitMetricsReporter implements WorkerQueueMetricsReporter
     private final AtomicInteger msgRejected = new AtomicInteger(0);
     private final AtomicInteger msgDropped = new AtomicInteger(0);
 
-
     public void incremementErrors()
     {
         queueErrors.incrementAndGet();
     }
-
 
     @Override
     public int getQueueErrors()
@@ -42,12 +38,10 @@ public class RabbitMetricsReporter implements WorkerQueueMetricsReporter
         return queueErrors.get();
     }
 
-
     public void incrementReceived()
     {
         msgRx.incrementAndGet();
     }
-
 
     @Override
     public int getMessagesReceived()
@@ -55,12 +49,10 @@ public class RabbitMetricsReporter implements WorkerQueueMetricsReporter
         return msgRx.get();
     }
 
-
     public void incrementPublished()
     {
         msgTx.incrementAndGet();
     }
-
 
     @Override
     public int getMessagesPublished()
@@ -68,12 +60,10 @@ public class RabbitMetricsReporter implements WorkerQueueMetricsReporter
         return msgTx.get();
     }
 
-
     public void incrementRejected()
     {
         msgRejected.incrementAndGet();
     }
-
 
     @Override
     public int getMessagesRejected()
@@ -81,12 +71,10 @@ public class RabbitMetricsReporter implements WorkerQueueMetricsReporter
         return msgRejected.get();
     }
 
-
     public void incrementDropped()
     {
         msgDropped.incrementAndGet();
     }
-
 
     @Override
     public int getMessagesDropped()

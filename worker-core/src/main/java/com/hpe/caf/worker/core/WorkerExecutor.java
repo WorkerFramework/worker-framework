@@ -35,16 +35,15 @@ final class WorkerExecutor
     private final MessagePriorityManager priorityManager;
     private static final Logger LOG = LoggerFactory.getLogger(WorkerExecutor.class);
 
-
     /**
-     * Create a WorkerWrapperFactory. The constructor parameters are the fixed properties of every WorkerWrapper on
-     * this micro-service worker.
+     * Create a WorkerWrapperFactory. The constructor parameters are the fixed properties of every WorkerWrapper on this micro-service
+     * worker.
+     *
      * @param path the service path of this worker service
      * @param callback the callback the wrappers use when a task completes
      * @param workerFactory the origin of the Worker objects themselves
      */
-    public WorkerExecutor
-    (
+    public WorkerExecutor(
         final ServicePath path,
         final WorkerCallback callback,
         final WorkerFactory workerFactory,
@@ -59,10 +58,10 @@ final class WorkerExecutor
         this.priorityManager = Objects.requireNonNull(priorityManager);
     }
 
-
     /**
-     * Get a new Worker for a TaskMessage and hand the Worker off to a thread pool to execute, wrapped in a WorkerWrapper.
-     * If the WorkerFactory indicates the task-specific data is invalid, a response is immediately returned indicating this.
+     * Get a new Worker for a TaskMessage and hand the Worker off to a thread pool to execute, wrapped in a WorkerWrapper. If the
+     * WorkerFactory indicates the task-specific data is invalid, a response is immediately returned indicating this.
+     *
      * @param tm the task message
      * @param queueMessageId the reference to the message this task arrived on
      * @throws TaskRejectedException if the WorkerFactory indicates the task cannot be handled at this time
@@ -75,14 +74,15 @@ final class WorkerExecutor
         threadPool.submitWorkerTask(workerTask);
     }
 
-
     /**
      * Decide whether the message is to be forwarded or discarded.
+     *
      * @param tm the task message
      * @param queueMessageId the reference to the message this task arrived on
      * @param headers the map of key/value paired headers to be stamped on the message
      */
-    public void forwardTask(final TaskMessage tm, final String queueMessageId, Map<String, Object> headers) throws TaskRejectedException {
+    public void forwardTask(final TaskMessage tm, final String queueMessageId, Map<String, Object> headers) throws TaskRejectedException
+    {
         //Check whether this worker application can evaluate messages for forwarding.
         if (factory instanceof TaskMessageForwardingEvaluator) {
             ((TaskMessageForwardingEvaluator) factory).determineForwardingAction(tm, queueMessageId, headers, callback);
@@ -92,17 +92,17 @@ final class WorkerExecutor
         }
     }
 
-
     /**
      * Discard the supplied task message.
+     *
      * @param tm the task message to be discarded
      * @param queueMessageId the reference to the message this task arrived on
      */
-    public void discardTask(final TaskMessage tm, final String queueMessageId) throws TaskRejectedException {
+    public void discardTask(final TaskMessage tm, final String queueMessageId) throws TaskRejectedException
+    {
         LOG.warn("Discarding task {} (message id: {})", tm.getTaskId(), queueMessageId);
         callback.discard(queueMessageId);
     }
-
 
     /**
      * Creates a WorkerTask for the specified message

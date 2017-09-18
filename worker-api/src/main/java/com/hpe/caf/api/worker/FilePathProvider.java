@@ -18,17 +18,17 @@ package com.hpe.caf.api.worker;
 import java.nio.file.Path;
 
 /**
- * An interface intended to be implemented by DataStores that support the concept of
- * a unique filepath to each stored asset.
+ * An interface intended to be implemented by DataStores that support the concept of a unique filepath to each stored asset.
  */
 public interface FilePathProvider
 {
     /**
      * Obtains the unique path to the asset identified by the supplied storage reference.
+     *
      * @param reference the storage reference of the asset whose path within the DataStore is to be returned
      * @return the file path to the referenced asset
      * @throws DataStoreException if the DataStore cannot service the request
      */
     Path getFilePath(final String reference)
-            throws DataStoreException;
+        throws DataStoreException;
 }

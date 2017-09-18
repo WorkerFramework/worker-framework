@@ -47,7 +47,6 @@ public class StreamingWorkerWrapperTest
     private static final String SERVICE_NAME = "/test/group";
     private static final Integer PRIORITY = 2;
 
-
     @Test
     public void testSuccess()
         throws WorkerException, InterruptedException, InvalidNameException, CodecException
@@ -80,7 +79,6 @@ public class StreamingWorkerWrapperTest
         ArrayAsserts.assertArrayEquals(SUCCESS_BYTES, callback.getContext().get(path.toString()));
     }
 
-
     @Test
     public void testNewTask()
         throws WorkerException, InterruptedException, InvalidNameException
@@ -110,7 +108,6 @@ public class StreamingWorkerWrapperTest
         Assert.assertEquals(REDIRECT_NAME, callback.getClassifier());
         Assert.assertEquals(QUEUE_REDIRECT, callback.getQueue());
     }
-
 
     @Test
     public void testException()
@@ -149,7 +146,6 @@ public class StreamingWorkerWrapperTest
         Assert.assertEquals(true, s.contains("class com.hpe.caf.api.worker.TaskFailedException whoops"));
     }
 
-
     @Test
     public void testInterrupt()
         throws WorkerException, InterruptedException, InvalidNameException, CodecException
@@ -175,7 +171,6 @@ public class StreamingWorkerWrapperTest
         Thread.sleep(1000);
         Mockito.verify(callback, Mockito.times(0)).complete(Mockito.any(), Mockito.any(), Mockito.any());
     }
-
 
     @Test
     public void testAbandon()
@@ -204,7 +199,6 @@ public class StreamingWorkerWrapperTest
         Assert.assertEquals(queueMsgId, callback.getQueueMsgId());
     }
 
-
     private Worker getWorker(final TestWorkerTask task, final Codec codec)
         throws InvalidTaskException
     {
@@ -218,13 +212,11 @@ public class StreamingWorkerWrapperTest
                 return createSuccessResult(result, SUCCESS_BYTES);
             }
 
-
             @Override
             public String getWorkerIdentifier()
             {
                 return WORKER_NAME;
             }
-
 
             @Override
             public int getWorkerApiVersion()
@@ -233,7 +225,6 @@ public class StreamingWorkerWrapperTest
             }
         };
     }
-
 
     private Worker getRedirectWorker(final TestWorkerTask task, final Codec codec)
         throws InvalidTaskException
@@ -246,13 +237,11 @@ public class StreamingWorkerWrapperTest
                 return createTaskSubmission(QUEUE_REDIRECT, SUCCESS_BYTES, REDIRECT_NAME, WORKER_API_VER);
             }
 
-
             @Override
             public String getWorkerIdentifier()
             {
                 return WORKER_NAME;
             }
-
 
             @Override
             public int getWorkerApiVersion()
@@ -274,18 +263,15 @@ public class StreamingWorkerWrapperTest
         private Integer priority;
         private final CountDownLatch latch;
 
-
         public TestCallback(final CountDownLatch latch)
         {
             this.latch = Objects.requireNonNull(latch);
         }
 
-
         @Override
         public void send(String queueMsgId, TaskMessage responseMessage)
         {
         }
-
 
         @Override
         public void complete(final String queueMsgId, final String queue, final TaskMessage tm)
@@ -301,7 +287,6 @@ public class StreamingWorkerWrapperTest
             latch.countDown();
         }
 
-
         @Override
         public void abandon(final String queueMsgId, final Exception exception)
         {
@@ -309,16 +294,16 @@ public class StreamingWorkerWrapperTest
             latch.countDown();
         }
 
-
         @Override
-        public void forward(String queueMsgId, String queue, TaskMessage forwardedMessage, Map<String, Object> headers) {
+        public void forward(String queueMsgId, String queue, TaskMessage forwardedMessage, Map<String, Object> headers)
+        {
             this.queueMsgId = queueMsgId;
             latch.countDown();
         }
 
-
         @Override
-        public void discard(String queueMsgId) {
+        public void discard(String queueMsgId)
+        {
             this.queueMsgId = queueMsgId;
             latch.countDown();
         }
@@ -328,36 +313,30 @@ public class StreamingWorkerWrapperTest
             return classifier;
         }
 
-
         public Map<String, byte[]> getContext()
         {
             return context;
         }
-
 
         public String getTaskId()
         {
             return taskId;
         }
 
-
         public String getQueueMsgId()
         {
             return queueMsgId;
         }
-
 
         public TaskStatus getStatus()
         {
             return status;
         }
 
-
         public byte[] getResultData()
         {
             return resultData;
         }
-
 
         public String getQueue()
         {

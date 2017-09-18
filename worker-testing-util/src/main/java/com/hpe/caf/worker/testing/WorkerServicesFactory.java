@@ -28,13 +28,16 @@ import com.hpe.caf.util.ModuleLoaderException;
 /**
  * Created by ploch on 22/10/2015.
  */
-public class WorkerServicesFactory {
-
+public class WorkerServicesFactory
+{
     private static BootstrapConfiguration bootstrapConfiguration = new SystemBootstrapConfiguration();
 
-    private WorkerServicesFactory(){}
+    private WorkerServicesFactory()
+    {
+    }
 
-    public static WorkerServices create() throws ModuleLoaderException, CipherException, ConfigurationException, DataStoreException {
+    public static WorkerServices create() throws ModuleLoaderException, CipherException, ConfigurationException, DataStoreException
+    {
 
         Codec codec = ModuleLoader.getService(Codec.class);
         ConfigurationDecoderProvider decoderProvider = ModuleLoader.getService(ConfigurationDecoderProvider.class,

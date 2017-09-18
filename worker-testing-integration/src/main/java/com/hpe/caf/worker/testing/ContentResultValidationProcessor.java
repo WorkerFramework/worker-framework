@@ -35,14 +35,20 @@ import org.joda.time.DateTime;
 /**
  * Created by ploch on 25/11/2015.
  */
-public class ContentResultValidationProcessor<TResult, TInput extends FileTestInputData, TExpected extends ContentFileTestExpectation> extends AbstractResultProcessor<TResult, TInput, TExpected>
+public class ContentResultValidationProcessor<TResult, TInput extends FileTestInputData, TExpected extends ContentFileTestExpectation>
+    extends AbstractResultProcessor<TResult, TInput, TExpected>
 {
-
     private final DataStore dataStore;
     private final Function<TResult, ReferencedData> getContentFunc;
     private final String testDataFolder;
 
-    public ContentResultValidationProcessor(final DataStore dataStore, final Codec codec, final Class<TResult> resultClass, final Function<TResult, ReferencedData> getContentFunc, final String testDataFolder)
+    public ContentResultValidationProcessor(
+        final DataStore dataStore,
+        final Codec codec,
+        final Class<TResult> resultClass,
+        final Function<TResult, ReferencedData> getContentFunc,
+        final String testDataFolder
+    )
     {
         super(codec, resultClass);
         this.dataStore = dataStore;
@@ -51,10 +57,11 @@ public class ContentResultValidationProcessor<TResult, TInput extends FileTestIn
     }
 
     @Override
-    protected boolean processWorkerResult(TestItem<TInput, TExpected> testItem, TaskMessage message, TResult workerResult) throws Exception
+    protected boolean processWorkerResult(TestItem<TInput, TExpected> testItem, TaskMessage message, TResult workerResult)
+        throws Exception
     {
         final String func = "Process Worker Result";
-        
+
         DataSource dataSource = new DataStoreSource(dataStore, getCodec());
 
         ReferencedData referencedData = getContentFunc.apply(workerResult);
@@ -62,7 +69,9 @@ public class ContentResultValidationProcessor<TResult, TInput extends FileTestIn
         String contentFileName = testItem.getExpectedOutputData().getExpectedContentFile();
         if (contentFileName != null && contentFileName.length() > 0) {
 
-            logWithTimestamp(func + " aquire from source: " + referencedData.getReference() == null ? "<blob info>" : referencedData.getReference());
+            logWithTimestamp(func + " aquire from source: " + referencedData.getReference() == null
+                ? "<blob info>"
+                : referencedData.getReference());
             InputStream dataStream = referencedData.acquire(dataSource);
             logWithTimestamp(func + " aquire from source finished");
 
@@ -79,7 +88,10 @@ public class ContentResultValidationProcessor<TResult, TInput extends FileTestIn
 
             logWithTimestamp(func + " Test item: " + testItem.getTag() + ". Similarity: " + similarity + "%");
             if (similarity < testItem.getExpectedOutputData().getExpectedSimilarityPercentage()) {
-                TestResultHelper.testFailed(testItem, "Expected similarity of " + testItem.getExpectedOutputData().getExpectedSimilarityPercentage() + "% but actual similarity was " + similarity + "%");
+                TestResultHelper.testFailed(
+                    testItem,
+                    "Expected similarity of " + testItem.getExpectedOutputData().getExpectedSimilarityPercentage() + "% "
+                    + "but actual similarity was " + similarity + "%");
             }
         } else if (referencedData != null) {
             TestResultHelper.testFailed(testItem, "Expected null result.");

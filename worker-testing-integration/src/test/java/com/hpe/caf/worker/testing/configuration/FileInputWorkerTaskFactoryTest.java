@@ -33,52 +33,57 @@ import java.lang.management.OperatingSystemMXBean;
 import java.nio.file.FileSystemException;
 import java.util.UUID;
 
-public class FileInputWorkerTaskFactoryTest {
-
-    class TestFileInputWorkerTaskFactory extends FileInputWorkerTaskFactory {
-
+public class FileInputWorkerTaskFactoryTest
+{
+    class TestFileInputWorkerTaskFactory extends FileInputWorkerTaskFactory
+    {
         public TestFileInputWorkerTaskFactory(DataStore dataStore, String containerId, String testFilesFolder,
                                               String testSourcefileBaseFolder,
-                                              String overrideReference) throws Exception {
+                                              String overrideReference) throws Exception
+        {
             super(dataStore, containerId, testFilesFolder, testSourcefileBaseFolder, overrideReference);
         }
 
         @Override
-        protected Object createTask(TestItem testItem, ReferencedData sourceData) {
+        protected Object createTask(TestItem testItem, ReferencedData sourceData)
+        {
             return null;
         }
 
         @Override
-        public String getWorkerName() {
+        public String getWorkerName()
+        {
             return null;
         }
 
         @Override
-        public int getApiVersion() {
+        public int getApiVersion()
+        {
             return 0;
         }
     }
 
-    public FileInputWorkerTaskFactoryTest() throws Exception {
+    public FileInputWorkerTaskFactoryTest() throws Exception
+    {
     }
 
     @Test
-    public void testFileInputWorkerTaskFactoryCreateTaskDoesNotThrowFileSystemException () throws Exception {
-
+    public void testFileInputWorkerTaskFactoryCreateTaskDoesNotThrowFileSystemException() throws Exception
+    {
         // Mock DataStore
         DataStore mockDataStore = Mockito.mock(DataStore.class);
         Mockito.when(mockDataStore.store(Mockito.any(InputStream.class), Mockito.any(String.class)))
-                .thenReturn("mockRefId");
+            .thenReturn("mockRefId");
 
         String containerId = "mockContainerId";
         String testFilesFolder = "";
         String testSourcefileBaseFolder = "";
         TestFileInputWorkerTaskFactory testFileInputWorkerTaskFactory = new TestFileInputWorkerTaskFactory(
-                mockDataStore, containerId, testFilesFolder, testSourcefileBaseFolder, null);
+            mockDataStore, containerId, testFilesFolder, testSourcefileBaseFolder, null);
 
         OperatingSystemMXBean os = ManagementFactory.getOperatingSystemMXBean();
         // If the OS is UNIX test that the max file descriptor count can be exceeded without an exception being thrown.
-        if(os instanceof UnixOperatingSystemMXBean){
+        if (os instanceof UnixOperatingSystemMXBean) {
             int numberOfTimesToRun = (int) ((UnixOperatingSystemMXBean) os).getMaxFileDescriptorCount() + 1;
             System.out.println("Number of times to run create task: " + numberOfTimesToRun);
             for (int i = 0; i < numberOfTimesToRun; i++) {
@@ -96,5 +101,4 @@ public class FileInputWorkerTaskFactoryTest {
             System.out.println("Non Unix OS");
         }
     }
-
 }

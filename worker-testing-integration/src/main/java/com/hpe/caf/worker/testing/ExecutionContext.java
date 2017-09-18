@@ -15,7 +15,6 @@
  */
 package com.hpe.caf.worker.testing;
 
-
 import org.eclipse.jetty.util.HostMap;
 
 import java.util.*;
@@ -23,8 +22,8 @@ import java.util.*;
 /**
  * Created by ploch on 08/11/2015.
  */
-public class ExecutionContext {
-
+public class ExecutionContext
+{
     private Signal finishedSignal;
     private TestItemStore itemStore;
     private Map<String, TestCaseResult> results = new HashMap<>();
@@ -32,11 +31,13 @@ public class ExecutionContext {
     private final boolean stopOnException;
     private boolean initialized = false;
 
-    public ExecutionContext(boolean stopOnException) {
+    public ExecutionContext(boolean stopOnException)
+    {
         this.stopOnException = stopOnException;
     }
 
-    public void initializeContext(){
+    public void initializeContext()
+    {
         results = new HashMap<>();
         failureEncountered = false;
         finishedSignal = new Signal();
@@ -49,7 +50,8 @@ public class ExecutionContext {
      *
      * @return Value for property 'finishedSignal'.
      */
-    public Signal getFinishedSignal() {
+    public Signal getFinishedSignal()
+    {
         verifyInitialized();
         return finishedSignal;
     }
@@ -59,7 +61,8 @@ public class ExecutionContext {
      *
      * @return Value for property 'itemStore'.
      */
-    public TestItemStore getItemStore() {
+    public TestItemStore getItemStore()
+    {
         verifyInitialized();
         return itemStore;
     }
@@ -69,22 +72,25 @@ public class ExecutionContext {
      *
      * @return Value for property 'results'.
      */
-    public Collection<TestCaseResult> getResults() {
+    public Collection<TestCaseResult> getResults()
+    {
         verifyInitialized();
         return results.values();
     }
 
-    public void verifyInitialized() {
-        if (initialized == false)
-        throw new RuntimeException("ExecutionContext not initialized");
+    public void verifyInitialized()
+    {
+        if (initialized == false) {
+            throw new RuntimeException("ExecutionContext not initialized");
+        }
     }
 
-    public void finishedSuccessfully(){
+    public void finishedSuccessfully()
+    {
         verifyInitialized();
         if (!failureEncountered) {
             finishedSignal.doNotify(TestResult.createSuccess(results.values()));
-        }
-        else {
+        } else {
             int failures = 0;
             for (TestCaseResult result : results.values()) {
                 if (!result.isSucceeded()) {
@@ -96,14 +102,16 @@ public class ExecutionContext {
         }
     }
 
-    public void succeeded(TestItem testItem) {
+    public void succeeded(TestItem testItem)
+    {
         verifyInitialized();
         synchronized (results) {
             results.putIfAbsent(testItem.getTag(), TestCaseResult.createSuccess(testItem.getTestCaseInformation() == null ? createIfNoneProvided(testItem) : testItem.getTestCaseInformation()));
         }
     }
 
-    private TestCaseInfo createIfNoneProvided(TestItem item) {
+    private TestCaseInfo createIfNoneProvided(TestItem item)
+    {
         verifyInitialized();
         TestCaseInfo info = new TestCaseInfo();
         info.setTestCaseId(item.getTag());
@@ -113,19 +121,19 @@ public class ExecutionContext {
         return info;
     }
 
-    public void failed(TestItem testItem, String message) {
+    public void failed(TestItem testItem, String message)
+    {
         verifyInitialized();
         synchronized (results) {
             failureEncountered = true;
             TestCaseResult result = results.get(testItem.getTag());
             if (result == null) {
                 results.put(testItem.getTag(), TestCaseResult.createFailure(testItem.getTestCaseInformation() == null ? createIfNoneProvided(testItem) : testItem.getTestCaseInformation(), message));
-            }
-            else {
+            } else {
                 result.setSucceeded(false);
                 result.setFailureMessage(result.getFailureMessage() + "\n***\n" + message);
             }
-        //    results.add(TestCaseResult.createFailure(testItem.getTestCaseInformation() == null ? createIfNoneProvided(testItem) : testItem.getTestCaseInformation(), message));
+            //    results.add(TestCaseResult.createFailure(testItem.getTestCaseInformation() == null ? createIfNoneProvided(testItem) : testItem.getTestCaseInformation(), message));
         }
 
         if (stopOnException) {
@@ -133,14 +141,15 @@ public class ExecutionContext {
         }
     }
 
-    public void testRunsTimedOut() {
+    public void testRunsTimedOut()
+    {
         verifyInitialized();
         finishedSignal.doNotify(TestResult.createFailed("Tests timed out. Failed.", results.values()));
     }
 
-    public TestResult getTestResult(){
+    public TestResult getTestResult()
+    {
         verifyInitialized();
         return finishedSignal.doWait();
     }
-
 }

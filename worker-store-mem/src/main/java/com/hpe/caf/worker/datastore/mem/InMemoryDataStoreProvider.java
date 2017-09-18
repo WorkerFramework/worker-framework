@@ -23,6 +23,7 @@ public class InMemoryDataStoreProvider implements DataStoreProvider
 {
     /**
      * Return a InMemoryDataStore. The configurationSource can be null as InMemoryDataStore currently does not take a configuration.
+     *
      * @param configurationSource set this as null
      * @return the InMemoryDataStore
      */

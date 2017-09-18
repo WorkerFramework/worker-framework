@@ -30,13 +30,24 @@ import java.io.File;
 /**
  * Created by ploch on 25/11/2015.
  */
-public class TestConfiguration<TWorkerTask, TWorkerResult, TInput, TExpectation> {
-
-    public static <TWorkerTask, TWorkerResult, TInput, TExpectation> TestConfiguration<TWorkerTask, TWorkerResult, TInput, TExpectation> createDefault(Class<TWorkerTask> workerTaskClass, Class<TWorkerResult> workerResultClass, Class<TInput> inputClass, Class<TExpectation> expectationClass) {
+public class TestConfiguration<TWorkerTask, TWorkerResult, TInput, TExpectation>
+{
+    public static <TWorkerTask, TWorkerResult, TInput, TExpectation> TestConfiguration<TWorkerTask, TWorkerResult, TInput, TExpectation>
+        createDefault(Class<TWorkerTask> workerTaskClass,
+                      Class<TWorkerResult> workerResultClass,
+                      Class<TInput> inputClass,
+                      Class<TExpectation> expectationClass)
+    {
         return createDefault(workerTaskClass, workerResultClass, inputClass, expectationClass, TestCaseFormat.YAML);
     }
 
-    public static <TWorkerTask, TWorkerResult, TInput, TExpectation> TestConfiguration<TWorkerTask, TWorkerResult, TInput, TExpectation> createDefault(Class<TWorkerTask> workerTaskClass, Class<TWorkerResult> workerResultClass, Class<TInput> inputClass, Class<TExpectation> expectationClass, TestCaseFormat testCaseFormat) {
+    public static <TWorkerTask, TWorkerResult, TInput, TExpectation> TestConfiguration<TWorkerTask, TWorkerResult, TInput, TExpectation>
+        createDefault(Class<TWorkerTask> workerTaskClass,
+                      Class<TWorkerResult> workerResultClass,
+                      Class<TInput> inputClass,
+                      Class<TExpectation> expectationClass,
+                      TestCaseFormat testCaseFormat)
+    {
         SettingsProvider settingsProvider = SettingsProvider.defaultProvider;
 
         String useDataStoreSetting = settingsProvider.getSetting(SettingNames.useDataStore);
@@ -81,11 +92,11 @@ public class TestConfiguration<TWorkerTask, TWorkerResult, TInput, TExpectation>
         }
 
         TestConfiguration<TWorkerTask, TWorkerResult, TInput, TExpectation> configuration = new TestConfiguration<>(
-                expectedFolder, inputFolder, testSourcefileBaseFolder,
-                processSubFolders, storeTestCaseWithInput, failOnUnknownProperty,
-                useDataStore, settingsProvider.getSetting(SettingNames.dataStoreContainerId),
-                mapper,
-                workerTaskClass, workerResultClass, inputClass, expectationClass, overrideReference);
+            expectedFolder, inputFolder, testSourcefileBaseFolder,
+            processSubFolders, storeTestCaseWithInput, failOnUnknownProperty,
+            useDataStore, settingsProvider.getSetting(SettingNames.dataStoreContainerId),
+            mapper,
+            workerTaskClass, workerResultClass, inputClass, expectationClass, overrideReference);
         return configuration;
     }
 
@@ -116,7 +127,23 @@ public class TestConfiguration<TWorkerTask, TWorkerResult, TInput, TExpectation>
 
     private String overrideReference;
 
-    private TestConfiguration(String testDataFolder, String testDocumentsFolder, String testSourcefileBaseFolder, boolean processSubFolders, boolean storeTestCaseWithInput, boolean failOnUnknownProperty, boolean useDataStore, String dataStoreContainerId, ObjectMapper serializer, Class<TWorkerTask> workerTaskClass, Class<TWorkerResult> workerResultClass, Class<TInput> inputClass, Class<TExpectation> expectationClass, String overrideReference) {
+    private TestConfiguration(
+        String testDataFolder,
+        String testDocumentsFolder,
+        String testSourcefileBaseFolder,
+        boolean processSubFolders,
+        boolean storeTestCaseWithInput,
+        boolean failOnUnknownProperty,
+        boolean useDataStore,
+        String dataStoreContainerId,
+        ObjectMapper serializer,
+        Class<TWorkerTask> workerTaskClass,
+        Class<TWorkerResult> workerResultClass,
+        Class<TInput> inputClass,
+        Class<TExpectation> expectationClass,
+        String overrideReference
+    )
+    {
         this.testDataFolder = testDataFolder;
         this.testDocumentsFolder = testDocumentsFolder;
         this.testSourcefileBaseFolder = testSourcefileBaseFolder;
@@ -138,7 +165,8 @@ public class TestConfiguration<TWorkerTask, TWorkerResult, TInput, TExpectation>
      *
      * @return Value for property 'testDataFolder'.
      */
-    public String getTestDataFolder() {
+    public String getTestDataFolder()
+    {
         return testDataFolder;
     }
 
@@ -147,11 +175,13 @@ public class TestConfiguration<TWorkerTask, TWorkerResult, TInput, TExpectation>
      *
      * @return Value for property 'testDocumentsFolder'.
      */
-    public String getTestDocumentsFolder() {
+    public String getTestDocumentsFolder()
+    {
         return testDocumentsFolder;
     }
 
-    public String getTestSourcefileBaseFolder() {
+    public String getTestSourcefileBaseFolder()
+    {
         return testSourcefileBaseFolder;
     }
 
@@ -160,7 +190,8 @@ public class TestConfiguration<TWorkerTask, TWorkerResult, TInput, TExpectation>
      *
      * @return Value for property 'useDataStore'.
      */
-    public boolean isUseDataStore() {
+    public boolean isUseDataStore()
+    {
         return useDataStore;
     }
 
@@ -169,7 +200,8 @@ public class TestConfiguration<TWorkerTask, TWorkerResult, TInput, TExpectation>
      *
      * @return Value for property 'dataStoreContainerId'.
      */
-    public String getDataStoreContainerId() {
+    public String getDataStoreContainerId()
+    {
         return dataStoreContainerId;
     }
 
@@ -178,7 +210,8 @@ public class TestConfiguration<TWorkerTask, TWorkerResult, TInput, TExpectation>
      *
      * @return Value for property 'workerTaskClass'.
      */
-    public Class<TWorkerTask> getWorkerTaskClass() {
+    public Class<TWorkerTask> getWorkerTaskClass()
+    {
         return workerTaskClass;
     }
 
@@ -187,7 +220,8 @@ public class TestConfiguration<TWorkerTask, TWorkerResult, TInput, TExpectation>
      *
      * @return Value for property 'serializer'.
      */
-    public ObjectMapper getSerializer() {
+    public ObjectMapper getSerializer()
+    {
         return serializer;
     }
 
@@ -196,7 +230,8 @@ public class TestConfiguration<TWorkerTask, TWorkerResult, TInput, TExpectation>
      *
      * @return Value for property 'workerResultClass'.
      */
-    public Class<TWorkerResult> getWorkerResultClass() {
+    public Class<TWorkerResult> getWorkerResultClass()
+    {
         return workerResultClass;
     }
 
@@ -205,7 +240,8 @@ public class TestConfiguration<TWorkerTask, TWorkerResult, TInput, TExpectation>
      *
      * @return Value for property 'inputClass'.
      */
-    public Class<TInput> getInputClass() {
+    public Class<TInput> getInputClass()
+    {
         return inputClass;
     }
 
@@ -214,7 +250,8 @@ public class TestConfiguration<TWorkerTask, TWorkerResult, TInput, TExpectation>
      *
      * @return Value for property 'expectationClass'.
      */
-    public Class<TExpectation> getExpectationClass() {
+    public Class<TExpectation> getExpectationClass()
+    {
         return expectationClass;
     }
 
@@ -223,7 +260,8 @@ public class TestConfiguration<TWorkerTask, TWorkerResult, TInput, TExpectation>
      *
      * @return Value for property 'processSubFolders'.
      */
-    public boolean isProcessSubFolders() {
+    public boolean isProcessSubFolders()
+    {
         return processSubFolders;
     }
 
@@ -232,7 +270,8 @@ public class TestConfiguration<TWorkerTask, TWorkerResult, TInput, TExpectation>
      *
      * @return Value for property 'storeTestCaseWithInput'.
      */
-    public boolean isStoreTestCaseWithInput() {
+    public boolean isStoreTestCaseWithInput()
+    {
         return storeTestCaseWithInput;
     }
 
@@ -241,7 +280,8 @@ public class TestConfiguration<TWorkerTask, TWorkerResult, TInput, TExpectation>
      *
      * @return Value for property 'failOnUnknownProperty'.
      */
-    public boolean failOnUnknownProperty() {
+    public boolean failOnUnknownProperty()
+    {
         return failOnUnknownProperty;
     }
 
@@ -250,7 +290,8 @@ public class TestConfiguration<TWorkerTask, TWorkerResult, TInput, TExpectation>
      *
      * @return Value for property 'overrideReference'.
      */
-    public String getOverrideReference() {
+    public String getOverrideReference()
+    {
         return overrideReference;
     }
 }

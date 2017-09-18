@@ -18,16 +18,16 @@ package com.hpe.caf.worker.testing;
 /**
  * Created by ploch on 08/11/2015.
  */
-public class WorkerDescriptor<TConfiguration, TTask, TResult> {
-
+public class WorkerDescriptor<TConfiguration, TTask, TResult>
+{
     private final Class<TConfiguration> configurationClass;
     private final Class<TTask> taskClass;
     private final Class<TResult> resultClass;
     private final String workerName;
     private final int apiVersion;
 
-    public WorkerDescriptor(Class<TConfiguration> configurationClass, Class<TTask> taskClass, Class<TResult> resultClass, String workerName, int apiVersion) {
-
+    public WorkerDescriptor(Class<TConfiguration> configurationClass, Class<TTask> taskClass, Class<TResult> resultClass, String workerName, int apiVersion)
+    {
         this.configurationClass = configurationClass;
         this.taskClass = taskClass;
         this.resultClass = resultClass;
@@ -40,7 +40,8 @@ public class WorkerDescriptor<TConfiguration, TTask, TResult> {
      *
      * @return Value for property 'configurationClass'.
      */
-    public Class<TConfiguration> getConfigurationClass() {
+    public Class<TConfiguration> getConfigurationClass()
+    {
         return configurationClass;
     }
 
@@ -49,7 +50,8 @@ public class WorkerDescriptor<TConfiguration, TTask, TResult> {
      *
      * @return Value for property 'taskClass'.
      */
-    public Class<TTask> getTaskClass() {
+    public Class<TTask> getTaskClass()
+    {
         return taskClass;
     }
 
@@ -58,7 +60,8 @@ public class WorkerDescriptor<TConfiguration, TTask, TResult> {
      *
      * @return Value for property 'resultClass'.
      */
-    public Class<TResult> getResultClass() {
+    public Class<TResult> getResultClass()
+    {
         return resultClass;
     }
 
@@ -67,7 +70,8 @@ public class WorkerDescriptor<TConfiguration, TTask, TResult> {
      *
      * @return Value for property 'workerName'.
      */
-    public String getWorkerName() {
+    public String getWorkerName()
+    {
         return workerName;
     }
 
@@ -76,7 +80,8 @@ public class WorkerDescriptor<TConfiguration, TTask, TResult> {
      *
      * @return Value for property 'apiVersion'.
      */
-    public int getApiVersion() {
+    public int getApiVersion()
+    {
         return apiVersion;
     }
 }

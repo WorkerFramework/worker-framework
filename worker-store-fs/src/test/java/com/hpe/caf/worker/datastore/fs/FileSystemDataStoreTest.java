@@ -15,7 +15,6 @@
  */
 package com.hpe.caf.worker.datastore.fs;
 
-
 import com.hpe.caf.api.ConfigurationException;
 import com.hpe.caf.api.worker.DataStore;
 import com.hpe.caf.api.worker.DataStoreException;
@@ -41,21 +40,19 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.UUID;
 
-
 public class FileSystemDataStoreTest
 {
     private File temp;
     private final String testData = "test123";
-
 
     @BeforeMethod
     public void setUp()
     {
         temp = new File("temp");
     }
-    
+
     @AfterMethod
-    public void tearDown() 
+    public void tearDown()
     {
         deleteDir(temp);
     }
@@ -69,7 +66,7 @@ public class FileSystemDataStoreTest
             }
         }
         file.delete();
-    } 
+    }
 
     @Test
     public void testDataStoreStream()
@@ -84,10 +81,9 @@ public class FileSystemDataStoreTest
         Assert.assertEquals(testData.length(), store.size(storeRef));
     }
 
-
     @Test
     public void testDataStoreStreamHash()
-            throws ConfigurationException, DataStoreException, IOException
+        throws ConfigurationException, DataStoreException, IOException
     {
         FileSystemDataStoreConfiguration conf = new FileSystemDataStoreConfiguration();
         conf.setDataDir(temp.getAbsolutePath());
@@ -98,7 +94,6 @@ public class FileSystemDataStoreTest
         Assert.assertEquals(testData.length(), store.size(storeResult.getReference()));
         Assert.assertEquals(DigestUtils.sha1Hex(data), storeResult.getHash());
     }
-
 
     @Test
     public void testDataStoreBytes()
@@ -113,10 +108,9 @@ public class FileSystemDataStoreTest
         Assert.assertEquals(testData.length(), store.size(storeRef));
     }
 
-
     @Test
     public void testDataStoreBytesHash()
-            throws ConfigurationException, DataStoreException, IOException
+        throws ConfigurationException, DataStoreException, IOException
     {
         FileSystemDataStoreConfiguration conf = new FileSystemDataStoreConfiguration();
         conf.setDataDir(temp.getAbsolutePath());
@@ -127,7 +121,6 @@ public class FileSystemDataStoreTest
         Assert.assertEquals(testData.length(), store.size(storeResult.getReference()));
         Assert.assertEquals(DigestUtils.sha1Hex(data), storeResult.getHash());
     }
-
 
     @Test
     public void testDataStorePath()
@@ -144,10 +137,9 @@ public class FileSystemDataStoreTest
         Assert.assertEquals(testData.length(), store.size(storeRef));
     }
 
-
     @Test
     public void testDataStorePathHash()
-            throws ConfigurationException, DataStoreException, IOException
+        throws ConfigurationException, DataStoreException, IOException
     {
         FileSystemDataStoreConfiguration conf = new FileSystemDataStoreConfiguration();
         conf.setDataDir(temp.getAbsolutePath());
@@ -163,10 +155,9 @@ public class FileSystemDataStoreTest
         Assert.assertEquals(DigestUtils.sha1Hex(data), storeResult.getHash());
     }
 
-
     @Test
     public void testDataStoreFilePathRetrieval()
-            throws ConfigurationException, DataStoreException, IOException
+        throws ConfigurationException, DataStoreException, IOException
     {
         FileSystemDataStoreConfiguration conf = new FileSystemDataStoreConfiguration();
         conf.setDataDir(temp.getAbsolutePath());
@@ -175,14 +166,13 @@ public class FileSystemDataStoreTest
         Path p = Paths.get(temp.getAbsolutePath()).resolve(UUID.randomUUID().toString());
         Files.write(p, data);
         String storeRef = store.store(p, "test");
-        final Path dataStoreFilePath = ((FilePathProvider)store).getFilePath(storeRef);
+        final Path dataStoreFilePath = ((FilePathProvider) store).getFilePath(storeRef);
         try (InputStream inStr = Files.newInputStream(dataStoreFilePath)) {
             verifyData(data, inStr);
         }
         //Verify that repeatable values are returned for the file path of the same stored file.
-        Assert.assertEquals(((FilePathProvider)store).getFilePath(storeRef), dataStoreFilePath);
+        Assert.assertEquals(((FilePathProvider) store).getFilePath(storeRef), dataStoreFilePath);
     }
-
 
     @Test(expectedExceptions = DataStoreException.class)
     public void testInvalidReference()
@@ -192,27 +182,25 @@ public class FileSystemDataStoreTest
         conf.setDataDir(temp.getAbsolutePath());
         DataStore store = new FileSystemDataStore(conf);
         Path p = Paths.get(temp.getAbsolutePath());
-        for ( int i = 0; i < 5; i++ ) {
+        for (int i = 0; i < 5; i++) {
             p = p.resolve("..");
         }
         store.retrieve(p.toString());
     }
 
-
     @Test(expectedExceptions = DataStoreException.class)
     public void testInvalidReferenceFilePathRetrieval()
-            throws DataStoreException, IOException
+        throws DataStoreException, IOException
     {
         FileSystemDataStoreConfiguration conf = new FileSystemDataStoreConfiguration();
         conf.setDataDir(temp.getAbsolutePath());
         DataStore store = new FileSystemDataStore(conf);
         Path p = Paths.get(temp.getAbsolutePath());
-        for ( int i = 0; i < 5; i++ ) {
+        for (int i = 0; i < 5; i++) {
             p = p.resolve("..");
         }
-        ((FilePathProvider)store).getFilePath(p.toString());
+        ((FilePathProvider) store).getFilePath(p.toString());
     }
-
 
     @Test(expectedExceptions = ReferenceNotFoundException.class)
     public void testMissingRef()
@@ -224,21 +212,19 @@ public class FileSystemDataStoreTest
         store.retrieve(UUID.randomUUID().toString());
     }
 
-
     @Test(expectedExceptions = ReferenceNotFoundException.class)
     public void testMissingRefFilePathRetrieval()
-            throws DataStoreException
+        throws DataStoreException
     {
         FileSystemDataStoreConfiguration conf = new FileSystemDataStoreConfiguration();
         conf.setDataDir(temp.getAbsolutePath());
         DataStore store = new FileSystemDataStore(conf);
-        ((FilePathProvider)store).getFilePath(UUID.randomUUID().toString());
+        ((FilePathProvider) store).getFilePath(UUID.randomUUID().toString());
     }
-
 
     @Test
     public void testDeleteWithValidReference()
-            throws DataStoreException, IOException
+        throws DataStoreException, IOException
     {
         FileSystemDataStoreConfiguration conf = new FileSystemDataStoreConfiguration();
         conf.setDataDir(temp.getAbsolutePath());
@@ -246,17 +232,16 @@ public class FileSystemDataStoreTest
         final byte[] data = testData.getBytes(StandardCharsets.UTF_8);
         String storeRef = store.store(data, "test");
 
-        Path p = Paths.get(temp.toString(),storeRef);
+        Path p = Paths.get(temp.toString(), storeRef);
 
         Assert.assertTrue(Files.exists(p));
         store.delete(storeRef);
         Assert.assertFalse(Files.exists(p));
     }
 
-
     @Test(expectedExceptions = DataStoreException.class)
     public void testDeleteWithInvalidReference()
-            throws DataStoreException
+        throws DataStoreException
     {
         FileSystemDataStoreConfiguration conf = new FileSystemDataStoreConfiguration();
         conf.setDataDir(temp.getAbsolutePath());
@@ -264,26 +249,21 @@ public class FileSystemDataStoreTest
         store.delete(UUID.randomUUID().toString());
     }
 
-
     private static void verifyStoredData(final DataStore dataStore, final byte[] expectedData, final String actualReference)
         throws IOException, DataStoreException
     {
-        try (InputStream inStr = dataStore.retrieve(actualReference))
-        {
+        try (InputStream inStr = dataStore.retrieve(actualReference)) {
             verifyData(expectedData, inStr);
         }
     }
 
-
     private static void verifyData(final byte[] expected, final InputStream actual)
         throws IOException
     {
-        try (final ByteArrayOutputStream bos = new ByteArrayOutputStream())
-        {
+        try (final ByteArrayOutputStream bos = new ByteArrayOutputStream()) {
             int nRead;
             final byte[] buffer = new byte[1024];
-            while ( (nRead = actual.read(buffer, 0, expected.length)) != -1 )
-            {
+            while ((nRead = actual.read(buffer, 0, expected.length)) != -1) {
                 bos.write(buffer, 0, nRead);
             }
             bos.flush();

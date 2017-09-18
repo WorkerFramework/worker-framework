@@ -15,7 +15,6 @@
  */
 package com.hpe.caf.api.worker;
 
-
 /**
  * Indicates the reference passed to the DataStore did not point to any resolvable location.
  */
@@ -25,7 +24,6 @@ public class ReferenceNotFoundException extends DataStoreException
     {
         super(message);
     }
-
 
     public ReferenceNotFoundException(final String message, final Throwable cause)
     {

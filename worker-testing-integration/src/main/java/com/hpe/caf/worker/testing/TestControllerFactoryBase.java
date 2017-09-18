@@ -23,12 +23,13 @@ import java.util.function.Function;
 /**
  * Created by oloughli on 06/06/2016.
  */
-public abstract class TestControllerFactoryBase<T> {
+public abstract class TestControllerFactoryBase<T>
+{
     public T createDefault(
-            String outputQueue,
-            TestItemProvider itemProvider,
-            WorkerTaskFactory workerTaskFactory,
-            ResultProcessor resultProcessor) throws Exception
+        String outputQueue,
+        TestItemProvider itemProvider,
+        WorkerTaskFactory workerTaskFactory,
+        ResultProcessor resultProcessor) throws Exception
     {
         WorkerServices workerServices = WorkerServices.getDefault();
 
@@ -36,10 +37,10 @@ public abstract class TestControllerFactoryBase<T> {
     }
 
     public <TConfig> T createDefault(
-            Class<TConfig> configClass, Function<TConfig, String> queueNameFunc,
-            TestItemProvider itemProvider,
-            WorkerTaskFactory workerTaskFactory,
-            ResultProcessor resultProcessor) throws Exception
+        Class<TConfig> configClass, Function<TConfig, String> queueNameFunc,
+        TestItemProvider itemProvider,
+        WorkerTaskFactory workerTaskFactory,
+        ResultProcessor resultProcessor) throws Exception
     {
         WorkerServices workerServices = WorkerServices.getDefault();
         ConfigurationSource configurationSource = workerServices.getConfigurationSource();
@@ -51,10 +52,10 @@ public abstract class TestControllerFactoryBase<T> {
     }
 
     private T create(WorkerServices workerServices,
-                                         String queueName,
-                                         TestItemProvider itemProvider,
-                                         WorkerTaskFactory workerTaskFactory,
-                                         ResultProcessor resultProcessor) throws Exception
+                     String queueName,
+                     TestItemProvider itemProvider,
+                     WorkerTaskFactory workerTaskFactory,
+                     ResultProcessor resultProcessor) throws Exception
     {
         ConfigurationSource configurationSource = workerServices.getConfigurationSource();
         RabbitWorkerQueueConfiguration rabbitConfiguration = configurationSource.getConfiguration(RabbitWorkerQueueConfiguration.class);
@@ -63,8 +64,8 @@ public abstract class TestControllerFactoryBase<T> {
         rabbitConfiguration.getRabbitConfiguration().setRabbitPort(Integer.parseInt(SettingsProvider.defaultProvider.getSetting(SettingNames.rabbitmqNodePort)));
 
         QueueServices queueServices = QueueServicesFactory.create(rabbitConfiguration, queueName, workerServices.getCodec());
-        boolean debugEnabled = SettingsProvider.defaultProvider.getBooleanSetting(SettingNames.createDebugMessage,false);
-        QueueManager queueManager = new QueueManager(queueServices, workerServices,debugEnabled);
+        boolean debugEnabled = SettingsProvider.defaultProvider.getBooleanSetting(SettingNames.createDebugMessage, false);
+        QueueManager queueManager = new QueueManager(queueServices, workerServices, debugEnabled);
 
         boolean stopOnError = SettingsProvider.defaultProvider.getBooleanSetting(SettingNames.stopOnError, false);
 
@@ -73,10 +74,9 @@ public abstract class TestControllerFactoryBase<T> {
         return controller;
     }
 
-    public abstract T createController (WorkerServices workerServices,
-                              TestItemProvider itemProvider,
-                                        QueueManager queueManager,
-                              WorkerTaskFactory workerTaskFactory,
-                              ResultProcessor resultProcessor, boolean stopOnError) throws Exception;
-
+    public abstract T createController(WorkerServices workerServices,
+                                       TestItemProvider itemProvider,
+                                       QueueManager queueManager,
+                                       WorkerTaskFactory workerTaskFactory,
+                                       ResultProcessor resultProcessor, boolean stopOnError) throws Exception;
 }

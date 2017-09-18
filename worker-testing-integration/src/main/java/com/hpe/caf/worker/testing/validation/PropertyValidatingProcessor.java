@@ -27,40 +27,36 @@ import com.hpe.caf.worker.testing.configuration.ValidationSettings;
 import java.util.Map;
 
 /**
- * The {@code PropertyValidatingProcessor} class.
- * Processor validating property maps - objects converted to maps of
- * property names and values.
- * Servers as an entry point for result validation and creates actual
- * validators ({@link PropertyValidator} implementations).
+ * The {@code PropertyValidatingProcessor} class. Processor validating property maps - objects converted to maps of property names and
+ * values. Servers as an entry point for result validation and creates actual validators ({@link PropertyValidator} implementations).
  * depending on property type.
  *
- * @param <TResult>   the worker result type parameter
- * @param <TInput>    the worker test input type parameter
+ * @param <TResult> the worker result type parameter
+ * @param <TInput> the worker test input type parameter
  * @param <TExpected> the worker test expectation type parameter
  */
-public abstract class PropertyValidatingProcessor<TResult, TInput, TExpected> extends AbstractResultProcessor<TResult, TInput, TExpected> {
-
-
+public abstract class PropertyValidatingProcessor<TResult, TInput, TExpected> extends AbstractResultProcessor<TResult, TInput, TExpected>
+{
     private final ValidatorFactory validatorFactory;
 
     /**
      * Instantiates a new Property validating processor.
      *
-     * @param testConfiguration  the test configuration
-     * @param workerServices     the worker services
+     * @param testConfiguration the test configuration
+     * @param workerServices the worker services
      * @param validationSettings the validation settings
      */
-    public PropertyValidatingProcessor(TestConfiguration<?, TResult, TInput, TExpected> testConfiguration, WorkerServices workerServices, ValidationSettings validationSettings) {
+    public PropertyValidatingProcessor(TestConfiguration<?, TResult, TInput, TExpected> testConfiguration, WorkerServices workerServices, ValidationSettings validationSettings)
+    {
         super(workerServices.getCodec(), testConfiguration.getWorkerResultClass());
         this.validatorFactory = new ValidatorFactory(validationSettings, workerServices.getDataStore(), workerServices.getCodec(), testConfiguration);
     }
 
     /**
-     * Validates worker result.
-     * This method acquires a map used for validation from test item expectation
-     * and converts validated result into another map that will be validated.
-     * {@link ValidatorFactory} creates a concrete {@link PropertyValidator} which then
-     * validates the result using expectation.
+     * Validates worker result. This method acquires a map used for validation from test item expectation and converts validated result
+     * into another map that will be validated. {@link ValidatorFactory} creates a concrete {@link PropertyValidator} which then validates
+     * the result using expectation.
+     *
      * @param testItem the test item which contains test input and expectation
      * @param message the task message retrieved from a queue
      * @param result the worker result deserialized from message body
@@ -68,7 +64,8 @@ public abstract class PropertyValidatingProcessor<TResult, TInput, TExpected> ex
      * @throws Exception
      */
     @Override
-    protected boolean processWorkerResult(TestItem<TInput, TExpected> testItem, TaskMessage message, TResult result) throws Exception {
+    protected boolean processWorkerResult(TestItem<TInput, TExpected> testItem, TaskMessage message, TResult result) throws Exception
+    {
 
         Map<String, Object> expectation = getExpectationMap(testItem, message, result);
         if (expectation == null) {
@@ -80,12 +77,11 @@ public abstract class PropertyValidatingProcessor<TResult, TInput, TExpected> ex
         mapper.registerModule(new GuavaModule());
         Object validatedObject = getValidatedObject(testItem, message, result);
 
-        PropertyMap expectationPropertyMap = mapper.convertValue(expectation,PropertyMap.class); //new PropertyMap(expectation);
+        PropertyMap expectationPropertyMap = mapper.convertValue(expectation, PropertyMap.class); //new PropertyMap(expectation);
 
         PropertyMap propertyMap = mapper.convertValue(validatedObject, PropertyMap.class);
 
-        PropertyValidator
-                validator = validatorFactory.createRootValidator();
+        PropertyValidator validator = validatorFactory.createRootValidator();
 
         validator.validate("Root", propertyMap, expectationPropertyMap);
 
@@ -97,8 +93,8 @@ public abstract class PropertyValidatingProcessor<TResult, TInput, TExpected> ex
      * Is completed boolean.
      *
      * @param testItem the test item
-     * @param message  the message
-     * @param result   the result
+     * @param message the message
+     * @param result the result
      * @return the boolean
      */
     protected abstract boolean isCompleted(TestItem<TInput, TExpected> testItem, TaskMessage message, TResult result);
@@ -107,8 +103,8 @@ public abstract class PropertyValidatingProcessor<TResult, TInput, TExpected> ex
      * Gets expectation map.
      *
      * @param testItem the test item
-     * @param message  the message
-     * @param result   the result
+     * @param message the message
+     * @param result the result
      * @return the expectation map
      */
     protected abstract Map<String, Object> getExpectationMap(TestItem<TInput, TExpected> testItem, TaskMessage message, TResult result);
@@ -117,10 +113,9 @@ public abstract class PropertyValidatingProcessor<TResult, TInput, TExpected> ex
      * Gets validated object.
      *
      * @param testItem the test item
-     * @param message  the message
-     * @param result   the result
+     * @param message the message
+     * @param result the result
      * @return the validated object
      */
     protected abstract Object getValidatedObject(TestItem<TInput, TExpected> testItem, TaskMessage message, TResult result);
-
 }

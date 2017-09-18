@@ -15,7 +15,6 @@
  */
 package com.hpe.caf.util.rabbitmq;
 
-
 import org.testng.Assert;
 import org.testng.annotations.Test;
 import org.mockito.Mockito;
@@ -23,7 +22,6 @@ import org.mockito.Mockito;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
-
 
 public class FutureEventTest
 {
@@ -38,7 +36,6 @@ public class FutureEventTest
         Assert.assertTrue(t.ask().get(1, TimeUnit.SECONDS));
     }
 
-
     @Test(expectedExceptions = TimeoutException.class)
     public void testAskTimeout()
         throws InterruptedException, ExecutionException, TimeoutException
@@ -46,7 +43,6 @@ public class FutureEventTest
         FutureEvent<TestInterface, Boolean> t = new DummyFutureEvent();
         t.ask().get(1, TimeUnit.SECONDS);
     }
-
 
     @Test(expectedExceptions = ExecutionException.class)
     public void testException()
@@ -59,7 +55,6 @@ public class FutureEventTest
         t.ask().get(1, TimeUnit.SECONDS);
     }
 
-
     public static class DummyFutureEvent extends FutureEvent<TestInterface, Boolean>
     {
         @Override
@@ -69,7 +64,6 @@ public class FutureEventTest
             return target.test();
         }
     }
-
 
     public interface TestInterface
     {

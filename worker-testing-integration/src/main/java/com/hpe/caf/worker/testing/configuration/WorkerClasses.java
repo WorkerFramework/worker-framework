@@ -18,13 +18,14 @@ package com.hpe.caf.worker.testing.configuration;
 /**
  * Created by ploch on 04/12/2015.
  */
-public class WorkerClasses<TWorkerTask, TWorkerResult> {
-
+public class WorkerClasses<TWorkerTask, TWorkerResult>
+{
     private Class<TWorkerTask> workerTaskClass;
 
     private Class<TWorkerResult> workerResultClass;
 
-    public WorkerClasses(Class<TWorkerTask> workerTaskClass, Class<TWorkerResult> workerResultClass) {
+    public WorkerClasses(Class<TWorkerTask> workerTaskClass, Class<TWorkerResult> workerResultClass)
+    {
         this.workerTaskClass = workerTaskClass;
         this.workerResultClass = workerResultClass;
     }
@@ -34,7 +35,8 @@ public class WorkerClasses<TWorkerTask, TWorkerResult> {
      *
      * @return Value for property 'workerTaskClass'.
      */
-    public Class<TWorkerTask> getWorkerTaskClass() {
+    public Class<TWorkerTask> getWorkerTaskClass()
+    {
         return workerTaskClass;
     }
 
@@ -43,7 +45,8 @@ public class WorkerClasses<TWorkerTask, TWorkerResult> {
      *
      * @return Value for property 'workerResultClass'.
      */
-    public Class<TWorkerResult> getWorkerResultClass() {
+    public Class<TWorkerResult> getWorkerResultClass()
+    {
         return workerResultClass;
     }
 }

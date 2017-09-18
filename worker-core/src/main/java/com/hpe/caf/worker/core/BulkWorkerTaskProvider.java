@@ -29,22 +29,24 @@ final class BulkWorkerTaskProvider implements BulkWorkerRuntime
     private final BlockingQueue<WorkerTaskImpl> workQueue;
     private final ArrayList<WorkerTaskImpl> consumedTasks;
 
-    public BulkWorkerTaskProvider
-    (
+    public BulkWorkerTaskProvider(
         final WorkerTaskImpl firstTask,
         final BlockingQueue<WorkerTaskImpl> workQueue
-    ) {
+    )
+    {
         this.firstTask = Objects.requireNonNull(firstTask);
         this.workQueue = Objects.requireNonNull(workQueue);
         this.consumedTasks = new ArrayList<>();
     }
 
     @Override
-    public WorkerTask getNextWorkerTask() {
+    public WorkerTask getNextWorkerTask()
+    {
         return registerTaskConsumed(getNextWorkerTaskImpl());
     }
 
-    private WorkerTaskImpl getNextWorkerTaskImpl() {
+    private WorkerTaskImpl getNextWorkerTaskImpl()
+    {
         final WorkerTaskImpl task = firstTask;
         if (task == null) {
             return workQueue.poll();
@@ -55,7 +57,8 @@ final class BulkWorkerTaskProvider implements BulkWorkerRuntime
     }
 
     @Override
-    public WorkerTask getNextWorkerTask(long millis) throws InterruptedException {
+    public WorkerTask getNextWorkerTask(long millis) throws InterruptedException
+    {
         return registerTaskConsumed(getNextWorkerTaskImpl(millis));
     }
 
@@ -71,15 +74,18 @@ final class BulkWorkerTaskProvider implements BulkWorkerRuntime
         }
     }
 
-    public boolean isFirstTaskConsumed() {
+    public boolean isFirstTaskConsumed()
+    {
         return firstTask == null;
     }
 
-    public Iterable<WorkerTaskImpl> getConsumedTasks() {
+    public Iterable<WorkerTaskImpl> getConsumedTasks()
+    {
         return Collections.unmodifiableList(consumedTasks);
     }
 
-    private WorkerTaskImpl registerTaskConsumed(WorkerTaskImpl workerTask) {
+    private WorkerTaskImpl registerTaskConsumed(WorkerTaskImpl workerTask)
+    {
         if (workerTask != null) {
             consumedTasks.add(workerTask);
         }

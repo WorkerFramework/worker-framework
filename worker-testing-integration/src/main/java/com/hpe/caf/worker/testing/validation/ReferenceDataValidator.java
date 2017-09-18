@@ -40,15 +40,16 @@ import java.util.Arrays;
 /**
  * Created by ploch on 07/12/2015.
  */
-public class ReferenceDataValidator extends PropertyValidator {
-
+public class ReferenceDataValidator extends PropertyValidator
+{
     private final boolean throwOnValidationFailure;
     private final DataStore dataStore;
     private final Codec codec;
     private final String testDataFolder;
     private final String testSourcefileBaseFolder;
 
-    public ReferenceDataValidator(DataStore dataStore, Codec codec, String testDataFolder, String testSourcefileBaseFolder) {
+    public ReferenceDataValidator(DataStore dataStore, Codec codec, String testDataFolder, String testSourcefileBaseFolder)
+    {
         this.throwOnValidationFailure = true;
         this.dataStore = dataStore;
         this.codec = codec;
@@ -56,8 +57,8 @@ public class ReferenceDataValidator extends PropertyValidator {
         this.testSourcefileBaseFolder = testSourcefileBaseFolder;
     }
 
-    public ReferenceDataValidator(boolean throwOnValidationFailure, DataStore dataStore, Codec codec, String testDataFolder, String testSourcefileBaseFolder) {
-
+    public ReferenceDataValidator(boolean throwOnValidationFailure, DataStore dataStore, Codec codec, String testDataFolder, String testSourcefileBaseFolder)
+    {
         this.throwOnValidationFailure = throwOnValidationFailure;
         this.dataStore = dataStore;
         this.codec = codec;
@@ -66,9 +67,11 @@ public class ReferenceDataValidator extends PropertyValidator {
     }
 
     @Override
-    public boolean isValid(Object testedPropertyValue, Object validatorPropertyValue) {
-
-        if (testedPropertyValue == null && validatorPropertyValue == null) return true;
+    public boolean isValid(Object testedPropertyValue, Object validatorPropertyValue)
+    {
+        if (testedPropertyValue == null && validatorPropertyValue == null) {
+            return true;
+        }
 
         ObjectMapper mapper = new ObjectMapper();
 
@@ -78,7 +81,7 @@ public class ReferenceDataValidator extends PropertyValidator {
 
         InputStream dataStream;
 
-        if(expectation.getExpectedContentFile() == null && expectation.getExpectedSimilarityPercentage() == 0){
+        if (expectation.getExpectedContentFile() == null && expectation.getExpectedSimilarityPercentage() == 0) {
             return true;
         }
 
@@ -86,14 +89,14 @@ public class ReferenceDataValidator extends PropertyValidator {
             System.out.println("About to retrieve content for " + referencedData.toString());
             dataStream = ContentDataHelper.retrieveReferencedData(dataStore, codec, referencedData);
             System.out.println("Finished retrieving content for " + referencedData.toString());
-        }
-        catch (DataSourceException e) {
+        } catch (DataSourceException e) {
             e.printStackTrace();
             System.err.println("Failed to acquire referenced data.");
             e.printStackTrace();
             TestResultHelper.testFailed("Failed to acquire referenced data. Exception message: " + e.getMessage(), e);
             return false;
         }
+
         try {
             String contentFileName = expectation.getExpectedContentFile();
             Path contentFile = Paths.get(contentFileName);
@@ -115,10 +118,12 @@ public class ReferenceDataValidator extends PropertyValidator {
                 if (expectation.getExpectedSimilarityPercentage() == 100) {
                     boolean equals = actualText.equals(expectedText);
                     if (!equals) {
-                        String message = "Expected and actual texts were different.\n\n*** Expected Text ***\n" +
-                        expectedText + "\n\n*** Actual Text ***\n" + actualText;
+                        String message = "Expected and actual texts were different.\n\n*** Expected Text ***\n"
+                            + expectedText + "\n\n*** Actual Text ***\n" + actualText;
                         System.err.println(message);
-                        if (throwOnValidationFailure) TestResultHelper.testFailed(message);
+                        if (throwOnValidationFailure) {
+                            TestResultHelper.testFailed(message);
+                        }
                         return false;
                     }
                     return true;
@@ -131,11 +136,12 @@ public class ReferenceDataValidator extends PropertyValidator {
                 if (similarity < expectation.getExpectedSimilarityPercentage()) {
                     String message = "Expected similarity of " + expectation.getExpectedSimilarityPercentage() + "% but actual similarity was " + similarity + "%";
                     System.err.println(message);
-                    if (throwOnValidationFailure) TestResultHelper.testFailed(message);
+                    if (throwOnValidationFailure) {
+                        TestResultHelper.testFailed(message);
+                    }
                     return false;
                 }
-            }
-            else {
+            } else {
                 byte[] actualDataBytes = IOUtils.toByteArray(dataStream);
                 boolean equals = Arrays.equals(actualDataBytes, expectedFileBytes);
                 if (!equals) {
@@ -143,16 +149,17 @@ public class ReferenceDataValidator extends PropertyValidator {
                     Path actualFilePath = Paths.get(contentFile.getParent().toString(), actualContentFileName);
                     Files.deleteIfExists(actualFilePath);
                     Files.write(actualFilePath, actualDataBytes, StandardOpenOption.CREATE);
-                    String message =
-                            "Data returned was different than expected for file: " + contentFileName +
-                                    "\nActual content saved in file: " + actualFilePath.toString();
+                    String message
+                        = "Data returned was different than expected for file: " + contentFileName
+                        + "\nActual content saved in file: " + actualFilePath.toString();
                     System.err.println(message);
-                    if (throwOnValidationFailure) TestResultHelper.testFailed(message);
+                    if (throwOnValidationFailure) {
+                        TestResultHelper.testFailed(message);
+                    }
                     return false;
                 }
             }
-        }
-        catch (IOException e) {
+        } catch (IOException e) {
             e.printStackTrace();
             TestResultHelper.testFailed("Error while processing reference data! " + e.getMessage(), e);
             return false;

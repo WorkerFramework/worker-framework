@@ -26,11 +26,11 @@ import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-
 /**
  * An implementation of ResponseCache supporting the caching of job status responses.
  */
-public class JobStatusResponseCache extends ResponseCache {
+public class JobStatusResponseCache extends ResponseCache
+{
     private static final String CACHEABLE_JOB_STATUS_HEADER_NAME = "CacheableJobStatus";
     private static final String CACHE_CONTROL_HEADER_NAME = "cache-control";
     private static final String CACHE_CONTROL_HEADER_MAX_AGE_PATTERN = "max-age=([0-9]*)?";
@@ -39,14 +39,14 @@ public class JobStatusResponseCache extends ResponseCache {
 
     private ResponseStreamCache jobStatusCache;
 
-
-    public JobStatusResponseCache() {
+    public JobStatusResponseCache()
+    {
         jobStatusCache = new ResponseStreamCache();
     }
 
-
     @Override
-    public CacheResponse get(URI uri, String requestMethod, Map<String, List<String>> requestHeaders) throws IOException {
+    public CacheResponse get(URI uri, String requestMethod, Map<String, List<String>> requestHeaders) throws IOException
+    {
         ByteArrayOutputStream cachedResponseStream = jobStatusCache.get(uri);
         if (cachedResponseStream != null) {
             LOG.debug("Job status response cache hit for URI={}", uri);
@@ -56,9 +56,9 @@ public class JobStatusResponseCache extends ResponseCache {
         return null;
     }
 
-
     @Override
-    public CacheRequest put(URI uri, URLConnection connection) throws IOException {
+    public CacheRequest put(URI uri, URLConnection connection) throws IOException
+    {
         if (!isCacheableJobStatusResponse(connection)) {
             LOG.debug("Uncacheable response from URI={}", uri);
             return null;
@@ -67,8 +67,8 @@ public class JobStatusResponseCache extends ResponseCache {
         return new JobStatusCacheRequest(jobStatusCache, uri, connection);
     }
 
-
-    private boolean isCacheableJobStatusResponse(URLConnection connection) {
+    private boolean isCacheableJobStatusResponse(URLConnection connection)
+    {
         String cacheableJobStatus = connection.getHeaderField(CACHEABLE_JOB_STATUS_HEADER_NAME);
         if (cacheableJobStatus != null) {
             return Boolean.parseBoolean(cacheableJobStatus);
@@ -76,13 +76,14 @@ public class JobStatusResponseCache extends ResponseCache {
         return false;
     }
 
-
     /**
      * Extracts the job status check interval from the relevant response header on the connection.
+     *
      * @param connection extract the interval value from the headers on this connection
      * @return job status check interval in milliseconds
      */
-    public static long getStatusCheckIntervalMillis(URLConnection connection) {
+    public static long getStatusCheckIntervalMillis(URLConnection connection)
+    {
         long intervalMillis = getDefaultJobStatusCheckIntervalMillis();
         String cacheControl = connection.getHeaderField(CACHE_CONTROL_HEADER_NAME);
         if (cacheControl != null) {
@@ -97,8 +98,8 @@ public class JobStatusResponseCache extends ResponseCache {
         return intervalMillis;
     }
 
-
-    public static long getDefaultJobStatusCheckIntervalMillis() {
+    public static long getDefaultJobStatusCheckIntervalMillis()
+    {
         return DEFAULT_JOB_STATUS_CHECK_INTERVAL_MILLIS;
     }
 }

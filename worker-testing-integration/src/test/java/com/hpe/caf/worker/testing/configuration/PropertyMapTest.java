@@ -23,17 +23,19 @@ import org.testng.annotations.Test;
 import java.time.Instant;
 import java.util.*;
 
-public class PropertyMapTest {
-
-    public class TestClassSimple1 {
-
+public class PropertyMapTest
+{
+    public class TestClassSimple1
+    {
         private String stringProp1;
         private int intProp1;
 
-        public TestClassSimple1() {
+        public TestClassSimple1()
+        {
         }
 
-        public TestClassSimple1(String stringProp1, int intProp1) {
+        public TestClassSimple1(String stringProp1, int intProp1)
+        {
             this.stringProp1 = stringProp1;
             this.intProp1 = intProp1;
         }
@@ -43,7 +45,8 @@ public class PropertyMapTest {
          *
          * @return Value for property 'stringProp1'.
          */
-        public String getStringProp1() {
+        public String getStringProp1()
+        {
             return stringProp1;
         }
 
@@ -52,7 +55,8 @@ public class PropertyMapTest {
          *
          * @param stringProp1 Value to set for property 'stringProp1'.
          */
-        public void setStringProp1(String stringProp1) {
+        public void setStringProp1(String stringProp1)
+        {
             this.stringProp1 = stringProp1;
         }
 
@@ -61,7 +65,8 @@ public class PropertyMapTest {
          *
          * @return Value for property 'intProp1'.
          */
-        public int getIntProp1() {
+        public int getIntProp1()
+        {
             return intProp1;
         }
 
@@ -70,19 +75,23 @@ public class PropertyMapTest {
          *
          * @param intProp1 Value to set for property 'intProp1'.
          */
-        public void setIntProp1(int intProp1) {
+        public void setIntProp1(int intProp1)
+        {
             this.intProp1 = intProp1;
         }
     }
 
-    public class TestClassSimple2 {
+    public class TestClassSimple2
+    {
         private boolean boolProp1;
         private Date dateProp1;
 
-        public TestClassSimple2() {
+        public TestClassSimple2()
+        {
         }
 
-        public TestClassSimple2(boolean boolProp1, Date dateProp1) {
+        public TestClassSimple2(boolean boolProp1, Date dateProp1)
+        {
             this.boolProp1 = boolProp1;
             this.dateProp1 = dateProp1;
         }
@@ -92,7 +101,8 @@ public class PropertyMapTest {
          *
          * @return Value for property 'boolProp1'.
          */
-        public boolean isBoolProp1() {
+        public boolean isBoolProp1()
+        {
             return boolProp1;
         }
 
@@ -101,7 +111,8 @@ public class PropertyMapTest {
          *
          * @param boolProp1 Value to set for property 'boolProp1'.
          */
-        public void setBoolProp1(boolean boolProp1) {
+        public void setBoolProp1(boolean boolProp1)
+        {
             this.boolProp1 = boolProp1;
         }
 
@@ -110,7 +121,8 @@ public class PropertyMapTest {
          *
          * @return Value for property 'dateProp1'.
          */
-        public Date getDateProp1() {
+        public Date getDateProp1()
+        {
             return dateProp1;
         }
 
@@ -119,22 +131,25 @@ public class PropertyMapTest {
          *
          * @param dateProp1 Value to set for property 'dateProp1'.
          */
-        public void setDateProp1(Date dateProp1) {
+        public void setDateProp1(Date dateProp1)
+        {
             this.dateProp1 = dateProp1;
         }
     }
 
-    public class TestClassComplex1 {
-
+    public class TestClassComplex1
+    {
         private TestClassSimple1 complexProp1;
         private TestClassSimple2 complexProp2;
 
         private String simpleProp1;
 
-        public TestClassComplex1() {
+        public TestClassComplex1()
+        {
         }
 
-        public TestClassComplex1(TestClassSimple1 complexProp1, TestClassSimple2 complexProp2, String simpleProp1) {
+        public TestClassComplex1(TestClassSimple1 complexProp1, TestClassSimple2 complexProp2, String simpleProp1)
+        {
             this.complexProp1 = complexProp1;
             this.complexProp2 = complexProp2;
             this.simpleProp1 = simpleProp1;
@@ -145,7 +160,8 @@ public class PropertyMapTest {
          *
          * @return Value for property 'complexProp1'.
          */
-        public TestClassSimple1 getComplexProp1() {
+        public TestClassSimple1 getComplexProp1()
+        {
             return complexProp1;
         }
 
@@ -154,7 +170,8 @@ public class PropertyMapTest {
          *
          * @param complexProp1 Value to set for property 'complexProp1'.
          */
-        public void setComplexProp1(TestClassSimple1 complexProp1) {
+        public void setComplexProp1(TestClassSimple1 complexProp1)
+        {
             this.complexProp1 = complexProp1;
         }
 
@@ -163,7 +180,8 @@ public class PropertyMapTest {
          *
          * @return Value for property 'complexProp2'.
          */
-        public TestClassSimple2 getComplexProp2() {
+        public TestClassSimple2 getComplexProp2()
+        {
             return complexProp2;
         }
 
@@ -172,7 +190,8 @@ public class PropertyMapTest {
          *
          * @param complexProp2 Value to set for property 'complexProp2'.
          */
-        public void setComplexProp2(TestClassSimple2 complexProp2) {
+        public void setComplexProp2(TestClassSimple2 complexProp2)
+        {
             this.complexProp2 = complexProp2;
         }
 
@@ -181,7 +200,8 @@ public class PropertyMapTest {
          *
          * @return Value for property 'simpleProp1'.
          */
-        public String getSimpleProp1() {
+        public String getSimpleProp1()
+        {
             return simpleProp1;
         }
 
@@ -190,15 +210,15 @@ public class PropertyMapTest {
          *
          * @param simpleProp1 Value to set for property 'simpleProp1'.
          */
-        public void setSimpleProp1(String simpleProp1) {
+        public void setSimpleProp1(String simpleProp1)
+        {
             this.simpleProp1 = simpleProp1;
         }
     }
 
-
     @Test
-    public void testIsComplexProperty() throws Exception {
-
+    public void testIsComplexProperty() throws Exception
+    {
         List<String> coll = new ArrayList<>();
 
         TestClassComplex1 testClass = createComplex();
@@ -211,7 +231,8 @@ public class PropertyMapTest {
     }
 
     @Test
-    public void testGetComplexProperty() throws Exception {
+    public void testGetComplexProperty() throws Exception
+    {
         TestClassComplex1 testClass = createComplex();
         PropertyMap propertyMap = convertToMap(testClass);
 
@@ -225,16 +246,17 @@ public class PropertyMapTest {
 
     }
 
-    private PropertyMap convertToMap(Object source) {
+    private PropertyMap convertToMap(Object source)
+    {
         ObjectMapper mapper = new ObjectMapper();
         PropertyMap propertyMap = mapper.convertValue(source, PropertyMap.class);
         return propertyMap;
     }
 
-    private TestClassComplex1 createComplex() {
-
+    private TestClassComplex1 createComplex()
+    {
         TestClassComplex1 testClass = new TestClassComplex1(
-                new TestClassSimple1(stringProp1, intProp1), new TestClassSimple2(boolProp1, dateProp1), stringProp2
+            new TestClassSimple1(stringProp1, intProp1), new TestClassSimple2(boolProp1, dateProp1), stringProp2
         );
         return testClass;
     }

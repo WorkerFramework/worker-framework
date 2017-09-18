@@ -21,21 +21,24 @@ import java.util.Set;
 /**
  * Created by ploch on 16/11/2015.
  */
-public class Signal {
-
+public class Signal
+{
     private TestResult testResult;
 
-    private static class MonitorObject {}
+    private static class MonitorObject
+    {
+    }
 
     MonitorObject myMonitorObject = new MonitorObject();
     boolean wasSignalled = false;
 
-    public TestResult doWait(){
-        synchronized(myMonitorObject){
-            while(!wasSignalled){
-                try{
+    public TestResult doWait()
+    {
+        synchronized (myMonitorObject) {
+            while (!wasSignalled) {
+                try {
                     myMonitorObject.wait();
-                } catch(InterruptedException e){
+                } catch (InterruptedException e) {
                     return TestResult.createFailed(e.getMessage(), new HashSet<>());
                 }
             }
@@ -44,8 +47,9 @@ public class Signal {
         }
     }
 
-    public void doNotify(TestResult testResult){
-        synchronized(myMonitorObject){
+    public void doNotify(TestResult testResult)
+    {
+        synchronized (myMonitorObject) {
             if (this.testResult == null) {
                 this.testResult = testResult;
             }

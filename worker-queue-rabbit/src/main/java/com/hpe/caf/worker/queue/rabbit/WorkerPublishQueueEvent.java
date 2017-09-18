@@ -15,13 +15,11 @@
  */
 package com.hpe.caf.worker.queue.rabbit;
 
-
 import com.hpe.caf.util.rabbitmq.Event;
 
 import java.util.Collections;
 import java.util.Map;
 import java.util.Objects;
-
 
 /**
  * Event for publishing via a WorkerPublisher.
@@ -36,6 +34,7 @@ public class WorkerPublishQueueEvent implements Event<WorkerPublisher>
 
     /**
      * Create a new WorkerPublishQueueEvent
+     *
      * @param messageData the raw message data to publish
      * @param routingKey the routing key to publish the data on
      * @param ackId the id of a message previously consumed to acknowledge
@@ -48,6 +47,7 @@ public class WorkerPublishQueueEvent implements Event<WorkerPublisher>
 
     /**
      * Create a new WorkerPublishQueueEvent
+     *
      * @param messageData the raw message data to publish
      * @param routingKey the routing key to publish the data on
      * @param ackId the id of a message previously consumed to acknowledge
@@ -62,19 +62,16 @@ public class WorkerPublishQueueEvent implements Event<WorkerPublisher>
         this.priority = priority;
     }
 
-
     public WorkerPublishQueueEvent(byte[] messageData, String routingKey, long ackId)
     {
         this(messageData, routingKey, ackId, Collections.emptyMap());
     }
-
 
     @Override
     public void handleEvent(WorkerPublisher target)
     {
         target.handlePublish(data, routingKey, tag, headerMap, priority);
     }
-
 
     /**
      * @return the raw data to publish
@@ -84,7 +81,6 @@ public class WorkerPublishQueueEvent implements Event<WorkerPublisher>
         return data;
     }
 
-
     /**
      * @return the routing key that will be used to publish this message with
      */
@@ -93,7 +89,6 @@ public class WorkerPublishQueueEvent implements Event<WorkerPublisher>
         return routingKey;
     }
 
-
     /**
      * @return the rabbitmq message tag to acknowledge upon publishing
      */
@@ -101,7 +96,6 @@ public class WorkerPublishQueueEvent implements Event<WorkerPublisher>
     {
         return tag;
     }
-
 
     /**
      * @return the key/value map of header strings

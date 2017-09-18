@@ -15,7 +15,6 @@
  */
 package com.hpe.caf.worker.queue.rabbit;
 
-
 import com.hpe.caf.api.Configuration;
 import com.hpe.caf.configs.RabbitConfiguration;
 
@@ -25,7 +24,6 @@ import javax.validation.constraints.Min;
 import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Size;
 
-
 /**
  * Configuration for the worker-queue-rabbit module.
  */
@@ -33,9 +31,8 @@ import javax.validation.constraints.Size;
 public class RabbitWorkerQueueConfiguration
 {
     /**
-     * The base prefetch is determined by the number of tasks a microservice will run
-     * simultaneously (which is dictated by the WorkerFactory) but we can buffer extra
-     * ones with this parameter.
+     * The base prefetch is determined by the number of tasks a microservice will run simultaneously (which is dictated by the
+     * WorkerFactory) but we can buffer extra ones with this parameter.
      */
     @Min(0)
     @Max(100000)
@@ -65,8 +62,8 @@ public class RabbitWorkerQueueConfiguration
     @Size(min = 1)
     private String rejectedQueue;
     /**
-     * The maximum number of times for redelivered messages to be retried before moving them to the rejectedQueue.
-     * This does not include messages explicitly rejected by the Worker at delivery time.
+     * The maximum number of times for redelivered messages to be retried before moving them to the rejectedQueue. This does not include
+     * messages explicitly rejected by the Worker at delivery time.
      */
     @Min(1)
     private int retryLimit;
@@ -78,38 +75,34 @@ public class RabbitWorkerQueueConfiguration
     @Max(255)
     private int maxPriority;
 
-    public RabbitWorkerQueueConfiguration() { }
-
+    public RabbitWorkerQueueConfiguration()
+    {
+    }
 
     public int getPrefetchBuffer()
     {
         return prefetchBuffer;
     }
 
-
     public void setPrefetchBuffer(int prefetchBuffer)
     {
         this.prefetchBuffer = prefetchBuffer;
     }
-
 
     public RabbitConfiguration getRabbitConfiguration()
     {
         return rabbitConfiguration;
     }
 
-
     public void setRabbitConfiguration(RabbitConfiguration rabbitConfiguration)
     {
         this.rabbitConfiguration = rabbitConfiguration;
     }
 
-
     public String getInputQueue()
     {
         return inputQueue;
     }
-
 
     public void setInputQueue(String inputQueue)
     {
@@ -121,12 +114,10 @@ public class RabbitWorkerQueueConfiguration
         return retryQueue == null ? inputQueue : retryQueue;
     }
 
-
     public void setRetryQueue(String retryQueue)
     {
         this.retryQueue = retryQueue;
     }
-
 
     @Deprecated
     public String getRejectedQueue()
@@ -134,19 +125,16 @@ public class RabbitWorkerQueueConfiguration
         return rejectedQueue;
     }
 
-
     @Deprecated
     public void setRejectedQueue(String rejectedQueue)
     {
         this.rejectedQueue = rejectedQueue;
     }
 
-
     public int getRetryLimit()
     {
         return retryLimit;
     }
-
 
     public void setRetryLimit(int retryLimit)
     {

@@ -15,7 +15,6 @@
  */
 package com.hpe.caf.worker.datastore.s3;
 
-
 import com.amazonaws.ClientConfiguration;
 import com.amazonaws.Protocol;
 import com.amazonaws.auth.AWSCredentials;
@@ -44,7 +43,6 @@ import java.nio.file.Path;
 import java.util.UUID;
 import java.util.concurrent.atomic.AtomicInteger;
 
-
 /**
  * ManagedDataStore implementation for Amazon S3.
  */
@@ -63,13 +61,13 @@ public class S3DataStore implements ManagedDataStore
 
     public S3DataStore(final S3DataStoreConfiguration s3DataStoreConfiguration)
     {
-        if(s3DataStoreConfiguration==null){
+        if (s3DataStoreConfiguration == null) {
             throw new ArgumentException("s3DataStoreConfiguration was null.");
         }
 
         ClientConfiguration clientCfg = new ClientConfiguration();
 
-        if(!StringUtils.isNullOrEmpty(s3DataStoreConfiguration.getProxyHost())){
+        if (!StringUtils.isNullOrEmpty(s3DataStoreConfiguration.getProxyHost())) {
             clientCfg.setProtocol(Protocol.valueOf(s3DataStoreConfiguration.getProxyProtocol()));
             clientCfg.setProxyHost(s3DataStoreConfiguration.getProxyHost());
             clientCfg.setProxyPort(s3DataStoreConfiguration.getProxyPort());
@@ -78,7 +76,7 @@ public class S3DataStore implements ManagedDataStore
         bucketName = s3DataStoreConfiguration.getBucketName();
         amazonS3Client = new AmazonS3Client(credentials, clientCfg);
         amazonS3Client.setBucketAccelerateConfiguration(new SetBucketAccelerateConfigurationRequest(bucketName,
-                new BucketAccelerateConfiguration(BucketAccelerateStatus.Enabled)));
+                                                                                                    new BucketAccelerateConfiguration(BucketAccelerateStatus.Enabled)));
     }
 
     @Override
@@ -87,14 +85,14 @@ public class S3DataStore implements ManagedDataStore
         return metrics;
     }
 
-
     @Override
     public void shutdown()
     {
         // nothing to do
     }
 
-    public void delete(String reference) throws DataStoreException {
+    public void delete(String reference) throws DataStoreException
+    {
         LOG.debug("Received delete request for {}", reference);
         numDx.incrementAndGet();
         try {
@@ -129,7 +127,7 @@ public class S3DataStore implements ManagedDataStore
     {
         LOG.debug("Received size request for {}", reference);
 
-        try (QuietResource<S3Object> s3Object = new QuietResource<>(amazonS3Client.getObject(bucketName, reference))){
+        try (QuietResource<S3Object> s3Object = new QuietResource<>(amazonS3Client.getObject(bucketName, reference))) {
             ObjectMetadata objectMetadata = s3Object.get().getObjectMetadata();
             return objectMetadata.getContentLength();
         } catch (Exception e) {
@@ -140,7 +138,7 @@ public class S3DataStore implements ManagedDataStore
 
     @Override
     public String store(InputStream inputStream, String partialReference)
-            throws DataStoreException
+        throws DataStoreException
     {
         return store(inputStream, partialReference, null);
     }
@@ -152,7 +150,7 @@ public class S3DataStore implements ManagedDataStore
             String fullReference = partialReference + UUID.randomUUID().toString();
 
             ObjectMetadata objectMetadata = new ObjectMetadata();
-            if(length!=null){
+            if (length != null) {
                 objectMetadata.setContentLength(length);
             }
 
@@ -174,26 +172,21 @@ public class S3DataStore implements ManagedDataStore
     public String store(byte[] bytes, String partialReference)
         throws DataStoreException
     {
-        try(QuietResource<ByteArrayInputStream> inputStream = new QuietResource<>(new ByteArrayInputStream(bytes)))
-        {
+        try (QuietResource<ByteArrayInputStream> inputStream = new QuietResource<>(new ByteArrayInputStream(bytes))) {
             return store(inputStream.get(), partialReference, (long) bytes.length);
-        }
-        catch(Exception ex){
+        } catch (Exception ex) {
             errors.incrementAndGet();
             throw new DataStoreException("Could not create input stream.", ex);
         }
     }
 
-
     @Override
     public String store(Path path, String partialReference)
         throws DataStoreException
     {
-        try(QuietResource<FileInputStream> inputStream = new QuietResource<>(new FileInputStream(path.toFile())))
-        {
+        try (QuietResource<FileInputStream> inputStream = new QuietResource<>(new FileInputStream(path.toFile()))) {
             return store(inputStream.get(), partialReference, path.toFile().length());
-        }
-        catch(IOException ex){
+        } catch (IOException ex) {
             errors.incrementAndGet();
             throw new DataStoreException(String.format("Could not create file input stream from %s.", path.toString()), ex);
         }
@@ -205,8 +198,7 @@ public class S3DataStore implements ManagedDataStore
         try {
             LOG.debug("Received healthcheck request for S3.");
 
-            if (!amazonS3Client.doesBucketExist(bucketName))
-            {
+            if (!amazonS3Client.doesBucketExist(bucketName)) {
                 return new HealthResult(HealthStatus.UNHEALTHY, "S3 bucket " + bucketName + " does not exist.");
             }
         } catch (Exception e) {
@@ -219,7 +211,8 @@ public class S3DataStore implements ManagedDataStore
     private class S3DataStoreMetricsReporter implements DataStoreMetricsReporter
     {
         @Override
-        public int getDeleteRequests() {
+        public int getDeleteRequests()
+        {
             return numDx.get();
         }
 

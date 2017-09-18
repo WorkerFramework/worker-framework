@@ -15,9 +15,7 @@
  */
 package com.hpe.caf.api.worker;
 
-
 import java.util.Objects;
-
 
 /**
  * Object to represent a response from a Worker, to be interpreted by the core worker framework.
@@ -31,12 +29,10 @@ public class WorkerResponse
     private final int apiVersion;
     private final byte[] context;
 
-
     /**
      * Create a new WorkerResponse.
-     * 
-     * @param queue the reference to the queue that the response data should be put upon. This can
-     *        be null if no queue is provided
+     *
+     * @param queue the reference to the queue that the response data should be put upon. This can be null if no queue is provided
      * @param status the status of the message the Worker is returning
      * @param data the serialised task-specific data returned from the Worker internals
      * @param msgType the task-specific message classifier
@@ -46,8 +42,8 @@ public class WorkerResponse
     public WorkerResponse(final String queue, final TaskStatus status, final byte[] data, final String msgType, final int version, final byte[] context)
     {
         this.queueReference = queue; // queueReference can be 'null' for a dead end worker and
-                                     // 'null' for a worker who does not send success messages to
-                                     // it's output queue
+        // 'null' for a worker who does not send success messages to
+        // it's output queue
         this.taskStatus = Objects.requireNonNull(status);
         this.data = data;
         this.messageType = Objects.requireNonNull(msgType);
@@ -55,36 +51,30 @@ public class WorkerResponse
         this.context = context;
     }
 
-
     public TaskStatus getTaskStatus()
     {
         return taskStatus;
     }
-
 
     public String getQueueReference()
     {
         return queueReference;
     }
 
-
     public byte[] getData()
     {
         return data;
     }
-
 
     public String getMessageType()
     {
         return messageType;
     }
 
-
     public int getApiVersion()
     {
         return apiVersion;
     }
-
 
     public byte[] getContext()
     {

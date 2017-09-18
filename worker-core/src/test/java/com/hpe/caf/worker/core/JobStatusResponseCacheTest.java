@@ -15,7 +15,6 @@
  */
 package com.hpe.caf.worker.core;
 
-
 import com.google.common.io.CharStreams;
 import org.testng.Assert;
 import org.testng.annotations.BeforeMethod;
@@ -32,7 +31,8 @@ import java.net.URLConnection;
 import java.nio.charset.StandardCharsets;
 import java.util.*;
 
-public class JobStatusResponseCacheTest {
+public class JobStatusResponseCacheTest
+{
     private static final String requestMethod = "GET";
     private static final String dummyResponseBody = "AbCdEfG";
     private static final int responseExpirySecs = 2;
@@ -43,16 +43,16 @@ public class JobStatusResponseCacheTest {
     private Map<String, List<String>> mockRequestHeaders;
     private Map<String, List<String>> dummyResponseHeaders;
 
-
     @BeforeClass
-    public static void globalSetup() throws Exception {
+    public static void globalSetup() throws Exception
+    {
         maxAgeHeaderValue = "max-age=" + String.valueOf(responseExpirySecs);
         dummyUri = new URI("http://thehost:1234/job-service/v1/jobs/1356184177/isActive");
     }
 
-
     @BeforeMethod
-    public void perTestSetup() throws Exception {
+    public void perTestSetup() throws Exception
+    {
         mockRequestHeaders = new HashMap<>();
 
         dummyResponseHeaders = new HashMap<>();
@@ -65,9 +65,9 @@ public class JobStatusResponseCacheTest {
         Mockito.when(mockConnection.getHeaderField("cache-control")).thenReturn(maxAgeHeaderValue);
     }
 
-
     @Test
-    public void testPutGetCaching() throws Exception {
+    public void testPutGetCaching() throws Exception
+    {
         // Include the header that indicates that responses can be cached by the Job Status cache.
         dummyResponseHeaders.put("CacheableJobStatus", new ArrayList<>(Arrays.asList("true")));
         Mockito.when(mockConnection.getHeaderField("CacheableJobStatus")).thenReturn("true");
@@ -105,9 +105,9 @@ public class JobStatusResponseCacheTest {
         Assert.assertNull(cacheUnderTest.get(dummyUri, requestMethod, mockRequestHeaders));
     }
 
-
     @Test
-    public void testNonCaching() throws Exception {
+    public void testNonCaching() throws Exception
+    {
         // Deliberately omitting CacheableJobStatus header so the response should not be cached.
 
         // The ResponseCache to be tested.
@@ -124,8 +124,9 @@ public class JobStatusResponseCacheTest {
         Assert.assertNull(cacheUnderTest.get(dummyUri, requestMethod, mockRequestHeaders));
     }
 
-
-    private void verifyCachedResponse(String requestMethod, Map<String, List<String>> mockRequestHeaders, URI dummyUri, String dummyResponseBody, Map<String, List<String>> dummyResponseHeaders, JobStatusResponseCache cacheUnderTest) throws IOException {
+    private void verifyCachedResponse(String requestMethod, Map<String, List<String>> mockRequestHeaders, URI dummyUri, String dummyResponseBody, Map<String, List<String>> dummyResponseHeaders, JobStatusResponseCache cacheUnderTest)
+        throws IOException
+    {
         CacheResponse cachedResponse = cacheUnderTest.get(dummyUri, requestMethod, mockRequestHeaders);
         Assert.assertNotNull(cachedResponse);
         String retrievedResponseBody = CharStreams.toString(new InputStreamReader(cachedResponse.getBody(), StandardCharsets.UTF_8));

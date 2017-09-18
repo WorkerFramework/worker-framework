@@ -32,32 +32,36 @@ import java.util.Set;
 /**
  * Integration test for Example worker, running the testing framework.
  */
-public class ExampleWorkerAcceptanceIT extends UseAsTestName_TestBase {
-
+public class ExampleWorkerAcceptanceIT extends UseAsTestName_TestBase
+{
     TestControllerProvider testControllerProvider;
     TestControllerSingle controller;
 
     @BeforeClass
-    public void setUp() throws Exception {
+    public void setUp() throws Exception
+    {
         testControllerProvider = new ExampleTestControllerProvider();
-        controller =  TestRunnerSingle.getTestController(testControllerProvider, false);
+        controller = TestRunnerSingle.getTestController(testControllerProvider, false);
         controller.initialise();
     }
 
     @AfterClass
-    public void tearDown() throws Exception{
+    public void tearDown() throws Exception
+    {
         controller.close();
     }
 
     @DataProvider(name = "MainTest")
-    public Iterator<Object[]> createData() throws Exception {
+    public Iterator<Object[]> createData() throws Exception
+    {
         Set<Object[]> s = TestRunnerSingle.setUpTest(testControllerProvider);
         return s.iterator();
     }
 
     @UseAsTestName(idx = 1)
     @Test(dataProvider = "MainTest")
-    public void testWorker(TestItem testItem, String testName) throws Exception {
+    public void testWorker(TestItem testItem, String testName) throws Exception
+    {
         controller.runTests(testItem);
     }
 }

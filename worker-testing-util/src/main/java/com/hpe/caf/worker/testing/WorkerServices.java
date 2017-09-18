@@ -24,11 +24,12 @@ import com.hpe.caf.api.worker.DataStore;
 /**
  * Created by ploch on 22/10/2015.
  */
-public class WorkerServices {
-
+public class WorkerServices
+{
     private static WorkerServices defaultWorkerServices;
 
-    public static WorkerServices getDefault() throws Exception {
+    public static WorkerServices getDefault() throws Exception
+    {
         if (defaultWorkerServices == null) {
             defaultWorkerServices = WorkerServicesFactory.create();
         }
@@ -41,7 +42,8 @@ public class WorkerServices {
     private final ConfigurationSource configurationSource;
     private final DataStore dataStore;
 
-    public WorkerServices(final BootstrapConfiguration bootstrapConfiguration, final Codec codec, final Cipher cipher, final ConfigurationSource configurationSource, final DataStore dataStore) {
+    public WorkerServices(final BootstrapConfiguration bootstrapConfiguration, final Codec codec, final Cipher cipher, final ConfigurationSource configurationSource, final DataStore dataStore)
+    {
         this.bootstrapConfiguration = bootstrapConfiguration;
         this.codec = codec;
 
@@ -55,7 +57,8 @@ public class WorkerServices {
      *
      * @return Value for property 'bootstrapConfiguration'.
      */
-    public BootstrapConfiguration getBootstrapConfiguration() {
+    public BootstrapConfiguration getBootstrapConfiguration()
+    {
         return bootstrapConfiguration;
     }
 
@@ -64,7 +67,8 @@ public class WorkerServices {
      *
      * @return Value for property 'codec'.
      */
-    public Codec getCodec() {
+    public Codec getCodec()
+    {
         return codec;
     }
 
@@ -73,7 +77,8 @@ public class WorkerServices {
      *
      * @return Value for property 'cipher'.
      */
-    public Cipher getCipher() {
+    public Cipher getCipher()
+    {
         return cipher;
     }
 
@@ -82,7 +87,8 @@ public class WorkerServices {
      *
      * @return Value for property 'configurationSource'.
      */
-    public ConfigurationSource getConfigurationSource() {
+    public ConfigurationSource getConfigurationSource()
+    {
         return configurationSource;
     }
 
@@ -91,7 +97,8 @@ public class WorkerServices {
      *
      * @return Value for property 'dataStore'.
      */
-    public DataStore getDataStore() {
+    public DataStore getDataStore()
+    {
         return dataStore;
     }
 }

@@ -37,24 +37,22 @@ import java.io.StringWriter;
 /**
  * Unit test to verify the worker correctly performs the desired action.
  */
-public class ExampleWorkerTest {
-
+public class ExampleWorkerTest
+{
     /**
-     * Unit test for testing the worker's reverse action.
-     * Create a referenced data object,
-     * Create a worker task using the referenced data object,
-     * Create a worker using the factory provider,
-     * Compare the result to the expected result.
+     * Unit test for testing the worker's reverse action. Create a referenced data object, Create a worker task using the referenced data
+     * object, Create a worker using the factory provider, Compare the result to the expected result.
      */
     @Test
-    public void testExampleWorkerReverse() throws Exception {
+    public void testExampleWorkerReverse() throws Exception
+    {
         //Codec
         Codec codec = new JsonCodec();
 
         //Mock DataStore
         DataStore mockDataStore = Mockito.mock(DataStore.class);
         Mockito.when(mockDataStore.store(Mockito.any(InputStream.class), Mockito.any(String.class)))
-                .thenReturn("mockRefId");
+            .thenReturn("mockRefId");
         DataSource mockSource = new DataStoreSource(mockDataStore, codec);
 
         //Create the worker subject to testing
@@ -73,21 +71,19 @@ public class ExampleWorkerTest {
     }
 
     /**
-     * Unit test for testing the worker's capitalise action.
-     * Create a referenced data object,
-     * Create a worker task using the referenced data object,
-     * Create a worker using the factory provider,
-     * Compare the result to the expected result.
+     * Unit test for testing the worker's capitalise action. Create a referenced data object, Create a worker task using the referenced
+     * data object, Create a worker using the factory provider, Compare the result to the expected result.
      */
     @Test
-    public void testExampleWorkerCapitalise() throws Exception {
+    public void testExampleWorkerCapitalise() throws Exception
+    {
         //Codec
         Codec codec = new JsonCodec();
 
         //Mock DataStore
         DataStore mockDataStore = Mockito.mock(DataStore.class);
         Mockito.when(mockDataStore.store(Mockito.any(InputStream.class), Mockito.any(String.class)))
-                .thenReturn("mockRefId");
+            .thenReturn("mockRefId");
         DataSource mockSource = new DataStoreSource(mockDataStore, codec);
 
         //Create the worker subject to testing
@@ -107,11 +103,13 @@ public class ExampleWorkerTest {
 
     /**
      * Private method to create a mock task using a mocked referenced data object.
+     *
      * @param action
      * @return ExampleWorkerTask
      * @throws IOException
      */
-    private ExampleWorkerTask createMockTask(ExampleWorkerAction action) throws IOException {
+    private ExampleWorkerTask createMockTask(ExampleWorkerAction action) throws IOException
+    {
         String text = "Secretary of state";
         ReferencedData mockReferencedData = ReferencedData.getWrappedData(text.getBytes());
         ExampleWorkerTask task = new ExampleWorkerTask();
@@ -122,12 +120,14 @@ public class ExampleWorkerTest {
 
     /**
      * Private method to convert the InputStream acquired from the DataStore to a string.
+     *
      * @param stream
      * @param encoding
      * @return String
      * @throws IOException
      */
-    private String streamToString(InputStream stream, String encoding) throws IOException {
+    private String streamToString(InputStream stream, String encoding) throws IOException
+    {
         StringWriter writer = new StringWriter();
         IOUtils.copy(stream, writer, encoding);
         return writer.toString();

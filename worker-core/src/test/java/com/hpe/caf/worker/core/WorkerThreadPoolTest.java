@@ -43,6 +43,6 @@ public class WorkerThreadPoolTest
         wtp.submitWorkerTask(mockWorkerTask);
         latch.await(1, TimeUnit.SECONDS);
         Assert.assertEquals("Latch count should be 0; indicating that the handler was invoked due to the Error thrown",
-                0, latch.getCount());
+                            0, latch.getCount());
     }
 }

@@ -15,7 +15,6 @@
  */
 package com.hpe.caf.worker;
 
-
 import com.hpe.caf.api.Codec;
 import com.hpe.caf.api.CodecException;
 import com.hpe.caf.api.ConfigurationException;
@@ -25,10 +24,9 @@ import com.hpe.caf.api.worker.*;
 
 import java.util.Objects;
 
-
 /**
- * A WorkerFactory that uses a pre-defined configuration and Worker task class.
- * This is the recommended abstract base to create a WorkerFactory from.
+ * A WorkerFactory that uses a pre-defined configuration and Worker task class. This is the recommended abstract base to create a
+ * WorkerFactory from.
  *
  * @param <C> the Worker Configuration type parameter
  * @param <T> the Worker Task type parameter
@@ -40,9 +38,9 @@ public abstract class AbstractWorkerFactory<C, T> implements WorkerFactory
     private final Codec codec;
     private final Class<T> taskClass;
 
-
     /**
      * Instantiates a new DefaultWorkerFactory.
+     *
      * @param configSource the worker configuration source
      * @param dataStore the external data store
      * @param codec the codec used in serialisation
@@ -64,10 +62,8 @@ public abstract class AbstractWorkerFactory<C, T> implements WorkerFactory
         }
     }
 
-
     /**
-     * {@inheritDoc}
-     * Verify that the incoming task has the right type and is a version that can be handled.
+     * {@inheritDoc} Verify that the incoming task has the right type and is a version that can be handled.
      */
     @Override
     public final Worker getWorker(final String classifier, final int version, final TaskStatus status, final byte[] data, final byte[] context, TrackingInfo tracking)
@@ -76,22 +72,20 @@ public abstract class AbstractWorkerFactory<C, T> implements WorkerFactory
         return createWorker(verifyWorkerTask(classifier, version, data), tracking);
     }
 
-
     /**
      * @return the configuration used to instantiate workers.
      */
     @Override
-    public WorkerConfiguration getWorkerConfiguration() {
+    public WorkerConfiguration getWorkerConfiguration()
+    {
         if (configuration instanceof WorkerConfiguration) {
-            return (WorkerConfiguration)configuration;
+            return (WorkerConfiguration) configuration;
         }
         return null;
     }
 
-
     /**
-     * Verify that the specified worker task has the right type and is a version
-     * that can be handled.
+     * Verify that the specified worker task has the right type and is a version that can be handled.
      */
     protected final T verifyWorkerTask(final WorkerTask workerTask)
         throws TaskRejectedException, InvalidTaskException
@@ -101,14 +95,12 @@ public abstract class AbstractWorkerFactory<C, T> implements WorkerFactory
                                 workerTask.getData());
     }
 
-
     /**
-     * Verify that the specified worker task has the right type and is a version
-     * that can be handled.
-     * 
-     * <p>Note that whereas verifyWorkerTask() will throw an exception when
-     * there is an issue, this method will instead use the setResponse() method
-     * on the WorkerTask and then return null.</p>
+     * Verify that the specified worker task has the right type and is a version that can be handled.
+     *
+     * <p>
+     * Note that whereas verifyWorkerTask() will throw an exception when there is an issue, this method will instead use the setResponse()
+     * method on the WorkerTask and then return null.</p>
      */
     protected final T verifyWorkerTaskAndSetResponse(final WorkerTask workerTask)
     {
@@ -123,13 +115,10 @@ public abstract class AbstractWorkerFactory<C, T> implements WorkerFactory
         }
     }
 
-
     /**
-     * Verify that the specified worker task has the right type and is a version
-     * that can be handled.
+     * Verify that the specified worker task has the right type and is a version that can be handled.
      */
-    private T verifyWorkerTask
-    (
+    private T verifyWorkerTask(
         final String classifier,
         final int version,
         final byte[] data
@@ -159,43 +148,41 @@ public abstract class AbstractWorkerFactory<C, T> implements WorkerFactory
         }
     }
 
-
     /**
      * @return the name of the worker to use when checking the task type
      */
     protected abstract String getWorkerName();
-
 
     /**
      * @return the maximum version of the worker message that is supported
      */
     protected abstract int getWorkerApiVersion();
 
-
     /**
-     * Create a Worker instance with access to the tracking info associated with the task.
-     * This method should be overridden by any Worker Factory creating Worker instances that need access to tracking info.
+     * Create a Worker instance with access to the tracking info associated with the task. This method should be overridden by any Worker
+     * Factory creating Worker instances that need access to tracking info.
+     *
      * @param task the deserialised Worker task
      * @param tracking additional fields used in tracking task messages
      * @return the worker instance
      * @throws TaskRejectedException if a Worker cannot be created to handle this task currently
      * @throws InvalidTaskException if it appears this task cannot possibly be handled by a Worker of this type
      */
-    protected Worker createWorker(final T task, TrackingInfo tracking) throws TaskRejectedException, InvalidTaskException {
+    protected Worker createWorker(final T task, TrackingInfo tracking) throws TaskRejectedException, InvalidTaskException
+    {
         return createWorker(task);
     }
 
-
     /**
      * Create a Worker instance.
+     *
      * @param task the deserialised Worker task
      * @return the worker instance
      * @throws TaskRejectedException if a Worker cannot be created to handle this task currently
      * @throws InvalidTaskException if it appears this task cannot possibly be handled by a Worker of this type
      */
     protected abstract Worker createWorker(final T task)
-            throws TaskRejectedException, InvalidTaskException;
-
+        throws TaskRejectedException, InvalidTaskException;
 
     /**
      * @return the data store supplied by the application
@@ -205,7 +192,6 @@ public abstract class AbstractWorkerFactory<C, T> implements WorkerFactory
         return dataStore;
     }
 
-
     /**
      * @return the configuration associated with this WorkerFactory
      */
@@ -213,7 +199,6 @@ public abstract class AbstractWorkerFactory<C, T> implements WorkerFactory
     {
         return configuration;
     }
-
 
     /**
      * @return the codec supplied by the application for de/serialisation purposes

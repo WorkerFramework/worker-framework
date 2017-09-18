@@ -29,12 +29,12 @@ import java.util.Map;
 /**
  * The base implementation of {@link ResultProcessor}.
  *
- * @param <TResult>   the type parameter
- * @param <TInput>    the type parameter
+ * @param <TResult> the type parameter
+ * @param <TInput> the type parameter
  * @param <TExpected> the type parameter
  */
-public abstract class AbstractResultProcessor<TResult, TInput, TExpected> implements ResultProcessor {
-
+public abstract class AbstractResultProcessor<TResult, TInput, TExpected> implements ResultProcessor
+{
     private final Codec codec;
     private final Class<TResult> resultClass;
 
@@ -43,24 +43,27 @@ public abstract class AbstractResultProcessor<TResult, TInput, TExpected> implem
      *
      * @return Value for property 'codec'.
      */
-    protected Codec getCodec() {
+    protected Codec getCodec()
+    {
         return codec;
     }
 
     /**
      * Instantiates a new Abstract result processor.
      *
-     * @param codec       the codec
+     * @param codec the codec
      * @param resultClass the result class
      */
-    protected AbstractResultProcessor(final Codec codec, final Class<TResult> resultClass) {
+    protected AbstractResultProcessor(final Codec codec, final Class<TResult> resultClass)
+    {
 
         this.codec = codec;
         this.resultClass = resultClass;
     }
 
     @Override
-    public boolean process(TestItem testItem, TaskMessage resultMessage) throws Exception {
+    public boolean process(TestItem testItem, TaskMessage resultMessage) throws Exception
+    {
         TResult workerResult = deserializeMessage(resultMessage, resultClass);
         return processWorkerResult(testItem, resultMessage, workerResult);
     }
@@ -68,12 +71,13 @@ public abstract class AbstractResultProcessor<TResult, TInput, TExpected> implem
     /**
      * Deserialize message to the worker-under-test result using configured {@link Codec} implementation.
      *
-     * @param message     the message
+     * @param message the message
      * @param resultClass the result class
      * @return the t result
      * @throws CodecException the codec exception
      */
-    protected TResult deserializeMessage(TaskMessage message, Class<TResult> resultClass) throws CodecException {
+    protected TResult deserializeMessage(TaskMessage message, Class<TResult> resultClass) throws CodecException
+    {
         if (message.getTaskStatus() != TaskStatus.RESULT_SUCCESS && message.getTaskStatus() != TaskStatus.RESULT_FAILURE) {
             throw new AssertionError("Task status was failure.");
         }
@@ -85,12 +89,15 @@ public abstract class AbstractResultProcessor<TResult, TInput, TExpected> implem
      * Processes deserialized worker-under-test result.
      *
      * @param testItem the test item
-     * @param message  the message
-     * @param result   the result
+     * @param message the message
+     * @param result the result
      * @return the boolean
      * @throws Exception the exception
      */
     protected abstract boolean processWorkerResult(TestItem<TInput, TExpected> testItem, TaskMessage message, TResult result) throws Exception;
 
-    public String getInputIdentifier(TaskMessage message) {return "";}
+    public String getInputIdentifier(TaskMessage message)
+    {
+        return "";
+    }
 }

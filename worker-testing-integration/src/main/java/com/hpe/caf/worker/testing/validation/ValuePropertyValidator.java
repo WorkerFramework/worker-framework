@@ -23,11 +23,15 @@ import java.util.regex.Pattern;
 /**
  * Created by ploch on 05/12/2015.
  */
-public class ValuePropertyValidator extends PropertyValidator {
+public class ValuePropertyValidator extends PropertyValidator
+{
     @Override
-    public boolean isValid(Object testedPropertyValue, Object validatorPropertyValue) {
+    public boolean isValid(Object testedPropertyValue, Object validatorPropertyValue)
+    {
 
-        if (testedPropertyValue == validatorPropertyValue) return true;
+        if (testedPropertyValue == validatorPropertyValue) {
+            return true;
+        }
 
         String testedStringValue = "";
 
@@ -41,7 +45,9 @@ public class ValuePropertyValidator extends PropertyValidator {
 
         String validationRegex = validatorPropertyValue.toString();
 
-        if (testedStringValue.equals(validationRegex)) return true;
+        if (testedStringValue.equals(validationRegex)) {
+            return true;
+        }
 
         Pattern pattern = Pattern.compile(validationRegex);
         Matcher matcher = pattern.matcher(testedStringValue);

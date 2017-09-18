@@ -15,7 +15,6 @@
  */
 package com.hpe.caf.util.rabbitmq;
 
-
 /**
  * Possible states of exclusivity for a RabbitMQ queue.
  */

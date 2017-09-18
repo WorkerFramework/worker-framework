@@ -15,7 +15,6 @@
  */
 package com.hpe.caf.worker.queue.rabbit;
 
-
 import com.hpe.caf.util.rabbitmq.ConsumerAckEvent;
 import com.hpe.caf.util.rabbitmq.ConsumerRejectEvent;
 import com.hpe.caf.util.rabbitmq.Event;
@@ -34,7 +33,6 @@ import java.util.concurrent.BlockingQueue;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
-
 /**
  * Ack incoming task messages when the outgoing response has been confirmed by the RabbitMQ broker.
  */
@@ -44,28 +42,26 @@ class WorkerConfirmListener implements ConfirmListener
     private final BlockingQueue<Event<QueueConsumer>> consumerEvents;
     private static final Logger LOG = LoggerFactory.getLogger(WorkerConfirmListener.class);
 
-
     WorkerConfirmListener(BlockingQueue<Event<QueueConsumer>> events)
     {
         this.consumerEvents = Objects.requireNonNull(events);
     }
 
-
     /**
-     * Tell the listener to keep track of a published response and its associated input task message,
-     * to ack or reject the input task message as appropriate when RabbitMQ calls back.
+     * Tell the listener to keep track of a published response and its associated input task message, to ack or reject the input task
+     * message as appropriate when RabbitMQ calls back.
+     *
      * @param publishSequence the published sequence ID of the Worker response message
      * @param ackId the incoming task message ID to ack when the published response is confirmed
      */
     public void registerResponseSequence(long publishSequence, long ackId)
     {
-        if ( confirmMap.putIfAbsent(publishSequence, ackId) != null ) {
+        if (confirmMap.putIfAbsent(publishSequence, ackId) != null) {
             throw new IllegalStateException("Sequence id " + publishSequence + " already present in confirmations map");
         }
         LOG.debug("Listening for confirmation of publish sequence {} (ack message: {})", publishSequence, ackId);
         confirmMap.put(publishSequence, ackId);
     }
-
 
     /**
      * Forget all currently monitored sequence numbers, for use when the RabbitMQ connection drops.
@@ -76,7 +72,6 @@ class WorkerConfirmListener implements ConfirmListener
         confirmMap.clear();
     }
 
-
     @Override
     public void handleAck(long sequenceNo, boolean multiple)
         throws IOException
@@ -85,7 +80,6 @@ class WorkerConfirmListener implements ConfirmListener
         handle(sequenceNo, multiple, ConsumerAckEvent::new);
     }
 
-
     @Override
     public void handleNack(long sequenceNo, boolean multiple)
         throws IOException
@@ -93,7 +87,6 @@ class WorkerConfirmListener implements ConfirmListener
         LOG.warn("RabbitMQ broker NACKed published sequence id {} (multiple: {})", sequenceNo, multiple);
         handle(sequenceNo, multiple, ConsumerRejectEvent::new);
     }
-
 
     private void handle(long sequenceNo, boolean multiple, Function<Long, Event<QueueConsumer>> eventSource)
     {
@@ -105,7 +98,7 @@ class WorkerConfirmListener implements ConfirmListener
             ackMap.clear(); // clear all entries up to this (n)acked sequence number
         } else {
             Long ackId = confirmMap.remove(sequenceNo);
-            if ( ackId == null ) {
+            if (ackId == null) {
                 LOG.error("RabbitMQ broker sent confirm for sequence number {}, which is not registered", sequenceNo);
                 throw new IllegalStateException("Sequence number " + sequenceNo + " not found in WorkerConfirmListener");
             } else {

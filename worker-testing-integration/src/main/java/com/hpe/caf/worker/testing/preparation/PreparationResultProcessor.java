@@ -34,12 +34,13 @@ import static java.nio.file.StandardCopyOption.REPLACE_EXISTING;
 /**
  * Created by ploch on 25/11/2015.
  */
-public class PreparationResultProcessor<TWorkerTask, TWorkerResult, TInput extends FileTestInputData, TExpected> extends OutputToFileProcessor<TWorkerResult, TInput, TExpected> {
-
-
+public class PreparationResultProcessor<TWorkerTask, TWorkerResult, TInput extends FileTestInputData, TExpected>
+    extends OutputToFileProcessor<TWorkerResult, TInput, TExpected>
+{
     private final TestConfiguration<TWorkerTask, TWorkerResult, TInput, TExpected> configuration;
 
-    protected PreparationResultProcessor(final TestConfiguration<TWorkerTask, TWorkerResult, TInput, TExpected> configuration, Codec codec) {
+    protected PreparationResultProcessor(final TestConfiguration<TWorkerTask, TWorkerResult, TInput, TExpected> configuration, Codec codec)
+    {
         super(codec, configuration.getWorkerResultClass(), configuration.getTestDataFolder());
         this.configuration = configuration;
     }
@@ -49,17 +50,21 @@ public class PreparationResultProcessor<TWorkerTask, TWorkerResult, TInput exten
      *
      * @return Value for property 'configuration'.
      */
-    protected TestConfiguration<TWorkerTask, TWorkerResult, TInput, TExpected> getConfiguration() {
+    protected TestConfiguration<TWorkerTask, TWorkerResult, TInput, TExpected> getConfiguration()
+    {
         return configuration;
     }
 
     @Override
-    protected byte[] getOutputContent(TWorkerResult workerResult, TaskMessage message, TestItem<TInput, TExpected> testItem) throws Exception {
+    protected byte[] getOutputContent(TWorkerResult workerResult, TaskMessage message, TestItem<TInput, TExpected> testItem)
+        throws Exception
+    {
         return getSerializedTestItem(testItem, configuration);
     }
 
     @Override
-    protected Path getSaveFilePath(TestItem<TInput, TExpected> testItem, TaskMessage message) {
+    protected Path getSaveFilePath(TestItem<TInput, TExpected> testItem, TaskMessage message)
+    {
         Path saveFilePath = super.getSaveFilePath(testItem, message);
         if (configuration.isStoreTestCaseWithInput()) {
             Path fileName = saveFilePath.getFileName();
@@ -69,13 +74,14 @@ public class PreparationResultProcessor<TWorkerTask, TWorkerResult, TInput exten
         return saveFilePath;
     }
 
-
-    protected Path saveContentFile(TestItem<TInput, TExpected> testItem, String baseFileName, String extension, InputStream dataStream) throws IOException {
+    protected Path saveContentFile(TestItem<TInput, TExpected> testItem, String baseFileName, String extension, InputStream dataStream)
+        throws IOException
+    {
         String outputFolder = getOutputFolder();
         if (configuration.isStoreTestCaseWithInput()) {
 
             Path path = Paths.get(testItem.getInputData().getInputFile()).getParent();
-            outputFolder =  Paths.get(configuration.getTestDataFolder(), path == null ? "" : path.toString()).toString();
+            outputFolder = Paths.get(configuration.getTestDataFolder(), path == null ? "" : path.toString()).toString();
         }
 
         baseFileName = FilenameUtils.normalize(baseFileName);
@@ -87,7 +93,8 @@ public class PreparationResultProcessor<TWorkerTask, TWorkerResult, TInput exten
         return getRelativeLocation(contentFile);
     }
 
-    protected Path getRelativeLocation(Path contentFile) {
+    protected Path getRelativeLocation(Path contentFile)
+    {
         Path relative = Paths.get(configuration.getTestDataFolder()).relativize(contentFile);
         return relative;
     }

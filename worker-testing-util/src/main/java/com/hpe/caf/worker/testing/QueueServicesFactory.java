@@ -34,20 +34,25 @@ import java.util.concurrent.TimeoutException;
 /**
  * Created by ploch on 08/11/2015.
  */
-public class QueueServicesFactory {
-
-    private static class NoOpCallback implements TaskCallback {
+public class QueueServicesFactory
+{
+    private static class NoOpCallback implements TaskCallback
+    {
 
         @Override
-        public void registerNewTask(String s, byte[] bytes, Map<String, Object> headers) throws TaskRejectedException, InvalidTaskException {
+        public void registerNewTask(String s, byte[] bytes, Map<String, Object> headers) throws TaskRejectedException, InvalidTaskException
+        {
         }
 
         @Override
-        public void abortTasks() {
+        public void abortTasks()
+        {
         }
     }
 
-    public static QueueServices create(final RabbitWorkerQueueConfiguration configuration, final String resultsQueueName, final Codec codec) throws IOException, TimeoutException {
+    public static QueueServices create(final RabbitWorkerQueueConfiguration configuration, final String resultsQueueName, final Codec codec)
+        throws IOException, TimeoutException
+    {
         Connection connection = createConnection(configuration, new NoOpCallback());
         Channel pubChan = connection.createChannel();
         Channel conChan = connection.createChannel();
@@ -59,7 +64,7 @@ public class QueueServicesFactory {
     }
 
     private static Connection createConnection(RabbitWorkerQueueConfiguration configuration, final TaskCallback callback)
-            throws IOException, TimeoutException
+        throws IOException, TimeoutException
     {
         RabbitConfiguration rc = configuration.getRabbitConfiguration();
         ConnectionOptions lyraOpts = RabbitUtil.createLyraConnectionOptions(rc.getRabbitHost(), rc.getRabbitPort(), rc.getRabbitUser(), rc.getRabbitPassword());

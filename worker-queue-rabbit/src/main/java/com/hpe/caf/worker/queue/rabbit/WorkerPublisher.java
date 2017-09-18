@@ -15,18 +15,16 @@
  */
 package com.hpe.caf.worker.queue.rabbit;
 
-
 import java.util.Map;
 
-
 /**
- * A publisher that publishes to a specific queue and acknowledges another message
- * subsequent to publishing.
+ * A publisher that publishes to a specific queue and acknowledges another message subsequent to publishing.
  */
 public interface WorkerPublisher
 {
     /**
      * Publish a new message to a specified queue and acknowledge a prior message by id.
+     *
      * @param data the body of the message to publish
      * @param routingKey the routing key to publish the new message with
      * @param ackId the prior message id to acknowledge

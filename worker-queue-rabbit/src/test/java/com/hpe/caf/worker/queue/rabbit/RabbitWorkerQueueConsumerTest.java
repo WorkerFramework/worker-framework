@@ -15,7 +15,6 @@
  */
 package com.hpe.caf.worker.queue.rabbit;
 
-
 import com.hpe.caf.api.worker.InvalidTaskException;
 import com.hpe.caf.api.worker.TaskCallback;
 import com.hpe.caf.api.worker.TaskRejectedException;
@@ -41,7 +40,6 @@ import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.TimeUnit;
 
-
 public class RabbitWorkerQueueConsumerTest
 {
     private String testQueue = "testQueue";
@@ -53,13 +51,12 @@ public class RabbitWorkerQueueConsumerTest
     private RabbitMetricsReporter metrics = new RabbitMetricsReporter();
     private TaskCallback mockCallback = Mockito.mock(TaskCallback.class);
 
-
     /**
      * Send in a new message and verify the task registration callback is performed.
      */
     @Test
     public void testHandleDelivery()
-            throws IOException, InterruptedException, WorkerException
+        throws IOException, InterruptedException, WorkerException
     {
         BlockingQueue<Event<QueueConsumer>> consumerEvents = new LinkedBlockingQueue<>();
         BlockingQueue<Event<WorkerPublisher>> publisherEvents = new LinkedBlockingQueue<>();
@@ -82,10 +79,9 @@ public class RabbitWorkerQueueConsumerTest
         consumer.shutdown();
     }
 
-
     /**
-     * Send in a new message and verify that if the task registration throws an InvalidTaskException that
-     * a new publish request to the reject queue is sent.
+     * Send in a new message and verify that if the task registration throws an InvalidTaskException that a new publish request to the
+     * reject queue is sent.
      */
     @Test
     public void testHandleDeliveryInvalid()
@@ -118,10 +114,9 @@ public class RabbitWorkerQueueConsumerTest
         consumer.shutdown();
     }
 
-
     /**
-     * Send in a new message and verify that if the task registration throws a TaskRejectedException that
-     * a new publish request back to the input queue is sent.
+     * Send in a new message and verify that if the task registration throws a TaskRejectedException that a new publish request back to
+     * the input queue is sent.
      */
     @Test
     public void testHandleDeliveryRejected()
@@ -152,10 +147,9 @@ public class RabbitWorkerQueueConsumerTest
         consumer.shutdown();
     }
 
-
     /**
-     * Send in a message marked as redelivered and verify that a new publish request is sent to the retry queue
-     * with the appropriate headers stamped.
+     * Send in a message marked as redelivered and verify that a new publish request is sent to the retry queue with the appropriate
+     * headers stamped.
      */
     @Test
     public void testHandleRedelivery()
@@ -183,10 +177,9 @@ public class RabbitWorkerQueueConsumerTest
         consumer.shutdown();
     }
 
-
     /**
-     * Send in a redelivered message with a retry header that exceeds the limit and verify a new publish request
-     * is sent to the rejected queue with the appropriate headers stamped.
+     * Send in a redelivered message with a retry header that exceeds the limit and verify a new publish request is sent to the rejected
+     * queue with the appropriate headers stamped.
      */
     @Test
     public void testHandleRedeliveryRetryExceeded()
@@ -219,13 +212,12 @@ public class RabbitWorkerQueueConsumerTest
         consumer.shutdown();
     }
 
-
     /**
      * Verify an ack request sends the appropriate signal to RabbitMQ.
      */
     @Test
     public void testHandleDeliveryAck()
-            throws IOException, InterruptedException, WorkerException
+        throws IOException, InterruptedException, WorkerException
     {
         BlockingQueue<Event<QueueConsumer>> consumerEvents = new LinkedBlockingQueue<>();
         BlockingQueue<Event<WorkerPublisher>> publisherEvents = new LinkedBlockingQueue<>();
@@ -245,13 +237,12 @@ public class RabbitWorkerQueueConsumerTest
         consumer.shutdown();
     }
 
-
     /**
      * Verify a reject request sends the appropriate signal to RabbitMQ.
      */
     @Test
     public void testHandleDeliveryReject()
-            throws IOException, InterruptedException, WorkerException
+        throws IOException, InterruptedException, WorkerException
     {
         BlockingQueue<Event<QueueConsumer>> consumerEvents = new LinkedBlockingQueue<>();
         BlockingQueue<Event<WorkerPublisher>> publisherEvents = new LinkedBlockingQueue<>();
@@ -271,13 +262,12 @@ public class RabbitWorkerQueueConsumerTest
         consumer.shutdown();
     }
 
-
     /**
      * Verify a drop request sends the appropriate signal to RabbitMQ.
      */
     @Test
     public void testHandleDeliveryDrop()
-            throws IOException, InterruptedException, WorkerException
+        throws IOException, InterruptedException, WorkerException
     {
         BlockingQueue<Event<QueueConsumer>> consumerEvents = new LinkedBlockingQueue<>();
         BlockingQueue<Event<WorkerPublisher>> publisherEvents = new LinkedBlockingQueue<>();

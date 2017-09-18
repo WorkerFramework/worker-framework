@@ -43,11 +43,10 @@ class WorkerTaskImpl implements WorkerTask
     private final Object responseCountLock;
     private final SingleResponseMessageBuffer singleMessageBuffer;
     private final AtomicInteger currentSubtaskId;
-    private final Semaphore subtasksPublishedSemaphore; 
+    private final Semaphore subtasksPublishedSemaphore;
     private final boolean poison;
-    
-    public WorkerTaskImpl
-    (
+
+    public WorkerTaskImpl(
         final ServicePath servicePath,
         final WorkerCallback workerCallback,
         final WorkerFactory workerFactory,
@@ -55,7 +54,8 @@ class WorkerTaskImpl implements WorkerTask
         final TaskMessage taskMessage,
         final boolean poison,
         final MessagePriorityManager priorityManager
-    ) {
+    )
+    {
         this.servicePath = servicePath;
         this.workerCallback = workerCallback;
         this.workerFactory = workerFactory;
@@ -71,42 +71,50 @@ class WorkerTaskImpl implements WorkerTask
     }
 
     @Override
-    public String getClassifier() {
+    public String getClassifier()
+    {
         return taskMessage.getTaskClassifier();
     }
 
     @Override
-    public int getVersion() {
+    public int getVersion()
+    {
         return taskMessage.getTaskApiVersion();
     }
 
     @Override
-    public TaskStatus getStatus() {
+    public TaskStatus getStatus()
+    {
         return taskMessage.getTaskStatus();
     }
 
     @Override
-    public byte[] getData() {
+    public byte[] getData()
+    {
         return taskMessage.getTaskData();
     }
 
     @Override
-    public byte[] getContext() {
+    public byte[] getContext()
+    {
         return taskMessage.getContext().get(servicePath.toString());
     }
 
     @Override
-    public TrackingInfo getTrackingInfo() {
+    public TrackingInfo getTrackingInfo()
+    {
         return taskMessage.getTracking();
     }
 
     @Override
-    public TaskSourceInfo getSourceInfo() {
+    public TaskSourceInfo getSourceInfo()
+    {
         return taskMessage.getSourceInfo();
     }
 
     @Override
-    public void addResponse(final WorkerResponse response, final boolean includeTaskContext) {
+    public void addResponse(final WorkerResponse response, final boolean includeTaskContext)
+    {
         Objects.requireNonNull(response);
         Objects.requireNonNull(response.getQueueReference());
 
@@ -118,7 +126,8 @@ class WorkerTaskImpl implements WorkerTask
     }
 
     @Override
-    public void setResponse(final WorkerResponse response) {
+    public void setResponse(final WorkerResponse response)
+    {
         Objects.requireNonNull(response);
 
         incrementResponseCount(true);
@@ -146,17 +155,19 @@ class WorkerTaskImpl implements WorkerTask
     }
 
     @Override
-    public void setResponse(final TaskRejectedException taskRejectedException) {
+    public void setResponse(final TaskRejectedException taskRejectedException)
+    {
         incrementResponseCount(true);
 
         LOG.info("Worker requested to abandon task {} (message id: {})",
-            taskMessage.getTaskId(), taskMessage, taskRejectedException);
+                 taskMessage.getTaskId(), taskMessage, taskRejectedException);
 
         workerCallback.abandon(messageId, taskRejectedException);
     }
 
     @Override
-    public void setResponse(final InvalidTaskException invalidTaskException) {
+    public void setResponse(final InvalidTaskException invalidTaskException)
+    {
         if (invalidTaskException == null) {
             throw new IllegalArgumentException();
         }
@@ -164,29 +175,29 @@ class WorkerTaskImpl implements WorkerTask
         incrementResponseCount(true);
 
         LOG.error("Task data is invalid for {}, returning status {}",
-                taskMessage.getTaskId(), TaskStatus.INVALID_TASK, invalidTaskException);
+                  taskMessage.getTaskId(), TaskStatus.INVALID_TASK, invalidTaskException);
 
         final String taskClassifier = MoreObjects.firstNonNull(taskMessage.getTaskClassifier(), "");
 
         final String invalidTaskExceptionMessage = invalidTaskException.getMessage();
-        final byte[] taskData =
-                invalidTaskExceptionMessage == null ?
-                        new byte[] {} : invalidTaskExceptionMessage.getBytes(StandardCharsets.UTF_8);
+        final byte[] taskData
+            = invalidTaskExceptionMessage == null
+                ? new byte[]{} : invalidTaskExceptionMessage.getBytes(StandardCharsets.UTF_8);
 
         final Map<String, byte[]> context = MoreObjects.firstNonNull(
-                taskMessage.getContext(),
-                Collections.<String, byte[]>emptyMap());
+            taskMessage.getContext(),
+            Collections.<String, byte[]>emptyMap());
 
         final TaskMessage invalidResponse = new TaskMessage(
-                MoreObjects.firstNonNull(taskMessage.getTaskId(), ""),
-                taskClassifier,
-                taskMessage.getTaskApiVersion(),
-                taskData,
-                TaskStatus.INVALID_TASK,
-                context,
-                workerFactory.getInvalidTaskQueue(),
-                taskMessage.getTracking(),
-                new TaskSourceInfo(getWorkerName(taskClassifier), getWorkerVersion()));
+            MoreObjects.firstNonNull(taskMessage.getTaskId(), ""),
+            taskClassifier,
+            taskMessage.getTaskApiVersion(),
+            taskData,
+            TaskStatus.INVALID_TASK,
+            context,
+            workerFactory.getInvalidTaskQueue(),
+            taskMessage.getTracking(),
+            new TaskSourceInfo(getWorkerName(taskClassifier), getWorkerVersion()));
 
         completeResponse(invalidResponse);
     }
@@ -197,12 +208,14 @@ class WorkerTaskImpl implements WorkerTask
         return workerFactory.getWorker(this);
     }
 
-    public void logInterruptedException(final InterruptedException interruptedException) {
+    public void logInterruptedException(final InterruptedException interruptedException)
+    {
         LOG.warn("Worker interrupt signalled, not performing callback for task {} (message id: {})",
-            taskMessage.getTaskId(), messageId, interruptedException);
+                 taskMessage.getTaskId(), messageId, interruptedException);
     }
 
-    public boolean isResponseSet() {
+    public boolean isResponseSet()
+    {
         return (responseCount < 0);
     }
 
@@ -315,7 +328,7 @@ class WorkerTaskImpl implements WorkerTask
         }
 
         /**
-         * Flush the buffer and turn it off.  Any subsequent calls to add() will not be buffered.
+         * Flush the buffer and turn it off. Any subsequent calls to add() will not be buffered.
          */
         public void flush()
         {

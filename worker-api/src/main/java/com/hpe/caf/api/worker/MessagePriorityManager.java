@@ -22,6 +22,7 @@ public interface MessagePriorityManager
 {
     /**
      * Gets the priority of response message.
+     *
      * @param originalTaskMessage A worker input (request) message.
      * @return Priority
      */

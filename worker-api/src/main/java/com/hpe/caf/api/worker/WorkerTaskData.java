@@ -18,7 +18,8 @@ package com.hpe.caf.api.worker;
 /**
  * Represents a task to be completed by the CAF Worker.
  */
-public interface WorkerTaskData {
+public interface WorkerTaskData
+{
     /**
      * Retrieves an indicator of the type of the task
      */

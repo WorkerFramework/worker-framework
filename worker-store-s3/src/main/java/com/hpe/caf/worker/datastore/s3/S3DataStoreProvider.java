@@ -25,7 +25,7 @@ public class S3DataStoreProvider implements DataStoreProvider
 {
     @Override
     public final ManagedDataStore getDataStore(final ConfigurationSource configurationSource)
-            throws DataStoreException
+        throws DataStoreException
     {
         try {
             S3DataStoreConfiguration storageServiceDataStoreConfiguration = configurationSource.getConfiguration(S3DataStoreConfiguration.class);

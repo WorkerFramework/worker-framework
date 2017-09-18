@@ -26,9 +26,8 @@ import java.util.Map;
 /**
  * Created by ploch on 07/12/2015.
  */
-public class ValidatorFactory {
-
-
+public class ValidatorFactory
+{
     private ValidationSettings validationSettings;
     private final DataStore dataStore;
     private final Codec codec;
@@ -36,7 +35,8 @@ public class ValidatorFactory {
     private final boolean failOnUnknownProperty;
     private final String testSourcefileBaseFolder;
 
-    public ValidatorFactory(ValidationSettings validationSettings, DataStore dataStore, Codec codec, TestConfiguration testConfiguration) {
+    public ValidatorFactory(ValidationSettings validationSettings, DataStore dataStore, Codec codec, TestConfiguration testConfiguration)
+    {
         this.validationSettings = validationSettings;
         this.dataStore = dataStore;
         this.codec = codec;
@@ -45,11 +45,13 @@ public class ValidatorFactory {
         this.testSourcefileBaseFolder = testConfiguration.getTestSourcefileBaseFolder();
     }
 
-    public PropertyValidator createRootValidator() {
+    public PropertyValidator createRootValidator()
+    {
         return new PropertyMapValidator(this);
     }
 
-    public PropertyValidator create(String propertyName, Object sourcePropertyValue, Object validatorPropertyValue) {
+    public PropertyValidator create(String propertyName, Object sourcePropertyValue, Object validatorPropertyValue)
+    {
         if (propertyName != null) {
             if (validationSettings.getIgnoredProperties().contains(propertyName)) {
                 return new IgnorePropertyValidator();
@@ -57,12 +59,12 @@ public class ValidatorFactory {
             if (validationSettings.getReferencedDataProperties().contains(propertyName)) {
                 return new ReferenceDataValidator(dataStore, codec, testDataFolder, testSourcefileBaseFolder);
             }
-            if (validationSettings.getArrayReferencedDataProperties().contains(propertyName)){
-                return new ArrayReferencedDataValidator(dataStore,codec,testDataFolder, testSourcefileBaseFolder);
-			}
-            if (validationSettings.getUnorderedArrayReferencedDataProperties().contains(propertyName)){
-                return new UnorderedArrayReferencedDataValidator(dataStore,codec,testDataFolder, testSourcefileBaseFolder);
-			}
+            if (validationSettings.getArrayReferencedDataProperties().contains(propertyName)) {
+                return new ArrayReferencedDataValidator(dataStore, codec, testDataFolder, testSourcefileBaseFolder);
+            }
+            if (validationSettings.getUnorderedArrayReferencedDataProperties().contains(propertyName)) {
+                return new UnorderedArrayReferencedDataValidator(dataStore, codec, testDataFolder, testSourcefileBaseFolder);
+            }
             if (validationSettings.getBase64Properties().contains(propertyName)) {
                 return new Base64PropertyValidator();
             }
@@ -84,8 +86,8 @@ public class ValidatorFactory {
 
     }
 
-    public boolean shouldFailOnUnknownProperty() {
+    public boolean shouldFailOnUnknownProperty()
+    {
         return this.failOnUnknownProperty;
     }
-
 }

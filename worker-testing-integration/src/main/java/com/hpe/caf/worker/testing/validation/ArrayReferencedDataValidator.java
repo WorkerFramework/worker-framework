@@ -23,27 +23,33 @@ import java.util.Collection;
 /**
  * Created by gibsodom on 07/01/2016.
  */
-public class ArrayReferencedDataValidator extends PropertyValidator {
+public class ArrayReferencedDataValidator extends PropertyValidator
+{
     private DataStore dataStore;
     private Codec codec;
     private String testDataLocation;
     private String testSourcefileBaseFolder;
 
-    public ArrayReferencedDataValidator(DataStore store, Codec codec, String testDataLocation, String testSourcefileBaseFolder) {
+    public ArrayReferencedDataValidator(DataStore store, Codec codec, String testDataLocation, String testSourcefileBaseFolder)
+    {
         this.dataStore = store;
         this.codec = codec;
         this.testDataLocation = testDataLocation;
         this.testSourcefileBaseFolder = testSourcefileBaseFolder;
     }
 
-
     @Override
-    protected boolean isValid(Object testedPropertyValue, Object validatorPropertyValue) {
-        if(testedPropertyValue == null && validatorPropertyValue == null){
+    protected boolean isValid(Object testedPropertyValue, Object validatorPropertyValue)
+    {
+        if (testedPropertyValue == null && validatorPropertyValue == null) {
             return true;
         }
-        if (!(testedPropertyValue instanceof Collection)) return false;
-        if (!(validatorPropertyValue instanceof Collection)) return false;
+        if (!(testedPropertyValue instanceof Collection)) {
+            return false;
+        }
+        if (!(validatorPropertyValue instanceof Collection)) {
+            return false;
+        }
         Object[] testedArray = ((Collection) testedPropertyValue).toArray();
 
         Object[] validationArray = ((Collection) validatorPropertyValue).toArray();
@@ -51,9 +57,11 @@ public class ArrayReferencedDataValidator extends PropertyValidator {
         for (int i = 0; i < validationArray.length; i++) {
             Object testedValue = testedArray[i];
             Object validationValue = validationArray[i];
-            PropertyValidator validator = new ReferenceDataValidator(dataStore,codec,testDataLocation, testSourcefileBaseFolder); //validatorFactory.create(null,testedValue,validationValue);
+            PropertyValidator validator = new ReferenceDataValidator(dataStore, codec, testDataLocation, testSourcefileBaseFolder); //validatorFactory.create(null,testedValue,validationValue);
             boolean valid = validator.isValid(testedValue, validationValue);
-            if (!valid) return false;
+            if (!valid) {
+                return false;
+            }
         }
 
         return true;

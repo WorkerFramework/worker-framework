@@ -20,8 +20,8 @@ import com.hpe.caf.worker.testing.data.ContentComparisonType;
 /**
  * Created by ploch on 25/11/2015.
  */
-public class ContentFileTestExpectation {
-
+public class ContentFileTestExpectation
+{
     private String expectedContentFile;
 
     private int expectedSimilarityPercentage;
@@ -33,16 +33,18 @@ public class ContentFileTestExpectation {
      *
      * @return Value for property 'expectedContentFile'.
      */
-    public String getExpectedContentFile() {
+    public String getExpectedContentFile()
+    {
         return expectedContentFile;
     }
 
     /**
-     * Setter   property 'expectedContentFile'.
+     * Setter property 'expectedContentFile'.
      *
      * @param expectedContentFile Value to set for property 'expectedContentFile'.
      */
-    public void setExpectedContentFile(String expectedContentFile) {
+    public void setExpectedContentFile(String expectedContentFile)
+    {
         this.expectedContentFile = expectedContentFile == null ? null : expectedContentFile.replace("\\", "/");
     }
 
@@ -51,7 +53,8 @@ public class ContentFileTestExpectation {
      *
      * @return Value for property 'expectedSimilarityPercentage'.
      */
-    public int getExpectedSimilarityPercentage() {
+    public int getExpectedSimilarityPercentage()
+    {
         return expectedSimilarityPercentage;
     }
 
@@ -60,7 +63,8 @@ public class ContentFileTestExpectation {
      *
      * @param expectedSimilarityPercentage Value to set for property 'expectedSimilarityPercentage'.
      */
-    public void setExpectedSimilarityPercentage(int expectedSimilarityPercentage) {
+    public void setExpectedSimilarityPercentage(int expectedSimilarityPercentage)
+    {
         this.expectedSimilarityPercentage = expectedSimilarityPercentage;
     }
 
@@ -69,7 +73,8 @@ public class ContentFileTestExpectation {
      *
      * @return Value for property 'comparisonType'.
      */
-    public ContentComparisonType getComparisonType() {
+    public ContentComparisonType getComparisonType()
+    {
         return comparisonType;
     }
 
@@ -78,7 +83,8 @@ public class ContentFileTestExpectation {
      *
      * @param comparisonType Value to set for property 'comparisonType'.
      */
-    public void setComparisonType(ContentComparisonType comparisonType) {
+    public void setComparisonType(ContentComparisonType comparisonType)
+    {
         this.comparisonType = comparisonType;
     }
 }

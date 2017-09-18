@@ -15,12 +15,10 @@
  */
 package com.hpe.caf.worker.core;
 
-
 import com.codahale.metrics.ExponentiallyDecayingReservoir;
 import com.codahale.metrics.Histogram;
 
 import java.util.concurrent.atomic.AtomicLong;
-
 
 /**
  * Container for all statistics provided by WorkerCore.
@@ -38,7 +36,6 @@ class WorkerStats
     private final Histogram inputSizes = new Histogram(new ExponentiallyDecayingReservoir());
     private final Histogram outputSizes = new Histogram(new ExponentiallyDecayingReservoir());
 
-
     /**
      * @return the number of tasks that a WorkerQueue has handed off to WorkerCore
      */
@@ -47,12 +44,10 @@ class WorkerStats
         return tasksReceived.get();
     }
 
-
     public void incrementTasksReceived()
     {
         tasksReceived.incrementAndGet();
     }
-
 
     /**
      * @return the number of tasks WorkerCore has rejected back to a WorkerQueue
@@ -62,12 +57,10 @@ class WorkerStats
         return tasksRejected.get();
     }
 
-
     public void incrementTasksRejected()
     {
         tasksRejected.incrementAndGet();
     }
-
 
     /**
      * @return the number of completed tasks returned to WorkerCore that were marked successful by a Worker
@@ -77,12 +70,10 @@ class WorkerStats
         return tasksSucceeded.get();
     }
 
-
     public void incrementTasksSucceeded()
     {
         tasksSucceeded.incrementAndGet();
     }
-
 
     /**
      * @return the number of completed tasks returned to WorkerCore that were marked failed by a Worker
@@ -92,12 +83,10 @@ class WorkerStats
         return tasksFailed.get();
     }
 
-
     public void incrementTasksFailed()
     {
         tasksFailed.incrementAndGet();
     }
-
 
     /**
      * @return the number of tasks that were aborted (but requeued) due to connection errors or other abnormalities
@@ -107,18 +96,15 @@ class WorkerStats
         return tasksAborted.get();
     }
 
-
     public void incrementTasksAborted()
     {
         tasksAborted.incrementAndGet();
     }
 
-
     public void incrementTasksAborted(long delta)
     {
         tasksAborted.addAndGet(delta);
     }
-
 
     /**
      * @return the number of tasks WorkerCore has forwarded to a WorkerQueue
@@ -128,12 +114,10 @@ class WorkerStats
         return tasksForwarded.get();
     }
 
-
     public void incrementTasksForwarded()
     {
         tasksForwarded.incrementAndGet();
     }
-
 
     /**
      * @return the number of tasks that were discarded (without being requeued)
@@ -143,13 +127,10 @@ class WorkerStats
         return tasksDiscarded.get();
     }
 
-
     public void incrementTasksDiscarded()
     {
         tasksDiscarded.incrementAndGet();
     }
-
-
 
     /**
      * @return the time (in milliseconds) the most recent task completed (or the startup time, if no task has been done yet)
@@ -159,18 +140,15 @@ class WorkerStats
         return lastTaskFinished.get();
     }
 
-
     public void updatedLastTaskFinishedTime()
     {
         lastTaskFinished.set(System.currentTimeMillis());
     }
 
-
     public Histogram getInputSizes()
     {
         return inputSizes;
     }
-
 
     public Histogram getOutputSizes()
     {

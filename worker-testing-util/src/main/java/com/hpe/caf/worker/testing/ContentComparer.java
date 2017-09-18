@@ -21,13 +21,14 @@ package com.hpe.caf.worker.testing;
 public class ContentComparer
 {
     private static final int MAX_CHAR_OFFSET = 20;
-    
+
     private ContentComparer()
     {
     }
 
     /**
      * Calculate the similarity between 2 strings.
+     *
      * @param s1 First string
      * @param s2 Second string
      * @param thresh Max character offset to search for matches
@@ -49,6 +50,7 @@ public class ContentComparer
 
     /**
      * Calculate the similarity between 2 strings, based on a default character offset ( MAX_CHAR_OFFSET )
+     *
      * @param s1 First string
      * @param s2 Second string
      * @return Similarity percentage between the 2 strings.
@@ -57,8 +59,10 @@ public class ContentComparer
     {
         return calculateSimilarityPercentage(s1, s2, MAX_CHAR_OFFSET);
     }
-   /**
+
+    /**
      * Calculate the similarity between 2 strings.
+     *
      * @param s1 First string
      * @param s2 Second string
      * @param thresh Max character offset to search for matches

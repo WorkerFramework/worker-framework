@@ -18,13 +18,14 @@ package com.hpe.caf.worker.testing.configuration;
 /**
  * Created by ploch on 04/12/2015.
  */
-public class TestCaseClasses<TInput, TExpectation> {
-
+public class TestCaseClasses<TInput, TExpectation>
+{
     private Class<TInput> inputClass;
 
     private Class<TExpectation> expectationClass;
 
-    public TestCaseClasses(Class<TInput> inputClass, Class<TExpectation> expectationClass) {
+    public TestCaseClasses(Class<TInput> inputClass, Class<TExpectation> expectationClass)
+    {
         this.inputClass = inputClass;
         this.expectationClass = expectationClass;
     }
@@ -34,7 +35,8 @@ public class TestCaseClasses<TInput, TExpectation> {
      *
      * @return Value for property 'inputClass'.
      */
-    public Class<TInput> getInputClass() {
+    public Class<TInput> getInputClass()
+    {
         return inputClass;
     }
 
@@ -43,7 +45,8 @@ public class TestCaseClasses<TInput, TExpectation> {
      *
      * @return Value for property 'expectationClass'.
      */
-    public Class<TExpectation> getExpectationClass() {
+    public Class<TExpectation> getExpectationClass()
+    {
         return expectationClass;
     }
 }

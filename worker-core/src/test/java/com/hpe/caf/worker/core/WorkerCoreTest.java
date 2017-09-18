@@ -49,7 +49,9 @@ public class WorkerCoreTest
     private static final String SERVICE_PATH = "/test/group";
     private static final int PRIORITY = 2;
 
-    /** Send a message all the way through WorkerCore and verify the result output message **/
+    /**
+     * Send a message all the way through WorkerCore and verify the result output message *
+     */
     @Test
     public void testWorkerCore()
         throws CodecException, InterruptedException, WorkerException, ConfigurationException, QueueException, InvalidNameException
@@ -64,7 +66,7 @@ public class WorkerCoreTest
         MessagePriorityManager priorityManager = Mockito.mock(MessagePriorityManager.class);
         Mockito.when(priorityManager.getResponsePriority(Mockito.any())).thenReturn(PRIORITY);
         HealthCheckRegistry healthCheckRegistry = Mockito.mock(HealthCheckRegistry.class);
-        TransientHealthCheck transientHealthCheck =  Mockito.mock(TransientHealthCheck.class);
+        TransientHealthCheck transientHealthCheck = Mockito.mock(TransientHealthCheck.class);
 
         WorkerCore core = new WorkerCore(codec, wtp, queue, priorityManager, getWorkerFactory(task, codec), path, healthCheckRegistry, transientHealthCheck);
         core.start();
@@ -87,11 +89,12 @@ public class WorkerCoreTest
         ArrayAsserts.assertArrayEquals(SUCCESS.getBytes(StandardCharsets.UTF_8), taskMessage.getContext().get(path.toString()));
     }
 
-
-    /** Send a message with tracking info **/
+    /**
+     * Send a message with tracking info *
+     */
     @Test
     public void testWorkerCoreWithTracking()
-            throws CodecException, InterruptedException, WorkerException, ConfigurationException, QueueException, InvalidNameException
+        throws CodecException, InterruptedException, WorkerException, ConfigurationException, QueueException, InvalidNameException
     {
         BlockingQueue<byte[]> q = new LinkedBlockingQueue<>();
         Codec codec = new JsonCodec();
@@ -103,7 +106,7 @@ public class WorkerCoreTest
         MessagePriorityManager priorityManager = Mockito.mock(MessagePriorityManager.class);
         Mockito.when(priorityManager.getResponsePriority(Mockito.any())).thenReturn(PRIORITY);
         HealthCheckRegistry healthCheckRegistry = Mockito.mock(HealthCheckRegistry.class);
-        TransientHealthCheck transientHealthCheck =  Mockito.mock(TransientHealthCheck.class);
+        TransientHealthCheck transientHealthCheck = Mockito.mock(TransientHealthCheck.class);
 
         WorkerCore core = new WorkerCore(codec, wtp, queue, priorityManager, getWorkerFactory(task, codec), path, healthCheckRegistry, transientHealthCheck);
         core.start();
@@ -127,8 +130,9 @@ public class WorkerCoreTest
         ArrayAsserts.assertArrayEquals(SUCCESS.getBytes(StandardCharsets.UTF_8), taskMessage.getContext().get(path.toString()));
     }
 
-
-    /** Test WorkerCore when the input message doesn't even decode to a TaskWrapper - should be an InvalidTaskException **/
+    /**
+     * Test WorkerCore when the input message doesn't even decode to a TaskWrapper - should be an InvalidTaskException *
+     */
     @Test(expectedExceptions = InvalidTaskException.class)
     public void testInvalidWrapper()
         throws InvalidNameException, WorkerException, QueueException, CodecException
@@ -143,7 +147,7 @@ public class WorkerCoreTest
         MessagePriorityManager priorityManager = Mockito.mock(MessagePriorityManager.class);
         Mockito.when(priorityManager.getResponsePriority(Mockito.any())).thenReturn(PRIORITY);
         HealthCheckRegistry healthCheckRegistry = Mockito.mock(HealthCheckRegistry.class);
-        TransientHealthCheck transientHealthCheck =  Mockito.mock(TransientHealthCheck.class);
+        TransientHealthCheck transientHealthCheck = Mockito.mock(TransientHealthCheck.class);
 
         WorkerCore core = new WorkerCore(codec, wtp, queue, priorityManager, getWorkerFactory(task, codec), path, healthCheckRegistry, transientHealthCheck);
         core.start();
@@ -151,8 +155,9 @@ public class WorkerCoreTest
         queue.submitTask(QUEUE_MSG_ID, stuff);
     }
 
-
-    /** Send in a TaskMessage put with an inner task-specific message that cannot be decoded, this should be an INVALID_TASK response **/
+    /**
+     * Send in a TaskMessage put with an inner task-specific message that cannot be decoded, this should be an INVALID_TASK response *
+     */
     @Test
     public void testInvalidTask()
         throws QueueException, InvalidNameException, WorkerException, CodecException, InterruptedException
@@ -167,7 +172,7 @@ public class WorkerCoreTest
         MessagePriorityManager priorityManager = Mockito.mock(MessagePriorityManager.class);
         Mockito.when(priorityManager.getResponsePriority(Mockito.any())).thenReturn(PRIORITY);
         HealthCheckRegistry healthCheckRegistry = Mockito.mock(HealthCheckRegistry.class);
-        TransientHealthCheck transientHealthCheck =  Mockito.mock(TransientHealthCheck.class);
+        TransientHealthCheck transientHealthCheck = Mockito.mock(TransientHealthCheck.class);
 
         WorkerCore core = new WorkerCore(codec, wtp, queue, priorityManager, getInvalidTaskWorkerFactory(), path, healthCheckRegistry, transientHealthCheck);
         core.start();
@@ -191,8 +196,10 @@ public class WorkerCoreTest
         Assert.assertEquals(QUEUE_OUT, queue.getLastQueue());
     }
 
-
-    /** Send three tasks into a WorkerCore with only two threads, abort them all, check the running ones are interrupted and the other one never starts **/
+    /**
+     * Send three tasks into a WorkerCore with only two threads, abort them all, check the running ones are interrupted and the other one
+     * never starts *
+     */
     @Test
     public void testAbortTasks()
         throws CodecException, InterruptedException, WorkerException, ConfigurationException, QueueException, InvalidNameException
@@ -208,7 +215,7 @@ public class WorkerCoreTest
         MessagePriorityManager priorityManager = Mockito.mock(MessagePriorityManager.class);
         Mockito.when(priorityManager.getResponsePriority(Mockito.any())).thenReturn(PRIORITY);
         HealthCheckRegistry healthCheckRegistry = Mockito.mock(HealthCheckRegistry.class);
-        TransientHealthCheck transientHealthCheck =  Mockito.mock(TransientHealthCheck.class);
+        TransientHealthCheck transientHealthCheck = Mockito.mock(TransientHealthCheck.class);
 
         WorkerCore core = new WorkerCore(codec, wtp, queue, priorityManager, getSlowWorkerFactory(latch, task, codec), path, healthCheckRegistry, transientHealthCheck);
         core.start();
@@ -229,16 +236,14 @@ public class WorkerCoreTest
         Assert.assertEquals(0, core.getBacklogSize());
     }
 
-
     private TaskMessage getTaskMessage(final TestWorkerTask task, final Codec codec, final String taskId)
         throws CodecException
     {
         return getTaskMessage(task, codec, taskId, null);
     }
 
-
     private TaskMessage getTaskMessage(final TestWorkerTask task, final Codec codec, final String taskId, final TrackingInfo tracking)
-            throws CodecException
+        throws CodecException
     {
         TaskMessage tm = new TaskMessage();
         tm.setTaskId(taskId);
@@ -251,9 +256,8 @@ public class WorkerCoreTest
         return tm;
     }
 
-
     private WorkerFactory getWorkerFactory(final TestWorkerTask task, final Codec codec)
-            throws WorkerException
+        throws WorkerException
     {
         WorkerFactory factory = Mockito.mock(WorkerFactory.class);
         Worker mockWorker = getWorker(task, codec);
@@ -270,7 +274,6 @@ public class WorkerCoreTest
         return factory;
     }
 
-
     private WorkerFactory getSlowWorkerFactory(final CountDownLatch latch, final TestWorkerTask task, final Codec codec)
         throws WorkerException
     {
@@ -279,7 +282,6 @@ public class WorkerCoreTest
         Mockito.when(factory.getWorker(Mockito.any())).thenReturn(mockWorker);
         return factory;
     }
-
 
     private Worker getWorker(final TestWorkerTask task, final Codec codec)
         throws InvalidTaskException
@@ -294,13 +296,11 @@ public class WorkerCoreTest
                 return createSuccessResult(result, SUCCESS.getBytes(StandardCharsets.UTF_8));
             }
 
-
             @Override
             public String getWorkerIdentifier()
             {
                 return WORKER_NAME;
             }
-
 
             @Override
             public int getWorkerApiVersion()
@@ -310,17 +310,14 @@ public class WorkerCoreTest
         };
     }
 
-
     private class TestWorkerQueueProvider implements WorkerQueueProvider
     {
         private final BlockingQueue<byte[]> results;
-
 
         public TestWorkerQueueProvider(final BlockingQueue<byte[]> results)
         {
             this.results = results;
         }
-
 
         @Override
         public final TestWorkerQueue getWorkerQueue(final ConfigurationSource configurationSource, final int maxTasks)
@@ -329,20 +326,16 @@ public class WorkerCoreTest
         }
     }
 
-
     private class TestWorkerQueue implements ManagedWorkerQueue
     {
         private TaskCallback callback;
         private final BlockingQueue<byte[]> results;
         private String lastQueue;
 
-
-
         public TestWorkerQueue(final BlockingQueue<byte[]> results)
         {
             this.results = results;
         }
-
 
         @Override
         public void start(final TaskCallback callback)
@@ -366,23 +359,24 @@ public class WorkerCoreTest
             results.offer(taskMessage);
         }
 
-
         @Override
         public void rejectTask(final String taskId)
         {
         }
 
-
         @Override
-        public void discardTask(String messageId) {
+        public void discardTask(String messageId)
+        {
         }
 
         @Override
-        public void acknowledgeTask(String messageId) {   
+        public void acknowledgeTask(String messageId)
+        {
         }
 
         @Override
-        public String getInputQueue() {
+        public String getInputQueue()
+        {
             return QUEUE_IN;
         }
 
@@ -391,12 +385,10 @@ public class WorkerCoreTest
         {
         }
 
-
         @Override
         public void shutdown()
         {
         }
-
 
         @Override
         public WorkerQueueMetricsReporter getMetrics()
@@ -404,25 +396,21 @@ public class WorkerCoreTest
             return Mockito.mock(WorkerQueueMetricsReporter.class);
         }
 
-
         @Override
         public HealthResult healthCheck()
         {
             return HealthResult.RESULT_HEALTHY;
         }
 
-
         public String getLastQueue()
         {
             return lastQueue;
         }
 
-
         public void triggerAbort()
         {
             callback.abortTasks();
         }
-
 
         public void submitTask(final String taskId, final byte[] stuff)
             throws WorkerException
@@ -430,12 +418,10 @@ public class WorkerCoreTest
             callback.registerNewTask(taskId, stuff, new HashMap<>());
         }
 
-
         @Override
         public void disconnectIncoming()
         {
         }
-
 
         @Override
         public void reconnectIncoming()
@@ -443,12 +429,9 @@ public class WorkerCoreTest
         }
     }
 
-
-
     private class SlowWorker extends AbstractWorker<TestWorkerTask, TestWorkerResult>
     {
         private final CountDownLatch latch;
-
 
         public SlowWorker(final TestWorkerTask task, final String resultQueue, final Codec codec, final CountDownLatch latch)
             throws WorkerException
@@ -456,7 +439,6 @@ public class WorkerCoreTest
             super(task, resultQueue, codec);
             this.latch = Objects.requireNonNull(latch);
         }
-
 
         @Override
         public WorkerResponse doWork()
@@ -475,13 +457,11 @@ public class WorkerCoreTest
             }
         }
 
-
         @Override
         public String getWorkerIdentifier()
         {
             return WORKER_NAME;
         }
-
 
         @Override
         public int getWorkerApiVersion()

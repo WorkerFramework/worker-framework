@@ -28,14 +28,15 @@ import java.nio.file.Paths;
 /**
  * Created by ploch on 24/11/2015.
  */
-public class SerializedFilesTestItemProvider<TInput, TExpected> extends ContentFilesTestItemProvider {
-
+public class SerializedFilesTestItemProvider<TInput, TExpected> extends ContentFilesTestItemProvider
+{
     private final Class<TInput> inputClass;
     private final Class<TExpected> expectedClass;
     private final String testSourcefileBaseFolder;
     private final ObjectMapper serializer;
 
-    public SerializedFilesTestItemProvider(TestConfiguration configuration) {
+    public SerializedFilesTestItemProvider(TestConfiguration configuration)
+    {
         super(configuration.getTestDocumentsFolder(), configuration.getTestDataFolder(), "glob:*.testcase", configuration.isProcessSubFolders());
         this.inputClass = configuration.getInputClass();
         this.expectedClass = configuration.getExpectationClass();
@@ -45,8 +46,8 @@ public class SerializedFilesTestItemProvider<TInput, TExpected> extends ContentF
     }
 
     @Override
-    protected TestItem<TInput, TExpected> createTestItem(Path inputFile, Path expectedFile) throws Exception {
-
+    protected TestItem<TInput, TExpected> createTestItem(Path inputFile, Path expectedFile) throws Exception
+    {
         System.out.println("Reading input file: " + inputFile.toString());
         serializer.disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES);
         TestItem<TInput, TExpected> item = serializer.readValue(Files.readAllBytes(inputFile), TypeFactory.defaultInstance().constructParametrizedType(TestItem.class, TestItem.class, inputClass, expectedClass));
@@ -58,7 +59,7 @@ public class SerializedFilesTestItemProvider<TInput, TExpected> extends ContentF
             Path sourceFile = Paths.get(sourceFileName);
 
             if (Files.notExists(sourceFile) && !Strings.isNullOrEmpty(testSourcefileBaseFolder)) {
-                sourceFile = Paths.get(testSourcefileBaseFolder,  data.getInputFile());
+                sourceFile = Paths.get(testSourcefileBaseFolder, data.getInputFile());
             }
 
             if (Files.notExists(sourceFile)) {
@@ -73,7 +74,8 @@ public class SerializedFilesTestItemProvider<TInput, TExpected> extends ContentF
     }
 
     @Override
-    protected Path getExpectedFile(String expectedPath, String inputFileName) {
+    protected Path getExpectedFile(String expectedPath, String inputFileName)
+    {
         if (inputFileName.endsWith(".xml")) {
             inputFileName = inputFileName.substring(0, inputFileName.length() - 4);
         }

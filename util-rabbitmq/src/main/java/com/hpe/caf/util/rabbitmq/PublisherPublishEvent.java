@@ -15,9 +15,7 @@
  */
 package com.hpe.caf.util.rabbitmq;
 
-
 import java.util.Objects;
-
 
 /**
  * A publish event for a class implementing the Publisher interface.
@@ -26,16 +24,15 @@ public class PublisherPublishEvent implements Event<QueuePublisher>
 {
     private final byte[] data;
 
-
     /**
      * Create a new PublisherPublishEvent.
+     *
      * @param messageData the message data to publish when this Event is triggered
      */
     public PublisherPublishEvent(final byte[] messageData)
     {
         this.data = Objects.requireNonNull(messageData);
     }
-
 
     /**
      * {@inheritDoc}

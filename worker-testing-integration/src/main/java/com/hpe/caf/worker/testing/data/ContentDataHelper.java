@@ -26,12 +26,12 @@ import java.io.InputStream;
 /**
  * Created by ploch on 08/12/2015.
  */
-public class ContentDataHelper {
-
-    public static InputStream retrieveReferencedData(DataStore dataStore, Codec codec, ReferencedData referencedData) throws DataSourceException {
+public class ContentDataHelper
+{
+    public static InputStream retrieveReferencedData(DataStore dataStore, Codec codec, ReferencedData referencedData) throws DataSourceException
+    {
         DataStoreSource source = new DataStoreSource(dataStore, codec);
-        
+
         return referencedData.acquire(source);
     }
-
 }

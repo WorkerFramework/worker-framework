@@ -27,21 +27,30 @@ import java.nio.file.Paths;
 /**
  * Created by ploch on 19/11/2015.
  */
-public abstract class FileInputWorkerTaskFactory<TTask, TInput extends FileTestInputData, TExpected> implements WorkerTaskFactory<TTask, TInput, TExpected> {
-
+public abstract class FileInputWorkerTaskFactory<TTask, TInput extends FileTestInputData, TExpected>
+    implements WorkerTaskFactory<TTask, TInput, TExpected>
+{
     private final DataStore dataStore;
     private final String containerId;
     private final String testFilesFolder;
     private final String testSourcefileBaseFolder;
     private final String overrideReference;
 
-    public FileInputWorkerTaskFactory(TestConfiguration configuration) throws Exception {
+    public FileInputWorkerTaskFactory(TestConfiguration configuration) throws Exception
+    {
         this(WorkerServices.getDefault().getDataStore(), configuration.getDataStoreContainerId(),
-                configuration.getTestDataFolder(), configuration.getTestSourcefileBaseFolder(),
-                configuration.getOverrideReference());
+             configuration.getTestDataFolder(), configuration.getTestSourcefileBaseFolder(),
+             configuration.getOverrideReference());
     }
 
-    public FileInputWorkerTaskFactory(DataStore dataStore, String containerId, String testFilesFolder, String testSourcefileBaseFolder, String overrideReference) {
+    public FileInputWorkerTaskFactory(
+        DataStore dataStore,
+        String containerId,
+        String testFilesFolder,
+        String testSourcefileBaseFolder,
+        String overrideReference
+    )
+    {
         this.dataStore = dataStore;
         this.containerId = containerId;
         this.testFilesFolder = testFilesFolder;
@@ -50,17 +59,15 @@ public abstract class FileInputWorkerTaskFactory<TTask, TInput extends FileTestI
     }
 
     @Override
-    public TTask createTask(TestItem<TInput, TExpected> testItem) throws Exception {
-
+    public TTask createTask(TestItem<TInput, TExpected> testItem) throws Exception
+    {
         ReferencedData sourceData;
-        if(!Strings.isNullOrEmpty(overrideReference)){
+        if (!Strings.isNullOrEmpty(overrideReference)) {
             testItem.getInputData().setStorageReference(overrideReference);
             sourceData = ReferencedData.getReferencedData(overrideReference);
-        }
-        else if(!Strings.isNullOrEmpty(testItem.getInputData().getStorageReference())){
+        } else if (!Strings.isNullOrEmpty(testItem.getInputData().getStorageReference())) {
             sourceData = ReferencedData.getReferencedData(testItem.getInputData().getStorageReference());
-        }
-        else {
+        } else {
             Path inputFile = Paths.get(testItem.getInputData().getInputFile());
 
             if (Files.notExists(inputFile) && !Strings.isNullOrEmpty(testSourcefileBaseFolder)) {
@@ -70,7 +77,6 @@ public abstract class FileInputWorkerTaskFactory<TTask, TInput extends FileTestI
             if (Files.notExists(inputFile)) {
                 inputFile = Paths.get(testFilesFolder, testItem.getInputData().getInputFile());
             }
-
 
             if (testItem.getInputData().isUseDataStore()) {
                 try (InputStream inputStream = Files.newInputStream(inputFile)) {
@@ -93,7 +99,8 @@ public abstract class FileInputWorkerTaskFactory<TTask, TInput extends FileTestI
      *
      * @return Value for property 'containerId'.
      */
-    protected String getContainerId() {
+    protected String getContainerId()
+    {
         return containerId;
     }
 }

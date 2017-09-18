@@ -15,7 +15,6 @@
  */
 package com.hpe.caf.util.rabbitmq;
 
-
 import com.rabbitmq.client.Channel;
 
 import java.io.IOException;
@@ -38,9 +37,9 @@ public class QueueCreator
     private String queueName;
     private Map<String, Object> propsMap = new HashMap<>();
 
-
-    public QueueCreator() { }
-
+    public QueueCreator()
+    {
+    }
 
     public QueueCreator withDurability(Durability dur)
     {
@@ -48,13 +47,11 @@ public class QueueCreator
         return this;
     }
 
-
     public QueueCreator withEmptyAction(EmptyAction action)
     {
         this.emptyAction = action;
         return this;
     }
-
 
     public QueueCreator withExclusivity(Exclusivity exclusivity)
     {
@@ -62,13 +59,11 @@ public class QueueCreator
         return this;
     }
 
-
     public QueueCreator withQueueName(String name)
     {
         this.queueName = name;
         return this;
     }
-
 
     public QueueCreator withDeadLetterExchange(String exchangeName)
     {
@@ -76,13 +71,11 @@ public class QueueCreator
         return this;
     }
 
-
     public QueueCreator withQueueTtl(long ttl)
     {
         propsMap.put(RABBIT_PROP_KEY_TTL, ttl);
         return this;
     }
-
 
     public QueueCreator withDeadLetterRoutingKey(String routingKey)
     {
@@ -103,14 +96,12 @@ public class QueueCreator
         RabbitUtil.declareQueue(channel, queueName, durability, exclusivity, emptyAction, propsMap);
     }
 
-
     public void createWorkerQueue(Channel channel)
         throws IOException
     {
         withDurability(Durability.DURABLE).withExclusivity(Exclusivity.NON_EXCLUSIVE).withEmptyAction(EmptyAction.LEAVE_EMPTY);
         create(channel);
     }
-
 
     private void validate()
     {

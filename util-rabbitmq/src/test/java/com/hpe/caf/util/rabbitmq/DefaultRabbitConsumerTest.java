@@ -15,7 +15,6 @@
  */
 package com.hpe.caf.util.rabbitmq;
 
-
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.util.Objects;
@@ -30,7 +29,6 @@ import org.testng.annotations.Test;
 import org.testng.internal.junit.ArrayAsserts;
 
 import com.rabbitmq.client.Envelope;
-
 
 public class DefaultRabbitConsumerTest
 {
@@ -54,7 +52,6 @@ public class DefaultRabbitConsumerTest
         ArrayAsserts.assertArrayEquals(body, impl.getLastDelivery().getMessageData());
     }
 
-
     @Test
     public void testProcessAck()
         throws InterruptedException
@@ -69,7 +66,6 @@ public class DefaultRabbitConsumerTest
         Assert.assertTrue(latch.await(TEST_TIMEOUT_MS, TimeUnit.MILLISECONDS));
         Assert.assertEquals(tag, impl.getLastTag());
     }
-
 
     @Test
     public void testProcessReject()
@@ -86,7 +82,6 @@ public class DefaultRabbitConsumerTest
         Assert.assertEquals(tag, impl.getLastTag());
     }
 
-
     @Test
     public void testProcessDrop()
         throws InterruptedException
@@ -101,7 +96,6 @@ public class DefaultRabbitConsumerTest
         Assert.assertTrue(latch.await(TEST_TIMEOUT_MS, TimeUnit.MILLISECONDS));
         Assert.assertEquals(tag, impl.getLastTag());
     }
-
 
     @Test
     public void testHandleShutdown()
@@ -118,7 +112,6 @@ public class DefaultRabbitConsumerTest
         Assert.assertFalse(latch.await(TEST_TIMEOUT_MS, TimeUnit.MILLISECONDS));
     }
 
-
     private static class TestQueueConsumerImpl implements QueueConsumer
     {
         private final CountDownLatch latch;
@@ -130,14 +123,12 @@ public class DefaultRabbitConsumerTest
             this.latch = Objects.requireNonNull(latch);
         }
 
-
         @Override
         public void processDelivery(Delivery delivery)
         {
             lastDelivery = delivery;
             latch.countDown();
         }
-
 
         @Override
         public void processAck(long tag)
@@ -146,14 +137,12 @@ public class DefaultRabbitConsumerTest
             latch.countDown();
         }
 
-
         @Override
         public void processReject(long tag)
         {
             lastTag = tag;
             latch.countDown();
         }
-
 
         @Override
         public void processDrop(long tag)
@@ -162,12 +151,10 @@ public class DefaultRabbitConsumerTest
             latch.countDown();
         }
 
-
         public Delivery getLastDelivery()
         {
             return lastDelivery;
         }
-
 
         public long getLastTag()
         {

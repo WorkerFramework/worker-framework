@@ -18,18 +18,20 @@ package com.hpe.caf.worker.testing.configuration;
 /**
  * Created by ploch on 04/12/2015.
  */
-public class DataStoreSettings {
-
+public class DataStoreSettings
+{
     private boolean useDataStore;
 
     private String dataStoreContainerId;
 
-    public DataStoreSettings(boolean useDataStore, String dataStoreContainerId) {
+    public DataStoreSettings(boolean useDataStore, String dataStoreContainerId)
+    {
         this.useDataStore = useDataStore;
         this.dataStoreContainerId = dataStoreContainerId;
     }
 
-    public DataStoreSettings() {
+    public DataStoreSettings()
+    {
     }
 
     /**
@@ -37,7 +39,8 @@ public class DataStoreSettings {
      *
      * @return Value for property 'useDataStore'.
      */
-    public boolean isUseDataStore() {
+    public boolean isUseDataStore()
+    {
         return useDataStore;
     }
 
@@ -46,7 +49,8 @@ public class DataStoreSettings {
      *
      * @param useDataStore Value to set for property 'useDataStore'.
      */
-    public void setUseDataStore(boolean useDataStore) {
+    public void setUseDataStore(boolean useDataStore)
+    {
         this.useDataStore = useDataStore;
     }
 
@@ -55,7 +59,8 @@ public class DataStoreSettings {
      *
      * @return Value for property 'dataStoreContainerId'.
      */
-    public String getDataStoreContainerId() {
+    public String getDataStoreContainerId()
+    {
         return dataStoreContainerId;
     }
 
@@ -64,7 +69,8 @@ public class DataStoreSettings {
      *
      * @param dataStoreContainerId Value to set for property 'dataStoreContainerId'.
      */
-    public void setDataStoreContainerId(String dataStoreContainerId) {
+    public void setDataStoreContainerId(String dataStoreContainerId)
+    {
         this.dataStoreContainerId = dataStoreContainerId;
     }
 }

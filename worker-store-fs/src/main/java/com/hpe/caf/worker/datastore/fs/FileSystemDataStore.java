@@ -15,7 +15,6 @@
  */
 package com.hpe.caf.worker.datastore.fs;
 
-
 import com.hpe.caf.api.HealthResult;
 import com.hpe.caf.api.worker.*;
 import org.slf4j.Logger;
@@ -28,10 +27,8 @@ import java.util.Objects;
 import java.util.UUID;
 import java.util.concurrent.atomic.AtomicInteger;
 
-
 /**
- * This is a simple DataStore that reads and writes files to and from
- * a directory upon the file system. The store directory must be an
+ * This is a simple DataStore that reads and writes files to and from a directory upon the file system. The store directory must be an
  * absolute path.
  */
 public class FileSystemDataStore implements ManagedDataStore, FilePathProvider
@@ -44,15 +41,14 @@ public class FileSystemDataStore implements ManagedDataStore, FilePathProvider
     private final DataStoreMetricsReporter metrics = new FileSystemDataStoreMetricsReporter();
     private static final Logger LOG = LoggerFactory.getLogger(FileSystemDataStore.class);
 
-
     /**
      * Determine the directory for the data store, and create it if necessary.
      */
     public FileSystemDataStore(final FileSystemDataStoreConfiguration config)
-            throws DataStoreException
+        throws DataStoreException
     {
         dataStorePath = FileSystems.getDefault().getPath(config.getDataDir());
-        if ( !Files.exists(dataStorePath) ) {
+        if (!Files.exists(dataStorePath)) {
             try {
                 Files.createDirectory(dataStorePath);
             } catch (IOException e) {
@@ -62,7 +58,6 @@ public class FileSystemDataStore implements ManagedDataStore, FilePathProvider
         LOG.debug("Initialised");
     }
 
-
     @Override
     public void shutdown()
     {
@@ -71,36 +66,36 @@ public class FileSystemDataStore implements ManagedDataStore, FilePathProvider
 
     /**
      * Delete a file.
+     *
      * @param reference the file to be deleted.
      * @throws DataStoreException if the reference cannot be accessed or deleted
      */
     @Override
     public void delete(String reference)
-            throws DataStoreException
+        throws DataStoreException
     {
         Objects.requireNonNull(reference);
         try {
             numDx.incrementAndGet();
             LOG.debug("Deleting {}", reference);
-            Path path = FileSystems.getDefault().getPath(dataStorePath.toString(),reference);
+            Path path = FileSystems.getDefault().getPath(dataStorePath.toString(), reference);
             Files.delete(path);
-        } catch ( IOException | SecurityException | InvalidPathException e) {
+        } catch (IOException | SecurityException | InvalidPathException e) {
             errors.incrementAndGet();
             throw new DataStoreException("Failed to delete reference", e);
         }
     }
 
-
     /**
-     * {@inheritDoc}
-     * Read a file from disk in the data directory.
+     * {@inheritDoc} Read a file from disk in the data directory.
+     *
      * @throws ReferenceNotFoundException if the requested reference does not exist in the file system
      * @throws DataStoreException if the reference is found but cannot be accessed or retrieved
      * @throws InvalidPathException if the reference cannot be converted to a Path
      */
     @Override
     public InputStream retrieve(final String reference)
-            throws DataStoreException
+        throws DataStoreException
     {
         Objects.requireNonNull(reference);
         try {
@@ -112,7 +107,6 @@ public class FileSystemDataStore implements ManagedDataStore, FilePathProvider
             throw new DataStoreException("Failed to retrieve data", e);
         }
     }
-
 
     /**
      * @throws ReferenceNotFoundException if the requested reference does not exist in the file system
@@ -132,13 +126,11 @@ public class FileSystemDataStore implements ManagedDataStore, FilePathProvider
         }
     }
 
-
     @Override
     public DataStoreMetricsReporter getMetrics()
     {
         return metrics;
     }
-
 
     /**
      * @throws DataStoreException if the reference is found but cannot be accessed or retrieved
@@ -151,13 +143,12 @@ public class FileSystemDataStore implements ManagedDataStore, FilePathProvider
         try {
             Path ref = getStoreReference(partialReference);
             Files.copy(dataStream, ref);
-            return dataStorePath.relativize(ref).toString().replace('\\','/');
+            return dataStorePath.relativize(ref).toString().replace('\\', '/');
         } catch (IOException e) {
             errors.incrementAndGet();
             throw new DataStoreException("Failed to get output stream for store", e);
         }
     }
-
 
     /**
      * @throws DataStoreException if the reference is found but cannot be accessed or retrieved
@@ -170,13 +161,12 @@ public class FileSystemDataStore implements ManagedDataStore, FilePathProvider
         try {
             Path ref = getStoreReference(partialReference);
             Files.write(ref, data);
-            return dataStorePath.relativize(ref).toString().replace('\\','/');
+            return dataStorePath.relativize(ref).toString().replace('\\', '/');
         } catch (IOException e) {
             errors.incrementAndGet();
             throw new DataStoreException("Failed to get output stream for store", e);
         }
     }
-
 
     /**
      * @throws DataStoreException if the reference is found but cannot be accessed or retrieved
@@ -189,13 +179,12 @@ public class FileSystemDataStore implements ManagedDataStore, FilePathProvider
         try {
             Path ref = getStoreReference(partialReference);
             Files.copy(dataPath, ref);
-            return dataStorePath.relativize(ref).toString().replace('\\','/');
+            return dataStorePath.relativize(ref).toString().replace('\\', '/');
         } catch (IOException e) {
             errors.incrementAndGet();
             throw new DataStoreException("Failed to get output stream for store", e);
         }
     }
-
 
     @Override
     public HealthResult healthCheck()
@@ -203,9 +192,9 @@ public class FileSystemDataStore implements ManagedDataStore, FilePathProvider
         return HealthResult.RESULT_HEALTHY;
     }
 
-
     /**
      * {@inheritDoc}
+     *
      * @throws ReferenceNotFoundException if the requested reference does not exist in the file system
      * @throws DataStoreException if the reference is found but cannot be accessed or retrieved
      * @throws InvalidPathException if the reference cannot be converted to a Path
@@ -220,12 +209,11 @@ public class FileSystemDataStore implements ManagedDataStore, FilePathProvider
         return checkReferenceExists(verifyReference(reference));
     }
 
-
     /**
-     * The returned Path will be the partial reference resolved relative to the
-     * store's dataStorePath (from its configuration) and a randomly generated UUID file
-     * name will be made relative to that. Subdirectories under the dataStorePath will
-     * automatically be created.
+     * The returned Path will be the partial reference resolved relative to the store's dataStorePath (from its configuration) and a
+     * randomly generated UUID file name will be made relative to that. Subdirectories under the dataStorePath will automatically be
+     * created.
+     *
      * @param partialReference the partial reference, typically subdirectories, may be null
      * @return the absolute Path to the location to store data
      * @throws DataStoreException if the partial reference cannot be verified
@@ -235,9 +223,9 @@ public class FileSystemDataStore implements ManagedDataStore, FilePathProvider
         throws DataStoreException, IOException
     {
         Path p;
-        if ( partialReference != null && !partialReference.isEmpty() ) {
+        if (partialReference != null && !partialReference.isEmpty()) {
             p = verifyReference(validateReference(partialReference));
-            if ( !Files.exists(p) ) {
+            if (!Files.exists(p)) {
                 Files.createDirectories(p);
             }
         } else {
@@ -246,9 +234,9 @@ public class FileSystemDataStore implements ManagedDataStore, FilePathProvider
         return p.resolve(UUID.randomUUID().toString());
     }
 
-
     /**
      * Prevents the use of data store references containing the backslash character.
+     *
      * @param reference the data store reference to be validated
      * @return the supplied reference, if valid
      * @throws DataStoreException if the supplied reference is invalid
@@ -256,16 +244,15 @@ public class FileSystemDataStore implements ManagedDataStore, FilePathProvider
     private String validateReference(final String reference)
         throws DataStoreException
     {
-        if ( reference.contains("\\") ) {
+        if (reference.contains("\\")) {
             throw new DataStoreException("Invalid reference - contains the backslash character");
         }
         return reference;
     }
 
-
     /**
-     * Prevent a caller trying to "break out" of the root dataStorePath by performing
-     * a full path resolution of the reference.
+     * Prevent a caller trying to "break out" of the root dataStorePath by performing a full path resolution of the reference.
+     *
      * @param reference the data store reference relative to dataStorePath to resolve
      * @return the resolved path, if valid
      * @throws DataStoreException if the reference is invalid or cannot be resolved
@@ -275,15 +262,15 @@ public class FileSystemDataStore implements ManagedDataStore, FilePathProvider
         throws DataStoreException
     {
         Path p = dataStorePath.resolve(reference).normalize();
-        if ( !p.startsWith(dataStorePath) ) {
+        if (!p.startsWith(dataStorePath)) {
             throw new DataStoreException("Invalid reference");
         }
         return p;
     }
 
-
     /**
      * Take a Path, verify it exists. If it does, return it, else throw ReferenceNotFoundException.
+     *
      * @param reference the reference Path to check
      * @return the Path, if it exists
      * @throws ReferenceNotFoundException if the Path does not exist
@@ -291,17 +278,19 @@ public class FileSystemDataStore implements ManagedDataStore, FilePathProvider
     private Path checkReferenceExists(final Path reference)
         throws ReferenceNotFoundException
     {
-        if ( !Files.exists(reference) ) {
-            throw new ReferenceNotFoundException("Reference not found: "+ reference);
+        if (!Files.exists(reference)) {
+            throw new ReferenceNotFoundException("Reference not found: " + reference);
         }
         return reference;
     }
 
-
     private class FileSystemDataStoreMetricsReporter implements DataStoreMetricsReporter
     {
         @Override
-        public int getDeleteRequests() { return numDx.get(); }
+        public int getDeleteRequests()
+        {
+            return numDx.get();
+        }
 
         @Override
         public int getStoreRequests()
@@ -309,13 +298,11 @@ public class FileSystemDataStore implements ManagedDataStore, FilePathProvider
             return numTx.get();
         }
 
-
         @Override
         public int getRetrieveRequests()
         {
             return numRx.get();
         }
-
 
         @Override
         public int getErrors()

@@ -23,14 +23,14 @@ import com.hpe.caf.worker.testing.validation.ValidatorFactory;
 import org.testng.Assert;
 import org.testng.annotations.Test;
 
-public class PropertyMapValidatorPropertyMismatchTest {
-
+public class PropertyMapValidatorPropertyMismatchTest
+{
     /* This tests that the PropertyMapValidator throws an AssertionError if there is a new property within the actual
         set of properties returned that is not within the set of expected properties..
      */
     @Test
-    public void testNewPropertiesWithinActualOutputPropertyMap() {
-
+    public void testNewPropertiesWithinActualOutputPropertyMap()
+    {
         PropertyMap mapOfExpectedProps = new PropertyMap();
         mapOfExpectedProps.put("knownField1", "knownValue1");
 
@@ -42,8 +42,8 @@ public class PropertyMapValidatorPropertyMismatchTest {
         System.setProperty(SettingNames.failOnUnknownProperty, "true");
 
         PropertyMapValidator propertyMapValidator = new PropertyMapValidator(new ValidatorFactory(
-                ValidationSettings.configure().build(), null, null, TestConfiguration.createDefault(null, null, null,
-                null)));
+            ValidationSettings.configure().build(), null, null, TestConfiguration.createDefault(null, null, null,
+                                                                                                null)));
 
         boolean propertyMismatch = false;
         try {
@@ -54,7 +54,9 @@ public class PropertyMapValidatorPropertyMismatchTest {
         }
 
         // Fail if there were no additional properties in the actual set of properties
-        if (!propertyMismatch) Assert.fail("No additional properties found within the list of actuals when compared " +
-                "with the expected");
+        if (!propertyMismatch) {
+            Assert.fail("No additional properties found within the list of actuals when compared "
+                + "with the expected");
+        }
     }
 }

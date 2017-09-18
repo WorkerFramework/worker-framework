@@ -15,10 +15,9 @@
  */
 package com.hpe.caf.api.worker;
 
-
 /**
- * Indicates this task is fundamentally flawed in some manner, and is likely
- * an error situation that would not be resolved through retrying.
+ * Indicates this task is fundamentally flawed in some manner, and is likely an error situation that would not be resolved through
+ * retrying.
  */
 public class InvalidTaskException extends WorkerException
 {
@@ -26,7 +25,6 @@ public class InvalidTaskException extends WorkerException
     {
         super(message);
     }
-
 
     public InvalidTaskException(final String message, final Throwable cause)
     {

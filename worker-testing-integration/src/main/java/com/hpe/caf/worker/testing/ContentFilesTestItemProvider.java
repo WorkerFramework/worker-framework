@@ -27,8 +27,8 @@ import java.util.List;
 /**
  * Created by ploch on 19/11/2015.
  */
-public abstract class ContentFilesTestItemProvider implements TestItemProvider {
-
+public abstract class ContentFilesTestItemProvider implements TestItemProvider
+{
     private final String inputPath;
     private final String expectedPath;
     private final String globPattern;
@@ -39,7 +39,8 @@ public abstract class ContentFilesTestItemProvider implements TestItemProvider {
      *
      * @return Value for property 'inputPath'.
      */
-    public String getInputPath() {
+    public String getInputPath()
+    {
         return inputPath;
     }
 
@@ -48,11 +49,13 @@ public abstract class ContentFilesTestItemProvider implements TestItemProvider {
      *
      * @return Value for property 'expectedPath'.
      */
-    public String getExpectedPath() {
+    public String getExpectedPath()
+    {
         return expectedPath;
     }
 
-    public ContentFilesTestItemProvider(final String inputPath, final String expectedPath, final String globPattern, final boolean includeSubFolders) {
+    public ContentFilesTestItemProvider(final String inputPath, final String expectedPath, final String globPattern, final boolean includeSubFolders)
+    {
 
         this.inputPath = inputPath;
         this.expectedPath = expectedPath;
@@ -61,7 +64,8 @@ public abstract class ContentFilesTestItemProvider implements TestItemProvider {
     }
 
     @Override
-    public Collection<TestItem> getItems() throws Exception {
+    public Collection<TestItem> getItems() throws Exception
+    {
 
         List<Path> files = getFiles(Paths.get(inputPath));
 
@@ -77,28 +81,26 @@ public abstract class ContentFilesTestItemProvider implements TestItemProvider {
         return testItems;
     }
 
-    protected Path getExpectedFile(String expectedPath, String inputFileName) {
+    protected Path getExpectedFile(String expectedPath, String inputFileName)
+    {
         Path expectedFile = Paths.get(expectedPath, inputFileName + ".result.xml");
         return expectedFile;
     }
 
     protected abstract TestItem createTestItem(Path inputFile, Path expectedFile) throws Exception;
 
-    private List<Path> getFiles(Path directory) throws IOException {
+    private List<Path> getFiles(Path directory) throws IOException
+    {
         List<Path> fileNames = new ArrayList<>();
         try (DirectoryStream<Path> directoryStream = Files.newDirectoryStream(directory)) {
             for (Path path : directoryStream) {
 
-                if (Files.isDirectory(path)){
+                if (Files.isDirectory(path)) {
                     if (includeSubFolders) {
                         fileNames.addAll(getFiles(path));
                     }
-                }
-                else {
-
-                    if (globPattern == null || path.getFileSystem().getPathMatcher(globPattern).matches(path.getFileName())) {
-                        fileNames.add(path);
-                    }
+                } else if (globPattern == null || path.getFileSystem().getPathMatcher(globPattern).matches(path.getFileName())) {
+                    fileNames.add(path);
                 }
             }
         } catch (IOException ex) {

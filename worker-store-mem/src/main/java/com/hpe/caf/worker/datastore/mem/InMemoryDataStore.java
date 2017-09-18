@@ -31,7 +31,6 @@ import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.atomic.AtomicInteger;
 
-
 /**
  * ManagedDataStore implementation for an In Memory Datastore which uses a HashMap.
  */
@@ -59,6 +58,7 @@ public class InMemoryDataStore implements ManagedDataStore
 
     /**
      * Remove the asset identified by the reference.
+     *
      * @param reference a complete reference to be interpreted by the DataStore implementation
      * @throws DataStoreException if data store cannot service the request.
      */
@@ -71,6 +71,7 @@ public class InMemoryDataStore implements ManagedDataStore
 
     /**
      * Provide a stream to get data identified by the reference.
+     *
      * @param reference a complete reference to be interpreted by the DataStore implementation
      * @return
      * @throws DataStoreException
@@ -79,7 +80,7 @@ public class InMemoryDataStore implements ManagedDataStore
     public InputStream retrieve(String reference) throws DataStoreException
     {
         numRetrieveRequests.incrementAndGet();
-        if(!dataMap.containsKey(reference)){
+        if (!dataMap.containsKey(reference)) {
             errors.incrementAndGet();
             throw new DataStoreException("Failed to retrieve data, the asset does not exist.");
         }
@@ -88,6 +89,7 @@ public class InMemoryDataStore implements ManagedDataStore
 
     /**
      * Return the byte size of the data identified by the reference.
+     *
      * @param reference a complete reference to be interpreted by the DataStore implementation
      * @return the byte size
      * @throws DataStoreException
@@ -95,7 +97,7 @@ public class InMemoryDataStore implements ManagedDataStore
     @Override
     public long size(String reference) throws DataStoreException
     {
-        if(!dataMap.containsKey(reference)){
+        if (!dataMap.containsKey(reference)) {
             throw new DataStoreException("Failed to retrieve data, the asset does not exist.");
         }
         return dataMap.get(reference).length;
@@ -103,6 +105,7 @@ public class InMemoryDataStore implements ManagedDataStore
 
     /**
      * Store data from a stream in the key given by the partial reference.
+     *
      * @param dataStream the stream of data which will be read and stored in the in memory data store.
      * @param partialReference the partial reference, which the data will be stored relative to.
      * @return absolute reference to the stored data which can be used to retrieve.
@@ -121,6 +124,7 @@ public class InMemoryDataStore implements ManagedDataStore
 
     /**
      * Store data from a byte array in the key given by the partial reference.
+     *
      * @param data the raw byte data to store in the in-memory data store.
      * @param partialReference the partial reference, which the data will be stored relative to.
      * @return absolute reference to the stored data which can be used to retrieve.
@@ -137,6 +141,7 @@ public class InMemoryDataStore implements ManagedDataStore
 
     /**
      * Store data from a local file in the key given by the partial reference.
+     *
      * @param dataPath path to a file on the local filesystem to store in the in-memory data store.
      * @param partialReference the partial reference, which the data will be stored relative to.
      * @return absolute reference to the stored data which can be used to retrieve.
@@ -155,6 +160,7 @@ public class InMemoryDataStore implements ManagedDataStore
 
     /**
      * Get the Metrics for the in memory data store.
+     *
      * @return metrics
      */
     @Override
@@ -174,6 +180,7 @@ public class InMemoryDataStore implements ManagedDataStore
 
     /**
      * Always return a RESULT_HEALTHY health check as the data store is in memory.
+     *
      * @return RESULT_HEALTHY
      */
     @Override

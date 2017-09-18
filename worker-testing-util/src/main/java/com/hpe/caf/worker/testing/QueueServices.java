@@ -22,8 +22,8 @@ import com.rabbitmq.client.Connection;
 /**
  * Created by ploch on 08/11/2015.
  */
-public class QueueServices {
-
+public class QueueServices
+{
     private final Connection connection;
     private final Channel publisherChannel;
     private final String workerInputQueue;
@@ -32,7 +32,8 @@ public class QueueServices {
     private final Codec codec;
     private final int maxPriority;
 
-    public QueueServices(Connection connection, Channel publisherChannel, String workerInputQueue, Channel consumerChannel, String workerResultsQueue, Codec codec, int maxPriority) {
+    public QueueServices(Connection connection, Channel publisherChannel, String workerInputQueue, Channel consumerChannel, String workerResultsQueue, Codec codec, int maxPriority)
+    {
 
         this.connection = connection;
         this.publisherChannel = publisherChannel;
@@ -48,7 +49,8 @@ public class QueueServices {
      *
      * @return Value for property 'connection'.
      */
-    public Connection getConnection() {
+    public Connection getConnection()
+    {
         return connection;
     }
 
@@ -57,7 +59,8 @@ public class QueueServices {
      *
      * @return Value for property 'publisherChannel'.
      */
-    public Channel getPublisherChannel() {
+    public Channel getPublisherChannel()
+    {
         return publisherChannel;
     }
 
@@ -66,7 +69,8 @@ public class QueueServices {
      *
      * @return Value for property 'workerInputQueue'.
      */
-    public String getWorkerInputQueue() {
+    public String getWorkerInputQueue()
+    {
         return workerInputQueue;
     }
 
@@ -75,7 +79,8 @@ public class QueueServices {
      *
      * @return Value for property 'consumerChannel'.
      */
-    public Channel getConsumerChannel() {
+    public Channel getConsumerChannel()
+    {
         return consumerChannel;
     }
 
@@ -84,7 +89,8 @@ public class QueueServices {
      *
      * @return Value for property 'workerResultsQueue'.
      */
-    public String getWorkerResultsQueue() {
+    public String getWorkerResultsQueue()
+    {
         return workerResultsQueue;
     }
 
@@ -93,7 +99,8 @@ public class QueueServices {
      *
      * @return Value for property 'codec'.
      */
-    public Codec getCodec() {
+    public Codec getCodec()
+    {
         return codec;
     }
 
@@ -113,6 +120,4 @@ public class QueueServices {
         byte[] data = codec.serialise(taskMessage);
         publisherChannel.basicPublish("", workerInputQueue, MessageProperties.TEXT_PLAIN, data);
     }*/
-
-
 }

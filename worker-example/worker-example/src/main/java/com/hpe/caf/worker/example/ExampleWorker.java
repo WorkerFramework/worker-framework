@@ -34,8 +34,8 @@ import java.util.Objects;
 /**
  * Exemplar worker. This is the class responsible for processing the text data by the action specified in the task.
  */
-public class ExampleWorker extends AbstractWorker<ExampleWorkerTask, ExampleWorkerResult> {
-
+public class ExampleWorker extends AbstractWorker<ExampleWorkerTask, ExampleWorkerResult>
+{
     /**
      * Logger for logging purposes.
      */
@@ -51,32 +51,44 @@ public class ExampleWorker extends AbstractWorker<ExampleWorkerTask, ExampleWork
      */
     private final long resultSizeThreshold;
 
-    public ExampleWorker(final ExampleWorkerTask task, final DataStore dataStore, final String outputQueue, final Codec codec, final long resultSizeThreshold) throws InvalidTaskException {
+    public ExampleWorker(
+        final ExampleWorkerTask task,
+        final DataStore dataStore,
+        final String outputQueue,
+        final Codec codec,
+        final long resultSizeThreshold
+    )
+        throws InvalidTaskException
+    {
         super(task, outputQueue, codec);
         this.dataStore = Objects.requireNonNull(dataStore);
         this.resultSizeThreshold = resultSizeThreshold;
     }
 
     @Override
-    public String getWorkerIdentifier() {
+    public String getWorkerIdentifier()
+    {
         return ExampleWorkerConstants.WORKER_NAME;
     }
 
     @Override
-    public int getWorkerApiVersion() {
+    public int getWorkerApiVersion()
+    {
         return ExampleWorkerConstants.WORKER_API_VER;
     }
 
     /**
      * Trigger processing of the source file and determine a response.
+     *
      * @return WorkerResponse - a response from the operation.
      * @throws InterruptedException - if the task is interrupted.
      * @throws TaskRejectedException
      */
     @Override
-    public WorkerResponse doWork() throws InterruptedException, TaskRejectedException {
+    public WorkerResponse doWork() throws InterruptedException, TaskRejectedException
+    {
         ExampleWorkerResult result = processFile();
-        if(result.workerStatus == ExampleWorkerStatus.COMPLETED){
+        if (result.workerStatus == ExampleWorkerStatus.COMPLETED) {
             return createSuccessResult(result);
         } else {
             return createFailureResult(result);
@@ -85,10 +97,12 @@ public class ExampleWorker extends AbstractWorker<ExampleWorkerTask, ExampleWork
 
     /**
      * Private method to process the ReferencedData.
+     *
      * @return ExampleWorkerResult
      * @throws InterruptedException
      */
-    private ExampleWorkerResult processFile() throws InterruptedException {
+    private ExampleWorkerResult processFile() throws InterruptedException
+    {
         LOG.info("Starting work");
         checkIfInterrupted();
 
@@ -106,13 +120,13 @@ public class ExampleWorker extends AbstractWorker<ExampleWorkerTask, ExampleWork
             String result = "";
 
             //manipulate the text by the method depicted by the task action
-            if(getTask().action == ExampleWorkerAction.REVERSE){
-                for(int i=original.length()-1; i>=0; i--){
+            if (getTask().action == ExampleWorkerAction.REVERSE) {
+                for (int i = original.length() - 1; i >= 0; i--) {
                     result = result + original.charAt(i);
                 }
-            } else if(getTask().action == ExampleWorkerAction.CAPITALISE){
+            } else if (getTask().action == ExampleWorkerAction.CAPITALISE) {
                 result = original.toUpperCase();
-            } else if(getTask().action == ExampleWorkerAction.VERBATIM){
+            } else if (getTask().action == ExampleWorkerAction.VERBATIM) {
                 result = original;
             }
 
@@ -125,7 +139,7 @@ public class ExampleWorker extends AbstractWorker<ExampleWorkerTask, ExampleWork
             workerResult.textData = textDataSource;
 
             return workerResult;
-        } catch(DataSourceException e) {
+        } catch (DataSourceException e) {
             //DataSourceException thrown when retrieving data from the datastore
             LOG.warn("Error acquiring data", e);
             return createErrorResult(ExampleWorkerStatus.SOURCE_FAILED);
@@ -143,21 +157,24 @@ public class ExampleWorker extends AbstractWorker<ExampleWorkerTask, ExampleWork
     /**
      * If an error in the worker occurs, create a new ExampleWorkerResult with the corresponding worker failure status.
      */
-    private ExampleWorkerResult createErrorResult(ExampleWorkerStatus status){
+    private ExampleWorkerResult createErrorResult(ExampleWorkerStatus status)
+    {
         ExampleWorkerResult workerResult = new ExampleWorkerResult();
         workerResult.workerStatus = status;
         return workerResult;
     }
 
     /**
-     * If the length of the data is greater than the result size threshold, store the data in the datastore. Otherwise,
-     * wrap as a byte array.
+     * If the length of the data is greater than the result size threshold, store the data in the datastore. Otherwise, wrap as a byte
+     * array.
+     *
      * @param data
      * @return ReferencedData
      * @throws DataSourceException
      * @throws DataStoreException
      */
-    private ReferencedData wrapAsReferencedData(final byte[] data) throws DataSourceException, DataStoreException {
+    private ReferencedData wrapAsReferencedData(final byte[] data) throws DataSourceException, DataStoreException
+    {
         ReferencedData refData;
         if (data.length > resultSizeThreshold) {
             // Wrap as datastore reference.

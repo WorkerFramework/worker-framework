@@ -25,13 +25,14 @@ import java.io.IOException;
 /**
  * Created by ploch on 08/11/2015.
  */
-public class ProcessorDeliveryHandler implements ResultHandler {
-
+public class ProcessorDeliveryHandler implements ResultHandler
+{
     private final ResultProcessor resultProcessor;
     private ExecutionContext context;
     private QueueManager queueManager;
 
-    public ProcessorDeliveryHandler(ResultProcessor resultProcessor, ExecutionContext context, QueueManager queueManager) {
+    public ProcessorDeliveryHandler(ResultProcessor resultProcessor, ExecutionContext context, QueueManager queueManager)
+    {
 
         this.resultProcessor = resultProcessor;
         this.context = context;
@@ -39,9 +40,10 @@ public class ProcessorDeliveryHandler implements ResultHandler {
     }
 
     @Override
-    public void handleResult(TaskMessage taskMessage) {
+    public void handleResult(TaskMessage taskMessage)
+    {
 
-        if(this.queueManager.isDebugEnabled()) {
+        if (this.queueManager.isDebugEnabled()) {
             try {
                 queueManager.publishDebugOutput(taskMessage);
             } catch (CodecException e) {
@@ -55,12 +57,12 @@ public class ProcessorDeliveryHandler implements ResultHandler {
 
         TestItem testItem;
 
-            String inputIdentifier = resultProcessor.getInputIdentifier(taskMessage);
-            if (Strings.isNullOrEmpty(inputIdentifier)) {
-                testItem = context.getItemStore().find(taskMessage.getTaskId());
-            } else {
-                testItem = context.getItemStore().find(inputIdentifier);
-            }
+        String inputIdentifier = resultProcessor.getInputIdentifier(taskMessage);
+        if (Strings.isNullOrEmpty(inputIdentifier)) {
+            testItem = context.getItemStore().find(taskMessage.getTaskId());
+        } else {
+            testItem = context.getItemStore().find(inputIdentifier);
+        }
         if (testItem == null) {
             System.out.println("Item with id " + taskMessage.getTaskId() + " was not found. Skipping.");
             checkForFinished();
@@ -88,7 +90,8 @@ public class ProcessorDeliveryHandler implements ResultHandler {
         checkForFinished();
     }
 
-    private String buildFailedMessage(TestItem testItem, Throwable throwable) {
+    private String buildFailedMessage(TestItem testItem, Throwable throwable)
+    {
         StringBuilder sb = new StringBuilder();
         sb.append("Test case failed.");
         TestCaseInfo info = testItem.getTestCaseInformation();
@@ -108,15 +111,13 @@ public class ProcessorDeliveryHandler implements ResultHandler {
         return sb.toString();
     }
 
-    private void checkForFinished() {
-        
+    private void checkForFinished()
+    {
         if (context.getItemStore().size() == 0) {
             System.out.println("Test case has no remaining items awaiting processing.");
             context.finishedSuccessfully();
-        }
-        else {
+        } else {
             System.out.println("Test case has " + context.getItemStore().size() + " result items yet to be processed.");
         }
     }
-
 }

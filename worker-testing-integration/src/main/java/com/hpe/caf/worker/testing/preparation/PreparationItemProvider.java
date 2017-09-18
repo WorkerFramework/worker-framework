@@ -26,16 +26,18 @@ import java.nio.file.Paths;
 /**
  * Created by ploch on 25/11/2015.
  */
-public class PreparationItemProvider<TWorkerTask, TWorkerResult, TInput extends FileTestInputData, TExpectation> extends ContentFilesTestItemProvider {
-
+public class PreparationItemProvider<TWorkerTask, TWorkerResult, TInput extends FileTestInputData, TExpectation> extends ContentFilesTestItemProvider
+{
     private final TestConfiguration<TWorkerTask, TWorkerResult, TInput, TExpectation> configuration;
 
-    public PreparationItemProvider(final TestConfiguration<TWorkerTask, TWorkerResult, TInput, TExpectation> configuration) {
+    public PreparationItemProvider(final TestConfiguration<TWorkerTask, TWorkerResult, TInput, TExpectation> configuration)
+    {
         super(configuration.getTestDocumentsFolder(), configuration.getTestDataFolder(), "regex:^(?!.*[.](content|testcase)$).*$", true);
         this.configuration = configuration;
     }
 
-    protected TWorkerTask getTaskTemplate() {
+    protected TWorkerTask getTaskTemplate()
+    {
         String setting = SettingsProvider.defaultProvider.getSetting(SettingNames.taskTemplate);
         if (Strings.isNullOrEmpty(setting)) {
             System.out.println("Template task not provided, using default.");
@@ -50,16 +52,15 @@ public class PreparationItemProvider<TWorkerTask, TWorkerResult, TInput extends 
         try {
             TWorkerTask task = configuration.getSerializer().readValue(templateTaskFile.toFile(), configuration.getWorkerTaskClass());
             return task;
-        }
-        catch (IOException e) {
+        } catch (IOException e) {
             e.printStackTrace();
             throw new AssertionError("Failed to deserialize template task: " + setting + ". Message: " + e.getMessage());
         }
     }
 
     @Override
-    protected TestItem createTestItem(Path inputFile, Path expectedFile) throws Exception {
-
+    protected TestItem createTestItem(Path inputFile, Path expectedFile) throws Exception
+    {
         TInput testInput = configuration.getInputClass().newInstance();
         testInput.setUseDataStore(configuration.isUseDataStore());
         testInput.setContainerId(configuration.getDataStoreContainerId());

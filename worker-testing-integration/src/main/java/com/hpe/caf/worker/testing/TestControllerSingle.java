@@ -28,8 +28,8 @@ import java.util.UUID;
 /**
  * Created by oloughli on 31/05/2016.
  */
-public class TestControllerSingle implements Closeable {
-
+public class TestControllerSingle implements Closeable
+{
     private final WorkerServices workerServices;
     private final QueueManager queueManager;
     private final WorkerTaskFactory taskFactory;
@@ -43,20 +43,22 @@ public class TestControllerSingle implements Closeable {
      */
     Thread thread;
 
-    public TestControllerSingle(WorkerServices workerServices, QueueManager queueManager, WorkerTaskFactory taskFactory, ResultProcessor resultProcessor, boolean stopOnError) {
+    public TestControllerSingle(WorkerServices workerServices, QueueManager queueManager, WorkerTaskFactory taskFactory, ResultProcessor resultProcessor, boolean stopOnError)
+    {
         this(workerServices, queueManager, taskFactory, resultProcessor, stopOnError, new ConsoleTestReporter());
     }
 
     /**
      * Instantiates a new Test controller.
      *
-     * @param workerServices  the worker services
-     * @param queueManager    the worker queue manager
-     * @param taskFactory     the worker task factory
+     * @param workerServices the worker services
+     * @param queueManager the worker queue manager
+     * @param taskFactory the worker task factory
      * @param resultProcessor the worker result processor
-     * @param stopOnError     determines if tests should continue after any validation error
+     * @param stopOnError determines if tests should continue after any validation error
      */
-    public TestControllerSingle(WorkerServices workerServices, QueueManager queueManager, WorkerTaskFactory taskFactory, ResultProcessor resultProcessor, boolean stopOnError, TestResultsReporter resultsReporter) {
+    public TestControllerSingle(WorkerServices workerServices, QueueManager queueManager, WorkerTaskFactory taskFactory, ResultProcessor resultProcessor, boolean stopOnError, TestResultsReporter resultsReporter)
+    {
         this.workerServices = workerServices;
         this.queueManager = queueManager;
         this.taskFactory = taskFactory;
@@ -66,11 +68,11 @@ public class TestControllerSingle implements Closeable {
         context = new ExecutionContext(stopOnError);
     }
 
-    public void initialise() throws Exception{
+    public void initialise() throws Exception
+    {
         try {
             queueManager.start((new ProcessorDeliveryHandler(resultProcessor, context, queueManager)));
-        }
-        catch (Throwable e) {
+        } catch (Throwable e) {
             System.out.println("Exception happened during queue initialization: " + e.toString());
             e.printStackTrace();
             throw e;
@@ -79,7 +81,7 @@ public class TestControllerSingle implements Closeable {
 
     public void runTests(TestItem testItem) throws Exception
     {
-        System.out.println("\n===============  Starting test Item "+ testItem.getTag() +" ======================");
+        System.out.println("\n===============  Starting test Item " + testItem.getTag() + " ======================");
 
         context.initializeContext();
         queueManager.purgeQueues();
@@ -88,9 +90,11 @@ public class TestControllerSingle implements Closeable {
         long timeout = timeoutSetting == null ? defaultTimeOutMs : Long.parseLong(timeoutSetting);
 
         Timer timer = new Timer();
-        timer.schedule(new TimerTask() {
+        timer.schedule(new TimerTask()
+        {
             @Override
-            public void run() {
+            public void run()
+            {
                 context.testRunsTimedOut();
             }
         }, timeout);
@@ -125,7 +129,8 @@ public class TestControllerSingle implements Closeable {
     }
 
     @Override
-    public void close() throws IOException {
+    public void close() throws IOException
+    {
         try {
             queueManager.close();
         } catch (Throwable e) {

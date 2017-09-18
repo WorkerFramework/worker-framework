@@ -15,10 +15,8 @@
  */
 package com.hpe.caf.api.worker;
 
-
 import java.util.EnumSet;
 import java.util.Set;
-
 
 /**
  * The state of a worker thread upon termination.
@@ -46,7 +44,6 @@ public enum TaskStatus
      */
     RESULT_EXCEPTION;
 
-
     /**
      * These are TaskStatus entries that qualify as results.
      */
@@ -56,9 +53,9 @@ public enum TaskStatus
      */
     private static final Set<TaskStatus> STATUS_RESPONSE_SUCCESS = EnumSet.of(RESULT_SUCCESS, NEW_TASK);
 
-
     /**
      * Determine if this TaskStatus classifies as a result
+     *
      * @param status the TaskStatus to inspect
      * @return whether this TaskStatus classifies as a result
      */
@@ -67,9 +64,9 @@ public enum TaskStatus
         return STATUS_RESULTS.contains(status);
     }
 
-
     /**
      * Determine if a TaskStatus classifies as a successful response
+     *
      * @param status the TaskStatus to inspect
      * @return whether this TaskStatus classifies as a successful response
      */

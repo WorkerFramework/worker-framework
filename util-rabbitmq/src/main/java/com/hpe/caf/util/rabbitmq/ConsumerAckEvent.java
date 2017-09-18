@@ -15,7 +15,6 @@
  */
 package com.hpe.caf.util.rabbitmq;
 
-
 /**
  * An acknowledge Event for a Consumer.
  */
@@ -23,16 +22,15 @@ public class ConsumerAckEvent implements Event<QueueConsumer>
 {
     private final long tag;
 
-
     /**
      * Create a new ConsumerAckEvent
+     *
      * @param tag the RabbitMQ id of the message to acknowledge
      */
     public ConsumerAckEvent(final long tag)
     {
         this.tag = tag;
     }
-
 
     /**
      * {@inheritDoc}
@@ -44,7 +42,6 @@ public class ConsumerAckEvent implements Event<QueueConsumer>
     {
         target.processAck(tag);
     }
-
 
     /**
      * @return the RabbitMQ id of the message to acknowledge by this Event

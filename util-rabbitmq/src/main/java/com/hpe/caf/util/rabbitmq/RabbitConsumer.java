@@ -15,7 +15,6 @@
  */
 package com.hpe.caf.util.rabbitmq;
 
-
 import com.rabbitmq.client.AMQP;
 import com.rabbitmq.client.Consumer;
 import com.rabbitmq.client.Envelope;
@@ -28,19 +27,17 @@ import java.util.Collections;
 import java.util.Map;
 import java.util.concurrent.BlockingQueue;
 
-
 /**
- * A basic framework for handling consumption of messages from a RabbitMQ queue.
- * It decouples the RabbitMQ client threads delivering messages from the handling
- * and dispatching of these messages.
+ * A basic framework for handling consumption of messages from a RabbitMQ queue. It decouples the RabbitMQ client threads delivering
+ * messages from the handling and dispatching of these messages.
  */
 public abstract class RabbitConsumer<T> extends EventPoller<T> implements Consumer
 {
     private static final Logger LOG = LoggerFactory.getLogger(RabbitConsumer.class);
 
-
     /**
      * Create a new RabbitConsumer.
+     *
      * @param pollPeriod the polling period to look for events
      * @param events the object to use for storing and polling events
      * @param consumerImpl the event handler implementation
@@ -50,13 +47,11 @@ public abstract class RabbitConsumer<T> extends EventPoller<T> implements Consum
         super(pollPeriod, events, consumerImpl);
     }
 
-
     @Override
     public final void handleDelivery(String consumerTag, Envelope envelope, AMQP.BasicProperties properties, byte[] body)
     {
         getEventQueue().add(getDeliverEvent(envelope, body, properties.getHeaders() == null ? Collections.emptyMap() : properties.getHeaders()));
     }
-
 
     @Override
     public void handleCancel(String consumerTag)
@@ -65,13 +60,11 @@ public abstract class RabbitConsumer<T> extends EventPoller<T> implements Consum
         LOG.warn("Unexpected channel cancel received for consumer tag {}", consumerTag);
     }
 
-
     @Override
     public void handleCancelOk(String consumerTag)
     {
         LOG.debug("Channel cancel received for consumer tag {}", consumerTag);
     }
-
 
     @Override
     public void handleConsumeOk(String consumerTag)
@@ -79,13 +72,11 @@ public abstract class RabbitConsumer<T> extends EventPoller<T> implements Consum
         LOG.debug("Channel consuming with consumer tag {}", consumerTag);
     }
 
-
     @Override
     public void handleRecoverOk(String consumerTag)
     {
         LOG.info("Channel recovered for consumer tag {}", consumerTag);
     }
-
 
     @Override
     public void handleShutdownSignal(String consumerTag, ShutdownSignalException sig)
@@ -93,9 +84,9 @@ public abstract class RabbitConsumer<T> extends EventPoller<T> implements Consum
         LOG.warn("Connection was shutdown for consumer tag {}", consumerTag);
     }
 
-
     /**
      * Get a new delivery event for internal handling of new messages
+     *
      * @param envelope the envelope, containing metadata about the message delivery
      * @param data the actual message delivery
      * @param headers the message headers

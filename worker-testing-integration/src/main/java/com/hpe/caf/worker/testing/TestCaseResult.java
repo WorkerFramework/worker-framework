@@ -18,21 +18,24 @@ package com.hpe.caf.worker.testing;
 /**
  * Created by ploch on 05/02/2016.
  */
-public class TestCaseResult {
-
+public class TestCaseResult
+{
     private final TestCaseInfo testCaseInfo;
     private boolean succeeded;
     private String failureMessage;
 
-    public static TestCaseResult createSuccess(TestCaseInfo testCaseInfo) {
+    public static TestCaseResult createSuccess(TestCaseInfo testCaseInfo)
+    {
         return new TestCaseResult(testCaseInfo, true, null);
     }
 
-    public static TestCaseResult createFailure(TestCaseInfo testCaseInfo, String message) {
+    public static TestCaseResult createFailure(TestCaseInfo testCaseInfo, String message)
+    {
         return new TestCaseResult(testCaseInfo, false, message);
     }
 
-    private TestCaseResult(TestCaseInfo testCaseInfo, boolean succeeded, String failureMessage) {
+    private TestCaseResult(TestCaseInfo testCaseInfo, boolean succeeded, String failureMessage)
+    {
         this.testCaseInfo = testCaseInfo;
 
         this.succeeded = succeeded;
@@ -44,7 +47,8 @@ public class TestCaseResult {
      *
      * @return Value for property 'testCaseInfo'.
      */
-    public TestCaseInfo getTestCaseInfo() {
+    public TestCaseInfo getTestCaseInfo()
+    {
         return testCaseInfo;
     }
 
@@ -53,7 +57,8 @@ public class TestCaseResult {
      *
      * @return Value for property 'succeeded'.
      */
-    public boolean isSucceeded() {
+    public boolean isSucceeded()
+    {
         return succeeded;
     }
 
@@ -62,7 +67,8 @@ public class TestCaseResult {
      *
      * @return Value for property 'failureMessage'.
      */
-    public String getFailureMessage() {
+    public String getFailureMessage()
+    {
         return failureMessage;
     }
 
@@ -71,7 +77,8 @@ public class TestCaseResult {
      *
      * @param succeeded Value to set for property 'succeeded'.
      */
-    public void setSucceeded(boolean succeeded) {
+    public void setSucceeded(boolean succeeded)
+    {
         this.succeeded = succeeded;
     }
 
@@ -80,7 +87,8 @@ public class TestCaseResult {
      *
      * @param failureMessage Value to set for property 'failureMessage'.
      */
-    public void setFailureMessage(String failureMessage) {
+    public void setFailureMessage(String failureMessage)
+    {
         this.failureMessage = failureMessage;
     }
 }

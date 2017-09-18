@@ -32,8 +32,8 @@ import java.util.function.ObjDoubleConsumer;
 /**
  * Created by ploch on 01/11/2015.
  */
-public class SimpleQueueConsumerImpl implements QueueConsumer {
-
+public class SimpleQueueConsumerImpl implements QueueConsumer
+{
     private final BlockingQueue<Event<QueueConsumer>> eventQueue;
     private final Channel channel;
     private final ResultHandler resultHandler;
@@ -42,7 +42,8 @@ public class SimpleQueueConsumerImpl implements QueueConsumer {
 
     private static final Object syncLock = new Object();
 
-    public SimpleQueueConsumerImpl(final BlockingQueue<Event<QueueConsumer>> queue, Channel channel, ResultHandler resultHandler, final Codec codec) {
+    public SimpleQueueConsumerImpl(final BlockingQueue<Event<QueueConsumer>> queue, Channel channel, ResultHandler resultHandler, final Codec codec)
+    {
         this.eventQueue = queue;
         this.channel = channel;
         this.resultHandler = resultHandler;
@@ -50,19 +51,18 @@ public class SimpleQueueConsumerImpl implements QueueConsumer {
     }
 
     @Override
-    public void processDelivery(Delivery delivery) {
+    public void processDelivery(Delivery delivery)
+    {
 
-        System.out.print("New delivery" );
+        System.out.print("New delivery");
 
         try {
             TaskMessage taskMessage = codec.deserialise(delivery.getMessageData(), TaskMessage.class, DecodeMethod.LENIENT);
             System.out.println(taskMessage.getTaskId() + ", status: " + taskMessage.getTaskStatus());
-            synchronized (syncLock)
-            {
+            synchronized (syncLock) {
                 resultHandler.handleResult(taskMessage);
             }
-        }
-        catch (CodecException e) {
+        } catch (CodecException e) {
             e.printStackTrace();
             throw new AssertionError("Failed: " + e.getMessage());
         } catch (Exception e) {
@@ -73,18 +73,22 @@ public class SimpleQueueConsumerImpl implements QueueConsumer {
     }
 
     @Override
-    public void processAck(long tag) {
+    public void processAck(long tag)
+    {
         try {
             channel.basicAck(tag, false);
-        }
-        catch (IOException e) {
+        } catch (IOException e) {
             e.printStackTrace();
         }
     }
 
     @Override
-    public void processReject(long tag) {}
+    public void processReject(long tag)
+    {
+    }
 
     @Override
-    public void processDrop(long tag) {}
+    public void processDrop(long tag)
+    {
+    }
 }

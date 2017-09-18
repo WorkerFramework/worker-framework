@@ -26,32 +26,35 @@ import java.util.Set;
 /**
  * Created by oloughli on 27/05/2016.
  */
-public class TestRunnerSingle {
+public class TestRunnerSingle
+{
     private static TestItemProvider itemProvider;
     private static boolean mode;
 
-    public static Set<Object[]> setUpTest(TestControllerProvider controllerProvider) throws Exception{
+    public static Set<Object[]> setUpTest(TestControllerProvider controllerProvider) throws Exception
+    {
         try {
             Collection<TestItem> items = getItemProvider(controllerProvider, mode).getItems();
             Set<Object[]> s = new HashSet<>();
             for (TestItem i : items) {
                 s.add(new Object[]{i, i.getTag()});
 
-                if (i.getInputIdentifier() == null)
+                if (i.getInputIdentifier() == null) {
                     i.setInputIdentifier(i.getTag());
+                }
             }
             return s;
-        }
-        catch (Throwable e) {
+        } catch (Throwable e) {
             System.out.println("Exception happened during testcase loading: " + e.toString());
             e.printStackTrace();
             throw e;
         }
     }
 
-    public static TestControllerSingle getTestController(TestControllerProvider controllerProvider, boolean dataGenerationMode) throws Exception {
+    public static TestControllerSingle getTestController(TestControllerProvider controllerProvider, boolean dataGenerationMode) throws Exception
+    {
         mode = dataGenerationMode;
-        TestControllerSingle controller = dataGenerationMode? controllerProvider.getNewDataPreparationController() : controllerProvider.getNewTestController();
+        TestControllerSingle controller = dataGenerationMode ? controllerProvider.getNewDataPreparationController() : controllerProvider.getNewTestController();
         return controller;
     }
 

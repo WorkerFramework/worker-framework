@@ -34,8 +34,8 @@ import java.util.concurrent.TimeoutException;
 /**
  * Created by ploch on 08/11/2015.
  */
-public class QueueManager implements Closeable {
-
+public class QueueManager implements Closeable
+{
     private final QueueServices queueServices;
     private final WorkerServices workerServices;
     private String consumerTag;
@@ -52,7 +52,8 @@ public class QueueManager implements Closeable {
     private String debugOutputQueueName;
     private boolean debugEnabled;
 
-    public QueueManager(QueueServices queueServices, WorkerServices workerServices, boolean debugEnabled) {
+    public QueueManager(QueueServices queueServices, WorkerServices workerServices, boolean debugEnabled)
+    {
 
         this.queueServices = queueServices;
         this.workerServices = workerServices;
@@ -61,7 +62,8 @@ public class QueueManager implements Closeable {
         this.debugEnabled = debugEnabled;
     }
 
-    public Thread start(ResultHandler resultHandler) throws IOException {
+    public Thread start(ResultHandler resultHandler) throws IOException
+    {
         connection = queueServices.getConnection();
         pubChan = connection.createChannel();
         conChan = connection.createChannel();
@@ -87,12 +89,14 @@ public class QueueManager implements Closeable {
         return consumerThread;
     }
 
-    public void purgeQueues() throws IOException{
+    public void purgeQueues() throws IOException
+    {
         pubChan.queuePurge(queueServices.getWorkerInputQueue());
         conChan.queuePurge(queueServices.getWorkerResultsQueue());
     }
 
-    public void publish(TaskMessage message) throws CodecException, IOException {
+    public void publish(TaskMessage message) throws CodecException, IOException
+    {
         byte[] data = workerServices.getCodec().serialise(message);
         pubChan.basicPublish("", queueServices.getWorkerInputQueue(), MessageProperties.TEXT_PLAIN, data);
         if (debugEnabled) {
@@ -100,21 +104,25 @@ public class QueueManager implements Closeable {
         }
     }
 
-    public void publishDebugOutput(TaskMessage message) throws CodecException, IOException {
+    public void publishDebugOutput(TaskMessage message) throws CodecException, IOException
+    {
         byte[] data = workerServices.getCodec().serialise(message);
         debugConChan.basicPublish("", debugOutputQueueName, MessageProperties.TEXT_PLAIN, data);
     }
 
-    public boolean isDebugEnabled() {
+    public boolean isDebugEnabled()
+    {
         return debugEnabled;
     }
 
-    public String getWorkerInputQueueName() {
+    public String getWorkerInputQueueName()
+    {
         return queueServices.getWorkerInputQueue();
     }
 
     @Override
-    public void close() throws IOException {
+    public void close() throws IOException
+    {
         if (consumerTag != null) {
             try {
                 conChan.basicCancel(consumerTag);

@@ -19,8 +19,8 @@ import com.hpe.caf.api.worker.MessagePriorityManager;
 import com.hpe.caf.api.worker.TaskMessage;
 
 /**
- * Implementation of MessagePriorityManager which always return zero.
- * It should be used when priorities are disabled or queue implementation doesn't support them.
+ * Implementation of MessagePriorityManager which always return zero. It should be used when priorities are disabled or queue
+ * implementation doesn't support them.
  */
 public class ZeroMessagePriorityManager implements MessagePriorityManager
 {

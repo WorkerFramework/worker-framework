@@ -15,7 +15,6 @@
  */
 package com.hpe.caf.util.rabbitmq;
 
-
 /**
  * Possible states of durability for a RabbitMQ queue.
  */

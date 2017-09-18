@@ -21,8 +21,7 @@ import com.hpe.caf.api.worker.TaskMessage;
 import java.util.Objects;
 
 /**
- * Implementation of MessagePriorityManager which increases a message priority on
- * each response.
+ * Implementation of MessagePriorityManager which increases a message priority on each response.
  */
 public class IncreasingMessagePriorityManager implements MessagePriorityManager
 {

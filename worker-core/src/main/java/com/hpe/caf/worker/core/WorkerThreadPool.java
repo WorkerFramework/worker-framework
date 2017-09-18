@@ -24,24 +24,27 @@ interface WorkerThreadPool
 {
     /* private */ static final Runnable defaultHandler = () -> System.exit(1);
 
-    static WorkerThreadPool create(final int nThreads) {
+    static WorkerThreadPool create(final int nThreads)
+    {
         return create(nThreads, defaultHandler);
     }
 
-    static WorkerThreadPool create(final WorkerFactory workerFactory) {
+    static WorkerThreadPool create(final WorkerFactory workerFactory)
+    {
         return create(workerFactory, defaultHandler);
     }
 
-    static WorkerThreadPool create(final WorkerFactory workerFactory, final Runnable handler) {
+    static WorkerThreadPool create(final WorkerFactory workerFactory, final Runnable handler)
+    {
         if (workerFactory instanceof BulkWorker) {
             return new BulkWorkerThreadPool(workerFactory, handler);
-        }
-        else {
+        } else {
             return create(workerFactory.getWorkerThreads(), handler);
         }
     }
 
-    static WorkerThreadPool create(final int nThreads, final Runnable handler) {
+    static WorkerThreadPool create(final int nThreads, final Runnable handler)
+    {
         return new StreamingWorkerThreadPool(nThreads, handler);
     }
 
@@ -52,6 +55,7 @@ interface WorkerThreadPool
 
     /**
      * Returns whether or not any threads are active
+     *
      * @return true if there are no active threads
      */
     boolean isIdle();
@@ -60,6 +64,7 @@ interface WorkerThreadPool
 
     /**
      * Execute the specified task at some point in the future
+     *
      * @param workerTask the task to be run
      * @throws TaskRejectedException if no more tasks can be accepted
      */

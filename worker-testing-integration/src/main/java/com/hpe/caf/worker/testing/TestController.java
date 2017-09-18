@@ -28,21 +28,20 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 /**
- * The {@code TestController} class responsible for executing test cases and controlling execution.
- * {@code TestController} will:
+ * The {@code TestController} class responsible for executing test cases and controlling execution. {@code TestController} will:
  * <ol>
- *     <li>Load {@link TestItem} instances using {@link TestItemProvider} implementation. These are either full test cases
- *     or stubs for generating test data
- *     <li>Start the {@link QueueManager} which manages interactions with RabbitMQ (publishing and listening to result messages)
- *     <li>Create a worker task for each {@code TestItem} using {@link WorkerTaskFactory} implementation
- *     <li>Publish worker tasks to the RabbitMQ
+ * <li>Load {@link TestItem} instances using {@link TestItemProvider} implementation. These are either full test cases or stubs for
+ * generating test data
+ * <li>Start the {@link QueueManager} which manages interactions with RabbitMQ (publishing and listening to result messages)
+ * <li>Create a worker task for each {@code TestItem} using {@link WorkerTaskFactory} implementation
+ * <li>Publish worker tasks to the RabbitMQ
  * </ol>
  *
- * Queued messages will be processed by a worker and published to results queue (by a worker under test). Result messages
- * are processed by implementation of {@link ResultProcessor}.
+ * Queued messages will be processed by a worker and published to results queue (by a worker under test). Result messages are processed by
+ * implementation of {@link ResultProcessor}.
  */
-public class TestController implements Closeable {
-
+public class TestController implements Closeable
+{
     private final WorkerServices workerServices;
     private final TestItemProvider itemProvider;
     private final QueueManager queueManager;
@@ -51,6 +50,7 @@ public class TestController implements Closeable {
     private final boolean stopOnError;
     private final TestResultsReporter resultsReporter;
     private final long defaultTimeOutMs = 600000; // 10 minutes
+
     /**
      * The Thread.
      */
@@ -58,28 +58,46 @@ public class TestController implements Closeable {
 
     /**
      * Instantiates a new Test controller.
-     *  @param workerServices  the worker services
-     * @param itemProvider    the {@link TestItem} provider (test cases)
-     * @param queueManager    the worker queue manager
-     * @param taskFactory     the worker task factory
+     *
+     * @param workerServices the worker services
+     * @param itemProvider the {@link TestItem} provider (test cases)
+     * @param queueManager the worker queue manager
+     * @param taskFactory the worker task factory
      * @param resultProcessor the worker result processor
-     * @param stopOnError     determines if tests should continue after any validation error
+     * @param stopOnError determines if tests should continue after any validation error
      */
-    public TestController(WorkerServices workerServices, TestItemProvider itemProvider, QueueManager queueManager, WorkerTaskFactory taskFactory, ResultProcessor resultProcessor, boolean stopOnError) {
+    public TestController(
+        WorkerServices workerServices,
+        TestItemProvider itemProvider,
+        QueueManager queueManager,
+        WorkerTaskFactory taskFactory,
+        ResultProcessor resultProcessor,
+        boolean stopOnError
+    )
+    {
         this(workerServices, itemProvider, queueManager, taskFactory, resultProcessor, stopOnError, new ConsoleTestReporter());
     }
 
     /**
      * Instantiates a new Test controller.
      *
-     * @param workerServices  the worker services
-     * @param itemProvider    the {@link TestItem} provider (test cases)
-     * @param queueManager    the worker queue manager
-     * @param taskFactory     the worker task factory
+     * @param workerServices the worker services
+     * @param itemProvider the {@link TestItem} provider (test cases)
+     * @param queueManager the worker queue manager
+     * @param taskFactory the worker task factory
      * @param resultProcessor the worker result processor
-     * @param stopOnError     determines if tests should continue after any validation error
+     * @param stopOnError determines if tests should continue after any validation error
      */
-    public TestController(WorkerServices workerServices, TestItemProvider itemProvider, QueueManager queueManager, WorkerTaskFactory taskFactory, ResultProcessor resultProcessor, boolean stopOnError, TestResultsReporter resultsReporter) {
+    public TestController(
+        WorkerServices workerServices,
+        TestItemProvider itemProvider,
+        QueueManager queueManager,
+        WorkerTaskFactory taskFactory,
+        ResultProcessor resultProcessor,
+        boolean stopOnError,
+        TestResultsReporter resultsReporter
+    )
+    {
         this.workerServices = workerServices;
 
         this.itemProvider = itemProvider;
@@ -96,14 +114,13 @@ public class TestController implements Closeable {
      * <li>Retrieves test cases - {@link TestItem} instances from {@link TestItemProvider}
      * <li>Starts {@link QueueManager}
      * <li>Iterates over test cases and uses them to create and publish worker tasks
-     * <li>Stores test case data in {@link TestItemStore} so they can be retrieved when worker finishes
-     * task processing
+     * <li>Stores test case data in {@link TestItemStore} so they can be retrieved when worker finishes task processing
      * </ul>
      *
      * @throws Exception the exception
      */
-    public void runTests() throws Exception {
-
+    public void runTests() throws Exception
+    {
         System.out.println("===============  Starting tests ======================");
 
         Collection<TestItem> items = itemProvider.getItems();
@@ -119,9 +136,11 @@ public class TestController implements Closeable {
         long timeout = timeoutSetting == null ? defaultTimeOutMs : Long.parseLong(timeoutSetting);
 
         Timer timer = new Timer();
-        timer.schedule(new TimerTask() {
+        timer.schedule(new TimerTask()
+        {
             @Override
-            public void run() {
+            public void run()
+            {
                 context.testRunsTimedOut();
             }
         }, timeout);
@@ -167,7 +186,8 @@ public class TestController implements Closeable {
     }
 
     @Override
-    public void close() throws IOException {
+    public void close() throws IOException
+    {
         try {
             queueManager.close();
         } catch (Throwable e) {

@@ -28,14 +28,15 @@ import java.util.Objects;
 /**
  * An implementation of CacheResponse supporting the caching of job status responses.
  */
-public class JobStatusCacheResponse extends CacheResponse {
+public class JobStatusCacheResponse extends CacheResponse
+{
     private static final Logger LOG = LoggerFactory.getLogger(JobStatusCacheResponse.class);
 
     private ByteArrayInputStream responseBody;
     private Map<String, List<String>> responseHeaders;
 
-
-    public JobStatusCacheResponse(ByteArrayOutputStream cachedResponseStream) throws IOException {
+    public JobStatusCacheResponse(ByteArrayOutputStream cachedResponseStream) throws IOException
+    {
         Objects.requireNonNull(cachedResponseStream);
         responseBody = new ByteArrayInputStream(cachedResponseStream.toByteArray());
         ObjectInputStream ois = new ObjectInputStream(responseBody);
@@ -47,15 +48,15 @@ public class JobStatusCacheResponse extends CacheResponse {
         }
     }
 
-
     @Override
-    public Map<String, List<String>> getHeaders() throws IOException {
+    public Map<String, List<String>> getHeaders() throws IOException
+    {
         return responseHeaders;
     }
 
-
     @Override
-    public InputStream getBody() throws IOException {
+    public InputStream getBody() throws IOException
+    {
         return responseBody;
     }
 }

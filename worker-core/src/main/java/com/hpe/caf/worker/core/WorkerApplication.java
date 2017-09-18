@@ -58,20 +58,18 @@ import java.net.ResponseCache;
 import java.util.concurrent.TimeUnit;
 
 /**
- * This is the main HP SaaS asynchronous micro-service worker entry point.
- * On startup, it will identify implementations of necessary components (such as a queue,
- * data store, and backend worker), and create a WorkerCore object which will handle
- * the logic of data flow between these components. The application class itself here
- * just wrappers this and exposes health checks and metrics.
+ * This is the main HP SaaS asynchronous micro-service worker entry point. On startup, it will identify implementations of necessary
+ * components (such as a queue, data store, and backend worker), and create a WorkerCore object which will handle the logic of data flow
+ * between these components. The application class itself here just wrappers this and exposes health checks and metrics.
  */
 public final class WorkerApplication extends Application<WorkerConfiguration>
 {
     private final long startTime = System.currentTimeMillis();
     private static final Logger LOG = LoggerFactory.getLogger(WorkerApplication.class);
 
-
     /**
      * Entry point for the asynchronous micro-service worker framework.
+     *
      * @param args command-line args, currently not used by the worker
      * @throws Exception if the worker cannot startup
      */
@@ -82,15 +80,16 @@ public final class WorkerApplication extends Application<WorkerConfiguration>
         new WorkerApplication().run(args);
     }
 
-
     /**
      * Package private. If you wish to test a worker framework, try using WorkerCore.
      */
-    WorkerApplication() { }
-
+    WorkerApplication()
+    {
+    }
 
     /**
      * Start the asynchronous worker micro-service.
+     *
      * @param workerConfiguration the internal worker service internal configuration
      * @param environment the dropwizard environment, for setting up metrics and REST configuration
      */
@@ -99,7 +98,7 @@ public final class WorkerApplication extends Application<WorkerConfiguration>
         throws QueueException, ModuleLoaderException, CipherException, ConfigurationException, DataStoreException, WorkerException
     {
         LOG.debug("Starting up");
-        
+
         ResponseCache.setDefault(new JobStatusResponseCache());
         BootstrapConfiguration bootstrap = new SystemBootstrapConfiguration();
         Cipher cipher = ModuleLoader.getService(CipherProvider.class, NullCipherProvider.class).getCipher(bootstrap);
@@ -177,18 +176,17 @@ public final class WorkerApplication extends Application<WorkerConfiguration>
         metrics.register(MetricRegistry.name("core.outputSizes"), core.getStats().getOutputSizes());
     }
 
-
     private void initComponentMetrics(final MetricRegistry metrics, final ManagedConfigurationSource config, final ManagedDataStore store, final WorkerCore core)
     {
         metrics.register(MetricRegistry.name("config.lookups"), (Gauge<Integer>) config::getConfigurationRequests);
         metrics.register(MetricRegistry.name("config.errors"), (Gauge<Integer>) config::getConfigurationErrors);
-        if ( store.getMetrics() != null ) {
+        if (store.getMetrics() != null) {
             metrics.register(MetricRegistry.name("store.writes"), (Gauge<Integer>) store.getMetrics()::getStoreRequests);
             metrics.register(MetricRegistry.name("store.reads"), (Gauge<Integer>) store.getMetrics()::getRetrieveRequests);
             metrics.register(MetricRegistry.name("store.deletes"), (Gauge<Integer>) store.getMetrics()::getDeleteRequests);
             metrics.register(MetricRegistry.name("store.errors"), (Gauge<Integer>) store.getMetrics()::getErrors);
         }
-        if ( core.getWorkerQueue().getMetrics() != null ) {
+        if (core.getWorkerQueue().getMetrics() != null) {
             metrics.register(MetricRegistry.name("queue.received"), (Gauge<Integer>) core.getWorkerQueue().getMetrics()::getMessagesReceived);
             metrics.register(MetricRegistry.name("queue.published"), (Gauge<Integer>) core.getWorkerQueue().getMetrics()::getMessagesPublished);
             metrics.register(MetricRegistry.name("queue.rejected"), (Gauge<Integer>) core.getWorkerQueue().getMetrics()::getMessagesRejected);

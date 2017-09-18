@@ -24,16 +24,17 @@ import java.util.regex.Pattern;
 /**
  * Holds fields used in tracking task messages, for Progress Reporting and Job Control.
  */
-public class TrackingInfo {
+public class TrackingInfo
+{
     /**
-     * Values of jobTaskId should be the job id followed by period-separated subtask elements.
-     * For example J5.1.2 where the job id is "J5".
+     * Values of jobTaskId should be the job id followed by period-separated subtask elements. For example J5.1.2 where the job id is
+     * "J5".
      */
     private static final String jobTaskIdPattern = "^([^\\.]*)\\.?.*$";
 
     /**
-     * An identifier assigned for tracking the task - not the same as the taskId on TaskMessage.
-     * This identifier should match the format specified by TrackingInfo.getJobTaskIdPattern()
+     * An identifier assigned for tracking the task - not the same as the taskId on TaskMessage. This identifier should match the format
+     * specified by TrackingInfo.getJobTaskIdPattern()
      */
     private String jobTaskId;
 
@@ -48,30 +49,27 @@ public class TrackingInfo {
     private String statusCheckUrl;
 
     /**
-     * The pipe to which output messages relating to this task should be sent, regardless of their nature
-     * (i.e. whether they are Reject messages, Retry messages, Response messages, or some other type of message).
-     * It is the responsibility of the Job Tracking Worker, which will be consuming messages sent to this pipe, to
-     * forward the message to the intended recipient, which is indicated by the TaskMessage.to field.
-     * NOTE: One exception to this is where the tracking pipe specified is the same pipe that the worker itself is
-     *       consuming messages from. If this is the case then the tracking pipe should be ignored. It likely means
-     *       that this is the Job Tracking Worker. Not making an exception for this case would cause to an
-     *       infinite loop.
+     * The pipe to which output messages relating to this task should be sent, regardless of their nature (i.e. whether they are Reject
+     * messages, Retry messages, Response messages, or some other type of message). It is the responsibility of the Job Tracking Worker,
+     * which will be consuming messages sent to this pipe, to forward the message to the intended recipient, which is indicated by the
+     * TaskMessage.to field. NOTE: One exception to this is where the tracking pipe specified is the same pipe that the worker itself is
+     * consuming messages from. If this is the case then the tracking pipe should be ignored. It likely means that this is the Job
+     * Tracking Worker. Not making an exception for this case would cause to an infinite loop.
      */
     private String trackingPipe;
 
     /**
-     * The pipe where tracking is to stop.
-     * If the Worker Framework is publishing a message to this pipe then it should remove the 'tracking' fields,
-     * as we are not interested in tracking from this point.
+     * The pipe where tracking is to stop. If the Worker Framework is publishing a message to this pipe then it should remove the
+     * 'tracking' fields, as we are not interested in tracking from this point.
      */
     private String trackTo;
 
-
-    public TrackingInfo() {
+    public TrackingInfo()
+    {
     }
 
-
-    public TrackingInfo(String jobTaskId, Date statusCheckTime, String statusCheckUrl, String trackingPipe, String trackTo) {
+    public TrackingInfo(String jobTaskId, Date statusCheckTime, String statusCheckUrl, String trackingPipe, String trackTo)
+    {
         this.jobTaskId = jobTaskId;
         this.statusCheckTime = statusCheckTime;
         this.statusCheckUrl = statusCheckUrl;
@@ -79,8 +77,8 @@ public class TrackingInfo {
         this.trackTo = trackTo;
     }
 
-
-    public TrackingInfo(final TrackingInfo trackingInfo) {
+    public TrackingInfo(final TrackingInfo trackingInfo)
+    {
         this.jobTaskId = trackingInfo.jobTaskId;
         this.statusCheckTime = nullSafeCloneDate(trackingInfo.statusCheckTime);
         this.statusCheckUrl = trackingInfo.statusCheckUrl;
@@ -88,62 +86,63 @@ public class TrackingInfo {
         this.trackTo = trackingInfo.trackTo;
     }
 
-
-    public String getJobTaskId() {
+    public String getJobTaskId()
+    {
         return jobTaskId;
     }
 
-
-    public void setJobTaskId(String jobTaskId) {
+    public void setJobTaskId(String jobTaskId)
+    {
         this.jobTaskId = jobTaskId;
     }
 
-
-    public Date getStatusCheckTime() {
+    public Date getStatusCheckTime()
+    {
         return statusCheckTime;
     }
 
-
-    public void setStatusCheckTime(Date statusCheckTime) {
+    public void setStatusCheckTime(Date statusCheckTime)
+    {
         this.statusCheckTime = statusCheckTime;
     }
 
-
-    public String getStatusCheckUrl() {
+    public String getStatusCheckUrl()
+    {
         return statusCheckUrl;
     }
 
-
-    public void setStatusCheckUrl(String statusCheckUrl) {
+    public void setStatusCheckUrl(String statusCheckUrl)
+    {
         this.statusCheckUrl = statusCheckUrl;
     }
 
-
-    public String getTrackingPipe() {
+    public String getTrackingPipe()
+    {
         return trackingPipe;
     }
 
-
-    public void setTrackingPipe(String trackingPipe) {
+    public void setTrackingPipe(String trackingPipe)
+    {
         this.trackingPipe = trackingPipe;
     }
 
-
-    public String getTrackTo() {
+    public String getTrackTo()
+    {
         return trackTo;
     }
 
-
-    public void setTrackTo(String trackTo) {
+    public void setTrackTo(String trackTo)
+    {
         this.trackTo = trackTo;
     }
 
-
     /**
      * Extracts the job identifier from the tracking info's job task identifier.
+     *
      * @return the extracted job identifier
      */
-    public String getJobId() throws InvalidJobTaskIdException {
+    public String getJobId() throws InvalidJobTaskIdException
+    {
         Objects.requireNonNull(getJobTaskId());
 
         Pattern pattern = Pattern.compile(jobTaskIdPattern);
@@ -155,11 +154,11 @@ public class TrackingInfo {
         throw new InvalidJobTaskIdException(MessageFormat.format("Failed to extract the job identifier from the job task ID {0}", getJobTaskId()));
     }
 
-
     /**
      * Clones the specified date, taking care to return {@code null} if the original date was {@code null}.
      */
-    private static Date nullSafeCloneDate(final Date date) {
+    private static Date nullSafeCloneDate(final Date date)
+    {
         return (date == null)
             ? null
             : (Date) date.clone();

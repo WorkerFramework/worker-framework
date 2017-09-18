@@ -27,15 +27,16 @@ import java.util.Objects;
 /**
  * An implementation of CacheRequest supporting the caching of job status requests.
  */
-public class JobStatusCacheRequest extends CacheRequest {
+public class JobStatusCacheRequest extends CacheRequest
+{
     private static final Logger LOG = LoggerFactory.getLogger(JobStatusCacheRequest.class);
 
     private ResponseStreamCache jobStatusCache;
     private URI uri;
     private ByteArrayOutputStream responseStream;
 
-
-    public JobStatusCacheRequest(ResponseStreamCache jobStatusCache, final URI uri, URLConnection connection) throws IOException {
+    public JobStatusCacheRequest(ResponseStreamCache jobStatusCache, final URI uri, URLConnection connection) throws IOException
+    {
         Objects.requireNonNull(jobStatusCache);
         Objects.requireNonNull(connection);
         this.jobStatusCache = jobStatusCache;
@@ -47,16 +48,16 @@ public class JobStatusCacheRequest extends CacheRequest {
         oos.writeObject(connection.getHeaderFields());
     }
 
-
     @Override
-    public OutputStream getBody() throws IOException {
+    public OutputStream getBody() throws IOException
+    {
         LOG.debug("Returning cached job status request stream for URI={}", uri);
         return responseStream;
     }
 
-
     @Override
-    public void abort() {
+    public void abort()
+    {
         try {
             LOG.debug("Removing cached job status for URI={}", uri);
             responseStream.close();

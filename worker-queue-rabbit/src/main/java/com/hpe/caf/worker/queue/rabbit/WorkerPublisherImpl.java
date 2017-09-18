@@ -15,7 +15,6 @@
  */
 package com.hpe.caf.worker.queue.rabbit;
 
-
 import com.hpe.caf.util.rabbitmq.ConsumerRejectEvent;
 import com.hpe.caf.util.rabbitmq.Event;
 import com.hpe.caf.util.rabbitmq.QueueConsumer;
@@ -30,11 +29,9 @@ import java.util.Objects;
 import java.util.concurrent.BlockingQueue;
 import java.util.stream.Collectors;
 
-
 /**
- * A RabbitMQ publisher that uses a ConfirmListener, sending data as plain text with headers.
- * Messages that cannot be published at all cause a rejection of the input message (task) that
- * triggered this published response.
+ * A RabbitMQ publisher that uses a ConfirmListener, sending data as plain text with headers. Messages that cannot be published at all
+ * cause a rejection of the input message (task) that triggered this published response.
  */
 public class WorkerPublisherImpl implements WorkerPublisher
 {
@@ -44,10 +41,10 @@ public class WorkerPublisherImpl implements WorkerPublisher
     private final WorkerConfirmListener confirmListener;
     private static final Logger LOG = LoggerFactory.getLogger(WorkerPublisherImpl.class);
 
-
     /**
-     * Create a WorkerPublisher implementation. The channel will have confirmations turned on
-     * and the supplied WorkerConfirmListener will be added as a confirm listener upon the channel.
+     * Create a WorkerPublisher implementation. The channel will have confirmations turned on and the supplied WorkerConfirmListener will
+     * be added as a confirm listener upon the channel.
+     *
      * @param ch the channel to use, will have confirmations enabled
      * @param metrics the metrics to report to
      * @param events the event queue of the consumer to ack/reject on
@@ -64,7 +61,6 @@ public class WorkerPublisherImpl implements WorkerPublisher
         channel.confirmSelect();
         channel.addConfirmListener(confirmListener);
     }
-
 
     @Override
     public void handlePublish(byte[] data, String routingKey, long ackId, Map<String, Object> headers, int priority)

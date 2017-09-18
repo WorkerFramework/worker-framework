@@ -15,13 +15,11 @@
  */
 package com.hpe.caf.util.rabbitmq;
 
-
 import com.rabbitmq.client.Envelope;
 
 import java.util.Collections;
 import java.util.Map;
 import java.util.Objects;
-
 
 /**
  * Structure that contains data and metadata from a RabbitMQ queue delivery.
@@ -32,9 +30,9 @@ public class Delivery
     private final byte[] messageData;
     private final Map<String, Object> headers;
 
-
     /**
      * Create a new Delivery, with specific headers.
+     *
      * @param env the RabbitMQ message envelope
      * @param data the RabbitMQ message body
      * @param headers the string-mapped key/value headers
@@ -46,9 +44,9 @@ public class Delivery
         this.headers = Objects.requireNonNull(headers);
     }
 
-
     /**
      * Create a new Delivery without headers.
+     *
      * @param env the RabbitMQ message envelope
      * @param data the RabbitMQ message body
      */
@@ -56,7 +54,6 @@ public class Delivery
     {
         this(env, data, Collections.emptyMap());
     }
-
 
     /**
      * @return the envelope containing metadata about the delivery
@@ -66,7 +63,6 @@ public class Delivery
         return envelope;
     }
 
-
     /**
      * @return the message delivery itself
      */
@@ -74,7 +70,6 @@ public class Delivery
     {
         return messageData;
     }
-
 
     /**
      * @return headers for the message

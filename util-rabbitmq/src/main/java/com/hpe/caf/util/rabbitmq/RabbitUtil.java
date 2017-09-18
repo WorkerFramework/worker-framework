@@ -15,7 +15,6 @@
  */
 package com.hpe.caf.util.rabbitmq;
 
-
 import com.rabbitmq.client.Channel;
 import com.rabbitmq.client.Connection;
 import net.jodah.lyra.ConnectionOptions;
@@ -34,18 +33,20 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.concurrent.TimeoutException;
 
-
 /**
  * Utility wrapper methods for interacting with RabbitMQ.
  */
 public final class RabbitUtil
 {
     private static final Logger LOG = LoggerFactory.getLogger(RabbitUtil.class);
-    private RabbitUtil() { }
 
+    private RabbitUtil()
+    {
+    }
 
     /**
      * Create a new Lyra managed RabbitMQ connection with a default Lyra configuration.
+     *
      * @param host the host or IP running RabbitMQ
      * @param port the port that the RabbitMQ server is exposed on
      * @param user the username to use when authenticating with RabbitMQ
@@ -60,9 +61,9 @@ public final class RabbitUtil
         return createRabbitConnection(createLyraConnectionOptions(host, port, user, pass), createLyraConfig(1, 30, 20));
     }
 
-
     /**
      * Create a new Lyra managed RabbitMQ connection with custom settings.
+     *
      * @param opts the Lyra ConnectionOptions
      * @param config the Lyra Config
      * @return a valid connection to RabbitMQ, managed by Lyra
@@ -75,11 +76,10 @@ public final class RabbitUtil
         return Connections.create(opts, config);
     }
 
-
     /**
-     * Generate a pre-populated Lyra ConnectionOptions object which can be used together with a
-     * Lyra Config object to establish a RabbitMQ connection. If you wish to use defaults, just
-     * call the createRabbitConnection(RabbitConfiguration) method.
+     * Generate a pre-populated Lyra ConnectionOptions object which can be used together with a Lyra Config object to establish a RabbitMQ
+     * connection. If you wish to use defaults, just call the createRabbitConnection(RabbitConfiguration) method.
+     *
      * @param host the host or IP running RabbitMQ
      * @param port the port that the RabbitMQ server is exposed on
      * @param user the username to use when authenticating with RabbitMQ
@@ -91,11 +91,10 @@ public final class RabbitUtil
         return new ConnectionOptions().withHost(host).withPort(port).withUsername(user).withPassword(pass);
     }
 
-
     /**
-     * Generate a pre-populated Lyra Config object which can be used together with a Lyra
-     * ConnectionOptions object to establish a RabbitMQ connection. If you wish to use defaults, just
-     * call the createRabbitConnection(RabbitConfiguration) method.
+     * Generate a pre-populated Lyra Config object which can be used together with a Lyra ConnectionOptions object to establish a RabbitMQ
+     * connection. If you wish to use defaults, just call the createRabbitConnection(RabbitConfiguration) method.
+     *
      * @param backoffInterval the initial interval, in seconds, between re-attempts upon failed RabbitMQ operations
      * @param maxBackoffInterval the maximum interval, in seconds, between re-attempts upon failed RabbitMQ operations
      * @param maxAttempts the maximum number of attempts to retry failed RabbitMQ operations, -1 is unlimited
@@ -103,16 +102,17 @@ public final class RabbitUtil
      */
     public static Config createLyraConfig(int backoffInterval, int maxBackoffInterval, int maxAttempts)
     {
-        RecoveryPolicy recoveryPolicy =
-            new RecoveryPolicy().withBackoff(Duration.seconds(backoffInterval), Duration.seconds(maxBackoffInterval));
-        RetryPolicy retryPolicy =
-            new RetryPolicy().withBackoff(Duration.seconds(backoffInterval), Duration.seconds(maxBackoffInterval)).withMaxAttempts(maxAttempts);
+        RecoveryPolicy recoveryPolicy
+            = new RecoveryPolicy().withBackoff(Duration.seconds(backoffInterval), Duration.seconds(maxBackoffInterval));
+        RetryPolicy retryPolicy
+            = new RetryPolicy().withBackoff(Duration.seconds(backoffInterval), Duration.seconds(maxBackoffInterval)).withMaxAttempts(maxAttempts);
         return new Config().withRetryPolicy(retryPolicy).withRecoveryPolicy(recoveryPolicy.withMaxAttempts(maxAttempts));
     }
 
     /**
-     * Ensure a queue for a worker has been declared. Both a consumer *and* a publisher should call this before they
-     * attempt to use a worker queue for the first time.
+     * Ensure a queue for a worker has been declared. Both a consumer *and* a publisher should call this before they attempt to use a
+     * worker queue for the first time.
+     *
      * @param channel the channel to use to declare the queue
      * @param queueName the name of the worker queue
      * @throws IOException if the queue is not valid and cannot be used, this is likely NOT retryable
@@ -124,8 +124,9 @@ public final class RabbitUtil
     }
 
     /**
-     * Ensure a queue for a worker has been declared. Both a consumer *and* a publisher should call this before they
-     * attempt to use a worker queue for the first time.
+     * Ensure a queue for a worker has been declared. Both a consumer *and* a publisher should call this before they attempt to use a
+     * worker queue for the first time.
+     *
      * @param channel the channel to use to declare the queue
      * @param queueName the name of the worker queue
      * @param maxPriority the maximum supported priority, pass 0 to disable priority
@@ -142,9 +143,9 @@ public final class RabbitUtil
         declareQueue(channel, queueName, Durability.DURABLE, Exclusivity.NON_EXCLUSIVE, EmptyAction.LEAVE_EMPTY, args);
     }
 
-
     /**
      * Declare a queue with arbitrary parameters and default queue properties.
+     *
      * @param channel the channel to use to declare the queue
      * @param queueName the name of the queue
      * @param dur the durability setting of the queue
@@ -160,6 +161,7 @@ public final class RabbitUtil
 
     /**
      * Declare a queue with arbitrary parameters and properties.
+     *
      * @param channel the channel to use to declare the queue
      * @param queueName the name of the queue
      * @param dur the durability setting of the queue
@@ -178,8 +180,7 @@ public final class RabbitUtil
         Objects.requireNonNull(queueProps);
         try {
             channel.queueDeclare(queueName, dur == Durability.DURABLE, excl == Exclusivity.EXCLUSIVE, act == EmptyAction.AUTO_REMOVE, queueProps);
-        }
-        catch (IOException e) {
+        } catch (IOException e) {
             LOG.warn("IO Exception encountered during queueDeclare. Will try do declare passively.", e);
             channel.queueDeclarePassive(queueName);
         }

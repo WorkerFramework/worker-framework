@@ -34,10 +34,12 @@ import java.util.UUID;
 /**
  * Testing the functionality of the ExampleWorkerTaskBuilder.
  */
-public class ExampleWorkerTaskBuilderTest {
+public class ExampleWorkerTaskBuilderTest
+{
 
     @Test
-    public void buildExampleWorkerTaskMessage() throws DocumentMessageBuilderException, IOException {
+    public void buildExampleWorkerTaskMessage() throws DocumentMessageBuilderException, IOException
+    {
         //set up a document to be retrievable by builder
         String testStorageReference = UUID.randomUUID().toString();
         Document testDoc = new TestDocumentImpl(testStorageReference);
@@ -58,20 +60,20 @@ public class ExampleWorkerTaskBuilderTest {
 
         //check the task returned has the expected API version and classifier
         Assert.assertEquals(ExampleWorkerConstants.WORKER_NAME, returnedMessage.getTaskClassifier(),
-                "Expecting correct task classifier on builder task message.");
+                            "Expecting correct task classifier on builder task message.");
         Assert.assertEquals(ExampleWorkerConstants.WORKER_API_VER, returnedMessage.getTaskApiVersion(),
-                "Expecting correct task api version on builder task message.");
+                            "Expecting correct task api version on builder task message.");
 
         Object returnedDataAsObject = returnedMessage.getTaskData();
         ExampleWorkerTask returnedTaskdata = (ExampleWorkerTask) returnedDataAsObject;
         Assert.assertNotNull(returnedTaskdata, "Expecting returned task data from builder to not be null when deserialized.");
 
         Assert.assertEquals(testAction, returnedTaskdata.action,
-                "Expecting action on returned task data from builder to be that originally passed in.");
+                            "Expecting action on returned task data from builder to be that originally passed in.");
         Assert.assertEquals(testDataStoreValue, returnedTaskdata.datastorePartialReference,
-                "Expecting data source on returned task data from builder to be that originally passed in.");
+                            "Expecting data source on returned task data from builder to be that originally passed in.");
         ReferencedData returnedStorageReference = returnedTaskdata.sourceData;
         Assert.assertEquals(testStorageReference, returnedStorageReference.getReference(),
-                "Expecting storage reference returned from build to be that originally passed in.");
+                            "Expecting storage reference returned from build to be that originally passed in.");
     }
 }

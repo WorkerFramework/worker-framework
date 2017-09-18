@@ -15,7 +15,6 @@
  */
 package com.hpe.caf.worker.queue.rabbit;
 
-
 import com.hpe.caf.api.worker.InvalidTaskException;
 import com.hpe.caf.api.worker.TaskCallback;
 import com.hpe.caf.api.worker.TaskRejectedException;
@@ -37,12 +36,10 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.concurrent.BlockingQueue;
 
-
 /**
- * QueueConsumer implementation for a WorkerQueue.
- * This QueueConsumer hands off messages to worker-core upon delivery assuming the message is not marked 'redelivered'.
- * Redelivered messages are republished to the retry queue with an incremented retry count.
- * Redelivered messages that have exceeded the retry count are republished to the rejected queue.
+ * QueueConsumer implementation for a WorkerQueue. This QueueConsumer hands off messages to worker-core upon delivery assuming the message
+ * is not marked 'redelivered'. Redelivered messages are republished to the retry queue with an incremented retry count. Redelivered
+ * messages that have exceeded the retry count are republished to the rejected queue.
  */
 public class WorkerQueueConsumerImpl implements QueueConsumer
 {
@@ -57,9 +54,8 @@ public class WorkerQueueConsumerImpl implements QueueConsumer
     private final int retryLimit;
     private static final Logger LOG = LoggerFactory.getLogger(WorkerQueueConsumerImpl.class);
 
-
     public WorkerQueueConsumerImpl(TaskCallback callback, RabbitMetricsReporter metrics, BlockingQueue<Event<QueueConsumer>> queue, Channel ch,
-            BlockingQueue<Event<WorkerPublisher>> pubQueue, String retryKey, int retryLimit)
+                                   BlockingQueue<Event<WorkerPublisher>> pubQueue, String retryKey, int retryLimit)
     {
         this.callback = Objects.requireNonNull(callback);
         this.metrics = Objects.requireNonNull(metrics);
@@ -70,12 +66,11 @@ public class WorkerQueueConsumerImpl implements QueueConsumer
         this.retryLimit = retryLimit;
     }
 
-
     /**
      * {@inheritDoc}
      *
-     * If an incoming message is marked as redelivered, hand it off to another method to deal with retry/rejection.
-     * Otherwise, hand it off to worker-core, and potentially repbulish or reject it depending upon exceptions thrown.
+     * If an incoming message is marked as redelivered, hand it off to another method to deal with retry/rejection. Otherwise, hand it off
+     * to worker-core, and potentially repbulish or reject it depending upon exceptions thrown.
      */
     @Override
     public void processDelivery(Delivery delivery)
@@ -100,14 +95,13 @@ public class WorkerQueueConsumerImpl implements QueueConsumer
         }
     }
 
-
     @Override
     public void processAck(long tag)
     {
         if (tag == -1) {
             return;
         }
-        
+
         try {
             LOG.debug("Acknowledging message {}", tag);
             channel.basicAck(tag, false);
@@ -118,13 +112,11 @@ public class WorkerQueueConsumerImpl implements QueueConsumer
         }
     }
 
-
     @Override
     public void processReject(long tag)
     {
         processReject(tag, true);
     }
-
 
     @Override
     public void processDrop(long tag)
@@ -132,10 +124,8 @@ public class WorkerQueueConsumerImpl implements QueueConsumer
         processReject(tag, false);
     }
 
-
     /**
-     * Process a REJECT event. Similar to ACK, we will requeue the event if it fails, though Lyra should handle most
-     * of our failure cases.
+     * Process a REJECT event. Similar to ACK, we will requeue the event if it fails, though Lyra should handle most of our failure cases.
      *
      * @param id the id of the message to reject
      * @param requeue whether to put this message back on the queue or drop it to the dead letters exchange
@@ -149,7 +139,7 @@ public class WorkerQueueConsumerImpl implements QueueConsumer
 
         try {
             channel.basicReject(id, requeue);
-            if ( requeue ) {
+            if (requeue) {
                 LOG.debug("Rejecting message {}", id);
                 metrics.incrementRejected();
             } else {
@@ -163,17 +153,17 @@ public class WorkerQueueConsumerImpl implements QueueConsumer
         }
     }
 
-
     /**
-     * Find the number of retries for this delivery (default to 0). If the current retries exceeds the limit,
-     * republish it to the rejected queue with a rejected reason stamped in the headers. Otherwise, republish to
-     * the retry queue with the retry count stamped in the headers.
+     * Find the number of retries for this delivery (default to 0). If the current retries exceeds the limit, republish it to the rejected
+     * queue with a rejected reason stamped in the headers. Otherwise, republish to the retry queue with the retry count stamped in the
+     * headers.
+     *
      * @param delivery the redelivered message
      */
     private void handleRedelivery(Delivery delivery)
     {
         int retries = Integer.parseInt(String.valueOf(delivery.getHeaders().getOrDefault(RabbitHeaders.RABBIT_HEADER_CAF_WORKER_RETRY, "0")));
-        if ( retries >= retryLimit ) {
+        if (retries >= retryLimit) {
             LOG.debug("Retry exceeded for message with id {}, republishing to rejected queue", delivery.getEnvelope().getDeliveryTag());
             Map<String, Object> headers = new HashMap<>();
             headers.put(RabbitHeaders.RABBIT_HEADER_CAF_WORKER_RETRY, String.valueOf(retries));

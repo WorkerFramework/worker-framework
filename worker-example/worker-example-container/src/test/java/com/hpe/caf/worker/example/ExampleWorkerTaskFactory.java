@@ -23,19 +23,23 @@ import com.hpe.caf.worker.testing.TestItem;
 /**
  * Task factory for creating tasks from test item.
  */
-public class ExampleWorkerTaskFactory extends FileInputWorkerTaskFactory<ExampleWorkerTask, ExampleTestInput, ExampleTestExpectation> {
-    public ExampleWorkerTaskFactory(TestConfiguration configuration) throws Exception {
+public class ExampleWorkerTaskFactory extends FileInputWorkerTaskFactory<ExampleWorkerTask, ExampleTestInput, ExampleTestExpectation>
+{
+    public ExampleWorkerTaskFactory(TestConfiguration configuration) throws Exception
+    {
         super(configuration);
     }
 
     /**
      * Creates a task from a test item (the test item is generated from the yaml test case).
+     *
      * @param testItem
      * @param sourceData
      * @return ExampleWorkerTask
      */
     @Override
-    protected ExampleWorkerTask createTask(TestItem<ExampleTestInput, ExampleTestExpectation> testItem, ReferencedData sourceData) {
+    protected ExampleWorkerTask createTask(TestItem<ExampleTestInput, ExampleTestExpectation> testItem, ReferencedData sourceData)
+    {
         ExampleWorkerTask task = testItem.getInputData().getTask();
 
         //setting task source data to the source data parameter.
@@ -47,12 +51,14 @@ public class ExampleWorkerTaskFactory extends FileInputWorkerTaskFactory<Example
     }
 
     @Override
-    public String getWorkerName() {
+    public String getWorkerName()
+    {
         return ExampleWorkerConstants.WORKER_NAME;
     }
 
     @Override
-    public int getApiVersion() {
+    public int getApiVersion()
+    {
         return ExampleWorkerConstants.WORKER_API_VER;
     }
 }

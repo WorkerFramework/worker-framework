@@ -25,7 +25,6 @@ import java.util.ArrayList;
  */
 public class Sift4Comparator
 {
-
     /**
      * sift4 simple algorithm Based on JS algorithm @ https://siderite.blogspot.com/2014/11/super-fast-and-accurate-string-distance.html
      *

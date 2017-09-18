@@ -37,11 +37,11 @@ final class BulkWorkerThreadPool implements WorkerThreadPool
 
     private volatile boolean isActive;
 
-    public BulkWorkerThreadPool
-    (
+    public BulkWorkerThreadPool(
         final WorkerFactory workerFactory,
         final Runnable handler
-    ) {
+    )
+    {
         final int nThreads = workerFactory.getWorkerThreads();
 
         this.bulkWorker = (BulkWorker) workerFactory;
@@ -61,7 +61,8 @@ final class BulkWorkerThreadPool implements WorkerThreadPool
     private final class BulkWorkerThread extends Thread
     {
         @Override
-        public void run() {
+        public void run()
+        {
             try {
                 while (isActive) {
                     try {
@@ -81,22 +82,20 @@ final class BulkWorkerThreadPool implements WorkerThreadPool
             throws InterruptedException
         {
             final WorkerTaskImpl task = workQueue.take();
-            final BulkWorkerTaskProvider taskProvider =
-                new BulkWorkerTaskProvider(task, workQueue);
+            final BulkWorkerTaskProvider taskProvider
+                = new BulkWorkerTaskProvider(task, workQueue);
 
             try {
                 bulkWorker.processTasks(taskProvider);
-            }
-            catch (final RuntimeException ex) {
+            } catch (final RuntimeException ex) {
                 LOG.warn("Bulk Worker threw unhandled exception", ex);
-            }
-            finally {
+            } finally {
                 // Re-submit the first task if it has not been consumed
                 // NB: It's really faulty Worker logic to not consume at least
                 // the one task.
                 if (!taskProvider.isFirstTaskConsumed()) {
                     LOG.warn("Bulk Worker did not consume even the first task; "
-                           + "re-submitting it...");
+                        + "re-submitting it...");
                     resubmitWorkerTask(task);
                 }
 
@@ -107,7 +106,8 @@ final class BulkWorkerThreadPool implements WorkerThreadPool
     }
 
     @Override
-    public void shutdown() {
+    public void shutdown()
+    {
         isActive = false;
 
         for (BulkWorkerThread workerThread : bulkWorkerThreads) {
@@ -121,13 +121,12 @@ final class BulkWorkerThreadPool implements WorkerThreadPool
     public void awaitTermination(final long timeout, final TimeUnit unit)
         throws InterruptedException
     {
-        final long timeoutMillis =
-            System.currentTimeMillis() + unit.toMillis(timeout);
+        final long timeoutMillis
+            = System.currentTimeMillis() + unit.toMillis(timeout);
 
         backupThreadPool.awaitTermination(timeout, unit);
 
-        for (BulkWorkerThread workerThread : bulkWorkerThreads)
-        {
+        for (BulkWorkerThread workerThread : bulkWorkerThreads) {
             final long timeLeft = timeoutMillis - System.currentTimeMillis();
             if (timeLeft <= 0) {
                 return;
@@ -138,7 +137,8 @@ final class BulkWorkerThreadPool implements WorkerThreadPool
     }
 
     @Override
-    public boolean isIdle() {
+    public boolean isIdle()
+    {
         // This implementation is not perfect, as a final task could have just
         // been removed from the queue, and so a thread could be working on it,
         // but it is probably close enough (as it's only used for metrics)
@@ -146,7 +146,8 @@ final class BulkWorkerThreadPool implements WorkerThreadPool
     }
 
     @Override
-    public int getBacklogSize() {
+    public int getBacklogSize()
+    {
         return workQueue.size() + backupThreadPool.getBacklogSize();
     }
 
@@ -161,35 +162,36 @@ final class BulkWorkerThreadPool implements WorkerThreadPool
     }
 
     @Override
-    public int abortTasks() {
+    public int abortTasks()
+    {
         final int backgroundAbortTaskCount = backupThreadPool.abortTasks();
 
-        final ArrayList<WorkerTaskImpl> tasksToBeAborted =
-            new ArrayList<>(workQueue.size() + 16);
+        final ArrayList<WorkerTaskImpl> tasksToBeAborted
+            = new ArrayList<>(workQueue.size() + 16);
 
         return workQueue.drainTo(tasksToBeAborted) + backgroundAbortTaskCount;
     }
 
     /**
-     * Checks that all of the tasks that have been consumed by the Bulk Worker
-     * have been responded to, and re-submits any that have not been responded
-     * to (using the traditional non-bulk interface).
+     * Checks that all of the tasks that have been consumed by the Bulk Worker have been responded to, and re-submits any that have not
+     * been responded to (using the traditional non-bulk interface).
      */
-    private void resubmitIgnoredWorkerTasks (
+    private void resubmitIgnoredWorkerTasks(
         final BulkWorkerTaskProvider taskProvider
-    ) {
+    )
+    {
         for (WorkerTaskImpl task : taskProvider.getConsumedTasks()) {
             if (!task.isResponseSet()) {
-                LOG.warn("Bulk Worker Framework re-submitting a task whose " +
-                         "response was not set...");
+                LOG.warn("Bulk Worker Framework re-submitting a task whose "
+                    + "response was not set...");
                 resubmitWorkerTask(task);
             }
         }
     }
 
     /**
-     * Submits the specified task to the backup thread pool, where is will be
-     * processed using the traditional one-by-one Worker interfaces.
+     * Submits the specified task to the backup thread pool, where is will be processed using the traditional one-by-one Worker
+     * interfaces.
      */
     private void resubmitWorkerTask(final WorkerTaskImpl workerTask)
     {

@@ -18,24 +18,24 @@ package com.hpe.caf.worker.testing.configuration;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.dataformat.yaml.YAMLMapper;
 
-
 /**
  * The type Test case settings.
  *
- * @param <TWorkerTask>   the type parameter
+ * @param <TWorkerTask> the type parameter
  * @param <TWorkerResult> the type parameter
- * @param <TInput>        the type parameter
- * @param <TExpectation>  the type parameter
+ * @param <TInput> the type parameter
+ * @param <TExpectation> the type parameter
  */
-public class TestCaseSettings<TWorkerTask, TWorkerResult, TInput, TExpectation> {
-
+public class TestCaseSettings<TWorkerTask, TWorkerResult, TInput, TExpectation>
+{
     private DataStoreSettings dataStoreSettings;
     private TestDataSettings testDataSettings;
     private TestCaseClasses<TInput, TExpectation> testCaseClasses;
     private WorkerClasses<TWorkerTask, TWorkerResult> workerClasses;
     private ObjectMapper testCaseSerializer = new YAMLMapper();
 
-    public TestCaseSettings(DataStoreSettings dataStoreSettings, TestDataSettings testDataSettings, TestCaseClasses<TInput, TExpectation> testCaseClasses, WorkerClasses<TWorkerTask, TWorkerResult> workerClasses) {
+    public TestCaseSettings(DataStoreSettings dataStoreSettings, TestDataSettings testDataSettings, TestCaseClasses<TInput, TExpectation> testCaseClasses, WorkerClasses<TWorkerTask, TWorkerResult> workerClasses)
+    {
         this.dataStoreSettings = dataStoreSettings;
         this.testDataSettings = testDataSettings;
         this.testCaseClasses = testCaseClasses;
@@ -47,7 +47,8 @@ public class TestCaseSettings<TWorkerTask, TWorkerResult, TInput, TExpectation> 
      *
      * @return Value for property 'dataStoreSettings'.
      */
-    public DataStoreSettings getDataStoreSettings() {
+    public DataStoreSettings getDataStoreSettings()
+    {
         return dataStoreSettings;
     }
 
@@ -56,7 +57,8 @@ public class TestCaseSettings<TWorkerTask, TWorkerResult, TInput, TExpectation> 
      *
      * @param dataStoreSettings Value to set for property 'dataStoreSettings'.
      */
-    public void setDataStoreSettings(DataStoreSettings dataStoreSettings) {
+    public void setDataStoreSettings(DataStoreSettings dataStoreSettings)
+    {
         this.dataStoreSettings = dataStoreSettings;
     }
 
@@ -65,7 +67,8 @@ public class TestCaseSettings<TWorkerTask, TWorkerResult, TInput, TExpectation> 
      *
      * @return Value for property 'folderSettings'.
      */
-    public TestDataSettings getTestDataSettings() {
+    public TestDataSettings getTestDataSettings()
+    {
         return testDataSettings;
     }
 
@@ -74,7 +77,8 @@ public class TestCaseSettings<TWorkerTask, TWorkerResult, TInput, TExpectation> 
      *
      * @param testDataSettings Value to set for property 'folderSettings'.
      */
-    public void setTestDataSettings(TestDataSettings testDataSettings) {
+    public void setTestDataSettings(TestDataSettings testDataSettings)
+    {
         this.testDataSettings = testDataSettings;
     }
 
@@ -83,7 +87,8 @@ public class TestCaseSettings<TWorkerTask, TWorkerResult, TInput, TExpectation> 
      *
      * @return Value for property 'testCaseClasses'.
      */
-    public TestCaseClasses<TInput, TExpectation> getTestCaseClasses() {
+    public TestCaseClasses<TInput, TExpectation> getTestCaseClasses()
+    {
         return testCaseClasses;
     }
 
@@ -92,7 +97,8 @@ public class TestCaseSettings<TWorkerTask, TWorkerResult, TInput, TExpectation> 
      *
      * @param testCaseClasses Value to set for property 'testCaseClasses'.
      */
-    public void setTestCaseClasses(TestCaseClasses<TInput, TExpectation> testCaseClasses) {
+    public void setTestCaseClasses(TestCaseClasses<TInput, TExpectation> testCaseClasses)
+    {
         this.testCaseClasses = testCaseClasses;
     }
 
@@ -101,7 +107,8 @@ public class TestCaseSettings<TWorkerTask, TWorkerResult, TInput, TExpectation> 
      *
      * @return Value for property 'workerClasses'.
      */
-    public WorkerClasses<TWorkerTask, TWorkerResult> getWorkerClasses() {
+    public WorkerClasses<TWorkerTask, TWorkerResult> getWorkerClasses()
+    {
         return workerClasses;
     }
 
@@ -110,7 +117,8 @@ public class TestCaseSettings<TWorkerTask, TWorkerResult, TInput, TExpectation> 
      *
      * @param workerClasses Value to set for property 'workerClasses'.
      */
-    public void setWorkerClasses(WorkerClasses<TWorkerTask, TWorkerResult> workerClasses) {
+    public void setWorkerClasses(WorkerClasses<TWorkerTask, TWorkerResult> workerClasses)
+    {
         this.workerClasses = workerClasses;
     }
 
@@ -119,7 +127,8 @@ public class TestCaseSettings<TWorkerTask, TWorkerResult, TInput, TExpectation> 
      *
      * @return Value for property 'testCaseSerializer'.
      */
-    public ObjectMapper getTestCaseSerializer() {
+    public ObjectMapper getTestCaseSerializer()
+    {
         return testCaseSerializer;
     }
 
@@ -128,7 +137,8 @@ public class TestCaseSettings<TWorkerTask, TWorkerResult, TInput, TExpectation> 
      *
      * @param testCaseSerializer Value to set for property 'testCaseSerializer'.
      */
-    public void setTestCaseSerializer(ObjectMapper testCaseSerializer) {
+    public void setTestCaseSerializer(ObjectMapper testCaseSerializer)
+    {
         this.testCaseSerializer = testCaseSerializer;
     }
 }

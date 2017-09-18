@@ -15,14 +15,12 @@
  */
 package com.hpe.caf.configs;
 
-
 import com.hpe.caf.api.Encrypted;
 
 import javax.validation.constraints.Max;
 import javax.validation.constraints.Min;
 import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Size;
-
 
 /**
  * General configuration for a Lyra-managed RabbitMQ server connection from a client.
@@ -73,7 +71,6 @@ public class RabbitConfiguration
     @Size(min = 1)
     private String rabbitPassword;
 
-
     /**
      * @return the seconds between the initial backoff in case of connection failure, this will increase with each subsequent failure
      */
@@ -82,12 +79,10 @@ public class RabbitConfiguration
         return backoffInterval;
     }
 
-
     public void setBackoffInterval(final int backoffInterval)
     {
         this.backoffInterval = backoffInterval;
     }
-
 
     /**
      * @return the maximum number of seconds between retry attempts
@@ -97,12 +92,10 @@ public class RabbitConfiguration
         return maxBackoffInterval;
     }
 
-
     public void setMaxBackoffInterval(final int maxBackoffInterval)
     {
         this.maxBackoffInterval = maxBackoffInterval;
     }
-
 
     /**
      * @return the maximum number of retries to perform in case of failure
@@ -112,12 +105,10 @@ public class RabbitConfiguration
         return maxAttempts;
     }
 
-
     public void setMaxAttempts(final int maxAttempts)
     {
         this.maxAttempts = maxAttempts;
     }
-
 
     /**
      * @return the hostname of the RabbitMQ server, as seen from the client
@@ -127,24 +118,20 @@ public class RabbitConfiguration
         return rabbitHost;
     }
 
-
     public void setRabbitHost(final String rabbitHost)
     {
         this.rabbitHost = rabbitHost;
     }
-
 
     public int getRabbitPort()
     {
         return rabbitPort;
     }
 
-
     public void setRabbitPort(final int rabbitPort)
     {
         this.rabbitPort = rabbitPort;
     }
-
 
     /**
      * @return the user name to authenticate with on the RabbitMQ server
@@ -154,12 +141,10 @@ public class RabbitConfiguration
         return rabbitUser;
     }
 
-
     public void setRabbitUser(final String rabbitUser)
     {
         this.rabbitUser = rabbitUser;
     }
-
 
     /**
      * @return the password to authenticate with on the RabbitMQ server
@@ -168,7 +153,6 @@ public class RabbitConfiguration
     {
         return rabbitPassword;
     }
-
 
     public void setRabbitPassword(final String rabbitPassword)
     {

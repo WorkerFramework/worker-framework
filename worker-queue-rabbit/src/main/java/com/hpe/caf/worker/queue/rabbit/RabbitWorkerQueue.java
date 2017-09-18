@@ -15,7 +15,6 @@
  */
 package com.hpe.caf.worker.queue.rabbit;
 
-
 import com.hpe.caf.api.HealthResult;
 import com.hpe.caf.api.HealthStatus;
 import com.hpe.caf.api.worker.ManagedWorkerQueue;
@@ -37,18 +36,15 @@ import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.TimeoutException;
 
-
 /**
- * This implementation uses a separate thread for a consumer and producer, each with their own Channel.
- * These threads handle operations via a BlockingQueue of Event objects. In all scenarios where the
- * tasks triggered by the message take significantly longer than the handling of the messages themselves
- * (which should hopefully be true of all microservices), this implementation should work.
+ * This implementation uses a separate thread for a consumer and producer, each with their own Channel. These threads handle operations
+ * via a BlockingQueue of Event objects. In all scenarios where the tasks triggered by the message take significantly longer than the
+ * handling of the messages themselves (which should hopefully be true of all microservices), this implementation should work.
  *
- * This implementation has three routing keys, assumed to be on a direct exchange (hence effectively being
- * queue names). There is the input queue to receive messages from, the retry queue (which may be the input
- * queue) where redelivered messages get republished to, and the rejected queue which is where messages that
- * could not be handled are put. There are an unlimited number of possible output queues as defined by the
- * Worker's response. All published messages use RabbitMQ confirmations.
+ * This implementation has three routing keys, assumed to be on a direct exchange (hence effectively being queue names). There is the
+ * input queue to receive messages from, the retry queue (which may be the input queue) where redelivered messages get republished to, and
+ * the rejected queue which is where messages that could not be handled are put. There are an unlimited number of possible output queues
+ * as defined by the Worker's response. All published messages use RabbitMQ confirmations.
  */
 public final class RabbitWorkerQueue implements ManagedWorkerQueue
 {
@@ -69,7 +65,6 @@ public final class RabbitWorkerQueue implements ManagedWorkerQueue
     private final int maxTasks;
     private static final Logger LOG = LoggerFactory.getLogger(RabbitWorkerQueue.class);
 
-
     /**
      * Setup a new RabbitWorkerQueue.
      */
@@ -80,21 +75,20 @@ public final class RabbitWorkerQueue implements ManagedWorkerQueue
         LOG.debug("Initialised");
     }
 
-
     /**
      * {@inheritDoc}
      *
-     * Create a RabbitMQ connection, and separate incoming and outgoing channels. The connection and channels are managed by Lyra, so
-     * will attempt to re-establish should they drop. Declare the queues on the appropriate channels and kick off the publisher and
-     * consumer threads to handle messages. Since this code uses publisher confirms, it is important currently to declare the publisher
-     * channel before the consumer channel, otherwise during a connection drop scenario, Lyra can report the publish sequence number
-     * for the "old" channel before recovering it.
+     * Create a RabbitMQ connection, and separate incoming and outgoing channels. The connection and channels are managed by Lyra, so will
+     * attempt to re-establish should they drop. Declare the queues on the appropriate channels and kick off the publisher and consumer
+     * threads to handle messages. Since this code uses publisher confirms, it is important currently to declare the publisher channel
+     * before the consumer channel, otherwise during a connection drop scenario, Lyra can report the publish sequence number for the "old"
+     * channel before recovering it.
      */
     @Override
     public void start(TaskCallback callback)
-            throws QueueException
+        throws QueueException
     {
-        if ( conn != null ) {
+        if (conn != null) {
             throw new IllegalStateException("Already started");
         }
         try {
@@ -141,11 +135,10 @@ public final class RabbitWorkerQueue implements ManagedWorkerQueue
      */
     @Override
     public void publish(String acknowledgeId, byte[] taskMessage, String targetQueue, Map<String, Object> headers)
-            throws QueueException
+        throws QueueException
     {
         publish(acknowledgeId, taskMessage, targetQueue, headers, 0);
     }
-
 
     /**
      * {@inheritDoc}
@@ -160,20 +153,18 @@ public final class RabbitWorkerQueue implements ManagedWorkerQueue
         consumerQueue.add(new ConsumerRejectEvent(Long.parseLong(messageId)));
     }
 
-
     /**
      * {@inheritDoc}
      *
      * Add a DROP event that the consumer will handle.
      */
     @Override
-    public void discardTask(String messageId) {
+    public void discardTask(String messageId)
+    {
         Objects.requireNonNull(messageId);
         LOG.debug("Generating drop event for task {}", messageId);
         consumerQueue.add(new ConsumerDropEvent(Long.parseLong(messageId)));
     }
-
-
 
     /**
      * {@inheritDoc}
@@ -188,14 +179,14 @@ public final class RabbitWorkerQueue implements ManagedWorkerQueue
         consumerQueue.add(new ConsumerAckEvent(Long.parseLong(messageId)));
     }
 
-
     /**
      * {@inheritDoc}
      *
      * Return the name of the input queue.
      */
     @Override
-    public String getInputQueue() {
+    public String getInputQueue()
+    {
         return config.getInputQueue();
     }
 
@@ -221,16 +212,14 @@ public final class RabbitWorkerQueue implements ManagedWorkerQueue
         }
     }
 
-
     /**
      * {@inheritDoc}
-     * 
+     *
      * This method can be used to stop a worker consuming messages from it's input queue.
-     * 
+     *
      * This is useful in, (for example), an instance where a worker's health check has failed.
-     * 
-     * The worker is disconnected from the incoming channel and the consumerTag removed from the
-     * list of consumerTags.
+     *
+     * The worker is disconnected from the incoming channel and the consumerTag removed from the list of consumerTags.
      */
     @Override
     public void disconnectIncoming()
@@ -248,18 +237,15 @@ public final class RabbitWorkerQueue implements ManagedWorkerQueue
         }
     }
 
-
     /**
      * {@inheritDoc}
-     * 
-     * This method can be used to reconnect a worker to it's input queue therefore allowing to
-     * resume consuming messages.
-     * 
-     * This is useful in, (for example), an instance where a worker's health check indicates the worker
-     * has become healthy again and should resume consuming messages.
-     * 
-     * The worker is reconnected to the incoming channel and the returned consumerTag added to the
-     * list of consumerTags.
+     *
+     * This method can be used to reconnect a worker to it's input queue therefore allowing to resume consuming messages.
+     *
+     * This is useful in, (for example), an instance where a worker's health check indicates the worker has become healthy again and
+     * should resume consuming messages.
+     *
+     * The worker is reconnected to the incoming channel and the returned consumerTag added to the list of consumerTags.
      */
     @Override
     public void reconnectIncoming()
@@ -276,19 +262,18 @@ public final class RabbitWorkerQueue implements ManagedWorkerQueue
         }
     }
 
-
     @Override
     public void shutdown()
     {
         LOG.debug("Shutting down");
         try {
-            if ( consumer != null ) {
+            if (consumer != null) {
                 consumer.shutdown();
             }
-            if ( publisher != null ) {
+            if (publisher != null) {
                 publisher.shutdown();
             }
-            if ( conn != null ) {
+            if (conn != null) {
                 incomingChannel.close();
                 outgoingChannel.close();
                 conn.close();
@@ -299,35 +284,32 @@ public final class RabbitWorkerQueue implements ManagedWorkerQueue
         }
     }
 
-
     @Override
     public WorkerQueueMetricsReporter getMetrics()
     {
         return metrics;
     }
 
-
     @Override
     public HealthResult healthCheck()
     {
-        if ( !conn.isOpen() ) {
+        if (!conn.isOpen()) {
             return new HealthResult(HealthStatus.UNHEALTHY, "Rabbit connection failed");
-        } else if ( !incomingChannel.isOpen() ) {
+        } else if (!incomingChannel.isOpen()) {
             return new HealthResult(HealthStatus.UNHEALTHY, "Incoming channel failed");
-        } else if ( !outgoingChannel.isOpen() ) {
+        } else if (!outgoingChannel.isOpen()) {
             return new HealthResult(HealthStatus.UNHEALTHY, "Outgoing channel failed");
-        } else if ( consumerThread == null || !consumerThread.isAlive() ) {
+        } else if (consumerThread == null || !consumerThread.isAlive()) {
             return new HealthResult(HealthStatus.UNHEALTHY, "RabbitMQ listening thread not running");
-        } else if ( publisherThread == null || !publisherThread.isAlive() ) {
+        } else if (publisherThread == null || !publisherThread.isAlive()) {
             return new HealthResult(HealthStatus.UNHEALTHY, "RabbitMQ publishing thread not running");
         } else {
             return HealthResult.RESULT_HEALTHY;
         }
     }
 
-
     private void createConnection(TaskCallback callback, WorkerConfirmListener listener)
-            throws IOException, TimeoutException
+        throws IOException, TimeoutException
     {
         RabbitConfiguration rc = config.getRabbitConfiguration();
         ConnectionOptions lyraOpts = RabbitUtil.createLyraConnectionOptions(rc.getRabbitHost(), rc.getRabbitPort(), rc.getRabbitUser(), rc.getRabbitPassword());
@@ -336,11 +318,10 @@ public final class RabbitWorkerQueue implements ManagedWorkerQueue
         conn = RabbitUtil.createRabbitConnection(lyraOpts, lyraConfig);
     }
 
-
     private void declareWorkerQueue(Channel channel, String queueName, int maxPriority)
-            throws IOException
+        throws IOException
     {
-        if ( !declaredQueues.contains(queueName) ) {
+        if (!declaredQueues.contains(queueName)) {
 
             RabbitUtil.declareWorkerQueue(channel, queueName, maxPriority);
         }

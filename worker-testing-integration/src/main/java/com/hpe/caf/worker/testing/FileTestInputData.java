@@ -18,8 +18,8 @@ package com.hpe.caf.worker.testing;
 /**
  * Created by ploch on 19/11/2015.
  */
-public class FileTestInputData {
-
+public class FileTestInputData
+{
     private boolean useDataStore;
     private String containerId;
 
@@ -32,7 +32,8 @@ public class FileTestInputData {
      *
      * @return Value for property 'useDataStore'.
      */
-    public boolean isUseDataStore() {
+    public boolean isUseDataStore()
+    {
         return useDataStore;
     }
 
@@ -41,7 +42,8 @@ public class FileTestInputData {
      *
      * @param useDataStore Value to set for property 'useDataStore'.
      */
-    public void setUseDataStore(boolean useDataStore) {
+    public void setUseDataStore(boolean useDataStore)
+    {
         this.useDataStore = useDataStore;
     }
 
@@ -50,7 +52,8 @@ public class FileTestInputData {
      *
      * @return Value for property 'containerId'.
      */
-    public String getContainerId() {
+    public String getContainerId()
+    {
         return containerId;
     }
 
@@ -59,7 +62,8 @@ public class FileTestInputData {
      *
      * @param containerId Value to set for property 'containerId'.
      */
-    public void setContainerId(String containerId) {
+    public void setContainerId(String containerId)
+    {
         this.containerId = containerId;
     }
 
@@ -68,7 +72,8 @@ public class FileTestInputData {
      *
      * @return Value for property 'inputFile'.
      */
-    public String getInputFile() {
+    public String getInputFile()
+    {
         return inputFile;
     }
 
@@ -77,7 +82,8 @@ public class FileTestInputData {
      *
      * @param inputFile Value to set for property 'inputFile'.
      */
-    public void setInputFile(String inputFile) {
+    public void setInputFile(String inputFile)
+    {
         this.inputFile = inputFile;
     }
 
@@ -86,7 +92,8 @@ public class FileTestInputData {
      *
      * @return Value for property 'storageReference'.
      */
-    public String getStorageReference() {
+    public String getStorageReference()
+    {
         return storageReference;
     }
 
@@ -95,7 +102,8 @@ public class FileTestInputData {
      *
      * @param storageReference Value to set for property 'storageReference'.
      */
-    public void setStorageReference(String storageReference) {
+    public void setStorageReference(String storageReference)
+    {
         this.storageReference = storageReference;
     }
 }

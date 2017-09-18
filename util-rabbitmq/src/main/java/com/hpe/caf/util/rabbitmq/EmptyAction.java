@@ -15,7 +15,6 @@
  */
 package com.hpe.caf.util.rabbitmq;
 
-
 /**
  * Possible actions to perform when a queue is empty for a RabbitMQ queue.
  */

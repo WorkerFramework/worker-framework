@@ -16,34 +16,31 @@
 package com.hpe.caf.worker.testing.validation;
 
 /**
- * Base class for element level (single property or name=value pair) validators.
- * Worker result is converted to a {@link java.util.Map} of {@code String} and {@code Object}.
- * Each property of the result will be the map entry with a name and value of the property.
- * Expectation is read as a Map as well and then each entry of worker result and expectation
- * is passed to implementations of this class.
+ * Base class for element level (single property or name=value pair) validators. Worker result is converted to a {@link java.util.Map} of
+ * {@code String} and {@code Object}. Each property of the result will be the map entry with a name and value of the property. Expectation
+ * is read as a Map as well and then each entry of worker result and expectation is passed to implementations of this class.
  */
-public abstract class PropertyValidator {
-
+public abstract class PropertyValidator
+{
     /**
-     * The isValid method does the actual comparison.
-     * Actual comparison logic for a validator.
+     * The isValid method does the actual comparison. Actual comparison logic for a validator.
      *
-     * @param testedPropertyValue    the tested property value
+     * @param testedPropertyValue the tested property value
      * @param validatorPropertyValue the validator property value
      * @return the boolean
      */
     protected abstract boolean isValid(Object testedPropertyValue, Object validatorPropertyValue);
 
     /**
-     * Method {@code validate} is the entry point for the root validator.
-     * Entry point for property (map entry) validation.
-     * This method will throw {@link AssertionError} if validation fails.
+     * Method {@code validate} is the entry point for the root validator. Entry point for property (map entry) validation. This method
+     * will throw {@link AssertionError} if validation fails.
      *
-     * @param propertyName           the property name
-     * @param testedPropertyValue    the tested property value
+     * @param propertyName the property name
+     * @param testedPropertyValue the tested property value
      * @param validatorPropertyValue the expected property value
      */
-    public final void validate(String propertyName, Object testedPropertyValue, Object validatorPropertyValue){
+    public final void validate(String propertyName, Object testedPropertyValue, Object validatorPropertyValue)
+    {
         boolean isValid = isValid(testedPropertyValue, validatorPropertyValue);
 
         if (!isValid) {

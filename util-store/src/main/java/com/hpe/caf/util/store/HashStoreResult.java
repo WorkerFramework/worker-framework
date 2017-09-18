@@ -18,8 +18,7 @@ package com.hpe.caf.util.store;
 import java.util.Objects;
 
 /**
- * The result of storing an asset in a DataStore when
- * a hash of the asset is requested at the time of storing.
+ * The result of storing an asset in a DataStore when a hash of the asset is requested at the time of storing.
  */
 public final class HashStoreResult
 {

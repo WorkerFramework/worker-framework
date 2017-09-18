@@ -18,7 +18,8 @@ package com.hpe.caf.api.worker;
 /**
  * Records information about the agent that initiated a task message.
  */
-public class TaskSourceInfo {
+public class TaskSourceInfo
+{
     /**
      * The name of the agent.
      */
@@ -29,27 +30,33 @@ public class TaskSourceInfo {
      */
     private String version;
 
-    public TaskSourceInfo() {
+    public TaskSourceInfo()
+    {
     }
 
-    public TaskSourceInfo(String name, String version) {
+    public TaskSourceInfo(String name, String version)
+    {
         this.name = name;
         this.version = version;
     }
 
-    public String getName() {
+    public String getName()
+    {
         return name;
     }
 
-    public void setName(String name) {
+    public void setName(String name)
+    {
         this.name = name;
     }
 
-    public String getVersion() {
+    public String getVersion()
+    {
         return version;
     }
 
-    public void setVersion(String version) {
+    public void setVersion(String version)
+    {
         this.version = version;
     }
 }

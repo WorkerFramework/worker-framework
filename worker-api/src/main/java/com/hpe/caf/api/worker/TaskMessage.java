@@ -15,16 +15,13 @@
  */
 package com.hpe.caf.api.worker;
 
-
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
 import javax.validation.constraints.NotNull;
 
-
 /**
- * The generic task message class to be serialised from or to a queue.
- * This will contain the serialised worker-specific data inside.
+ * The generic task message class to be serialised from or to a queue. This will contain the serialised worker-specific data inside.
  */
 public final class TaskMessage
 {
@@ -91,9 +88,9 @@ public final class TaskMessage
      */
     private Integer priority;
 
-
-    public TaskMessage(){ }
-
+    public TaskMessage()
+    {
+    }
 
     public TaskMessage(final String taskId, final String taskClassifier, final int taskApiVersion, final byte[] taskData,
                        final TaskStatus taskStatus, final Map<String, byte[]> context)
@@ -101,20 +98,17 @@ public final class TaskMessage
         this(taskId, taskClassifier, taskApiVersion, taskData, taskStatus, context, null);
     }
 
-
     public TaskMessage(final String taskId, final String taskClassifier, final int taskApiVersion, final byte[] taskData,
                        final TaskStatus taskStatus, final Map<String, byte[]> context, final String to)
     {
         this(taskId, taskClassifier, taskApiVersion, taskData, taskStatus, context, to, null);
     }
 
-
     public TaskMessage(final String taskId, final String taskClassifier, final int taskApiVersion, final byte[] taskData,
                        final TaskStatus taskStatus, final Map<String, byte[]> context, final String to, final TrackingInfo tracking)
     {
         this(taskId, taskClassifier, taskApiVersion, taskData, taskStatus, context, to, tracking, null);
     }
-
 
     public TaskMessage(final String taskId, final String taskClassifier, final int taskApiVersion, final byte[] taskData,
                        final TaskStatus taskStatus, final Map<String, byte[]> context, final String to, final TrackingInfo tracking, final TaskSourceInfo sourceInfo)
@@ -130,117 +124,103 @@ public final class TaskMessage
         this.sourceInfo = sourceInfo;
     }
 
-
     public int getVersion()
     {
         return version;
     }
-
 
     public void setVersion(final int version)
     {
         this.version = version;
     }
 
-
     public String getTaskId()
     {
         return taskId;
     }
-
 
     public void setTaskId(final String taskId)
     {
         this.taskId = taskId;
     }
 
-
     public String getTaskClassifier()
     {
         return taskClassifier;
     }
-
 
     public void setTaskClassifier(final String taskClassifier)
     {
         this.taskClassifier = taskClassifier;
     }
 
-
     public byte[] getTaskData()
     {
         return taskData;
     }
-
 
     public void setTaskData(final byte[] taskData)
     {
         this.taskData = taskData;
     }
 
-
     public TaskStatus getTaskStatus()
     {
         return taskStatus;
     }
-
 
     public void setTaskStatus(final TaskStatus taskStatus)
     {
         this.taskStatus = taskStatus;
     }
 
-
     public int getTaskApiVersion()
     {
         return taskApiVersion;
     }
-
 
     public void setTaskApiVersion(final int taskApiVersion)
     {
         this.taskApiVersion = taskApiVersion;
     }
 
-
     public Map<String, byte[]> getContext()
     {
         return context == null ? new HashMap<>() : context;
     }
-
 
     public void setContext(final Map<String, byte[]> context)
     {
         this.context = context;
     }
 
-
-    public String getTo() {
+    public String getTo()
+    {
         return to;
     }
 
-
-    public void setTo(String to) {
+    public void setTo(String to)
+    {
         this.to = to;
     }
 
-
-    public TrackingInfo getTracking() {
+    public TrackingInfo getTracking()
+    {
         return tracking;
     }
 
-
-    public void setTracking(TrackingInfo tracking) {
+    public void setTracking(TrackingInfo tracking)
+    {
         this.tracking = tracking;
     }
 
-
-    public TaskSourceInfo getSourceInfo() {
+    public TaskSourceInfo getSourceInfo()
+    {
         return sourceInfo;
     }
 
-
-    public void setSourceInfo(TaskSourceInfo sourceInfo) {
+    public void setSourceInfo(TaskSourceInfo sourceInfo)
+    {
         this.sourceInfo = sourceInfo;
     }
 

@@ -15,25 +15,20 @@
  */
 package com.hpe.caf.worker.testing;
 
-
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 
 /**
- * The {@code TestItemStore} class responsible for storing
- * and maintaining test cases - {@link TestItem} objects.
- * <p>Test cases are provided by {@link TestItemProvider} and then
- * stored in {@code TestItemStore}. After a task created using
- * particular test case {@code TestItem} is processed by a worker,
- * {@code TestItem} is retrieved from the {@code TestItemStore} and
- * used to validate the worker result.
- * After validation (processing) of test item, it is removed from
- * {@code TestItemStore}.
+ * The {@code TestItemStore} class responsible for storing and maintaining test cases - {@link TestItem} objects.
+ * <p>
+ * Test cases are provided by {@link TestItemProvider} and then stored in {@code TestItemStore}. After a task created using particular
+ * test case {@code TestItem} is processed by a worker, {@code TestItem} is retrieved from the {@code TestItemStore} and used to validate
+ * the worker result. After validation (processing) of test item, it is removed from {@code TestItemStore}.
  */
-public class TestItemStore {
-
+public class TestItemStore
+{
     private final HashMap<String, TestItem> items = new HashMap<>();
     private final ExecutionContext context;
 
@@ -42,7 +37,8 @@ public class TestItemStore {
      *
      * @param context the context
      */
-    public TestItemStore(ExecutionContext context) {
+    public TestItemStore(ExecutionContext context)
+    {
         this.context = context;
     }
 
@@ -51,7 +47,8 @@ public class TestItemStore {
      *
      * @return the int
      */
-    public int size() {
+    public int size()
+    {
         synchronized (items) {
             return items.size();
         }
@@ -63,11 +60,12 @@ public class TestItemStore {
      * @param id the id
      * @return the test item
      */
-    public TestItem findAndRemove(String id) {
+    public TestItem findAndRemove(String id)
+    {
         synchronized (items) {
             TestItem item = items.get(id);
             if (item != null) {
-                items.remove(id,item );
+                items.remove(id, item);
             }
 
             return item;
@@ -77,10 +75,11 @@ public class TestItemStore {
     /**
      * Store.
      *
-     * @param id   the id
+     * @param id the id
      * @param item the item
      */
-    public void store(String id, TestItem item) {
+    public void store(String id, TestItem item)
+    {
         synchronized (items) {
             items.put(id, item);
         }
@@ -92,7 +91,8 @@ public class TestItemStore {
      * @param id the id
      * @return the test item
      */
-    public TestItem find(String id) {
+    public TestItem find(String id)
+    {
         synchronized (items) {
             TestItem item = items.get(id);
             if (item == null) {
@@ -124,7 +124,8 @@ public class TestItemStore {
      *
      * @return Value for property 'items'.
      */
-    public Map<String, TestItem> getItems() {
+    public Map<String, TestItem> getItems()
+    {
         return items;
     }
 
@@ -133,12 +134,12 @@ public class TestItemStore {
      *
      * @param id the id
      */
-    public void remove(String id) {
+    public void remove(String id)
+    {
         synchronized (items) {
             //        if (item != null) {
 
             TestItem remove = items.remove(id);
         }
     }
-
 }

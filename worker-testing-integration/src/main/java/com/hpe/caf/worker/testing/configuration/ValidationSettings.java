@@ -22,47 +22,55 @@ import java.util.*;
 /**
  * Created by ploch on 07/12/2015.
  */
-public class ValidationSettings {
-
-    public static class ValidationSettingsBuilder {
-
+public class ValidationSettings
+{
+    public static class ValidationSettingsBuilder
+    {
         private final ValidationSettings settings;
 
-        private ValidationSettingsBuilder(ValidationSettings settings) {
+        private ValidationSettingsBuilder(ValidationSettings settings)
+        {
             this.settings = settings;
         }
 
-        public ValidationSettingsBuilder ignoreProperties(String... ignoredProperties) {
+        public ValidationSettingsBuilder ignoreProperties(String... ignoredProperties)
+        {
             settings.ignoredProperties = new HashSet<>(Arrays.asList(ignoredProperties));
             return this;
         }
 
-        public ValidationSettingsBuilder referencedDataProperties(String... referencedDataProperties) {
+        public ValidationSettingsBuilder referencedDataProperties(String... referencedDataProperties)
+        {
             settings.referencedDataProperties = new HashSet<>(Arrays.asList(referencedDataProperties));
             return this;
         }
 
-        public ValidationSettingsBuilder arrayReferencedDataProperties(String... arrayReferencedDataProperties){
+        public ValidationSettingsBuilder arrayReferencedDataProperties(String... arrayReferencedDataProperties)
+        {
             settings.arrayReferencedDataProperties = new HashSet<>(Arrays.asList(arrayReferencedDataProperties));
-			return this;
-		}
+            return this;
+        }
 
-        public ValidationSettingsBuilder unorderedArrayReferencedDataProperties(String... unorderedArrayReferencedDataProperties){
+        public ValidationSettingsBuilder unorderedArrayReferencedDataProperties(String... unorderedArrayReferencedDataProperties)
+        {
             settings.unorderedArrayReferencedDataProperties = new HashSet<>(Arrays.asList(unorderedArrayReferencedDataProperties));
             return this;
         }
 
-        public ValidationSettingsBuilder base64Properties(String... base64Properties) {
+        public ValidationSettingsBuilder base64Properties(String... base64Properties)
+        {
             settings.base64Properties = new HashSet<>(Arrays.asList(base64Properties));
             return this;
         }
 
-        public ValidationSettingsBuilder customValidators(CustomPropertyValidator... customPropertyValidators) {
+        public ValidationSettingsBuilder customValidators(CustomPropertyValidator... customPropertyValidators)
+        {
             settings.customValidators = Arrays.asList(customPropertyValidators);
             return this;
         }
 
-        public ValidationSettings build(){
+        public ValidationSettings build()
+        {
             return settings;
         }
     }
@@ -74,20 +82,23 @@ public class ValidationSettings {
     private Set<String> base64Properties = new HashSet<>();
     private List<CustomPropertyValidator> customValidators = new ArrayList<>();
 
-    public static ValidationSettingsBuilder configure() {
+    public static ValidationSettingsBuilder configure()
+    {
         return new ValidationSettingsBuilder(new ValidationSettings());
 
     }
 
-    public ValidationSettings(){}
-
+    public ValidationSettings()
+    {
+    }
 
     /**
      * Getter for property 'ignoredProperties'.
      *
      * @return Value for property 'ignoredProperties'.
      */
-    public Set<String> getIgnoredProperties() {
+    public Set<String> getIgnoredProperties()
+    {
         return ignoredProperties;
     }
 
@@ -96,28 +107,33 @@ public class ValidationSettings {
      *
      * @return Value for property 'referenceDataProperties'.
      */
-    public Set<String> getReferencedDataProperties() {
+    public Set<String> getReferencedDataProperties()
+    {
         return referencedDataProperties;
     }
 
-    public Set<String> getArrayReferencedDataProperties() {
+    public Set<String> getArrayReferencedDataProperties()
+    {
         return arrayReferencedDataProperties;
-	}
+    }
 
-    public Set<String> getUnorderedArrayReferencedDataProperties() {
+    public Set<String> getUnorderedArrayReferencedDataProperties()
+    {
         return unorderedArrayReferencedDataProperties;
-	}
+    }
 
     /**
      * Getter for property 'base64Properties'.
      *
      * @return Value for property 'base64Properties'.
      */
-    public Set<String> getBase64Properties() {
+    public Set<String> getBase64Properties()
+    {
         return base64Properties;
     }
 
-    public List<CustomPropertyValidator> getCustomValidators() {
+    public List<CustomPropertyValidator> getCustomValidators()
+    {
         return customValidators;
     }
 }

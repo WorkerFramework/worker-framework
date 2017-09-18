@@ -15,7 +15,6 @@
  */
 package com.hpe.caf.util.rabbitmq;
 
-
 import java.nio.charset.StandardCharsets;
 import java.util.Objects;
 import java.util.concurrent.BlockingQueue;
@@ -30,12 +29,10 @@ import org.testng.internal.junit.ArrayAsserts;
 
 import com.rabbitmq.client.Channel;
 
-
 public class DefaultRabbitPublisherTest
 {
     private static final byte[] DATA = "data".getBytes(StandardCharsets.UTF_8);
     private static final int TEST_TIMEOUT_MS = 5000;
-
 
     @Test
     public void testHandlePublish()
@@ -54,7 +51,6 @@ public class DefaultRabbitPublisherTest
         pub.shutdown();
     }
 
-
     @Test
     public void testHandleShutdown()
         throws InterruptedException
@@ -71,18 +67,15 @@ public class DefaultRabbitPublisherTest
         Assert.assertFalse(latch.await(TEST_TIMEOUT_MS, TimeUnit.MILLISECONDS));
     }
 
-
     private static class TestQueuePublisherImpl implements QueuePublisher
     {
         private final CountDownLatch latch;
         private byte[] lastData;
 
-
         public TestQueuePublisherImpl(final CountDownLatch latch)
         {
             this.latch = Objects.requireNonNull(latch);
         }
-
 
         @Override
         public void handlePublish(final byte[] data)
@@ -90,7 +83,6 @@ public class DefaultRabbitPublisherTest
             lastData = data;
             latch.countDown();
         }
-
 
         public byte[] getLastData()
         {

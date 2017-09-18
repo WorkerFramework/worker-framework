@@ -15,7 +15,6 @@
  */
 package com.hpe.caf.worker.queue.rabbit;
 
-
 import com.hpe.caf.util.rabbitmq.ConsumerAckEvent;
 import com.hpe.caf.util.rabbitmq.ConsumerRejectEvent;
 import com.hpe.caf.util.rabbitmq.Event;
@@ -27,7 +26,6 @@ import java.io.IOException;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.TimeUnit;
-
 
 public class WorkerConfirmListenerTest
 {
@@ -45,7 +43,6 @@ public class WorkerConfirmListenerTest
         Assert.assertEquals(100, ((ConsumerAckEvent) e).getTag());
     }
 
-
     @Test(expectedExceptions = IllegalStateException.class)
     public void testAckSingleMissing()
         throws IOException, InterruptedException
@@ -54,7 +51,6 @@ public class WorkerConfirmListenerTest
         WorkerConfirmListener conf = new WorkerConfirmListener(q);
         conf.handleAck(1, false);
     }
-
 
     @Test(expectedExceptions = IllegalStateException.class)
     public void testAckSingleDuplicate()
@@ -71,7 +67,6 @@ public class WorkerConfirmListenerTest
         conf.handleAck(1, false);
     }
 
-
     @Test
     public void testNackSingle()
         throws IOException, InterruptedException
@@ -86,7 +81,6 @@ public class WorkerConfirmListenerTest
         Assert.assertEquals(100, ((ConsumerRejectEvent) e).getTag());
     }
 
-
     @Test(expectedExceptions = IllegalStateException.class)
     public void testNackSingleMissing()
         throws IOException, InterruptedException
@@ -95,7 +89,6 @@ public class WorkerConfirmListenerTest
         WorkerConfirmListener conf = new WorkerConfirmListener(q);
         conf.handleNack(1, false);
     }
-
 
     @Test(expectedExceptions = IllegalStateException.class)
     public void testNackSingleDuplicate()
@@ -111,7 +104,6 @@ public class WorkerConfirmListenerTest
         Assert.assertEquals(100, ((ConsumerRejectEvent) e).getTag());
         conf.handleNack(1, false);
     }
-
 
     @Test
     public void testAckMultiple()
@@ -140,7 +132,6 @@ public class WorkerConfirmListenerTest
         Assert.assertEquals(500L, ((ConsumerAckEvent) e4).getTag());
     }
 
-
     @Test(expectedExceptions = IllegalStateException.class)
     public void testAckMultipleDuplicate()
         throws IOException, InterruptedException
@@ -161,7 +152,6 @@ public class WorkerConfirmListenerTest
         Assert.assertEquals(200L, ((ConsumerAckEvent) e2).getTag());
         conf.handleAck(2, false);
     }
-
 
     @Test
     public void testNackMultiple()
@@ -190,7 +180,6 @@ public class WorkerConfirmListenerTest
         Assert.assertEquals(500L, ((ConsumerRejectEvent) e4).getTag());
     }
 
-
     @Test(expectedExceptions = IllegalStateException.class)
     public void testNackMultipleDuplicate()
         throws IOException, InterruptedException
@@ -212,7 +201,6 @@ public class WorkerConfirmListenerTest
         conf.handleNack(2, false);
     }
 
-
     @Test
     public void testClearMap()
         throws IOException, InterruptedException
@@ -230,7 +218,6 @@ public class WorkerConfirmListenerTest
         Event<QueueConsumer> e3 = q.poll(1000, TimeUnit.MILLISECONDS);
         Assert.assertNull(e3);
     }
-
 
     @Test(expectedExceptions = IllegalStateException.class)
     public void testDuplicateRegister()
