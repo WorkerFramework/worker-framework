@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!--
 
-    Copyright 2015-2017 Hewlett Packard Enterprise Development LP.
+    Copyright 2015-2017 EntIT Software LLC, a Micro Focus company.
 
     Licensed under the Apache License, Version 2.0 (the "License");
     you may not use this file except in compliance with the License.
@@ -36,6 +36,11 @@
         <version>1.9.0-197</version>
         <relativePath />
     </parent>
+
+    <organization>
+        <name>EntIT Software LLC, a Micro Focus company</name>
+        <url>https://www.microfocus.com</url>
+    </organization>
 
     <licenses>
         <license>
