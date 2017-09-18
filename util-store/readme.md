@@ -23,4 +23,4 @@
 
  The following people are contacts for developing and maintaining this module:
 
- - Philip Crooks (Belfast, UK, philip.crooks@hpe.com)
+ - Philip Crooks (Belfast, UK, philip.crooks@microfocus.com)

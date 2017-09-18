@@ -43,4 +43,4 @@
 
  The following people are contacts for developing and maintaining this module:
 
- - Richard Hickman (Cambridge, UK, richard.hickman@hp.com)
+ - Richard Hickman (Cambridge, UK, richard.hickman@microfocus.com)

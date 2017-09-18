@@ -97,6 +97,5 @@ then shut down the old Worker containers
 
  The following people are contacts for developing and maintaining this module:
 
- - Conal Smith (Belfast, UK, conal.smith@hpe.com)
- - Dermot Hardy (Belfast, UK, dermot.hardy@hpe.com)
- - Krzystof Ploch (Belfast, UK, krzysztof.ploch@hpe.com)
+ - Dermot Hardy (Belfast, UK, dermot.hardy@microfocus.com)
+ - Krzystof Ploch (Belfast, UK, krzysztof.ploch@microfocus.com)

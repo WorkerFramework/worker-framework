@@ -296,7 +296,6 @@
                             <alias>example-worker</alias>
                             <name>${corporateDockerRegistry}/caf/worker-example:${project.version}</name>
                             <build>
-                                <maintainer>conal.smith@hpe.com</maintainer>
                                 <from>java:8</from>
                                 <labels>
                                     <Build.Number>${project.version}</Build.Number>

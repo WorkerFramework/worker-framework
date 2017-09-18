@@ -27,7 +27,7 @@ import org.junit.Test;
 
 /**
  *
- * @author Trevor Getty <trevor.getty@hpe.com>
+ * @author Trevor Getty <trevor.getty@microfocus.com>
  */
 public class ContentComparerTest
 {
