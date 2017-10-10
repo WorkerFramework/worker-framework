@@ -336,10 +336,6 @@
                                                     <include>com.github.cafapi:container-cert-script</include>
                                                 </includes>
                                             </dependencySet>
-                                            <dependencySet>
-                                                <useProjectArtifact>false</useProjectArtifact>
-                                                <scope>runtime</scope>
-                                            </dependencySet>
                                         </dependencySets>
                                     </inline>
                                 </assembly>
