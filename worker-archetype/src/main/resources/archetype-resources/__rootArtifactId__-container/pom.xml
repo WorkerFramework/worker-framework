@@ -76,11 +76,6 @@
             <scope>test</scope>
         </dependency>
         <dependency>
-            <groupId>com.github.cafapi</groupId>
-            <artifactId>container-cert-script</artifactId>
-            <type>tar.gz</type>
-        </dependency>
-        <dependency>
             <groupId>${groupId}</groupId>
             <artifactId>${rootArtifactId}-testing</artifactId>
             <version>${version}</version>
@@ -284,18 +279,18 @@
                             <alias>${rootArtifactId}</alias>
                             <name>${${rootArtifactId}.container.name}</name>
                             <build>
-                                <from>java:8</from>
+                                <from>cafapi/opensuse-jre8:1.1</from>
                                 <labels>
                                     <Build.Number>${project.version}</Build.Number>
                                     <Build.Date>${maven.build.timestamp}</Build.Date>
                                     <caf.worker-framework.version>${workerFrameworkVersion}</caf.worker-framework.version>
                                 </labels>
                                 <!-- The entry point will be the worker.sh executable. -->
-                                <entryPoint>
+                                <cmd>
                                     <exec>
                                         <args>/maven/worker.sh</args>
                                     </exec>
-                                </entryPoint>
+                                </cmd>
                                 <assembly>
                                     <mode>tar</mode>
                                     <inline>
@@ -324,17 +319,6 @@
                                             <dependencySet>
                                                 <useProjectArtifact>false</useProjectArtifact>
                                                 <scope>runtime</scope>
-                                                <excludes>
-                                                    <exclude>com.github.cafapi:container-cert-script</exclude>
-                                                </excludes>
-                                            </dependencySet>
-                                            <dependencySet>
-                                                <useProjectArtifact>false</useProjectArtifact>
-                                                <useTransitiveFiltering>true</useTransitiveFiltering>
-                                                <unpack>true</unpack>
-                                                <includes>
-                                                    <include>com.github.cafapi:container-cert-script</include>
-                                                </includes>
                                             </dependencySet>
                                         </dependencySets>
                                     </inline>

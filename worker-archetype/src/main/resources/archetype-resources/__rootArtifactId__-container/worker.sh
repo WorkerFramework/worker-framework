@@ -29,13 +29,6 @@ function set_dropwizard_config_file_location_if_mounted(){
 }
 set_dropwizard_config_file_location_if_mounted
 
-function install_certificate(){
-    #This will import the CA Cert from $MESOS_SANDBOX/$SSL_CA_CRT to the default Java keystore location depending on your distribution.
-    /maven/container-cert-script/install-ca-cert-java.sh
-}
-
-install_certificate
-
 # If the CAF_APPNAME and CAF_CONFIG_PATH environment variables are not set, then use the
 # JavaScript-encoded config files that are built into the container
 if [ -z "$CAF_APPNAME" ] && [ -z "$CAF_CONFIG_PATH" ];
