@@ -28,6 +28,7 @@ public class WorkerResponse
     private final String messageType;
     private final int apiVersion;
     private final byte[] context;
+    private final boolean resetTrackTo;
 
     /**
      * Create a new WorkerResponse.
@@ -41,6 +42,22 @@ public class WorkerResponse
      */
     public WorkerResponse(final String queue, final TaskStatus status, final byte[] data, final String msgType, final int version, final byte[] context)
     {
+        this(queue, status, data, msgType, version, context, false);
+    }
+
+    /**
+     * Create a new WorkerResponse.
+     *
+     * @param queue the reference to the queue that the response data should be put upon. This can be null if no queue is provided
+     * @param status the status of the message the Worker is returning
+     * @param data the serialised task-specific data returned from the Worker internals
+     * @param msgType the task-specific message classifier
+     * @param version the task-specific message API version
+     * @param context the new context to add to the task message, can be null
+     * @param resetTrackTo indicates if the tracking 'trackTo' field should be reset
+     */
+    public WorkerResponse(final String queue, final TaskStatus status, final byte[] data, final String msgType, final int version, final byte[] context, boolean resetTrackTo)
+    {
         this.queueReference = queue; // queueReference can be 'null' for a dead end worker and
         // 'null' for a worker who does not send success messages to
         // it's output queue
@@ -49,6 +66,7 @@ public class WorkerResponse
         this.messageType = Objects.requireNonNull(msgType);
         this.apiVersion = version;
         this.context = context;
+        this.resetTrackTo = resetTrackTo;
     }
 
     public TaskStatus getTaskStatus()
@@ -79,5 +97,10 @@ public class WorkerResponse
     public byte[] getContext()
     {
         return context;
+    }
+
+    public boolean getResetTrackTo()
+    {
+        return resetTrackTo;
     }
 }

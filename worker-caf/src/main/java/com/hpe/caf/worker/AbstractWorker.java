@@ -130,9 +130,9 @@ public abstract class AbstractWorker<T, V> implements Worker
      *
      * @return a WorkerResponse that represents a success
      */
-    protected final WorkerResponse createSuccessNoOutputToQueue()
+    protected final WorkerResponse createSuccessNoOutputToQueue(boolean resetTrackTo)
     {
-        return new WorkerResponse(null, TaskStatus.RESULT_SUCCESS, new byte[]{}, getWorkerIdentifier(), getWorkerApiVersion(), null);
+        return new WorkerResponse(null, TaskStatus.RESULT_SUCCESS, new byte[]{}, getWorkerIdentifier(), getWorkerApiVersion(), null, resetTrackTo);
     }
 
     /**

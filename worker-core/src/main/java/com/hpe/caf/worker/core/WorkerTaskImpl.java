@@ -143,11 +143,26 @@ class WorkerTaskImpl implements WorkerTask
 
         final String responseMessageType = response.getMessageType();
 
+        //  Check if the 'trackTo' field needs to be reset.
+        final TrackingInfo trackingInfo;
+        if (response.getResetTrackTo()) {
+            //  Reset trackTo field to null;
+            final TrackingInfo taskMessageTracking = taskMessage.getTracking();
+            trackingInfo = new TrackingInfo(taskMessageTracking.getJobTaskId(),
+                    taskMessageTracking.getStatusCheckTime(),
+                    taskMessageTracking.getStatusCheckUrl(),
+                    taskMessageTracking.getTrackingPipe(),
+                    null);
+        } else {
+            //  No tracking changes required.
+            trackingInfo = taskMessage.getTracking();
+        }
+
         final TaskMessage responseMessage = new TaskMessage(
             taskMessage.getTaskId(), responseMessageType,
             response.getApiVersion(), response.getData(),
             response.getTaskStatus(), responseContext,
-            response.getQueueReference(), taskMessage.getTracking(),
+            response.getQueueReference(), trackingInfo,
             new TaskSourceInfo(getWorkerName(responseMessageType), getWorkerVersion()));
         responseMessage.setPriority(priorityManager.getResponsePriority(taskMessage));
 
