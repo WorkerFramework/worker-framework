@@ -147,12 +147,10 @@ class WorkerTaskImpl implements WorkerTask
         final TrackingInfo trackingInfo;
         if (response.getResetTrackTo()) {
             //  Reset trackTo field to null;
-            final TrackingInfo taskMessageTracking = taskMessage.getTracking();
-            trackingInfo = new TrackingInfo(taskMessageTracking.getJobTaskId(),
-                    taskMessageTracking.getStatusCheckTime(),
-                    taskMessageTracking.getStatusCheckUrl(),
-                    taskMessageTracking.getTrackingPipe(),
-                    null);
+            trackingInfo = taskMessage.getTracking();
+            if (trackingInfo != null) {
+                trackingInfo.setTrackTo(null);
+            }
         } else {
             //  No tracking changes required.
             trackingInfo = taskMessage.getTracking();

@@ -56,7 +56,7 @@ public class WorkerResponse
      * @param context the new context to add to the task message, can be null
      * @param resetTrackTo indicates if the tracking 'trackTo' field should be reset
      */
-    public WorkerResponse(final String queue, final TaskStatus status, final byte[] data, final String msgType, final int version, final byte[] context, boolean resetTrackTo)
+    public WorkerResponse(final String queue, final TaskStatus status, final byte[] data, final String msgType, final int version, final byte[] context, final boolean resetTrackTo)
     {
         this.queueReference = queue; // queueReference can be 'null' for a dead end worker and
         // 'null' for a worker who does not send success messages to

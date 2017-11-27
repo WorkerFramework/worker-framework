@@ -130,7 +130,18 @@ public abstract class AbstractWorker<T, V> implements Worker
      *
      * @return a WorkerResponse that represents a success
      */
-    protected final WorkerResponse createSuccessNoOutputToQueue(boolean resetTrackTo)
+    protected final WorkerResponse createSuccessNoOutputToQueue()
+    {
+        return createSuccessNoOutputToQueue(false);
+    }
+
+    /**
+     * Utility method for creating a WorkerReponse that represents a success, but does not send a message to the worker's output message.
+     *
+     * @param resetTrackTo indicates if the tracking 'trackTo' field should be reset
+     * @return a WorkerResponse that represents a success
+     */
+    protected final WorkerResponse createSuccessNoOutputToQueue(final boolean resetTrackTo)
     {
         return new WorkerResponse(null, TaskStatus.RESULT_SUCCESS, new byte[]{}, getWorkerIdentifier(), getWorkerApiVersion(), null, resetTrackTo);
     }
