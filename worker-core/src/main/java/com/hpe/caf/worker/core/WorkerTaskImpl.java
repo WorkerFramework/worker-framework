@@ -143,17 +143,19 @@ class WorkerTaskImpl implements WorkerTask
 
         final String responseMessageType = response.getMessageType();
 
-        //  Check if the 'trackTo' field needs to be reset.
+        //  Check if a tracking change is required.
         final TrackingInfo trackingInfo;
-        if (response.getResetTrackTo()) {
-            //  Reset trackTo field to null;
-            trackingInfo = taskMessage.getTracking();
-            if (trackingInfo != null) {
-                trackingInfo.setTrackTo(null);
+        if (null != response.getTrackTo()) {
+            if (response.getTrackTo().equals("") || (response.getTrackTo().equals(taskMessage.getTracking().getTrackTo()))) {
+                //  No tracking changes required.
+                trackingInfo = taskMessage.getTracking();
+            } else {
+                //  The trackTo value does not match the existing task message value, so update required.
+                trackingInfo = getTrackingInfoWithChanges(response.getTrackTo());
             }
         } else {
-            //  No tracking changes required.
-            trackingInfo = taskMessage.getTracking();
+            //  The trackTo value has been set to null so we require an update.
+            trackingInfo = getTrackingInfoWithChanges(null);
         }
 
         final TaskMessage responseMessage = new TaskMessage(
@@ -165,6 +167,18 @@ class WorkerTaskImpl implements WorkerTask
         responseMessage.setPriority(priorityManager.getResponsePriority(taskMessage));
 
         return responseMessage;
+    }
+
+    private TrackingInfo getTrackingInfoWithChanges(final String trackTo) {
+        TrackingInfo trackingInfo = null;
+
+        final TrackingInfo taskMessageTracking = taskMessage.getTracking();
+        if (taskMessageTracking != null) {
+            trackingInfo = new TrackingInfo(taskMessageTracking);
+            trackingInfo.setTrackTo(trackTo);
+        }
+
+        return trackingInfo;
     }
 
     @Override

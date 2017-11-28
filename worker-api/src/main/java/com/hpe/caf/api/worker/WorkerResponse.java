@@ -28,7 +28,7 @@ public class WorkerResponse
     private final String messageType;
     private final int apiVersion;
     private final byte[] context;
-    private final boolean resetTrackTo;
+    private final String trackTo;
 
     /**
      * Create a new WorkerResponse.
@@ -42,7 +42,7 @@ public class WorkerResponse
      */
     public WorkerResponse(final String queue, final TaskStatus status, final byte[] data, final String msgType, final int version, final byte[] context)
     {
-        this(queue, status, data, msgType, version, context, false);
+        this(queue, status, data, msgType, version, context, "");
     }
 
     /**
@@ -54,9 +54,9 @@ public class WorkerResponse
      * @param msgType the task-specific message classifier
      * @param version the task-specific message API version
      * @param context the new context to add to the task message, can be null
-     * @param resetTrackTo indicates if the tracking 'trackTo' field should be reset
+     * @param trackTo the tracking 'trackTo' pipe to set
      */
-    public WorkerResponse(final String queue, final TaskStatus status, final byte[] data, final String msgType, final int version, final byte[] context, final boolean resetTrackTo)
+    public WorkerResponse(final String queue, final TaskStatus status, final byte[] data, final String msgType, final int version, final byte[] context, final String trackTo)
     {
         this.queueReference = queue; // queueReference can be 'null' for a dead end worker and
         // 'null' for a worker who does not send success messages to
@@ -66,7 +66,7 @@ public class WorkerResponse
         this.messageType = Objects.requireNonNull(msgType);
         this.apiVersion = version;
         this.context = context;
-        this.resetTrackTo = resetTrackTo;
+        this.trackTo = trackTo;
     }
 
     public TaskStatus getTaskStatus()
@@ -99,8 +99,8 @@ public class WorkerResponse
         return context;
     }
 
-    public boolean getResetTrackTo()
+    public String getTrackTo()
     {
-        return resetTrackTo;
+        return trackTo;
     }
 }

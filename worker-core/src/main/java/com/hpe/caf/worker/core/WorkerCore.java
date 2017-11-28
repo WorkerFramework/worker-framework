@@ -502,10 +502,10 @@ final class WorkerCore
             Objects.requireNonNull(tm);
             // queueToSend can be null for a dead end worker
 
-            TrackingInfo tracking = tm.getTracking();
+            final TrackingInfo tracking = tm.getTracking();
             if (tracking != null) {
-                String trackTo = tracking.getTrackTo();
-                if (trackTo != null && trackTo.equalsIgnoreCase(queueToSend)) {
+                final String trackTo = tracking.getTrackTo();
+                if ((trackTo == null && queueToSend == null) || (trackTo != null && trackTo.equalsIgnoreCase(queueToSend))) {
                     LOG.debug("Task {} (message id: {}): removing tracking info from this message as tracking ends on publishing to the queue {}.", tm.getTaskId(), queueMsgId, queueToSend);
                     tm.setTracking(null);
                 }
