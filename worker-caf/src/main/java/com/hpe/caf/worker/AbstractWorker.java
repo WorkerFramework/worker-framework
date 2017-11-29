@@ -126,13 +126,24 @@ public abstract class AbstractWorker<T, V> implements Worker
     }
 
     /**
-     * Utility method for creating a WorkerReponse that represents a success, but does not send a message to the worker's output message.
+     * Utility method for creating a WorkerResponse that represents a success, but does not send a message to the worker's output message.
      *
      * @return a WorkerResponse that represents a success
      */
     protected final WorkerResponse createSuccessNoOutputToQueue()
     {
         return new WorkerResponse(null, TaskStatus.RESULT_SUCCESS, new byte[]{}, getWorkerIdentifier(), getWorkerApiVersion(), null);
+    }
+
+    /**
+     * Utility method for creating a WorkerResponse that represents a success, but does not send a message to the worker's output message.
+     * This method would be used to set target queue and final tracking queue to null.
+     *
+     * @return a WorkerResponse that represents a success
+     */
+    protected final WorkerResponse createTaskCompleteResponse()
+    {
+        return new WorkerResponse(null, TaskStatus.RESULT_SUCCESS, new byte[]{}, getWorkerIdentifier(), getWorkerApiVersion(), null, null);
     }
 
     /**

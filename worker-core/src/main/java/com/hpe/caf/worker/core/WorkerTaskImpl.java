@@ -143,15 +143,37 @@ class WorkerTaskImpl implements WorkerTask
 
         final String responseMessageType = response.getMessageType();
 
+        //  Check if a tracking change is required. If empty string then no further changes required.
+        final TrackingInfo trackingInfo;
+        if ("".equals(response.getTrackTo())) {
+            //  No tracking changes required.
+            trackingInfo = taskMessage.getTracking();
+        } else {
+            //  Set trackTo field to the specified value.
+            trackingInfo = getTrackingInfoWithChanges(response.getTrackTo());
+        }
+
         final TaskMessage responseMessage = new TaskMessage(
             taskMessage.getTaskId(), responseMessageType,
             response.getApiVersion(), response.getData(),
             response.getTaskStatus(), responseContext,
-            response.getQueueReference(), taskMessage.getTracking(),
+            response.getQueueReference(), trackingInfo,
             new TaskSourceInfo(getWorkerName(responseMessageType), getWorkerVersion()));
         responseMessage.setPriority(priorityManager.getResponsePriority(taskMessage));
 
         return responseMessage;
+    }
+
+    private TrackingInfo getTrackingInfoWithChanges(final String trackTo) {
+        TrackingInfo trackingInfo = null;
+
+        final TrackingInfo taskMessageTracking = taskMessage.getTracking();
+        if (taskMessageTracking != null) {
+            trackingInfo = new TrackingInfo(taskMessageTracking);
+            trackingInfo.setTrackTo(trackTo);
+        }
+
+        return trackingInfo;
     }
 
     @Override
