@@ -16,9 +16,11 @@
 package com.hpe.caf.worker.testing.validation;
 
 import org.glassfish.jersey.internal.util.Base64;
+import org.joda.time.DateTime;
 
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import java.util.regex.PatternSyntaxException;
 
 /**
  * Created by ploch on 05/12/2015.
@@ -49,9 +51,21 @@ public class ValuePropertyValidator extends PropertyValidator
             return true;
         }
 
-        Pattern pattern = Pattern.compile(validationRegex);
+        final Pattern pattern;
+        try {
+            pattern = Pattern.compile(validationRegex);
+        }
+        catch (PatternSyntaxException e) {
+            logWithTimestamp(" Validation string is not a valid regex. " + e.getMessage());
+            return false;
+        }
         Matcher matcher = pattern.matcher(testedStringValue);
         boolean match = matcher.matches();
         return match;
+    }
+
+    private void logWithTimestamp(final String debugInfo)
+    {
+        System.out.println(DateTime.now().toLocalTime().toString() + debugInfo);
     }
 }
