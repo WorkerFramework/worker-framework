@@ -14,7 +14,7 @@ banner:
 
 # Error Handling
 
-The purpose of this page is to provide descriptive details for the various types of errors and failures that can arise during message processing. A set of rules that every Worker implementation should adhere too is included as well.
+The purpose of this page is to provide details for the various types of errors and failures that can arise during message processing. A set of rules that every Worker implementation should adhere too is included as well.
 
 ## Worker Success
 We start though by describing the expected flow when messages are handled by Worker implementations without any issues at all.
@@ -37,12 +37,12 @@ A poisoned message is a message that a worker is unable to handle. The message i
 1. The Worker will receive a message from the messaging input queue, `worker-input-queue` and will start to process it.
 2. The processing of the message causes the worker to die unexpectedly.
 3. The Autoscaler service scales the worker back up again to facilitate a retry.
-4. The original message is re-delivered for retry where the `x-caf-worker-retry` message header is stamped on the message and incremented. Messages which cause a worker to crash are retried up to 10x (default) then the worker gives up trying to process them and marks them as poisoned. Note that the number of permitted retries is configurable within the `RabbitWorkerQueueConfiguration` file for a worker.
+4. The original message is re-delivered for retry where the `x-caf-worker-retry` message header is stamped on the message and incremented. Messages which cause a worker to crash are retried up to 10 times by default before the worker gives up trying to process them and marks them as poisoned. Note that the number of permitted retries is configurable within the `RabbitWorkerQueueConfiguration` file for a worker.
 5. Once the permitted number of retries is exceeded, the original message will be acknowledged.
 6. A `RESULT_EXCEPTION` response including the poisoned message details is placed on the messaging output queue `worker-output-queue` by the worker framework when the permitted number of retries is exceeded.
 
-## OutOfMemory / StackOverFlow Errors
-Messages which cause OutOfMemory / StackOverFlow errors also cause the Worker to crash. These are treated the same as poisoned messages and will be retried until successful or until the retry count exceeds the permitted number of retries.  If the permitted number of retries is exceeded the message will be placed on the `worker-output-queue` by the framework, with a task status of “RESULT_EXCEPTION”. See Figure 2 above for further details.
+## OutOfMemory / StackOverflow Errors
+Messages which cause OutOfMemory / StackOverflow errors also cause the Worker to crash. These are treated the same as poisoned messages and will be retried until successful or until the retry count exceeds the permitted number of retries.  If the permitted number of retries is exceeded the message will be placed on the `worker-output-queue` by the framework, with a task status of “RESULT_EXCEPTION”. See Figure 2 above for further details.
 
 ## Transient Failures
 Transient errors arise as a result of a failure beyond the control of the Worker, e.g the database being down or unavailable.
@@ -51,7 +51,7 @@ Transient errors arise as a result of a failure beyond the control of the Worker
 *Figure 3 - Transient failure flow*
 
 1. The Worker will receive a message from the messaging input queue, `worker-input-queue` and will start to process it.
-2. The Worker is unable to process the message (unexpectedly due to some failure out of it's control - e.g. database down).
+2. The Worker is unable to process the message (unexpectedly due to some failure outside of its control - e.g. database down).
 3. The failure is reported as transient causing the Worker to be flagged as unhealthy.
 4. The Worker stops accepting work and messages intended for it are queued up within the messaging system. Messages will continue to be queued until the transient issue is addressed.
 5. The Worker continues to retry the message indefinitely.
@@ -112,5 +112,3 @@ The general following rules should be adhered to by all Worker implementations:
 
  - The input wrapper not being parsable
  - Connections to the queue dropping
- 
-
