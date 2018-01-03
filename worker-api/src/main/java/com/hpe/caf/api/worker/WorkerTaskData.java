@@ -62,11 +62,4 @@ public interface WorkerTaskData
      * @param includeTaskContext whether or not the calling task context should be sent with the response
      */
     void addResponse(WorkerResponse response, boolean includeTaskContext);
-
-    /**
-     * Used when a task message needs to be put directly onto the messaging system queue.
-     *
-     * @param tm the message to be sent
-     */
-    void sendMessage(TaskMessage tm);
 }

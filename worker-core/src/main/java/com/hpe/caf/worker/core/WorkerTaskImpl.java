@@ -42,7 +42,6 @@ class WorkerTaskImpl implements WorkerTask
     private int responseCount;
     private final Object responseCountLock;
     private final SingleResponseMessageBuffer singleMessageBuffer;
-    private final ProgressReportBuffer progressReportBuffer;
     private final AtomicInteger currentSubtaskId;
     private final Semaphore subtasksPublishedSemaphore;
     private final boolean poison;
@@ -66,7 +65,6 @@ class WorkerTaskImpl implements WorkerTask
         this.responseCount = 0;
         this.responseCountLock = new Object();
         this.singleMessageBuffer = new SingleResponseMessageBuffer();
-        this.progressReportBuffer = new ProgressReportBuffer();
         this.currentSubtaskId = new AtomicInteger();
         this.subtasksPublishedSemaphore = new Semaphore(0);
         this.poison = poison;
@@ -125,15 +123,6 @@ class WorkerTaskImpl implements WorkerTask
         final TaskMessage responseMessage = createResponseMessage(includeTaskContext, response);
 
         singleMessageBuffer.add(responseMessage);
-    }
-
-    @Override
-    public void sendMessage(final TaskMessage tm)
-    {
-        Objects.requireNonNull(tm);
-
-        // Publish this message
-        workerCallback.send("-1", tm);
     }
 
     @Override
@@ -393,65 +382,6 @@ class WorkerTaskImpl implements WorkerTask
     }
 
     /**
-     * .
-     */
-    private final class ProgressReportBuffer
-    {
-        private TaskMessage[] buffer;
-        private final Object bufferLock;
-        private boolean isBuffering;
-        private int bufferLimit;
-
-        public ProgressReportBuffer()
-        {
-            this.buffer = null;
-            this.bufferLock = new Object();
-            this.isBuffering = true;
-            this.bufferLimit = 5;
-        }
-
-        /**
-         * Add a new message into the buffer.
-         */
-        public void add(final TaskMessage newResponse)
-        {
-            Objects.requireNonNull(newResponse);
-            addOrFlush(newResponse);
-        }
-
-        /**
-         * Flush the buffer and turn it off. Any subsequent calls to add() will not be buffered.
-         */
-        public void flush()
-        {
-            isBuffering = false;
-            addOrFlush(null);
-        }
-
-        private void addOrFlush(final TaskMessage newResponse)
-        {
-            final TaskMessage previousResponse;
-            final boolean newResponseBuffered;
-
-            // Get the previous message out of the buffer,
-            // and if buffering is still enabled then put the new message into it
-            synchronized (bufferLock) {
-                previousResponse = buffer;
-                buffer = (newResponseBuffered = isBuffering) ? newResponse : null;
-            }
-
-            // Publish the previous message if there is one
-            publishSubtask(previousResponse);
-
-            // Publish the new message if it was not buffered
-            if (!newResponseBuffered) {
-                // Append the subtask id to the task id
-                publishSubtask(newResponse);
-            }
-        }
-    }
-
-    /**
      * Gets the next subtask identifier, appends it to the message and publishes it.
      */
     private void publishSubtask(final TaskMessage responseMessage)
@@ -532,29 +462,4 @@ class WorkerTaskImpl implements WorkerTask
             }
         }
     }
-
-    private void reportProgress(final TaskMessage[] responseMessages)
-    {
-        // Do not do anything if there are no messages to report progress on.
-        if (responseMessages == null || responseMessages.length == 0) {
-            return;
-        }
-
-        for (TaskMessage tm : responseMessages) {
-
-        }
-
-        // Get the next subtask identifier
-        final int subtaskId = currentSubtaskId.incrementAndGet();
-
-        // Append the subtask id to the task id
-        updateTaskId(responseMessage, subtaskId, false);
-
-        // Publish this message
-        workerCallback.send(messageId, responseMessage);
-
-        // Allow the final task to complete (in case it was blocking waiting on the message to be published)
-        subtasksPublishedSemaphore.release();
-    }
-
 }
