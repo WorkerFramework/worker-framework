@@ -43,13 +43,13 @@
                 "en-us": "pages/en-us/Architecture"
             }
         },
-            {
-                "title": {
-                    "en-us": "Error Handling"
-                },
-                "url": {
-                    "en-us": "pages/en-us/Error-Handling"
-                }
-            }]
+        {
+            "title": {
+                "en-us": "Error Handling"
+            },
+            "url": {
+                "en-us": "pages/en-us/Error-Handling"
+            }
+        }]
     }]
 }
