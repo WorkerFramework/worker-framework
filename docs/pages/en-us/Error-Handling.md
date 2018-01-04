@@ -14,7 +14,7 @@ banner:
 
 # Error Handling
 
-The purpose of this page is to provide details for the various types of errors and failures that can arise during message processing. A set of rules that every Worker implementation should adhere too is included as well.
+The purpose of this page is to provide details for the various types of errors and failures that can arise during message processing. A set of rules that every Worker implementation should adhere to is included as well.
 
 ## Worker Success
 We start though by describing the expected flow when messages are handled by Worker implementations without any issues at all.
@@ -42,7 +42,7 @@ A poisoned message is a message that a worker is unable to handle. The message i
 6. When the response has been published, the original message is then acknowledged.
 
 ## OutOfMemory / StackOverflow Errors
-Messages which cause OutOfMemory / StackOverflow errors also cause the Worker to crash. These are treated the same as poisoned messages and will be retried until successful or until the retry count exceeds the permitted number of retries.  If the permitted number of retries is exceeded the message will be placed on the `worker-output-queue` by the framework, with a task status of “RESULT_EXCEPTION”. See Figure 2 above for further details.
+Messages which cause OutOfMemory / StackOverflow errors also cause the Worker to crash. These are treated the same as poisoned messages and will be retried until successful or until the retry count exceeds the permitted number of retries.  If the permitted number of retries is exceeded the message will be placed on the `worker-output-queue` by the framework, with a task status of `RESULT_EXCEPTION`. See Figure 2 above for further details.
 
 ## Transient Failures
 Transient errors arise as a result of a failure beyond the control of the Worker, e.g the database being down or unavailable.
