@@ -64,12 +64,13 @@ final class WorkerExecutor
      *
      * @param tm the task message
      * @param queueMessageId the reference to the message this task arrived on
+     * @param headers the map of key/value paired headers to be stamped on the message
      * @throws TaskRejectedException if the WorkerFactory indicates the task cannot be handled at this time
      */
-    public void executeTask(final TaskMessage tm, final String queueMessageId, boolean poison)
+    public void executeTask(final TaskMessage tm, final String queueMessageId, final boolean poison, final Map<String, Object> headers)
         throws TaskRejectedException
     {
-        final WorkerTaskImpl workerTask = createWorkerTask(queueMessageId, tm, poison);
+        final WorkerTaskImpl workerTask = createWorkerTask(queueMessageId, tm, poison, headers);
 
         threadPool.submitWorkerTask(workerTask);
     }
@@ -107,8 +108,8 @@ final class WorkerExecutor
     /**
      * Creates a WorkerTask for the specified message
      */
-    private WorkerTaskImpl createWorkerTask(final String messageId, final TaskMessage taskMessage, boolean poison)
+    private WorkerTaskImpl createWorkerTask(final String messageId, final TaskMessage taskMessage, final boolean poison, final Map<String, Object> headers)
     {
-        return new WorkerTaskImpl(servicePath, callback, factory, messageId, taskMessage, poison, priorityManager);
+        return new WorkerTaskImpl(servicePath, callback, factory, messageId, taskMessage, poison, headers, priorityManager);
     }
 }

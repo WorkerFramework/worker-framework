@@ -46,10 +46,11 @@ public class WorkerExecutorTest
         WorkerThreadPool pool = WorkerThreadPool.create(5);
         MessagePriorityManager priorityManager = Mockito.mock(MessagePriorityManager.class);
         Mockito.when(priorityManager.getResponsePriority(Mockito.any())).thenReturn(2);
+        Map<String, Object> headers = new HashMap<>();
 
         WorkerExecutor executor = new WorkerExecutor(path, callback, factory, pool, priorityManager);
         TaskMessage tm = new TaskMessage("test", "test", 1, "test".getBytes(StandardCharsets.UTF_8), TaskStatus.NEW_TASK, new HashMap<>(), "testTo");
-        executor.executeTask(tm, "test", false);
+        executor.executeTask(tm, "test", false, headers);
         Mockito.verify(factory, Mockito.times(1)).getWorker(Mockito.any());
     }
 
@@ -121,10 +122,11 @@ public class WorkerExecutorTest
         Mockito.when(factory.getWorker(Mockito.any())).thenThrow(
             TaskRejectedException.class);
         WorkerThreadPool pool = WorkerThreadPool.create(5);
+        Map<String, Object> headers = new HashMap<>();
 
         WorkerExecutor executor = new WorkerExecutor(path, callback, factory, pool, priorityManager);
         TaskMessage tm = new TaskMessage("test", "test", 1, "test".getBytes(StandardCharsets.UTF_8), TaskStatus.NEW_TASK, new HashMap<>(), "test");
-        executor.executeTask(tm, "test", false);
+        executor.executeTask(tm, "test", false, headers);
     }
 
     @Test
@@ -157,12 +159,13 @@ public class WorkerExecutorTest
             InvalidTaskException.class);
         MessagePriorityManager priorityManager = Mockito.mock(MessagePriorityManager.class);
         Mockito.when(priorityManager.getResponsePriority(Mockito.any())).thenReturn(2);
+        Map<String, Object> headers = new HashMap<>();
 
         WorkerThreadPool pool = WorkerThreadPool.create(5);
         WorkerExecutor executor = new WorkerExecutor(path, callback, factory, pool, priorityManager);
 
         TaskMessage tm = new TaskMessage(taskId, classifier, ver, data, TaskStatus.NEW_TASK, new HashMap<>(), "queue");
-        executor.executeTask(tm, msgId, false);
+        executor.executeTask(tm, msgId, false, headers);
         Mockito.verify(factory, Mockito.times(1)).getWorker(Mockito.any());
         Mockito.verify(callback, Mockito.times(1)).complete(Mockito.any(), Mockito.any(), Mockito.any());
     }
@@ -199,6 +202,7 @@ public class WorkerExecutorTest
         Mockito.when(priorityManager.getResponsePriority(Mockito.any())).thenReturn(2);
         WorkerThreadPool pool = WorkerThreadPool.create(5);
         WorkerExecutor executor = new WorkerExecutor(path, callback, factory, pool, priorityManager);
+        Map<String, Object> headers = new HashMap<>();
 
         TaskMessage tm = new TaskMessage(taskId, classifier, ver, data, TaskStatus.NEW_TASK, new HashMap<>(), "queue");
         tm.setTaskId(null);
@@ -206,7 +210,7 @@ public class WorkerExecutorTest
         tm.setTaskData(null);
         tm.setContext(null);
 
-        executor.executeTask(tm, msgId, false);
+        executor.executeTask(tm, msgId, false, headers);
         Mockito.verify(factory, Mockito.times(1)).getWorker(Mockito.any());
         Mockito.verify(callback, Mockito.times(1)).complete(Mockito.any(), Mockito.any(), Mockito.any());
     }
@@ -224,9 +228,10 @@ public class WorkerExecutorTest
         Mockito.doThrow(TaskRejectedException.class).when(pool).submitWorkerTask(Mockito.any(WorkerTaskImpl.class));
         MessagePriorityManager priorityManager = Mockito.mock(MessagePriorityManager.class);
         Mockito.when(priorityManager.getResponsePriority(Mockito.any())).thenReturn(2);
+        Map<String, Object> headers = new HashMap<>();
 
         WorkerExecutor executor = new WorkerExecutor(path, callback, factory, pool, priorityManager);
         TaskMessage tm = new TaskMessage("test", "test", 1, "test".getBytes(StandardCharsets.UTF_8), TaskStatus.NEW_TASK, new HashMap<>(), "test");
-        executor.executeTask(tm, "test", false);
+        executor.executeTask(tm, "test", false, headers);
     }
 }

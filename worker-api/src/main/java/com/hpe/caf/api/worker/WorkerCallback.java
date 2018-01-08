@@ -64,4 +64,13 @@ public interface WorkerCallback
      * @param queueMsgId the id of the task's queue message to discard
      */
     void discard(String queueMsgId);
+
+    /**
+     * Used to send a report update response prior to the final response (when complete should be used instead).
+     *
+     * @param queueMsgId a queue-specific reference for the incoming message that generated the response
+     * @param queue the queue to hold the report update response
+     * @param responseMessage the report update response to put on the queue
+     */
+    void reportUpdate(final String queueMsgId, final String queue, final TaskMessage responseMessage);
 }

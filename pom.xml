@@ -106,6 +106,7 @@
         <module>worker-archetype</module>
         <module>worker-store-s3</module>
         <module>worker-store-mem</module>
+        <module>worker-report-updates-jtw</module>
     </modules>
 
     <scm>
