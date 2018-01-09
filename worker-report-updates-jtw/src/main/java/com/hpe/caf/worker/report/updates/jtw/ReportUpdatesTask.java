@@ -24,9 +24,6 @@ import java.util.Objects;
  */
 public class ReportUpdatesTask
 {
-    public ReportUpdatesTask() {
-    }
-
     /**
      * The tracked job tasks whose progress is being reported.
      */

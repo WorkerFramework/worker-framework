@@ -29,9 +29,6 @@ import java.util.Objects;
 @JsonInclude(JsonInclude.Include.NON_NULL)
 public class ReportUpdatesTaskData
 {
-    public ReportUpdatesTaskData() {
-    }
-
     /**
      * The identifier of the tracked job task whose progress is being reported.
      */
