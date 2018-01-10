@@ -25,9 +25,9 @@ import com.hpe.caf.api.worker.*;
 import com.hpe.caf.codec.JsonCodec;
 import com.hpe.caf.naming.ServicePath;
 import com.hpe.caf.worker.AbstractWorker;
-import com.hpe.caf.worker.report.updates.jtw.ReportUpdatesStatus;
-import com.hpe.caf.worker.report.updates.jtw.ReportUpdatesTask;
-import com.hpe.caf.worker.report.updates.jtw.ReportUpdatesTaskConstants;
+import com.hpe.caf.worker.tracking.report.TrackingReportStatus;
+import com.hpe.caf.worker.tracking.report.TrackingReportTask;
+import com.hpe.caf.worker.tracking.report.TrackingReportConstants;
 import org.testng.Assert;
 import org.testng.annotations.Test;
 import org.mockito.Mockito;
@@ -128,11 +128,11 @@ public class WorkerCoreTest
         // deserialise and verify rutResult data
         final TaskMessage rutTaskMessage = codec.deserialise(rutResult, TaskMessage.class);
         Assert.assertEquals(TaskStatus.NEW_TASK, rutTaskMessage.getTaskStatus());
-        Assert.assertEquals(ReportUpdatesTaskConstants.REPORT_UPDATES_TASK_NAME, rutTaskMessage.getTaskClassifier());
-        Assert.assertEquals(ReportUpdatesTaskConstants.REPORT_UPDATES_TASK_API_VER, rutTaskMessage.getTaskApiVersion());
-        final ReportUpdatesTask rutWorkerResult = codec.deserialise(rutTaskMessage.getTaskData(), ReportUpdatesTask.class);
-        Assert.assertEquals("J23.1.2", rutWorkerResult.getTasks().get(0).getJobTaskId());
-        Assert.assertEquals(ReportUpdatesStatus.Progress, rutWorkerResult.getTasks().get(0).getReportUpdatesStatus());
+        Assert.assertEquals(TrackingReportConstants.TRACKING_REPORT_TASK_NAME, rutTaskMessage.getTaskClassifier());
+        Assert.assertEquals(TrackingReportConstants.TRACKING_REPORT_TASK_API_VER, rutTaskMessage.getTaskApiVersion());
+        final TrackingReportTask rutWorkerResult = codec.deserialise(rutTaskMessage.getTaskData(), TrackingReportTask.class);
+        Assert.assertEquals("J23.1.2", rutWorkerResult.trackingReports.get(0).jobTaskId);
+        Assert.assertEquals(TrackingReportStatus.Progress, rutWorkerResult.trackingReports.get(0).status);
         // Verify result for message completion.
         final byte[] msgCompletionResult = q.poll(5000, TimeUnit.MILLISECONDS);
         // if the result didn't get back to us, then result will be null
@@ -257,13 +257,13 @@ public class WorkerCoreTest
         // deserialise and verify rutResult data
         final TaskMessage rutTaskMessage = codec.deserialise(rutResult, TaskMessage.class);
         Assert.assertEquals(TaskStatus.NEW_TASK, rutTaskMessage.getTaskStatus());
-        Assert.assertEquals(ReportUpdatesTaskConstants.REPORT_UPDATES_TASK_NAME, rutTaskMessage.getTaskClassifier());
-        Assert.assertEquals(ReportUpdatesTaskConstants.REPORT_UPDATES_TASK_API_VER, rutTaskMessage.getTaskApiVersion());
-        final ReportUpdatesTask rutWorkerResult = codec.deserialise(rutTaskMessage.getTaskData(), ReportUpdatesTask.class);
-        Assert.assertEquals("J23.1.2", rutWorkerResult.getTasks().get(0).getJobTaskId());
-        Assert.assertEquals(ReportUpdatesStatus.Rejected, rutWorkerResult.getTasks().get(0).getReportUpdatesStatus());
-        Assert.assertEquals(TaskStatus.INVALID_TASK.name(), rutWorkerResult.getTasks().get(0).getFailureId());
-        Assert.assertEquals(WORKER_NAME, rutWorkerResult.getTasks().get(0).getFailureSource());
+        Assert.assertEquals(TrackingReportConstants.TRACKING_REPORT_TASK_NAME, rutTaskMessage.getTaskClassifier());
+        Assert.assertEquals(TrackingReportConstants.TRACKING_REPORT_TASK_API_VER, rutTaskMessage.getTaskApiVersion());
+        final TrackingReportTask rutWorkerResult = codec.deserialise(rutTaskMessage.getTaskData(), TrackingReportTask.class);
+        Assert.assertEquals("J23.1.2", rutWorkerResult.trackingReports.get(0).jobTaskId);
+        Assert.assertEquals(TrackingReportStatus.Failed, rutWorkerResult.trackingReports.get(0).status);
+        Assert.assertEquals(TaskStatus.INVALID_TASK.name(), rutWorkerResult.trackingReports.get(0).failure.failureId);
+        Assert.assertEquals(WORKER_NAME, rutWorkerResult.trackingReports.get(0).failure.failureSource);
         // Verify result for message completion.
         final byte[] msgCompletionResult = q.poll(5000, TimeUnit.MILLISECONDS);
         // if the result didn't get back to us, then result will be null

@@ -152,7 +152,7 @@ final class WorkerCore
                 if (taskIsActive) {
                     if (tm.getTo() != null && tm.getTo().equalsIgnoreCase(workerQueue.getInputQueue())) {
                         LOG.debug("Task {} (message id: {}) on input queue {} {}", tm.getTaskId(), queueMsgId, workerQueue.getInputQueue(), (tm.getTo() != null) ? "is intended for this worker" : "has no explicit destination, therefore assuming it is intended for this worker");
-                        executor.executeTask(tm, queueMsgId, poison, headers);
+                        executor.executeTask(tm, queueMsgId, poison, headers, codec);
                     } else {
                         LOG.debug("Task {} (message id: {}) is not intended for this worker: input queue {} does not match message destination queue {}", tm.getTaskId(), queueMsgId, workerQueue.getInputQueue(), tm.getTo());
                         executor.forwardTask(tm, queueMsgId, headers);
@@ -485,24 +485,24 @@ final class WorkerCore
         }
 
         @Override
-        public void reportUpdate(final String queueMsgId, final String queue, final TaskMessage responseMessage)
+        public void reportUpdate(final String queueMsgId, final TaskMessage reportUpdateMessage)
         {
             Objects.requireNonNull(queueMsgId);
-            Objects.requireNonNull(queue);
-            Objects.requireNonNull(responseMessage);
-            LOG.debug("Sending report update message to queue {} for task {} (message id: {})", queue, responseMessage.getTaskId(), queueMsgId);
+            Objects.requireNonNull(reportUpdateMessage);
+            LOG.debug("Sending report update message to queue {} for task {})", reportUpdateMessage.getTo(),
+                    reportUpdateMessage.getTaskId());
 
             final byte[] output;
             try {
-                output = codec.serialise(responseMessage);
+                output = codec.serialise(reportUpdateMessage);
             } catch (final CodecException ex) {
                 throw new RuntimeException(ex);
             }
 
-            final int priority = responseMessage.getPriority() == null ? 0 : responseMessage.getPriority();
+            final int priority = reportUpdateMessage.getPriority() == null ? 0 : reportUpdateMessage.getPriority();
 
             try {
-                workerQueue.publish("-1", output, queue, Collections.emptyMap(), priority);
+                workerQueue.publish("-1", output, reportUpdateMessage.getTo(), Collections.emptyMap(), priority);
             } catch (final QueueException ex) {
                 throw new RuntimeException(ex);
             }

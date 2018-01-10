@@ -13,30 +13,19 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.hpe.caf.worker.report.updates.jtw;
+package com.hpe.caf.worker.tracking.report;
 
-/**
- * Enumeration indicating how the job task update should be reported.
- */
-public enum ReportUpdatesStatus
+public final class TrackingReportConstants
 {
     /**
-     * Used to report the progress of a job task.
+     * Identifies the sort of task this message is.
      */
-    Progress,
+    public static final String TRACKING_REPORT_TASK_NAME = "TrackingReportTask";
 
     /**
-     * Used to report the completion of a job task.
+     * The numeric API version of the message task.
      */
-    Complete,
+    public static final int TRACKING_REPORT_TASK_API_VER = 1;
 
-    /**
-     * Used to report the failure and rejection of a job task.
-     */
-    Rejected,
-
-    /**
-     * Used to report the failure and retry of a job task.
-     */
-    Retry
+    private TrackingReportConstants() { }
 }

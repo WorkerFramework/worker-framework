@@ -15,6 +15,7 @@
  */
 package com.hpe.caf.worker.core;
 
+import com.hpe.caf.api.Codec;
 import com.hpe.caf.api.worker.*;
 import com.hpe.caf.naming.ServicePath;
 import org.slf4j.Logger;
@@ -67,10 +68,10 @@ final class WorkerExecutor
      * @param headers the map of key/value paired headers to be stamped on the message
      * @throws TaskRejectedException if the WorkerFactory indicates the task cannot be handled at this time
      */
-    public void executeTask(final TaskMessage tm, final String queueMessageId, final boolean poison, final Map<String, Object> headers)
+    public void executeTask(final TaskMessage tm, final String queueMessageId, final boolean poison, final Map<String, Object> headers, final Codec codec)
         throws TaskRejectedException
     {
-        final WorkerTaskImpl workerTask = createWorkerTask(queueMessageId, tm, poison, headers);
+        final WorkerTaskImpl workerTask = createWorkerTask(queueMessageId, tm, poison, headers, codec);
 
         threadPool.submitWorkerTask(workerTask);
     }
@@ -108,8 +109,10 @@ final class WorkerExecutor
     /**
      * Creates a WorkerTask for the specified message
      */
-    private WorkerTaskImpl createWorkerTask(final String messageId, final TaskMessage taskMessage, final boolean poison, final Map<String, Object> headers)
+    private WorkerTaskImpl createWorkerTask(final String messageId, final TaskMessage taskMessage, final boolean poison,
+                                            final Map<String, Object> headers, final Codec codec)
     {
-        return new WorkerTaskImpl(servicePath, callback, factory, messageId, taskMessage, poison, headers, priorityManager);
+        return new WorkerTaskImpl(servicePath, callback, factory, messageId, taskMessage, poison, headers, codec,
+                priorityManager);
     }
 }

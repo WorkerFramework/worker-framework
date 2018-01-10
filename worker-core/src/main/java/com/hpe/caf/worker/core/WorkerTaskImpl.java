@@ -33,13 +33,12 @@ import java.util.UUID;
 import java.util.concurrent.Semaphore;
 import java.util.concurrent.atomic.AtomicInteger;
 
-import com.hpe.caf.util.ModuleLoader;
-import com.hpe.caf.util.ModuleLoaderException;
 import com.hpe.caf.util.rabbitmq.RabbitHeaders;
-import com.hpe.caf.worker.report.updates.jtw.ReportUpdatesStatus;
-import com.hpe.caf.worker.report.updates.jtw.ReportUpdatesTask;
-import com.hpe.caf.worker.report.updates.jtw.ReportUpdatesTaskConstants;
-import com.hpe.caf.worker.report.updates.jtw.ReportUpdatesTaskData;
+import com.hpe.caf.worker.tracking.report.TrackingReportFailure;
+import com.hpe.caf.worker.tracking.report.TrackingReportStatus;
+import com.hpe.caf.worker.tracking.report.TrackingReportTask;
+import com.hpe.caf.worker.tracking.report.TrackingReportConstants;
+import com.hpe.caf.worker.tracking.report.TrackingReport;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -61,8 +60,8 @@ class WorkerTaskImpl implements WorkerTask
     private final AtomicInteger currentSubtaskId;
     private final Semaphore subtasksPublishedSemaphore;
     private final boolean poison;
-    private Codec codec = null;
-    private Map<String, Object> headers;
+    private final Codec codec;
+    private final Map<String, Object> headers;
 
     public WorkerTaskImpl(
             final ServicePath servicePath,
@@ -72,6 +71,7 @@ class WorkerTaskImpl implements WorkerTask
             final TaskMessage taskMessage,
             final boolean poison,
             final Map<String, Object> headers,
+            final Codec codec,
             final MessagePriorityManager priorityManager
     )
     {
@@ -89,13 +89,7 @@ class WorkerTaskImpl implements WorkerTask
         this.subtasksPublishedSemaphore = new Semaphore(0);
         this.poison = poison;
         this.headers = headers;
-
-        try {
-            codec = ModuleLoader.getService(Codec.class);
-        } catch (final ModuleLoaderException e) {
-            LOG.error("Failed to load Codec module.");
-            throw new RuntimeException(e);
-        }
+        this.codec = codec;
     }
 
     @Override
@@ -135,6 +129,12 @@ class WorkerTaskImpl implements WorkerTask
     }
 
     @Override
+    public String getTo()
+    {
+        return taskMessage.getTo();
+    }
+
+    @Override
     public TaskSourceInfo getSourceInfo()
     {
         return taskMessage.getSourceInfo();
@@ -151,9 +151,6 @@ class WorkerTaskImpl implements WorkerTask
         final TaskMessage responseMessage = createResponseMessage(includeTaskContext, response);
 
         singleMessageBuffer.add(responseMessage);
-
-        //  Add report update task message to progress report buffer.
-        progressReportBuffer.add(responseMessage, headers);
     }
 
     @Override
@@ -173,9 +170,6 @@ class WorkerTaskImpl implements WorkerTask
         incrementResponseCount(true);
 
         final TaskMessage responseMessage = createResponseMessage(true, response);
-
-        //  Add report update task message to progress report buffer.
-        progressReportBuffer.add(responseMessage, headers);
 
         completeResponse(responseMessage);
     }
@@ -263,9 +257,6 @@ class WorkerTaskImpl implements WorkerTask
             workerFactory.getInvalidTaskQueue(),
             taskMessage.getTracking(),
             new TaskSourceInfo(getWorkerName(taskClassifier), getWorkerVersion()));
-
-        //  Add report update task message to progress report buffer.
-        progressReportBuffer.add(invalidResponse, headers);
 
         completeResponse(invalidResponse);
     }
@@ -428,66 +419,35 @@ class WorkerTaskImpl implements WorkerTask
     }
 
     /**
-     * Holds a message along with any headers stamped on the message. This is used to publish report updates.
-     */
-    private final class TaskMessageAndHeaders
-    {
-        private TaskMessage message;
-        private Map<String, Object> headers;
-
-        public TaskMessageAndHeaders(final TaskMessage message, final Map<String, Object> headers)
-        {
-            this.message = message;
-            this.headers = headers;
-        }
-
-        public TaskMessage getTaskMessage() {
-            return message;
-        }
-
-        public Map<String, Object> getHeaders() {
-            return headers;
-        }
-    }
-
-    /**
      * Holds the progress report update messages that needs to be forwarded on to the tracking pipe.
      */
     private final class ProgressReportBuffer
     {
-        private List<TaskMessageAndHeaders> buffer;
+        private List<TaskMessage> buffer;
         private final Object bufferLock;
         private boolean isBuffering;
-        private int bufferLimit;
+        private final int bufferLimit;
 
         public ProgressReportBuffer()
         {
             this.buffer = new ArrayList<>();
             this.bufferLock = new Object();
             this.isBuffering = true;
-
-            final String reportUpdatesBufferLimit = System.getenv("CAF_WORKER_REPORT_UPDATES_BUFFER_LIMIT");
-            if (null == reportUpdatesBufferLimit) {
-                // Default buffer limit to 5 if the environment variable is not present.
-                this.bufferLimit = 5;
-            } else {
-                this.bufferLimit = Integer.parseInt(reportUpdatesBufferLimit);
-            }
+            this.bufferLimit = getBufferLimit();
         }
 
         /**
-         * Add a new message along with any headers stamped on the message onto the buffer.
+         * Add a new message onto the buffer.
          */
-        public void add(final TaskMessage taskMessage, final Map<String, Object> headers)
+        public void add(final TaskMessage taskMessage)
         {
             Objects.requireNonNull(taskMessage);
-            Objects.requireNonNull(headers);
 
             //  Ignore if no tracking information and tracking pipe is available.
             if (taskMessage.getTracking() != null &&
                     taskMessage.getTracking().getTrackingPipe() != null &&
                     !taskMessage.getTracking().getTrackingPipe().isEmpty()) {
-                addOrFlush(taskMessage, headers);
+                addOrFlush(taskMessage);
             }
         }
 
@@ -497,18 +457,12 @@ class WorkerTaskImpl implements WorkerTask
         public void flush()
         {
             isBuffering = false;
-            addOrFlush(null, null);
+            addOrFlush(null);
         }
 
-        private void addOrFlush(final TaskMessage taskMessage, final Map<String, Object> headers)
+        private void addOrFlush(final TaskMessage taskMessage)
         {
-            List<TaskMessageAndHeaders> bufferContentsToPublish = null;
-
-            //  If buffering is enabled, then group the supplied message and corresponding header details together.
-            TaskMessageAndHeaders msgAndHeaders = null;
-            if (isBuffering){
-                msgAndHeaders = new TaskMessageAndHeaders(taskMessage, headers);
-            }
+            List<TaskMessage> bufferContentsToPublish = null;
 
             synchronized (bufferLock) {
                 //  If buffer limit has exceeded, then it needs to be flushed.
@@ -517,17 +471,14 @@ class WorkerTaskImpl implements WorkerTask
                     buffer.clear();
                 }
 
-                //  If buffering is enabled, then add message and corresponding headers to the buffer if it does not
-                //  already exist.
-                if (isBuffering && (!buffer.contains(msgAndHeaders))) {
-                    buffer.add(msgAndHeaders);
+                //  If buffering is enabled, then add message to the buffer if it does not already exist.
+                if (isBuffering) {
+                    buffer.add(taskMessage);
                 }
             }
 
             //  Publish the messages currently in the buffer to be published.
-            if (bufferContentsToPublish != null && bufferContentsToPublish.size() > 0) {
-                publishReportUpdates(bufferContentsToPublish);
-            }
+            publishReportUpdates(bufferContentsToPublish);
         }
     }
 
@@ -546,6 +497,9 @@ class WorkerTaskImpl implements WorkerTask
 
         // Append the subtask id to the task id
         updateTaskId(responseMessage, subtaskId, false);
+
+        //  Add task response message to progress report buffer.
+        progressReportBuffer.add(responseMessage);
 
         // Publish this message
         workerCallback.send(messageId, responseMessage);
@@ -573,6 +527,9 @@ class WorkerTaskImpl implements WorkerTask
             // Ensure that all the subtasks have been published before continuing
             subtasksPublishedSemaphore.acquireUninterruptibly(finalResponseCount - 1);
         }
+
+        //  Add task response message to progress report buffer.
+        progressReportBuffer.add(responseMessage);
 
         //  Ensure all report updates have been sent.
         progressReportBuffer.flush();
@@ -619,128 +576,147 @@ class WorkerTaskImpl implements WorkerTask
     /**
      * Used to publish progress report update messages onto the tracking pipe.
      */
-    private void publishReportUpdates(final List<TaskMessageAndHeaders> reportUpdates)
+    private void publishReportUpdates(final List<TaskMessage> reportUpdates)
     {
+        //  If nothing to report then do nothing.
+        if (reportUpdates == null || reportUpdates.isEmpty()) {
+            return;
+        }
+
         //  Make a note of the tracking pipe where progress report updates are to be sent.
         final String trackingPipe = getTrackingPipe(reportUpdates);
 
-        //  Build up a ReportUpdatesTask comprising a list of progress report updates to send.
-        final ReportUpdatesTask reportUpdatesTask = getReportUpdatesTask(reportUpdates);
-        if (reportUpdatesTask.getTasks() == null || reportUpdatesTask.getTasks().size() == 0) {
+        //  Build up a TrackingReportTask comprising a list of progress report updates to send.
+        final TrackingReportTask trackingReportTask = createReportUpdatesTask(reportUpdates);
+        if (trackingReportTask.trackingReports.isEmpty()) {
             return;
         }
 
         //  Serialise the list of progress report updates to send.
         final byte[] reportUpdatesTaskData;
         try {
-            reportUpdatesTaskData = codec.serialise(reportUpdatesTask);
+            reportUpdatesTaskData = codec.serialise(trackingReportTask);
         } catch (final CodecException e) {
             LOG.error("Failed to serialise report update task data.");
             throw new RuntimeException(e);
         }
 
         //  Create a task message comprising the progress report updates.
-        final TaskMessage responseMessage = new TaskMessage(
-                UUID.randomUUID().toString(), ReportUpdatesTaskConstants.REPORT_UPDATES_TASK_NAME,
-                ReportUpdatesTaskConstants.REPORT_UPDATES_TASK_API_VER, reportUpdatesTaskData, TaskStatus.NEW_TASK,
+        final TaskMessage reportUpdateMessage = new TaskMessage(
+                UUID.randomUUID().toString(), TrackingReportConstants.TRACKING_REPORT_TASK_NAME,
+                TrackingReportConstants.TRACKING_REPORT_TASK_API_VER, reportUpdatesTaskData, TaskStatus.NEW_TASK,
                 Collections.<String, byte[]>emptyMap(), trackingPipe);
 
         //  Publish the task message comprising the report updates.
-        workerCallback.reportUpdate(messageId, trackingPipe, responseMessage);
-
-        // TODO - do we need a semaphore here?
+        workerCallback.reportUpdate(messageId, reportUpdateMessage);
     }
 
-    private String getTrackingPipe(final List<TaskMessageAndHeaders> taskMessageAndHeaders)
+    private static String getTrackingPipe(final List<TaskMessage> taskMessages)
     {
         //  Return the first tracking pipe. All task messages are expected to comprise the same
         //  tracking pipe.
-        return taskMessageAndHeaders.get(0).getTaskMessage().getTracking().getTrackingPipe();
+        return taskMessages.get(0).getTracking().getTrackingPipe();
     }
 
-    private ReportUpdatesTask getReportUpdatesTask(final List<TaskMessageAndHeaders> taskMessageAndHeaders) {
+    private TrackingReportTask createReportUpdatesTask(final List<TaskMessage> taskMessages) {
 
-        //  Build up ReportUpdatesTask data to send to tracking pipe.
-        final ReportUpdatesTask reportUpdatesTask = new ReportUpdatesTask();
-        final List<ReportUpdatesTaskData> reportUpdatesTaskDataList = new ArrayList<>();
+        //  Build up TrackingReportTask data to send to tracking pipe.
+        final TrackingReportTask trackingReportTask = new TrackingReportTask();
+        final List<TrackingReport> trackingReports = new ArrayList<>();
 
-        //  Iterate through each task message and corresponding headers to generate a progress report update.
-        for (final TaskMessageAndHeaders msgAndHeaders : taskMessageAndHeaders) {
-            //  Retrieve message and header details.
-            final TaskMessage tm = msgAndHeaders.getTaskMessage();
-            final Map<String, Object> headers = msgAndHeaders.getHeaders();
-
-            //  Create a new instance of ReportUpdatesTaskData to hold the progress report update data.
-            final ReportUpdatesTaskData reportUpdatesTaskData = new ReportUpdatesTaskData();
+        //  Iterate through each task message and generate a progress report update.
+        for (final TaskMessage tm : taskMessages) {
+            //  Create a new instance of TrackingReport to hold the progress report update data.
+            final TrackingReport trackingReport = new TrackingReport();
 
             //  Set job task identifier.
-            reportUpdatesTaskData.setJobTaskId(tm.getTracking().getJobTaskId());
+            trackingReport.jobTaskId = tm.getTracking().getJobTaskId();
 
             //  Get task status.
             final TaskStatus taskStatus = tm.getTaskStatus();
 
             //  Check task status to determine if task is to be reported as complete or not.
-            if (taskStatus == TaskStatus.NEW_TASK || taskStatus == TaskStatus.RESULT_SUCCESS || taskStatus == TaskStatus.RESULT_FAILURE) {
+            if (taskStatus == TaskStatus.NEW_TASK || taskStatus == TaskStatus.RESULT_SUCCESS ||
+                    taskStatus == TaskStatus.RESULT_FAILURE) {
                 final String trackToPipe = tm.getTracking().getTrackTo();
                 final String toPipe = tm.getTo();
 
-                if ((toPipe == null && trackToPipe == null) || (trackToPipe != null && trackToPipe.equalsIgnoreCase(toPipe))) {
+                if ((toPipe == null && trackToPipe == null) || (trackToPipe != null &&
+                        trackToPipe.equalsIgnoreCase(toPipe))) {
                     //  Task should be reported as complete.
-                    reportUpdatesTaskData.setReportUpdatesStatus(ReportUpdatesStatus.Complete);
+                    trackingReport.status = TrackingReportStatus.Complete;
                 } else {
                     //  Task should be reported as in progress.
-                    reportUpdatesTaskData.setReportUpdatesStatus(ReportUpdatesStatus.Progress);
-                    reportUpdatesTaskData.setEstimatedPercentageCompleted(0);
+                    trackingReport.status = TrackingReportStatus.Progress;
+                    trackingReport.estimatedPercentageCompleted = 0;
                 }
             } else if (taskStatus == TaskStatus.RESULT_EXCEPTION || taskStatus == TaskStatus.INVALID_TASK) {
                 //  Failed to execute job task. Configure failure details to be reported.
-                reportUpdatesTaskData.setFailureId(taskStatus.toString());
-                reportUpdatesTaskData.setFailureTime(new Date());
-                reportUpdatesTaskData.setFailureSource(getWorkerName(tm));
+                final TrackingReportFailure failure = new TrackingReportFailure();
+                failure.failureId= taskStatus.toString();
+                failure.failureTime = new Date();
+                failure.failureSource = getWorkerName(tm);
                 final byte[] taskData = tm.getTaskData();
                 if (taskData != null) {
-                    reportUpdatesTaskData.setFailureMessage(new String(taskData, StandardCharsets.UTF_8));
+                    failure.failureMessage = new String(taskData, StandardCharsets.UTF_8);
                 }
+                trackingReport.failure = failure;
+
                 //  Task should be reported as rejected.
-                reportUpdatesTaskData.setReportUpdatesStatus(ReportUpdatesStatus.Rejected);
+                trackingReport.status = TrackingReportStatus.Failed;
             } else {
+                //  TODO
+                //  NOTE - this logic has been copied across from JobTrackingWorkerFactory->reportProxiedTask but
+                //  I cannot see how we fall into this code given all TaskStatus enumerations have been evaluated by now
+                //  and TaskStatus appears to be non-nullable given annotation specified in the TaskMessage class.
+
                 //  Check for rejected headers.
-                final boolean rejected = headers.getOrDefault(RabbitHeaders.RABBIT_HEADER_CAF_WORKER_REJECTED, null) != null;
-                final int retries = Integer.parseInt(String.valueOf(headers.getOrDefault(RabbitHeaders.RABBIT_HEADER_CAF_WORKER_RETRY, "0")));
+                final boolean rejected =
+                        headers.getOrDefault(RabbitHeaders.RABBIT_HEADER_CAF_WORKER_REJECTED, null) != null;
+                final int retries =
+                        Integer.parseInt(String.valueOf(headers.getOrDefault(
+                                RabbitHeaders.RABBIT_HEADER_CAF_WORKER_RETRY, "0")));
+
                 if (rejected) {
-                    final String rejectedHeader = String.valueOf(headers.get(RabbitHeaders.RABBIT_HEADER_CAF_WORKER_REJECTED));
-                    final String rejectionDetails = MessageFormat.format("{0}. Execution of this job task was retried {1} times.", rejectedHeader, retries);
+                    final String rejectedHeader = String.valueOf(headers.get(
+                            RabbitHeaders.RABBIT_HEADER_CAF_WORKER_REJECTED));
+                    final String rejectionDetails =
+                            MessageFormat.format("{0}. Execution of this job task was retried {1} times.",
+                                    rejectedHeader, retries);
 
                     //  Configure failure details to be reported.
-                    reportUpdatesTaskData.setFailureId(RabbitHeaders.RABBIT_HEADER_CAF_WORKER_REJECTED);
-                    reportUpdatesTaskData.setFailureTime(new Date());
-                    reportUpdatesTaskData.setFailureSource(getWorkerName(tm));
-                    reportUpdatesTaskData.setFailureMessage(rejectionDetails);
+                    final TrackingReportFailure failure = new TrackingReportFailure();
+                    failure.failureId = RabbitHeaders.RABBIT_HEADER_CAF_WORKER_REJECTED;
+                    failure.failureTime = new Date();
+                    failure.failureSource = getWorkerName(tm);
+                    failure.failureMessage = rejectionDetails;
+                    trackingReport.failure = failure;
 
                     //  Task should be reported as rejected.
-                    reportUpdatesTaskData.setReportUpdatesStatus(ReportUpdatesStatus.Rejected);
+                    trackingReport.status = TrackingReportStatus.Failed;
                 } else {
-                    reportUpdatesTaskData.setRetries(retries);
+                    trackingReport.retries = retries;
 
                     //  Task should be reported as retry.
-                    reportUpdatesTaskData.setReportUpdatesStatus(ReportUpdatesStatus.Retry);
+                    trackingReport.status = TrackingReportStatus.Retry;
                 }
             }
 
-            //  Add ReportUpdatesTaskData to list.
-            reportUpdatesTaskDataList.add(reportUpdatesTaskData);
+            //  Add tracking report to list.
+            trackingReports.add(trackingReport);
         }
 
-        // Add progress report update task data to ReportUpdatesTask and return.
-        if (reportUpdatesTaskDataList.size() > 0) {
-            reportUpdatesTask.setTasks(reportUpdatesTaskDataList);
+        //  Add list of tracking reports to tracking report task.
+        if (trackingReports.size() > 0) {
+            trackingReportTask.trackingReports = trackingReports;
         }
 
-        return reportUpdatesTask;
+        return trackingReportTask;
     }
 
     /**
-     * Returns the worker name from the source information in the task message or an "Unknown" string if it is not present.
+     * Returns the worker name from the source information in the task message or an "Unknown" string if it is
+     * not present.
      *
      * @param taskMessage the task message to be examined
      * @return the name of the worker that created the task message
@@ -758,6 +734,26 @@ class WorkerTaskImpl implements WorkerTask
         }
 
         return workerName;
+    }
+
+    private static int getBufferLimit()
+    {
+        int bufferLimit;
+        final String bufferLimitEnv = System.getenv("CAF_WORKER_REPORT_UPDATES_BUFFER_LIMIT");
+        if (null == bufferLimitEnv) {
+            // Default buffer limit to 5 if the environment variable is not present.
+            bufferLimit = 5;
+        } else {
+            try {
+                bufferLimit = Integer.parseInt(bufferLimitEnv);
+            } catch (final NumberFormatException nfe) {
+                //  Log the environment variables does not contain a parsable int and return default value instead.
+                LOG.debug("CAF_WORKER_REPORT_UPDATES_BUFFER_LIMIT does not contain a parsable int.");
+                bufferLimit = 5;
+            }
+        }
+
+        return bufferLimit;
     }
 
 }

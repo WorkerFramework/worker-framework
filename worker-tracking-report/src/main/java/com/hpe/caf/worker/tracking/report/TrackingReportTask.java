@@ -13,28 +13,19 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.hpe.caf.worker.report.updates.jtw;
+package com.hpe.caf.worker.tracking.report;
 
 import javax.validation.constraints.NotNull;
 import java.util.List;
-import java.util.Objects;
 
 /**
- * This task is used to inform the Job Tracking worker of the progress of a number of job tasks.
+ * This task is used to report on the progress of a number of tracked job tasks.
  */
-public class ReportUpdatesTask
+public final class TrackingReportTask
 {
     /**
      * The tracked job tasks whose progress is being reported.
      */
     @NotNull
-    private List<ReportUpdatesTaskData> tasks;
-
-    public List<ReportUpdatesTaskData> getTasks() {
-        return tasks;
-    }
-
-    public void setTasks(final List<ReportUpdatesTaskData> tasks) {
-        this.tasks = Objects.requireNonNull(tasks);
-    }
+    public List<TrackingReport> trackingReports;
 }

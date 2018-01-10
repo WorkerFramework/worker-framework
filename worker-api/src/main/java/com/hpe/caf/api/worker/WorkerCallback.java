@@ -66,11 +66,10 @@ public interface WorkerCallback
     void discard(String queueMsgId);
 
     /**
-     * Used to send a report update response prior to the final response (when complete should be used instead).
+     * Used to send a report update message prior to the final response (when complete should be used instead).
      *
-     * @param queueMsgId a queue-specific reference for the incoming message that generated the response
-     * @param queue the queue to hold the report update response
-     * @param responseMessage the report update response to put on the queue
+     * @param queueMsgId a queue-specific reference for the incoming message
+     * @param reportUpdateMessage the report update message to put on the queue
      */
-    void reportUpdate(final String queueMsgId, final String queue, final TaskMessage responseMessage);
+    void reportUpdate(final String queueMsgId, final TaskMessage reportUpdateMessage);
 }

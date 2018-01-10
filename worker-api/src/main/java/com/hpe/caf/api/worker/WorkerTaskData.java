@@ -51,6 +51,11 @@ public interface WorkerTaskData
     TrackingInfo getTrackingInfo();
 
     /**
+     * Retrieves the destination pipe to which the sender intends the task to be sent.
+     */
+    String getTo();
+
+    /**
      * Retrieves information relating to the source of the task
      */
     TaskSourceInfo getSourceInfo();
