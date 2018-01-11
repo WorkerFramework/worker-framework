@@ -489,8 +489,7 @@ final class WorkerCore
         {
             Objects.requireNonNull(queueMsgId);
             Objects.requireNonNull(reportUpdateMessage);
-            LOG.debug("Sending report update message to queue {} for task {})", reportUpdateMessage.getTo(),
-                    reportUpdateMessage.getTaskId());
+            LOG.debug("Sending report updates to queue {})", reportUpdateMessage.getTo());
 
             final byte[] output;
             try {

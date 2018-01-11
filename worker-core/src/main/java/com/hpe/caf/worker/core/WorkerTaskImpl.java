@@ -423,7 +423,7 @@ class WorkerTaskImpl implements WorkerTask
      */
     private final class ProgressReportBuffer
     {
-        private List<TaskMessage> buffer;
+        private final List<TaskMessage> buffer;
         private final Object bufferLock;
         private boolean isBuffering;
         private final int bufferLimit;
@@ -474,6 +474,12 @@ class WorkerTaskImpl implements WorkerTask
                 //  If buffering is enabled, then add message to the buffer if it does not already exist.
                 if (isBuffering) {
                     buffer.add(taskMessage);
+                } else {
+                    //  Ensure any subsequent calls to add() when buffering is disabled results in the task being
+                    //  immediately published and not lost.
+                    if (taskMessage != null) {
+                        bufferContentsToPublish.add(taskMessage);
+                    }
                 }
             }
 
@@ -620,8 +626,6 @@ class WorkerTaskImpl implements WorkerTask
 
     private TrackingReportTask createReportUpdatesTask(final List<TaskMessage> taskMessages) {
 
-        //  Build up TrackingReportTask data to send to tracking pipe.
-        final TrackingReportTask trackingReportTask = new TrackingReportTask();
         final List<TrackingReport> trackingReports = new ArrayList<>();
 
         //  Iterate through each task message and generate a progress report update.
@@ -706,10 +710,9 @@ class WorkerTaskImpl implements WorkerTask
             trackingReports.add(trackingReport);
         }
 
-        //  Add list of tracking reports to tracking report task.
-        if (trackingReports.size() > 0) {
-            trackingReportTask.trackingReports = trackingReports;
-        }
+        //  Build up TrackingReportTask data to send to tracking pipe.
+        final TrackingReportTask trackingReportTask = new TrackingReportTask();
+        trackingReportTask.trackingReports = trackingReports;
 
         return trackingReportTask;
     }
@@ -748,7 +751,7 @@ class WorkerTaskImpl implements WorkerTask
                 bufferLimit = Integer.parseInt(bufferLimitEnv);
             } catch (final NumberFormatException nfe) {
                 //  Log the environment variables does not contain a parsable int and return default value instead.
-                LOG.debug("CAF_WORKER_REPORT_UPDATES_BUFFER_LIMIT does not contain a parsable int.");
+                LOG.warn("CAF_WORKER_REPORT_UPDATES_BUFFER_LIMIT does not contain a parsable int.");
                 bufferLimit = 5;
             }
         }

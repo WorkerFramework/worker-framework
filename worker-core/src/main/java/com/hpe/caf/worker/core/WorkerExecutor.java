@@ -68,7 +68,8 @@ final class WorkerExecutor
      * @param headers the map of key/value paired headers to be stamped on the message
      * @throws TaskRejectedException if the WorkerFactory indicates the task cannot be handled at this time
      */
-    public void executeTask(final TaskMessage tm, final String queueMessageId, final boolean poison, final Map<String, Object> headers, final Codec codec)
+    public void executeTask(final TaskMessage tm, final String queueMessageId, final boolean poison,
+                            final Map<String, Object> headers, final Codec codec)
         throws TaskRejectedException
     {
         final WorkerTaskImpl workerTask = createWorkerTask(queueMessageId, tm, poison, headers, codec);

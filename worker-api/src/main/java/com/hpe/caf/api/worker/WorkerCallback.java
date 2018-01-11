@@ -66,7 +66,7 @@ public interface WorkerCallback
     void discard(String queueMsgId);
 
     /**
-     * Used to send a report update message prior to the final response (when complete should be used instead).
+     * Used to send a report update message.
      *
      * @param queueMsgId a queue-specific reference for the incoming message
      * @param reportUpdateMessage the report update message to put on the queue
