@@ -15,7 +15,9 @@
  */
 package com.hpe.caf.worker.core;
 
+import com.hpe.caf.api.Codec;
 import com.hpe.caf.api.worker.*;
+import com.hpe.caf.codec.JsonCodec;
 import com.hpe.caf.naming.ServicePath;
 import org.testng.Assert;
 import org.testng.annotations.Test;
@@ -36,6 +38,7 @@ public class WorkerExecutorTest
     public void testExecuteTask()
         throws InvalidNameException, TaskRejectedException, InvalidTaskException, InterruptedException
     {
+        Codec codec = new JsonCodec();
         ServicePath path = new ServicePath("/unitTest/test");
         WorkerCallback callback = Mockito.mock(WorkerCallback.class);
         Worker worker = Mockito.mock(Worker.class);
@@ -46,10 +49,11 @@ public class WorkerExecutorTest
         WorkerThreadPool pool = WorkerThreadPool.create(5);
         MessagePriorityManager priorityManager = Mockito.mock(MessagePriorityManager.class);
         Mockito.when(priorityManager.getResponsePriority(Mockito.any())).thenReturn(2);
+        Map<String, Object> headers = new HashMap<>();
 
         WorkerExecutor executor = new WorkerExecutor(path, callback, factory, pool, priorityManager);
         TaskMessage tm = new TaskMessage("test", "test", 1, "test".getBytes(StandardCharsets.UTF_8), TaskStatus.NEW_TASK, new HashMap<>(), "testTo");
-        executor.executeTask(tm, "test", false);
+        executor.executeTask(tm, "test", false, headers, codec);
         Mockito.verify(factory, Mockito.times(1)).getWorker(Mockito.any());
     }
 
@@ -113,6 +117,7 @@ public class WorkerExecutorTest
     public void testRejectTask()
         throws InvalidNameException, InvalidTaskException, TaskRejectedException
     {
+        Codec codec = new JsonCodec();
         ServicePath path = new ServicePath("/unitTest/test");
         MessagePriorityManager priorityManager = Mockito.mock(MessagePriorityManager.class);
         Mockito.when(priorityManager.getResponsePriority(Mockito.any())).thenReturn(2);
@@ -121,16 +126,18 @@ public class WorkerExecutorTest
         Mockito.when(factory.getWorker(Mockito.any())).thenThrow(
             TaskRejectedException.class);
         WorkerThreadPool pool = WorkerThreadPool.create(5);
+        Map<String, Object> headers = new HashMap<>();
 
         WorkerExecutor executor = new WorkerExecutor(path, callback, factory, pool, priorityManager);
         TaskMessage tm = new TaskMessage("test", "test", 1, "test".getBytes(StandardCharsets.UTF_8), TaskStatus.NEW_TASK, new HashMap<>(), "test");
-        executor.executeTask(tm, "test", false);
+        executor.executeTask(tm, "test", false, headers, codec);
     }
 
     @Test
     public void testInvalidTask()
         throws InvalidNameException, InvalidTaskException, TaskRejectedException
     {
+        Codec codec = new JsonCodec();
         ServicePath path = new ServicePath("/unitTest/test");
         String taskId = "testTask";
         String classifier = "classifier";
@@ -157,12 +164,13 @@ public class WorkerExecutorTest
             InvalidTaskException.class);
         MessagePriorityManager priorityManager = Mockito.mock(MessagePriorityManager.class);
         Mockito.when(priorityManager.getResponsePriority(Mockito.any())).thenReturn(2);
+        Map<String, Object> headers = new HashMap<>();
 
         WorkerThreadPool pool = WorkerThreadPool.create(5);
         WorkerExecutor executor = new WorkerExecutor(path, callback, factory, pool, priorityManager);
 
         TaskMessage tm = new TaskMessage(taskId, classifier, ver, data, TaskStatus.NEW_TASK, new HashMap<>(), "queue");
-        executor.executeTask(tm, msgId, false);
+        executor.executeTask(tm, msgId, false, headers, codec);
         Mockito.verify(factory, Mockito.times(1)).getWorker(Mockito.any());
         Mockito.verify(callback, Mockito.times(1)).complete(Mockito.any(), Mockito.any(), Mockito.any());
     }
@@ -171,6 +179,7 @@ public class WorkerExecutorTest
     public void testEvenMoreInvalidTask()
         throws InvalidNameException, InvalidTaskException, TaskRejectedException
     {
+        Codec codec = new JsonCodec();
         ServicePath path = new ServicePath("/unitTest/test");
         String taskId = "";
         String classifier = "";
@@ -199,6 +208,7 @@ public class WorkerExecutorTest
         Mockito.when(priorityManager.getResponsePriority(Mockito.any())).thenReturn(2);
         WorkerThreadPool pool = WorkerThreadPool.create(5);
         WorkerExecutor executor = new WorkerExecutor(path, callback, factory, pool, priorityManager);
+        Map<String, Object> headers = new HashMap<>();
 
         TaskMessage tm = new TaskMessage(taskId, classifier, ver, data, TaskStatus.NEW_TASK, new HashMap<>(), "queue");
         tm.setTaskId(null);
@@ -206,7 +216,7 @@ public class WorkerExecutorTest
         tm.setTaskData(null);
         tm.setContext(null);
 
-        executor.executeTask(tm, msgId, false);
+        executor.executeTask(tm, msgId, false, headers, codec);
         Mockito.verify(factory, Mockito.times(1)).getWorker(Mockito.any());
         Mockito.verify(callback, Mockito.times(1)).complete(Mockito.any(), Mockito.any(), Mockito.any());
     }
@@ -215,6 +225,7 @@ public class WorkerExecutorTest
     public void testQueueFull()
         throws InvalidNameException, InvalidTaskException, TaskRejectedException
     {
+        Codec codec = new JsonCodec();
         ServicePath path = new ServicePath("/unitTest/test");
         WorkerCallback callback = Mockito.mock(WorkerCallback.class);
         Worker worker = Mockito.mock(Worker.class);
@@ -224,9 +235,10 @@ public class WorkerExecutorTest
         Mockito.doThrow(TaskRejectedException.class).when(pool).submitWorkerTask(Mockito.any(WorkerTaskImpl.class));
         MessagePriorityManager priorityManager = Mockito.mock(MessagePriorityManager.class);
         Mockito.when(priorityManager.getResponsePriority(Mockito.any())).thenReturn(2);
+        Map<String, Object> headers = new HashMap<>();
 
         WorkerExecutor executor = new WorkerExecutor(path, callback, factory, pool, priorityManager);
         TaskMessage tm = new TaskMessage("test", "test", 1, "test".getBytes(StandardCharsets.UTF_8), TaskStatus.NEW_TASK, new HashMap<>(), "test");
-        executor.executeTask(tm, "test", false);
+        executor.executeTask(tm, "test", false, headers, codec);
     }
 }
