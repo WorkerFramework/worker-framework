@@ -5,7 +5,7 @@ header: The Worker Framework Team
 
 team_members:
     - name: Dermot Hardy
-      email: dermot.hardy@hpe.com
+      email: dermot.hardy@microfocus.com
       avatar: /assets/img/Dermot.jpg
       social:
         - title: GitHub
@@ -13,10 +13,10 @@ team_members:
           url: https://github.com/dermot-hardy
         - title: Email
           icon: hpe-social-email
-          url: mailto:dermot.hardy@hpe.com
+          url: mailto:dermot.hardy@microfocus.com
           
     - name: Krzysztof Ploch
-      email: krzysztof.ploch@hpe.com
+      email: krzysztof.ploch@microfocus.com
       avatar: /assets/img/Kris.jpg
       social:
        - title: GitHub
@@ -24,5 +24,5 @@ team_members:
          url: https://github.com/kploch
        - title: Email
          icon: hpe-social-email
-         url: mailto:krzysztof.ploch@hpe.com
+         url: mailto:krzysztof.ploch@microfocus.com
 ---

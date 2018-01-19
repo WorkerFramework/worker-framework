@@ -1,8 +1,8 @@
 {
   "name": "caf-templates",
-  "version": "2.0.5",
+  "version": "2.0.6",
   "_source": "art://caf-templates/caf-templates",
   "_target": "^2.0.5",
-  "_release": "2.0.5",
+  "_release": "2.0.6",
   "_originalSource": "caf-templates"
 }
