@@ -25,6 +25,9 @@ import com.hpe.caf.api.worker.*;
 import com.hpe.caf.codec.JsonCodec;
 import com.hpe.caf.naming.ServicePath;
 import com.hpe.caf.worker.AbstractWorker;
+import com.hpe.caf.worker.tracking.report.TrackingReportStatus;
+import com.hpe.caf.worker.tracking.report.TrackingReportTask;
+import com.hpe.caf.worker.tracking.report.TrackingReportConstants;
 import org.testng.Assert;
 import org.testng.annotations.Test;
 import org.mockito.Mockito;
@@ -96,38 +99,53 @@ public class WorkerCoreTest
     public void testWorkerCoreWithTracking()
         throws CodecException, InterruptedException, WorkerException, ConfigurationException, QueueException, InvalidNameException
     {
-        BlockingQueue<byte[]> q = new LinkedBlockingQueue<>();
-        Codec codec = new JsonCodec();
-        WorkerThreadPool wtp = WorkerThreadPool.create(5);
-        ConfigurationSource config = Mockito.mock(ConfigurationSource.class);
-        ServicePath path = new ServicePath(SERVICE_PATH);
-        TestWorkerTask task = new TestWorkerTask();
-        TestWorkerQueue queue = new TestWorkerQueueProvider(q).getWorkerQueue(config, 50);
-        MessagePriorityManager priorityManager = Mockito.mock(MessagePriorityManager.class);
+        final BlockingQueue<byte[]> q = new LinkedBlockingQueue<>();
+        final Codec codec = new JsonCodec();
+        final WorkerThreadPool wtp = WorkerThreadPool.create(5);
+        final ConfigurationSource config = Mockito.mock(ConfigurationSource.class);
+        final ServicePath path = new ServicePath(SERVICE_PATH);
+        final TestWorkerTask task = new TestWorkerTask();
+        final TestWorkerQueue queue = new TestWorkerQueueProvider(q).getWorkerQueue(config, 50);
+        final MessagePriorityManager priorityManager = Mockito.mock(MessagePriorityManager.class);
         Mockito.when(priorityManager.getResponsePriority(Mockito.any())).thenReturn(PRIORITY);
-        HealthCheckRegistry healthCheckRegistry = Mockito.mock(HealthCheckRegistry.class);
-        TransientHealthCheck transientHealthCheck = Mockito.mock(TransientHealthCheck.class);
+        final HealthCheckRegistry healthCheckRegistry = Mockito.mock(HealthCheckRegistry.class);
+        final TransientHealthCheck transientHealthCheck = Mockito.mock(TransientHealthCheck.class);
 
-        WorkerCore core = new WorkerCore(codec, wtp, queue, priorityManager, getWorkerFactory(task, codec), path, healthCheckRegistry, transientHealthCheck);
+        final WorkerCore core = new WorkerCore(codec, wtp, queue, priorityManager, getWorkerFactory(task, codec), path, healthCheckRegistry, transientHealthCheck);
         core.start();
         // at this point, the queue should hand off the task to the app, the app should get a worker from the mocked WorkerFactory,
         // and the Worker itself is a mock wrapped in a WorkerWrapper, which should return success and the appropriate result data
-        TrackingInfo tracking = new TrackingInfo("J23.1.2", new Date(), "http://thehost:1234/job-service/v1/jobs/23/isActive", "trackingQueue", "trackTo");
-        byte[] stuff = codec.serialise(getTaskMessage(task, codec, WORKER_NAME, tracking));
+        final TrackingInfo tracking = new TrackingInfo("J23.1.2", new Date(), "http://thehost:1234/job-service/v1/jobs/23/isActive", "trackingQueue", "trackTo");
+        final byte[] stuff = codec.serialise(getTaskMessage(task, codec, WORKER_NAME, tracking));
         queue.submitTask(QUEUE_MSG_ID, stuff);
-        // the worker's task result should eventually be passed back to our dummy WorkerQueue and onto our blocking queue
-        byte[] result = q.poll(5000, TimeUnit.MILLISECONDS);
+
+        // Two results expected back. One for the report progress update and another for the message completion.
+        //
+        // Verify result for the report update call.
+        final byte[] rutResult = q.poll(5000, TimeUnit.MILLISECONDS);
+        // if the result didn't get back to us, then rutResult will be null
+        Assert.assertNotNull(rutResult);
+        // deserialise and verify rutResult data
+        final TaskMessage rutTaskMessage = codec.deserialise(rutResult, TaskMessage.class);
+        Assert.assertEquals(TaskStatus.NEW_TASK, rutTaskMessage.getTaskStatus());
+        Assert.assertEquals(TrackingReportConstants.TRACKING_REPORT_TASK_NAME, rutTaskMessage.getTaskClassifier());
+        Assert.assertEquals(TrackingReportConstants.TRACKING_REPORT_TASK_API_VER, rutTaskMessage.getTaskApiVersion());
+        final TrackingReportTask rutWorkerResult = codec.deserialise(rutTaskMessage.getTaskData(), TrackingReportTask.class);
+        Assert.assertEquals("J23.1.2", rutWorkerResult.trackingReports.get(0).jobTaskId);
+        Assert.assertEquals(TrackingReportStatus.Progress, rutWorkerResult.trackingReports.get(0).status);
+        // Verify result for message completion.
+        final byte[] msgCompletionResult = q.poll(5000, TimeUnit.MILLISECONDS);
         // if the result didn't get back to us, then result will be null
-        Assert.assertNotNull(result);
-        // deserialise and verify result data
-        TaskMessage taskMessage = codec.deserialise(result, TaskMessage.class);
-        Assert.assertEquals(TaskStatus.RESULT_SUCCESS, taskMessage.getTaskStatus());
-        Assert.assertEquals(WORKER_NAME, taskMessage.getTaskClassifier());
-        Assert.assertEquals(WORKER_API_VER, taskMessage.getTaskApiVersion());
-        TestWorkerResult workerResult = codec.deserialise(taskMessage.getTaskData(), TestWorkerResult.class);
-        Assert.assertEquals(SUCCESS, workerResult.getResultString());
-        Assert.assertTrue(taskMessage.getContext().containsKey(path.toString()));
-        ArrayAsserts.assertArrayEquals(SUCCESS.getBytes(StandardCharsets.UTF_8), taskMessage.getContext().get(path.toString()));
+        Assert.assertNotNull(msgCompletionResult);
+        // deserialise and verify msgCompletionResult data
+        final TaskMessage msgCompletionTaskMessage = codec.deserialise(msgCompletionResult, TaskMessage.class);
+        Assert.assertEquals(TaskStatus.RESULT_SUCCESS, msgCompletionTaskMessage.getTaskStatus());
+        Assert.assertEquals(WORKER_NAME, msgCompletionTaskMessage.getTaskClassifier());
+        Assert.assertEquals(WORKER_API_VER, msgCompletionTaskMessage.getTaskApiVersion());
+        final TestWorkerResult msgCompletionWorkerResult = codec.deserialise(msgCompletionTaskMessage.getTaskData(), TestWorkerResult.class);
+        Assert.assertEquals(SUCCESS, msgCompletionWorkerResult.getResultString());
+        Assert.assertTrue(msgCompletionTaskMessage.getContext().containsKey(path.toString()));
+        ArrayAsserts.assertArrayEquals(SUCCESS.getBytes(StandardCharsets.UTF_8), msgCompletionTaskMessage.getContext().get(path.toString()));
     }
 
     /**
@@ -193,6 +211,70 @@ public class WorkerCoreTest
         Assert.assertEquals(WORKER_API_VER, taskMessage.getTaskApiVersion());
         Assert.assertTrue(taskMessage.getContext().containsKey(testContext));
         ArrayAsserts.assertArrayEquals(testContextData, taskMessage.getContext().get(testContext));
+        Assert.assertEquals(QUEUE_OUT, queue.getLastQueue());
+    }
+
+    /**
+     * Send in a TaskMessage put with an inner task-specific message that cannot be decoded, this should be an
+     * INVALID_TASK response. Also inlcude tracking details to verify report update is sent to expected target pipe.
+     */
+    @Test
+    public void testInvalidTaskWithTracking()
+            throws QueueException, InvalidNameException, WorkerException, CodecException, InterruptedException
+    {
+        final BlockingQueue<byte[]> q = new LinkedBlockingQueue<>();
+        final Codec codec = new JsonCodec();
+        final WorkerThreadPool wtp = WorkerThreadPool.create(5);
+        final ConfigurationSource config = Mockito.mock(ConfigurationSource.class);
+        final ServicePath path = new ServicePath(SERVICE_PATH);
+        final TestWorkerTask task = new TestWorkerTask();
+        final TestWorkerQueue queue = new TestWorkerQueueProvider(q).getWorkerQueue(config, 50);
+        final MessagePriorityManager priorityManager = Mockito.mock(MessagePriorityManager.class);
+        Mockito.when(priorityManager.getResponsePriority(Mockito.any())).thenReturn(PRIORITY);
+        final HealthCheckRegistry healthCheckRegistry = Mockito.mock(HealthCheckRegistry.class);
+        final TransientHealthCheck transientHealthCheck = Mockito.mock(TransientHealthCheck.class);
+
+        final WorkerCore core = new WorkerCore(codec, wtp, queue, priorityManager, getInvalidTaskWorkerFactory(), path, healthCheckRegistry, transientHealthCheck);
+        core.start();
+
+        final TrackingInfo tracking = new TrackingInfo("J23.1.2", new Date(), "http://thehost:1234/job-service/v1/jobs/23/isActive", "trackingQueue", "trackTo");
+        final TaskMessage tm = getTaskMessage(task, codec, WORKER_NAME, tracking);
+        tm.setTaskData(codec.serialise("invalid task data"));
+        final Map<String, byte[]> context = new HashMap<>();
+        final String testContext = "test";
+        final byte[] testContextData = testContext.getBytes(StandardCharsets.UTF_8);
+        context.put(testContext, testContextData);
+        tm.setContext(context);
+        final byte[] stuff = codec.serialise(tm);
+        queue.submitTask(QUEUE_MSG_ID, stuff);
+
+        // Two results expected back. One for the report progress update and another for the message completion.
+        //
+        // Verify result for the report update call.
+        final byte[] rutResult = q.poll(5000, TimeUnit.MILLISECONDS);
+        // if the result didn't get back to us, then rutResult will be null
+        Assert.assertNotNull(rutResult);
+        // deserialise and verify rutResult data
+        final TaskMessage rutTaskMessage = codec.deserialise(rutResult, TaskMessage.class);
+        Assert.assertEquals(TaskStatus.NEW_TASK, rutTaskMessage.getTaskStatus());
+        Assert.assertEquals(TrackingReportConstants.TRACKING_REPORT_TASK_NAME, rutTaskMessage.getTaskClassifier());
+        Assert.assertEquals(TrackingReportConstants.TRACKING_REPORT_TASK_API_VER, rutTaskMessage.getTaskApiVersion());
+        final TrackingReportTask rutWorkerResult = codec.deserialise(rutTaskMessage.getTaskData(), TrackingReportTask.class);
+        Assert.assertEquals("J23.1.2", rutWorkerResult.trackingReports.get(0).jobTaskId);
+        Assert.assertEquals(TrackingReportStatus.Failed, rutWorkerResult.trackingReports.get(0).status);
+        Assert.assertEquals(TaskStatus.INVALID_TASK.name(), rutWorkerResult.trackingReports.get(0).failure.failureId);
+        Assert.assertEquals(WORKER_NAME, rutWorkerResult.trackingReports.get(0).failure.failureSource);
+        // Verify result for message completion.
+        final byte[] msgCompletionResult = q.poll(5000, TimeUnit.MILLISECONDS);
+        // if the result didn't get back to us, then result will be null
+        Assert.assertNotNull(msgCompletionResult);
+        // deserialise and verify msgCompletionResult data
+        final TaskMessage msgCompletionTaskMessage = codec.deserialise(msgCompletionResult, TaskMessage.class);
+        Assert.assertEquals(TaskStatus.INVALID_TASK, msgCompletionTaskMessage.getTaskStatus());
+        Assert.assertEquals(WORKER_NAME, msgCompletionTaskMessage.getTaskClassifier());
+        Assert.assertEquals(WORKER_API_VER, msgCompletionTaskMessage.getTaskApiVersion());
+        Assert.assertTrue(msgCompletionTaskMessage.getContext().containsKey(testContext));
+        ArrayAsserts.assertArrayEquals(testContextData, msgCompletionTaskMessage.getContext().get(testContext));
         Assert.assertEquals(QUEUE_OUT, queue.getLastQueue());
     }
 
