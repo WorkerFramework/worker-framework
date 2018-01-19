@@ -152,7 +152,7 @@ final class WorkerCore
                 if (taskIsActive) {
                     if (tm.getTo() != null && tm.getTo().equalsIgnoreCase(workerQueue.getInputQueue())) {
                         LOG.debug("Task {} (message id: {}) on input queue {} {}", tm.getTaskId(), queueMsgId, workerQueue.getInputQueue(), (tm.getTo() != null) ? "is intended for this worker" : "has no explicit destination, therefore assuming it is intended for this worker");
-                        executor.executeTask(tm, queueMsgId, poison, headers, codec);
+                        executor.executeTask(tm, queueMsgId, poison);
                     } else {
                         LOG.debug("Task {} (message id: {}) is not intended for this worker: input queue {} does not match message destination queue {}", tm.getTaskId(), queueMsgId, workerQueue.getInputQueue(), tm.getTo());
                         executor.forwardTask(tm, queueMsgId, headers);
@@ -373,7 +373,8 @@ final class WorkerCore
             LOG.debug("Sending task {} complete (message id: {})", responseMessage.getTaskId(), queueMsgId);
 
             final String queue = responseMessage.getTo();
-            checkForTrackingTermination(queueMsgId, queue, responseMessage);
+            final String targetQueue = getTargetQueue(queueMsgId, responseMessage, queue);
+            checkForTrackingTermination(queueMsgId, targetQueue, responseMessage);
 
             final byte[] output;
             try {
@@ -385,7 +386,7 @@ final class WorkerCore
             final int priority = responseMessage.getPriority() == null ? 0 : responseMessage.getPriority();
 
             try {
-                workerQueue.publish("-1", output, queue, Collections.emptyMap(), priority);
+                workerQueue.publish("-1", output, targetQueue, Collections.emptyMap(), priority);
             } catch (final QueueException ex) {
                 throw new RuntimeException(ex);
             }
@@ -406,9 +407,10 @@ final class WorkerCore
             LOG.debug("Task {} complete (message id: {})", responseMessage.getTaskId(), queueMsgId);
             LOG.debug("Setting destination {} in task {} (message id: {})", queue, responseMessage.getTaskId(), queueMsgId);
             responseMessage.setTo(queue);
-            checkForTrackingTermination(queueMsgId, queue, responseMessage);
+            String targetQueue = getTargetQueue(queueMsgId, responseMessage, queue);
+            checkForTrackingTermination(queueMsgId, targetQueue, responseMessage);
             try {
-                if (null == queue) {
+                if (null == targetQueue) {
                     // **** Dead End Worker ****
                     // If targetQueue is not set i.e. is null for a dead end worker. There remains a
                     // need to acknowledge the message is processed and removed from the queue. This
@@ -423,7 +425,7 @@ final class WorkerCore
                     // **** Normal Worker ****                    
                     // A worker with an input and output queue.
                     byte[] output = codec.serialise(responseMessage);
-                    workerQueue.publish(queueMsgId, output, queue, Collections.emptyMap(), responseMessage.getPriority() == null ? 0 : responseMessage.getPriority());
+                    workerQueue.publish(queueMsgId, output, targetQueue, Collections.emptyMap(), responseMessage.getPriority() == null ? 0 : responseMessage.getPriority());
                     stats.getOutputSizes().update(output.length);
                 }
                 stats.updatedLastTaskFinishedTime();
@@ -484,29 +486,6 @@ final class WorkerCore
             stats.incrementTasksDiscarded();
         }
 
-        @Override
-        public void reportUpdate(final String queueMsgId, final TaskMessage reportUpdateMessage)
-        {
-            Objects.requireNonNull(queueMsgId);
-            Objects.requireNonNull(reportUpdateMessage);
-            LOG.debug("Sending report updates to queue {})", reportUpdateMessage.getTo());
-
-            final byte[] output;
-            try {
-                output = codec.serialise(reportUpdateMessage);
-            } catch (final CodecException ex) {
-                throw new RuntimeException(ex);
-            }
-
-            final int priority = reportUpdateMessage.getPriority() == null ? 0 : reportUpdateMessage.getPriority();
-
-            try {
-                workerQueue.publish("-1", output, reportUpdateMessage.getTo(), Collections.emptyMap(), priority);
-            } catch (final QueueException ex) {
-                throw new RuntimeException(ex);
-            }
-        }
-
         /**
          * Checks whether tracking of this task message should end when publishing to the specified queue. If tracking is to end then this
          * method removes and returns the tracking info from the task message.
@@ -532,6 +511,34 @@ final class WorkerCore
                 }
             }
             return tracking;
+        }
+
+        /**
+         * Attempts to derive the target queue (the queue that the task message is to be sent out to) from the tracking info on the task
+         * message. If the message has no tracking info specifying a tracking destination then the default target queue is used.
+         *
+         * @param queueMsgId the reference to the message this task arrived on
+         * @param tm the task message being dispatched to the target queue
+         * @param defaultTargetQueue dispatch the message to this queue if the message has no tracking info specifying a tracking
+         * destination
+         * @return the queue to which the message should be dispatched
+         */
+        private String getTargetQueue(String queueMsgId, TaskMessage tm, String defaultTargetQueue)
+        {
+            Objects.requireNonNull(tm);
+            TrackingInfo tracking = tm.getTracking();
+            String trackingPipe = tracking == null ? null : tracking.getTrackingPipe();
+            if (isInputQueue(trackingPipe)) {
+                // If this worker is the tracking destination then there's no point redirecting to self!
+                LOG.debug("Task {} (message id: {}) tracking pipe matches the current input queue - this worker is the tracking destination for this message", tm.getTaskId(), queueMsgId);
+                return defaultTargetQueue;
+            }
+            return trackingPipe == null ? defaultTargetQueue : trackingPipe;
+        }
+
+        private boolean isInputQueue(final String queue)
+        {
+            return queue == null ? false : queue.equalsIgnoreCase(workerQueue.getInputQueue());
         }
     }
 }

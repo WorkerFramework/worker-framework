@@ -51,11 +51,6 @@ public interface WorkerTaskData
     TrackingInfo getTrackingInfo();
 
     /**
-     * Retrieves the destination pipe to which the sender intends the task to be sent.
-     */
-    String getTo();
-
-    /**
      * Retrieves information relating to the source of the task
      */
     TaskSourceInfo getSourceInfo();
@@ -67,11 +62,4 @@ public interface WorkerTaskData
      * @param includeTaskContext whether or not the calling task context should be sent with the response
      */
     void addResponse(WorkerResponse response, boolean includeTaskContext);
-
-    /**
-     * Used when a task message needs to be published on the messaging queue.
-     *
-     * @param tm the task message to be sent
-     */
-    void sendMessage(TaskMessage tm);
 }

@@ -63,9 +63,7 @@ public class StreamingWorkerWrapperTest
         TaskMessage m = new TaskMessage();
         m.setTaskId(TASK_ID);
         ServicePath path = new ServicePath(SERVICE_NAME);
-        Map<String, Object> headers = new HashMap<>();
-        WorkerTaskImpl workerTask = new WorkerTaskImpl(path, callback, happyWorkerFactory, queueMsgId, m, false,
-                headers, codec, priorityManager);
+        WorkerTaskImpl workerTask = new WorkerTaskImpl(path, callback, happyWorkerFactory, queueMsgId, m, false, priorityManager);
         StreamingWorkerWrapper wrapper = new StreamingWorkerWrapper(workerTask);
         Thread t = new Thread(wrapper);
         t.start();
@@ -98,9 +96,7 @@ public class StreamingWorkerWrapperTest
         TaskMessage m = new TaskMessage();
         m.setTaskId(TASK_ID);
         ServicePath path = new ServicePath(SERVICE_NAME);
-        Map<String, Object> headers = new HashMap<>();
-        WorkerTaskImpl workerTask = new WorkerTaskImpl(path, callback, happyWorkerFactory, queueMsgId, m, false,
-                headers, codec, priorityManager);
+        WorkerTaskImpl workerTask = new WorkerTaskImpl(path, callback, happyWorkerFactory, queueMsgId, m, false, priorityManager);
         StreamingWorkerWrapper wrapper = new StreamingWorkerWrapper(workerTask);
         Thread t = new Thread(wrapper);
         t.start();
@@ -135,9 +131,7 @@ public class StreamingWorkerWrapperTest
         contextMap.put(path.toString(), SUCCESS_BYTES);
         m.setTaskId(TASK_ID);
         m.setContext(contextMap);
-        Map<String, Object> headers = new HashMap<>();
-        WorkerTaskImpl workerTask = new WorkerTaskImpl(path, callback, happyWorkerFactory, queueMsgId, m, false,
-                headers, codec, priorityManager);
+        WorkerTaskImpl workerTask = new WorkerTaskImpl(path, callback, happyWorkerFactory, queueMsgId, m, false, priorityManager);
         StreamingWorkerWrapper wrapper = new StreamingWorkerWrapper(workerTask);
         Thread t = new Thread(wrapper);
         t.start();
@@ -170,9 +164,7 @@ public class StreamingWorkerWrapperTest
         TaskMessage m = new TaskMessage();
         ServicePath path = new ServicePath(SERVICE_NAME);
         m.setTaskId(TASK_ID);
-        Map<String, Object> headers = new HashMap<>();
-        WorkerTaskImpl workerTask = new WorkerTaskImpl(path, callback, happyWorkerFactory, queueMsgId, m, false,
-                headers, codec, priorityManager);
+        WorkerTaskImpl workerTask = new WorkerTaskImpl(path, callback, happyWorkerFactory, queueMsgId, m, false, priorityManager);
         StreamingWorkerWrapper wrapper = new StreamingWorkerWrapper(workerTask);
         Thread t = new Thread(wrapper);
         t.start();
@@ -199,9 +191,7 @@ public class StreamingWorkerWrapperTest
         TaskMessage m = new TaskMessage();
         ServicePath path = new ServicePath(SERVICE_NAME);
         m.setTaskId(TASK_ID);
-        Map<String, Object> headers = new HashMap<>();
-        WorkerTaskImpl workerTask = new WorkerTaskImpl(path, callback, happyWorkerFactory, queueMsgId, m, false,
-                headers, codec, priorityManager);
+        WorkerTaskImpl workerTask = new WorkerTaskImpl(path, callback, happyWorkerFactory, queueMsgId, m, false, priorityManager);
         StreamingWorkerWrapper wrapper = new StreamingWorkerWrapper(workerTask);
         Thread t = new Thread(wrapper);
         t.start();
@@ -316,11 +306,6 @@ public class StreamingWorkerWrapperTest
         {
             this.queueMsgId = queueMsgId;
             latch.countDown();
-        }
-
-        @Override
-        public void reportUpdate(final String queueMsgId, final TaskMessage reportUpdateMessage)
-        {
         }
 
         public String getClassifier()
