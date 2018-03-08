@@ -98,4 +98,3 @@ then shut down the old Worker containers
  The following people are contacts for developing and maintaining this module:
 
  - Dermot Hardy (Belfast, UK, dermot.hardy@microfocus.com)
- - Krzystof Ploch (Belfast, UK, krzysztof.ploch@microfocus.com)
