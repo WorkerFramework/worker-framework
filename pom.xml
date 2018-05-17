@@ -81,6 +81,10 @@
             <email>zara.mckeown@microfocus.com</email>
         </developer>
     </developers>
+    
+    <properties>
+        <gitRepo>https://github.com/WorkerFramework/worker-framework</gitRepo>
+    </properties>
 
     <modules>
         <module>docs</module>
@@ -107,7 +111,7 @@
     <scm>
         <connection>scm:git:https://github.com/WorkerFramework/worker-framework.git</connection>
         <developerConnection>scm:git:https://github.com/WorkerFramework/worker-framework.git</developerConnection>
-        <url>https://github.com/WorkerFramework/worker-framework</url>
+        <url>${gitRepo}</url>
     </scm>
 
 </project>
