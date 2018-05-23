@@ -7,6 +7,7 @@ ${version-number}
      
 #### Breaking Changes
  - As a result of adding support for asynchronous job updates, Job Service 2.3.0 and versions prior are no longer supported.
+- [SCMOD-4072](https://jira.autonomy.com/browse/SCMOD-4072): Updated to use latest version of dropwizard ([1.3.2](https://github.com/dropwizard/dropwizard/tree/v1.3.2)).
     
 #### Known Issues
  - None
