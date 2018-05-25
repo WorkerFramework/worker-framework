@@ -64,24 +64,26 @@ public abstract class PropertyValidatingProcessor<TResult, TInput, TExpected> ex
      * @throws Exception
      */
     @Override
-    protected boolean processWorkerResult(TestItem<TInput, TExpected> testItem, TaskMessage message, TResult result) throws Exception
+    protected boolean processWorkerResult(final TestItem<TInput, TExpected> testItem, final TaskMessage message, final TResult result) 
+        throws Exception
     {
 
-        Map<String, Object> expectation = getExpectationMap(testItem, message, result);
+        final Map<String, Object> expectation = getExpectationMap(testItem, message, result);
         if (expectation == null) {
             System.err.println("Could not locate result in pre-defined testcase, item tag '" + testItem.getTag() + "'. Message id: '" + message.getTaskId() + "'. ");
             return false;
         }
 
-        ObjectMapper mapper = new ObjectMapper();
+        final ObjectMapper mapper = new ObjectMapper();
         mapper.registerModule(new GuavaModule());
-        Object validatedObject = getValidatedObject(testItem, message, result);
 
-        PropertyMap expectationPropertyMap = mapper.convertValue(expectation, PropertyMap.class); //new PropertyMap(expectation);
+        final Object validatedObject = getValidatedObject(testItem, message, result);
 
-        PropertyMap propertyMap = mapper.convertValue(validatedObject, PropertyMap.class);
+        final PropertyMap expectationPropertyMap = mapper.readValue(mapper.writeValueAsString(expectation), PropertyMap.class);
 
-        PropertyValidator validator = validatorFactory.createRootValidator();
+        final PropertyMap propertyMap = mapper.readValue(mapper.writeValueAsString(validatedObject), PropertyMap.class);
+
+        final PropertyValidator validator = validatorFactory.createRootValidator();
 
         validator.validate("Root", propertyMap, expectationPropertyMap);
 
