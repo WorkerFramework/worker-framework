@@ -115,6 +115,21 @@
                 <artifactId>hibernate-validator</artifactId>
                 <version>5.2.5.Final</version>
             </dependency>
+
+            <!--
+                Explicitly include the Spring Framework BOM to workaround an apparent issue in jdbi which causes Spring dependencies to be
+                excluded by default.  I've raised this issue and pull request for the problem:
+                    https://github.com/jdbi/jdbi/issues/1154
+                    https://github.com/jdbi/jdbi/pull/1155
+            -->
+            <dependency>
+                <groupId>org.springframework</groupId>
+                <artifactId>spring-framework-bom</artifactId>
+                <version>4.2.4.RELEASE</version>
+                <type>pom</type>
+                <scope>import</scope>
+            </dependency>
+
             <dependency>
                 <groupId>io.dropwizard</groupId>
                 <artifactId>dropwizard-bom</artifactId>
