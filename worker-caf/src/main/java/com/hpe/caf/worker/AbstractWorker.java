@@ -119,7 +119,8 @@ public abstract class AbstractWorker<T, V> implements Worker
     {
         try {
             byte[] data = (result != null ? getCodec().serialise(result) : new byte[]{});
-            return new WorkerResponse(getResultQueue(), TaskStatus.RESULT_SUCCESS, data, getWorkerIdentifier(), getWorkerApiVersion(), context);
+            return new WorkerResponse(getResultQueue(), TaskStatus.RESULT_SUCCESS, data, getWorkerIdentifier(), getWorkerApiVersion(),
+                                      context, null);
         } catch (CodecException e) {
             throw new TaskFailedException("Failed to serialise result", e);
         }
@@ -132,7 +133,7 @@ public abstract class AbstractWorker<T, V> implements Worker
      */
     protected final WorkerResponse createSuccessNoOutputToQueue()
     {
-        return new WorkerResponse(null, TaskStatus.RESULT_SUCCESS, new byte[]{}, getWorkerIdentifier(), getWorkerApiVersion(), null);
+        return new WorkerResponse(null, TaskStatus.RESULT_SUCCESS, new byte[]{}, getWorkerIdentifier(), getWorkerApiVersion(), null, null);
     }
 
     /**

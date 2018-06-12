@@ -37,6 +37,7 @@ public abstract class AbstractWorkerFactory<C, T> implements WorkerFactory
     private final C configuration;
     private final Codec codec;
     private final Class<T> taskClass;
+    private WorkerTaskData workerTaskData;
 
     /**
      * Instantiates a new DefaultWorkerFactory.
@@ -66,10 +67,11 @@ public abstract class AbstractWorkerFactory<C, T> implements WorkerFactory
      * {@inheritDoc} Verify that the incoming task has the right type and is a version that can be handled.
      */
     @Override
-    public final Worker getWorker(final String classifier, final int version, final TaskStatus status, final byte[] data, final byte[] context, TrackingInfo tracking)
-        throws TaskRejectedException, InvalidTaskException
+    public final Worker getWorker(final WorkerTaskData workerTaskData) throws TaskRejectedException, InvalidTaskException
     {
-        return createWorker(verifyWorkerTask(classifier, version, data), tracking);
+        this.workerTaskData = workerTaskData;
+        return createWorker(verifyWorkerTask(workerTaskData.getClassifier(), workerTaskData.getVersion(), workerTaskData.getData()),
+                            workerTaskData.getTrackingInfo());
     }
 
     /**
@@ -206,5 +208,13 @@ public abstract class AbstractWorkerFactory<C, T> implements WorkerFactory
     protected Codec getCodec()
     {
         return codec;
+    }
+    
+    /**
+     * @return the worker task data that this worker should operate on
+     */
+    protected WorkerTaskData getWorkerTaskData()
+    {
+        return this.workerTaskData;
     }
 }
