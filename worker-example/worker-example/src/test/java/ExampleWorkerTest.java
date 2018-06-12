@@ -18,6 +18,7 @@ import com.hpe.caf.api.worker.DataStore;
 import com.hpe.caf.api.worker.DataStoreSource;
 import com.hpe.caf.api.worker.TaskStatus;
 import com.hpe.caf.api.worker.WorkerResponse;
+import com.hpe.caf.api.worker.WorkerTaskData;
 import com.hpe.caf.codec.JsonCodec;
 import com.hpe.caf.util.ref.DataSource;
 import com.hpe.caf.util.ref.ReferencedData;
@@ -56,7 +57,8 @@ public class ExampleWorkerTest
         DataSource mockSource = new DataStoreSource(mockDataStore, codec);
 
         //Create the worker subject to testing
-        ExampleWorker worker = new ExampleWorker(createMockTask(ExampleWorkerAction.REVERSE), mockDataStore, "mockQueue", codec, 1024);
+        ExampleWorker worker = new ExampleWorker(createMockTask(ExampleWorkerAction.REVERSE), mockDataStore, "mockQueue", codec, 1024, 
+            Mockito.mock(WorkerTaskData.class));
 
         //Test
         WorkerResponse response = worker.doWork();
@@ -87,7 +89,8 @@ public class ExampleWorkerTest
         DataSource mockSource = new DataStoreSource(mockDataStore, codec);
 
         //Create the worker subject to testing
-        ExampleWorker worker = new ExampleWorker(createMockTask(ExampleWorkerAction.CAPITALISE), mockDataStore, "mockQueue", codec, 1024);
+        ExampleWorker worker = new ExampleWorker(createMockTask(ExampleWorkerAction.CAPITALISE), mockDataStore, "mockQueue", codec, 1024,
+            Mockito.mock(WorkerTaskData.class));
 
         //Test
         WorkerResponse response = worker.doWork();
