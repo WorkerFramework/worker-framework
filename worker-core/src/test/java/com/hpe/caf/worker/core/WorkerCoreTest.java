@@ -368,7 +368,7 @@ public class WorkerCoreTest
     private Worker getWorker(final TestWorkerTask task, final Codec codec)
         throws InvalidTaskException
     {
-        return new AbstractWorker<TestWorkerTask, TestWorkerResult>(task, QUEUE_OUT, codec)
+        return new AbstractWorker<TestWorkerTask, TestWorkerResult>(task, QUEUE_OUT, codec, Mockito.mock(WorkerTaskData.class))
         {
             @Override
             public WorkerResponse doWork()
@@ -518,7 +518,7 @@ public class WorkerCoreTest
         public SlowWorker(final TestWorkerTask task, final String resultQueue, final Codec codec, final CountDownLatch latch)
             throws WorkerException
         {
-            super(task, resultQueue, codec);
+            super(task, resultQueue, codec, Mockito.mock(WorkerTaskData.class));
             this.latch = Objects.requireNonNull(latch);
         }
 

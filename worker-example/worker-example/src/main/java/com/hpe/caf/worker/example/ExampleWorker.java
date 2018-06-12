@@ -56,11 +56,12 @@ public class ExampleWorker extends AbstractWorker<ExampleWorkerTask, ExampleWork
         final DataStore dataStore,
         final String outputQueue,
         final Codec codec,
-        final long resultSizeThreshold
+        final long resultSizeThreshold,
+        final WorkerTaskData workerTaskData
     )
         throws InvalidTaskException
     {
-        super(task, outputQueue, codec);
+        super(task, outputQueue, codec, workerTaskData);
         this.dataStore = Objects.requireNonNull(dataStore);
         this.resultSizeThreshold = resultSizeThreshold;
     }

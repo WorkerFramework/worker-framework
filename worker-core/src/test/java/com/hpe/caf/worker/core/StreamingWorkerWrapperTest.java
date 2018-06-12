@@ -212,7 +212,7 @@ public class StreamingWorkerWrapperTest
     private Worker getWorker(final TestWorkerTask task, final Codec codec)
         throws InvalidTaskException
     {
-        return new AbstractWorker<TestWorkerTask, TestWorkerResult>(task, QUEUE_OUT, codec)
+        return new AbstractWorker<TestWorkerTask, TestWorkerResult>(task, QUEUE_OUT, codec, Mockito.mock(WorkerTaskData.class))
         {
             @Override
             public WorkerResponse doWork()
@@ -239,7 +239,7 @@ public class StreamingWorkerWrapperTest
     private Worker getRedirectWorker(final TestWorkerTask task, final Codec codec)
         throws InvalidTaskException
     {
-        return new AbstractWorker<TestWorkerTask, TestWorkerResult>(task, QUEUE_OUT, codec)
+        return new AbstractWorker<TestWorkerTask, TestWorkerResult>(task, QUEUE_OUT, codec, Mockito.mock(WorkerTaskData.class))
         {
             @Override
             public WorkerResponse doWork()

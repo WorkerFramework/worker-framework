@@ -20,8 +20,10 @@ import com.hpe.caf.api.ConfigurationSource;
 import com.hpe.caf.api.HealthResult;
 import com.hpe.caf.api.worker.DataStore;
 import com.hpe.caf.api.worker.InvalidTaskException;
+import com.hpe.caf.api.worker.TaskRejectedException;
 import com.hpe.caf.api.worker.Worker;
 import com.hpe.caf.api.worker.WorkerException;
+import com.hpe.caf.api.worker.WorkerTaskData;
 import com.hpe.caf.worker.AbstractWorkerFactory;
 
 /**
@@ -54,9 +56,10 @@ public class ExampleWorkerFactory extends AbstractWorkerFactory<ExampleWorkerCon
      * @throws InvalidTaskException
      */
     @Override
-    public Worker createWorker(ExampleWorkerTask task) throws InvalidTaskException
+    public Worker createWorker(final ExampleWorkerTask task, final WorkerTaskData workerTaskData) throws InvalidTaskException
     {
-        return new ExampleWorker(task, getDataStore(), getConfiguration().getOutputQueue(), getCodec(), getConfiguration().getResultSizeThreshold());
+        return new ExampleWorker(task, getDataStore(), getConfiguration().getOutputQueue(), getCodec(), 
+            getConfiguration().getResultSizeThreshold(), workerTaskData);
     }
 
     @Override
