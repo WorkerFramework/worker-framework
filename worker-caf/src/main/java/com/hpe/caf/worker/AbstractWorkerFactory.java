@@ -159,23 +159,6 @@ public abstract class AbstractWorkerFactory<C, T> implements WorkerFactory
     protected abstract int getWorkerApiVersion();
 
     /**
-     * Create a Worker instance with access to the tracking info associated with the task. This method should be overridden by any Worker
-     * Factory creating Worker instances that need access to tracking info.
-     *
-     * @param task the deserialised Worker task
-     * @param tracking additional fields used in tracking task messages
-     * @param workerTaskData The worker task data to use during operation
-     * @return the worker instance
-     * @throws TaskRejectedException if a Worker cannot be created to handle this task currently
-     * @throws InvalidTaskException if it appears this task cannot possibly be handled by a Worker of this type
-     */
-    protected Worker createWorker(final T task, final TrackingInfo tracking, final WorkerTaskData workerTaskData)
-        throws TaskRejectedException, InvalidTaskException
-    {
-        return createWorker(task, workerTaskData);
-    }
-
-    /**
      * Create a Worker instance.
      *
      * @param task the deserialised Worker task
