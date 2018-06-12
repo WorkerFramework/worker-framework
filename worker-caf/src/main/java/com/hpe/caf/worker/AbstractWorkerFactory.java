@@ -66,10 +66,10 @@ public abstract class AbstractWorkerFactory<C, T> implements WorkerFactory
      * {@inheritDoc} Verify that the incoming task has the right type and is a version that can be handled.
      */
     @Override
-    public final Worker getWorker(final String classifier, final int version, final TaskStatus status, final byte[] data, final byte[] context, TrackingInfo tracking)
-        throws TaskRejectedException, InvalidTaskException
+    public final Worker getWorker(final WorkerTaskData workerTaskData) throws TaskRejectedException, InvalidTaskException
     {
-        return createWorker(verifyWorkerTask(classifier, version, data), tracking);
+        return createWorker(verifyWorkerTask(workerTaskData.getClassifier(), workerTaskData.getVersion(), workerTaskData.getData()),
+                            workerTaskData);
     }
 
     /**
@@ -159,29 +159,15 @@ public abstract class AbstractWorkerFactory<C, T> implements WorkerFactory
     protected abstract int getWorkerApiVersion();
 
     /**
-     * Create a Worker instance with access to the tracking info associated with the task. This method should be overridden by any Worker
-     * Factory creating Worker instances that need access to tracking info.
-     *
-     * @param task the deserialised Worker task
-     * @param tracking additional fields used in tracking task messages
-     * @return the worker instance
-     * @throws TaskRejectedException if a Worker cannot be created to handle this task currently
-     * @throws InvalidTaskException if it appears this task cannot possibly be handled by a Worker of this type
-     */
-    protected Worker createWorker(final T task, TrackingInfo tracking) throws TaskRejectedException, InvalidTaskException
-    {
-        return createWorker(task);
-    }
-
-    /**
      * Create a Worker instance.
      *
      * @param task the deserialised Worker task
+     * @param workerTaskData The worker task data to use during operation
      * @return the worker instance
      * @throws TaskRejectedException if a Worker cannot be created to handle this task currently
      * @throws InvalidTaskException if it appears this task cannot possibly be handled by a Worker of this type
      */
-    protected abstract Worker createWorker(final T task)
+    protected abstract Worker createWorker(final T task, final WorkerTaskData workerTaskData)
         throws TaskRejectedException, InvalidTaskException;
 
     /**

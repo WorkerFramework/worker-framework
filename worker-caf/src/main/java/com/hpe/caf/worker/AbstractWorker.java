@@ -22,6 +22,7 @@ import com.hpe.caf.api.worker.TaskFailedException;
 import com.hpe.caf.api.worker.TaskStatus;
 import com.hpe.caf.api.worker.Worker;
 import com.hpe.caf.api.worker.WorkerResponse;
+import com.hpe.caf.api.worker.WorkerTaskData;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -42,6 +43,7 @@ public abstract class AbstractWorker<T, V> implements Worker
     private final T task;
     private final String resultQueue;
     private final Codec codec;
+    private final WorkerTaskData workerTaskData;
     private static final Logger LOG = LoggerFactory.getLogger(AbstractWorker.class);
     private static final Validator validator = Validation.buildDefaultValidatorFactory().getValidator();
 
@@ -52,11 +54,13 @@ public abstract class AbstractWorker<T, V> implements Worker
      * @param resultQueue the reference to the queue that should take results from this type of Worker. This can be null if no resultQueue
      * is provided for this type of worker
      * @param codec used to serialising result data
+     * @param workerTaskData The worker task data to use during operation
      * @throws InvalidTaskException if the input task does not validate successfully
      */
-    public AbstractWorker(final T task, final String resultQueue, final Codec codec)
+    public AbstractWorker(final T task, final String resultQueue, final Codec codec, final WorkerTaskData workerTaskData)
         throws InvalidTaskException
     {
+        this.workerTaskData = workerTaskData;
         this.task = Objects.requireNonNull(task);
         this.resultQueue = resultQueue; // resultQueue can be null for a dead end worker
         this.codec = Objects.requireNonNull(codec);
@@ -79,6 +83,14 @@ public abstract class AbstractWorker<T, V> implements Worker
     protected final T getTask()
     {
         return this.task;
+    }
+
+    /**
+     * @return the task for this Worker to operate on
+     */
+    protected final WorkerTaskData getWorkerTaskData()
+    {
+        return this.workerTaskData;
     }
 
     /**
@@ -120,6 +132,24 @@ public abstract class AbstractWorker<T, V> implements Worker
         try {
             byte[] data = (result != null ? getCodec().serialise(result) : new byte[]{});
             return new WorkerResponse(getResultQueue(), TaskStatus.RESULT_SUCCESS, data, getWorkerIdentifier(), getWorkerApiVersion(), context);
+        } catch (CodecException e) {
+            throw new TaskFailedException("Failed to serialise result", e);
+        }
+    }
+
+    /**
+     * Utility method for creating a WorkerReponse that represents a successful result and reports complete.
+     *
+     * @param result the result from the Worker
+     * @return a WorkerResponse that represents a successful result containing the specified task-specific serialised message
+     */
+    protected final WorkerResponse createSuccessAndCompleteResponse(final V result)
+    {
+        final String outputQueue = getResultQueue();
+        try {
+            final byte[] data = (result != null ? getCodec().serialise(result) : new byte[]{});
+            return new WorkerResponse(outputQueue, TaskStatus.RESULT_SUCCESS, data, getWorkerIdentifier(), getWorkerApiVersion(), null, 
+                outputQueue);
         } catch (CodecException e) {
             throw new TaskFailedException("Failed to serialise result", e);
         }
