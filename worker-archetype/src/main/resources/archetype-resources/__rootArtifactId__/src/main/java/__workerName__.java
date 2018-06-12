@@ -20,6 +20,7 @@ package ${package};
 
 import com.hpe.caf.api.Codec;
 import com.hpe.caf.api.worker.*;
+import com.hpe.caf.api.worker.WorkerTaskData; 
 import com.hpe.caf.util.ref.DataSource;
 import com.hpe.caf.util.ref.DataSourceException;
 import com.hpe.caf.util.ref.ReferencedData;
@@ -54,8 +55,9 @@ public class ${workerName} extends AbstractWorker<${workerName}Task, ${workerNam
      */
     private final long resultSizeThreshold;
 
-    public ${workerName}(final ${workerName}Task task, final DataStore dataStore, final String outputQueue, final Codec codec, final long resultSizeThreshold) throws InvalidTaskException {
-        super(task, outputQueue, codec);
+    public ${workerName}(final ${workerName}Task task, final DataStore dataStore, final String outputQueue, final Codec codec, 
+                         final long resultSizeThreshold, final WorkerTaskData workerTaskData) throws InvalidTaskException {
+        super(task, outputQueue, codec, workerTaskData);
         this.dataStore = Objects.requireNonNull(dataStore);
         this.resultSizeThreshold = resultSizeThreshold;
     }
