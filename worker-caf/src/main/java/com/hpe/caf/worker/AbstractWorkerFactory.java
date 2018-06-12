@@ -37,7 +37,6 @@ public abstract class AbstractWorkerFactory<C, T> implements WorkerFactory
     private final C configuration;
     private final Codec codec;
     private final Class<T> taskClass;
-    private WorkerTaskData workerTaskData;
 
     /**
      * Instantiates a new DefaultWorkerFactory.
@@ -69,9 +68,8 @@ public abstract class AbstractWorkerFactory<C, T> implements WorkerFactory
     @Override
     public final Worker getWorker(final WorkerTaskData workerTaskData) throws TaskRejectedException, InvalidTaskException
     {
-        this.workerTaskData = workerTaskData;
         return createWorker(verifyWorkerTask(workerTaskData.getClassifier(), workerTaskData.getVersion(), workerTaskData.getData()),
-                            workerTaskData.getTrackingInfo());
+                            workerTaskData);
     }
 
     /**
@@ -166,24 +164,27 @@ public abstract class AbstractWorkerFactory<C, T> implements WorkerFactory
      *
      * @param task the deserialised Worker task
      * @param tracking additional fields used in tracking task messages
+     * @param workerTaskData The worker task data to use during operation
      * @return the worker instance
      * @throws TaskRejectedException if a Worker cannot be created to handle this task currently
      * @throws InvalidTaskException if it appears this task cannot possibly be handled by a Worker of this type
      */
-    protected Worker createWorker(final T task, TrackingInfo tracking) throws TaskRejectedException, InvalidTaskException
+    protected Worker createWorker(final T task, final TrackingInfo tracking, final WorkerTaskData workerTaskData)
+        throws TaskRejectedException, InvalidTaskException
     {
-        return createWorker(task);
+        return createWorker(task, workerTaskData);
     }
 
     /**
      * Create a Worker instance.
      *
      * @param task the deserialised Worker task
+     * @param workerTaskData The worker task data to use during operation
      * @return the worker instance
      * @throws TaskRejectedException if a Worker cannot be created to handle this task currently
      * @throws InvalidTaskException if it appears this task cannot possibly be handled by a Worker of this type
      */
-    protected abstract Worker createWorker(final T task)
+    protected abstract Worker createWorker(final T task, final WorkerTaskData workerTaskData)
         throws TaskRejectedException, InvalidTaskException;
 
     /**
@@ -208,13 +209,5 @@ public abstract class AbstractWorkerFactory<C, T> implements WorkerFactory
     protected Codec getCodec()
     {
         return codec;
-    }
-    
-    /**
-     * @return the worker task data that this worker should operate on
-     */
-    protected WorkerTaskData getWorkerTaskData()
-    {
-        return this.workerTaskData;
     }
 }
