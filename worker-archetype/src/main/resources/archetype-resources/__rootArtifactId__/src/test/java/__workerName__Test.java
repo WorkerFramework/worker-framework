@@ -20,7 +20,7 @@ import com.hpe.caf.api.Codec;
 import com.hpe.caf.api.worker.DataStore;
 import com.hpe.caf.api.worker.DataStoreSource;
 import com.hpe.caf.api.worker.TaskStatus;
-import com.hpe.caf.api.worker.WorkerTaskData; 
+import com.hpe.caf.api.worker.WorkerTaskData;
 import com.hpe.caf.api.worker.WorkerResponse;
 import com.hpe.caf.codec.JsonCodec;
 import com.hpe.caf.util.ref.DataSource;

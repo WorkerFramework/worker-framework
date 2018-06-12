@@ -57,7 +57,7 @@ public class ExampleWorkerTest
         DataSource mockSource = new DataStoreSource(mockDataStore, codec);
 
         //Create the worker subject to testing
-        ExampleWorker worker = new ExampleWorker(createMockTask(ExampleWorkerAction.REVERSE), mockDataStore, "mockQueue", codec, 1024, 
+        ExampleWorker worker = new ExampleWorker(createMockTask(ExampleWorkerAction.REVERSE), mockDataStore, "mockQueue", codec, 1024,
             Mockito.mock(WorkerTaskData.class));
 
         //Test
