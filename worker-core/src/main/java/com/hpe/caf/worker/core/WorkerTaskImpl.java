@@ -566,7 +566,8 @@ class WorkerTaskImpl implements WorkerTask
         responseMessage.setTaskId(taskMessage.getTaskId() + subtaskSuffix);
 
         // Update the tracking info
-        final TrackingInfo taskMessageTracking = taskMessage.getTracking();
+        final TrackingInfo taskMessageTracking = responseMessage.getTracking() != null ? responseMessage.getTracking()
+            : taskMessage.getTracking();
         if (taskMessageTracking != null) {
             final String trackingTaskId = taskMessageTracking.getJobTaskId();
 
