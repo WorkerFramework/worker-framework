@@ -547,7 +547,7 @@ class WorkerTaskImpl implements WorkerTask
     /**
      * Updates the specified {@link TaskMessage} with the specified subtask identifier.
      */
-    private void updateTaskId(final TaskMessage responseMessage, final int subtaskId, final boolean isFinalResponse)
+    private static void updateTaskId(final TaskMessage responseMessage, final int subtaskId, final boolean isFinalResponse)
     {
         // Put together the suffix to be added
         final String subtaskSuffix;
@@ -563,11 +563,10 @@ class WorkerTaskImpl implements WorkerTask
         }
 
         // Update the task id
-        responseMessage.setTaskId(taskMessage.getTaskId() + subtaskSuffix);
+        responseMessage.setTaskId(responseMessage.getTaskId() + subtaskSuffix);
 
         // Update the tracking info
-        final TrackingInfo taskMessageTracking = responseMessage.getTracking() != null ? responseMessage.getTracking()
-            : taskMessage.getTracking();
+        final TrackingInfo taskMessageTracking = responseMessage.getTracking();
         if (taskMessageTracking != null) {
             final String trackingTaskId = taskMessageTracking.getJobTaskId();
 
