@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!--
 
-    Copyright 2015-2017 EntIT Software LLC, a Micro Focus company.
+    Copyright 2015-2018 Micro Focus or one of its affiliates.
 
     Licensed under the Apache License, Version 2.0 (the "License");
     you may not use this file except in compliance with the License.
@@ -78,6 +78,8 @@
     </developers>
     
     <properties>
+        <copyrightYear>2018</copyrightYear>
+        <copyrightNotice>Copyright ${project.inceptionYear}-${copyrightYear} Micro Focus or one of its affiliates.</copyrightNotice>
         <gitRepo>https://github.com/WorkerFramework/worker-framework</gitRepo>
     </properties>
 
