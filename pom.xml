@@ -37,11 +37,6 @@
         <relativePath />
     </parent>
 
-    <organization>
-        <name>EntIT Software LLC, a Micro Focus company</name>
-        <url>https://www.microfocus.com</url>
-    </organization>
-
     <licenses>
         <license>
             <name>Apache License, Version 2.0</name>
