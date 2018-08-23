@@ -18,8 +18,28 @@ package com.hpe.caf.worker.core;
 import com.google.common.base.MoreObjects;
 import com.hpe.caf.api.Codec;
 import com.hpe.caf.api.CodecException;
-import com.hpe.caf.api.worker.*;
+import com.hpe.caf.api.worker.InvalidTaskException;
+import com.hpe.caf.api.worker.MessagePriorityManager;
+import com.hpe.caf.api.worker.TaskMessage;
+import com.hpe.caf.api.worker.TaskRejectedException;
+import com.hpe.caf.api.worker.TaskSourceInfo;
+import com.hpe.caf.api.worker.TaskStatus;
+import com.hpe.caf.api.worker.TrackingInfo;
+import com.hpe.caf.api.worker.Worker;
+import com.hpe.caf.api.worker.WorkerCallback;
+import com.hpe.caf.api.worker.WorkerFactory;
+import com.hpe.caf.api.worker.WorkerResponse;
+import com.hpe.caf.api.worker.WorkerTask;
 import com.hpe.caf.naming.ServicePath;
+import com.hpe.caf.util.rabbitmq.RabbitHeaders;
+import com.hpe.caf.worker.tracking.report.TrackingReport;
+import com.hpe.caf.worker.tracking.report.TrackingReportConstants;
+import com.hpe.caf.worker.tracking.report.TrackingReportFailure;
+import com.hpe.caf.worker.tracking.report.TrackingReportStatus;
+import com.hpe.caf.worker.tracking.report.TrackingReportTask;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import java.nio.charset.StandardCharsets;
 import java.text.MessageFormat;
 import java.util.ArrayList;
@@ -32,15 +52,6 @@ import java.util.Objects;
 import java.util.UUID;
 import java.util.concurrent.Semaphore;
 import java.util.concurrent.atomic.AtomicInteger;
-
-import com.hpe.caf.util.rabbitmq.RabbitHeaders;
-import com.hpe.caf.worker.tracking.report.TrackingReportFailure;
-import com.hpe.caf.worker.tracking.report.TrackingReportStatus;
-import com.hpe.caf.worker.tracking.report.TrackingReportTask;
-import com.hpe.caf.worker.tracking.report.TrackingReportConstants;
-import com.hpe.caf.worker.tracking.report.TrackingReport;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 class WorkerTaskImpl implements WorkerTask
 {
@@ -649,8 +660,8 @@ class WorkerTaskImpl implements WorkerTask
                         trackToPipe.equalsIgnoreCase(toPipe))) {
                     //  Task should be reported as complete.
                     trackingReport.status = TrackingReportStatus.Complete;
-                } else {
-                    //  Task should be reported as in progress.
+                } else if( workerFactory.getWorkerConfiguration().isTrackProgressMessages()) {
+                    //  Task should be reported as in progress if the configuration is set to report it
                     trackingReport.status = TrackingReportStatus.Progress;
                     trackingReport.estimatedPercentageCompleted = 0;
                 }
