@@ -57,7 +57,7 @@ public class WorkerCoreTest
      */
     @Test
     public void testWorkerCore()
-            throws CodecException, InterruptedException, WorkerException, ConfigurationException, QueueException, InvalidNameException
+        throws CodecException, InterruptedException, WorkerException, ConfigurationException, QueueException, InvalidNameException
     {
         BlockingQueue<byte[]> q = new LinkedBlockingQueue<>();
         Codec codec = new JsonCodec();
@@ -97,7 +97,7 @@ public class WorkerCoreTest
      */
     @Test
     public void testWorkerCoreWithTracking()
-            throws CodecException, InterruptedException, WorkerException, ConfigurationException, QueueException, InvalidNameException
+        throws CodecException, InterruptedException, WorkerException, ConfigurationException, QueueException, InvalidNameException
     {
         final BlockingQueue<byte[]> q = new LinkedBlockingQueue<>();
         final Codec codec = new JsonCodec();
@@ -153,7 +153,7 @@ public class WorkerCoreTest
      */
     @Test(expectedExceptions = InvalidTaskException.class)
     public void testInvalidWrapper()
-            throws InvalidNameException, WorkerException, QueueException, CodecException
+        throws InvalidNameException, WorkerException, QueueException, CodecException
     {
         BlockingQueue<byte[]> q = new LinkedBlockingQueue<>();
         Codec codec = new JsonCodec();
@@ -178,7 +178,7 @@ public class WorkerCoreTest
      */
     @Test
     public void testInvalidTask()
-            throws QueueException, InvalidNameException, WorkerException, CodecException, InterruptedException
+        throws QueueException, InvalidNameException, WorkerException, CodecException, InterruptedException
     {
         BlockingQueue<byte[]> q = new LinkedBlockingQueue<>();
         Codec codec = new JsonCodec();
@@ -284,7 +284,7 @@ public class WorkerCoreTest
      */
     @Test
     public void testAbortTasks()
-            throws CodecException, InterruptedException, WorkerException, ConfigurationException, QueueException, InvalidNameException
+        throws CodecException, InterruptedException, WorkerException, ConfigurationException, QueueException, InvalidNameException
     {
         BlockingQueue<byte[]> q = new LinkedBlockingQueue<>();
         Codec codec = new JsonCodec();
@@ -319,13 +319,13 @@ public class WorkerCoreTest
     }
 
     private TaskMessage getTaskMessage(final TestWorkerTask task, final Codec codec, final String taskId)
-            throws CodecException
+        throws CodecException
     {
         return getTaskMessage(task, codec, taskId, null);
     }
 
     private TaskMessage getTaskMessage(final TestWorkerTask task, final Codec codec, final String taskId, final TrackingInfo tracking)
-            throws CodecException
+        throws CodecException
     {
         TaskMessage tm = new TaskMessage();
         tm.setTaskId(taskId);
@@ -339,7 +339,7 @@ public class WorkerCoreTest
     }
 
     private WorkerFactory getWorkerFactory(final TestWorkerTask task, final Codec codec)
-            throws WorkerException
+        throws WorkerException
     {
         WorkerFactory factory = Mockito.mock(WorkerFactory.class);
         Worker mockWorker = getWorker(task, codec);
@@ -348,7 +348,7 @@ public class WorkerCoreTest
     }
 
     private WorkerFactory getInvalidTaskWorkerFactory()
-            throws WorkerException
+        throws WorkerException
     {
         WorkerFactory factory = Mockito.mock(WorkerFactory.class);
         Mockito.when(factory.getWorker(Mockito.any())).thenThrow(InvalidTaskException.class);
@@ -357,7 +357,7 @@ public class WorkerCoreTest
     }
 
     private WorkerFactory getSlowWorkerFactory(final CountDownLatch latch, final TestWorkerTask task, final Codec codec)
-            throws WorkerException
+        throws WorkerException
     {
         WorkerFactory factory = Mockito.mock(WorkerFactory.class);
         Worker mockWorker = new SlowWorker(task, QUEUE_OUT, codec, latch);
@@ -366,7 +366,7 @@ public class WorkerCoreTest
     }
 
     private Worker getWorker(final TestWorkerTask task, final Codec codec)
-            throws InvalidTaskException
+        throws InvalidTaskException
     {
         return new AbstractWorker<TestWorkerTask, TestWorkerResult>(task, QUEUE_OUT, codec, Mockito.mock(WorkerTaskData.class))
         {
@@ -421,7 +421,7 @@ public class WorkerCoreTest
 
         @Override
         public void start(final TaskCallback callback)
-                throws QueueException
+            throws QueueException
         {
             this.callback = Objects.requireNonNull(callback);
         }
@@ -435,7 +435,7 @@ public class WorkerCoreTest
 
         @Override
         public void publish(String acknowledgeId, byte[] taskMessage, String targetQueue, Map<String, Object> headers)
-                throws QueueException
+            throws QueueException
         {
             this.lastQueue = targetQueue;
             results.offer(taskMessage);
@@ -495,7 +495,7 @@ public class WorkerCoreTest
         }
 
         public void submitTask(final String taskId, final byte[] stuff)
-                throws WorkerException
+            throws WorkerException
         {
             callback.registerNewTask(taskId, stuff, new HashMap<>());
         }
@@ -516,7 +516,7 @@ public class WorkerCoreTest
         private final CountDownLatch latch;
 
         public SlowWorker(final TestWorkerTask task, final String resultQueue, final Codec codec, final CountDownLatch latch)
-                throws WorkerException
+            throws WorkerException
         {
             super(task, resultQueue, codec, Mockito.mock(WorkerTaskData.class));
             this.latch = Objects.requireNonNull(latch);
@@ -524,7 +524,7 @@ public class WorkerCoreTest
 
         @Override
         public WorkerResponse doWork()
-                throws InterruptedException
+            throws InterruptedException
         {
             try {
                 System.out.println("Starting test work");
