@@ -660,10 +660,14 @@ class WorkerTaskImpl implements WorkerTask
                         trackToPipe.equalsIgnoreCase(toPipe))) {
                     //  Task should be reported as complete.
                     trackingReport.status = TrackingReportStatus.Complete;
-                } else if( workerFactory.getWorkerConfiguration().isTrackProgressMessages()) {
-                    //  Task should be reported as in progress if the configuration is set to report it
-                    trackingReport.status = TrackingReportStatus.Progress;
-                    trackingReport.estimatedPercentageCompleted = 0;
+                } else {
+                    if(!workerFactory.getWorkerConfiguration().isTrackProgressMessages()) {
+                        continue;
+                    }else{
+                        //  Task should be reported as in progress if the configuration is set to report it
+                        trackingReport.status = TrackingReportStatus.Progress;
+                        trackingReport.estimatedPercentageCompleted = 0;
+                    }
                 }
             } else if (taskStatus == TaskStatus.RESULT_EXCEPTION || taskStatus == TaskStatus.INVALID_TASK) {
                 //  Failed to execute job task. Configure failure details to be reported.

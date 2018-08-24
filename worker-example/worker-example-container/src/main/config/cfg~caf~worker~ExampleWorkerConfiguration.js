@@ -16,6 +16,7 @@
 ({
     workerName: "worker-example",
     workerVersion: "${project.version}",
+    trackProgressMessages: getenv("CAF_WORKER_TRACK_PROGRESS_MESSAGES"),
     outputQueue: getenv("CAF_WORKER_OUTPUT_QUEUE")
             || (getenv("CAF_WORKER_BASE_QUEUE_NAME") || getenv("CAF_WORKER_NAME") || "worker") + "-out",
     threads: getenv("CAF_WORKER_THREADS") || 1,

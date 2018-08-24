@@ -22,6 +22,7 @@ import com.hpe.caf.api.ConfigurationException;
 import com.hpe.caf.api.ConfigurationSource;
 import com.hpe.caf.api.HealthResult;
 import com.hpe.caf.api.worker.*;
+import com.hpe.caf.api.worker.WorkerConfiguration;
 import com.hpe.caf.codec.JsonCodec;
 import com.hpe.caf.naming.ServicePath;
 import com.hpe.caf.worker.AbstractWorker;
@@ -344,6 +345,7 @@ public class WorkerCoreTest
         WorkerFactory factory = Mockito.mock(WorkerFactory.class);
         Worker mockWorker = getWorker(task, codec);
         Mockito.when(factory.getWorker(Mockito.any())).thenReturn(mockWorker);
+        Mockito.when(factory.getWorkerConfiguration()).thenReturn(new WorkerConfiguration());
         return factory;
     }
 
@@ -353,6 +355,7 @@ public class WorkerCoreTest
         WorkerFactory factory = Mockito.mock(WorkerFactory.class);
         Mockito.when(factory.getWorker(Mockito.any())).thenThrow(InvalidTaskException.class);
         Mockito.when(factory.getInvalidTaskQueue()).thenReturn(QUEUE_OUT);
+        Mockito.when(factory.getWorkerConfiguration()).thenReturn(new WorkerConfiguration());
         return factory;
     }
 
@@ -362,6 +365,7 @@ public class WorkerCoreTest
         WorkerFactory factory = Mockito.mock(WorkerFactory.class);
         Worker mockWorker = new SlowWorker(task, QUEUE_OUT, codec, latch);
         Mockito.when(factory.getWorker(Mockito.any())).thenReturn(mockWorker);
+        Mockito.when(factory.getWorkerConfiguration()).thenReturn(new WorkerConfiguration());
         return factory;
     }
 
