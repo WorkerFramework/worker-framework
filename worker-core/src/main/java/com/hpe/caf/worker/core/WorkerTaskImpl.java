@@ -46,6 +46,8 @@ class WorkerTaskImpl implements WorkerTask
 {
     private static final String WORKER_VERSION_UNKNOWN = "UNKNOWN";
     private static final Logger LOG = LoggerFactory.getLogger(WorkerTaskImpl.class);
+    private static final boolean isZeroProgressReportingEnabled
+        = !Boolean.parseBoolean(System.getenv("CAF_WORKER_DISABLE_ZERO_PROGRESS_REPORTING"));
 
     private final ServicePath servicePath;
     private final WorkerCallback workerCallback;
@@ -649,10 +651,12 @@ class WorkerTaskImpl implements WorkerTask
                         trackToPipe.equalsIgnoreCase(toPipe))) {
                     //  Task should be reported as complete.
                     trackingReport.status = TrackingReportStatus.Complete;
-                } else {
+                } else if (isZeroProgressReportingEnabled) {
                     //  Task should be reported as in progress.
                     trackingReport.status = TrackingReportStatus.Progress;
                     trackingReport.estimatedPercentageCompleted = 0;
+                } else {
+                    continue;
                 }
             } else if (taskStatus == TaskStatus.RESULT_EXCEPTION || taskStatus == TaskStatus.INVALID_TASK) {
                 //  Failed to execute job task. Configure failure details to be reported.
