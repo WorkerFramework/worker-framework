@@ -24,8 +24,6 @@ public class WorkerConfiguration
 
     private String workerVersion;
 
-    private boolean trackProgressMessages=true;
-
     public String getWorkerName()
     {
         return workerName;
@@ -44,13 +42,5 @@ public class WorkerConfiguration
     public void setWorkerVersion(String workerVersion)
     {
         this.workerVersion = workerVersion;
-    }
-
-    public boolean isTrackProgressMessages() {
-        return trackProgressMessages;
-    }
-
-    public void setTrackProgressMessages(boolean trackProgressMessages) {
-        this.trackProgressMessages = trackProgressMessages;
     }
 }

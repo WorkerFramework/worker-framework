@@ -73,6 +73,7 @@ class WorkerTaskImpl implements WorkerTask
     private final boolean poison;
     private final Codec codec;
     private final Map<String, Object> headers;
+    private final String trackProgress = System.getenv("CAF_WORKER_DISABLE_ZERO_PROGRESS_REPORTING");
 
     public WorkerTaskImpl(
             final ServicePath servicePath,
@@ -661,7 +662,7 @@ class WorkerTaskImpl implements WorkerTask
                     //  Task should be reported as complete.
                     trackingReport.status = TrackingReportStatus.Complete;
                 } else {
-                    if(!workerFactory.getWorkerConfiguration().isTrackProgressMessages()) {
+                    if(Objects.nonNull(trackProgress) && trackProgress.equalsIgnoreCase("false")) {
                         continue;
                     }else{
                         //  Task should be reported as in progress if the configuration is set to report it
