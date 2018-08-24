@@ -18,28 +18,8 @@ package com.hpe.caf.worker.core;
 import com.google.common.base.MoreObjects;
 import com.hpe.caf.api.Codec;
 import com.hpe.caf.api.CodecException;
-import com.hpe.caf.api.worker.InvalidTaskException;
-import com.hpe.caf.api.worker.MessagePriorityManager;
-import com.hpe.caf.api.worker.TaskMessage;
-import com.hpe.caf.api.worker.TaskRejectedException;
-import com.hpe.caf.api.worker.TaskSourceInfo;
-import com.hpe.caf.api.worker.TaskStatus;
-import com.hpe.caf.api.worker.TrackingInfo;
-import com.hpe.caf.api.worker.Worker;
-import com.hpe.caf.api.worker.WorkerCallback;
-import com.hpe.caf.api.worker.WorkerFactory;
-import com.hpe.caf.api.worker.WorkerResponse;
-import com.hpe.caf.api.worker.WorkerTask;
+import com.hpe.caf.api.worker.*;
 import com.hpe.caf.naming.ServicePath;
-import com.hpe.caf.util.rabbitmq.RabbitHeaders;
-import com.hpe.caf.worker.tracking.report.TrackingReport;
-import com.hpe.caf.worker.tracking.report.TrackingReportConstants;
-import com.hpe.caf.worker.tracking.report.TrackingReportFailure;
-import com.hpe.caf.worker.tracking.report.TrackingReportStatus;
-import com.hpe.caf.worker.tracking.report.TrackingReportTask;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import java.nio.charset.StandardCharsets;
 import java.text.MessageFormat;
 import java.util.ArrayList;
@@ -53,10 +33,21 @@ import java.util.UUID;
 import java.util.concurrent.Semaphore;
 import java.util.concurrent.atomic.AtomicInteger;
 
+import com.hpe.caf.util.rabbitmq.RabbitHeaders;
+import com.hpe.caf.worker.tracking.report.TrackingReportFailure;
+import com.hpe.caf.worker.tracking.report.TrackingReportStatus;
+import com.hpe.caf.worker.tracking.report.TrackingReportTask;
+import com.hpe.caf.worker.tracking.report.TrackingReportConstants;
+import com.hpe.caf.worker.tracking.report.TrackingReport;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 class WorkerTaskImpl implements WorkerTask
 {
     private static final String WORKER_VERSION_UNKNOWN = "UNKNOWN";
     private static final Logger LOG = LoggerFactory.getLogger(WorkerTaskImpl.class);
+    private static final boolean isZeroProgressReportingEnabled
+        = !Boolean.parseBoolean(System.getenv("CAF_WORKER_DISABLE_ZERO_PROGRESS_REPORTING"));
 
     private final ServicePath servicePath;
     private final WorkerCallback workerCallback;
@@ -73,7 +64,6 @@ class WorkerTaskImpl implements WorkerTask
     private final boolean poison;
     private final Codec codec;
     private final Map<String, Object> headers;
-    private final String trackProgress = System.getenv("CAF_WORKER_DISABLE_ZERO_PROGRESS_REPORTING");
 
     public WorkerTaskImpl(
             final ServicePath servicePath,
@@ -661,14 +651,12 @@ class WorkerTaskImpl implements WorkerTask
                         trackToPipe.equalsIgnoreCase(toPipe))) {
                     //  Task should be reported as complete.
                     trackingReport.status = TrackingReportStatus.Complete;
+                } else if (isZeroProgressReportingEnabled) {
+                    //  Task should be reported as in progress.
+                    trackingReport.status = TrackingReportStatus.Progress;
+                    trackingReport.estimatedPercentageCompleted = 0;
                 } else {
-                    if(Objects.nonNull(trackProgress) && trackProgress.equalsIgnoreCase("false")) {
-                        continue;
-                    }else{
-                        //  Task should be reported as in progress if the configuration is set to report it
-                        trackingReport.status = TrackingReportStatus.Progress;
-                        trackingReport.estimatedPercentageCompleted = 0;
-                    }
+                    continue;
                 }
             } else if (taskStatus == TaskStatus.RESULT_EXCEPTION || taskStatus == TaskStatus.INVALID_TASK) {
                 //  Failed to execute job task. Configure failure details to be reported.
