@@ -91,10 +91,3 @@ then:
 - Replace old versions of producers of `ExampleWorkerTask` with new ones
 - Allow the queue with the old versions of `ExampleWorkerTask` to drain and
 then shut down the old Worker containers
-
-
-## Maintainers
-
- The following people are contacts for developing and maintaining this module:
-
- - Dermot Hardy (Belfast, UK, dermot.hardy@microfocus.com)
