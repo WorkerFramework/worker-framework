@@ -90,10 +90,3 @@
 
 - Non-transient RabbitMQ server failures
 - The prefetchBuffer exceeding the maximum backlog of the worker application
-
-
-## Maintainers
-
- The following people are contacts for developing and maintaining this module:
-
- - Richard Hickman (Cambridge, UK, richard.hickman@microfocus.com)
