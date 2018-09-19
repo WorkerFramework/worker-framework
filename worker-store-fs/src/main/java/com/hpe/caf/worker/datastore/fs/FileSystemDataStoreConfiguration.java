@@ -30,6 +30,13 @@ public class FileSystemDataStoreConfiguration
     @Size(min = 1)
     private String dataDir = "datastore";
 
+    /**
+     * The buffer size to use when storing data to the filesystem.
+     * <p>
+     * Note that not all storage methods currently respect this setting.
+     */
+    private Integer outputBufferSize;
+
     public String getDataDir()
     {
         return dataDir;
@@ -38,5 +45,15 @@ public class FileSystemDataStoreConfiguration
     public void setDataDir(final String dataDir)
     {
         this.dataDir = dataDir;
+    }
+
+    public Integer getOutputBufferSize()
+    {
+        return outputBufferSize;
+    }
+
+    public void setOutputBufferSize(final Integer outputBufferSize)
+    {
+        this.outputBufferSize = outputBufferSize;
     }
 }
