@@ -34,10 +34,12 @@ import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.OutputStream;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.ArrayList;
 import java.util.UUID;
 
 public class FileSystemDataStoreTest
@@ -172,6 +174,24 @@ public class FileSystemDataStoreTest
         }
         //Verify that repeatable values are returned for the file path of the same stored file.
         Assert.assertEquals(((FilePathProvider) store).getFilePath(storeRef), dataStoreFilePath);
+    }
+
+    @Test
+    public void testDataStoreOutputStream()
+        throws ConfigurationException, DataStoreException, IOException
+    {
+        final FileSystemDataStoreConfiguration conf = new FileSystemDataStoreConfiguration();
+        conf.setDataDir(temp.getAbsolutePath());
+        final FileSystemDataStore store = new FileSystemDataStore(conf);
+        final byte[] data = testData.getBytes(StandardCharsets.UTF_8);
+        final ArrayList<String> storeRefs = new ArrayList<>();
+        try (final OutputStream outputStream = store.store("test", storeRefs::add)) {
+            outputStream.write(data);
+        }
+        Assert.assertEquals(storeRefs.size(), 1);
+        final String storeRef = storeRefs.get(0);
+        verifyStoredData(store, data, storeRef);
+        Assert.assertEquals(store.size(storeRef), data.length);
     }
 
     @Test(expectedExceptions = DataStoreException.class)

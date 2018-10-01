@@ -17,23 +17,28 @@ package com.hpe.caf.worker.datastore.fs;
 
 import com.hpe.caf.api.HealthResult;
 import com.hpe.caf.api.worker.*;
+import org.apache.commons.io.output.ProxyOutputStream;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.BufferedOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.OutputStream;
 import java.nio.file.*;
 import java.util.Objects;
 import java.util.UUID;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.function.Consumer;
 
 /**
  * This is a simple DataStore that reads and writes files to and from a directory upon the file system. The store directory must be an
  * absolute path.
  */
-public class FileSystemDataStore implements ManagedDataStore, FilePathProvider
+public class FileSystemDataStore implements ManagedDataStore, FilePathProvider, DataStoreOutputStreamSupport
 {
     private Path dataStorePath;
+    private final int outputBufferSize;
     private final AtomicInteger errors = new AtomicInteger(0);
     private final AtomicInteger numRx = new AtomicInteger(0);
     private final AtomicInteger numTx = new AtomicInteger(0);
@@ -55,6 +60,9 @@ public class FileSystemDataStore implements ManagedDataStore, FilePathProvider
                 throw new DataStoreException("Cannot create data store directory", e);
             }
         }
+
+        outputBufferSize = getOutputBufferSize(config);
+
         LOG.debug("Initialised");
     }
 
@@ -187,6 +195,32 @@ public class FileSystemDataStore implements ManagedDataStore, FilePathProvider
     }
 
     @Override
+    public OutputStream store(final String partialReference, final Consumer<String> setReferenceFunction)
+        throws DataStoreException
+    {
+        Objects.requireNonNull(setReferenceFunction);
+
+        try {
+            final Path ref = getStoreReference(partialReference);
+            final String reference = dataStorePath.relativize(ref).toString().replace('\\', '/');
+            final OutputStream fos = Files.newOutputStream(ref);
+            final BufferedOutputStream bos = new BufferedOutputStream(fos, outputBufferSize);
+            return new ProxyOutputStream(bos)
+            {
+                @Override
+                public void close() throws IOException
+                {
+                    super.close();
+                    setReferenceFunction.accept(reference);
+                }
+            };
+        } catch (final IOException e) {
+            errors.incrementAndGet();
+            throw new DataStoreException("Failed to get output stream for store", e);
+        }
+    }
+
+    @Override
     public HealthResult healthCheck()
     {
         return HealthResult.RESULT_HEALTHY;
@@ -309,5 +343,16 @@ public class FileSystemDataStore implements ManagedDataStore, FilePathProvider
         {
             return errors.get();
         }
+    }
+
+    private static int getOutputBufferSize(final FileSystemDataStoreConfiguration config)
+    {
+        final int DEFAULT_OUTPUT_BUFFER_SIZE = 16384;
+
+        final Integer configSetting = config.getOutputBufferSize();
+
+        return (configSetting == null || configSetting <= 0)
+            ? DEFAULT_OUTPUT_BUFFER_SIZE
+            : configSetting;
     }
 }
