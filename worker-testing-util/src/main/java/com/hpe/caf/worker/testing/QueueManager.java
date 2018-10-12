@@ -24,6 +24,7 @@ import com.hpe.caf.util.rabbitmq.RabbitUtil;
 import com.rabbitmq.client.Channel;
 import com.rabbitmq.client.Connection;
 import com.rabbitmq.client.MessageProperties;
+import org.apache.commons.lang3.StringUtils;
 
 import java.io.Closeable;
 import java.io.IOException;
@@ -68,7 +69,9 @@ public class QueueManager implements Closeable
         pubChan = connection.createChannel();
         conChan = connection.createChannel();
         RabbitUtil.declareWorkerQueue(pubChan, queueServices.getWorkerInputQueue(), queueServices.getMaxPriority());
-        RabbitUtil.declareWorkerQueue(conChan, queueServices.getWorkerResultsQueue(), queueServices.getMaxPriority());
+        if(StringUtils.isNotEmpty(queueServices.getWorkerResultsQueue())) {
+            RabbitUtil.declareWorkerQueue(conChan, queueServices.getWorkerResultsQueue(), queueServices.getMaxPriority());
+        }
         purgeQueues();
 
         if (debugEnabled) {
@@ -83,7 +86,8 @@ public class QueueManager implements Closeable
         BlockingQueue<Event<QueueConsumer>> conEvents = new LinkedBlockingQueue<>();
         SimpleQueueConsumerImpl queueConsumer = new SimpleQueueConsumerImpl(conEvents, conChan, resultHandler, workerServices.getCodec());
         rabbitConsumer = new DefaultRabbitConsumer(conEvents, queueConsumer);
-        consumerTag = conChan.basicConsume(queueServices.getWorkerResultsQueue(), true, rabbitConsumer);
+        if(StringUtils.isNotEmpty(queueServices.getWorkerResultsQueue()))
+            consumerTag = conChan.basicConsume(queueServices.getWorkerResultsQueue(), true, rabbitConsumer);
         Thread consumerThread = new Thread(rabbitConsumer);
         consumerThread.start();
         return consumerThread;
@@ -92,7 +96,8 @@ public class QueueManager implements Closeable
     public void purgeQueues() throws IOException
     {
         pubChan.queuePurge(queueServices.getWorkerInputQueue());
-        conChan.queuePurge(queueServices.getWorkerResultsQueue());
+        if(StringUtils.isNotEmpty(queueServices.getWorkerResultsQueue()))
+            conChan.queuePurge(queueServices.getWorkerResultsQueue());
     }
 
     public void publish(TaskMessage message) throws CodecException, IOException

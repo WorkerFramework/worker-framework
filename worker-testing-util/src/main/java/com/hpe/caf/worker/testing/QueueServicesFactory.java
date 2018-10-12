@@ -26,6 +26,7 @@ import com.rabbitmq.client.Channel;
 import com.rabbitmq.client.Connection;
 import net.jodah.lyra.ConnectionOptions;
 import net.jodah.lyra.config.Config;
+import org.apache.commons.lang3.StringUtils;
 
 import java.io.IOException;
 import java.util.Map;
@@ -58,7 +59,8 @@ public class QueueServicesFactory
         Channel conChan = connection.createChannel();
 
         RabbitUtil.declareWorkerQueue(pubChan, configuration.getInputQueue(), configuration.getMaxPriority());
-        RabbitUtil.declareWorkerQueue(conChan, resultsQueueName, configuration.getMaxPriority());
+        if(StringUtils.isNotEmpty(resultsQueueName))
+            RabbitUtil.declareWorkerQueue(conChan, resultsQueueName, configuration.getMaxPriority());
 
         return new QueueServices(connection, pubChan, configuration.getInputQueue(), conChan, resultsQueueName, codec, configuration.getMaxPriority());
     }
