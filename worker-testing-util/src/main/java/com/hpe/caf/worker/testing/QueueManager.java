@@ -86,8 +86,9 @@ public class QueueManager implements Closeable
         BlockingQueue<Event<QueueConsumer>> conEvents = new LinkedBlockingQueue<>();
         SimpleQueueConsumerImpl queueConsumer = new SimpleQueueConsumerImpl(conEvents, conChan, resultHandler, workerServices.getCodec());
         rabbitConsumer = new DefaultRabbitConsumer(conEvents, queueConsumer);
-        if(StringUtils.isNotEmpty(queueServices.getWorkerResultsQueue()))
+        if(StringUtils.isNotEmpty(queueServices.getWorkerResultsQueue())) {
             consumerTag = conChan.basicConsume(queueServices.getWorkerResultsQueue(), true, rabbitConsumer);
+        }
         Thread consumerThread = new Thread(rabbitConsumer);
         consumerThread.start();
         return consumerThread;
@@ -96,8 +97,9 @@ public class QueueManager implements Closeable
     public void purgeQueues() throws IOException
     {
         pubChan.queuePurge(queueServices.getWorkerInputQueue());
-        if(StringUtils.isNotEmpty(queueServices.getWorkerResultsQueue()))
+        if(StringUtils.isNotEmpty(queueServices.getWorkerResultsQueue())) {
             conChan.queuePurge(queueServices.getWorkerResultsQueue());
+        }
     }
 
     public void publish(TaskMessage message) throws CodecException, IOException

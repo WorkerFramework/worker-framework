@@ -59,8 +59,9 @@ public class QueueServicesFactory
         Channel conChan = connection.createChannel();
 
         RabbitUtil.declareWorkerQueue(pubChan, configuration.getInputQueue(), configuration.getMaxPriority());
-        if(StringUtils.isNotEmpty(resultsQueueName))
+        if(StringUtils.isNotEmpty(resultsQueueName)) {
             RabbitUtil.declareWorkerQueue(conChan, resultsQueueName, configuration.getMaxPriority());
+        }
 
         return new QueueServices(connection, pubChan, configuration.getInputQueue(), conChan, resultsQueueName, codec, configuration.getMaxPriority());
     }
