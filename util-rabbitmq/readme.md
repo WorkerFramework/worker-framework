@@ -57,7 +57,7 @@
  Remember to make sure a queue has been declared before utilising it.
  It does not matter if a queue is declared repeatedly, as long as the
  declaration parameters are the same. Since all data flows over a `Channel`,
- a queue and a channel msut be tied together. There is a supplied method for
+ a queue and a channel must be tied together. There is a supplied method for
  declaring queues specifically for usage with workers:
 
  ```
