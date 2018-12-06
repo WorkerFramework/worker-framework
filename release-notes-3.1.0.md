@@ -1,5 +1,3 @@
-!not-ready-for-release!
-
 #### Version Number
 ${version-number}
 
@@ -8,3 +6,5 @@ ${version-number}
     The `CAF_WORKER_DISABLE_ZERO_PROGRESS_REPORTING` environment variable can be set to `true` to cause zero-progress tracking messages not to be sent.
 
 #### Known Issues
+ - None
+ 
