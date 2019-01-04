@@ -15,8 +15,6 @@
  */
 package com.hpe.caf.worker.testing;
 
-import org.eclipse.jetty.util.HostMap;
-
 import java.util.*;
 
 /**
