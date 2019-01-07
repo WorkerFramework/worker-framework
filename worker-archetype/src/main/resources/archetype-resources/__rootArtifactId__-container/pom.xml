@@ -80,7 +80,6 @@
             <artifactId>${rootArtifactId}-testing</artifactId>
             <version>${version}</version>
             <scope>test</scope>
-            <type>jar</type>
         </dependency>
     </dependencies>
 
