@@ -20,8 +20,6 @@ import com.hpe.caf.util.ref.ReferencedData;
 import com.hpe.caf.worker.example.ExampleWorkerAction;
 import com.hpe.caf.worker.example.ExampleWorkerConstants;
 import com.hpe.caf.worker.example.ExampleWorkerTask;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.util.Map;
 import java.util.Objects;

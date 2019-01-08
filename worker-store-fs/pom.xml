@@ -35,7 +35,6 @@
         <dependency>
             <groupId>com.github.workerframework</groupId>
             <artifactId>worker-api</artifactId>
-            <version>3.2.0-SNAPSHOT</version>
         </dependency>
         <dependency>
             <groupId>commons-io</groupId>
@@ -51,6 +50,10 @@
             <scope>provided</scope>
         </dependency>
         <dependency>
+            <groupId>com.github.cafapi</groupId>
+            <artifactId>caf-api</artifactId>
+        </dependency>
+        <dependency>
             <groupId>org.testng</groupId>
             <artifactId>testng</artifactId>
             <scope>test</scope>
@@ -63,13 +66,11 @@
         <dependency>
             <groupId>com.github.workerframework</groupId>
             <artifactId>util-store</artifactId>
-            <version>3.2.0-SNAPSHOT</version>
             <scope>test</scope>
         </dependency>
         <dependency>
             <groupId>commons-codec</groupId>
             <artifactId>commons-codec</artifactId>
-            <type>jar</type>
             <scope>test</scope>
         </dependency>
     </dependencies>

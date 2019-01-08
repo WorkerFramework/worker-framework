@@ -43,22 +43,14 @@
         <dependency>
             <groupId>com.github.workerframework</groupId>
             <artifactId>worker-configs</artifactId>
-            <version>3.2.0-SNAPSHOT</version>
         </dependency>
         <dependency>
             <groupId>com.github.workerframework</groupId>
             <artifactId>util-rabbitmq</artifactId>
-            <version>3.2.0-SNAPSHOT</version>
-        </dependency>
-        <dependency>
-            <groupId>com.github.workerframework</groupId>
-            <artifactId>worker-core</artifactId>
-            <version>3.2.0-SNAPSHOT</version>
         </dependency>
         <dependency>
             <groupId>com.github.workerframework</groupId>
             <artifactId>worker-queue-rabbit</artifactId>
-            <version>3.2.0-SNAPSHOT</version>
         </dependency>
         <dependency>
             <groupId>com.google.guava</groupId>
@@ -77,10 +69,33 @@
             <artifactId>amqp-client</artifactId>
         </dependency>
         <dependency>
+            <groupId>net.jodah</groupId>
+            <artifactId>lyra</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>com.github.workerframework</groupId>
+            <artifactId>worker-api</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>com.github.cafapi.util</groupId>
+            <artifactId>util-naming</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>com.github.cafapi.config</groupId>
+            <artifactId>config-system</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>com.github.cafapi.util</groupId>
+            <artifactId>util-moduleloader</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>com.github.cafapi.cipher</groupId>
+            <artifactId>cipher-null</artifactId>
+        </dependency>
+        <dependency>
             <groupId>junit</groupId>
             <artifactId>junit</artifactId>
             <scope>test</scope>
-            <type>jar</type>
         </dependency>
         <dependency>
             <groupId>joda-time</groupId>
