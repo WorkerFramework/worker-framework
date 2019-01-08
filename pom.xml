@@ -82,7 +82,6 @@
         <copyrightNotice>Copyright ${project.inceptionYear}-${copyrightYear} Micro Focus or one of its affiliates.</copyrightNotice>
         <gitRepo>https://github.com/WorkerFramework/worker-framework</gitRepo>
         <enforceCorrectDependencies>true</enforceCorrectDependencies>
-        <awsVersion>1.11.39</awsVersion>
     </properties>
 
     <modules>
@@ -109,6 +108,12 @@
 
     <dependencyManagement>
         <dependencies>
+            <dependency>
+                <groupId>org.hibernate</groupId>
+                <artifactId>hibernate-validator</artifactId>
+                <version>5.2.5.Final</version>
+            </dependency>
+
             <!--
                 Explicitly include the Spring Framework BOM to workaround an apparent issue in jdbi which causes Spring dependencies to be
                 excluded by default.  I've raised this issue and pull request for the problem:
@@ -122,6 +127,7 @@
                 <type>pom</type>
                 <scope>import</scope>
             </dependency>
+
             <dependency>
                 <groupId>io.dropwizard</groupId>
                 <artifactId>dropwizard-bom</artifactId>
@@ -137,19 +143,10 @@
                 <scope>import</scope>
             </dependency>
             <dependency>
-                <groupId>com.amazonaws</groupId>
-                <artifactId>aws-java-sdk-core</artifactId>
-                <version>${awsVersion}</version>
-            </dependency>
-            <dependency>
-                <groupId>com.amazonaws</groupId>
-                <artifactId>aws-java-sdk-devicefarm</artifactId>
-                <version>${awsVersion}</version>
-            </dependency>
-            <dependency>
-                <groupId>com.amazonaws</groupId>
-                <artifactId>aws-java-sdk-s3</artifactId>
-                <version>${awsVersion}</version>
+                <groupId>com.github.workerframework</groupId>
+                <artifactId>standard-worker-container</artifactId>
+                <type>pom</type>
+                <version>3.2.0-SNAPSHOT</version>
             </dependency>
             <dependency>
                 <groupId>com.github.workerframework</groupId>
@@ -188,22 +185,17 @@
             </dependency>
             <dependency>
                 <groupId>com.github.workerframework</groupId>
-                <artifactId>worker-example</artifactId>
-                <version>3.2.0-SNAPSHOT</version>
-            </dependency>
-            <dependency>
-                <groupId>com.github.workerframework</groupId>
-                <artifactId>worker-example-shared</artifactId>
-                <version>3.2.0-SNAPSHOT</version>
-            </dependency>
-            <dependency>
-                <groupId>com.github.workerframework</groupId>
                 <artifactId>worker-queue-rabbit</artifactId>
                 <version>3.2.0-SNAPSHOT</version>
             </dependency>
             <dependency>
                 <groupId>com.github.workerframework</groupId>
                 <artifactId>worker-store-fs</artifactId>
+                <version>3.2.0-SNAPSHOT</version>
+            </dependency>
+            <dependency>
+                <groupId>com.github.workerframework</groupId>
+                <artifactId>worker-store-mem</artifactId>
                 <version>3.2.0-SNAPSHOT</version>
             </dependency>
             <dependency>
@@ -220,11 +212,6 @@
                 <groupId>com.github.workerframework</groupId>
                 <artifactId>worker-tracking-report</artifactId>
                 <version>3.2.0-SNAPSHOT</version>
-            </dependency>
-            <dependency>
-                <groupId>org.hibernate</groupId>
-                <artifactId>hibernate-validator</artifactId>
-                <version>5.2.5.Final</version>
             </dependency>
         </dependencies>
     </dependencyManagement>
