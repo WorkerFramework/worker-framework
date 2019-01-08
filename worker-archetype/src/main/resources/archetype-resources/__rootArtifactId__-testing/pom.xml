@@ -40,10 +40,12 @@
         <dependency>
             <groupId>com.github.workerframework</groupId>
             <artifactId>worker-testing-integration</artifactId>
+            <version>${workerFrameworkVersion}</version>
         </dependency>
         <dependency>
             <groupId>org.testng</groupId>
             <artifactId>testng</artifactId>
+            <version>6.4</version>
             <scope>test</scope>
         </dependency>
     </dependencies>
