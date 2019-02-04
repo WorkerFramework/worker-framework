@@ -12,36 +12,6 @@
 
 Stateless Workers are microservices that can be scaled up or down to meet demand. In essence, a Worker should not be aware (or need to be aware) of any other Worker or its surrounding system. This way additional "clones" of a Worker can be created or destroyed at will to provide scaling without affecting other Workers.
 
-### Components of a Worker
-
-The following modules are required to create a worker. Each contains its own pom.xml with its own dependencies and plugins:
-
-- `worker-example-shared` module contains objects shared between the worker and consumers. It forms an interface to the worker.
-	1. **ExampleWorkerResult** – the result from the worker. Results are serialized and sent to the RabbitMQ queue specified in the rabbit configuration.
-	2. **ExampleWorkerTask** – the main point of entry to communicate with the worker. Tasks are serialized and sent to the worker via the configured queue on RabbitMQ.
-	3. **ExampleWorkerStatus** – records the status of the worker result.
-	4. **ExampleWorkerConstants** – public constant variables.
-	5. **ExampleWorkerAction** – enumeration specifying which processing action to be taken in the worker.
-- `worker-example` module contains the worker itself, closely related classes and an md documentation explaining the service use of the worker.
-	1. **ExampleWorker** – responsible for doing the work. AbstractWorker is the preferable base class for a worker in most scenarios.
-	2. **ExampleWorkerConfiguration** – holds configuration parameters for execution of the worker. These are read in from an ExampleWorkerConfiguration json file and used within the worker execution.
-	3. **ExampleWorkerFactory** – creates a worker, extends AbstractWorkerFactory.
-	4. **ExampleWorkerFactoryProvider** – creates a worker factory, extends WorkerFactoryProvider.
-	5. **ExampleWorkerHealthCheck** – provides a basic health check for marathon GUI display, implements HealthReporter.
-- `worker-example-container` module is for building the Docker image of the worker and pushing the image to Docker. The module starts containers for RabbitMQ and the worker, and runs the worker acceptance integration testcases via the `worker-example-testing` module.
-	1. **ExampleWorkerAcceptanceIT** – calls the `worker-example-testing` module's ExampleWorkerTestControllerProvider class to generate or run worker integration testing testcase files.
-	2. **pom.xml** – specifies the Docker Maven plugin configurations to build the image for the worker, and Maven compiler and failsafe plugin for compiling and running integration tests.
-- `worker-example-testing` module is responsible for generating or running worker testcase files. In generation mode it sends a task message for each input source file to the worker via RabbitMQ and on retrieval of source file response message(s) it creates testcases. In run-testcases mode it sends a task message for each testcase's source file to the worker via RabbitMQ and on retrieval of a source file's response message(s) it validates the expected content contained within the testcase file against the actual content returned in the worker's response.
-	1. **pom.xml** – specifying maven compiler and failsafe plugin for compiling and running integration tests, Docker maven plugin to run containers for RabbitMQ and the worker.
-	2. **ExampleWorkerResultPreparationProvider** – for creating test items, extends PreparationItemProvider or some subclass of ContentFilesTestItemProvider.
-	3. **ExampleWorkerTestControllerProvider** – provides various providers and processors, extends AbstractTestControllerProvider.
-	4. **ExampleWorkerTestExpectation** – test item expected output for comparison with actual output, extends ContentFileTestExpectation.
-	5. **ExampleWorkerTestInput** – test item input, extends FileTestInputData.
-	6. **ExampleWorkerResultValidationProcessor** – for validating the expected result and returned worker result are the same/as expected, extends AbstractResultProcessor or one of its subclasses.
-	7. **ExampleWorkerSaveResultProcessor** – for generating test data, extends ContentResultProcessor or a subclass of PreparationResultProcessor.
-	8. **ExampleWorkerTaskFactory** – for creating tasks, extends FileInputWorkerTaskFactory.
-	9. **ExampleWorkerResultAccessors** – for accessing ExampleWorkerResult fields.
-
 ## Using the Worker Archetype
 
 A Maven Archetype is a template for which you can base a project on.
@@ -110,15 +80,15 @@ Generate the new Worker's Aggregator from the `worker-archetype` by following th
 	- Click 'OK'
 - Select the added 'com.github.workerframework:worker-archetype' archetype > Click 'Next'
 - Enter GroupId, ArtifactId and Version of your Worker project > Click 'Next', e.g:
-	- GroupId : com.hpe.caf.worker
-	- ArtifactId : worker-example
+	- GroupId : <groupId>
+	- ArtifactId : <artifactId>
 	- Version : 1.0.0-SNAPSHOT
 - Add each of the following properties (Alt+Insert) and replace the example values with your project specific values > Click 'Next':
 	- package : com.hpe.caf.worker.example
 	- workerName : ExampleWorker
 - Name the Project after its ArtifactId and specify the location of the project > Click 'Finish', e.g:
-	- Project name : worker-example
-	- Project location : C:\MyWorkerProjects\worker-example
+	- Project name : <artifactId>
+	- Project location : C:\MyWorkerProjects\<artifactId>
 
 The foundations for your new Worker is now set up. The generated project will contain the following submodules:
 
@@ -143,9 +113,9 @@ Generate the new Worker's Aggregator from the `worker-archetype` by following th
 	- Version : 1.4.0-142
 	- Click 'Next >'
 - Enter Project Name, Project Location, GroupId, Version and Package of your Worker Shared project, e.g:
-	- Project Name : worker-example
+	- Project Name : <artifactId>
 	- Project Location : C:\MyWorkerProjects
-	- GroupId : com.hpe.caf.worker
+	- GroupId : <groupId>
 	- Version : 1.0.0-SNAPSHOT
 	- Package : com.hpe.caf.worker.example
 - Set workerName property > Click 'Finish', e.g:
