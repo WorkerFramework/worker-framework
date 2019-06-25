@@ -480,7 +480,9 @@ class WorkerTaskImpl implements WorkerTask
                     //  Ensure any subsequent calls to add() when buffering is disabled results in the task being
                     //  immediately published and not lost.
                     if (taskMessage != null) {
-                        bufferContentsToPublish.add(taskMessage);
+                        if(bufferContentsToPublish != null) {
+                            bufferContentsToPublish.add(taskMessage);
+                        }
                     }
                 }
             }
