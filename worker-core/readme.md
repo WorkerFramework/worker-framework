@@ -209,7 +209,7 @@
  A poison message is a message a worker is unable to handle. A message is
  deemed poisonous during processing when repeated catastrophic failure of the
  worker occurs. Regardless of how many times the message is retried, the worker
- will not be able to handle the message in a graceful manor.
+ will not be able to handle the message in a graceful manner.
 
  On receiving a message, a worker will attempt to process the message.  Should
  the worker crash during processing, the message will be returned to the
