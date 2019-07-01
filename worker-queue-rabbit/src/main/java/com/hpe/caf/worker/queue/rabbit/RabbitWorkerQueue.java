@@ -126,7 +126,7 @@ public final class RabbitWorkerQueue implements ManagedWorkerQueue
         RabbitTaskInformation rabbitTaskInformation = (RabbitTaskInformation)taskInformation;
         rabbitTaskInformation.incrementResponseCount(false);
 
-        publisherQueue.add(new WorkerPublishQueueEvent(taskMessage, targetQueue, taskInformation, headers, priority));
+        publisherQueue.add(new WorkerPublishQueueEvent(taskMessage, targetQueue, rabbitTaskInformation, headers, priority));
     }
 
     /**

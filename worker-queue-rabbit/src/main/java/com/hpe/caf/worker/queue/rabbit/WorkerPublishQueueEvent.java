@@ -15,7 +15,6 @@
  */
 package com.hpe.caf.worker.queue.rabbit;
 
-import com.hpe.caf.api.worker.TaskInformation;
 import com.hpe.caf.util.rabbitmq.Event;
 
 import java.util.Collections;
@@ -29,7 +28,7 @@ public class WorkerPublishQueueEvent implements Event<WorkerPublisher>
 {
     private final byte[] data;
     private final String routingKey;
-    private final TaskInformation taskInformation;
+    private final RabbitTaskInformation taskInformation;
     private final Map<String, Object> headerMap;
     private final int priority;
 
@@ -41,7 +40,7 @@ public class WorkerPublishQueueEvent implements Event<WorkerPublisher>
      * @param taskInformation the id of a message previously consumed to acknowledge
      * @param headers the map of key/value paired headers to be stamped on the message
      */
-    public WorkerPublishQueueEvent(byte[] messageData, String routingKey, TaskInformation taskInformation, Map<String, Object> headers)
+    public WorkerPublishQueueEvent(byte[] messageData, String routingKey, RabbitTaskInformation taskInformation, Map<String, Object> headers)
     {
         this(messageData, routingKey, taskInformation, headers, 0);
     }
@@ -54,7 +53,7 @@ public class WorkerPublishQueueEvent implements Event<WorkerPublisher>
      * @param taskInformation the id of a message previously consumed to acknowledge
      * @param headers the map of key/value paired headers to be stamped on the message
      */
-    public WorkerPublishQueueEvent(byte[] messageData, String routingKey, TaskInformation taskInformation, Map<String, Object> headers, int priority)
+    public WorkerPublishQueueEvent(byte[] messageData, String routingKey, RabbitTaskInformation taskInformation, Map<String, Object> headers, int priority)
     {
         this.data = Objects.requireNonNull(messageData);
         this.routingKey = Objects.requireNonNull(routingKey);
@@ -63,7 +62,7 @@ public class WorkerPublishQueueEvent implements Event<WorkerPublisher>
         this.priority = priority;
     }
 
-    public WorkerPublishQueueEvent(byte[] messageData, String routingKey, TaskInformation taskInformation)
+    public WorkerPublishQueueEvent(byte[] messageData, String routingKey, RabbitTaskInformation taskInformation)
     {
         this(messageData, routingKey, taskInformation, Collections.emptyMap());
     }
@@ -93,7 +92,7 @@ public class WorkerPublishQueueEvent implements Event<WorkerPublisher>
     /**
      * @return the taskInformation containing inbound message id
      */
-    public TaskInformation getTaskInformation()
+    public RabbitTaskInformation getTaskInformation()
     {
         return taskInformation;
     }

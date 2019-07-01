@@ -15,13 +15,13 @@
  */
 package com.hpe.caf.worker.queue.rabbit;
 
-import com.hpe.caf.api.worker.TaskInformation;
 import com.hpe.caf.util.rabbitmq.ConsumerRejectEvent;
 import com.hpe.caf.util.rabbitmq.Event;
 import com.hpe.caf.util.rabbitmq.EventPoller;
 import com.hpe.caf.util.rabbitmq.QueueConsumer;
 import com.rabbitmq.client.Channel;
 import org.testng.Assert;
+import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 import org.mockito.Mockito;
 import org.mockito.stubbing.Answer;
@@ -36,9 +36,14 @@ import java.util.concurrent.TimeUnit;
 public class RabbitWorkerQueuePublisherTest
 {
     private String testQueue = "testQueue";
-    private TaskInformation taskInformation = new TaskInformation("101");
+    private RabbitTaskInformation taskInformation;
     private byte[] data = "test123".getBytes(StandardCharsets.UTF_8);
     private RabbitMetricsReporter metrics = new RabbitMetricsReporter();
+
+    @BeforeMethod
+    public void beforeMethod() {
+        taskInformation = new RabbitTaskInformation("101");
+    }
 
     @Test
     public void testSetup()

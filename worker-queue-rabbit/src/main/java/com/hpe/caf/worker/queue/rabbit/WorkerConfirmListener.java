@@ -15,7 +15,6 @@
  */
 package com.hpe.caf.worker.queue.rabbit;
 
-import com.hpe.caf.api.worker.TaskInformation;
 import com.hpe.caf.util.rabbitmq.ConsumerAckEvent;
 import com.hpe.caf.util.rabbitmq.ConsumerRejectEvent;
 import com.hpe.caf.util.rabbitmq.Event;
@@ -55,14 +54,14 @@ class WorkerConfirmListener implements ConfirmListener
      * @param publishSequence the published sequence ID of the Worker response message
      * @param taskInformation the incoming task message ID to ack when the published response is confirmed
      */
-    public void registerResponseSequence(long publishSequence, TaskInformation taskInformation)
+    public void registerResponseSequence(long publishSequence, RabbitTaskInformation taskInformation)
     {
-        if (confirmMap.putIfAbsent(publishSequence, (RabbitTaskInformation)taskInformation) != null) {
+        if (confirmMap.putIfAbsent(publishSequence, taskInformation) != null) {
             throw new IllegalStateException("Sequence id " + publishSequence + " already present in confirmations map");
         }
 
         LOG.debug("Listening for confirmation of publish sequence {} (ack message: {})", publishSequence, taskInformation.getInboundMessageId());
-        confirmMap.put(publishSequence, (RabbitTaskInformation)taskInformation);
+        confirmMap.put(publishSequence, taskInformation);
     }
 
     /**
@@ -103,7 +102,7 @@ class WorkerConfirmListener implements ConfirmListener
         if (multiple) {
             Map<Long, RabbitTaskInformation> ackMap = confirmMap.headMap(sequenceNo + 1);
             synchronized (confirmMap) {
-                consumerEvents.addAll(ackMap.values().stream().map(eventSource::apply).collect(Collectors.toList()));
+                consumerEvents.addAll(ackMap.values().stream().map(eventSource::apply).filter(Objects::nonNull).collect(Collectors.toList()));
             }
             ackMap.clear(); // clear all entries up to this (n)acked sequence number
         } else {
@@ -112,7 +111,10 @@ class WorkerConfirmListener implements ConfirmListener
                 LOG.error("RabbitMQ broker sent confirm for sequence number {}, which is not registered", sequenceNo);
                 throw new IllegalStateException("Sequence number " + sequenceNo + " not found in WorkerConfirmListener");
             } else {
-                consumerEvents.add(eventSource.apply(taskInformation));
+                Event<QueueConsumer> event = eventSource.apply(taskInformation);
+                if(event!=null){
+                    consumerEvents.add(event);
+                }
             }
         }
     }

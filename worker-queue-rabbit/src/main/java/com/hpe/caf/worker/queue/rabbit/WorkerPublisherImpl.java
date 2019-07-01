@@ -15,7 +15,6 @@
  */
 package com.hpe.caf.worker.queue.rabbit;
 
-import com.hpe.caf.api.worker.TaskInformation;
 import com.hpe.caf.util.rabbitmq.ConsumerRejectEvent;
 import com.hpe.caf.util.rabbitmq.Event;
 import com.hpe.caf.util.rabbitmq.QueueConsumer;
@@ -63,7 +62,7 @@ public class WorkerPublisherImpl implements WorkerPublisher
     }
 
     @Override
-    public void handlePublish(byte[] data, String routingKey, TaskInformation taskInformation, Map<String, Object> headers, int priority)
+    public void handlePublish(byte[] data, String routingKey, RabbitTaskInformation taskInformation, Map<String, Object> headers, int priority)
     {
         try {
             LOG.debug("Publishing message with ack id {}", taskInformation.getInboundMessageId());

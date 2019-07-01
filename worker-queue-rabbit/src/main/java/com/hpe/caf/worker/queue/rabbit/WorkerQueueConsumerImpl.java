@@ -17,7 +17,6 @@ package com.hpe.caf.worker.queue.rabbit;
 
 import com.hpe.caf.api.worker.InvalidTaskException;
 import com.hpe.caf.api.worker.TaskCallback;
-import com.hpe.caf.api.worker.TaskInformation;
 import com.hpe.caf.api.worker.TaskRejectedException;
 import com.hpe.caf.util.rabbitmq.ConsumerAckEvent;
 import com.hpe.caf.util.rabbitmq.ConsumerDropEvent;
@@ -76,7 +75,7 @@ public class WorkerQueueConsumerImpl implements QueueConsumer
     @Override
     public void processDelivery(Delivery delivery)
     {
-        TaskInformation taskInformation = new RabbitTaskInformation(String.valueOf(delivery.getEnvelope().getDeliveryTag()));
+        RabbitTaskInformation taskInformation = new RabbitTaskInformation(String.valueOf(delivery.getEnvelope().getDeliveryTag()));
         metrics.incrementReceived();
         if (delivery.getEnvelope().isRedeliver()) {
             handleRedelivery(delivery);
@@ -163,7 +162,7 @@ public class WorkerQueueConsumerImpl implements QueueConsumer
      */
     private void handleRedelivery(Delivery delivery)
     {
-        TaskInformation taskInformation = new RabbitTaskInformation(String.valueOf(delivery.getEnvelope().getDeliveryTag()));
+        RabbitTaskInformation taskInformation = new RabbitTaskInformation(String.valueOf(delivery.getEnvelope().getDeliveryTag()));
         int retries = Integer.parseInt(String.valueOf(delivery.getHeaders().getOrDefault(RabbitHeaders.RABBIT_HEADER_CAF_WORKER_RETRY, "0")));
         if (retries >= retryLimit) {
             LOG.debug("Retry exceeded for message with id {}, republishing to rejected queue", delivery.getEnvelope().getDeliveryTag());

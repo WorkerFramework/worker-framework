@@ -86,7 +86,7 @@ public class RabbitTaskInformation implements TaskInformation {
 
     public boolean areAllResponsesAcknowledged()
     {
-        return getFinalResponseCount() == acknowledgementCount;
+        return getFinalResponseCount() <= acknowledgementCount;
     }
 
     private boolean isFinalResponseCountKnown()
