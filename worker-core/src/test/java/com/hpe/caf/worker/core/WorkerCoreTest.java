@@ -29,6 +29,7 @@ import com.hpe.caf.worker.tracking.report.TrackingReportStatus;
 import com.hpe.caf.worker.tracking.report.TrackingReportTask;
 import com.hpe.caf.worker.tracking.report.TrackingReportConstants;
 import org.testng.Assert;
+import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.BeforeTest;
 import org.testng.annotations.Test;
 import org.mockito.Mockito;
@@ -54,7 +55,7 @@ public class WorkerCoreTest
 
     private TaskInformation taskInformation;
 
-    @BeforeTest
+    @BeforeMethod
     private void before() {
         taskInformation = new TaskInformation("test1");
     }

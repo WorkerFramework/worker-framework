@@ -385,7 +385,6 @@ final class WorkerCore
             final int priority = responseMessage.getPriority() == null ? 0 : responseMessage.getPriority();
 
             try {
-                //TODO ANDY Was -1
                 workerQueue.publish(taskInformation, output, queue, Collections.emptyMap(), priority);
             } catch (final QueueException ex) {
                 throw new RuntimeException(ex);
@@ -502,7 +501,6 @@ final class WorkerCore
             final int priority = reportUpdateMessage.getPriority() == null ? 0 : reportUpdateMessage.getPriority();
 
             try {
-                //TODO Was -1
                 workerQueue.publish(taskInformation, output, reportUpdateMessage.getTo(), Collections.emptyMap(), priority);
             } catch (final QueueException ex) {
                 throw new RuntimeException(ex);

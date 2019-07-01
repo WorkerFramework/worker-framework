@@ -15,6 +15,7 @@
  */
 package com.hpe.caf.worker.queue.rabbit;
 
+import com.hpe.caf.api.worker.TaskInformation;
 import com.hpe.caf.util.rabbitmq.ConsumerRejectEvent;
 import com.hpe.caf.util.rabbitmq.Event;
 import com.hpe.caf.util.rabbitmq.EventPoller;
@@ -35,7 +36,7 @@ import java.util.concurrent.TimeUnit;
 public class RabbitWorkerQueuePublisherTest
 {
     private String testQueue = "testQueue";
-    private long id = 101L;
+    private TaskInformation taskInformation = new TaskInformation("101");
     private byte[] data = "test123".getBytes(StandardCharsets.UTF_8);
     private RabbitMetricsReporter metrics = new RabbitMetricsReporter();
 
@@ -63,7 +64,7 @@ public class RabbitWorkerQueuePublisherTest
         EventPoller<WorkerPublisher> publisher = new EventPoller<>(2, publisherEvents, impl);
         Thread t = new Thread(publisher);
         t.start();
-        publisherEvents.add(new WorkerPublishQueueEvent(data, testQueue, id));
+        publisherEvents.add(new WorkerPublishQueueEvent(data, testQueue, taskInformation));
         CountDownLatch latch = new CountDownLatch(1);
         Answer<Void> a = invocationOnMock -> {
             latch.countDown();
@@ -89,11 +90,11 @@ public class RabbitWorkerQueuePublisherTest
         EventPoller<WorkerPublisher> publisher = new EventPoller<>(2, publisherEvents, impl);
         Thread t = new Thread(publisher);
         t.start();
-        publisherEvents.add(new WorkerPublishQueueEvent(data, testQueue, id));
+        publisherEvents.add(new WorkerPublishQueueEvent(data, testQueue, taskInformation));
         Event<QueueConsumer> event = consumerEvents.poll(5000, TimeUnit.MILLISECONDS);
         Assert.assertNotNull(event);
         Assert.assertTrue(event instanceof ConsumerRejectEvent);
-        Assert.assertEquals(id, ((ConsumerRejectEvent) event).getTag());
+        Assert.assertEquals((long)Long.valueOf(taskInformation.getInboundMessageId()), ((ConsumerRejectEvent) event).getTag());
         Mockito.verify(channel, Mockito.times(1)).basicPublish(Mockito.any(), Mockito.eq(testQueue), Mockito.any(), Mockito.eq(data));
         publisher.shutdown();
         Assert.assertEquals(0, publisherEvents.size());

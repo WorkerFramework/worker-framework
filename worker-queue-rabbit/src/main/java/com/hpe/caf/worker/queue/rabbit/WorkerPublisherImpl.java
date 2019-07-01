@@ -28,7 +28,6 @@ import java.io.IOException;
 import java.util.Map;
 import java.util.Objects;
 import java.util.concurrent.BlockingQueue;
-import java.util.stream.Collectors;
 
 /**
  * A RabbitMQ publisher that uses a ConfirmListener, sending data as plain text with headers. Messages that cannot be published at all
@@ -73,14 +72,14 @@ public class WorkerPublisherImpl implements WorkerPublisher
             builder.contentType("text/plain");
             builder.deliveryMode(2);
             builder.priority(priority);
-            //TODO Andy Here is where next sequence number is obtained, ackId is the inbound message id.
+
             confirmListener.registerResponseSequence(channel.getNextPublishSeqNo(), taskInformation);
             channel.basicPublish("", routingKey, builder.build(), data);
             metrics.incrementPublished();
         } catch (IOException e) {
             LOG.error("Failed to publish result of message {} to queue {}, rejecting", taskInformation.getInboundMessageId(), routingKey, e);
             metrics.incremementErrors();
-            consumerEvents.add(new ConsumerRejectEvent(ackId));
+            consumerEvents.add(new ConsumerRejectEvent(Long.valueOf(taskInformation.getInboundMessageId())));
         }
     }
 }

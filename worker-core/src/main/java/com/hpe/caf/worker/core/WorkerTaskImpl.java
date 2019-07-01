@@ -292,6 +292,7 @@ class WorkerTaskImpl implements WorkerTask
             }
 
             responseCount = isFinalResponse ? -rc : rc;
+            taskInformation.incrementResponseCount(isFinalResponse);
         }
     }
 
