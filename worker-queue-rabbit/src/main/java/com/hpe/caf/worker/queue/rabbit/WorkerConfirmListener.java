@@ -81,7 +81,10 @@ class WorkerConfirmListener implements ConfirmListener
         LOG.debug("RabbitMQ broker ACKed published sequence id {} (multiple: {})", sequenceNo, multiple);
         handle(sequenceNo, multiple, t -> {
             t.incrementAcknowledgementCount();
-            return new ConsumerAckEvent(Long.valueOf(t.getInboundMessageId()));
+            if(t.finalizeResponseCount()){
+                return new ConsumerAckEvent(Long.valueOf(t.getInboundMessageId()));
+            }
+            return null;
         });
     }
 
@@ -96,6 +99,7 @@ class WorkerConfirmListener implements ConfirmListener
     private void handle(long sequenceNo, boolean multiple, Function<TaskInformation, Event<QueueConsumer>> eventSource)
     {
         //TODO Andy Correct this logic
+        //Handle null returned from handleAck
         if (multiple) {
             Map<Long, TaskInformation> ackMap = confirmMap.headMap(sequenceNo + 1);
             synchronized (confirmMap) {
