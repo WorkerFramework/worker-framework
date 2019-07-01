@@ -43,6 +43,9 @@ import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.TimeUnit;
 
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
+
 public class WorkerCoreTest
 {
     private static final String SUCCESS = "success";
@@ -57,7 +60,7 @@ public class WorkerCoreTest
 
     @BeforeMethod
     private void before() {
-        taskInformation = new TaskInformation("test1");
+        taskInformation = getMockTaskInformation("test1");
     }
 
     /**
@@ -312,9 +315,9 @@ public class WorkerCoreTest
         byte[] task1 = codec.serialise(getTaskMessage(task, codec, UUID.randomUUID().toString()));
         byte[] task2 = codec.serialise(getTaskMessage(task, codec, UUID.randomUUID().toString()));
         byte[] task3 = codec.serialise(getTaskMessage(task, codec, UUID.randomUUID().toString()));
-        queue.submitTask(new TaskInformation("task1"), task1);
-        queue.submitTask(new TaskInformation("task2"), task2);
-        queue.submitTask(new TaskInformation("task3"), task3);   // there are only 2 threads, so this task should not even start
+        queue.submitTask(getMockTaskInformation("task1"), task1);
+        queue.submitTask(getMockTaskInformation("task2"), task2);
+        queue.submitTask(getMockTaskInformation("task3"), task3);   // there are only 2 threads, so this task should not even start
         Thread.sleep(500);  // give the test a little breathing room
         queue.triggerAbort();
         latch.await(1, TimeUnit.SECONDS);
@@ -558,5 +561,12 @@ public class WorkerCoreTest
         {
             return WORKER_API_VER;
         }
+    }
+
+    TaskInformation getMockTaskInformation(final String inboundMessageId){
+        final TaskInformation taskInformation = mock(TaskInformation.class);
+        when(taskInformation.getInboundMessageId()).thenReturn(inboundMessageId);
+
+        return taskInformation;
     }
 }

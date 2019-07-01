@@ -76,7 +76,7 @@ public class WorkerQueueConsumerImpl implements QueueConsumer
     @Override
     public void processDelivery(Delivery delivery)
     {
-        TaskInformation taskInformation = new TaskInformation(String.valueOf(delivery.getEnvelope().getDeliveryTag()));
+        TaskInformation taskInformation = new RabbitTaskInformation(String.valueOf(delivery.getEnvelope().getDeliveryTag()));
         metrics.incrementReceived();
         if (delivery.getEnvelope().isRedeliver()) {
             handleRedelivery(delivery);
@@ -163,7 +163,7 @@ public class WorkerQueueConsumerImpl implements QueueConsumer
      */
     private void handleRedelivery(Delivery delivery)
     {
-        TaskInformation taskInformation = new TaskInformation(String.valueOf(delivery.getEnvelope().getDeliveryTag()));
+        TaskInformation taskInformation = new RabbitTaskInformation(String.valueOf(delivery.getEnvelope().getDeliveryTag()));
         int retries = Integer.parseInt(String.valueOf(delivery.getHeaders().getOrDefault(RabbitHeaders.RABBIT_HEADER_CAF_WORKER_RETRY, "0")));
         if (retries >= retryLimit) {
             LOG.debug("Retry exceeded for message with id {}, republishing to rejected queue", delivery.getEnvelope().getDeliveryTag());

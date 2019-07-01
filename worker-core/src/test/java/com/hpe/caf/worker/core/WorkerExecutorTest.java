@@ -30,6 +30,7 @@ import java.nio.charset.StandardCharsets;
 import java.util.HashMap;
 import java.util.Map;
 
+import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.withSettings;
 
 public class WorkerExecutorTest
@@ -40,20 +41,20 @@ public class WorkerExecutorTest
     {
         Codec codec = new JsonCodec();
         ServicePath path = new ServicePath("/unitTest/test");
-        WorkerCallback callback = Mockito.mock(WorkerCallback.class);
-        Worker worker = Mockito.mock(Worker.class);
+        WorkerCallback callback = mock(WorkerCallback.class);
+        Worker worker = mock(Worker.class);
         WorkerResponse workerResponse = new WorkerResponse("testQueue", TaskStatus.NEW_TASK, new byte[0], "testType", 1, new byte[0]);
         Mockito.when(worker.doWork()).thenReturn(workerResponse);
-        WorkerFactory factory = Mockito.mock(WorkerFactory.class);
+        WorkerFactory factory = mock(WorkerFactory.class);
         Mockito.when(factory.getWorker(Mockito.any())).thenReturn(worker);
         WorkerThreadPool pool = WorkerThreadPool.create(5);
-        MessagePriorityManager priorityManager = Mockito.mock(MessagePriorityManager.class);
+        MessagePriorityManager priorityManager = mock(MessagePriorityManager.class);
         Mockito.when(priorityManager.getResponsePriority(Mockito.any())).thenReturn(2);
         Map<String, Object> headers = new HashMap<>();
 
         WorkerExecutor executor = new WorkerExecutor(path, callback, factory, pool, priorityManager);
         TaskMessage tm = new TaskMessage("test", "test", 1, "test".getBytes(StandardCharsets.UTF_8), TaskStatus.NEW_TASK, new HashMap<>(), "testTo");
-        executor.executeTask(tm, new TaskInformation("test"), false, headers, codec);
+        executor.executeTask(tm, mock(TaskInformation.class), false, headers, codec);
         Mockito.verify(factory, Mockito.times(1)).getWorker(Mockito.any());
     }
 
@@ -62,17 +63,17 @@ public class WorkerExecutorTest
         throws InvalidNameException, TaskRejectedException, InvalidTaskException
     {
         ServicePath path = new ServicePath("/unitTest/test");
-        WorkerCallback callback = Mockito.mock(WorkerCallback.class);
-        Worker worker = Mockito.mock(Worker.class);
-        WorkerFactory factory = Mockito.mock(WorkerFactory.class);
+        WorkerCallback callback = mock(WorkerCallback.class);
+        Worker worker = mock(Worker.class);
+        WorkerFactory factory = mock(WorkerFactory.class);
         Mockito.when(factory.getWorker(Mockito.any())).thenReturn(worker);
-        WorkerThreadPool pool = Mockito.mock(WorkerThreadPool.class);
-        MessagePriorityManager priorityManager = Mockito.mock(MessagePriorityManager.class);
+        WorkerThreadPool pool = mock(WorkerThreadPool.class);
+        MessagePriorityManager priorityManager = mock(MessagePriorityManager.class);
         Mockito.when(priorityManager.getResponsePriority(Mockito.any())).thenReturn(2);
 
         WorkerExecutor executor = new WorkerExecutor(path, callback, factory, pool, priorityManager);
         TaskMessage tm = new TaskMessage("test", "test", 1, "test".getBytes(StandardCharsets.UTF_8), TaskStatus.NEW_TASK, new HashMap<>(), "testTo");
-        TaskInformation taskInformation = new TaskInformation("testMsgId");
+        TaskInformation taskInformation = mock(TaskInformation.class);
         executor.forwardTask(tm, taskInformation, new HashMap<>());
         Mockito.verify(callback, Mockito.times(1)).forward(taskInformation, "testTo", tm, new HashMap<>());
     }
@@ -83,12 +84,12 @@ public class WorkerExecutorTest
     {
         ServicePath path = new ServicePath("/unitTest/test");
         TaskMessage tm = new TaskMessage("test", "test", 1, "test".getBytes(StandardCharsets.UTF_8), TaskStatus.NEW_TASK, new HashMap<>(), "testTo");
-        WorkerCallback callback = Mockito.mock(WorkerCallback.class);
-        Worker worker = Mockito.mock(Worker.class);
-        MessagePriorityManager priorityManager = Mockito.mock(MessagePriorityManager.class);
+        WorkerCallback callback = mock(WorkerCallback.class);
+        Worker worker = mock(Worker.class);
+        MessagePriorityManager priorityManager = mock(MessagePriorityManager.class);
         Mockito.when(priorityManager.getResponsePriority(Mockito.any())).thenReturn(2);
 
-        WorkerFactory factory = Mockito.mock(WorkerFactory.class, withSettings().extraInterfaces(TaskMessageForwardingEvaluator.class));
+        WorkerFactory factory = mock(WorkerFactory.class, withSettings().extraInterfaces(TaskMessageForwardingEvaluator.class));
         Mockito.doAnswer(new Answer()
         {
             public Object answer(InvocationOnMock invocation)
@@ -106,10 +107,10 @@ public class WorkerExecutorTest
         }).when((TaskMessageForwardingEvaluator) factory).determineForwardingAction(Mockito.any(TaskMessage.class), Mockito.any(TaskInformation.class), Mockito.anyMap(), Mockito.any(WorkerCallback.class));
 
         Mockito.when(factory.getWorker(Mockito.any())).thenReturn(worker);
-        WorkerThreadPool pool = Mockito.mock(WorkerThreadPool.class);
+        WorkerThreadPool pool = mock(WorkerThreadPool.class);
 
         WorkerExecutor executor = new WorkerExecutor(path, callback, factory, pool, priorityManager);
-        TaskInformation taskInformation = new TaskInformation("testMsgId");
+        TaskInformation taskInformation =mock(TaskInformation.class);
         executor.forwardTask(tm, taskInformation, new HashMap<>());
         Mockito.verify((TaskMessageForwardingEvaluator) factory, Mockito.times(1)).determineForwardingAction(tm, taskInformation, new HashMap<>(), callback);
         Mockito.verify(callback, Mockito.times(1)).discard(taskInformation);
@@ -121,10 +122,10 @@ public class WorkerExecutorTest
     {
         Codec codec = new JsonCodec();
         ServicePath path = new ServicePath("/unitTest/test");
-        MessagePriorityManager priorityManager = Mockito.mock(MessagePriorityManager.class);
+        MessagePriorityManager priorityManager = mock(MessagePriorityManager.class);
         Mockito.when(priorityManager.getResponsePriority(Mockito.any())).thenReturn(2);
-        WorkerCallback callback = Mockito.mock(WorkerCallback.class);
-        WorkerFactory factory = Mockito.mock(WorkerFactory.class);
+        WorkerCallback callback = mock(WorkerCallback.class);
+        WorkerFactory factory = mock(WorkerFactory.class);
         Mockito.when(factory.getWorker(Mockito.any())).thenThrow(
             TaskRejectedException.class);
         WorkerThreadPool pool = WorkerThreadPool.create(5);
@@ -132,7 +133,7 @@ public class WorkerExecutorTest
 
         WorkerExecutor executor = new WorkerExecutor(path, callback, factory, pool, priorityManager);
         TaskMessage tm = new TaskMessage("test", "test", 1, "test".getBytes(StandardCharsets.UTF_8), TaskStatus.NEW_TASK, new HashMap<>(), "test");
-        executor.executeTask(tm, new TaskInformation("test"), false, headers, codec);
+        executor.executeTask(tm, mock(TaskInformation.class), false, headers, codec);
     }
 
     @Test
@@ -144,10 +145,10 @@ public class WorkerExecutorTest
         String taskId = "testTask";
         String classifier = "classifier";
         int ver = 2;
-        TaskInformation taskInformation = new TaskInformation("testMsg");
+        TaskInformation taskInformation = mock(TaskInformation.class);
         byte[] data = "test".getBytes(StandardCharsets.UTF_8);
         String invalidQueue = "queue";
-        WorkerCallback callback = Mockito.mock(WorkerCallback.class);
+        WorkerCallback callback = mock(WorkerCallback.class);
         Answer<Void> a = invocationOnMock -> {
             Object[] args = invocationOnMock.getArguments();
             Assert.assertEquals(taskInformation, args[0]);
@@ -160,11 +161,11 @@ public class WorkerExecutorTest
             return null;
         };
         Mockito.doAnswer(a).when(callback).complete(Mockito.any(), Mockito.any(), Mockito.any());
-        WorkerFactory factory = Mockito.mock(WorkerFactory.class);
+        WorkerFactory factory = mock(WorkerFactory.class);
         Mockito.when(factory.getInvalidTaskQueue()).thenReturn(invalidQueue);
         Mockito.when(factory.getWorker(Mockito.any())).thenThrow(
             InvalidTaskException.class);
-        MessagePriorityManager priorityManager = Mockito.mock(MessagePriorityManager.class);
+        MessagePriorityManager priorityManager = mock(MessagePriorityManager.class);
         Mockito.when(priorityManager.getResponsePriority(Mockito.any())).thenReturn(2);
         Map<String, Object> headers = new HashMap<>();
 
@@ -186,10 +187,10 @@ public class WorkerExecutorTest
         String taskId = "";
         String classifier = "";
         int ver = 0;
-        TaskInformation taskInformation = new TaskInformation("testMsg");
+        TaskInformation taskInformation = mock(TaskInformation.class);
         byte[] data = new byte[]{};
         String invalidQueue = "queue";
-        WorkerCallback callback = Mockito.mock(WorkerCallback.class);
+        WorkerCallback callback = mock(WorkerCallback.class);
         Answer<Void> a = invocationOnMock -> {
             Object[] args = invocationOnMock.getArguments();
             Assert.assertEquals(taskInformation, args[0]);
@@ -202,11 +203,11 @@ public class WorkerExecutorTest
             return null;
         };
         Mockito.doAnswer(a).when(callback).complete(Mockito.any(), Mockito.any(), Mockito.any());
-        WorkerFactory factory = Mockito.mock(WorkerFactory.class);
+        WorkerFactory factory = mock(WorkerFactory.class);
         Mockito.when(factory.getInvalidTaskQueue()).thenReturn(invalidQueue);
         Mockito.when(factory.getWorker(Mockito.any())).thenThrow(
             InvalidTaskException.class);
-        MessagePriorityManager priorityManager = Mockito.mock(MessagePriorityManager.class);
+        MessagePriorityManager priorityManager = mock(MessagePriorityManager.class);
         Mockito.when(priorityManager.getResponsePriority(Mockito.any())).thenReturn(2);
         WorkerThreadPool pool = WorkerThreadPool.create(5);
         WorkerExecutor executor = new WorkerExecutor(path, callback, factory, pool, priorityManager);
@@ -229,18 +230,18 @@ public class WorkerExecutorTest
     {
         Codec codec = new JsonCodec();
         ServicePath path = new ServicePath("/unitTest/test");
-        WorkerCallback callback = Mockito.mock(WorkerCallback.class);
-        Worker worker = Mockito.mock(Worker.class);
-        WorkerFactory factory = Mockito.mock(WorkerFactory.class);
+        WorkerCallback callback = mock(WorkerCallback.class);
+        Worker worker = mock(Worker.class);
+        WorkerFactory factory = mock(WorkerFactory.class);
         Mockito.when(factory.getWorker(Mockito.any())).thenReturn(worker);
-        WorkerThreadPool pool = Mockito.mock(WorkerThreadPool.class);
+        WorkerThreadPool pool = mock(WorkerThreadPool.class);
         Mockito.doThrow(TaskRejectedException.class).when(pool).submitWorkerTask(Mockito.any(WorkerTaskImpl.class));
-        MessagePriorityManager priorityManager = Mockito.mock(MessagePriorityManager.class);
+        MessagePriorityManager priorityManager = mock(MessagePriorityManager.class);
         Mockito.when(priorityManager.getResponsePriority(Mockito.any())).thenReturn(2);
         Map<String, Object> headers = new HashMap<>();
 
         WorkerExecutor executor = new WorkerExecutor(path, callback, factory, pool, priorityManager);
         TaskMessage tm = new TaskMessage("test", "test", 1, "test".getBytes(StandardCharsets.UTF_8), TaskStatus.NEW_TASK, new HashMap<>(), "test");
-        executor.executeTask(tm, new TaskInformation("test"), false, headers, codec);
+        executor.executeTask(tm, mock(TaskInformation.class), false, headers, codec);
     }
 }

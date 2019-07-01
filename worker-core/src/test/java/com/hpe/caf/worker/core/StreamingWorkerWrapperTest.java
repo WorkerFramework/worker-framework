@@ -34,6 +34,9 @@ import java.util.Objects;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
+
 public class StreamingWorkerWrapperTest
 {
     private static final String SUCCESS = "success";
@@ -52,11 +55,11 @@ public class StreamingWorkerWrapperTest
         throws WorkerException, InterruptedException, InvalidNameException, CodecException
     {
         Codec codec = new JsonCodec();
-        WorkerFactory happyWorkerFactory = Mockito.mock(WorkerFactory.class);
+        WorkerFactory happyWorkerFactory = mock(WorkerFactory.class);
         Worker happyWorker = getWorker(new TestWorkerTask(), codec);
-        Mockito.when(happyWorkerFactory.getWorker(Mockito.any())).thenReturn(happyWorker);
-        MessagePriorityManager priorityManager = Mockito.mock(MessagePriorityManager.class);
-        Mockito.when(priorityManager.getResponsePriority(Mockito.any())).thenReturn(PRIORITY);
+        when(happyWorkerFactory.getWorker(Mockito.any())).thenReturn(happyWorker);
+        MessagePriorityManager priorityManager = mock(MessagePriorityManager.class);
+        when(priorityManager.getResponsePriority(Mockito.any())).thenReturn(PRIORITY);
         String queueMsgId = "success";
         CountDownLatch latch = new CountDownLatch(1);
         TestCallback callback = new TestCallback(latch);
@@ -64,7 +67,7 @@ public class StreamingWorkerWrapperTest
         m.setTaskId(TASK_ID);
         ServicePath path = new ServicePath(SERVICE_NAME);
         Map<String, Object> headers = new HashMap<>();
-        WorkerTaskImpl workerTask = new WorkerTaskImpl(path, callback, happyWorkerFactory, new TaskInformation(queueMsgId), m, false,
+        WorkerTaskImpl workerTask = new WorkerTaskImpl(path, callback, happyWorkerFactory, getMockTaskInformation(queueMsgId), m, false,
                 headers, codec, priorityManager);
         StreamingWorkerWrapper wrapper = new StreamingWorkerWrapper(workerTask);
         Thread t = new Thread(wrapper);
@@ -86,11 +89,11 @@ public class StreamingWorkerWrapperTest
         throws WorkerException, InterruptedException, InvalidNameException
     {
         Codec codec = new JsonCodec();
-        WorkerFactory happyWorkerFactory = Mockito.mock(WorkerFactory.class);
+        WorkerFactory happyWorkerFactory = mock(WorkerFactory.class);
         Worker happyWorker = getRedirectWorker(new TestWorkerTask(), codec);
-        Mockito.when(happyWorkerFactory.getWorker(Mockito.any())).thenReturn(happyWorker);
-        MessagePriorityManager priorityManager = Mockito.mock(MessagePriorityManager.class);
-        Mockito.when(priorityManager.getResponsePriority(Mockito.any())).thenReturn(PRIORITY);
+        when(happyWorkerFactory.getWorker(Mockito.any())).thenReturn(happyWorker);
+        MessagePriorityManager priorityManager = mock(MessagePriorityManager.class);
+        when(priorityManager.getResponsePriority(Mockito.any())).thenReturn(PRIORITY);
 
         String queueMsgId = "success";
         CountDownLatch latch = new CountDownLatch(1);
@@ -99,7 +102,7 @@ public class StreamingWorkerWrapperTest
         m.setTaskId(TASK_ID);
         ServicePath path = new ServicePath(SERVICE_NAME);
         Map<String, Object> headers = new HashMap<>();
-        WorkerTaskImpl workerTask = new WorkerTaskImpl(path, callback, happyWorkerFactory, new TaskInformation(queueMsgId), m, false,
+        WorkerTaskImpl workerTask = new WorkerTaskImpl(path, callback, happyWorkerFactory, getMockTaskInformation(queueMsgId), m, false,
                 headers, codec, priorityManager);
         StreamingWorkerWrapper wrapper = new StreamingWorkerWrapper(workerTask);
         Thread t = new Thread(wrapper);
@@ -118,14 +121,14 @@ public class StreamingWorkerWrapperTest
         throws WorkerException, InterruptedException, InvalidNameException, CodecException
     {
         Codec codec = new JsonCodec();
-        WorkerFactory happyWorkerFactory = Mockito.mock(WorkerFactory.class);
+        WorkerFactory happyWorkerFactory = mock(WorkerFactory.class);
         Worker happyWorker = Mockito.spy(getWorker(new TestWorkerTask(), codec));
-        Mockito.when(happyWorkerFactory.getWorker(Mockito.any())).thenReturn(happyWorker);
-        Mockito.when(happyWorker.doWork()).thenAnswer(invocationOnMock -> {
+        when(happyWorkerFactory.getWorker(Mockito.any())).thenReturn(happyWorker);
+        when(happyWorker.doWork()).thenAnswer(invocationOnMock -> {
             throw new TaskFailedException("whoops");
         });
-        MessagePriorityManager priorityManager = Mockito.mock(MessagePriorityManager.class);
-        Mockito.when(priorityManager.getResponsePriority(Mockito.any())).thenReturn(PRIORITY);
+        MessagePriorityManager priorityManager = mock(MessagePriorityManager.class);
+        when(priorityManager.getResponsePriority(Mockito.any())).thenReturn(PRIORITY);
         String queueMsgId = "exception";
         CountDownLatch latch = new CountDownLatch(1);
         TestCallback callback = new TestCallback(latch);
@@ -136,7 +139,7 @@ public class StreamingWorkerWrapperTest
         m.setTaskId(TASK_ID);
         m.setContext(contextMap);
         Map<String, Object> headers = new HashMap<>();
-        WorkerTaskImpl workerTask = new WorkerTaskImpl(path, callback, happyWorkerFactory, new TaskInformation(queueMsgId), m, false,
+        WorkerTaskImpl workerTask = new WorkerTaskImpl(path, callback, happyWorkerFactory, getMockTaskInformation(queueMsgId), m, false,
                 headers, codec, priorityManager);
         StreamingWorkerWrapper wrapper = new StreamingWorkerWrapper(workerTask);
         Thread t = new Thread(wrapper);
@@ -157,21 +160,21 @@ public class StreamingWorkerWrapperTest
         throws WorkerException, InterruptedException, InvalidNameException, CodecException
     {
         Codec codec = new JsonCodec();
-        WorkerFactory happyWorkerFactory = Mockito.mock(WorkerFactory.class);
+        WorkerFactory happyWorkerFactory = mock(WorkerFactory.class);
         Worker happyWorker = Mockito.spy(getWorker(new TestWorkerTask(), codec));
-        Mockito.when(happyWorkerFactory.getWorker(Mockito.any())).thenReturn(happyWorker);
-        Mockito.when(happyWorker.doWork()).thenAnswer(invocationOnMock -> {
+        when(happyWorkerFactory.getWorker(Mockito.any())).thenReturn(happyWorker);
+        when(happyWorker.doWork()).thenAnswer(invocationOnMock -> {
             throw new InterruptedException("interrupting!");
         });
-        MessagePriorityManager priorityManager = Mockito.mock(MessagePriorityManager.class);
-        Mockito.when(priorityManager.getResponsePriority(Mockito.any())).thenReturn(PRIORITY);
+        MessagePriorityManager priorityManager = mock(MessagePriorityManager.class);
+        when(priorityManager.getResponsePriority(Mockito.any())).thenReturn(PRIORITY);
         String queueMsgId = "interrupt";
-        WorkerCallback callback = Mockito.mock(WorkerCallback.class);
+        WorkerCallback callback = mock(WorkerCallback.class);
         TaskMessage m = new TaskMessage();
         ServicePath path = new ServicePath(SERVICE_NAME);
         m.setTaskId(TASK_ID);
         Map<String, Object> headers = new HashMap<>();
-        WorkerTaskImpl workerTask = new WorkerTaskImpl(path, callback, happyWorkerFactory, new TaskInformation(queueMsgId), m, false,
+        WorkerTaskImpl workerTask = new WorkerTaskImpl(path, callback, happyWorkerFactory, getMockTaskInformation(queueMsgId), m, false,
                 headers, codec, priorityManager);
         StreamingWorkerWrapper wrapper = new StreamingWorkerWrapper(workerTask);
         Thread t = new Thread(wrapper);
@@ -185,14 +188,14 @@ public class StreamingWorkerWrapperTest
         throws InvalidTaskException, TaskRejectedException, InterruptedException, InvalidNameException
     {
         Codec codec = new JsonCodec();
-        WorkerFactory happyWorkerFactory = Mockito.mock(WorkerFactory.class);
+        WorkerFactory happyWorkerFactory = mock(WorkerFactory.class);
         Worker happyWorker = Mockito.spy(getWorker(new TestWorkerTask(), codec));
-        Mockito.when(happyWorkerFactory.getWorker(Mockito.any())).thenReturn(happyWorker);
-        Mockito.when(happyWorker.doWork()).thenAnswer(invocationOnMock -> {
+        when(happyWorkerFactory.getWorker(Mockito.any())).thenReturn(happyWorker);
+        when(happyWorker.doWork()).thenAnswer(invocationOnMock -> {
             throw new TaskRejectedException("bye!");
         });
-        MessagePriorityManager priorityManager = Mockito.mock(MessagePriorityManager.class);
-        Mockito.when(priorityManager.getResponsePriority(Mockito.any())).thenReturn(PRIORITY);
+        MessagePriorityManager priorityManager = mock(MessagePriorityManager.class);
+        when(priorityManager.getResponsePriority(Mockito.any())).thenReturn(PRIORITY);
         String queueMsgId = "abandon";
         CountDownLatch latch = new CountDownLatch(1);
         TestCallback callback = new TestCallback(latch);
@@ -200,7 +203,7 @@ public class StreamingWorkerWrapperTest
         ServicePath path = new ServicePath(SERVICE_NAME);
         m.setTaskId(TASK_ID);
         Map<String, Object> headers = new HashMap<>();
-        WorkerTaskImpl workerTask = new WorkerTaskImpl(path, callback, happyWorkerFactory, new TaskInformation(queueMsgId), m, false,
+        WorkerTaskImpl workerTask = new WorkerTaskImpl(path, callback, happyWorkerFactory, getMockTaskInformation(queueMsgId), m, false,
                 headers, codec, priorityManager);
         StreamingWorkerWrapper wrapper = new StreamingWorkerWrapper(workerTask);
         Thread t = new Thread(wrapper);
@@ -212,7 +215,7 @@ public class StreamingWorkerWrapperTest
     private Worker getWorker(final TestWorkerTask task, final Codec codec)
         throws InvalidTaskException
     {
-        return new AbstractWorker<TestWorkerTask, TestWorkerResult>(task, QUEUE_OUT, codec, Mockito.mock(WorkerTaskData.class))
+        return new AbstractWorker<TestWorkerTask, TestWorkerResult>(task, QUEUE_OUT, codec, mock(WorkerTaskData.class))
         {
             @Override
             public WorkerResponse doWork()
@@ -239,7 +242,7 @@ public class StreamingWorkerWrapperTest
     private Worker getRedirectWorker(final TestWorkerTask task, final Codec codec)
         throws InvalidTaskException
     {
-        return new AbstractWorker<TestWorkerTask, TestWorkerResult>(task, QUEUE_OUT, codec, Mockito.mock(WorkerTaskData.class))
+        return new AbstractWorker<TestWorkerTask, TestWorkerResult>(task, QUEUE_OUT, codec, mock(WorkerTaskData.class))
         {
             @Override
             public WorkerResponse doWork()
@@ -362,5 +365,12 @@ public class StreamingWorkerWrapperTest
         {
             return priority;
         }
+    }
+
+    TaskInformation getMockTaskInformation(final String inboundMessageId){
+        final TaskInformation taskInformation = mock(TaskInformation.class);
+        when(taskInformation.getInboundMessageId()).thenReturn(inboundMessageId);
+
+        return taskInformation;
     }
 }
