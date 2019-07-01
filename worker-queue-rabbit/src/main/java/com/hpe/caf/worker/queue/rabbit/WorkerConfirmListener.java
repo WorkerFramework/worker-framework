@@ -81,7 +81,7 @@ class WorkerConfirmListener implements ConfirmListener
         LOG.debug("RabbitMQ broker ACKed published sequence id {} (multiple: {})", sequenceNo, multiple);
         handle(sequenceNo, multiple, t -> {
             t.incrementAcknowledgementCount();
-            if(t.finalizeResponseCount()){
+            if(t.areAllResponsesAcknowledged()){
                 return new ConsumerAckEvent(Long.valueOf(t.getInboundMessageId()));
             }
             return null;

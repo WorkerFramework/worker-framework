@@ -82,4 +82,22 @@ public class TaskInformation {
         }
     }
 
+    public boolean areAllResponsesAcknowledged()
+    {
+        return getFinalResponseCount() == acknowledgementCount;
+    }
+
+    private boolean isFinalResponseCountKnown()
+    {
+        return isResponseCountFinal;
+    }
+
+    private int getFinalResponseCount()
+    {
+        if (!isResponseCountFinal) {
+            throw new RuntimeException("Final response count not yet known!");
+        }
+
+        return responseCount;
+    }
 }
