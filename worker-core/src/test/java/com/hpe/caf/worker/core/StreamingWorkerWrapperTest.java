@@ -64,7 +64,7 @@ public class StreamingWorkerWrapperTest
         m.setTaskId(TASK_ID);
         ServicePath path = new ServicePath(SERVICE_NAME);
         Map<String, Object> headers = new HashMap<>();
-        WorkerTaskImpl workerTask = new WorkerTaskImpl(path, callback, happyWorkerFactory, queueMsgId, m, false,
+        WorkerTaskImpl workerTask = new WorkerTaskImpl(path, callback, happyWorkerFactory, new TaskInformation(queueMsgId), m, false,
                 headers, codec, priorityManager);
         StreamingWorkerWrapper wrapper = new StreamingWorkerWrapper(workerTask);
         Thread t = new Thread(wrapper);
@@ -99,7 +99,7 @@ public class StreamingWorkerWrapperTest
         m.setTaskId(TASK_ID);
         ServicePath path = new ServicePath(SERVICE_NAME);
         Map<String, Object> headers = new HashMap<>();
-        WorkerTaskImpl workerTask = new WorkerTaskImpl(path, callback, happyWorkerFactory, queueMsgId, m, false,
+        WorkerTaskImpl workerTask = new WorkerTaskImpl(path, callback, happyWorkerFactory, new TaskInformation(queueMsgId), m, false,
                 headers, codec, priorityManager);
         StreamingWorkerWrapper wrapper = new StreamingWorkerWrapper(workerTask);
         Thread t = new Thread(wrapper);
@@ -136,7 +136,7 @@ public class StreamingWorkerWrapperTest
         m.setTaskId(TASK_ID);
         m.setContext(contextMap);
         Map<String, Object> headers = new HashMap<>();
-        WorkerTaskImpl workerTask = new WorkerTaskImpl(path, callback, happyWorkerFactory, queueMsgId, m, false,
+        WorkerTaskImpl workerTask = new WorkerTaskImpl(path, callback, happyWorkerFactory, new TaskInformation(queueMsgId), m, false,
                 headers, codec, priorityManager);
         StreamingWorkerWrapper wrapper = new StreamingWorkerWrapper(workerTask);
         Thread t = new Thread(wrapper);
@@ -171,7 +171,7 @@ public class StreamingWorkerWrapperTest
         ServicePath path = new ServicePath(SERVICE_NAME);
         m.setTaskId(TASK_ID);
         Map<String, Object> headers = new HashMap<>();
-        WorkerTaskImpl workerTask = new WorkerTaskImpl(path, callback, happyWorkerFactory, queueMsgId, m, false,
+        WorkerTaskImpl workerTask = new WorkerTaskImpl(path, callback, happyWorkerFactory, new TaskInformation(queueMsgId), m, false,
                 headers, codec, priorityManager);
         StreamingWorkerWrapper wrapper = new StreamingWorkerWrapper(workerTask);
         Thread t = new Thread(wrapper);
@@ -200,7 +200,7 @@ public class StreamingWorkerWrapperTest
         ServicePath path = new ServicePath(SERVICE_NAME);
         m.setTaskId(TASK_ID);
         Map<String, Object> headers = new HashMap<>();
-        WorkerTaskImpl workerTask = new WorkerTaskImpl(path, callback, happyWorkerFactory, queueMsgId, m, false,
+        WorkerTaskImpl workerTask = new WorkerTaskImpl(path, callback, happyWorkerFactory, new TaskInformation(queueMsgId), m, false,
                 headers, codec, priorityManager);
         StreamingWorkerWrapper wrapper = new StreamingWorkerWrapper(workerTask);
         Thread t = new Thread(wrapper);
@@ -263,7 +263,7 @@ public class StreamingWorkerWrapperTest
 
     private final class TestCallback implements WorkerCallback
     {
-        private String queueMsgId;
+        private TaskInformation taskInformation;
         private String taskId;
         private TaskStatus status;
         private byte[] resultData;
@@ -279,14 +279,14 @@ public class StreamingWorkerWrapperTest
         }
 
         @Override
-        public void send(String queueMsgId, TaskMessage responseMessage)
+        public void send(TaskInformation taskInformation, TaskMessage responseMessage)
         {
         }
 
         @Override
-        public void complete(final String queueMsgId, final String queue, final TaskMessage tm)
+        public void complete(TaskInformation taskInformation, final String queue, final TaskMessage tm)
         {
-            this.queueMsgId = queueMsgId;
+            this.taskInformation = taskInformation;
             this.status = tm.getTaskStatus();
             this.resultData = tm.getTaskData();
             this.taskId = tm.getTaskId();
@@ -298,28 +298,28 @@ public class StreamingWorkerWrapperTest
         }
 
         @Override
-        public void abandon(final String queueMsgId, final Exception exception)
+        public void abandon(final TaskInformation taskInformation, final Exception exception)
         {
-            this.queueMsgId = queueMsgId;
+            this.taskInformation = taskInformation;
             latch.countDown();
         }
 
         @Override
-        public void forward(String queueMsgId, String queue, TaskMessage forwardedMessage, Map<String, Object> headers)
+        public void forward(TaskInformation taskInformation, String queue, TaskMessage forwardedMessage, Map<String, Object> headers)
         {
-            this.queueMsgId = queueMsgId;
+            this.taskInformation = taskInformation;
             latch.countDown();
         }
 
         @Override
-        public void discard(String queueMsgId)
+        public void discard(TaskInformation taskInformation)
         {
-            this.queueMsgId = queueMsgId;
+            this.taskInformation = taskInformation;
             latch.countDown();
         }
 
         @Override
-        public void reportUpdate(final String queueMsgId, final TaskMessage reportUpdateMessage)
+        public void reportUpdate(final TaskInformation taskInformation, final TaskMessage reportUpdateMessage)
         {
         }
 
@@ -340,7 +340,7 @@ public class StreamingWorkerWrapperTest
 
         public String getQueueMsgId()
         {
-            return queueMsgId;
+            return taskInformation.getInboundMessageId();
         }
 
         public TaskStatus getStatus()

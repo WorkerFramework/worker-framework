@@ -15,6 +15,8 @@
  */
 package com.hpe.caf.worker.queue.rabbit;
 
+import com.hpe.caf.api.worker.TaskInformation;
+
 import java.util.Map;
 
 /**
@@ -27,9 +29,9 @@ public interface WorkerPublisher
      *
      * @param data the body of the message to publish
      * @param routingKey the routing key to publish the new message with
-     * @param ackId the prior message id to acknowledge
+     * @param taskInformation the prior message id to acknowledge
      * @param headers key/value map of headers to add to the published message
      * @param priority message priority, greater value means higher priority
      */
-    void handlePublish(byte[] data, String routingKey, long ackId, Map<String, Object> headers, int priority);
+    void handlePublish(byte[] data, String routingKey, TaskInformation taskInformation, Map<String, Object> headers, int priority);
 }

@@ -15,6 +15,7 @@
  */
 package com.hpe.caf.worker.queue.rabbit;
 
+import com.hpe.caf.api.worker.TaskInformation;
 import com.hpe.caf.util.rabbitmq.ConsumerRejectEvent;
 import com.hpe.caf.util.rabbitmq.Event;
 import com.hpe.caf.util.rabbitmq.QueueConsumer;
@@ -63,20 +64,21 @@ public class WorkerPublisherImpl implements WorkerPublisher
     }
 
     @Override
-    public void handlePublish(byte[] data, String routingKey, long ackId, Map<String, Object> headers, int priority)
+    public void handlePublish(byte[] data, String routingKey, TaskInformation taskInformation, Map<String, Object> headers, int priority)
     {
         try {
-            LOG.debug("Publishing message with ack id {}", ackId);
+            LOG.debug("Publishing message with ack id {}", taskInformation.getInboundMessageId());
             AMQP.BasicProperties.Builder builder = new AMQP.BasicProperties().builder();
             builder.headers(headers);
             builder.contentType("text/plain");
             builder.deliveryMode(2);
             builder.priority(priority);
-            confirmListener.registerResponseSequence(channel.getNextPublishSeqNo(), ackId);
+            //TODO Andy Here is where next sequence number is obtained, ackId is the inbound message id.
+            confirmListener.registerResponseSequence(channel.getNextPublishSeqNo(), taskInformation);
             channel.basicPublish("", routingKey, builder.build(), data);
             metrics.incrementPublished();
         } catch (IOException e) {
-            LOG.error("Failed to publish result of message {} to queue {}, rejecting", ackId, routingKey, e);
+            LOG.error("Failed to publish result of message {} to queue {}, rejecting", taskInformation.getInboundMessageId(), routingKey, e);
             metrics.incremementErrors();
             consumerEvents.add(new ConsumerRejectEvent(ackId));
         }

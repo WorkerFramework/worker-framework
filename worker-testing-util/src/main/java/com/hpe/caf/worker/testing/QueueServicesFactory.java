@@ -18,6 +18,7 @@ package com.hpe.caf.worker.testing;
 import com.hpe.caf.api.Codec;
 import com.hpe.caf.api.worker.InvalidTaskException;
 import com.hpe.caf.api.worker.TaskCallback;
+import com.hpe.caf.api.worker.TaskInformation;
 import com.hpe.caf.api.worker.TaskRejectedException;
 import com.hpe.caf.configs.RabbitConfiguration;
 import com.hpe.caf.util.rabbitmq.RabbitUtil;
@@ -41,7 +42,7 @@ public class QueueServicesFactory
     {
 
         @Override
-        public void registerNewTask(String s, byte[] bytes, Map<String, Object> headers) throws TaskRejectedException, InvalidTaskException
+        public void registerNewTask(TaskInformation taskInformation, byte[] bytes, Map<String, Object> headers) throws TaskRejectedException, InvalidTaskException
         {
         }
 

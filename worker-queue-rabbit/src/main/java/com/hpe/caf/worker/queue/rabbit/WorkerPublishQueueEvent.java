@@ -15,6 +15,7 @@
  */
 package com.hpe.caf.worker.queue.rabbit;
 
+import com.hpe.caf.api.worker.TaskInformation;
 import com.hpe.caf.util.rabbitmq.Event;
 
 import java.util.Collections;
@@ -28,7 +29,7 @@ public class WorkerPublishQueueEvent implements Event<WorkerPublisher>
 {
     private final byte[] data;
     private final String routingKey;
-    private final long tag;
+    private final TaskInformation taskInformation;
     private final Map<String, Object> headerMap;
     private final int priority;
 
@@ -37,12 +38,12 @@ public class WorkerPublishQueueEvent implements Event<WorkerPublisher>
      *
      * @param messageData the raw message data to publish
      * @param routingKey the routing key to publish the data on
-     * @param ackId the id of a message previously consumed to acknowledge
+     * @param taskInformation the id of a message previously consumed to acknowledge
      * @param headers the map of key/value paired headers to be stamped on the message
      */
-    public WorkerPublishQueueEvent(byte[] messageData, String routingKey, long ackId, Map<String, Object> headers)
+    public WorkerPublishQueueEvent(byte[] messageData, String routingKey, TaskInformation taskInformation, Map<String, Object> headers)
     {
-        this(messageData, routingKey, ackId, headers, 0);
+        this(messageData, routingKey, taskInformation, headers, 0);
     }
 
     /**
@@ -50,27 +51,27 @@ public class WorkerPublishQueueEvent implements Event<WorkerPublisher>
      *
      * @param messageData the raw message data to publish
      * @param routingKey the routing key to publish the data on
-     * @param ackId the id of a message previously consumed to acknowledge
+     * @param taskInformation the id of a message previously consumed to acknowledge
      * @param headers the map of key/value paired headers to be stamped on the message
      */
-    public WorkerPublishQueueEvent(byte[] messageData, String routingKey, long ackId, Map<String, Object> headers, int priority)
+    public WorkerPublishQueueEvent(byte[] messageData, String routingKey, TaskInformation taskInformation, Map<String, Object> headers, int priority)
     {
         this.data = Objects.requireNonNull(messageData);
         this.routingKey = Objects.requireNonNull(routingKey);
-        this.tag = ackId;
+        this.taskInformation = taskInformation;
         this.headerMap = Objects.requireNonNull(headers);
         this.priority = priority;
     }
 
-    public WorkerPublishQueueEvent(byte[] messageData, String routingKey, long ackId)
+    public WorkerPublishQueueEvent(byte[] messageData, String routingKey, TaskInformation taskInformation)
     {
-        this(messageData, routingKey, ackId, Collections.emptyMap());
+        this(messageData, routingKey, taskInformation, Collections.emptyMap());
     }
 
     @Override
     public void handleEvent(WorkerPublisher target)
     {
-        target.handlePublish(data, routingKey, tag, headerMap, priority);
+        target.handlePublish(data, routingKey, taskInformation, headerMap, priority);
     }
 
     /**
@@ -90,11 +91,11 @@ public class WorkerPublishQueueEvent implements Event<WorkerPublisher>
     }
 
     /**
-     * @return the rabbitmq message tag to acknowledge upon publishing
+     * @return the taskInformation containing inbound message id
      */
-    public long getTag()
+    public TaskInformation getTaskInformation()
     {
-        return tag;
+        return taskInformation;
     }
 
     /**
