@@ -36,7 +36,7 @@ public class WorkerConfirmListenerTest
         BlockingQueue<Event<QueueConsumer>> q = new LinkedBlockingQueue<>();
         WorkerConfirmListener conf = new WorkerConfirmListener(q);
         RabbitTaskInformation rabbitTaskInformation = new RabbitTaskInformation("100");
-        rabbitTaskInformation.finalizeResponseCount();
+        rabbitTaskInformation.incrementResponseCount(true);
         conf.registerResponseSequence(1, rabbitTaskInformation);
         conf.handleAck(1, false);
         Event<QueueConsumer> e = q.poll(1000, TimeUnit.MILLISECONDS);
@@ -60,7 +60,9 @@ public class WorkerConfirmListenerTest
     {
         BlockingQueue<Event<QueueConsumer>> q = new LinkedBlockingQueue<>();
         WorkerConfirmListener conf = new WorkerConfirmListener(q);
-        conf.registerResponseSequence(1, new RabbitTaskInformation("100"));
+        RabbitTaskInformation rabbitTaskInformation = new RabbitTaskInformation("100");
+        rabbitTaskInformation.incrementResponseCount(true);
+        conf.registerResponseSequence(1, rabbitTaskInformation);
         conf.handleAck(1, false);
         Event<QueueConsumer> e = q.poll(1000, TimeUnit.MILLISECONDS);
         Assert.assertNotNull(e);
@@ -113,9 +115,15 @@ public class WorkerConfirmListenerTest
     {
         BlockingQueue<Event<QueueConsumer>> q = new LinkedBlockingQueue<>();
         WorkerConfirmListener conf = new WorkerConfirmListener(q);
-        conf.registerResponseSequence(5, new RabbitTaskInformation("500"));
-        conf.registerResponseSequence(1, new RabbitTaskInformation("100"));
-        conf.registerResponseSequence(2, new RabbitTaskInformation("200"));
+        RabbitTaskInformation rabbitTaskInfo_100 = new RabbitTaskInformation("100");
+        RabbitTaskInformation rabbitTaskInfo_500 = new RabbitTaskInformation("500");
+        RabbitTaskInformation rabbitTaskInfo_200 = new RabbitTaskInformation("200");
+        rabbitTaskInfo_100.incrementResponseCount(true);
+        conf.registerResponseSequence(5, rabbitTaskInfo_500);
+        rabbitTaskInfo_500.incrementResponseCount(true);
+        conf.registerResponseSequence(1,rabbitTaskInfo_100);
+        rabbitTaskInfo_200.incrementResponseCount(true);
+        conf.registerResponseSequence(2, rabbitTaskInfo_200);
         conf.handleAck(4, true);
         Event<QueueConsumer> e = q.poll(1000, TimeUnit.MILLISECONDS);
         Assert.assertNotNull(e);
@@ -140,9 +148,15 @@ public class WorkerConfirmListenerTest
     {
         BlockingQueue<Event<QueueConsumer>> q = new LinkedBlockingQueue<>();
         WorkerConfirmListener conf = new WorkerConfirmListener(q);
-        conf.registerResponseSequence(5, new RabbitTaskInformation("500"));
-        conf.registerResponseSequence(1, new RabbitTaskInformation("100"));
-        conf.registerResponseSequence(2, new RabbitTaskInformation("200"));
+        RabbitTaskInformation rabbitTaskInfo_100 = new RabbitTaskInformation("100");
+        RabbitTaskInformation rabbitTaskInfo_500 = new RabbitTaskInformation("500");
+        RabbitTaskInformation rabbitTaskInfo_200 = new RabbitTaskInformation("200");
+        rabbitTaskInfo_100.incrementResponseCount(true);
+        conf.registerResponseSequence(5, rabbitTaskInfo_500);
+        rabbitTaskInfo_500.incrementResponseCount(true);
+        conf.registerResponseSequence(1,rabbitTaskInfo_100);
+        rabbitTaskInfo_200.incrementResponseCount(true);
+        conf.registerResponseSequence(2, rabbitTaskInfo_200);
         conf.handleAck(4, true);
         Event<QueueConsumer> e = q.poll(1000, TimeUnit.MILLISECONDS);
         Assert.assertNotNull(e);
@@ -161,9 +175,15 @@ public class WorkerConfirmListenerTest
     {
         BlockingQueue<Event<QueueConsumer>> q = new LinkedBlockingQueue<>();
         WorkerConfirmListener conf = new WorkerConfirmListener(q);
-        conf.registerResponseSequence(5, new RabbitTaskInformation("500"));
-        conf.registerResponseSequence(1, new RabbitTaskInformation("100"));
-        conf.registerResponseSequence(2, new RabbitTaskInformation("200"));
+        RabbitTaskInformation rabbitTaskInfo_100 = new RabbitTaskInformation("100");
+        RabbitTaskInformation rabbitTaskInfo_500 = new RabbitTaskInformation("500");
+        RabbitTaskInformation rabbitTaskInfo_200 = new RabbitTaskInformation("200");
+        rabbitTaskInfo_100.incrementResponseCount(true);
+        conf.registerResponseSequence(5, rabbitTaskInfo_500);
+        rabbitTaskInfo_500.incrementResponseCount(true);
+        conf.registerResponseSequence(1,rabbitTaskInfo_100);
+        rabbitTaskInfo_200.incrementResponseCount(true);
+        conf.registerResponseSequence(2, rabbitTaskInfo_200);
         conf.handleNack(4, true);
         Event<QueueConsumer> e = q.poll(1000, TimeUnit.MILLISECONDS);
         Assert.assertNotNull(e);
@@ -188,9 +208,15 @@ public class WorkerConfirmListenerTest
     {
         BlockingQueue<Event<QueueConsumer>> q = new LinkedBlockingQueue<>();
         WorkerConfirmListener conf = new WorkerConfirmListener(q);
-        conf.registerResponseSequence(5, new RabbitTaskInformation("500"));
-        conf.registerResponseSequence(1, new RabbitTaskInformation("100"));
-        conf.registerResponseSequence(2, new RabbitTaskInformation("200"));
+        RabbitTaskInformation rabbitTaskInfo_100 = new RabbitTaskInformation("100");
+        RabbitTaskInformation rabbitTaskInfo_500 = new RabbitTaskInformation("500");
+        RabbitTaskInformation rabbitTaskInfo_200 = new RabbitTaskInformation("200");
+        rabbitTaskInfo_100.incrementResponseCount(true);
+        conf.registerResponseSequence(5, rabbitTaskInfo_500);
+        rabbitTaskInfo_500.incrementResponseCount(true);
+        conf.registerResponseSequence(1,rabbitTaskInfo_100);
+        rabbitTaskInfo_200.incrementResponseCount(true);
+        conf.registerResponseSequence(2, rabbitTaskInfo_200);
         conf.handleNack(4, true);
         Event<QueueConsumer> e = q.poll(1000, TimeUnit.MILLISECONDS);
         Assert.assertNotNull(e);
@@ -209,9 +235,13 @@ public class WorkerConfirmListenerTest
     {
         BlockingQueue<Event<QueueConsumer>> q = new LinkedBlockingQueue<>();
         WorkerConfirmListener conf = new WorkerConfirmListener(q);
-        conf.registerResponseSequence(1, new RabbitTaskInformation("100"));
+        RabbitTaskInformation rabbitTaskInfo_100 = new RabbitTaskInformation("100");
+        RabbitTaskInformation rabbitTaskInfo_200 = new RabbitTaskInformation("200");
+        rabbitTaskInfo_100.incrementResponseCount(true);
+        conf.registerResponseSequence(1,rabbitTaskInfo_100);
         conf.clearConfirmations();
-        conf.registerResponseSequence(2, new RabbitTaskInformation("200"));
+        rabbitTaskInfo_200.incrementResponseCount(true);
+        conf.registerResponseSequence(2, rabbitTaskInfo_200);
         conf.handleAck(4, true);
         Event<QueueConsumer> e = q.poll(1000, TimeUnit.MILLISECONDS);
         Assert.assertNotNull(e);
@@ -228,5 +258,94 @@ public class WorkerConfirmListenerTest
         WorkerConfirmListener conf = new WorkerConfirmListener(q);
         conf.registerResponseSequence(1, new RabbitTaskInformation("100"));
         conf.registerResponseSequence(1, new RabbitTaskInformation("100"));
+    }
+    
+    @Test
+    public void testAckSingleTaskMultiplePublish()
+        throws IOException, InterruptedException
+    {
+        BlockingQueue<Event<QueueConsumer>> q = new LinkedBlockingQueue<>();
+        WorkerConfirmListener conf = new WorkerConfirmListener(q);
+        RabbitTaskInformation rabbitTaskInfo_100 = new RabbitTaskInformation("100");
+        rabbitTaskInfo_100.incrementResponseCount(false);
+        conf.registerResponseSequence(5, rabbitTaskInfo_100);
+        rabbitTaskInfo_100.incrementResponseCount(false);
+        conf.registerResponseSequence(1,rabbitTaskInfo_100);
+        rabbitTaskInfo_100.incrementResponseCount(true);
+        conf.registerResponseSequence(2, rabbitTaskInfo_100);
+        conf.handleAck(5, true);
+        Event<QueueConsumer> e = q.poll(1000, TimeUnit.MILLISECONDS);
+        Assert.assertNotNull(e);
+        Assert.assertTrue(e instanceof ConsumerAckEvent);
+        Assert.assertEquals(100L, ((ConsumerAckEvent) e).getTag());
+    }
+    
+    @Test
+    public void testNackSingleTaskMultiplePublish()
+        throws IOException, InterruptedException
+    {
+        BlockingQueue<Event<QueueConsumer>> q = new LinkedBlockingQueue<>();
+        WorkerConfirmListener conf = new WorkerConfirmListener(q);
+        RabbitTaskInformation rabbitTaskInfo_100 = new RabbitTaskInformation("100");
+        rabbitTaskInfo_100.incrementResponseCount(false);
+        conf.registerResponseSequence(5, rabbitTaskInfo_100);
+        rabbitTaskInfo_100.incrementResponseCount(false);
+        conf.registerResponseSequence(1,rabbitTaskInfo_100);
+        rabbitTaskInfo_100.incrementResponseCount(true);
+        conf.registerResponseSequence(2, rabbitTaskInfo_100);
+        conf.handleNack(4, true);
+        Event<QueueConsumer> e = q.poll(1000, TimeUnit.MILLISECONDS);
+        Assert.assertNotNull(e);
+        Assert.assertTrue(e instanceof ConsumerRejectEvent);
+        Assert.assertEquals(100L, ((ConsumerRejectEvent) e).getTag());
+        Event<QueueConsumer> e3 = q.poll(1000, TimeUnit.MILLISECONDS);
+        Assert.assertNull(e3);
+        conf.handleAck(5, true);
+        Event<QueueConsumer> e4 = q.poll(1000, TimeUnit.MILLISECONDS);
+        Assert.assertNull(e4);
+    }
+    
+    @Test(expectedExceptions = IllegalStateException.class)
+    public void testAckSingleTaskMultiplePublishDuplicate()
+        throws IOException, InterruptedException
+    {
+        BlockingQueue<Event<QueueConsumer>> q = new LinkedBlockingQueue<>();
+        WorkerConfirmListener conf = new WorkerConfirmListener(q);
+        RabbitTaskInformation rabbitTaskInfo_100 = new RabbitTaskInformation("100");
+        rabbitTaskInfo_100.incrementResponseCount(false);
+        conf.registerResponseSequence(5, rabbitTaskInfo_100);
+        rabbitTaskInfo_100.incrementResponseCount(false);
+        conf.registerResponseSequence(1,rabbitTaskInfo_100);
+        rabbitTaskInfo_100.incrementResponseCount(true);
+        conf.registerResponseSequence(2, rabbitTaskInfo_100);
+        conf.handleAck(5, true);
+        Event<QueueConsumer> e = q.poll(1000, TimeUnit.MILLISECONDS);
+        Assert.assertNotNull(e);
+        Assert.assertTrue(e instanceof ConsumerAckEvent);
+        Assert.assertEquals(100L, ((ConsumerAckEvent) e).getTag());
+        conf.handleAck(2, false);
+    }
+    
+    @Test
+    public void testNackSingleTaskMultiplePublishDuplicate()
+        throws IOException, InterruptedException
+    {
+        BlockingQueue<Event<QueueConsumer>> q = new LinkedBlockingQueue<>();
+        WorkerConfirmListener conf = new WorkerConfirmListener(q);
+        RabbitTaskInformation rabbitTaskInfo_100 = new RabbitTaskInformation("100");
+        rabbitTaskInfo_100.incrementResponseCount(false);
+        conf.registerResponseSequence(5, rabbitTaskInfo_100);
+        rabbitTaskInfo_100.incrementResponseCount(false);
+        conf.registerResponseSequence(1,rabbitTaskInfo_100);
+        rabbitTaskInfo_100.incrementResponseCount(true);
+        conf.registerResponseSequence(2, rabbitTaskInfo_100);
+        conf.handleNack(4, true);
+        Event<QueueConsumer> e = q.poll(1000, TimeUnit.MILLISECONDS);
+        Assert.assertNotNull(e);
+        Assert.assertTrue(e instanceof ConsumerRejectEvent);
+        Assert.assertEquals(100L, ((ConsumerRejectEvent) e).getTag());
+        conf.handleNack(5, false);
+        Event<QueueConsumer> e5 = q.poll(1000, TimeUnit.MILLISECONDS);
+        Assert.assertNull(e5);
     }
 }

@@ -16,15 +16,18 @@
 package com.hpe.caf.worker.queue.rabbit;
 
 import com.hpe.caf.api.worker.TaskInformation;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class RabbitTaskInformation implements TaskInformation {
     private final String inboundMessageId;
     private final Object responseCountLock;
+    private volatile boolean isNegativeAckSent; 
     private volatile int responseCount;
     private volatile boolean isResponseCountFinal;
     private final Object acknowledgementCountLock;
     private volatile int acknowledgementCount;
-
+    private static final Logger LOG = LoggerFactory.getLogger(RabbitTaskInformation.class);
 
     public RabbitTaskInformation(final String inboundMessageId) {
         this.inboundMessageId = inboundMessageId;
@@ -33,12 +36,15 @@ public class RabbitTaskInformation implements TaskInformation {
         this.isResponseCountFinal = false;
         this.acknowledgementCountLock = new Object();
         this.acknowledgementCount = 0;
+        this.isNegativeAckSent=false;
     }
 
+    @Override
     public String getInboundMessageId() {
         return inboundMessageId;
     }
 
+    @Override
     public void incrementResponseCount(final boolean isFinalResponse) {
         synchronized (responseCountLock) {
             if (isResponseCountFinal) {
@@ -86,7 +92,13 @@ public class RabbitTaskInformation implements TaskInformation {
 
     public boolean areAllResponsesAcknowledged()
     {
+        int response=getFinalResponseCount();
+        if(response<=0)
+        {
+            return false;
+        }
         return getFinalResponseCount() <= acknowledgementCount;
+        
     }
 
     private boolean isFinalResponseCountKnown()
@@ -97,9 +109,20 @@ public class RabbitTaskInformation implements TaskInformation {
     private int getFinalResponseCount()
     {
         if (!isResponseCountFinal) {
-            throw new RuntimeException("Final response count not yet known!");
+            LOG.debug("Final response count is not known yet!");
+            return -1;
         }
 
         return responseCount;
+    }
+
+    public boolean isIsNegativeAckSent()
+    {
+        return isNegativeAckSent;
+    }
+
+    public void setIsNegativeAckSent(boolean isNegativeAckSent)
+    {
+        this.isNegativeAckSent = isNegativeAckSent;
     }
 }
