@@ -326,7 +326,7 @@ public class WorkerConfirmListenerTest
         conf.handleAck(2, false);
     }
     
-    @Test
+    @Test(expectedExceptions = IllegalStateException.class)
     public void testNackSingleTaskMultiplePublishDuplicate()
         throws IOException, InterruptedException
     {
@@ -344,8 +344,6 @@ public class WorkerConfirmListenerTest
         Assert.assertNotNull(e);
         Assert.assertTrue(e instanceof ConsumerRejectEvent);
         Assert.assertEquals(100L, ((ConsumerRejectEvent) e).getTag());
-        conf.handleNack(5, false);
-        Event<QueueConsumer> e5 = q.poll(1000, TimeUnit.MILLISECONDS);
-        Assert.assertNull(e5);
+        conf.handleNack(2, false);
     }
 }
