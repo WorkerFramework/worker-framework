@@ -147,8 +147,9 @@ class WorkerTaskImpl implements WorkerTask
     {
         Objects.requireNonNull(response);
         Objects.requireNonNull(response.getQueueReference());
-
+        //increment the task an sub task response count
         incrementResponseCount(false);
+        //increment the total responseCount (including task, sub task and tracking info)
         taskInformation.incrementResponseCount(false);
         final TaskMessage responseMessage = createResponseMessage(includeTaskContext, response);
 
@@ -168,7 +169,7 @@ class WorkerTaskImpl implements WorkerTask
     public void setResponse(final WorkerResponse response)
     {
         Objects.requireNonNull(response);
-
+        //increment the task an sub task response count
         incrementResponseCount(true);
 
         final TaskMessage responseMessage = createResponseMessage(true, response);
@@ -218,7 +219,9 @@ class WorkerTaskImpl implements WorkerTask
     @Override
     public void setResponse(final TaskRejectedException taskRejectedException)
     {
+        //increment the task an sub task response count
         incrementResponseCount(true);
+        //increment the total responseCount (including task, sub task and tracking info)
         taskInformation.incrementResponseCount(true);
         LOG.info("Worker requested to abandon task {} (message id: {})",
                  taskMessage.getTaskId(), taskMessage, taskRejectedException);
@@ -232,8 +235,9 @@ class WorkerTaskImpl implements WorkerTask
         if (invalidTaskException == null) {
             throw new IllegalArgumentException();
         }
-
+        //increment the task an sub task response count
         incrementResponseCount(true);
+        //increment the total responseCount (including task, sub task and tracking info)
         taskInformation.incrementResponseCount(true);
         LOG.error("Task data is invalid for {}, returning status {}",
                   taskMessage.getTaskId(), TaskStatus.INVALID_TASK, invalidTaskException);
@@ -544,7 +548,7 @@ class WorkerTaskImpl implements WorkerTask
 
         //  Ensure all report updates have been sent.
         progressReportBuffer.flush();
-        
+        //increment the total responseCount (including task, sub task and tracking info)
         taskInformation.incrementResponseCount(false);
         // Complete the task
         workerCallback.complete(taskInformation, responseMessage.getTo(), responseMessage);

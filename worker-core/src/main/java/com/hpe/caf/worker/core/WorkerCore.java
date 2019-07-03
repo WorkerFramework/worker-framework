@@ -407,6 +407,7 @@ final class WorkerCore
             LOG.debug("Setting destination {} in task {} (message id: {})", queue, responseMessage.getTaskId(), taskInformation.getInboundMessageId());
             responseMessage.setTo(queue);
             checkForTrackingTermination(taskInformation, queue, responseMessage);
+            //increment the total responseCount (including task, sub task and tracking info)
             taskInformation.incrementResponseCount(true);
             try {
                 if (null == queue) {
