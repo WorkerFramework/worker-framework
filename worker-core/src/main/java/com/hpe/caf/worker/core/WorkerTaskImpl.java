@@ -149,7 +149,7 @@ class WorkerTaskImpl implements WorkerTask
         Objects.requireNonNull(response.getQueueReference());
 
         incrementResponseCount(false);
-
+        taskInformation.incrementResponseCount(false);
         final TaskMessage responseMessage = createResponseMessage(includeTaskContext, response);
 
         singleMessageBuffer.add(responseMessage);
@@ -219,7 +219,7 @@ class WorkerTaskImpl implements WorkerTask
     public void setResponse(final TaskRejectedException taskRejectedException)
     {
         incrementResponseCount(true);
-
+        taskInformation.incrementResponseCount(true);
         LOG.info("Worker requested to abandon task {} (message id: {})",
                  taskMessage.getTaskId(), taskMessage, taskRejectedException);
 
@@ -234,7 +234,7 @@ class WorkerTaskImpl implements WorkerTask
         }
 
         incrementResponseCount(true);
-
+        taskInformation.incrementResponseCount(true);
         LOG.error("Task data is invalid for {}, returning status {}",
                   taskMessage.getTaskId(), TaskStatus.INVALID_TASK, invalidTaskException);
 
@@ -292,7 +292,7 @@ class WorkerTaskImpl implements WorkerTask
             }
 
             responseCount = isFinalResponse ? -rc : rc;
-            taskInformation.incrementResponseCount(isFinalResponse);
+            
         }
     }
 
@@ -544,7 +544,8 @@ class WorkerTaskImpl implements WorkerTask
 
         //  Ensure all report updates have been sent.
         progressReportBuffer.flush();
-
+        
+        taskInformation.incrementResponseCount(false);
         // Complete the task
         workerCallback.complete(taskInformation, responseMessage.getTo(), responseMessage);
     }

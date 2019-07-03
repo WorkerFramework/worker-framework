@@ -124,8 +124,6 @@ public final class RabbitWorkerQueue implements ManagedWorkerQueue
             throw new QueueException("Failed to submit task", e);
         }
         RabbitTaskInformation rabbitTaskInformation = (RabbitTaskInformation)taskInformation;
-        rabbitTaskInformation.incrementResponseCount(false);
-
         publisherQueue.add(new WorkerPublishQueueEvent(taskMessage, targetQueue, rabbitTaskInformation, headers, priority));
     }
 

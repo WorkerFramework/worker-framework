@@ -407,6 +407,7 @@ final class WorkerCore
             LOG.debug("Setting destination {} in task {} (message id: {})", queue, responseMessage.getTaskId(), taskInformation.getInboundMessageId());
             responseMessage.setTo(queue);
             checkForTrackingTermination(taskInformation, queue, responseMessage);
+            taskInformation.incrementResponseCount(true);
             try {
                 if (null == queue) {
                     // **** Dead End Worker ****
@@ -500,7 +501,7 @@ final class WorkerCore
 
             final int priority = reportUpdateMessage.getPriority() == null ? 0 : reportUpdateMessage.getPriority();
 
-            try {
+            try {                
                 workerQueue.publish(taskInformation, output, reportUpdateMessage.getTo(), Collections.emptyMap(), priority);
             } catch (final QueueException ex) {
                 throw new RuntimeException(ex);
