@@ -407,8 +407,6 @@ final class WorkerCore
             LOG.debug("Setting destination {} in task {} (message id: {})", queue, responseMessage.getTaskId(), taskInformation.getInboundMessageId());
             responseMessage.setTo(queue);
             checkForTrackingTermination(taskInformation, queue, responseMessage);
-            //increment the total responseCount (including task, sub task and tracking info)
-            taskInformation.incrementResponseCount(true);
             try {
                 if (null == queue) {
                     // **** Dead End Worker ****
@@ -425,7 +423,8 @@ final class WorkerCore
                     // **** Normal Worker ****                    
                     // A worker with an input and output queue.
                     byte[] output = codec.serialise(responseMessage);
-                    workerQueue.publish(taskInformation, output, queue, Collections.emptyMap(), responseMessage.getPriority() == null ? 0 : responseMessage.getPriority());
+                    workerQueue.publish(taskInformation, output, queue, Collections.emptyMap(), 
+                                           responseMessage.getPriority() == null ? 0 : responseMessage.getPriority(), true);                    
                     stats.getOutputSizes().update(output.length);
                 }
                 stats.updatedLastTaskFinishedTime();

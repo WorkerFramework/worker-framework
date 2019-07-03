@@ -22,7 +22,7 @@ import org.slf4j.LoggerFactory;
 public class RabbitTaskInformation implements TaskInformation {
     private final String inboundMessageId;
     private final Object responseCountLock;
-    private volatile boolean isNegativeAckSent; 
+    private volatile boolean negativeAckSent; 
     private volatile int responseCount;
     private volatile boolean isResponseCountFinal;
     private final Object acknowledgementCountLock;
@@ -36,7 +36,7 @@ public class RabbitTaskInformation implements TaskInformation {
         this.isResponseCountFinal = false;
         this.acknowledgementCountLock = new Object();
         this.acknowledgementCount = 0;
-        this.isNegativeAckSent=false;
+        this.negativeAckSent=false;
     }
 
     @Override
@@ -101,28 +101,25 @@ public class RabbitTaskInformation implements TaskInformation {
         
     }
 
-    private boolean isFinalResponseCountKnown()
-    {
-        return isResponseCountFinal;
-    }
-
     private int getFinalResponseCount()
     {
-        if (!isResponseCountFinal) {
-            LOG.debug("Final response count is not known yet!");
-            return -1;
+        synchronized (responseCountLock) {
+            if (!isResponseCountFinal) {
+                LOG.debug("Final response count is not known yet!");
+                return -1;
+            }
+
+            return responseCount;
         }
-
-        return responseCount;
     }
 
-    public boolean isIsNegativeAckSent()
+    public boolean isNegativeAckSent()
     {
-        return isNegativeAckSent;
+        return negativeAckSent;
     }
 
-    public void setIsNegativeAckSent(boolean isNegativeAckSent)
+    public void markNegativeAckAsSent()
     {
-        this.isNegativeAckSent = isNegativeAckSent;
+        this.negativeAckSent = true;
     }
 }

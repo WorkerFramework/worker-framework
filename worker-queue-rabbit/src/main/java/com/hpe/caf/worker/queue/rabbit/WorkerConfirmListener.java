@@ -93,8 +93,8 @@ class WorkerConfirmListener implements ConfirmListener
     {
         LOG.warn("RabbitMQ broker NACKed published sequence id {} (multiple: {})", sequenceNo, multiple);
         handle(sequenceNo, multiple, t -> {
-               if (!t.isIsNegativeAckSent()) {
-                   t.setIsNegativeAckSent(true);
+               if (!t.isNegativeAckSent()) {
+                   t.markNegativeAckAsSent();
                    return new ConsumerRejectEvent(Long.valueOf(t.getInboundMessageId()));
                }
                return null;

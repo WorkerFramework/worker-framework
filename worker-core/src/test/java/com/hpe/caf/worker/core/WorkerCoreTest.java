@@ -436,6 +436,14 @@ public class WorkerCoreTest
         {
             this.callback = Objects.requireNonNull(callback);
         }
+        
+        @Override
+        public void publish(TaskInformation taskInformation, byte[] taskMessage, String targetQueue, Map<String, Object> headers, int priority, boolean isLastMessage)
+            throws QueueException
+        {
+            this.lastQueue = targetQueue;
+            results.offer(taskMessage);
+        }
 
         @Override
         public void publish(TaskInformation taskInformation, byte[] taskMessage, String targetQueue, Map<String, Object> headers, int priority)

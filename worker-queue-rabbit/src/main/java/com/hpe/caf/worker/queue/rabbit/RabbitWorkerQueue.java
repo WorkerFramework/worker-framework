@@ -116,7 +116,8 @@ public final class RabbitWorkerQueue implements ManagedWorkerQueue
     }
 
     @Override
-    public void publish(TaskInformation taskInformation, byte[] taskMessage, String targetQueue, Map<String, Object> headers, int priority) throws QueueException
+    public void publish(TaskInformation taskInformation, byte[] taskMessage, String targetQueue, Map<String, Object> headers, 
+                                          int priority, boolean isLastMessage) throws QueueException
     {
         try {
             declareWorkerQueue(outgoingChannel, targetQueue, config.getMaxPriority());
@@ -124,7 +125,15 @@ public final class RabbitWorkerQueue implements ManagedWorkerQueue
             throw new QueueException("Failed to submit task", e);
         }
         RabbitTaskInformation rabbitTaskInformation = (RabbitTaskInformation)taskInformation;
+        //increment the total responseCount (including task, sub task and tracking info)
+        rabbitTaskInformation.incrementResponseCount(isLastMessage);
         publisherQueue.add(new WorkerPublishQueueEvent(taskMessage, targetQueue, rabbitTaskInformation, headers, priority));
+    }
+    
+    @Override
+    public void publish(TaskInformation taskInformation, byte[] taskMessage, String targetQueue, Map<String, Object> headers, int priority) throws QueueException
+    {
+        publish(taskInformation, taskMessage, targetQueue, headers, priority, false);
     }
 
     /**

@@ -65,7 +65,7 @@ public class WorkerPublisherImpl implements WorkerPublisher
     public void handlePublish(byte[] data, String routingKey, RabbitTaskInformation taskInformation, Map<String, Object> headers, int priority)
     {
         try {
-            LOG.debug("Publishing message with ack id {}", taskInformation.getInboundMessageId());
+            LOG.debug("Publishing message to {} with ack id {}", routingKey, taskInformation.getInboundMessageId());
             AMQP.BasicProperties.Builder builder = new AMQP.BasicProperties().builder();
             builder.headers(headers);
             builder.contentType("text/plain");
