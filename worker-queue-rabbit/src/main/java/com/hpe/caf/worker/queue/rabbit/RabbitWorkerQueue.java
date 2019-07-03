@@ -22,7 +22,6 @@ import com.hpe.caf.configs.RabbitConfiguration;
 import com.hpe.caf.util.rabbitmq.*;
 import com.rabbitmq.client.Channel;
 import com.rabbitmq.client.Connection;
-import javafx.concurrent.Task;
 import net.jodah.lyra.ConnectionOptions;
 import net.jodah.lyra.config.Config;
 import org.slf4j.Logger;

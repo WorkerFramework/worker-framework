@@ -103,7 +103,6 @@
         <module>worker-store-s3</module>
         <module>worker-store-mem</module>
         <module>worker-tracking-report</module>
-        <module>woker-testing</module>
     </modules>
 
     <dependencyManagement>
