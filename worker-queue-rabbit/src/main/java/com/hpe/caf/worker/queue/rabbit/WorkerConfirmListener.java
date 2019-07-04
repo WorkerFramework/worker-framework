@@ -80,7 +80,8 @@ class WorkerConfirmListener implements ConfirmListener
         LOG.debug("RabbitMQ broker ACKed published sequence id {} (multiple: {})", sequenceNo, multiple);
         handle(sequenceNo, multiple, t -> {
             t.incrementAcknowledgementCount();
-            if(t.areAllResponsesAcknowledged()){
+            if(t.areAllResponsesAcknowledged() && !t.isAckEventSent()){
+                t.markAckEventAsSent();
                 return new ConsumerAckEvent(Long.valueOf(t.getInboundMessageId()));
             }
             return null;
@@ -93,8 +94,8 @@ class WorkerConfirmListener implements ConfirmListener
     {
         LOG.warn("RabbitMQ broker NACKed published sequence id {} (multiple: {})", sequenceNo, multiple);
         handle(sequenceNo, multiple, t -> {
-               if (!t.isNegativeAckSent()) {
-                   t.markNegativeAckAsSent();
+               if (!t.isNegativeAckEventSent()) {
+                   t.markNegativeAckEventAsSent();
                    return new ConsumerRejectEvent(Long.valueOf(t.getInboundMessageId()));
                }
                return null;
@@ -102,9 +103,7 @@ class WorkerConfirmListener implements ConfirmListener
     }
 
     private void handle(long sequenceNo, boolean multiple, Function<RabbitTaskInformation, Event<QueueConsumer>> eventSource)
-    {
-        //TODO Andy Correct this logic
-        //Handle null returned from handleAck
+    {        
         if (multiple) {
             Map<Long, RabbitTaskInformation> ackMap = confirmMap.headMap(sequenceNo + 1);
             synchronized (confirmMap) {

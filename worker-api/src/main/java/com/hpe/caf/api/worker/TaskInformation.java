@@ -17,5 +17,4 @@ package com.hpe.caf.api.worker;
 
 public interface TaskInformation {
     String getInboundMessageId();
-    void incrementResponseCount(final boolean isFinalResponse);
 }

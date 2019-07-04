@@ -16,110 +16,114 @@
 package com.hpe.caf.worker.queue.rabbit;
 
 import com.hpe.caf.api.worker.TaskInformation;
+import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.atomic.AtomicInteger;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 public class RabbitTaskInformation implements TaskInformation {
     private final String inboundMessageId;
-    private final Object responseCountLock;
-    private volatile boolean negativeAckSent; 
-    private volatile int responseCount;
-    private volatile boolean isResponseCountFinal;
-    private final Object acknowledgementCountLock;
-    private volatile int acknowledgementCount;
+    private final AtomicBoolean negativeAckEventSent; 
+    private final AtomicBoolean ackEventSent; 
+    private final AtomicInteger responseCount;
+    private final AtomicBoolean isResponseCountFinal;
+    private final AtomicInteger acknowledgementCount;
     private static final Logger LOG = LoggerFactory.getLogger(RabbitTaskInformation.class);
 
     public RabbitTaskInformation(final String inboundMessageId) {
         this.inboundMessageId = inboundMessageId;
-        this.responseCountLock = new Object();
-        this.responseCount = 0;
-        this.isResponseCountFinal = false;
-        this.acknowledgementCountLock = new Object();
-        this.acknowledgementCount = 0;
-        this.negativeAckSent=false;
+        this.responseCount = new AtomicInteger(0);
+        this.isResponseCountFinal = new AtomicBoolean(false);
+        this.acknowledgementCount = new AtomicInteger(0);
+        this.negativeAckEventSent = new AtomicBoolean(false);
+        this.ackEventSent = new AtomicBoolean(false);
     }
 
     @Override
     public String getInboundMessageId() {
         return inboundMessageId;
     }
-
-    @Override
-    public void incrementResponseCount(final boolean isFinalResponse) {
-        synchronized (responseCountLock) {
-            if (isResponseCountFinal) {
+    /**
+     *
+     * Increment the count of Responses.
+     *
+     */
+    public void incrementResponseCount(final boolean isFinalResponse) {       
+            if (isResponseCountFinal.get()) {
                 throw new RuntimeException("Final response already set!");
             }
-
-            responseCount++;
-
+            responseCount.incrementAndGet();
+            LOG.debug("Incremeneted the ResponseCount for message:{} Now ResCount is: {}", inboundMessageId, responseCount);
             if (isFinalResponse) {
-                isResponseCountFinal = true;
-            }
-        }
+                isResponseCountFinal.set(true);
+            }        
     }
 
     /**
-     * Indicate that there are no more responses to come.
      *
-     * @return true if all the responses have already been acknowledged
-     */
-    public boolean finalizeResponseCount()
-    {
-        synchronized (acknowledgementCountLock) {
-            synchronized (responseCountLock) {
-                isResponseCountFinal = true;
-            }
-
-            return responseCount == acknowledgementCount;
-        }
-    }
-
-    /**
      * Increment the count of acknowledgements.
      *
-     * @return true if this increment means that all responses have been acknowledged
      */
-    public boolean incrementAcknowledgementCount()
+    public void incrementAcknowledgementCount()
     {
-        synchronized (acknowledgementCountLock) {
-            final int ackCount = ++acknowledgementCount;
-
-            return isResponseCountFinal
-                    && (responseCount == ackCount);
-        }
+        acknowledgementCount.incrementAndGet();
+        LOG.debug("Incremeneted the AcknowledgementCount for message:{} Now AckCount is: {}", inboundMessageId, acknowledgementCount);
     }
 
+    /**
+     * Check if all response have been acknowledged
+     *
+     * @return true if all responses have been acknowledged and isResponseFinal is true
+     */
     public boolean areAllResponsesAcknowledged()
-    {
-        int response=getFinalResponseCount();
-        if(response<=0)
-        {
+    {        
+        if (!isResponseCountFinal.get()) {
+            LOG.debug("Final response count is not known yet!");
             return false;
         }
-        return getFinalResponseCount() <= acknowledgementCount;
-        
+        LOG.debug("Now AckCount is: {} and ResCount is: {}", acknowledgementCount, responseCount);
+        return (responseCount.intValue()==acknowledgementCount.intValue());   
+    }
+    
+    /**
+     *
+     * Get the NegativeAckEventSent flag
+     *
+     */
+    public boolean isNegativeAckEventSent()
+    {
+        return negativeAckEventSent.get();
     }
 
-    private int getFinalResponseCount()
+    /**
+     *
+     * Mark the NegativeAckEventSent flag to true to avoid multiple 
+     * NegativeAckEvent being sent for same inboundMessageId.
+     *
+     */
+    public void markNegativeAckEventAsSent()
     {
-        synchronized (responseCountLock) {
-            if (!isResponseCountFinal) {
-                LOG.debug("Final response count is not known yet!");
-                return -1;
-            }
-
-            return responseCount;
-        }
+        negativeAckEventSent.set(true);
+    }
+    
+    /**
+     *
+     * Get the AckEventSent flag
+     *
+     */
+    public boolean isAckEventSent()
+    {
+        return ackEventSent.get();
     }
 
-    public boolean isNegativeAckSent()
+    /**
+     *
+     * Mark the ackEventSent flag to true to avoid multiple 
+     * ackEventSent being sent for same inboundMessageId.
+     *
+     */
+    public void markAckEventAsSent()
     {
-        return negativeAckSent;
-    }
-
-    public void markNegativeAckAsSent()
-    {
-        this.negativeAckSent = true;
+        ackEventSent.set(true);
     }
 }
