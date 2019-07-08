@@ -6,6 +6,6 @@ ${version-number}
 #### New Features
 
 #### Bug Fixes
-* [SCMOD-5410](https://portal.digitalsafe.net/browse/SCMOD-5410) -  Updating the logic to acknowledge incoming messages only when all the tracking and subdocument messages are sent and acknowledged
+* [SCMOD-5410](https://portal.digitalsafe.net/browse/SCMOD-5410) -  Potential for task statuses not to be reported. An unexpected termination of a worker could result in the loss of job tracking messages.
 
 #### Known Issues
