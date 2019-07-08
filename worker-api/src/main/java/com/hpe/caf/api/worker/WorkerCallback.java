@@ -25,51 +25,51 @@ public interface WorkerCallback
     /**
      * Used to send responses prior to the final response (when complete should be used instead).
      *
-     * @param queueMsgId a queue-specific reference for the incoming message that generated the response
+     * @param taskInformation a queue-specific reference for the incoming message that generated the response
      * @param responseMessage the message to put on the queue (target specified by the {@code to} property)
      */
-    void send(String queueMsgId, TaskMessage responseMessage);
+    void send(TaskInformation taskInformation, TaskMessage responseMessage);
 
     /**
      * Indicate a task was completed.
      *
-     * @param queueMsgId a queue-specific reference for the incoming message that generated the response
+     * @param taskInformation a queue-specific reference for the incoming message that generated the response
      * @param queue the queue to hold the message
      * @param responseMessage the message to put on the queue
      */
-    void complete(String queueMsgId, String queue, TaskMessage responseMessage);
+    void complete(TaskInformation taskInformation, String queue, TaskMessage responseMessage);
 
     /**
      * Indicates the Worker wishes to abandon this task, but return it to the queue so that it can be retried by this or another Worker
      * instance.
      *
-     * @param queueMsgId the id of the task's queue message to reject
+     * @param taskInformation the id of the task's queue message to reject
      * @param e the Exception causing the task's queue message to be rejected
      */
-    void abandon(String queueMsgId, Exception e);
+    void abandon(TaskInformation taskInformation, Exception e);
 
     /**
      * Indicates the Worker wishes to forward this task to the specified queue without processing it.
      *
-     * @param queueMsgId a queue-specific reference for the incoming message to be forwarded
+     * @param taskInformation a queue-specific reference for the incoming message to be forwarded
      * @param queue the queue to hold the forwarded message
      * @param forwardedMessage the message to put on the queue
      * @param headers the map of key/value paired headers to be stamped on the message
      */
-    void forward(String queueMsgId, String queue, TaskMessage forwardedMessage, Map<String, Object> headers);
+    void forward(TaskInformation taskInformation, String queue, TaskMessage forwardedMessage, Map<String, Object> headers);
 
     /**
      * Indicates the Worker wishes to discard this task without returning it to the queue for retry.
      *
-     * @param queueMsgId the id of the task's queue message to discard
+     * @param taskInformation the id of the task's queue message to discard
      */
-    void discard(String queueMsgId);
+    void discard(TaskInformation taskInformation);
 
     /**
      * Used to send a report update message.
      *
-     * @param queueMsgId a queue-specific reference for the incoming message
+     * @param taskInformation a queue-specific reference for the incoming message
      * @param reportUpdateMessage the report update message to put on the queue
      */
-    void reportUpdate(final String queueMsgId, final TaskMessage reportUpdateMessage);
+    void reportUpdate(final TaskInformation taskInformation, final TaskMessage reportUpdateMessage);
 }

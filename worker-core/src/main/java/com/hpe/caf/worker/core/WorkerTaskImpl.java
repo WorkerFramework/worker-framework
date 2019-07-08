@@ -52,7 +52,7 @@ class WorkerTaskImpl implements WorkerTask
     private final ServicePath servicePath;
     private final WorkerCallback workerCallback;
     private final WorkerFactory workerFactory;
-    private final String messageId;
+    private final TaskInformation taskInformation;
     private final TaskMessage taskMessage;
     private final MessagePriorityManager priorityManager;
     private int responseCount;
@@ -69,7 +69,7 @@ class WorkerTaskImpl implements WorkerTask
             final ServicePath servicePath,
             final WorkerCallback workerCallback,
             final WorkerFactory workerFactory,
-            final String messageId,
+            final TaskInformation taskInformation,
             final TaskMessage taskMessage,
             final boolean poison,
             final Map<String, Object> headers,
@@ -80,7 +80,7 @@ class WorkerTaskImpl implements WorkerTask
         this.servicePath = servicePath;
         this.workerCallback = workerCallback;
         this.workerFactory = workerFactory;
-        this.messageId = messageId;
+        this.taskInformation = taskInformation;
         this.taskMessage = taskMessage;
         this.priorityManager = Objects.requireNonNull(priorityManager);
         this.responseCount = 0;
@@ -147,9 +147,9 @@ class WorkerTaskImpl implements WorkerTask
     {
         Objects.requireNonNull(response);
         Objects.requireNonNull(response.getQueueReference());
-
+        //increment the task an sub task response count
         incrementResponseCount(false);
-
+        
         final TaskMessage responseMessage = createResponseMessage(includeTaskContext, response);
 
         singleMessageBuffer.add(responseMessage);
@@ -161,14 +161,14 @@ class WorkerTaskImpl implements WorkerTask
         Objects.requireNonNull(tm);
 
         // Publish this message
-        workerCallback.send("-1", tm);
+        workerCallback.send(taskInformation, tm);
     }
 
     @Override
     public void setResponse(final WorkerResponse response)
     {
         Objects.requireNonNull(response);
-
+        //increment the task an sub task response count
         incrementResponseCount(true);
 
         final TaskMessage responseMessage = createResponseMessage(true, response);
@@ -218,12 +218,12 @@ class WorkerTaskImpl implements WorkerTask
     @Override
     public void setResponse(final TaskRejectedException taskRejectedException)
     {
+        //increment the task an sub task response count
         incrementResponseCount(true);
-
         LOG.info("Worker requested to abandon task {} (message id: {})",
                  taskMessage.getTaskId(), taskMessage, taskRejectedException);
 
-        workerCallback.abandon(messageId, taskRejectedException);
+        workerCallback.abandon(taskInformation, taskRejectedException);
     }
 
     @Override
@@ -232,9 +232,8 @@ class WorkerTaskImpl implements WorkerTask
         if (invalidTaskException == null) {
             throw new IllegalArgumentException();
         }
-
+        //increment the task an sub task response count
         incrementResponseCount(true);
-
         LOG.error("Task data is invalid for {}, returning status {}",
                   taskMessage.getTaskId(), TaskStatus.INVALID_TASK, invalidTaskException);
 
@@ -272,7 +271,7 @@ class WorkerTaskImpl implements WorkerTask
     public void logInterruptedException(final InterruptedException interruptedException)
     {
         LOG.warn("Worker interrupt signalled, not performing callback for task {} (message id: {})",
-                 taskMessage.getTaskId(), messageId, interruptedException);
+                 taskMessage.getTaskId(), taskInformation.getInboundMessageId(), interruptedException);
     }
 
     public boolean isResponseSet()
@@ -292,6 +291,7 @@ class WorkerTaskImpl implements WorkerTask
             }
 
             responseCount = isFinalResponse ? -rc : rc;
+            
         }
     }
 
@@ -512,7 +512,7 @@ class WorkerTaskImpl implements WorkerTask
         progressReportBuffer.add(responseMessage);
 
         // Publish this message
-        workerCallback.send(messageId, responseMessage);
+        workerCallback.send(taskInformation, responseMessage);
 
         // Allow the final task to complete (in case it was blocking waiting on the message to be published)
         subtasksPublishedSemaphore.release();
@@ -543,9 +543,9 @@ class WorkerTaskImpl implements WorkerTask
 
         //  Ensure all report updates have been sent.
         progressReportBuffer.flush();
-
+        
         // Complete the task
-        workerCallback.complete(messageId, responseMessage.getTo(), responseMessage);
+        workerCallback.complete(taskInformation, responseMessage.getTo(), responseMessage);
     }
 
     /**
@@ -618,7 +618,7 @@ class WorkerTaskImpl implements WorkerTask
                 Collections.<String, byte[]>emptyMap(), trackingPipe);
 
         //  Publish the task message comprising the report updates.
-        workerCallback.reportUpdate(messageId, reportUpdateMessage);
+        workerCallback.reportUpdate(taskInformation, reportUpdateMessage);
     }
 
     private static String getTrackingPipe(final List<TaskMessage> taskMessages)

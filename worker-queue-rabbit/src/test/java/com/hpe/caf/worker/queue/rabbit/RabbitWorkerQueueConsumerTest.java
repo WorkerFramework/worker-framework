@@ -15,15 +15,13 @@
  */
 package com.hpe.caf.worker.queue.rabbit;
 
-import com.hpe.caf.api.worker.InvalidTaskException;
-import com.hpe.caf.api.worker.TaskCallback;
-import com.hpe.caf.api.worker.TaskRejectedException;
-import com.hpe.caf.api.worker.WorkerException;
+import com.hpe.caf.api.worker.*;
 import com.hpe.caf.util.rabbitmq.*;
 import com.rabbitmq.client.AMQP;
 import com.rabbitmq.client.Channel;
 import com.rabbitmq.client.Envelope;
 import org.testng.Assert;
+import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
@@ -43,13 +41,20 @@ import java.util.concurrent.TimeUnit;
 public class RabbitWorkerQueueConsumerTest
 {
     private String testQueue = "testQueue";
-    private long id = 101L;
+    private RabbitTaskInformation taskInformation;
     private byte[] data = "test123".getBytes(StandardCharsets.UTF_8);
-    private Envelope newEnv = new Envelope(id, false, "", testQueue);
-    private Envelope redeliveredEnv = new Envelope(id, true, "", testQueue);
+    private Envelope newEnv;
+    private Envelope redeliveredEnv;
     private String retryKey = "retry";
     private RabbitMetricsReporter metrics = new RabbitMetricsReporter();
     private TaskCallback mockCallback = Mockito.mock(TaskCallback.class);
+
+    @BeforeMethod
+    public void beforeMethod() {
+        taskInformation = new RabbitTaskInformation("101");
+        newEnv = new Envelope(Long.valueOf(taskInformation.getInboundMessageId()), false, "", testQueue);
+        redeliveredEnv = new Envelope(Long.valueOf(taskInformation.getInboundMessageId()), true, "", testQueue);
+    }
 
     /**
      * Send in a new message and verify the task registration callback is performed.
@@ -107,7 +112,7 @@ public class RabbitWorkerQueueConsumerTest
         WorkerPublisher publisher = Mockito.mock(WorkerPublisher.class);
         ArgumentCaptor<Map> captor = ArgumentCaptor.forClass(Map.class);
         pubEvent.handleEvent(publisher);
-        Mockito.verify(publisher, Mockito.times(1)).handlePublish(Mockito.eq(data), Mockito.eq(retryKey), Mockito.eq(id), captor.capture(), Mockito.eq(0));
+        Mockito.verify(publisher, Mockito.times(1)).handlePublish(Mockito.eq(data), Mockito.eq(retryKey), Mockito.any(RabbitTaskInformation.class), captor.capture(), Mockito.eq(0));
         Assert.assertTrue(captor.getValue().containsKey(RabbitHeaders.RABBIT_HEADER_CAF_WORKER_REJECTED));
         Assert.assertEquals(WorkerQueueConsumerImpl.REJECTED_REASON_TASKMESSAGE,
                             captor.getValue().get(RabbitHeaders.RABBIT_HEADER_CAF_WORKER_REJECTED));
@@ -142,7 +147,7 @@ public class RabbitWorkerQueueConsumerTest
         WorkerPublisher publisher = Mockito.mock(WorkerPublisher.class);
         ArgumentCaptor<Map> captor = ArgumentCaptor.forClass(Map.class);
         pubEvent.handleEvent(publisher);
-        Mockito.verify(publisher, Mockito.times(1)).handlePublish(Mockito.eq(data), Mockito.eq(testQueue), Mockito.eq(id), captor.capture(), Mockito.eq(0));
+        Mockito.verify(publisher, Mockito.times(1)).handlePublish(Mockito.eq(data), Mockito.eq(testQueue), Mockito.any(RabbitTaskInformation.class), captor.capture(), Mockito.eq(0));
         Assert.assertFalse(captor.getValue().containsKey(RabbitHeaders.RABBIT_HEADER_CAF_WORKER_REJECTED));
         consumer.shutdown();
     }
@@ -171,7 +176,7 @@ public class RabbitWorkerQueueConsumerTest
         WorkerPublisher publisher = Mockito.mock(WorkerPublisher.class);
         ArgumentCaptor<Map> captor = ArgumentCaptor.forClass(Map.class);
         pubEvent.handleEvent(publisher);
-        Mockito.verify(publisher, Mockito.times(1)).handlePublish(Mockito.eq(data), Mockito.eq(retryKey), Mockito.eq(id), captor.capture(), Mockito.eq(0));
+        Mockito.verify(publisher, Mockito.times(1)).handlePublish(Mockito.eq(data), Mockito.eq(retryKey), Mockito.any(RabbitTaskInformation.class), captor.capture(), Mockito.eq(0));
         Assert.assertTrue(captor.getValue().containsKey(RabbitHeaders.RABBIT_HEADER_CAF_WORKER_RETRY));
         Assert.assertEquals("1", captor.getValue().get(RabbitHeaders.RABBIT_HEADER_CAF_WORKER_RETRY));
         consumer.shutdown();
@@ -203,7 +208,7 @@ public class RabbitWorkerQueueConsumerTest
         WorkerPublisher publisher = Mockito.mock(WorkerPublisher.class);
         ArgumentCaptor<Map> captor = ArgumentCaptor.forClass(Map.class);
         pubEvent.handleEvent(publisher);
-        Mockito.verify(publisher, Mockito.times(1)).handlePublish(Mockito.eq(data), Mockito.eq(retryKey), Mockito.eq(id), captor.capture(), Mockito.eq(0));
+        Mockito.verify(publisher, Mockito.times(1)).handlePublish(Mockito.eq(data), Mockito.eq(retryKey), Mockito.any(RabbitTaskInformation.class), captor.capture(), Mockito.eq(0));
         Assert.assertTrue(captor.getValue().containsKey(RabbitHeaders.RABBIT_HEADER_CAF_WORKER_RETRY));
         Assert.assertEquals("1", captor.getValue().get(RabbitHeaders.RABBIT_HEADER_CAF_WORKER_RETRY));
         Assert.assertTrue(captor.getValue().containsKey(RabbitHeaders.RABBIT_HEADER_CAF_WORKER_REJECTED));
@@ -227,12 +232,12 @@ public class RabbitWorkerQueueConsumerTest
             channelLatch.countDown();
             return null;
         };
-        Mockito.doAnswer(a).when(channel).basicAck(Mockito.eq(id), Mockito.anyBoolean());
+        Mockito.doAnswer(a).when(channel).basicAck(Mockito.eq(Long.valueOf(taskInformation.getInboundMessageId())), Mockito.anyBoolean());
         WorkerQueueConsumerImpl impl = new WorkerQueueConsumerImpl(mockCallback, metrics, consumerEvents, channel, publisherEvents, retryKey, 1);
         DefaultRabbitConsumer consumer = new DefaultRabbitConsumer(consumerEvents, impl);
         Thread t = new Thread(consumer);
         t.start();
-        consumerEvents.add(new ConsumerAckEvent(id));
+        consumerEvents.add(new ConsumerAckEvent(Long.valueOf(taskInformation.getInboundMessageId())));
         Assert.assertTrue(channelLatch.await(30000, TimeUnit.MILLISECONDS));
         consumer.shutdown();
     }
@@ -252,12 +257,12 @@ public class RabbitWorkerQueueConsumerTest
             channelLatch.countDown();
             return null;
         };
-        Mockito.doAnswer(a).when(channel).basicReject(Mockito.eq(id), Mockito.eq(true));
+        Mockito.doAnswer(a).when(channel).basicReject(Mockito.eq(Long.valueOf(taskInformation.getInboundMessageId())), Mockito.eq(true));
         WorkerQueueConsumerImpl impl = new WorkerQueueConsumerImpl(mockCallback, metrics, consumerEvents, channel, publisherEvents, retryKey, 1);
         DefaultRabbitConsumer consumer = new DefaultRabbitConsumer(consumerEvents, impl);
         Thread t = new Thread(consumer);
         t.start();
-        consumerEvents.add(new ConsumerRejectEvent(id));
+        consumerEvents.add(new ConsumerRejectEvent(Long.valueOf(taskInformation.getInboundMessageId())));
         Assert.assertTrue(channelLatch.await(1000, TimeUnit.MILLISECONDS));
         consumer.shutdown();
     }
@@ -277,12 +282,12 @@ public class RabbitWorkerQueueConsumerTest
             channelLatch.countDown();
             return null;
         };
-        Mockito.doAnswer(a).when(channel).basicReject(id, false);
+        Mockito.doAnswer(a).when(channel).basicReject(Long.valueOf(taskInformation.getInboundMessageId()), false);
         WorkerQueueConsumerImpl impl = new WorkerQueueConsumerImpl(mockCallback, metrics, consumerEvents, channel, publisherEvents, retryKey, 1);
         DefaultRabbitConsumer consumer = new DefaultRabbitConsumer(consumerEvents, impl);
         Thread t = new Thread(consumer);
         t.start();
-        consumerEvents.add(new ConsumerDropEvent(id));
+        consumerEvents.add(new ConsumerDropEvent(Long.valueOf(taskInformation.getInboundMessageId())));
         Assert.assertTrue(channelLatch.await(1000, TimeUnit.MILLISECONDS));
         consumer.shutdown();
     }

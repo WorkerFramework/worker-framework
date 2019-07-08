@@ -123,43 +123,43 @@ final class WorkerCore
          * Use the factory to get a new worker to handle the task, wrap this in a handler and hand it off to the thread pool.
          */
         @Override
-        public void registerNewTask(final String queueMsgId, final byte[] taskMessage, Map<String, Object> headers)
+        public void registerNewTask(final TaskInformation taskInformation, final byte[] taskMessage, Map<String, Object> headers)
             throws InvalidTaskException, TaskRejectedException
         {
-            Objects.requireNonNull(queueMsgId);
+            Objects.requireNonNull(taskInformation);
             stats.incrementTasksReceived();
             stats.getInputSizes().update(taskMessage.length);
 
             try {
-                registerNewTaskImpl(queueMsgId, taskMessage, headers);
+                registerNewTaskImpl(taskInformation, taskMessage, headers);
             } catch (InvalidTaskException e) {
                 stats.incrementTasksRejected();
                 throw e;
             }
         }
 
-        private void registerNewTaskImpl(final String queueMsgId, final byte[] taskMessage, Map<String, Object> headers)
+        private void registerNewTaskImpl(final TaskInformation taskInformation, final byte[] taskMessage, Map<String, Object> headers)
             throws InvalidTaskException, TaskRejectedException
         {
             try {
                 TaskMessage tm = codec.deserialise(taskMessage, TaskMessage.class, DecodeMethod.LENIENT);
 
-                LOG.debug("Received task {} (message id: {})", tm.getTaskId(), queueMsgId);
+                LOG.debug("Received task {} (message id: {})", tm.getTaskId(), taskInformation.getInboundMessageId());
 
                 boolean poison = isTaskPoisoned(headers);
                 validateTaskMessage(tm);
                 boolean taskIsActive = checkStatus(tm);
                 if (taskIsActive) {
                     if (tm.getTo() != null && tm.getTo().equalsIgnoreCase(workerQueue.getInputQueue())) {
-                        LOG.debug("Task {} (message id: {}) on input queue {} {}", tm.getTaskId(), queueMsgId, workerQueue.getInputQueue(), (tm.getTo() != null) ? "is intended for this worker" : "has no explicit destination, therefore assuming it is intended for this worker");
-                        executor.executeTask(tm, queueMsgId, poison, headers, codec);
+                        LOG.debug("Task {} (message id: {}) on input queue {} {}", tm.getTaskId(), taskInformation.hashCode(), workerQueue.getInputQueue(), (tm.getTo() != null) ? "is intended for this worker" : "has no explicit destination, therefore assuming it is intended for this worker");
+                        executor.executeTask(tm, taskInformation, poison, headers, codec);
                     } else {
-                        LOG.debug("Task {} (message id: {}) is not intended for this worker: input queue {} does not match message destination queue {}", tm.getTaskId(), queueMsgId, workerQueue.getInputQueue(), tm.getTo());
-                        executor.forwardTask(tm, queueMsgId, headers);
+                        LOG.debug("Task {} (message id: {}) is not intended for this worker: input queue {} does not match message destination queue {}", tm.getTaskId(), taskInformation.getInboundMessageId(), workerQueue.getInputQueue(), tm.getTo());
+                        executor.forwardTask(tm, taskInformation, headers);
                     }
                 } else {
-                    LOG.debug("Task {} is no longer active. The task message (message id: {}) will not be executed", tm.getTaskId(), queueMsgId);
-                    executor.discardTask(tm, queueMsgId);
+                    LOG.debug("Task {} is no longer active. The task message (message id: {}) will not be executed", tm.getTaskId(), taskInformation.getInboundMessageId());
+                    executor.discardTask(tm, taskInformation);
                 }
             } catch (CodecException e) {
                 throw new InvalidTaskException("Queue data did not deserialise to a TaskMessage", e);
@@ -366,14 +366,14 @@ final class WorkerCore
         }
 
         @Override
-        public void send(final String queueMsgId, final TaskMessage responseMessage)
+        public void send(final TaskInformation taskInformation, final TaskMessage responseMessage)
         {
-            Objects.requireNonNull(queueMsgId);
+            Objects.requireNonNull(taskInformation);
             Objects.requireNonNull(responseMessage);
-            LOG.debug("Sending task {} complete (message id: {})", responseMessage.getTaskId(), queueMsgId);
+            LOG.debug("Sending task {} complete (message id: {})", responseMessage.getTaskId(), taskInformation.getInboundMessageId());
 
             final String queue = responseMessage.getTo();
-            checkForTrackingTermination(queueMsgId, queue, responseMessage);
+            checkForTrackingTermination(taskInformation, queue, responseMessage);
 
             final byte[] output;
             try {
@@ -385,7 +385,7 @@ final class WorkerCore
             final int priority = responseMessage.getPriority() == null ? 0 : responseMessage.getPriority();
 
             try {
-                workerQueue.publish("-1", output, queue, Collections.emptyMap(), priority);
+                workerQueue.publish(taskInformation, output, queue, Collections.emptyMap(), priority);
             } catch (final QueueException ex) {
                 throw new RuntimeException(ex);
             }
@@ -398,15 +398,15 @@ final class WorkerCore
          * we reject the task.
          */
         @Override
-        public void complete(final String queueMsgId, final String queue, final TaskMessage responseMessage)
+        public void complete(final TaskInformation taskInformation, final String queue, final TaskMessage responseMessage)
         {
-            Objects.requireNonNull(queueMsgId);
+            Objects.requireNonNull(taskInformation);
             Objects.requireNonNull(responseMessage);
             // queue can be null for a dead end worker
-            LOG.debug("Task {} complete (message id: {})", responseMessage.getTaskId(), queueMsgId);
-            LOG.debug("Setting destination {} in task {} (message id: {})", queue, responseMessage.getTaskId(), queueMsgId);
+            LOG.debug("Task {} complete (message id: {})", responseMessage.getTaskId(), taskInformation.getInboundMessageId());
+            LOG.debug("Setting destination {} in task {} (message id: {})", queue, responseMessage.getTaskId(), taskInformation.getInboundMessageId());
             responseMessage.setTo(queue);
-            checkForTrackingTermination(queueMsgId, queue, responseMessage);
+            checkForTrackingTermination(taskInformation, queue, responseMessage);
             try {
                 if (null == queue) {
                     // **** Dead End Worker ****
@@ -418,12 +418,13 @@ final class WorkerCore
                     // If a worker is designed to output only error messages the targetQueue will be
                     // null for success messages and set to the workers output queue for error
                     // messages.
-                    workerQueue.acknowledgeTask(queueMsgId);
+                    workerQueue.acknowledgeTask(taskInformation);
                 } else {
                     // **** Normal Worker ****                    
                     // A worker with an input and output queue.
                     byte[] output = codec.serialise(responseMessage);
-                    workerQueue.publish(queueMsgId, output, queue, Collections.emptyMap(), responseMessage.getPriority() == null ? 0 : responseMessage.getPriority());
+                    workerQueue.publish(taskInformation, output, queue, Collections.emptyMap(), 
+                                           responseMessage.getPriority() == null ? 0 : responseMessage.getPriority(), true);                    
                     stats.getOutputSizes().update(output.length);
                 }
                 stats.updatedLastTaskFinishedTime();
@@ -434,15 +435,15 @@ final class WorkerCore
                 }
             } catch (CodecException | QueueException e) {
                 LOG.error("Cannot publish data for task {}, rejecting", responseMessage.getTaskId(), e);
-                abandon(queueMsgId, e);
+                abandon(taskInformation, e);
             }
         }
 
         @Override
-        public void abandon(final String queueMsgId, final Exception e)
+        public void abandon(final TaskInformation taskInformation, final Exception e)
         {
-            LOG.debug("Rejecting message id {}", queueMsgId);
-            workerQueue.rejectTask(queueMsgId);
+            LOG.debug("Rejecting message id {}", taskInformation.getInboundMessageId());
+            workerQueue.rejectTask(taskInformation);
             stats.incrementTasksRejected();
             workerQueue.disconnectIncoming();
             transientHealthCheck.addTransientExceptionToRegistry(e.getMessage());
@@ -450,44 +451,44 @@ final class WorkerCore
         }
 
         @Override
-        public void forward(String queueMsgId, String queue, TaskMessage forwardedMessage, Map<String, Object> headers)
+        public void forward(TaskInformation taskInformation, String queue, TaskMessage forwardedMessage, Map<String, Object> headers)
         {
-            Objects.requireNonNull(queueMsgId);
+            Objects.requireNonNull(taskInformation);
             Objects.requireNonNull(forwardedMessage);
             // queue can be null for a dead end worker
-            LOG.debug("Task {} (message id: {}) being forwarded to queue {}", forwardedMessage.getTaskId(), queueMsgId, queue);
-            checkForTrackingTermination(queueMsgId, queue, forwardedMessage);
+            LOG.debug("Task {} (message id: {}) being forwarded to queue {}", forwardedMessage.getTaskId(), taskInformation.getInboundMessageId(), queue);
+            checkForTrackingTermination(taskInformation, queue, forwardedMessage);
             try {
                 // If the queue is null, acknowledge the task rather than forwarding it
                 if (queue == null) {
-                    workerQueue.acknowledgeTask(queueMsgId);
+                    workerQueue.acknowledgeTask(taskInformation);
                 } else {
                     // Else forward the task
                     byte[] output = codec.serialise(forwardedMessage);
-                    workerQueue.publish(queueMsgId, output, queue, headers, forwardedMessage.getPriority() == null ? 0 : forwardedMessage.getPriority());
+                    workerQueue.publish(taskInformation, output, queue, headers, forwardedMessage.getPriority() == null ? 0 : forwardedMessage.getPriority());
                     stats.incrementTasksForwarded();
                     //TODO - I'm guessing this stat should not be updated for forwarded messages:
                     // stats.getOutputSizes().update(output.length);
                 }
             } catch (CodecException | QueueException e) {
                 LOG.error("Cannot publish data for forwarded task {}, rejecting", forwardedMessage.getTaskId(), e);
-                abandon(queueMsgId, e);
+                abandon(taskInformation, e);
             }
         }
 
         @Override
-        public void discard(String queueMsgId)
+        public void discard(TaskInformation taskInformation)
         {
-            Objects.requireNonNull(queueMsgId);
-            LOG.debug("Discarding message id {}", queueMsgId);
-            workerQueue.discardTask(queueMsgId);
+            Objects.requireNonNull(taskInformation);
+            LOG.debug("Discarding message id {}", taskInformation.getInboundMessageId());
+            workerQueue.discardTask(taskInformation);
             stats.incrementTasksDiscarded();
         }
 
         @Override
-        public void reportUpdate(final String queueMsgId, final TaskMessage reportUpdateMessage)
+        public void reportUpdate(final TaskInformation taskInformation, final TaskMessage reportUpdateMessage)
         {
-            Objects.requireNonNull(queueMsgId);
+            Objects.requireNonNull(taskInformation);
             Objects.requireNonNull(reportUpdateMessage);
             LOG.debug("Sending report updates to queue {})", reportUpdateMessage.getTo());
 
@@ -500,8 +501,8 @@ final class WorkerCore
 
             final int priority = reportUpdateMessage.getPriority() == null ? 0 : reportUpdateMessage.getPriority();
 
-            try {
-                workerQueue.publish("-1", output, reportUpdateMessage.getTo(), Collections.emptyMap(), priority);
+            try {                
+                workerQueue.publish(taskInformation, output, reportUpdateMessage.getTo(), Collections.emptyMap(), priority);
             } catch (final QueueException ex) {
                 throw new RuntimeException(ex);
             }
@@ -511,15 +512,15 @@ final class WorkerCore
          * Checks whether tracking of this task message should end when publishing to the specified queue. If tracking is to end then this
          * method removes and returns the tracking info from the task message.
          *
-         * @param queueMsgId the reference to the message this task arrived on
+         * @param taskInformation the reference to the message this task arrived on
          * @param queueToSend the queue to which the message is to be published
          * @param tm task message whose tracking info is to be checked
          * @return if tracking of the message terminates on publishing to the specified queue then the removed tracking info is returned;
          * otherwise null is returned and the tracking info is not removed from the message
          */
-        private TrackingInfo checkForTrackingTermination(final String queueMsgId, final String queueToSend, TaskMessage tm)
+        private TrackingInfo checkForTrackingTermination(final TaskInformation taskInformation, final String queueToSend, TaskMessage tm)
         {
-            Objects.requireNonNull(queueMsgId);
+            Objects.requireNonNull(taskInformation);
             Objects.requireNonNull(tm);
             // queueToSend can be null for a dead end worker
 
@@ -527,7 +528,7 @@ final class WorkerCore
             if (tracking != null) {
                 final String trackTo = tracking.getTrackTo();
                 if ((trackTo == null && queueToSend == null) || (trackTo != null && trackTo.equalsIgnoreCase(queueToSend))) {
-                    LOG.debug("Task {} (message id: {}): removing tracking info from this message as tracking ends on publishing to the queue {}.", tm.getTaskId(), queueMsgId, queueToSend);
+                    LOG.debug("Task {} (message id: {}): removing tracking info from this message as tracking ends on publishing to the queue {}.", tm.getTaskId(), taskInformation.getInboundMessageId(), queueToSend);
                     tm.setTracking(null);
                 }
             }

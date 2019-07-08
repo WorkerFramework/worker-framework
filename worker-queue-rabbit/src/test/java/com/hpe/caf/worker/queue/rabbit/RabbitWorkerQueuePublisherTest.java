@@ -21,6 +21,7 @@ import com.hpe.caf.util.rabbitmq.EventPoller;
 import com.hpe.caf.util.rabbitmq.QueueConsumer;
 import com.rabbitmq.client.Channel;
 import org.testng.Assert;
+import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 import org.mockito.Mockito;
 import org.mockito.stubbing.Answer;
@@ -35,9 +36,14 @@ import java.util.concurrent.TimeUnit;
 public class RabbitWorkerQueuePublisherTest
 {
     private String testQueue = "testQueue";
-    private long id = 101L;
+    private RabbitTaskInformation taskInformation;
     private byte[] data = "test123".getBytes(StandardCharsets.UTF_8);
     private RabbitMetricsReporter metrics = new RabbitMetricsReporter();
+
+    @BeforeMethod
+    public void beforeMethod() {
+        taskInformation = new RabbitTaskInformation("101");
+    }
 
     @Test
     public void testSetup()
@@ -63,7 +69,7 @@ public class RabbitWorkerQueuePublisherTest
         EventPoller<WorkerPublisher> publisher = new EventPoller<>(2, publisherEvents, impl);
         Thread t = new Thread(publisher);
         t.start();
-        publisherEvents.add(new WorkerPublishQueueEvent(data, testQueue, id));
+        publisherEvents.add(new WorkerPublishQueueEvent(data, testQueue, taskInformation));
         CountDownLatch latch = new CountDownLatch(1);
         Answer<Void> a = invocationOnMock -> {
             latch.countDown();
@@ -89,11 +95,11 @@ public class RabbitWorkerQueuePublisherTest
         EventPoller<WorkerPublisher> publisher = new EventPoller<>(2, publisherEvents, impl);
         Thread t = new Thread(publisher);
         t.start();
-        publisherEvents.add(new WorkerPublishQueueEvent(data, testQueue, id));
+        publisherEvents.add(new WorkerPublishQueueEvent(data, testQueue, taskInformation));
         Event<QueueConsumer> event = consumerEvents.poll(5000, TimeUnit.MILLISECONDS);
         Assert.assertNotNull(event);
         Assert.assertTrue(event instanceof ConsumerRejectEvent);
-        Assert.assertEquals(id, ((ConsumerRejectEvent) event).getTag());
+        Assert.assertEquals((long)Long.valueOf(taskInformation.getInboundMessageId()), ((ConsumerRejectEvent) event).getTag());
         Mockito.verify(channel, Mockito.times(1)).basicPublish(Mockito.any(), Mockito.eq(testQueue), Mockito.any(), Mockito.eq(data));
         publisher.shutdown();
         Assert.assertEquals(0, publisherEvents.size());

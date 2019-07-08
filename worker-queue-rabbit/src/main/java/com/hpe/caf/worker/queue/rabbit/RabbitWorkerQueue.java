@@ -17,10 +17,7 @@ package com.hpe.caf.worker.queue.rabbit;
 
 import com.hpe.caf.api.HealthResult;
 import com.hpe.caf.api.HealthStatus;
-import com.hpe.caf.api.worker.ManagedWorkerQueue;
-import com.hpe.caf.api.worker.QueueException;
-import com.hpe.caf.api.worker.TaskCallback;
-import com.hpe.caf.api.worker.WorkerQueueMetricsReporter;
+import com.hpe.caf.api.worker.*;
 import com.hpe.caf.configs.RabbitConfiguration;
 import com.hpe.caf.util.rabbitmq.*;
 import com.rabbitmq.client.Channel;
@@ -118,14 +115,24 @@ public final class RabbitWorkerQueue implements ManagedWorkerQueue
     }
 
     @Override
-    public void publish(String acknowledgeId, byte[] taskMessage, String targetQueue, Map<String, Object> headers, int priority) throws QueueException
+    public void publish(TaskInformation taskInformation, byte[] taskMessage, String targetQueue, Map<String, Object> headers, 
+                                          int priority, boolean isLastMessage) throws QueueException
     {
         try {
             declareWorkerQueue(outgoingChannel, targetQueue, config.getMaxPriority());
         } catch (IOException e) {
             throw new QueueException("Failed to submit task", e);
         }
-        publisherQueue.add(new WorkerPublishQueueEvent(taskMessage, targetQueue, Long.parseLong(acknowledgeId), headers, priority));
+        RabbitTaskInformation rabbitTaskInformation = (RabbitTaskInformation)taskInformation;
+        //increment the total responseCount (including task, sub task and tracking info)
+        rabbitTaskInformation.incrementResponseCount(isLastMessage);
+        publisherQueue.add(new WorkerPublishQueueEvent(taskMessage, targetQueue, rabbitTaskInformation, headers, priority));
+    }
+    
+    @Override
+    public void publish(TaskInformation taskInformation, byte[] taskMessage, String targetQueue, Map<String, Object> headers, int priority) throws QueueException
+    {
+        publish(taskInformation, taskMessage, targetQueue, headers, priority, false);
     }
 
     /**
@@ -134,10 +141,10 @@ public final class RabbitWorkerQueue implements ManagedWorkerQueue
      * Add a PUBLISH event that the publisher thread will handle.
      */
     @Override
-    public void publish(String acknowledgeId, byte[] taskMessage, String targetQueue, Map<String, Object> headers)
+    public void publish(TaskInformation taskInformation, byte[] taskMessage, String targetQueue, Map<String, Object> headers)
         throws QueueException
     {
-        publish(acknowledgeId, taskMessage, targetQueue, headers, 0);
+        publish(taskInformation, taskMessage, targetQueue, headers, 0);
     }
 
     /**
@@ -146,11 +153,11 @@ public final class RabbitWorkerQueue implements ManagedWorkerQueue
      * Add a REJECT event that the consumer will handle.
      */
     @Override
-    public void rejectTask(String messageId)
+    public void rejectTask(TaskInformation taskInformation)
     {
-        Objects.requireNonNull(messageId);
-        LOG.debug("Generating reject event for task {}", messageId);
-        consumerQueue.add(new ConsumerRejectEvent(Long.parseLong(messageId)));
+        Objects.requireNonNull(taskInformation);
+        LOG.debug("Generating reject event for task {}", taskInformation.getInboundMessageId());
+        consumerQueue.add(new ConsumerRejectEvent(Long.parseLong(taskInformation.getInboundMessageId())));
     }
 
     /**
@@ -159,11 +166,11 @@ public final class RabbitWorkerQueue implements ManagedWorkerQueue
      * Add a DROP event that the consumer will handle.
      */
     @Override
-    public void discardTask(String messageId)
+    public void discardTask(TaskInformation taskInformation)
     {
-        Objects.requireNonNull(messageId);
-        LOG.debug("Generating drop event for task {}", messageId);
-        consumerQueue.add(new ConsumerDropEvent(Long.parseLong(messageId)));
+        Objects.requireNonNull(taskInformation);
+        LOG.debug("Generating drop event for task {}", taskInformation.getInboundMessageId());
+        consumerQueue.add(new ConsumerDropEvent(Long.parseLong(taskInformation.getInboundMessageId())));
     }
 
     /**
@@ -172,11 +179,11 @@ public final class RabbitWorkerQueue implements ManagedWorkerQueue
      * Add a ACKNOWLEDGE event that consumer will handle.
      */
     @Override
-    public void acknowledgeTask(String messageId)
+    public void acknowledgeTask(TaskInformation taskInformation)
     {
-        Objects.requireNonNull(messageId);
-        LOG.debug("Generating acknowledge event for task {}", messageId);
-        consumerQueue.add(new ConsumerAckEvent(Long.parseLong(messageId)));
+        Objects.requireNonNull(taskInformation);
+        LOG.debug("Generating acknowledge event for task {}", taskInformation.getInboundMessageId());
+        consumerQueue.add(new ConsumerAckEvent(Long.parseLong(taskInformation.getInboundMessageId())));
     }
 
     /**

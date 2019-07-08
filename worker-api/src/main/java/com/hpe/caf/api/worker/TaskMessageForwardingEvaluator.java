@@ -27,9 +27,9 @@ public interface TaskMessageForwardingEvaluator
      * Examines the task message and decides whether to forward it or take some other action, e.g. discard.
      *
      * @param tm the task message
-     * @param queueMessageId the reference to the message this task arrived on
+     * @param taskInformation the reference to the message this task arrived on
      * @param headers the map of key/value paired headers to be stamped on the message
      * @param callback worker callback to enact the forwarding action determined by the worker
      */
-    void determineForwardingAction(TaskMessage tm, String queueMessageId, Map<String, Object> headers, WorkerCallback callback);
+    void determineForwardingAction(TaskMessage tm, TaskInformation taskInformation, Map<String, Object> headers, WorkerCallback callback);
 }

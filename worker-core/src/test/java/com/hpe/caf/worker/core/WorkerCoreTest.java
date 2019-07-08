@@ -29,6 +29,8 @@ import com.hpe.caf.worker.tracking.report.TrackingReportStatus;
 import com.hpe.caf.worker.tracking.report.TrackingReportTask;
 import com.hpe.caf.worker.tracking.report.TrackingReportConstants;
 import org.testng.Assert;
+import org.testng.annotations.BeforeMethod;
+import org.testng.annotations.BeforeTest;
 import org.testng.annotations.Test;
 import org.mockito.Mockito;
 import org.testng.internal.junit.ArrayAsserts;
@@ -41,16 +43,25 @@ import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.TimeUnit;
 
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
+
 public class WorkerCoreTest
 {
     private static final String SUCCESS = "success";
     private static final String WORKER_NAME = "testWorker";
     private static final int WORKER_API_VER = 1;
-    private static final String QUEUE_MSG_ID = "test1";
     private static final String QUEUE_IN = "inQueue";
     private static final String QUEUE_OUT = "outQueue";
     private static final String SERVICE_PATH = "/test/group";
     private static final int PRIORITY = 2;
+
+    private TaskInformation taskInformation;
+
+    @BeforeMethod
+    private void before() {
+        taskInformation = getMockTaskInformation("test1");
+    }
 
     /**
      * Send a message all the way through WorkerCore and verify the result output message *
@@ -76,7 +87,7 @@ public class WorkerCoreTest
         // at this point, the queue should hand off the task to the app, the app should get a worker from the mocked WorkerFactory,
         // and the Worker itself is a mock wrapped in a WorkerWrapper, which should return success and the appropriate result data
         byte[] stuff = codec.serialise(getTaskMessage(task, codec, WORKER_NAME));
-        queue.submitTask(QUEUE_MSG_ID, stuff);
+        queue.submitTask(taskInformation, stuff);
         // the worker's task result should eventually be passed back to our dummy WorkerQueue and onto our blocking queue
         byte[] result = q.poll(5000, TimeUnit.MILLISECONDS);
         // if the result didn't get back to us, then result will be null
@@ -117,7 +128,7 @@ public class WorkerCoreTest
         // and the Worker itself is a mock wrapped in a WorkerWrapper, which should return success and the appropriate result data
         final TrackingInfo tracking = new TrackingInfo("J23.1.2", new Date(), "http://thehost:1234/job-service/v1/jobs/23/isActive", "trackingQueue", "trackTo");
         final byte[] stuff = codec.serialise(getTaskMessage(task, codec, WORKER_NAME, tracking));
-        queue.submitTask(QUEUE_MSG_ID, stuff);
+        queue.submitTask(taskInformation, stuff);
 
         // Two results expected back. One for the report progress update and another for the message completion.
         //
@@ -170,7 +181,7 @@ public class WorkerCoreTest
         WorkerCore core = new WorkerCore(codec, wtp, queue, priorityManager, getWorkerFactory(task, codec), path, healthCheckRegistry, transientHealthCheck);
         core.start();
         byte[] stuff = codec.serialise("nonsense");
-        queue.submitTask(QUEUE_MSG_ID, stuff);
+        queue.submitTask(taskInformation, stuff);
     }
 
     /**
@@ -202,7 +213,7 @@ public class WorkerCoreTest
         context.put(testContext, testContextData);
         tm.setContext(context);
         byte[] stuff = codec.serialise(tm);
-        queue.submitTask(QUEUE_MSG_ID, stuff);
+        queue.submitTask(taskInformation, stuff);
         byte[] result = q.poll(5000, TimeUnit.MILLISECONDS);
         Assert.assertNotNull(result);
         TaskMessage taskMessage = codec.deserialise(result, TaskMessage.class);
@@ -246,7 +257,7 @@ public class WorkerCoreTest
         context.put(testContext, testContextData);
         tm.setContext(context);
         final byte[] stuff = codec.serialise(tm);
-        queue.submitTask(QUEUE_MSG_ID, stuff);
+        queue.submitTask(taskInformation, stuff);
 
         // Two results expected back. One for the report progress update and another for the message completion.
         //
@@ -304,9 +315,9 @@ public class WorkerCoreTest
         byte[] task1 = codec.serialise(getTaskMessage(task, codec, UUID.randomUUID().toString()));
         byte[] task2 = codec.serialise(getTaskMessage(task, codec, UUID.randomUUID().toString()));
         byte[] task3 = codec.serialise(getTaskMessage(task, codec, UUID.randomUUID().toString()));
-        queue.submitTask("task1", task1);
-        queue.submitTask("task2", task2);
-        queue.submitTask("task3", task3);   // there are only 2 threads, so this task should not even start
+        queue.submitTask(getMockTaskInformation("task1"), task1);
+        queue.submitTask(getMockTaskInformation("task2"), task2);
+        queue.submitTask(getMockTaskInformation("task3"), task3);   // there are only 2 threads, so this task should not even start
         Thread.sleep(500);  // give the test a little breathing room
         queue.triggerAbort();
         latch.await(1, TimeUnit.SECONDS);
@@ -425,16 +436,9 @@ public class WorkerCoreTest
         {
             this.callback = Objects.requireNonNull(callback);
         }
-
+        
         @Override
-        public void publish(String acknowledgeId, byte[] taskMessage, String targetQueue, Map<String, Object> headers, int priority)
-        {
-            this.lastQueue = targetQueue;
-            results.offer(taskMessage);
-        }
-
-        @Override
-        public void publish(String acknowledgeId, byte[] taskMessage, String targetQueue, Map<String, Object> headers)
+        public void publish(TaskInformation taskInformation, byte[] taskMessage, String targetQueue, Map<String, Object> headers, int priority, boolean isLastMessage)
             throws QueueException
         {
             this.lastQueue = targetQueue;
@@ -442,17 +446,32 @@ public class WorkerCoreTest
         }
 
         @Override
-        public void rejectTask(final String taskId)
+        public void publish(TaskInformation taskInformation, byte[] taskMessage, String targetQueue, Map<String, Object> headers, int priority)
+        {
+            this.lastQueue = targetQueue;
+            results.offer(taskMessage);
+        }
+
+        @Override
+        public void publish(TaskInformation taskInformation, byte[] taskMessage, String targetQueue, Map<String, Object> headers)
+            throws QueueException
+        {
+            this.lastQueue = targetQueue;
+            results.offer(taskMessage);
+        }
+
+        @Override
+        public void rejectTask(final TaskInformation taskInformation)
         {
         }
 
         @Override
-        public void discardTask(String messageId)
+        public void discardTask(TaskInformation taskInformation)
         {
         }
 
         @Override
-        public void acknowledgeTask(String messageId)
+        public void acknowledgeTask(TaskInformation taskInformation)
         {
         }
 
@@ -494,10 +513,10 @@ public class WorkerCoreTest
             callback.abortTasks();
         }
 
-        public void submitTask(final String taskId, final byte[] stuff)
+        public void submitTask(final TaskInformation taskInformation, final byte[] stuff)
             throws WorkerException
         {
-            callback.registerNewTask(taskId, stuff, new HashMap<>());
+            callback.registerNewTask(taskInformation, stuff, new HashMap<>());
         }
 
         @Override
@@ -550,5 +569,12 @@ public class WorkerCoreTest
         {
             return WORKER_API_VER;
         }
+    }
+
+    TaskInformation getMockTaskInformation(final String inboundMessageId){
+        final TaskInformation taskInformation = mock(TaskInformation.class);
+        when(taskInformation.getInboundMessageId()).thenReturn(inboundMessageId);
+
+        return taskInformation;
     }
 }

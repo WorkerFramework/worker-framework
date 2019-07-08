@@ -26,13 +26,13 @@ public interface TaskCallback
     /**
      * Announce to the worker core that a new task has been picked off the queue for processing.
      *
-     * @param taskId an arbitrary task reference
+     * @param taskInformation contains an arbitrary task reference
      * @param taskData the task data that is specific to the workers hosted
      * @param headers the map of key/value paired headers on the message
      * @throws TaskRejectedException if the worker framework rejected execution of the task at this time
      * @throws InvalidTaskException if the worker framework indicates this task is invalid and cannot possibly be executed
      */
-    void registerNewTask(String taskId, byte[] taskData, Map<String, Object> headers)
+    void registerNewTask(TaskInformation taskInformation, byte[] taskData, Map<String, Object> headers)
         throws TaskRejectedException, InvalidTaskException;
 
     /**

@@ -64,15 +64,15 @@ final class WorkerExecutor
      * WorkerFactory indicates the task-specific data is invalid, a response is immediately returned indicating this.
      *
      * @param tm the task message
-     * @param queueMessageId the reference to the message this task arrived on
+     * @param taskInformation the reference to the message this task arrived on
      * @param headers the map of key/value paired headers to be stamped on the message
      * @throws TaskRejectedException if the WorkerFactory indicates the task cannot be handled at this time
      */
-    public void executeTask(final TaskMessage tm, final String queueMessageId, final boolean poison,
+    public void executeTask(final TaskMessage tm, final TaskInformation taskInformation, final boolean poison,
                             final Map<String, Object> headers, final Codec codec)
         throws TaskRejectedException
     {
-        final WorkerTaskImpl workerTask = createWorkerTask(queueMessageId, tm, poison, headers, codec);
+        final WorkerTaskImpl workerTask = createWorkerTask(taskInformation, tm, poison, headers, codec);
 
         threadPool.submitWorkerTask(workerTask);
     }
@@ -81,17 +81,17 @@ final class WorkerExecutor
      * Decide whether the message is to be forwarded or discarded.
      *
      * @param tm the task message
-     * @param queueMessageId the reference to the message this task arrived on
+     * @param taskInformation the reference to the message this task arrived on
      * @param headers the map of key/value paired headers to be stamped on the message
      */
-    public void forwardTask(final TaskMessage tm, final String queueMessageId, Map<String, Object> headers) throws TaskRejectedException
+    public void forwardTask(final TaskMessage tm, final TaskInformation taskInformation, Map<String, Object> headers) throws TaskRejectedException
     {
         //Check whether this worker application can evaluate messages for forwarding.
         if (factory instanceof TaskMessageForwardingEvaluator) {
-            ((TaskMessageForwardingEvaluator) factory).determineForwardingAction(tm, queueMessageId, headers, callback);
+            ((TaskMessageForwardingEvaluator) factory).determineForwardingAction(tm, taskInformation, headers, callback);
         } else {
             //Messages are forwarded by default.
-            callback.forward(queueMessageId, tm.getTo(), tm, headers);
+            callback.forward(taskInformation, tm.getTo(), tm, headers);
         }
     }
 
@@ -99,21 +99,21 @@ final class WorkerExecutor
      * Discard the supplied task message.
      *
      * @param tm the task message to be discarded
-     * @param queueMessageId the reference to the message this task arrived on
+     * @param taskInformation the reference to the message this task arrived on
      */
-    public void discardTask(final TaskMessage tm, final String queueMessageId) throws TaskRejectedException
+    public void discardTask(final TaskMessage tm, final TaskInformation taskInformation) throws TaskRejectedException
     {
-        LOG.warn("Discarding task {} (message id: {})", tm.getTaskId(), queueMessageId);
-        callback.discard(queueMessageId);
+        LOG.warn("Discarding task {} (message id: {})", tm.getTaskId(), taskInformation.getInboundMessageId());
+        callback.discard(taskInformation);
     }
 
     /**
      * Creates a WorkerTask for the specified message
      */
-    private WorkerTaskImpl createWorkerTask(final String messageId, final TaskMessage taskMessage, final boolean poison,
+    private WorkerTaskImpl createWorkerTask(final TaskInformation taskInformation, final TaskMessage taskMessage, final boolean poison,
                                             final Map<String, Object> headers, final Codec codec)
     {
-        return new WorkerTaskImpl(servicePath, callback, factory, messageId, taskMessage, poison, headers, codec,
+        return new WorkerTaskImpl(servicePath, callback, factory, taskInformation, taskMessage, poison, headers, codec,
                 priorityManager);
     }
 }
