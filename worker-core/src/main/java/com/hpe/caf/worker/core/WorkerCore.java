@@ -465,7 +465,7 @@ final class WorkerCore
                 } else {
                     // Else forward the task
                     byte[] output = codec.serialise(forwardedMessage);
-                    workerQueue.publish(taskInformation, output, queue, headers, forwardedMessage.getPriority() == null ? 0 : forwardedMessage.getPriority());
+                    workerQueue.publish(taskInformation, output, queue, headers, forwardedMessage.getPriority() == null ? 0 : forwardedMessage.getPriority(), true);
                     stats.incrementTasksForwarded();
                     //TODO - I'm guessing this stat should not be updated for forwarded messages:
                     // stats.getOutputSizes().update(output.length);
