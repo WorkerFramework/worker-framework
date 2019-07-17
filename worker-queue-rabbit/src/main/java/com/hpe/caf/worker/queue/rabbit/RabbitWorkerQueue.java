@@ -310,7 +310,9 @@ public final class RabbitWorkerQueue implements ManagedWorkerQueue
             return new HealthResult(HealthStatus.UNHEALTHY, "RabbitMQ listening thread not running");
         } else if (publisherThread == null || !publisherThread.isAlive()) {
             return new HealthResult(HealthStatus.UNHEALTHY, "RabbitMQ publishing thread not running");
-        } else {
+        } else if (consumer == null || !consumer.isChannelActive()){
+            return new HealthResult(HealthStatus.UNHEALTHY, "Consumer channel failed");
+        }else {
             return HealthResult.RESULT_HEALTHY;
         }
     }
