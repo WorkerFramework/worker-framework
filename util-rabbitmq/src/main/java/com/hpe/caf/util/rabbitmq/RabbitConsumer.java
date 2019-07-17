@@ -34,7 +34,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
  */
 public abstract class RabbitConsumer<T> extends EventPoller<T> implements Consumer
 {
-    private static final Logger LOG = LoggerFactory.getLogger(RabbitConsumer.class);    
+    private static final Logger LOG = LoggerFactory.getLogger(RabbitConsumer.class);
     private final AtomicBoolean channelActive; 
     /**
      * Create a new RabbitConsumer.
