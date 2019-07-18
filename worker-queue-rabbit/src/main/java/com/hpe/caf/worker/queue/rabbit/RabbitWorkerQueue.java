@@ -236,11 +236,11 @@ public final class RabbitWorkerQueue implements ManagedWorkerQueue, ConsumerCanc
         synchronized (consumerLock) {
             if (consumerTag != null && incomingChannel.isOpen()) {
                 try {
-                    incomingChannel.basicCancel(consumerTag); 
+                    incomingChannel.basicCancel(consumerTag);
                     consumerTag = null;
                 } catch (IOException ioe) {
                     LOG.error("Failed to cancel consumer {}", consumerTag, ioe);
-                }                
+                }
             }
         }
     }

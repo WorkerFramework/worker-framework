@@ -190,6 +190,6 @@ public class DefaultRabbitConsumerTest
         public long getLastTag()
         {
             return lastTag;
-        }        
+        }
     }
 }

@@ -36,7 +36,7 @@ import java.util.concurrent.BlockingQueue;
 public abstract class RabbitConsumer<T> extends EventPoller<T> implements Consumer
 {
     private static final Logger LOG = LoggerFactory.getLogger(RabbitConsumer.class);
-    private final List<ConsumerCancelListener> listener ;
+    private final List<ConsumerCancelListener> listener;
     /**
      * Create a new RabbitConsumer.
      *
@@ -96,7 +96,7 @@ public abstract class RabbitConsumer<T> extends EventPoller<T> implements Consum
     @Override
     public void handleRecoverOk(String consumerTag)
     {
-        LOG.info("Channel recovered for consumer tag {}", consumerTag);        
+        LOG.info("Channel recovered for consumer tag {}", consumerTag);
     }
 
     @Override
