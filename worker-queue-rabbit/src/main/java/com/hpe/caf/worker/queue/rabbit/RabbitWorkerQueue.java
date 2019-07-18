@@ -43,7 +43,7 @@ import java.util.concurrent.TimeoutException;
  * the rejected queue which is where messages that could not be handled are put. There are an unlimited number of possible output queues
  * as defined by the Worker's response. All published messages use RabbitMQ confirmations.
  */
-public final class RabbitWorkerQueue implements ManagedWorkerQueue
+public final class RabbitWorkerQueue implements ManagedWorkerQueue, ConsumerCancelListener
 {
     private DefaultRabbitConsumer consumer;
     private EventPoller<WorkerPublisher> publisher;
@@ -105,6 +105,7 @@ public final class RabbitWorkerQueue implements ManagedWorkerQueue
             synchronized (consumerLock) {
                 consumerTag = incomingChannel.basicConsume(config.getInputQueue(), consumer);
             }
+            consumer.addConsumerCancelListener(this);
         } catch (IOException | TimeoutException e) {
             throw new QueueException("Failed to establish queues", e);
         }
@@ -235,11 +236,11 @@ public final class RabbitWorkerQueue implements ManagedWorkerQueue
         synchronized (consumerLock) {
             if (consumerTag != null && incomingChannel.isOpen()) {
                 try {
-                    incomingChannel.basicCancel(consumerTag);
+                    incomingChannel.basicCancel(consumerTag); 
                     consumerTag = null;
                 } catch (IOException ioe) {
                     LOG.error("Failed to cancel consumer {}", consumerTag, ioe);
-                }
+                }                
             }
         }
     }
@@ -310,9 +311,7 @@ public final class RabbitWorkerQueue implements ManagedWorkerQueue
             return new HealthResult(HealthStatus.UNHEALTHY, "RabbitMQ listening thread not running");
         } else if (publisherThread == null || !publisherThread.isAlive()) {
             return new HealthResult(HealthStatus.UNHEALTHY, "RabbitMQ publishing thread not running");
-        } else if (consumer == null || !consumer.isChannelActive()){
-            return new HealthResult(HealthStatus.UNHEALTHY, "Consumer channel failed");
-        }else {
+        } else {
             return HealthResult.RESULT_HEALTHY;
         }
     }
@@ -333,6 +332,14 @@ public final class RabbitWorkerQueue implements ManagedWorkerQueue
         if (!declaredQueues.contains(queueName)) {
 
             RabbitUtil.declareWorkerQueue(channel, queueName, maxPriority);
+        }
+    }
+
+    @Override
+    public void cancelCustomerTag()
+    {
+        synchronized (consumerLock) {
+            consumerTag = null;
         }
     }
 

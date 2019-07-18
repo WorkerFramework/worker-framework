@@ -23,10 +23,11 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.Collections;
+import java.util.List;
 import java.util.Map;
 import java.util.concurrent.BlockingQueue;
-import java.util.concurrent.atomic.AtomicBoolean;
 
 /**
  * A basic framework for handling consumption of messages from a RabbitMQ queue. It decouples the RabbitMQ client threads delivering
@@ -35,7 +36,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
 public abstract class RabbitConsumer<T> extends EventPoller<T> implements Consumer
 {
     private static final Logger LOG = LoggerFactory.getLogger(RabbitConsumer.class);
-    private final AtomicBoolean channelActive; 
+    private final List<ConsumerCancelListener> listener ;
     /**
      * Create a new RabbitConsumer.
      *
@@ -46,9 +47,13 @@ public abstract class RabbitConsumer<T> extends EventPoller<T> implements Consum
     public RabbitConsumer(int pollPeriod, BlockingQueue<Event<T>> events, T consumerImpl)
     {
         super(pollPeriod, events, consumerImpl);
-        this.channelActive = new AtomicBoolean(true);
+        this.listener = new ArrayList<>();
     }
 
+    public void addConsumerCancelListener(ConsumerCancelListener handler)
+    {
+        listener.add(handler);
+    }
     @Override
     public final void handleDelivery(String consumerTag, Envelope envelope, AMQP.BasicProperties properties, byte[] body)
     {
@@ -60,14 +65,26 @@ public abstract class RabbitConsumer<T> extends EventPoller<T> implements Consum
         throws IOException
     {
         LOG.warn("Unexpected channel cancel received for consumer tag {}", consumerTag);
-        markChannelStatus(false);
+        listener.forEach((handler) -> {
+            try {
+                handler.cancelCustomerTag();
+            } catch (Exception ignore) {
+                LOG.warn("Error while clearing the consumer tag {} entry in the consumer", consumerTag);
+            }
+        });
     }
 
     @Override
     public void handleCancelOk(String consumerTag)
     {
         LOG.debug("Channel cancel received for consumer tag {}", consumerTag);
-        markChannelStatus(false);
+        listener.forEach((eachListener) -> {
+            try {
+                eachListener.cancelCustomerTag();
+            } catch (Exception ignore) {
+                LOG.warn("Error while clearing the consumer tag {} entry in the consumer", consumerTag);
+            }
+        });
     }
 
     @Override
@@ -79,15 +96,13 @@ public abstract class RabbitConsumer<T> extends EventPoller<T> implements Consum
     @Override
     public void handleRecoverOk(String consumerTag)
     {
-        LOG.info("Channel recovered for consumer tag {}", consumerTag);
-        markChannelStatus(true);
+        LOG.info("Channel recovered for consumer tag {}", consumerTag);        
     }
 
     @Override
     public void handleShutdownSignal(String consumerTag, ShutdownSignalException sig)
     {
         LOG.warn("Connection was shutdown for consumer tag {}", consumerTag);
-        markChannelStatus(false);
     }
 
     /**
@@ -99,18 +114,4 @@ public abstract class RabbitConsumer<T> extends EventPoller<T> implements Consum
      * @return an instance of this implementation's QueueEvent indicating a delivery
      */
     protected abstract Event<T> getDeliverEvent(Envelope envelope, byte[] data, Map<String, Object> headers);
-    
-    public boolean isChannelActive()
-    {
-        return channelActive.get();
-    }
-    
-    /**
-     * Marks the channel as inactive or active.
-     *
-     */
-    private void markChannelStatus(boolean status)
-    {
-        channelActive.set(status);
-    }  
 }

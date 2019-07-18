@@ -118,27 +118,29 @@ public class DefaultRabbitConsumerTest
     {
         BlockingQueue<Event<QueueConsumer>> events = new LinkedBlockingQueue<>();
         CountDownLatch latch = new CountDownLatch(1);
+        long tag = 100L;
+        TestRabbitWorkerQueue workerqueue = new TestRabbitWorkerQueue(tag);
         TestQueueConsumerImpl impl = new TestQueueConsumerImpl(latch);
         DefaultRabbitConsumer con = new DefaultRabbitConsumer(events, impl);
-        new Thread(con).start();
-        long tag = 100L;
+        new Thread(con).start();        
+        con.addConsumerCancelListener(workerqueue);
         con.handleCancel(Long.toString(tag));
-        Assert.assertFalse(con.isChannelActive());
+        Assert.assertEquals(workerqueue.tag, 0L);
     }
-    
-     @Test
-    public void testChannelRecovery()
-        throws InterruptedException, IOException
+           
+    private static class TestRabbitWorkerQueue implements ConsumerCancelListener
     {
-        BlockingQueue<Event<QueueConsumer>> events = new LinkedBlockingQueue<>();
-        CountDownLatch latch = new CountDownLatch(1);
-        TestQueueConsumerImpl impl = new TestQueueConsumerImpl(latch);
-        DefaultRabbitConsumer con = new DefaultRabbitConsumer(events, impl);
-        new Thread(con).start();
-        long tag = 100L;
-        con.handleCancel(Long.toString(tag));
-        con.handleRecoverOk(Long.toString(tag));
-        Assert.assertTrue(con.isChannelActive());
+        private long tag;
+        public TestRabbitWorkerQueue(final long consumerTag)
+        {
+            this.tag = Objects.requireNonNull(consumerTag);
+        }
+        @Override
+        public void cancelCustomerTag()
+        {
+            tag=0L;
+        }
+        
     }
     
     private static class TestQueueConsumerImpl implements QueueConsumer
@@ -188,6 +190,6 @@ public class DefaultRabbitConsumerTest
         public long getLastTag()
         {
             return lastTag;
-        }
+        }        
     }
 }
