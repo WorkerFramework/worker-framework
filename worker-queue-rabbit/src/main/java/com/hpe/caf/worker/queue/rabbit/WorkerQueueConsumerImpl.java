@@ -85,10 +85,12 @@ public class WorkerQueueConsumerImpl implements QueueConsumer
                 callback.registerNewTask(taskInformation, delivery.getMessageData(), delivery.getHeaders());
             } catch (InvalidTaskException e) {
                 LOG.error("Cannot register new message, rejecting {}", taskInformation.getInboundMessageId(), e);
+                taskInformation.incrementResponseCount(true);
                 publisherEventQueue.add(new WorkerPublishQueueEvent(delivery.getMessageData(), retryRoutingKey, taskInformation,
                                                                     Collections.singletonMap(RabbitHeaders.RABBIT_HEADER_CAF_WORKER_REJECTED, REJECTED_REASON_TASKMESSAGE)));
             } catch (TaskRejectedException e) {
                 LOG.warn("Message {} rejected as a task at this time, returning to queue", taskInformation.getInboundMessageId(), e);
+                taskInformation.incrementResponseCount(true);
                 publisherEventQueue.add(new WorkerPublishQueueEvent(delivery.getMessageData(), delivery.getEnvelope().getRoutingKey(),
                         taskInformation));
             }
@@ -169,12 +171,14 @@ public class WorkerQueueConsumerImpl implements QueueConsumer
             Map<String, Object> headers = new HashMap<>();
             headers.put(RabbitHeaders.RABBIT_HEADER_CAF_WORKER_RETRY, String.valueOf(retries));
             headers.put(RabbitHeaders.RABBIT_HEADER_CAF_WORKER_REJECTED, REJECTED_REASON_RETRIES_EXCEEDED);
+            taskInformation.incrementResponseCount(true);                
             publisherEventQueue.add(new WorkerPublishQueueEvent(delivery.getMessageData(), retryRoutingKey, taskInformation, headers));
         } else {
             LOG.debug("Received redelivered message with id {}, retry count {}, retry limit {}, republishing to retry queue", delivery.getEnvelope().getDeliveryTag(), retryLimit, retries + 1);
             Map<String, Object> headers = new HashMap<>();
             headers.put(RabbitHeaders.RABBIT_HEADER_CAF_WORKER_RETRY, String.valueOf(retries + 1));
             headers.put(RabbitHeaders.RABBIT_HEADER_CAF_WORKER_RETRY_LIMIT, new Integer(retryLimit));
+            taskInformation.incrementResponseCount(true);
             publisherEventQueue.add(new WorkerPublishQueueEvent(delivery.getMessageData(), retryRoutingKey, taskInformation, headers));
         }
     }
