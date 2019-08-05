@@ -112,6 +112,37 @@ public class DefaultRabbitConsumerTest
         Assert.assertFalse(latch.await(TEST_TIMEOUT_MS, TimeUnit.MILLISECONDS));
     }
 
+    @Test
+    public void testChannelCancel()
+        throws InterruptedException, IOException
+    {
+        BlockingQueue<Event<QueueConsumer>> events = new LinkedBlockingQueue<>();
+        CountDownLatch latch = new CountDownLatch(1);
+        long tag = 100L;
+        TestRabbitWorkerQueue workerqueue = new TestRabbitWorkerQueue(tag);
+        TestQueueConsumerImpl impl = new TestQueueConsumerImpl(latch);
+        DefaultRabbitConsumer con = new DefaultRabbitConsumer(events, impl);
+        new Thread(con).start();        
+        con.addConsumerCancelListener(workerqueue);
+        con.handleCancel(Long.toString(tag));
+        Assert.assertEquals(workerqueue.tag, 0L);
+    }
+           
+    private static class TestRabbitWorkerQueue implements ConsumerCancelListener
+    {
+        private long tag;
+        public TestRabbitWorkerQueue(final long consumerTag)
+        {
+            this.tag = Objects.requireNonNull(consumerTag);
+        }
+        @Override
+        public void cancelCustomerTag()
+        {
+            tag=0L;
+        }
+        
+    }
+    
     private static class TestQueueConsumerImpl implements QueueConsumer
     {
         private final CountDownLatch latch;

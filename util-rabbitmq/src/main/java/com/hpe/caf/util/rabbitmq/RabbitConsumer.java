@@ -23,7 +23,9 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.Collections;
+import java.util.List;
 import java.util.Map;
 import java.util.concurrent.BlockingQueue;
 
@@ -34,7 +36,7 @@ import java.util.concurrent.BlockingQueue;
 public abstract class RabbitConsumer<T> extends EventPoller<T> implements Consumer
 {
     private static final Logger LOG = LoggerFactory.getLogger(RabbitConsumer.class);
-
+    private final List<ConsumerCancelListener> listener;
     /**
      * Create a new RabbitConsumer.
      *
@@ -45,8 +47,13 @@ public abstract class RabbitConsumer<T> extends EventPoller<T> implements Consum
     public RabbitConsumer(int pollPeriod, BlockingQueue<Event<T>> events, T consumerImpl)
     {
         super(pollPeriod, events, consumerImpl);
+        this.listener = new ArrayList<>();
     }
 
+    public void addConsumerCancelListener(ConsumerCancelListener handler)
+    {
+        listener.add(handler);
+    }
     @Override
     public final void handleDelivery(String consumerTag, Envelope envelope, AMQP.BasicProperties properties, byte[] body)
     {
@@ -58,12 +65,26 @@ public abstract class RabbitConsumer<T> extends EventPoller<T> implements Consum
         throws IOException
     {
         LOG.warn("Unexpected channel cancel received for consumer tag {}", consumerTag);
+        listener.forEach((handler) -> {
+            try {
+                handler.cancelCustomerTag();
+            } catch (Exception ignore) {
+                LOG.warn("Error while clearing the consumer tag {} entry in the consumer", consumerTag);
+            }
+        });
     }
 
     @Override
     public void handleCancelOk(String consumerTag)
     {
         LOG.debug("Channel cancel received for consumer tag {}", consumerTag);
+        listener.forEach((eachListener) -> {
+            try {
+                eachListener.cancelCustomerTag();
+            } catch (Exception ignore) {
+                LOG.warn("Error while clearing the consumer tag {} entry in the consumer", consumerTag);
+            }
+        });
     }
 
     @Override
