@@ -36,6 +36,8 @@ import com.hpe.caf.util.ModuleLoader;
 import com.hpe.caf.util.ModuleLoaderException;
 import com.hpe.caf.util.jerseycompat.Jersey2ServiceIteratorProvider;
 
+import ch.qos.logback.classic.util.ContextInitializer;
+import ch.qos.logback.core.joran.spi.JoranException;
 import io.dropwizard.Application;
 import io.dropwizard.configuration.EnvironmentVariableSubstitutor;
 import io.dropwizard.configuration.SubstitutingSourceProvider;
@@ -47,6 +49,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.net.ResponseCache;
+import java.net.URL;
 import java.util.concurrent.TimeUnit;
 
 /**
@@ -189,9 +192,24 @@ public final class WorkerApplication extends Application<WorkerConfiguration>
 
     @Override
     protected void bootstrapLogging() {
-        // Gets the root j.u.l.Logger and removes all registered handlers
-        // then redirects all active j.u.l. to SLF4J
-        LoggingUtil.hijackJDKLogging();
+        // If logback.xml is present, prevent dropwizard from overriding it
+        // dropwizard overrides it and reads logging configuration from the dropwizard yml instead, because, one of its
+        // offerings as a framework is to provide a single configuration point
+        if (shouldBootstrapLogging()) {
+            // logback.xml is not present, let dropwizard continue bootstrap logging
+            super.bootstrapLogging();
+        } else {
+            // This should allow logback.xml to be used by logback-classic
+            // Gets the root j.u.l.Logger and removes all registered handlers
+            // then redirects all active j.u.l. to SLF4J
+            LoggingUtil.hijackJDKLogging();
+        }
+    }
+
+    private boolean shouldBootstrapLogging() {
+        final ContextInitializer ci = new ContextInitializer(LoggingUtil.getLoggerContext());
+        final URL url = ci.findURLOfDefaultConfigurationFile(true);
+        return url == null ? true : false;
     }
 
 }
