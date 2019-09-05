@@ -194,7 +194,7 @@ public final class WorkerApplication extends Application<WorkerConfiguration>
         // If logback.xml is present, prevent dropwizard from overriding it
         // dropwizard overrides it and reads logging configuration from the dropwizard yml instead, because, one of its
         // offerings as a framework is to provide a single configuration point
-        if (shouldBootstrapLogging()) {
+        if (WorkerApplication.shouldBootstrapLogging()) {
             // logback.xml is not present, let dropwizard continue bootstrap logging
             super.bootstrapLogging();
         } else {
@@ -205,10 +205,10 @@ public final class WorkerApplication extends Application<WorkerConfiguration>
         }
     }
 
-    private boolean shouldBootstrapLogging() {
+    private static boolean shouldBootstrapLogging() {
         final ContextInitializer ci = new ContextInitializer(LoggingUtil.getLoggerContext());
         final URL url = ci.findURLOfDefaultConfigurationFile(true);
-        return url == null ? true : false;
+        return url == null;
     }
 
 }
