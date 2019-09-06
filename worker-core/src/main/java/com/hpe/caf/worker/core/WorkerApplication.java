@@ -35,9 +35,12 @@ import com.hpe.caf.naming.ServicePath;
 import com.hpe.caf.util.ModuleLoader;
 import com.hpe.caf.util.ModuleLoaderException;
 import com.hpe.caf.util.jerseycompat.Jersey2ServiceIteratorProvider;
+
+import ch.qos.logback.classic.util.ContextInitializer;
 import io.dropwizard.Application;
 import io.dropwizard.configuration.EnvironmentVariableSubstitutor;
 import io.dropwizard.configuration.SubstitutingSourceProvider;
+import io.dropwizard.logging.LoggingUtil;
 import io.dropwizard.setup.Bootstrap;
 import io.dropwizard.setup.Environment;
 import org.glassfish.jersey.internal.ServiceFinder;
@@ -45,6 +48,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.net.ResponseCache;
+import java.net.URL;
 import java.util.concurrent.TimeUnit;
 
 /**
@@ -184,4 +188,27 @@ public final class WorkerApplication extends Application<WorkerConfiguration>
             metrics.register(MetricRegistry.name("queue.errors"), (Gauge<Integer>) core.getWorkerQueue().getMetrics()::getQueueErrors);
         }
     }
+
+    @Override
+    protected void bootstrapLogging() {
+        // If logback.xml is present, prevent dropwizard from overriding it
+        // dropwizard overrides it and reads logging configuration from the dropwizard yml instead, because, one of its
+        // offerings as a framework is to provide a single configuration point
+        if (WorkerApplication.shouldBootstrapLogging()) {
+            // logback.xml is not present, let dropwizard continue bootstrap logging
+            super.bootstrapLogging();
+        } else {
+            // This should allow logback.xml to be used by logback-classic
+            // Gets the root j.u.l.Logger and removes all registered handlers
+            // then redirects all active j.u.l. to SLF4J
+            LoggingUtil.hijackJDKLogging();
+        }
+    }
+
+    private static boolean shouldBootstrapLogging() {
+        final ContextInitializer ci = new ContextInitializer(LoggingUtil.getLoggerContext());
+        final URL url = ci.findURLOfDefaultConfigurationFile(true);
+        return url == null;
+    }
+
 }
