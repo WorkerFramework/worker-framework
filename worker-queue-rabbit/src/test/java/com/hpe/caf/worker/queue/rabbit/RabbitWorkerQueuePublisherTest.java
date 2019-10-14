@@ -76,7 +76,7 @@ public class RabbitWorkerQueuePublisherTest
             return null;
         };
         Mockito.doAnswer(a).when(channel).basicPublish(Mockito.any(), Mockito.eq(testQueue), Mockito.any(), Mockito.eq(data));
-        latch.await(1000, TimeUnit.MILLISECONDS);
+        latch.await(5000, TimeUnit.MILLISECONDS);
         publisher.shutdown();
         Assert.assertEquals(0, publisherEvents.size());
         Assert.assertEquals(0, consumerEvents.size());
