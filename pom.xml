@@ -23,7 +23,7 @@
 
     <groupId>com.github.workerframework</groupId>
     <artifactId>worker-framework-aggregator</artifactId>
-    <version>3.2.0-SNAPSHOT</version>
+    <version>3.2.0-684</version>
     <packaging>pom</packaging>
 
     <name>Worker Framework</name>
@@ -158,72 +158,72 @@
                 <groupId>com.github.workerframework</groupId>
                 <artifactId>standard-worker-container</artifactId>
                 <type>pom</type>
-                <version>3.2.0-SNAPSHOT</version>
+                <version>3.2.0-684</version>
             </dependency>
             <dependency>
                 <groupId>com.github.workerframework</groupId>
                 <artifactId>util-rabbitmq</artifactId>
-                <version>3.2.0-SNAPSHOT</version>
+                <version>3.2.0-684</version>
             </dependency>
             <dependency>
                 <groupId>com.github.workerframework</groupId>
                 <artifactId>util-store</artifactId>
-                <version>3.2.0-SNAPSHOT</version>
+                <version>3.2.0-684</version>
             </dependency>
             <dependency>
                 <groupId>com.github.workerframework</groupId>
                 <artifactId>worker-api</artifactId>
-                <version>3.2.0-SNAPSHOT</version>
+                <version>3.2.0-684</version>
             </dependency>
             <dependency>
                 <groupId>com.github.workerframework</groupId>
                 <artifactId>worker-caf</artifactId>
-                <version>3.2.0-SNAPSHOT</version>
+                <version>3.2.0-684</version>
             </dependency>
             <dependency>
                 <groupId>com.github.workerframework</groupId>
                 <artifactId>worker-configs</artifactId>
-                <version>3.2.0-SNAPSHOT</version>
+                <version>3.2.0-684</version>
             </dependency>
            <dependency>
                 <groupId>com.github.workerframework</groupId>
                 <artifactId>worker-core</artifactId>
-                <version>3.2.0-SNAPSHOT</version>
+                <version>3.2.0-684</version>
             </dependency>
             <dependency>
                 <groupId>com.github.workerframework</groupId>
                 <artifactId>worker-default-configs</artifactId>
-                <version>3.2.0-SNAPSHOT</version>
+                <version>3.2.0-684</version>
             </dependency>
             <dependency>
                 <groupId>com.github.workerframework</groupId>
                 <artifactId>worker-queue-rabbit</artifactId>
-                <version>3.2.0-SNAPSHOT</version>
+                <version>3.2.0-684</version>
             </dependency>
             <dependency>
                 <groupId>com.github.workerframework</groupId>
                 <artifactId>worker-store-fs</artifactId>
-                <version>3.2.0-SNAPSHOT</version>
+                <version>3.2.0-684</version>
             </dependency>
             <dependency>
                 <groupId>com.github.workerframework</groupId>
                 <artifactId>worker-store-mem</artifactId>
-                <version>3.2.0-SNAPSHOT</version>
+                <version>3.2.0-684</version>
             </dependency>
             <dependency>
                 <groupId>com.github.workerframework</groupId>
                 <artifactId>worker-testing-integration</artifactId>
-                <version>3.2.0-SNAPSHOT</version>
+                <version>3.2.0-684</version>
             </dependency>
             <dependency>
                 <groupId>com.github.workerframework</groupId>
                 <artifactId>worker-testing-util</artifactId>
-                <version>3.2.0-SNAPSHOT</version>
+                <version>3.2.0-684</version>
             </dependency>
             <dependency>
                 <groupId>com.github.workerframework</groupId>
                 <artifactId>worker-tracking-report</artifactId>
-                <version>3.2.0-SNAPSHOT</version>
+                <version>3.2.0-684</version>
             </dependency>
         </dependencies>
     </dependencyManagement>
