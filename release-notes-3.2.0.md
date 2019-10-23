@@ -2,7 +2,7 @@
 ${version-number}
 
 #### New Features
-* SCMOD-7470: Support disabling bootstrapping Logback
+* SCMOD-7470: Support disabling bootstrapping Logback  
   Bootstrapping is based on whether or not a logback.xml file is present.
 
 #### Bug Fixes
