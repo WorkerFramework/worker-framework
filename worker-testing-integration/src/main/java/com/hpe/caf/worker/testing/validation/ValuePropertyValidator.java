@@ -21,12 +21,15 @@ import org.joda.time.DateTime;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.regex.PatternSyntaxException;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * Created by ploch on 05/12/2015.
  */
 public class ValuePropertyValidator extends PropertyValidator
 {
+    private static final Logger LOG = LoggerFactory.getLogger(ValuePropertyValidator.class);
     @Override
     public boolean isValid(Object testedPropertyValue, Object validatorPropertyValue)
     {
@@ -56,16 +59,11 @@ public class ValuePropertyValidator extends PropertyValidator
             pattern = Pattern.compile(validationRegex);
         }
         catch (PatternSyntaxException e) {
-            logWithTimestamp(" Validation string is not a valid regex. " + e.getMessage());
+            LOG.debug(" Validation string is not a valid regex. " + e.getMessage());
             return false;
         }
         Matcher matcher = pattern.matcher(testedStringValue);
         boolean match = matcher.matches();
         return match;
-    }
-
-    private void logWithTimestamp(final String debugInfo)
-    {
-        System.out.println(DateTime.now().toLocalTime().toString() + debugInfo);
     }
 }
