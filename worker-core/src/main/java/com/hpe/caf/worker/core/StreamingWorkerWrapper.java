@@ -62,6 +62,7 @@ class StreamingWorkerWrapper implements Runnable
             workerTask.setResponse(e);
         } catch (InterruptedException e) {
             workerTask.logInterruptedException(e);
+            workerTask.setResponse(new TaskRejectedException("Worker ["+ worker.getWorkerIdentifier()+"] was interrupted.", e));
         } catch (RuntimeException e) {
             LOG.warn("Worker threw unhandled exception", e);
             workerTask.setResponse(worker.getGeneralFailureResult(e));
