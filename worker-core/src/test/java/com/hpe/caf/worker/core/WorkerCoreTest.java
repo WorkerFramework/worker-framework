@@ -30,7 +30,6 @@ import com.hpe.caf.worker.tracking.report.TrackingReportTask;
 import com.hpe.caf.worker.tracking.report.TrackingReportConstants;
 import org.testng.Assert;
 import org.testng.annotations.BeforeMethod;
-import org.testng.annotations.BeforeTest;
 import org.testng.annotations.Test;
 import org.mockito.Mockito;
 import org.testng.internal.junit.ArrayAsserts;
@@ -42,13 +41,18 @@ import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.TimeUnit;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 public class WorkerCoreTest
 {
+    private static final Logger Logger = LoggerFactory.getLogger(WorkerCoreTest.class);
+    
     private static final String SUCCESS = "success";
+    private static final String FAILURE = "failure";
     private static final String WORKER_NAME = "testWorker";
     private static final int WORKER_API_VER = 1;
     private static final String QUEUE_IN = "inQueue";
@@ -329,6 +333,50 @@ public class WorkerCoreTest
         Assert.assertEquals(0, core.getBacklogSize());
     }
 
+    @Test
+    public void testInterupptedTask()
+        throws CodecException, WorkerException, ConfigurationException, QueueException, InvalidNameException
+    {
+        BlockingQueue<byte[]> q = new LinkedBlockingQueue<>();
+        Codec codec = new JsonCodec();
+        WorkerThreadPool wtp = WorkerThreadPool.create(2);
+        ConfigurationSource config = Mockito.mock(ConfigurationSource.class);
+        ServicePath path = new ServicePath(SERVICE_PATH);
+        TestWorkerTask task = new TestWorkerTask();
+        TestWorkerQueue queue = new TestWorkerQueueProvider(q).getWorkerQueue(config, 20);
+        MessagePriorityManager priorityManager = Mockito.mock(MessagePriorityManager.class);
+        Mockito.when(priorityManager.getResponsePriority(Mockito.any())).thenReturn(PRIORITY);
+        HealthCheckRegistry healthCheckRegistry = Mockito.mock(HealthCheckRegistry.class);
+        TransientHealthCheck transientHealthCheck = Mockito.mock(TransientHealthCheck.class);
+
+        WorkerCore core = new WorkerCore(codec, wtp, queue, priorityManager, getInterruptedExceptionWorkerFactory(task, codec),
+                                         path, healthCheckRegistry, transientHealthCheck);
+        core.start();
+
+        final TaskMessage tm = getTaskMessage(task, codec, WORKER_NAME);
+        tm.setTaskData(codec.serialise("invalid task data"));
+
+        final byte[] stuff = codec.serialise(tm);
+        queue.submitTask(taskInformation, stuff);
+
+        byte[] msgCompletionTaskMessage = null;
+        try {
+            //give some time for the worker to be pick the task and create a response
+            Thread.sleep(10000);
+            msgCompletionTaskMessage = q.poll(10000, TimeUnit.MILLISECONDS);
+        } catch (InterruptedException ex) {
+            Logger.error("InterruptedException" + ex);
+        }
+        // if the result didn't get back to us, then rutResult will be null
+        Assert.assertNotNull(msgCompletionTaskMessage);
+        // deserialise and verify rutResult data
+        final TaskMessage rutTaskMessage = codec.deserialise(msgCompletionTaskMessage, TaskMessage.class);
+        //check if the status is NEW_TASK which qualify as a successful response (but not necessarily a successful result)
+        Assert.assertEquals(TaskStatus.RESULT_FAILURE, rutTaskMessage.getTaskStatus());
+        Assert.assertEquals(WORKER_API_VER, rutTaskMessage.getTaskApiVersion());
+        Assert.assertEquals(QUEUE_OUT, queue.getLastQueue());
+    }
+
     private TaskMessage getTaskMessage(final TestWorkerTask task, final Codec codec, final String taskId)
         throws CodecException
     {
@@ -364,6 +412,15 @@ public class WorkerCoreTest
         WorkerFactory factory = Mockito.mock(WorkerFactory.class);
         Mockito.when(factory.getWorker(Mockito.any())).thenThrow(InvalidTaskException.class);
         Mockito.when(factory.getInvalidTaskQueue()).thenReturn(QUEUE_OUT);
+        return factory;
+    }
+    
+    private WorkerFactory getInterruptedExceptionWorkerFactory(final TestWorkerTask task, final Codec codec)
+        throws WorkerException
+    {
+        WorkerFactory factory = Mockito.mock(WorkerFactory.class);
+        Worker mockWorker = new InterruptedExceptionWorker(task, codec);
+        Mockito.when(factory.getWorker(Mockito.any())).thenReturn(mockWorker);
         return factory;
     }
 
@@ -463,6 +520,21 @@ public class WorkerCoreTest
         @Override
         public void rejectTask(final TaskInformation taskInformation)
         {
+            System.out.println("Rejecting the test work");
+            this.lastQueue = QUEUE_OUT;
+            Codec codec = new JsonCodec();
+            TaskMessage tm = new TaskMessage();
+            tm.setTaskStatus(TaskStatus.RESULT_FAILURE);
+            tm.setTaskClassifier(WORKER_NAME);
+            tm.setTaskApiVersion(WORKER_API_VER);
+            tm.setTo(QUEUE_OUT);
+            tm.setTracking(null);
+            try {
+                tm.setTaskData(codec.serialise(taskInformation.getInboundMessageId().getBytes()));
+                results.offer(codec.serialise(tm));
+            } catch (CodecException ex) {
+                Logger.error("CodecException" + ex);
+            }
         }
 
         @Override
@@ -571,6 +643,41 @@ public class WorkerCoreTest
         }
     }
 
+    private class InterruptedExceptionWorker extends AbstractWorker<TestWorkerTask, TestWorkerResult>
+    {
+
+        public InterruptedExceptionWorker(final TestWorkerTask task, final Codec codec)
+            throws WorkerException
+        {
+            super(task, QUEUE_OUT, codec, Mockito.mock(WorkerTaskData.class));
+        }
+
+        @Override
+        public WorkerResponse doWork()
+            throws InterruptedException
+        {
+            System.out.println("Starting InterruptedExceptionWorker test work");
+            Thread.sleep(1000);
+            Thread.currentThread().interrupt();
+            checkIfInterrupted();
+            TestWorkerResult result = new TestWorkerResult();
+            result.setResultString(FAILURE);
+            return createFailureResult(result);
+        }
+
+        @Override
+        public String getWorkerIdentifier()
+        {
+            return WORKER_NAME;
+        }
+
+        @Override
+        public int getWorkerApiVersion()
+        {
+            return WORKER_API_VER;
+        }
+    }
+    
     TaskInformation getMockTaskInformation(final String inboundMessageId){
         final TaskInformation taskInformation = mock(TaskInformation.class);
         when(taskInformation.getInboundMessageId()).thenReturn(inboundMessageId);
