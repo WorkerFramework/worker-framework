@@ -278,7 +278,7 @@
                             <alias>${rootArtifactId}</alias>
                             <name>${${rootArtifactId}.container.name}</name>
                             <build>
-                                <from>cafapi/opensuse-jre8:1</from>
+                                <from>cafinternal/prereleases:opensuse-jre8-2.0.0-SNAPSHOT</from>
                                 <labels>
                                     <Build.Number>${project.version}</Build.Number>
                                     <Build.Date>${maven.build.timestamp}</Build.Date>
