@@ -17,6 +17,7 @@ package com.hpe.caf.worker.core;
 
 import com.codahale.metrics.Gauge;
 import com.codahale.metrics.MetricRegistry;
+import com.codahale.metrics.health.HealthCheck.Result;
 import com.hpe.caf.api.BootstrapConfiguration;
 import com.hpe.caf.api.CafConfigurationDecoderProvider;
 import com.hpe.caf.api.Cipher;
@@ -49,6 +50,7 @@ import org.slf4j.LoggerFactory;
 
 import java.net.ResponseCache;
 import java.net.URL;
+import java.util.SortedMap;
 import java.util.concurrent.TimeUnit;
 
 /**
@@ -142,7 +144,16 @@ public final class WorkerApplication extends Application<WorkerConfiguration>
         environment.healthChecks().register("store", gatedHealthProvider.new GatedHealthCheck("store", new WorkerHealthCheck(store)));
         environment.healthChecks().register("worker", gatedHealthProvider.new GatedHealthCheck("worker", new WorkerHealthCheck(workerFactory)));
         environment.healthChecks().register("transient", gatedHealthProvider.new GatedHealthCheck("transient", new WorkerHealthCheck(transientHealthCheck)));
-        core.start();
+        // Run health checks before starting worker
+        final SortedMap<String, Result> healthCheckResults = environment.healthChecks().runHealthChecks();
+        final long healtCheckFailures = healthCheckResults.entrySet().stream().filter(entry -> !entry.getValue().isHealthy()).count();
+        if(healtCheckFailures == 0)
+        {
+            core.start();
+        } else
+        {
+            LOG.debug("Health checks failing...");
+        }
     }
 
     @Override
