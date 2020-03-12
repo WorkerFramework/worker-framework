@@ -98,6 +98,11 @@
             <artifactId>worker-testing-integration</artifactId>
             <scope>test</scope>
         </dependency>
+        <dependency>
+            <groupId>jakarta.validation</groupId>
+            <artifactId>jakarta.validation-api</artifactId>
+            <scope>test</scope>
+        </dependency>
     </dependencies>
 
     <build>
