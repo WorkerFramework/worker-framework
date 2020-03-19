@@ -1,4 +1,3 @@
-!not-ready-for-release!
 
 #### Version Number
 ${version-number}
