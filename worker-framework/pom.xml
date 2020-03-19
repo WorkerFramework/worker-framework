@@ -23,13 +23,13 @@
 
     <groupId>com.github.workerframework</groupId>
     <artifactId>worker-framework</artifactId>
-    <version>3.3.0-719</version>
+    <version>3.4.0-SNAPSHOT</version>
     <packaging>pom</packaging>
 
     <parent>
         <groupId>com.github.workerframework</groupId>
         <artifactId>worker-framework-aggregator</artifactId>
-        <version>3.3.0-719</version>
+        <version>3.4.0-SNAPSHOT</version>
     </parent>
 
 </project>
