@@ -44,6 +44,7 @@ final class WorkerCore
     private final WorkerStats stats = new WorkerStats();
     private final TaskCallback callback;
     private static final Logger LOG = LoggerFactory.getLogger(WorkerCore.class);
+    private boolean isStarted;
 
     public WorkerCore(final Codec codec, final WorkerThreadPool pool, final ManagedWorkerQueue queue, final MessagePriorityManager priorityManager, final WorkerFactory factory, final ServicePath path, final HealthCheckRegistry healthCheckRegistry, final TransientHealthCheck transientHealthCheck)
     {
@@ -51,6 +52,7 @@ final class WorkerCore
         this.threadPool = Objects.requireNonNull(pool);
         this.callback = new CoreTaskCallback(codec, stats, new WorkerExecutor(path, taskCallback, factory, pool, priorityManager), pool, queue);
         this.workerQueue = Objects.requireNonNull(queue);
+        this.isStarted = false;
     }
 
     /**
@@ -61,7 +63,23 @@ final class WorkerCore
     public void start()
         throws QueueException
     {
-        workerQueue.start(callback);
+        try
+        {
+            workerQueue.start(callback);
+            isStarted = true;
+        }
+        catch(final QueueException e) {
+            throw e;
+        }
+    }
+
+    /**
+     * Check if the queues were started.
+     * @return true if the queues were started
+     */
+    public boolean isStarted()
+    {
+        return isStarted;
     }
 
     /**
