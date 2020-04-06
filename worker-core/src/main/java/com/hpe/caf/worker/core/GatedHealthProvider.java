@@ -59,6 +59,7 @@ final class GatedHealthProvider
             synchronized (healthCheckLock) {
 
                 final Result result = healthCheck.execute();
+
                 if (!result.isHealthy()) {
                     // Add the name of the failed health check to the set of unhealthy checks
                     unhealthySet.add(name);
@@ -82,6 +83,7 @@ final class GatedHealthProvider
                     LOG.debug("Disconnecting the incoming queue due to the [{}] health check failing", name);
                     workerQueue.disconnectIncoming();
                 }
+
                 return result;
             }
         }

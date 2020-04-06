@@ -63,14 +63,8 @@ final class WorkerCore
     public void start()
         throws QueueException
     {
-        try
-        {
-            workerQueue.start(callback);
-            isStarted = true;
-        }
-        catch(final QueueException e) {
-            throw e;
-        }
+         workerQueue.start(callback);
+         isStarted = true;
     }
 
     /**
