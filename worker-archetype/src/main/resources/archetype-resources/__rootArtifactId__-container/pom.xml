@@ -34,7 +34,6 @@
     <properties>
         <maven.install.skip>true</maven.install.skip>
         <maven.deploy.skip>true</maven.deploy.skip>
-        <docker.maven.version>0.13.6</docker.maven.version>
         <${rootArtifactId}.container.name>${rootArtifactId}:${project.version}</${rootArtifactId}.container.name>
         <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
         <test.data>${project.basedir}/test-data/input</test.data>
@@ -185,9 +184,9 @@
                 for running the integration tests.
             -->
             <plugin>
-                <groupId>org.jolokia</groupId>
+                <groupId>io.fabric8</groupId>
                 <artifactId>docker-maven-plugin</artifactId>
-                <version>${docker.maven.version}</version>
+                <version>0.27.2</version>
                 <executions>
                     <!-- Build the container in compile phase. -->
                     <execution>
@@ -218,6 +217,7 @@
                     <watchInterval>500</watchInterval>
                     <logDate>default</logDate>
                     <verbose>true</verbose>
+                    <containerNamePattern>%a-%t</containerNamePattern>
                     <images>
 
                         <!-- webdav image -->
@@ -290,6 +290,9 @@
                                         <args>/maven/worker.sh</args>
                                     </exec>
                                 </cmd>
+                                <healthCheck>
+                                    <cmd>curl -f http://localhost:8081/healthcheck || exit 1</cmd>
+                                </healthCheck>
                                 <assembly>
                                     <mode>tar</mode>
                                     <inline>
