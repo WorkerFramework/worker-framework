@@ -337,6 +337,7 @@
                                     <CAF_RABBITMQ_MAX_ATTEMPTS>20</CAF_RABBITMQ_MAX_ATTEMPTS>
                                     <CAF_RABBITMQ_PREFETCH_BUFFER>0</CAF_RABBITMQ_PREFETCH_BUFFER>
                                     <CAF_WORKER_RETRY_LIMIT>2</CAF_WORKER_RETRY_LIMIT>
+                                    <CAF_EXAMPLE_WORKER_HEALTHY>true</CAF_EXAMPLE_WORKER_HEALTHY>
                                 </env>
                                 <volumes>
                                     <from>
