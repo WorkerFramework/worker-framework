@@ -136,13 +136,12 @@ public final class WorkerApplication extends Application<WorkerConfiguration>
         initCoreMetrics(environment.metrics(), core);
         initComponentMetrics(environment.metrics(), config, store, core);
 
-        final GatedHealthProvider gatedHealthProvider = new GatedHealthProvider(workerQueue);
+        final GatedHealthProvider gatedHealthProvider = new GatedHealthProvider(workerQueue, core);
         environment.healthChecks().register("queue", gatedHealthProvider.new GatedHealthCheck("queue", new WorkerHealthCheck(core.getWorkerQueue())));
         environment.healthChecks().register("configuration", gatedHealthProvider.new GatedHealthCheck("configuration", new WorkerHealthCheck(config)));
         environment.healthChecks().register("store", gatedHealthProvider.new GatedHealthCheck("store", new WorkerHealthCheck(store)));
         environment.healthChecks().register("worker", gatedHealthProvider.new GatedHealthCheck("worker", new WorkerHealthCheck(workerFactory)));
         environment.healthChecks().register("transient", gatedHealthProvider.new GatedHealthCheck("transient", new WorkerHealthCheck(transientHealthCheck)));
-        core.start();
     }
 
     @Override

@@ -29,12 +29,14 @@ final class GatedHealthProvider
     private final Set<String> unhealthySet;
     private final ManagedWorkerQueue workerQueue;
     private final Object healthCheckLock;
+    private final WorkerCore core;
 
-    public GatedHealthProvider(final ManagedWorkerQueue workerQueue)
+    public GatedHealthProvider(final ManagedWorkerQueue workerQueue, final WorkerCore core)
     {
         this.unhealthySet = new HashSet<>();
         this.workerQueue = workerQueue;
         this.healthCheckLock = new Object();
+        this.core = core;
     }
 
     public final class GatedHealthCheck extends HealthCheck
@@ -67,8 +69,16 @@ final class GatedHealthProvider
                 }
 
                 if (unhealthySet.isEmpty()) {
-                    LOG.debug("Reconnecting the incoming queue as all health checks are passing");
-                    workerQueue.reconnectIncoming();
+                    if(!core.isStarted())
+                    {
+                        LOG.debug("Starting WorkerCore...");
+                        core.start();
+                    }
+                    else
+                    {
+                        LOG.debug("Reconnecting the incoming queue as all health checks are passing");
+                        workerQueue.reconnectIncoming();
+                    }
                 } else {
                     LOG.debug("Disconnecting the incoming queue due to the [{}] health check failing", name);
                     workerQueue.disconnectIncoming();
