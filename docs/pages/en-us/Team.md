@@ -49,6 +49,7 @@ team_members:
           icon: hpe-social-email
           url: mailto:dermot.hardy@microfocus.com
 ---
+---
     - name: Dominic Gibson
       email: dominic.gibson@microfocus.com
       avatar: /assets/img/domnic.jpg
@@ -59,7 +60,7 @@ team_members:
         - title: Email
           icon: hpe-social-email
           url: mailto:dominic.gibson@microfocus.com
-
+    
     - name: Gaana Vishwnath
       email: gaana.vishwnath@microfocus.com
       avatar: /assets/img/gaana.jpg
@@ -81,7 +82,7 @@ team_members:
         - title: Email
           icon: hpe-social-email
           url: mailto:himanshi.agrawal@microfocus.com
-
+    
     - name: Kusuma Ghosh Dastidar
       email: vgkusuma@microfocus.com
       avatar: /assets/img/kusuma.jpg
@@ -93,7 +94,7 @@ team_members:
           icon: hpe-social-email
           url: mailto:vgkusuma@microfocus.com
 
----         
+---
     - name: Michael Bryson
       email: michael.bryson@microfocus.com
       avatar: /assets/img/michael.jpg
@@ -104,7 +105,7 @@ team_members:
         - title: Email
           icon: hpe-social-email
           url: mailto:michael.bryson@microfocus.com
-
+    
     - name: Rahul Kulkarni
       email: rahul.kulkarni@microfocus.com
       avatar: /assets/img/rahul.jpg
@@ -127,7 +128,7 @@ team_members:
         - title: Email
           icon: hpe-social-email
           url: mailto:rory.torney@microfocus.com
-
+    
     - name: Thilagavathi Santhoshkumar
       email: thilagavathi.santhoshkumar@microfocus.com
       avatar: /assets/img/thilaga.jpg
@@ -138,5 +139,5 @@ team_members:
         - title: Email
           icon: hpe-social-email
           url: mailto:thilagavathi.santhoshkumar@microfocus.com
-          
+
 ---
