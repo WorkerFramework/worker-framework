@@ -7,7 +7,7 @@ team_members:
 
     - name: Andy Reid
       email: andrew.reid@microfocus.com
-      avatar: /assets/img/Andy.jpg
+      avatar: /assets/img/andy.jpg
       social:
         - title: GitHub
           icon: hpe-social-github
@@ -18,7 +18,7 @@ team_members:
 
     - name: Anthony McGreevy
       email: anthony.mcgreevy@microfocus.com
-      avatar: /assets/img/Anthony.jpg
+      avatar: /assets/img/anthony.jpg
       social:
         - title: GitHub
           icon: hpe-social-github
@@ -29,7 +29,7 @@ team_members:
 
     - name: David Gerald Milligan
       email: davidgerald.milligan@microfocus.com
-      avatar: /assets/img/David.jpg
+      avatar: /assets/img/david.jpg
       social:
         - title: GitHub
           icon: hpe-social-github
@@ -40,7 +40,7 @@ team_members:
 
     - name: Dermot Hardy
       email: dermot.hardy@microfocus.com
-      avatar: /assets/img/Dermot.jpg
+      avatar: /assets/img/dermot.jpg
       social:
         - title: GitHub
           icon: hpe-social-github
@@ -51,7 +51,7 @@ team_members:
 
     - name: Dominic Gibson
       email: dominic.gibson@microfocus.com
-      avatar: /assets/img/Domnic.jpg
+      avatar: /assets/img/domnic.jpg
       social:
         - title: GitHub
           icon: hpe-social-github
@@ -62,7 +62,7 @@ team_members:
 
     - name: Gaana Vishwnath
       email: gaana.vishwnath@microfocus.com
-      avatar: /assets/img/Gaana.jpg
+      avatar: /assets/img/gaana.jpg
       social:
         - title: GitHub
           icon: hpe-social-github
@@ -73,7 +73,7 @@ team_members:
 
     - name: Himanshi Agrawal
       email: himanshi.agrawal@microfocus.com
-      avatar: /assets/img/Himanshi.jpg
+      avatar: /assets/img/himanshi.jpg
       social:
         - title: GitHub
           icon: hpe-social-github
@@ -84,7 +84,7 @@ team_members:
 
     - name: Kusuma Ghosh Dastidar
       email: vgkusuma@microfocus.com
-      avatar: /assets/img/Kusuma.jpg
+      avatar: /assets/img/kusuma.jpg
       social:
         - title: GitHub
           icon: hpe-social-github
@@ -95,7 +95,7 @@ team_members:
 
     - name: Michael Bryson
       email: michael.bryson@microfocus.com
-      avatar: /assets/img/Michael.jpg
+      avatar: /assets/img/michael.jpg
       social:
         - title: GitHub
           icon: hpe-social-github
@@ -106,7 +106,7 @@ team_members:
 
     - name: Rahul Kulkarni
       email: rahul.kulkarni@microfocus.com
-      avatar: /assets/img/Rahul.jpg
+      avatar: /assets/img/rahul.jpg
       social:
         - title: GitHub
           icon: hpe-social-github
@@ -117,7 +117,7 @@ team_members:
 
     - name: Rory Torney
       email: rory.torney@microfocus.com
-      avatar: /assets/img/Rory.jpg
+      avatar: /assets/img/rory.jpg
       social:
         - title: GitHub
           icon: hpe-social-github
@@ -128,7 +128,7 @@ team_members:
 
     - name: Thilagavathi Santhoshkumar
       email: thilagavathi.santhoshkumar@microfocus.com
-      avatar: /assets/img/Thilaga.jpg
+      avatar: /assets/img/thilaga.jpg
       social:
         - title: GitHub
           icon: hpe-social-github
