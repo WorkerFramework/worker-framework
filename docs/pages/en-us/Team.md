@@ -27,6 +27,8 @@ team_members:
           icon: hpe-social-email
           url: mailto:anthony.mcgreevy@microfocus.com
 
+---
+
     - name: David Gerald Milligan
       email: davidgerald.milligan@microfocus.com
       avatar: /assets/img/david.jpg
@@ -48,7 +50,7 @@ team_members:
         - title: Email
           icon: hpe-social-email
           url: mailto:dermot.hardy@microfocus.com
----
+
 ---
     - name: Dominic Gibson
       email: dominic.gibson@microfocus.com
