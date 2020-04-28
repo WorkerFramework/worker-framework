@@ -126,7 +126,7 @@ team_members:
           icon: hpe-social-email
           url: mailto:rory.torney@microfocus.com
           
-    - name: Thilagavathi Santhoshkumar
+    - name: Thilagavathi S
       email: thilagavathi.santhoshkumar@microfocus.com
       avatar: /assets/img/thilaga.jpg
       social:
