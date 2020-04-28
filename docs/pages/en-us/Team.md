@@ -1,7 +1,7 @@
 ---
 layout: team
 
-header: The Worker Framework Team
+header: The Data Processing Team
 
 team_members:
 
@@ -26,7 +26,7 @@ team_members:
         - title: Email
           icon: hpe-social-email
           url: mailto:anthony.mcgreevy@microfocus.com
-
+    
     - name: David Gerald Milligan
       email: davidgerald.milligan@microfocus.com
       avatar: /assets/img/david.jpg
@@ -37,7 +37,7 @@ team_members:
         - title: Email
           icon: hpe-social-email
           url: mailto:davidgerald.milligan@microfocus.com
-
+    
     - name: Dermot Hardy
       email: dermot.hardy@microfocus.com
       avatar: /assets/img/dermot.jpg
@@ -48,7 +48,7 @@ team_members:
         - title: Email
           icon: hpe-social-email
           url: mailto:dermot.hardy@microfocus.com
-
+          
     - name: Dominic Gibson
       email: dominic.gibson@microfocus.com
       avatar: /assets/img/dominic.jpg
@@ -81,7 +81,7 @@ team_members:
         - title: Email
           icon: hpe-social-email
           url: mailto:himanshi.agrawal@microfocus.com
-    
+
     - name: Kusuma Ghosh Dastidar
       email: vgkusuma@microfocus.com
       avatar: /assets/img/kusuma.jpg
@@ -92,7 +92,7 @@ team_members:
         - title: Email
           icon: hpe-social-email
           url: mailto:vgkusuma@microfocus.com
-
+          
     - name: Michael Bryson
       email: michael.bryson@microfocus.com
       avatar: /assets/img/michael.jpg
@@ -103,7 +103,7 @@ team_members:
         - title: Email
           icon: hpe-social-email
           url: mailto:michael.bryson@microfocus.com
-    
+
     - name: Rahul Kulkarni
       email: rahul.kulkarni@microfocus.com
       avatar: /assets/img/rahul.jpg
@@ -114,7 +114,7 @@ team_members:
         - title: Email
           icon: hpe-social-email
           url: mailto:rahul.kulkarni@microfocus.com
-
+                    
     - name: Rory Torney
       email: rory.torney@microfocus.com
       avatar: /assets/img/rory.jpg
@@ -136,5 +136,5 @@ team_members:
         - title: Email
           icon: hpe-social-email
           url: mailto:thilagavathi.santhoshkumar@microfocus.com
-
+    
 ---
