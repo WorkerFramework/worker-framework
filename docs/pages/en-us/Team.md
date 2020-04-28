@@ -49,10 +49,9 @@ team_members:
           icon: hpe-social-email
           url: mailto:dermot.hardy@microfocus.com
 
----
     - name: Dominic Gibson
       email: dominic.gibson@microfocus.com
-      avatar: /assets/img/domnic.jpg
+      avatar: /assets/img/dominic.jpg
       social:
         - title: GitHub
           icon: hpe-social-github
@@ -71,7 +70,7 @@ team_members:
         - title: Email
           icon: hpe-social-email
           url: mailto:gaana.vishwnath@microfocus.com
----
+
     - name: Himanshi Agrawal
       email: himanshi.agrawal@microfocus.com
       avatar: /assets/img/himanshi.jpg
@@ -94,7 +93,6 @@ team_members:
           icon: hpe-social-email
           url: mailto:vgkusuma@microfocus.com
 
----
     - name: Michael Bryson
       email: michael.bryson@microfocus.com
       avatar: /assets/img/michael.jpg
@@ -117,7 +115,6 @@ team_members:
           icon: hpe-social-email
           url: mailto:rahul.kulkarni@microfocus.com
 
----
     - name: Rory Torney
       email: rory.torney@microfocus.com
       avatar: /assets/img/rory.jpg
