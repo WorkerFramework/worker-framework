@@ -27,8 +27,6 @@ team_members:
           icon: hpe-social-email
           url: mailto:anthony.mcgreevy@microfocus.com
 
----
-
     - name: David Gerald Milligan
       email: davidgerald.milligan@microfocus.com
       avatar: /assets/img/david.jpg
