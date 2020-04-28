@@ -15,7 +15,7 @@ team_members:
         - title: Email
           icon: hpe-social-email
           url: mailto:andrew.reid@microfocus.com
-
+          
     - name: Anthony McGreevy
       email: anthony.mcgreevy@microfocus.com
       avatar: /assets/img/anthony.jpg
@@ -26,7 +26,7 @@ team_members:
         - title: Email
           icon: hpe-social-email
           url: mailto:anthony.mcgreevy@microfocus.com
-    
+          
     - name: David Gerald Milligan
       email: davidgerald.milligan@microfocus.com
       avatar: /assets/img/david.jpg
@@ -37,7 +37,7 @@ team_members:
         - title: Email
           icon: hpe-social-email
           url: mailto:davidgerald.milligan@microfocus.com
-    
+          
     - name: Dermot Hardy
       email: dermot.hardy@microfocus.com
       avatar: /assets/img/dermot.jpg
@@ -59,7 +59,7 @@ team_members:
         - title: Email
           icon: hpe-social-email
           url: mailto:dominic.gibson@microfocus.com
-    
+          
     - name: Gaana Vishwnath
       email: gaana.vishwnath@microfocus.com
       avatar: /assets/img/gaana.jpg
@@ -70,7 +70,7 @@ team_members:
         - title: Email
           icon: hpe-social-email
           url: mailto:gaana.vishwnath@microfocus.com
-
+          
     - name: Himanshi Agrawal
       email: himanshi.agrawal@microfocus.com
       avatar: /assets/img/himanshi.jpg
@@ -81,7 +81,7 @@ team_members:
         - title: Email
           icon: hpe-social-email
           url: mailto:himanshi.agrawal@microfocus.com
-
+          
     - name: Kusuma Ghosh Dastidar
       email: vgkusuma@microfocus.com
       avatar: /assets/img/kusuma.jpg
@@ -103,7 +103,7 @@ team_members:
         - title: Email
           icon: hpe-social-email
           url: mailto:michael.bryson@microfocus.com
-
+          
     - name: Rahul Kulkarni
       email: rahul.kulkarni@microfocus.com
       avatar: /assets/img/rahul.jpg
@@ -114,7 +114,7 @@ team_members:
         - title: Email
           icon: hpe-social-email
           url: mailto:rahul.kulkarni@microfocus.com
-                    
+          
     - name: Rory Torney
       email: rory.torney@microfocus.com
       avatar: /assets/img/rory.jpg
@@ -125,7 +125,7 @@ team_members:
         - title: Email
           icon: hpe-social-email
           url: mailto:rory.torney@microfocus.com
-    
+          
     - name: Thilagavathi Santhoshkumar
       email: thilagavathi.santhoshkumar@microfocus.com
       avatar: /assets/img/thilaga.jpg
@@ -136,5 +136,4 @@ team_members:
         - title: Email
           icon: hpe-social-email
           url: mailto:thilagavathi.santhoshkumar@microfocus.com
-    
 ---
