@@ -1,7 +1,7 @@
 ---
 layout: team
 
-header: The Data Processing Team
+header: The Worker Framework Team
 
 team_members:
 
