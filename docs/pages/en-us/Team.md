@@ -99,7 +99,7 @@ team_members:
       social:
         - title: GitHub
           icon: hpe-social-github
-          url:https://github.com/michael-bryson
+          url: https://github.com/michael-bryson
         - title: Email
           icon: hpe-social-email
           url: mailto:michael.bryson@microfocus.com
@@ -110,7 +110,7 @@ team_members:
       social:
         - title: GitHub
           icon: hpe-social-github
-          url:https://github.com/rahul-kulkarni73
+          url: https://github.com/rahul-kulkarni73
         - title: Email
           icon: hpe-social-email
           url: mailto:rahul.kulkarni@microfocus.com
@@ -121,7 +121,7 @@ team_members:
       social:
         - title: GitHub
           icon: hpe-social-github
-          url:https://github.com/rorytorneymf
+          url: https://github.com/rorytorneymf
         - title: Email
           icon: hpe-social-email
           url: mailto:rory.torney@microfocus.com
@@ -132,7 +132,7 @@ team_members:
       social:
         - title: GitHub
           icon: hpe-social-github
-          url:https://github.com/thilagasanthosh
+          url: https://github.com/thilagasanthosh
         - title: Email
           icon: hpe-social-email
           url: mailto:thilagavathi.santhoshkumar@microfocus.com
