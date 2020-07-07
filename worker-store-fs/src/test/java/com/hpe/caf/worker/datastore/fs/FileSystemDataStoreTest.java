@@ -49,9 +49,9 @@ import java.util.concurrent.Callable;
 
 public class FileSystemDataStoreTest
 {
+    private static final Integer HEALTHCHECK_TIMEOUT_SECONDS = 10;
     private File temp;
     private final String testData = "test123";
-    private final Integer healthcheckTimeoutSeconds = 10;
 
     @BeforeMethod
     public void setUp()
@@ -138,14 +138,6 @@ public class FileSystemDataStoreTest
         String storeRef = store.store(p, "test");
         verifyStoredData(store, data, storeRef);
         Assert.assertEquals(testData.length(), store.size(storeRef));
-    }
-
-    private FileSystemDataStoreConfiguration createConfig()
-    {
-        FileSystemDataStoreConfiguration conf = new FileSystemDataStoreConfiguration();
-        conf.setDataDir(temp.getAbsolutePath());
-        conf.setDataDirHealthcheckTimeoutSeconds(healthcheckTimeoutSeconds);
-        return conf;
     }
 
     @Test
@@ -320,6 +312,14 @@ public class FileSystemDataStoreTest
         Assert.assertEquals(healthResult.getMessage(),
                             "Timeout after 2 seconds trying to access data store directory " + temp.getAbsolutePath(),
                             "Healthcheck message is incorrect");
+    }
+
+    private FileSystemDataStoreConfiguration createConfig()
+    {
+        FileSystemDataStoreConfiguration conf = new FileSystemDataStoreConfiguration();
+        conf.setDataDir(temp.getAbsolutePath());
+        conf.setDataDirHealthcheckTimeoutSeconds(HEALTHCHECK_TIMEOUT_SECONDS);
+        return conf;
     }
 
     private static void verifyStoredData(final DataStore dataStore, final byte[] expectedData, final String actualReference)
