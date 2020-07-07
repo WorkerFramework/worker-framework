@@ -16,6 +16,7 @@
 package com.hpe.caf.worker.datastore.fs;
 
 import com.hpe.caf.api.HealthResult;
+import com.hpe.caf.api.HealthStatus;
 import com.hpe.caf.api.worker.*;
 import org.apache.commons.io.output.ProxyOutputStream;
 import org.slf4j.Logger;
@@ -26,8 +27,16 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.nio.file.*;
+import java.time.Duration;
 import java.util.Objects;
 import java.util.UUID;
+import java.util.concurrent.Callable;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Consumer;
 
@@ -45,6 +54,9 @@ public class FileSystemDataStore implements ManagedDataStore, FilePathProvider, 
     private final AtomicInteger numDx = new AtomicInteger(0);
     private final DataStoreMetricsReporter metrics = new FileSystemDataStoreMetricsReporter();
     private static final Logger LOG = LoggerFactory.getLogger(FileSystemDataStore.class);
+    private final Callable<HealthResult> healthcheck;
+    private final Duration healthcheckTimeout;
+    private final ExecutorService healthcheckExecutor = Executors.newSingleThreadExecutor();
 
     /**
      * Determine the directory for the data store, and create it if necessary.
@@ -53,6 +65,8 @@ public class FileSystemDataStore implements ManagedDataStore, FilePathProvider, 
         throws DataStoreException
     {
         dataStorePath = FileSystems.getDefault().getPath(config.getDataDir());
+        healthcheck = new FileSystemDataStoreHealthcheck(dataStorePath);
+        healthcheckTimeout = Duration.ofSeconds(config.getDataDirHealthcheckTimeoutSeconds());
         if (!Files.exists(dataStorePath)) {
             try {
                 Files.createDirectory(dataStorePath);
@@ -69,7 +83,7 @@ public class FileSystemDataStore implements ManagedDataStore, FilePathProvider, 
     @Override
     public void shutdown()
     {
-        // nothing to do
+        healthcheckExecutor.shutdown();
     }
 
     /**
@@ -223,7 +237,25 @@ public class FileSystemDataStore implements ManagedDataStore, FilePathProvider, 
     @Override
     public HealthResult healthCheck()
     {
-        return HealthResult.RESULT_HEALTHY;
+        final Future<HealthResult> healthcheckFuture = healthcheckExecutor.submit(healthcheck);
+        try {
+            return healthcheckFuture.get(healthcheckTimeout.getSeconds(), TimeUnit.SECONDS);
+        } catch (final TimeoutException e) {
+            healthcheckFuture.cancel(true);
+            return new HealthResult(
+                HealthStatus.UNHEALTHY,
+                String.format("Timeout after %s seconds trying to access data store directory %s",
+                              healthcheckTimeout.getSeconds(),
+                              dataStorePath.toString()));
+        } catch (final InterruptedException | ExecutionException e) {
+            healthcheckFuture.cancel(true);
+            LOG.warn("Exception thrown trying to access data store directory {} during healthcheck",
+                     dataStorePath.toString(),
+                     e);
+            return new HealthResult(
+                HealthStatus.UNHEALTHY,
+                String.format("Exception thrown trying to access data store directory %s", dataStorePath.toString()));
+        }
     }
 
     /**

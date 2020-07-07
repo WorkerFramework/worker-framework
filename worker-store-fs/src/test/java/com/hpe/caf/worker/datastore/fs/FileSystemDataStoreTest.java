@@ -16,6 +16,8 @@
 package com.hpe.caf.worker.datastore.fs;
 
 import com.hpe.caf.api.ConfigurationException;
+import com.hpe.caf.api.HealthResult;
+import com.hpe.caf.api.HealthStatus;
 import com.hpe.caf.api.worker.DataStore;
 import com.hpe.caf.api.worker.DataStoreException;
 import com.hpe.caf.api.worker.FilePathProvider;
@@ -35,17 +37,21 @@ import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.lang.reflect.Field;
 import java.nio.charset.StandardCharsets;
+import java.nio.file.FileSystems;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.UUID;
+import java.util.concurrent.Callable;
 
 public class FileSystemDataStoreTest
 {
     private File temp;
     private final String testData = "test123";
+    private final Integer healthcheckTimeoutSeconds = 10;
 
     @BeforeMethod
     public void setUp()
@@ -74,8 +80,7 @@ public class FileSystemDataStoreTest
     public void testDataStoreStream()
         throws ConfigurationException, DataStoreException, IOException
     {
-        FileSystemDataStoreConfiguration conf = new FileSystemDataStoreConfiguration();
-        conf.setDataDir(temp.getAbsolutePath());
+        FileSystemDataStoreConfiguration conf = createConfig();
         DataStore store = new FileSystemDataStore(conf);
         final byte[] data = testData.getBytes(StandardCharsets.UTF_8);
         String storeRef = store.store(new ByteArrayInputStream(data), "test");
@@ -87,8 +92,7 @@ public class FileSystemDataStoreTest
     public void testDataStoreStreamHash()
         throws ConfigurationException, DataStoreException, IOException
     {
-        FileSystemDataStoreConfiguration conf = new FileSystemDataStoreConfiguration();
-        conf.setDataDir(temp.getAbsolutePath());
+        FileSystemDataStoreConfiguration conf = createConfig();
         DataStore store = new FileSystemDataStore(conf);
         final byte[] data = testData.getBytes(StandardCharsets.UTF_8);
         final HashStoreResult storeResult = StoreUtil.hashStore(store, new ByteArrayInputStream(data), "test");
@@ -101,8 +105,7 @@ public class FileSystemDataStoreTest
     public void testDataStoreBytes()
         throws ConfigurationException, DataStoreException, IOException
     {
-        FileSystemDataStoreConfiguration conf = new FileSystemDataStoreConfiguration();
-        conf.setDataDir(temp.getAbsolutePath());
+        FileSystemDataStoreConfiguration conf = createConfig();
         DataStore store = new FileSystemDataStore(conf);
         final byte[] data = testData.getBytes(StandardCharsets.UTF_8);
         String storeRef = store.store(data, "test");
@@ -114,8 +117,7 @@ public class FileSystemDataStoreTest
     public void testDataStoreBytesHash()
         throws ConfigurationException, DataStoreException, IOException
     {
-        FileSystemDataStoreConfiguration conf = new FileSystemDataStoreConfiguration();
-        conf.setDataDir(temp.getAbsolutePath());
+        FileSystemDataStoreConfiguration conf = createConfig();
         DataStore store = new FileSystemDataStore(conf);
         final byte[] data = testData.getBytes(StandardCharsets.UTF_8);
         final HashStoreResult storeResult = StoreUtil.hashStore(store, data, "test");
@@ -128,8 +130,7 @@ public class FileSystemDataStoreTest
     public void testDataStorePath()
         throws ConfigurationException, DataStoreException, IOException
     {
-        FileSystemDataStoreConfiguration conf = new FileSystemDataStoreConfiguration();
-        conf.setDataDir(temp.getAbsolutePath());
+        FileSystemDataStoreConfiguration conf = createConfig();
         DataStore store = new FileSystemDataStore(conf);
         final byte[] data = testData.getBytes(StandardCharsets.UTF_8);
         Path p = Paths.get(temp.getAbsolutePath()).resolve(UUID.randomUUID().toString());
@@ -139,12 +140,19 @@ public class FileSystemDataStoreTest
         Assert.assertEquals(testData.length(), store.size(storeRef));
     }
 
+    private FileSystemDataStoreConfiguration createConfig()
+    {
+        FileSystemDataStoreConfiguration conf = new FileSystemDataStoreConfiguration();
+        conf.setDataDir(temp.getAbsolutePath());
+        conf.setDataDirHealthcheckTimeoutSeconds(healthcheckTimeoutSeconds);
+        return conf;
+    }
+
     @Test
     public void testDataStorePathHash()
         throws ConfigurationException, DataStoreException, IOException
     {
-        FileSystemDataStoreConfiguration conf = new FileSystemDataStoreConfiguration();
-        conf.setDataDir(temp.getAbsolutePath());
+        FileSystemDataStoreConfiguration conf = createConfig();
         DataStore store = new FileSystemDataStore(conf);
         final byte[] data = testData.getBytes(StandardCharsets.UTF_8);
         Path p = Paths.get(temp.getAbsolutePath()).resolve(UUID.randomUUID().toString());
@@ -161,8 +169,7 @@ public class FileSystemDataStoreTest
     public void testDataStoreFilePathRetrieval()
         throws ConfigurationException, DataStoreException, IOException
     {
-        FileSystemDataStoreConfiguration conf = new FileSystemDataStoreConfiguration();
-        conf.setDataDir(temp.getAbsolutePath());
+        FileSystemDataStoreConfiguration conf = createConfig();
         DataStore store = new FileSystemDataStore(conf);
         final byte[] data = testData.getBytes(StandardCharsets.UTF_8);
         Path p = Paths.get(temp.getAbsolutePath()).resolve(UUID.randomUUID().toString());
@@ -180,8 +187,7 @@ public class FileSystemDataStoreTest
     public void testDataStoreOutputStream()
         throws ConfigurationException, DataStoreException, IOException
     {
-        final FileSystemDataStoreConfiguration conf = new FileSystemDataStoreConfiguration();
-        conf.setDataDir(temp.getAbsolutePath());
+        final FileSystemDataStoreConfiguration conf = createConfig();
         final FileSystemDataStore store = new FileSystemDataStore(conf);
         final byte[] data = testData.getBytes(StandardCharsets.UTF_8);
         final ArrayList<String> storeRefs = new ArrayList<>();
@@ -198,8 +204,7 @@ public class FileSystemDataStoreTest
     public void testInvalidReference()
         throws DataStoreException, IOException
     {
-        FileSystemDataStoreConfiguration conf = new FileSystemDataStoreConfiguration();
-        conf.setDataDir(temp.getAbsolutePath());
+        FileSystemDataStoreConfiguration conf = createConfig();
         DataStore store = new FileSystemDataStore(conf);
         Path p = Paths.get(temp.getAbsolutePath());
         for (int i = 0; i < 5; i++) {
@@ -212,8 +217,7 @@ public class FileSystemDataStoreTest
     public void testInvalidReferenceFilePathRetrieval()
         throws DataStoreException, IOException
     {
-        FileSystemDataStoreConfiguration conf = new FileSystemDataStoreConfiguration();
-        conf.setDataDir(temp.getAbsolutePath());
+        FileSystemDataStoreConfiguration conf = createConfig();
         DataStore store = new FileSystemDataStore(conf);
         Path p = Paths.get(temp.getAbsolutePath());
         for (int i = 0; i < 5; i++) {
@@ -226,8 +230,7 @@ public class FileSystemDataStoreTest
     public void testMissingRef()
         throws DataStoreException
     {
-        FileSystemDataStoreConfiguration conf = new FileSystemDataStoreConfiguration();
-        conf.setDataDir(temp.getAbsolutePath());
+        FileSystemDataStoreConfiguration conf = createConfig();
         DataStore store = new FileSystemDataStore(conf);
         store.retrieve(UUID.randomUUID().toString());
     }
@@ -236,8 +239,7 @@ public class FileSystemDataStoreTest
     public void testMissingRefFilePathRetrieval()
         throws DataStoreException
     {
-        FileSystemDataStoreConfiguration conf = new FileSystemDataStoreConfiguration();
-        conf.setDataDir(temp.getAbsolutePath());
+        FileSystemDataStoreConfiguration conf = createConfig();
         DataStore store = new FileSystemDataStore(conf);
         ((FilePathProvider) store).getFilePath(UUID.randomUUID().toString());
     }
@@ -246,8 +248,7 @@ public class FileSystemDataStoreTest
     public void testDeleteWithValidReference()
         throws DataStoreException, IOException
     {
-        FileSystemDataStoreConfiguration conf = new FileSystemDataStoreConfiguration();
-        conf.setDataDir(temp.getAbsolutePath());
+        FileSystemDataStoreConfiguration conf = createConfig();
         DataStore store = new FileSystemDataStore(conf);
         final byte[] data = testData.getBytes(StandardCharsets.UTF_8);
         String storeRef = store.store(data, "test");
@@ -263,10 +264,62 @@ public class FileSystemDataStoreTest
     public void testDeleteWithInvalidReference()
         throws DataStoreException
     {
-        FileSystemDataStoreConfiguration conf = new FileSystemDataStoreConfiguration();
-        conf.setDataDir(temp.getAbsolutePath());
+        FileSystemDataStoreConfiguration conf = createConfig();
         DataStore store = new FileSystemDataStore(conf);
         store.delete(UUID.randomUUID().toString());
+    }
+
+    @Test
+    public void testHealthcheckSuccess()
+        throws ConfigurationException, DataStoreException, IOException
+    {
+        FileSystemDataStoreConfiguration conf = createConfig();
+        FileSystemDataStore store = new FileSystemDataStore(conf);
+        Assert.assertEquals(store.healthCheck(), HealthResult.RESULT_HEALTHY, "Healthcheck status should be HEALTHY");
+    }
+
+    @Test
+    public void testHealthcheckImmediateFailure()
+        throws ConfigurationException, DataStoreException, IOException, NoSuchFieldException, IllegalArgumentException,
+                                                                                              IllegalAccessException
+    {
+        FileSystemDataStoreConfiguration conf = createConfig();
+        FileSystemDataStore store = new FileSystemDataStore(conf);
+
+        Path nonExistingDataDir = FileSystems.getDefault().getPath("non-existing-dir");
+        Field healthcheckField = FileSystemDataStore.class.getDeclaredField("healthcheck");
+        healthcheckField.setAccessible(true);
+        FileSystemDataStoreHealthcheck healthcheck = new FileSystemDataStoreHealthcheck(nonExistingDataDir);
+        healthcheckField.set(store, healthcheck);
+
+        HealthResult healthResult = store.healthCheck();
+        Assert.assertEquals(healthResult.getStatus(), HealthStatus.UNHEALTHY, "Healthcheck status should be UNHEALTHY");
+        Assert.assertEquals(healthResult.getMessage(), "Unable to access data store directory: non-existing-dir",
+                                                       "Healthcheck message is incorrect");
+    }
+
+    @Test
+    public void testHealthcheckTimeoutFailure()
+        throws ConfigurationException, DataStoreException, IOException, NoSuchFieldException, IllegalArgumentException,
+               IllegalAccessException
+    {
+        FileSystemDataStoreConfiguration conf = new FileSystemDataStoreConfiguration();
+        conf.setDataDir(temp.getAbsolutePath());
+        conf.setDataDirHealthcheckTimeoutSeconds(2);
+        FileSystemDataStore store = new FileSystemDataStore(conf);
+
+        Field healthcheckField = FileSystemDataStore.class.getDeclaredField("healthcheck");
+        healthcheckField.setAccessible(true);
+        healthcheckField.set(store, (Callable<HealthResult>) () -> {
+            Thread.sleep(10000);
+            throw new RuntimeException("Should have timed out before reaching here");
+        });
+
+        HealthResult healthResult = store.healthCheck();
+        Assert.assertEquals(healthResult.getStatus(), HealthStatus.UNHEALTHY, "Healthcheck status should be UNHEALTHY");
+        Assert.assertEquals(healthResult.getMessage(),
+                            "Timeout after 2 seconds trying to access data store directory " + temp.getAbsolutePath(),
+                            "Healthcheck message is incorrect");
     }
 
     private static void verifyStoredData(final DataStore dataStore, final byte[] expectedData, final String actualReference)
