@@ -394,7 +394,7 @@ public class FileSystemDataStore implements ManagedDataStore, FilePathProvider, 
 
         final Integer configSetting = config.getDataDirHealthcheckTimeoutSeconds();
 
-        return (configSetting == null)
+        return (configSetting == null || configSetting <= 0)
             ? Duration.ofSeconds(DEFAULT_DATA_DIR_HEALTHCHECK_TIMEOUT_SECONDS)
             : Duration.ofSeconds(configSetting);
     }
