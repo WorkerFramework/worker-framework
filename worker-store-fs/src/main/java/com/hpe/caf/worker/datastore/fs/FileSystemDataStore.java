@@ -21,7 +21,6 @@ import com.hpe.caf.api.worker.*;
 import org.apache.commons.io.output.ProxyOutputStream;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
 import java.io.BufferedOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
@@ -56,7 +55,7 @@ public class FileSystemDataStore implements ManagedDataStore, FilePathProvider, 
     private static final Logger LOG = LoggerFactory.getLogger(FileSystemDataStore.class);
     private final Callable<HealthResult> healthcheck;
     private final Duration healthcheckTimeout;
-    private final ExecutorService healthcheckExecutor = Executors.newSingleThreadExecutor();
+    private final ExecutorService healthcheckExecutor;
 
     /**
      * Determine the directory for the data store, and create it if necessary.
@@ -73,7 +72,8 @@ public class FileSystemDataStore implements ManagedDataStore, FilePathProvider, 
             }
         }
         healthcheck = new FileSystemDataStoreHealthcheck(dataStorePath);
-        healthcheckTimeout = Duration.ofSeconds(config.getDataDirHealthcheckTimeoutSeconds());
+        healthcheckTimeout = getDataDirHealthcheckTimeoutSeconds(config);
+        healthcheckExecutor = Executors.newSingleThreadExecutor();
         outputBufferSize = getOutputBufferSize(config);
 
         LOG.debug("Initialised");
@@ -385,5 +385,16 @@ public class FileSystemDataStore implements ManagedDataStore, FilePathProvider, 
         return (configSetting == null || configSetting <= 0)
             ? DEFAULT_OUTPUT_BUFFER_SIZE
             : configSetting;
+    }
+
+    private static Duration getDataDirHealthcheckTimeoutSeconds(final FileSystemDataStoreConfiguration config)
+    {
+        final int DEFAULT_DATA_DIR_HEALTHCHECK_TIMEOUT_SECONDS = 10;
+
+        final Integer configSetting = config.getDataDirHealthcheckTimeoutSeconds();
+
+        return (configSetting == null)
+            ? Duration.ofSeconds(DEFAULT_DATA_DIR_HEALTHCHECK_TIMEOUT_SECONDS)
+            : Duration.ofSeconds(configSetting);
     }
 }

@@ -17,7 +17,8 @@ package com.hpe.caf.worker.datastore.fs;
 
 import com.hpe.caf.api.HealthResult;
 import com.hpe.caf.api.HealthStatus;
-import java.nio.file.*;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.concurrent.Callable;
 
 public final class FileSystemDataStoreHealthcheck implements Callable<HealthResult>
@@ -30,7 +31,7 @@ public final class FileSystemDataStoreHealthcheck implements Callable<HealthResu
     }
 
     @Override
-    public HealthResult call() throws Exception
+    public HealthResult call()
     {
         if (Files.exists(dataStorePath)) {
             return HealthResult.RESULT_HEALTHY;
