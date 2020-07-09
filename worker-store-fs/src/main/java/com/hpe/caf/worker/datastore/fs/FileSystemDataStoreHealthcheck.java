@@ -16,10 +16,11 @@
 package com.hpe.caf.worker.datastore.fs;
 
 import com.hpe.caf.api.HealthResult;
-import com.hpe.caf.api.HealthStatus;
 import java.nio.file.Files;
+import java.io.IOException;
 import java.nio.file.Path;
 import java.util.concurrent.Callable;
+import java.util.stream.Stream;
 
 public final class FileSystemDataStoreHealthcheck implements Callable<HealthResult>
 {
@@ -31,14 +32,12 @@ public final class FileSystemDataStoreHealthcheck implements Callable<HealthResu
     }
 
     @Override
-    public HealthResult call()
+    public HealthResult call() throws IOException
     {
-        if (Files.exists(dataStorePath)) {
+        // TODO Need FileVisitOption.FOLLOW_SYMBOLIC_LINK option?
+        // try (final DirectoryStream<Path> stream = Files.newDirectoryStream(dataStorePath)) {
+        try (final Stream<Path> stream = Files.walk(dataStorePath, 1)) {
             return HealthResult.RESULT_HEALTHY;
-        } else {
-            return new HealthResult(
-                HealthStatus.UNHEALTHY,
-                String.format("Unable to access data store directory: %s", dataStorePath.toString()));
         }
     }
 }

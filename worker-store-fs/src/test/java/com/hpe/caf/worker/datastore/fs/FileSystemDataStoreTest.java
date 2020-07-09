@@ -284,9 +284,13 @@ public class FileSystemDataStoreTest
         FileSystemDataStoreHealthcheck healthcheck = new FileSystemDataStoreHealthcheck(nonExistingDataDir);
         healthcheckField.set(store, healthcheck);
 
+        Field dataStorePathField = FileSystemDataStore.class.getDeclaredField("dataStorePath");
+        dataStorePathField.setAccessible(true);
+        dataStorePathField.set(store, nonExistingDataDir);
+
         HealthResult healthResult = store.healthCheck();
         Assert.assertEquals(healthResult.getStatus(), HealthStatus.UNHEALTHY, "Healthcheck status should be UNHEALTHY");
-        Assert.assertEquals(healthResult.getMessage(), "Unable to access data store directory: non-existing-dir",
+        Assert.assertEquals(healthResult.getMessage(), "Exception thrown trying to access data store directory non-existing-dir",
                                                        "Healthcheck message is incorrect");
     }
 
