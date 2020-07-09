@@ -34,9 +34,7 @@ public final class FileSystemDataStoreHealthcheck implements Callable<HealthResu
     @Override
     public HealthResult call() throws IOException
     {
-        // TODO Need FileVisitOption.FOLLOW_SYMBOLIC_LINK option?
-        // try (final DirectoryStream<Path> stream = Files.newDirectoryStream(dataStorePath)) {
-        try (final Stream<Path> stream = Files.walk(dataStorePath, 1)) {
+        try (final Stream<Path> stream = Files.walk(dataStorePath, 0)) {
             return HealthResult.RESULT_HEALTHY;
         }
     }
