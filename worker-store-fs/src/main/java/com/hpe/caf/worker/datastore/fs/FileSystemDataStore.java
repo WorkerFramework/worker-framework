@@ -247,7 +247,7 @@ public class FileSystemDataStore implements ManagedDataStore, FilePathProvider, 
                 String.format("Timeout after %s seconds trying to access data store directory %s",
                               healthcheckTimeout.getSeconds(),
                               dataStorePath.toString()));
-        } catch (final Exception e) {
+        } catch (final InterruptedException | ExecutionException e) {
             healthcheckFuture.cancel(true);
             LOG.warn("Exception thrown trying to access data store directory {} during healthcheck",
                      dataStorePath.toString(),
