@@ -9,6 +9,7 @@ The default FileSystemDataStore configuration file checks for values as below;
 | Property | Checked Environment Variables | Default               |
 |----------|-------------------------------|-----------------------|
 | dataDir  |  `CAF_WORKER_DATASTORE_PATH` | /mnt/caf-datastore-root  |
+| dataDirHealthcheckTimeoutSeconds  |  `CAF_WORKER_DATASTORE_HEALTHCHECK_TIMEOUT_SECONDS` | 10  |
 
 
 ## RabbitConfiguration

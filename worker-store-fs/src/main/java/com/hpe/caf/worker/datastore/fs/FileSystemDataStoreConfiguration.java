@@ -31,6 +31,11 @@ public class FileSystemDataStoreConfiguration
     private String dataDir = "datastore";
 
     /**
+     * The data directory healthcheck timeout in seconds.
+     */
+    private Integer dataDirHealthcheckTimeoutSeconds;
+
+    /**
      * The buffer size to use when storing data to the filesystem.
      * <p>
      * Note that not all storage methods currently respect this setting.
@@ -45,6 +50,16 @@ public class FileSystemDataStoreConfiguration
     public void setDataDir(final String dataDir)
     {
         this.dataDir = dataDir;
+    }
+
+    public Integer getDataDirHealthcheckTimeoutSeconds()
+    {
+        return dataDirHealthcheckTimeoutSeconds;
+    }
+
+    public void setDataDirHealthcheckTimeoutSeconds(final Integer dataDirHealthcheckTimeoutSeconds)
+    {
+        this.dataDirHealthcheckTimeoutSeconds = dataDirHealthcheckTimeoutSeconds;
     }
 
     public Integer getOutputBufferSize()
