@@ -212,6 +212,39 @@ public class StreamingWorkerWrapperTest
         Assert.assertEquals(queueMsgId, callback.getQueueMsgId());
     }
 
+    @Test
+    public void testPoisoned()
+        throws InvalidTaskException, TaskRejectedException, InterruptedException, InvalidNameException, CodecException
+    {
+        Codec codec = new JsonCodec();
+        WorkerFactory happyWorkerFactory = mock(WorkerFactory.class);
+        Worker happyWorker = Mockito.spy(getWorker(new TestWorkerTask(), codec));
+        when(happyWorkerFactory.getWorker(Mockito.any())).thenReturn(happyWorker);
+        when(happyWorker.doWork()).thenAnswer(invocationOnMock -> {
+            throw new TaskFailedException("whoops");
+        });
+        MessagePriorityManager priorityManager = mock(MessagePriorityManager.class);
+        when(priorityManager.getResponsePriority(Mockito.any())).thenReturn(PRIORITY);
+        String queueMsgId = "exception";
+        CountDownLatch latch = new CountDownLatch(1);
+        TestCallback callback = new TestCallback(latch);
+        TaskMessage m = new TaskMessage();
+        ServicePath path = new ServicePath(SERVICE_NAME);
+        Map<String, byte[]> contextMap = new HashMap<>();
+        contextMap.put(path.toString(), SUCCESS_BYTES);
+        m.setTaskId(TASK_ID);
+        m.setContext(contextMap);
+        Map<String, Object> headers = new HashMap<>();
+        WorkerTaskImpl workerTask = new WorkerTaskImpl(path, callback, happyWorkerFactory, getMockTaskInformation(queueMsgId), m, true,
+                headers, codec, priorityManager);
+        StreamingWorkerWrapper wrapper = new StreamingWorkerWrapper(workerTask);
+        Thread t = new Thread(wrapper);
+        t.start();
+        latch.await(5, TimeUnit.SECONDS);
+        String s = codec.deserialise(callback.getResultData(), String.class);
+        Assert.assertEquals(true, s.contains("did not handle poisoned message"));
+    }
+
     private Worker getWorker(final TestWorkerTask task, final Codec codec)
         throws InvalidTaskException
     {

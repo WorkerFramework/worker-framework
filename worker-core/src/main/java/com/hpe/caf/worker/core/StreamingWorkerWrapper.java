@@ -48,8 +48,11 @@ class StreamingWorkerWrapper implements Runnable
     {
         try {
             if (workerTask.isPoison()) {
-                LOG.warn("Worker [" + worker.getWorkerIdentifier() + "] did not handle poisoned message, when it was passed for processing.");
-                throw new RuntimeException("Worker [" + worker.getWorkerIdentifier() + "] did not handle poisoned message, when it was passed for processing.");
+                final String message = "Worker [" + worker.getWorkerIdentifier()
+                + "] did not handle poisoned message, when it was passed for processing. "
+                + workerTask.getTaskMessage();
+                LOG.warn(message);
+                throw new RuntimeException(message);
             } else {
                 Timer.Context t = TIMER.time();
                 WorkerResponse response = worker.doWork();
