@@ -15,6 +15,7 @@
  */
 package com.hpe.caf.api.worker;
 
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
@@ -232,5 +233,35 @@ public final class TaskMessage
     public void setPriority(Integer priority)
     {
         this.priority = priority;
+    }
+
+    @Override
+    public String toString()
+    {
+        final StringBuilder builder = new StringBuilder();
+        builder.append("TaskMessage [version=");
+        builder.append(version);
+        builder.append(", taskId=");
+        builder.append(taskId);
+        builder.append(", taskClassifier=");
+        builder.append(taskClassifier);
+        builder.append(", taskApiVersion=");
+        builder.append(taskApiVersion);
+        builder.append(", taskData=");
+        builder.append(Arrays.toString(taskData));
+        builder.append(", taskStatus=");
+        builder.append(taskStatus);
+        builder.append(", context=");
+        builder.append(context);
+        builder.append(", to=");
+        builder.append(to);
+        builder.append(", tracking=");
+        builder.append(tracking);
+        builder.append(", sourceInfo=");
+        builder.append(sourceInfo);
+        builder.append(", priority=");
+        builder.append(priority);
+        builder.append("]");
+        return builder.toString();
     }
 }
