@@ -52,7 +52,7 @@ class StreamingWorkerWrapper implements Runnable
                 + "] did not handle poisoned message, when it was passed for processing. "
                 + workerTask.getTaskMessage();
                 LOG.warn(message);
-                throw new RuntimeException(message);
+                throw new RuntimeException(message + " TaskData: " + workerTask.getData());
             } else {
                 Timer.Context t = TIMER.time();
                 WorkerResponse response = worker.doWork();
