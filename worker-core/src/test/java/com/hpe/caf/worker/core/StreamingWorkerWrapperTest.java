@@ -234,6 +234,7 @@ public class StreamingWorkerWrapperTest
         contextMap.put(path.toString(), SUCCESS_BYTES);
         m.setTaskId(TASK_ID);
         m.setContext(contextMap);
+        m.setTaskData("Test data".getBytes(StandardCharsets.UTF_8));
         Map<String, Object> headers = new HashMap<>();
         WorkerTaskImpl workerTask = new WorkerTaskImpl(path, callback, happyWorkerFactory, getMockTaskInformation(queueMsgId), m, true,
                 headers, codec, priorityManager);
@@ -242,7 +243,7 @@ public class StreamingWorkerWrapperTest
         t.start();
         latch.await(5, TimeUnit.SECONDS);
         String s = codec.deserialise(callback.getResultData(), String.class);
-        Assert.assertEquals(true, s.contains("did not handle poisoned message"));
+        Assert.assertEquals(true, s.contains("did not handle poisoned message, when it was passed for processing. TaskMessage"));
     }
 
     private Worker getWorker(final TestWorkerTask task, final Codec codec)
