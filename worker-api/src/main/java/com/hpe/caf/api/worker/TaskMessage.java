@@ -15,7 +15,6 @@
  */
 package com.hpe.caf.api.worker;
 
-import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
@@ -247,8 +246,6 @@ public final class TaskMessage
         builder.append(taskClassifier);
         builder.append(", taskApiVersion=");
         builder.append(taskApiVersion);
-        builder.append(", taskData=");
-        builder.append(Arrays.toString(taskData));
         builder.append(", taskStatus=");
         builder.append(taskStatus);
         builder.append(", context=");
