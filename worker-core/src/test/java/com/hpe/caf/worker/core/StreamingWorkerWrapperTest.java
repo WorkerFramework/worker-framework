@@ -43,6 +43,7 @@ public class StreamingWorkerWrapperTest
     private static final byte[] SUCCESS_BYTES = SUCCESS.getBytes(StandardCharsets.UTF_8);
     private static final String QUEUE_OUT = "out";
     private static final String QUEUE_REDIRECT = "redirect";
+    private static final String QUEUE_REJECT = "reject";
     private static final String WORKER_NAME = "unitTest";
     private static final String REDIRECT_NAME = "newTask";
     private static final int WORKER_API_VER = 1;
@@ -220,12 +221,13 @@ public class StreamingWorkerWrapperTest
         WorkerFactory happyWorkerFactory = mock(WorkerFactory.class);
         Worker happyWorker = Mockito.spy(getWorker(new TestWorkerTask(), codec));
         when(happyWorkerFactory.getWorker(Mockito.any())).thenReturn(happyWorker);
+        when(happyWorkerFactory.getRejectedTaskQueue()).thenReturn(QUEUE_REJECT);
         when(happyWorker.doWork()).thenAnswer(invocationOnMock -> {
-            throw new TaskFailedException("whoops");
+            throw new TaskRejectedException("rejected...poison message");
         });
         MessagePriorityManager priorityManager = mock(MessagePriorityManager.class);
         when(priorityManager.getResponsePriority(Mockito.any())).thenReturn(PRIORITY);
-        String queueMsgId = "exception";
+        String queueMsgId = "poison";
         CountDownLatch latch = new CountDownLatch(1);
         TestCallback callback = new TestCallback(latch);
         TaskMessage m = new TaskMessage();
@@ -242,8 +244,9 @@ public class StreamingWorkerWrapperTest
         Thread t = new Thread(wrapper);
         t.start();
         latch.await(5, TimeUnit.SECONDS);
-        String s = codec.deserialise(callback.getResultData(), String.class);
-        Assert.assertEquals(true, s.contains("did not handle poisoned message, when it was passed for processing. TaskMessage"));
+        Assert.assertEquals(TaskStatus.RESULT_EXCEPTION, callback.getStatus());
+        Assert.assertEquals(QUEUE_REJECT, callback.getQueue());
+        Assert.assertEquals(queueMsgId, callback.getQueueMsgId());
     }
 
     private Worker getWorker(final TestWorkerTask task, final Codec codec)
@@ -318,6 +321,10 @@ public class StreamingWorkerWrapperTest
         @Override
         public void send(TaskInformation taskInformation, TaskMessage responseMessage)
         {
+            this.taskInformation = taskInformation;
+            this.status = responseMessage.getTaskStatus();
+            this.queue = responseMessage.getTo();
+            latch.countDown();
         }
 
         @Override

@@ -770,4 +770,21 @@ class WorkerTaskImpl implements WorkerTask
         return bufferLimit;
     }
 
+    void sendPoisonMessage(final String workerIdentifier)
+    {
+        // Publish poison message to "reject" queue
+        final String taskClassifier = MoreObjects.firstNonNull(taskMessage.getTaskClassifier(), "");
+        final TaskMessage poisonMessage = new TaskMessage(
+                taskMessage.getTaskId(),
+                taskClassifier,
+                taskMessage.getTaskApiVersion(),
+                taskMessage.getTaskData(),
+                TaskStatus.RESULT_EXCEPTION,
+                taskMessage.getContext(),
+                workerFactory.getRejectedTaskQueue(),
+                taskMessage.getTracking(),
+                new TaskSourceInfo(getWorkerName(workerIdentifier), getWorkerVersion()));
+        sendMessage(poisonMessage);
+    }
+
 }
