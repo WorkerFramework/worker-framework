@@ -50,4 +50,9 @@ public class WorkerConfiguration
     {
         return rejectQueue;
     }
+
+    public void setRejectQueue(final String rejectQueue)
+    {
+        this.rejectQueue = rejectQueue;
+    }
 }
