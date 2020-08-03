@@ -63,6 +63,11 @@ public interface WorkerFactory extends HealthReporter
     String getInvalidTaskQueue();
 
     /**
+     * @return the queue to put responses to poison tasks upon
+     */
+    String getRejectedTaskQueue();
+
+    /**
      * @return the number of threads to be used by the framework to host this Worker backend
      */
     int getWorkerThreads();

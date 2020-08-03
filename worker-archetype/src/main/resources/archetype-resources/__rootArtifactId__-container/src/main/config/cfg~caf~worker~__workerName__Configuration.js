@@ -18,6 +18,8 @@
     workerVersion: "${project.version}",
     outputQueue: getenv("CAF_WORKER_OUTPUT_QUEUE")
             || (getenv("CAF_WORKER_BASE_QUEUE_NAME") || getenv("CAF_WORKER_NAME") || "worker") + "-out",
+    rejectedQueue: getenv("CAF_WORKER_REJECT_QUEUE")
+            || (getenv("CAF_WORKER_BASE_QUEUE_NAME") || getenv("CAF_WORKER_NAME") || "worker") + "-reject",
     threads: getenv("CAF_WORKER_THREADS") || 1,
     resultSizeThreshold: getenv("CAF_${workerName}_RESULT_SIZE_THRESHOLD") || 1024
 });

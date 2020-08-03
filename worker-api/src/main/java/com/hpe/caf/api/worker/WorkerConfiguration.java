@@ -24,6 +24,8 @@ public class WorkerConfiguration
 
     private String workerVersion;
 
+    private String rejectQueue;
+
     public String getWorkerName()
     {
         return workerName;
@@ -42,5 +44,10 @@ public class WorkerConfiguration
     public void setWorkerVersion(String workerVersion)
     {
         this.workerVersion = workerVersion;
+    }
+
+    public String getRejectQueue()
+    {
+        return rejectQueue;
     }
 }
