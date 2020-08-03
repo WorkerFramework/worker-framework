@@ -63,7 +63,7 @@ public interface WorkerFactory extends HealthReporter
     String getInvalidTaskQueue();
 
     /**
-     * @return the queue to put responses to poison tasks upon
+     * @return the queue publish poison messages
      */
     String getRejectedTaskQueue();
 
