@@ -142,11 +142,6 @@ class WorkerTaskImpl implements WorkerTask
         return taskMessage.getSourceInfo();
     }
 
-    TaskMessage getTaskMessage()
-    {
-        return taskMessage;
-    }
-
     @Override
     public void addResponse(final WorkerResponse response, final boolean includeTaskContext)
     {
