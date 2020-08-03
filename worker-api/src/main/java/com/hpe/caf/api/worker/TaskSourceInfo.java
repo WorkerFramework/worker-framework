@@ -59,16 +59,4 @@ public class TaskSourceInfo
     {
         this.version = version;
     }
-
-    @Override
-    public String toString()
-    {
-        final StringBuilder builder = new StringBuilder();
-        builder.append("TaskSourceInfo [name=");
-        builder.append(name);
-        builder.append(", version=");
-        builder.append(version);
-        builder.append("]");
-        return builder.toString();
-    }
 }

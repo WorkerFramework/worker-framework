@@ -163,22 +163,4 @@ public class TrackingInfo
             ? null
             : (Date) date.clone();
     }
-
-    @Override
-    public String toString()
-    {
-        final StringBuilder builder = new StringBuilder();
-        builder.append("TrackingInfo [jobTaskId=");
-        builder.append(jobTaskId);
-        builder.append(", statusCheckTime=");
-        builder.append(statusCheckTime);
-        builder.append(", statusCheckUrl=");
-        builder.append(statusCheckUrl);
-        builder.append(", trackingPipe=");
-        builder.append(trackingPipe);
-        builder.append(", trackTo=");
-        builder.append(trackTo);
-        builder.append("]");
-        return builder.toString();
-    }
 }
