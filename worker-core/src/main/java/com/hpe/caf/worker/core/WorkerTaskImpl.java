@@ -776,7 +776,7 @@ class WorkerTaskImpl implements WorkerTask
                 taskMessage.getTaskData(),
                 TaskStatus.RESULT_EXCEPTION,
                 taskMessage.getContext(),
-                workerFactory.getRejectedTaskQueue(),
+                workerFactory.getWorkerConfiguration().getRejectQueue(),
                 taskMessage.getTracking(),
                 new TaskSourceInfo(getWorkerName(workerIdentifier), getWorkerVersion()));
         sendMessage(poisonMessage);

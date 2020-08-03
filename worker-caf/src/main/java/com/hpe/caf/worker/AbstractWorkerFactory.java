@@ -84,11 +84,6 @@ public abstract class AbstractWorkerFactory<C, T> implements WorkerFactory
         return null;
     }
 
-    @Override
-    public String getRejectedTaskQueue() {
-        return getWorkerConfiguration().getRejectQueue();
-    }
-
     /**
      * Verify that the specified worker task has the right type and is a version that can be handled.
      */
