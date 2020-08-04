@@ -48,7 +48,7 @@ public class WorkerConfiguration
 
     public String getRejectQueue()
     {
-        return rejectQueue;
+        return rejectQueue == null ? this.workerName + "-reject" : rejectQueue;
     }
 
     public void setRejectQueue(final String rejectQueue)
