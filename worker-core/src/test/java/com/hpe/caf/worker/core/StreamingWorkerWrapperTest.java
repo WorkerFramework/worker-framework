@@ -247,7 +247,7 @@ public class StreamingWorkerWrapperTest
         t.start();
         latch.await(5, TimeUnit.SECONDS);
         Assert.assertEquals(TaskStatus.RESULT_EXCEPTION, callback.getStatus());
-        Assert.assertEquals(QUEUE_REJECT, callback.getQueue());
+        Assert.assertEquals(QUEUE_REJECT, callback.getSendQueue());
         Assert.assertEquals(queueMsgId, callback.getQueueMsgId());
     }
 
@@ -310,6 +310,7 @@ public class StreamingWorkerWrapperTest
         private TaskStatus status;
         private byte[] resultData;
         private String queue;
+        private String sendQueue;
         private String classifier;
         private Map<String, byte[]> context;
         private Integer priority;
@@ -325,7 +326,7 @@ public class StreamingWorkerWrapperTest
         {
             this.taskInformation = taskInformation;
             this.status = responseMessage.getTaskStatus();
-            this.queue = responseMessage.getTo();
+            this.sendQueue = responseMessage.getTo();
             latch.countDown();
         }
 
@@ -402,6 +403,11 @@ public class StreamingWorkerWrapperTest
         public String getQueue()
         {
             return queue;
+        }
+
+        public String getSendQueue()
+        {
+            return sendQueue;
         }
 
         public Integer getPriority()
