@@ -16,9 +16,11 @@
 package com.hpe.caf.worker.core;
 
 import com.codahale.metrics.Timer;
+import com.google.common.base.MoreObjects;
 import com.hpe.caf.api.worker.*;
 
-import java.util.HashMap;
+import java.util.Collections;
+import java.util.UUID;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -85,12 +87,12 @@ class StreamingWorkerWrapper implements Runnable
     {
         // Publish poison message to "reject" queue
         final TaskMessage poisonMessage = new TaskMessage(
-                "",
-                "",
+                UUID.randomUUID().toString(),
+                MoreObjects.firstNonNull(workerTask.getClassifier(), ""),
                 workerTask.getVersion(),
                 workerTask.getData(),
                 TaskStatus.RESULT_EXCEPTION,
-                new HashMap<>(),
+                Collections.<String, byte[]>emptyMap(),
                 workerTask.getRejectQueue(),
                 workerTask.getTrackingInfo(),
                 workerTask.getSourceInfo());
