@@ -17,6 +17,9 @@ package com.hpe.caf.worker.core;
 
 import com.codahale.metrics.Timer;
 import com.hpe.caf.api.worker.*;
+
+import java.util.HashMap;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -49,7 +52,7 @@ class StreamingWorkerWrapper implements Runnable
         try {
             if (workerTask.isPoison()) {
                 LOG.warn("Worker [" + worker.getWorkerIdentifier() + "] did not handle poisoned message, when it was passed for processing.");
-                workerTask.sendPoisonMessage(worker.getWorkerIdentifier());
+                sendPoisonMessage();
                 throw new RuntimeException("Worker [" + worker.getWorkerIdentifier() + "] did not handle poisoned message, when it was passed for processing.");
             } else {
                 Timer.Context t = TIMER.time();
@@ -76,5 +79,21 @@ class StreamingWorkerWrapper implements Runnable
     public static Timer getTimer()
     {
         return TIMER;
+    }
+
+    private void sendPoisonMessage()
+    {
+        // Publish poison message to "reject" queue
+        final TaskMessage poisonMessage = new TaskMessage(
+                "",
+                "",
+                workerTask.getVersion(),
+                workerTask.getData(),
+                TaskStatus.RESULT_EXCEPTION,
+                new HashMap<>(),
+                workerTask.getRejectQueue(),
+                workerTask.getTrackingInfo(),
+                workerTask.getSourceInfo());
+        workerTask.sendMessage(poisonMessage);
     }
 }
