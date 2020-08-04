@@ -43,6 +43,7 @@ public class StreamingWorkerWrapperTest
     private static final byte[] SUCCESS_BYTES = SUCCESS.getBytes(StandardCharsets.UTF_8);
     private static final String QUEUE_OUT = "out";
     private static final String QUEUE_REDIRECT = "redirect";
+    private static final String QUEUE_REJECT = "reject";
     private static final String WORKER_NAME = "unitTest";
     private static final String REDIRECT_NAME = "newTask";
     private static final int WORKER_API_VER = 1;
@@ -212,6 +213,44 @@ public class StreamingWorkerWrapperTest
         Assert.assertEquals(queueMsgId, callback.getQueueMsgId());
     }
 
+    @Test
+    public void testPoisoned()
+        throws InvalidTaskException, TaskRejectedException, InterruptedException, InvalidNameException, CodecException
+    {
+        Codec codec = new JsonCodec();
+        WorkerFactory happyWorkerFactory = mock(WorkerFactory.class);
+        Worker happyWorker = Mockito.spy(getWorker(new TestWorkerTask(), codec));
+        when(happyWorkerFactory.getWorker(Mockito.any())).thenReturn(happyWorker);
+        com.hpe.caf.api.worker.WorkerConfiguration happyConfig = mock(com.hpe.caf.api.worker.WorkerConfiguration.class);
+        when(happyWorkerFactory.getWorkerConfiguration()).thenReturn(happyConfig);
+        when(happyConfig.getRejectQueue()).thenReturn(QUEUE_REJECT);
+        when(happyWorker.doWork()).thenAnswer(invocationOnMock -> {
+            throw new TaskRejectedException("rejected...poison message");
+        });
+        MessagePriorityManager priorityManager = mock(MessagePriorityManager.class);
+        when(priorityManager.getResponsePriority(Mockito.any())).thenReturn(PRIORITY);
+        String queueMsgId = "poison";
+        CountDownLatch latch = new CountDownLatch(1);
+        TestCallback callback = new TestCallback(latch);
+        TaskMessage m = new TaskMessage();
+        ServicePath path = new ServicePath(SERVICE_NAME);
+        Map<String, byte[]> contextMap = new HashMap<>();
+        contextMap.put(path.toString(), SUCCESS_BYTES);
+        m.setTaskId(TASK_ID);
+        m.setContext(contextMap);
+        m.setTaskData("Test data".getBytes(StandardCharsets.UTF_8));
+        Map<String, Object> headers = new HashMap<>();
+        WorkerTaskImpl workerTask = new WorkerTaskImpl(path, callback, happyWorkerFactory, getMockTaskInformation(queueMsgId), m, true,
+                headers, codec, priorityManager);
+        StreamingWorkerWrapper wrapper = new StreamingWorkerWrapper(workerTask);
+        Thread t = new Thread(wrapper);
+        t.start();
+        latch.await(5, TimeUnit.SECONDS);
+        Assert.assertEquals(TaskStatus.RESULT_EXCEPTION, callback.getStatus());
+        Assert.assertEquals(QUEUE_REJECT, callback.getQueue());
+        Assert.assertEquals(queueMsgId, callback.getQueueMsgId());
+    }
+
     private Worker getWorker(final TestWorkerTask task, final Codec codec)
         throws InvalidTaskException
     {
@@ -284,6 +323,10 @@ public class StreamingWorkerWrapperTest
         @Override
         public void send(TaskInformation taskInformation, TaskMessage responseMessage)
         {
+            this.taskInformation = taskInformation;
+            this.status = responseMessage.getTaskStatus();
+            this.queue = responseMessage.getTo();
+            latch.countDown();
         }
 
         @Override

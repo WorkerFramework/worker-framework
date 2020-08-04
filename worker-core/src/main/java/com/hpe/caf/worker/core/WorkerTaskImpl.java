@@ -765,4 +765,9 @@ class WorkerTaskImpl implements WorkerTask
         return bufferLimit;
     }
 
+    public String getRejectQueue()
+    {
+        return workerFactory.getWorkerConfiguration().getRejectQueue();
+    }
+
 }

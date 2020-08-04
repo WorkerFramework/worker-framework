@@ -16,7 +16,12 @@
 package com.hpe.caf.worker.core;
 
 import com.codahale.metrics.Timer;
+import com.google.common.base.MoreObjects;
 import com.hpe.caf.api.worker.*;
+
+import java.util.Collections;
+import java.util.UUID;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -49,6 +54,7 @@ class StreamingWorkerWrapper implements Runnable
         try {
             if (workerTask.isPoison()) {
                 LOG.warn("Worker [" + worker.getWorkerIdentifier() + "] did not handle poisoned message, when it was passed for processing.");
+                sendPoisonMessage();
                 throw new RuntimeException("Worker [" + worker.getWorkerIdentifier() + "] did not handle poisoned message, when it was passed for processing.");
             } else {
                 Timer.Context t = TIMER.time();
@@ -75,5 +81,21 @@ class StreamingWorkerWrapper implements Runnable
     public static Timer getTimer()
     {
         return TIMER;
+    }
+
+    private void sendPoisonMessage()
+    {
+        // Publish poison message to "reject" queue
+        final TaskMessage poisonMessage = new TaskMessage(
+                UUID.randomUUID().toString(),
+                MoreObjects.firstNonNull(workerTask.getClassifier(), ""),
+                workerTask.getVersion(),
+                workerTask.getData(),
+                TaskStatus.RESULT_EXCEPTION,
+                Collections.<String, byte[]>emptyMap(),
+                workerTask.getRejectQueue(),
+                workerTask.getTrackingInfo(),
+                workerTask.getSourceInfo());
+        workerTask.sendMessage(poisonMessage);
     }
 }
