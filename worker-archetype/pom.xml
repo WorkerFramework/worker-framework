@@ -23,13 +23,13 @@
 
     <groupId>com.github.workerframework</groupId>
     <artifactId>worker-archetype</artifactId>
-    <version>3.4.0-SNAPSHOT</version>
+    <version>3.4.0-758</version>
     <packaging>maven-archetype</packaging>
 
     <parent>
         <groupId>com.github.workerframework</groupId>
         <artifactId>worker-framework-aggregator</artifactId>
-        <version>3.4.0-SNAPSHOT</version>
+        <version>3.4.0-758</version>
     </parent>
 
     <dependencies>
