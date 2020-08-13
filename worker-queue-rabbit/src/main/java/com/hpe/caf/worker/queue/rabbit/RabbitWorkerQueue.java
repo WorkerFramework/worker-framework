@@ -214,6 +214,9 @@ public final class RabbitWorkerQueue implements ManagedWorkerQueue
                 } catch (IOException e) {
                     metrics.incremementErrors();
                     LOG.warn("Failed to cancel consumer {}", consumerTag, e);
+                    if(e.getMessage().contains("Unknown consumerTag")) {
+                        attemptMessageRecovery();
+                    }
                 }
             }
         }
@@ -239,6 +242,9 @@ public final class RabbitWorkerQueue implements ManagedWorkerQueue
                     consumerTag = null;
                 } catch (IOException ioe) {
                     LOG.error("Failed to cancel consumer {}", consumerTag, ioe);
+                    if(ioe.getMessage().contains("Unknown consumerTag")) {
+                        attemptMessageRecovery();
+                    }
                 }
             }
         }
@@ -331,6 +337,19 @@ public final class RabbitWorkerQueue implements ManagedWorkerQueue
         if (!declaredQueues.contains(queueName)) {
 
             RabbitUtil.declareWorkerQueue(channel, queueName, maxPriority);
+        }
+    }
+
+    private void attemptMessageRecovery()
+    {
+        synchronized (consumerLock) {
+            try {
+                LOG.warn("Attempting to recover unack'd messages from consumer {}", consumer);
+                incomingChannel.basicRecover();
+            } catch (final IOException e) {
+                metrics.incremementErrors();
+                LOG.warn("Failed to recover messages from consumer {}", consumerTag, e);
+            }
         }
     }
 
