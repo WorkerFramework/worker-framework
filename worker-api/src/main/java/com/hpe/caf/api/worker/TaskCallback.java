@@ -40,4 +40,10 @@ public interface TaskCallback
      * accepted messages should be considered void.
      */
     void abortTasks();
+
+    /**
+     * Signal that any tasks queued or in operation should be aborted and an error should be reported.
+     * @param errorMsg the error message that caused this abort.
+     */
+    void abortTasksUnhealthy(final String errorMsg);
 }

@@ -126,6 +126,18 @@ public class WorkerQueueConsumerImpl implements QueueConsumer
         processReject(tag, false);
     }
 
+    @Override
+    public void processCancel(final String consumerTag)
+    {
+        try {
+            channel.basicCancel(consumerTag);
+        } catch (final IOException e) {
+            LOG.warn("Failed cancel consumer {} as requested", consumerTag);
+            metrics.incremementErrors();
+        }
+        callback.abortTasksUnhealthy("Consumer " + consumerTag + " received cancel message.");
+    }
+
     /**
      * Process a REJECT event. Similar to ACK, we will requeue the event if it fails, though Lyra should handle most of our failure cases.
      *

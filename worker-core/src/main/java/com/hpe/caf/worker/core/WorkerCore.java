@@ -50,7 +50,7 @@ final class WorkerCore
     {
         WorkerCallback taskCallback = new CoreWorkerCallback(codec, queue, stats, healthCheckRegistry, transientHealthCheck);
         this.threadPool = Objects.requireNonNull(pool);
-        this.callback = new CoreTaskCallback(codec, stats, new WorkerExecutor(path, taskCallback, factory, pool, priorityManager), pool, queue);
+        this.callback = new CoreTaskCallback(codec, stats, new WorkerExecutor(path, taskCallback, factory, pool, priorityManager), pool, queue, healthCheckRegistry, transientHealthCheck);
         this.workerQueue = Objects.requireNonNull(queue);
         this.isStarted = false;
     }
@@ -119,14 +119,19 @@ final class WorkerCore
         private final WorkerExecutor executor;
         private final WorkerThreadPool threadPool;
         private final ManagedWorkerQueue workerQueue;
+        private final HealthCheckRegistry healthCheckRegistry;
+        private final TransientHealthCheck transientHealthCheck;
 
-        public CoreTaskCallback(final Codec codec, final WorkerStats stats, final WorkerExecutor executor, final WorkerThreadPool pool, final ManagedWorkerQueue workerQueue)
+        public CoreTaskCallback(final Codec codec, final WorkerStats stats, final WorkerExecutor executor, final WorkerThreadPool pool, final ManagedWorkerQueue workerQueue,
+                                final HealthCheckRegistry healthCheckRegistry, final TransientHealthCheck transientHealthCheck)
         {
             this.codec = Objects.requireNonNull(codec);
             this.stats = Objects.requireNonNull(stats);
             this.executor = Objects.requireNonNull(executor);
             this.threadPool = Objects.requireNonNull(pool);
             this.workerQueue = Objects.requireNonNull(workerQueue);
+            this.healthCheckRegistry = Objects.requireNonNull(healthCheckRegistry);
+            this.transientHealthCheck = Objects.requireNonNull(transientHealthCheck);
         }
 
         /**
@@ -224,6 +229,15 @@ final class WorkerCore
             LOG.warn("Aborting all current queued and in-progress tasks");
             final int numberOfTasksAborted = threadPool.abortTasks();
             stats.incrementTasksAborted(numberOfTasksAborted);
+        }
+
+        @Override
+        public void abortTasksUnhealthy(final String errorMsg)
+        {
+            abortTasks();
+            workerQueue.disconnectIncoming();
+            transientHealthCheck.addTransientExceptionToRegistry(errorMsg);
+            healthCheckRegistry.runHealthCheck("transient");
         }
 
         /**

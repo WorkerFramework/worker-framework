@@ -47,4 +47,11 @@ public interface QueueConsumer
      * @param tag the RabbitMQ id of the message to drop
      */
     void processDrop(final long tag);
+
+    /**
+     * Handle cancel request from RabbitMQ broker
+     *
+     * @param consumerTag the tag of the consumer to cancel
+     */
+    void processCancel(final String consumerTag);
 }

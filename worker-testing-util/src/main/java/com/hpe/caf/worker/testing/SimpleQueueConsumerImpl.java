@@ -91,4 +91,9 @@ public class SimpleQueueConsumerImpl implements QueueConsumer
     public void processDrop(long tag)
     {
     }
+
+    @Override
+    public void processCancel(String consumerTag)
+    {
+    }
 }

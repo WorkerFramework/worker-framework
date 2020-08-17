@@ -17,6 +17,7 @@ package com.hpe.caf.util.rabbitmq;
 
 import com.rabbitmq.client.Envelope;
 
+import java.io.IOException;
 import java.util.Map;
 import java.util.concurrent.BlockingQueue;
 
@@ -42,5 +43,12 @@ public class DefaultRabbitConsumer extends RabbitConsumer<QueueConsumer>
     protected final Event<QueueConsumer> getDeliverEvent(Envelope envelope, byte[] data, Map<String, Object> headers)
     {
         return new ConsumerDeliverEvent(new Delivery(envelope, data, headers));
+    }
+
+    @Override
+    public void handleCancel(final String consumerTag) throws IOException
+    {
+        super.handleCancel(consumerTag);
+        getEventQueue().add(new ConsumerCancelEvent(consumerTag));
     }
 }

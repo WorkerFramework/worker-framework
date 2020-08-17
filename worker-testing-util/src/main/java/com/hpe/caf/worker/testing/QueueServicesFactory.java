@@ -50,6 +50,11 @@ public class QueueServicesFactory
         public void abortTasks()
         {
         }
+
+        @Override
+        public void abortTasksUnhealthy(final String errorMsg)
+        {
+        }
     }
 
     public static QueueServices create(final RabbitWorkerQueueConfiguration configuration, final String resultsQueueName, final Codec codec)
