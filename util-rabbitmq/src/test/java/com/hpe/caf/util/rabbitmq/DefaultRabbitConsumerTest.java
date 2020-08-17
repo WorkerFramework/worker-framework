@@ -151,6 +151,12 @@ public class DefaultRabbitConsumerTest
             latch.countDown();
         }
 
+        @Override
+        public void processCancel(String consumerTag)
+        {
+            //no-op
+        }
+
         public Delivery getLastDelivery()
         {
             return lastDelivery;
