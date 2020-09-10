@@ -69,10 +69,6 @@
             <artifactId>amqp-client</artifactId>
         </dependency>
         <dependency>
-            <groupId>net.jodah</groupId>
-            <artifactId>lyra</artifactId>
-        </dependency>
-        <dependency>
             <groupId>com.github.workerframework</groupId>
             <artifactId>worker-api</artifactId>
         </dependency>

@@ -18,12 +18,10 @@ package com.hpe.caf.worker.queue.rabbit;
 import com.hpe.caf.api.HealthResult;
 import com.hpe.caf.api.HealthStatus;
 import com.hpe.caf.api.worker.*;
-import com.hpe.caf.configs.RabbitConfiguration;
 import com.hpe.caf.util.rabbitmq.*;
 import com.rabbitmq.client.Channel;
 import com.rabbitmq.client.Connection;
-import net.jodah.lyra.ConnectionOptions;
-import net.jodah.lyra.config.Config;
+import com.rabbitmq.client.Recoverable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -324,11 +322,8 @@ public final class RabbitWorkerQueue implements ManagedWorkerQueue
     private void createConnection(TaskCallback callback, WorkerConfirmListener listener)
         throws IOException, TimeoutException
     {
-        RabbitConfiguration rc = config.getRabbitConfiguration();
-        ConnectionOptions lyraOpts = RabbitUtil.createLyraConnectionOptions(rc.getRabbitHost(), rc.getRabbitPort(), rc.getRabbitUser(), rc.getRabbitPassword());
-        Config lyraConfig = RabbitUtil.createLyraConfig(rc.getBackoffInterval(), rc.getMaxBackoffInterval(), -1);
-        lyraConfig.withConnectionListeners(new WorkerConnectionListener(callback, listener));
-        conn = RabbitUtil.createRabbitConnection(lyraOpts, lyraConfig);
+        conn = RabbitUtil.createRabbitConnection(config.getRabbitConfiguration());
+        ((Recoverable)conn).addRecoveryListener(new WorkerConnectionListener(callback, listener));
     }
 
     private void declareWorkerQueue(Channel channel, String queueName, int maxPriority)
