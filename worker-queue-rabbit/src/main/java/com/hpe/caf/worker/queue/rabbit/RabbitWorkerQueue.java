@@ -73,10 +73,10 @@ public final class RabbitWorkerQueue implements ManagedWorkerQueue
     /**
      * {@inheritDoc}
      *
-     * Create a RabbitMQ connection, and separate incoming and outgoing channels. The connection and channels are managed by Lyra, so will
+     * Create a RabbitMQ connection, and separate incoming and outgoing channels. The connection and channels will
      * attempt to re-establish should they drop. Declare the queues on the appropriate channels and kick off the publisher and consumer
      * threads to handle messages. Since this code uses publisher confirms, it is important currently to declare the publisher channel
-     * before the consumer channel, otherwise during a connection drop scenario, Lyra can report the publish sequence number for the "old"
+     * before the consumer channel, otherwise during a connection drop scenario, the client can report the publish sequence number for the "old"
      * channel before recovering it.
      */
     @Override

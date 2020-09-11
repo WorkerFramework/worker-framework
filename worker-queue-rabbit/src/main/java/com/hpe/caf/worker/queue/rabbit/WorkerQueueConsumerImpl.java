@@ -127,7 +127,7 @@ public class WorkerQueueConsumerImpl implements QueueConsumer
     }
 
     /**
-     * Process a REJECT event. Similar to ACK, we will requeue the event if it fails, though Lyra should handle most of our failure cases.
+     * Process a REJECT event. Similar to ACK, we will requeue the event if it fails, though the RabbitMQ java client should handle most of our failure cases.
      *
      * @param id the id of the message to reject
      * @param requeue whether to put this message back on the queue or drop it to the dead letters exchange
