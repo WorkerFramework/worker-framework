@@ -68,8 +68,6 @@ public class QueueServicesFactory
     private static Connection createConnection(RabbitWorkerQueueConfiguration configuration, final TaskCallback callback)
         throws IOException, TimeoutException
     {
-        RabbitConfiguration rc = configuration.getRabbitConfiguration();
-        Connection connection = RabbitUtil.createRabbitConnection(rc);
-        return connection;
+        return RabbitUtil.createRabbitConnection(configuration.getRabbitConfiguration());
     }
 }

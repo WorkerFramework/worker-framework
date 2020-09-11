@@ -85,10 +85,11 @@ public final class RabbitUtil
         factory.setPort(rc.getRabbitPort());
         final List<Long> backOff = new ArrayList<>();
         long backOffCount = rc.getBackoffInterval();
-        do {
-            backOff.add(backOffCount);
+        backOff.add(backOffCount);
+        while (backOffCount < rc.getMaxBackoffInterval()) {
             backOffCount += rc.getBackoffInterval();
-        } while (backOffCount <= rc.getMaxBackoffInterval());
+            backOff.add(backOffCount);
+        }
         factory.setRecoveryDelayHandler(new RecoveryDelayHandler.ExponentialBackoffDelayHandler(backOff));
         factory.setAutomaticRecoveryEnabled(true);
         return factory.newConnection();
