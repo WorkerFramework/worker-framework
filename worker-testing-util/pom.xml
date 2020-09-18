@@ -87,7 +87,6 @@
         <dependency>
             <groupId>com.github.workerframework</groupId>
             <artifactId>worker-configs</artifactId>
-            <scope>runtime</scope>
         </dependency>
         <dependency>
             <groupId>junit</groupId>

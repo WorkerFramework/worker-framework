@@ -20,6 +20,7 @@ import com.hpe.caf.api.worker.InvalidTaskException;
 import com.hpe.caf.api.worker.TaskCallback;
 import com.hpe.caf.api.worker.TaskInformation;
 import com.hpe.caf.api.worker.TaskRejectedException;
+import com.hpe.caf.configs.RabbitConfiguration;
 import com.hpe.caf.util.rabbitmq.RabbitUtil;
 import com.hpe.caf.worker.queue.rabbit.RabbitWorkerQueueConfiguration;
 import com.rabbitmq.client.Channel;
@@ -67,6 +68,7 @@ public class QueueServicesFactory
     private static Connection createConnection(RabbitWorkerQueueConfiguration configuration, final TaskCallback callback)
         throws IOException, TimeoutException
     {
-        return RabbitUtil.createRabbitConnection(configuration.getRabbitConfiguration());
+        final RabbitConfiguration rabbitConfiguration = configuration.getRabbitConfiguration();
+        return RabbitUtil.createRabbitConnection(rabbitConfiguration);
     }
 }
