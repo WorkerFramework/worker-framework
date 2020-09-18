@@ -150,6 +150,7 @@
 
             <!-- Plugin for running integration tests in the integration-test phase -->
             <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-failsafe-plugin</artifactId>
                 <version>${maven.failsafe.version}</version>
                 <executions>
