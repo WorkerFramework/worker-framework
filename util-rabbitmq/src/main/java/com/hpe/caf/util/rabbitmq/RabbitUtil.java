@@ -19,7 +19,9 @@ import com.hpe.caf.configs.RabbitConfiguration;
 import com.rabbitmq.client.Channel;
 import com.rabbitmq.client.Connection;
 import com.rabbitmq.client.ConnectionFactory;
+import com.rabbitmq.client.ExceptionHandler;
 import com.rabbitmq.client.RecoveryDelayHandler;
+import jdk.internal.jline.internal.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -78,11 +80,30 @@ public final class RabbitUtil
      */
     public static Connection createRabbitConnection(final RabbitConfiguration rc) throws IOException, TimeoutException
     {
+        return createRabbitConnection(rc, null);
+    }
+
+    /**
+     * Create a new RabbitMQ connection with custom settings.
+     *
+     * @param rc the connection config
+     * @param exceptionHandler the exception handling implementation, a default handler will be used if null.
+     * @return a valid connection to RabbitMQ
+     * @throws IOException if the connection fails to establish
+     * @throws TimeoutException if the connection fails to establish
+     */
+    public static Connection createRabbitConnection(final RabbitConfiguration rc,
+                                                    final ExceptionHandler exceptionHandler)
+            throws IOException, TimeoutException
+    {
         final ConnectionFactory factory = new ConnectionFactory();
         factory.setUsername(rc.getRabbitUser());
         factory.setPassword(rc.getRabbitPassword());
         factory.setHost(rc.getRabbitHost());
         factory.setPort(rc.getRabbitPort());
+        if (exceptionHandler != null) {
+            factory.setExceptionHandler(exceptionHandler);
+        }
         final List<Long> backOff = new ArrayList<>();
         long backOffCount = rc.getBackoffInterval();
         backOff.add(backOffCount);
