@@ -33,12 +33,12 @@
 
     <dependencies>
         <dependency>
-            <groupId>org.slf4j</groupId>
-            <artifactId>slf4j-api</artifactId>
+            <groupId>com.github.workerframework</groupId>
+            <artifactId>worker-configs</artifactId>
         </dependency>
         <dependency>
-            <groupId>net.jodah</groupId>
-            <artifactId>lyra</artifactId>
+            <groupId>org.slf4j</groupId>
+            <artifactId>slf4j-api</artifactId>
         </dependency>
         <dependency>
             <groupId>com.rabbitmq</groupId>

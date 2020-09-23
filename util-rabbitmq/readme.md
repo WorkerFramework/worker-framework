@@ -29,17 +29,14 @@
  Connection c = RabbitUtil.createRabbitConnection(config);
  ```
 
- This `Connection` will be handled by the Lyra client library, which will
+ This `Connection` will be handled by the RabbitMQ client library, which will
  automatically deal with connection drops and failed communication attempts,
  up to the limits specified within the configuration. If a greater level of
- control over Lyra is needed, such as adding `ConnectionListener` classes,
- create a connection with a sequence such as this:
+ control over the recovery is needed, create a connection with a sequence such as this:
 
  ```
- ConnectionOptions opt = RabbitUtil.createLyraConnectionOptions(config);
- Config cfg = RabbitUtil.createLyraConfig(config);
- cfg.withConnectionListeners(new CustomConnectionListener());
- Connection c = RabbitUtil.createRabbitConnection(opt, cfg);
+ Connection c = RabbitUtil.createRabbitConnection(config);
+ ((Recoverable)c).addRecoveryListener(new CustomRecoveryListener());
  ```
 
 ### Creating a channel

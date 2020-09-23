@@ -58,10 +58,6 @@
             <scope>provided</scope>
         </dependency>
         <dependency>
-            <groupId>net.jodah</groupId>
-            <artifactId>lyra</artifactId>
-        </dependency>
-        <dependency>
             <groupId>com.github.cafapi</groupId>
             <artifactId>caf-api</artifactId>
         </dependency>

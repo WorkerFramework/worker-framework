@@ -42,10 +42,6 @@
         </dependency>
         <dependency>
             <groupId>com.github.workerframework</groupId>
-            <artifactId>worker-configs</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>com.github.workerframework</groupId>
             <artifactId>util-rabbitmq</artifactId>
         </dependency>
         <dependency>
@@ -69,10 +65,6 @@
             <artifactId>amqp-client</artifactId>
         </dependency>
         <dependency>
-            <groupId>net.jodah</groupId>
-            <artifactId>lyra</artifactId>
-        </dependency>
-        <dependency>
             <groupId>com.github.workerframework</groupId>
             <artifactId>worker-api</artifactId>
         </dependency>
@@ -91,6 +83,10 @@
         <dependency>
             <groupId>com.github.cafapi.cipher</groupId>
             <artifactId>cipher-null</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>com.github.workerframework</groupId>
+            <artifactId>worker-configs</artifactId>
         </dependency>
         <dependency>
             <groupId>junit</groupId>
