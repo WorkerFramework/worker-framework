@@ -18,10 +18,12 @@ package com.hpe.caf.worker.queue.rabbit;
 import com.hpe.caf.api.HealthResult;
 import com.hpe.caf.api.HealthStatus;
 import com.hpe.caf.api.worker.*;
+import com.hpe.caf.configs.RabbitConfiguration;
 import com.hpe.caf.util.rabbitmq.*;
 import com.rabbitmq.client.Channel;
 import com.rabbitmq.client.Connection;
-import com.rabbitmq.client.Recoverable;
+import net.jodah.lyra.ConnectionOptions;
+import net.jodah.lyra.config.Config;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -73,10 +75,10 @@ public final class RabbitWorkerQueue implements ManagedWorkerQueue
     /**
      * {@inheritDoc}
      *
-     * Create a RabbitMQ connection, and separate incoming and outgoing channels. The connection and channels will
+     * Create a RabbitMQ connection, and separate incoming and outgoing channels. The connection and channels are managed by Lyra, so will
      * attempt to re-establish should they drop. Declare the queues on the appropriate channels and kick off the publisher and consumer
      * threads to handle messages. Since this code uses publisher confirms, it is important currently to declare the publisher channel
-     * before the consumer channel, otherwise during a connection drop scenario, the client can report the publish sequence number for the "old"
+     * before the consumer channel, otherwise during a connection drop scenario, Lyra can report the publish sequence number for the "old"
      * channel before recovering it.
      */
     @Override
@@ -322,8 +324,11 @@ public final class RabbitWorkerQueue implements ManagedWorkerQueue
     private void createConnection(TaskCallback callback, WorkerConfirmListener listener)
         throws IOException, TimeoutException
     {
-        conn = RabbitUtil.createRabbitConnection(config.getRabbitConfiguration());
-        ((Recoverable)conn).addRecoveryListener(new WorkerConnectionListener(callback, listener));
+        RabbitConfiguration rc = config.getRabbitConfiguration();
+        ConnectionOptions lyraOpts = RabbitUtil.createLyraConnectionOptions(rc.getRabbitHost(), rc.getRabbitPort(), rc.getRabbitUser(), rc.getRabbitPassword());
+        Config lyraConfig = RabbitUtil.createLyraConfig(rc.getBackoffInterval(), rc.getMaxBackoffInterval(), -1);
+        lyraConfig.withConnectionListeners(new WorkerConnectionListener(callback, listener));
+        conn = RabbitUtil.createRabbitConnection(lyraOpts, lyraConfig);
     }
 
     private void declareWorkerQueue(Channel channel, String queueName, int maxPriority)

@@ -25,6 +25,8 @@ import com.hpe.caf.util.rabbitmq.RabbitUtil;
 import com.hpe.caf.worker.queue.rabbit.RabbitWorkerQueueConfiguration;
 import com.rabbitmq.client.Channel;
 import com.rabbitmq.client.Connection;
+import net.jodah.lyra.ConnectionOptions;
+import net.jodah.lyra.config.Config;
 import org.apache.commons.lang3.StringUtils;
 
 import java.io.IOException;
@@ -68,7 +70,10 @@ public class QueueServicesFactory
     private static Connection createConnection(RabbitWorkerQueueConfiguration configuration, final TaskCallback callback)
         throws IOException, TimeoutException
     {
-        final RabbitConfiguration rabbitConfiguration = configuration.getRabbitConfiguration();
-        return RabbitUtil.createRabbitConnection(rabbitConfiguration);
+        RabbitConfiguration rc = configuration.getRabbitConfiguration();
+        ConnectionOptions lyraOpts = RabbitUtil.createLyraConnectionOptions(rc.getRabbitHost(), rc.getRabbitPort(), rc.getRabbitUser(), rc.getRabbitPassword());
+        Config lyraConfig = RabbitUtil.createLyraConfig(rc.getBackoffInterval(), rc.getMaxBackoffInterval(), rc.getMaxAttempts());
+        Connection connection = RabbitUtil.createRabbitConnection(lyraOpts, lyraConfig);
+        return connection;
     }
 }
