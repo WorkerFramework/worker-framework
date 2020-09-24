@@ -17,7 +17,7 @@ banner:
 The Worker Framework includes the following key features.
 
 ## High availability and fault tolerant messaging
-By default, the Worker Framework uses [RabbitMQ](https://www.rabbitmq.com/), a reliable, robust messaging platform, which allows asynchronous processing and protects against data loss. It also utilizes [Lyra](https://github.com/jhalterman/lyra), a high availability client for RabbitMQ, which provides automated recovery from failures.
+By default, the Worker Framework uses [RabbitMQ](https://www.rabbitmq.com/), a reliable, robust messaging platform, which allows asynchronous processing and protects against data loss. It also utilizes the [RabbitMQ Java Client Library](https://www.rabbitmq.com/java-client.html), a high availability client for RabbitMQ, which provides automated recovery from failures.
 
 ## External data exchange
 Workers usually operate on data that's provided from an external, distributed storage system. Also, the size of data can get quite large, including results produced by a worker. To optimize processing, the Worker Framework has a built-in feature allowing data exchange with external storage. It is a pluggable solution and comes with Amazon S3 Storage plugin.

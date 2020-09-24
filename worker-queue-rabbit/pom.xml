@@ -23,12 +23,12 @@
 
     <groupId>com.github.workerframework</groupId>
     <artifactId>worker-queue-rabbit</artifactId>
-    <version>3.5.0-SNAPSHOT</version>
+    <version>4.0.0-SNAPSHOT</version>
 
     <parent>
         <groupId>com.github.workerframework</groupId>
         <artifactId>worker-framework-aggregator</artifactId>
-        <version>3.5.0-SNAPSHOT</version>
+        <version>4.0.0-SNAPSHOT</version>
     </parent>
 
     <dependencies>
@@ -56,10 +56,6 @@
             <groupId>javax.validation</groupId>
             <artifactId>validation-api</artifactId>
             <scope>provided</scope>
-        </dependency>
-        <dependency>
-            <groupId>net.jodah</groupId>
-            <artifactId>lyra</artifactId>
         </dependency>
         <dependency>
             <groupId>com.github.cafapi</groupId>

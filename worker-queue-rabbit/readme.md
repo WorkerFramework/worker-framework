@@ -1,6 +1,6 @@
 # worker-queue-rabbit
 
- This is an implementation of a `WorkerQueue` that uses RabbitMQ with the Lyra
+ This is an implementation of a `WorkerQueue` that uses RabbitMQ with the RabbitMQ java
  client library.
 
 
@@ -26,7 +26,7 @@
  long as the time spent performing tasks is significantly greater than the
  time taken to process messages.
 
- As this implementation uses the Lyra client, all connection failures will be
+ As this implementation uses the RabbitMQ java client, all connection failures will be
  retried, and dropped connections will be re-established, up to the maximum
  number of attempts specified in the configuration. Health checks will report
  as failed if the RabbitMQ connection is down. If the connection re-establishes

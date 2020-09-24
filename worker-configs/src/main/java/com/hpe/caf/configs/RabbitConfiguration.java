@@ -23,7 +23,7 @@ import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Size;
 
 /**
- * General configuration for a Lyra-managed RabbitMQ server connection from a client.
+ * General configuration for a RabbitMQ server connection from a client.
  */
 public class RabbitConfiguration
 {

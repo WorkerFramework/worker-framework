@@ -15,20 +15,20 @@
  */
 package com.hpe.caf.util.rabbitmq;
 
+import com.hpe.caf.configs.RabbitConfiguration;
 import com.rabbitmq.client.Channel;
 import com.rabbitmq.client.Connection;
-import net.jodah.lyra.ConnectionOptions;
-import net.jodah.lyra.Connections;
-import net.jodah.lyra.config.Config;
-import net.jodah.lyra.config.RecoveryPolicy;
-import net.jodah.lyra.config.RetryPolicy;
-import net.jodah.lyra.util.Duration;
+import com.rabbitmq.client.ConnectionFactory;
+import com.rabbitmq.client.ExceptionHandler;
+import com.rabbitmq.client.RecoveryDelayHandler;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.concurrent.TimeoutException;
@@ -45,68 +45,74 @@ public final class RabbitUtil
     }
 
     /**
-     * Create a new Lyra managed RabbitMQ connection with a default Lyra configuration.
+     * Create a new RabbitMQ connection with a default configuration.
      *
      * @param host the host or IP running RabbitMQ
      * @param port the port that the RabbitMQ server is exposed on
      * @param user the username to use when authenticating with RabbitMQ
      * @param pass the password to use when autenticating with RabbitMQ
-     * @return a valid connection to RabbitMQ, managed by Lyra
+     * @return a valid connection to RabbitMQ
      * @throws IOException if the connection fails to establish
      * @throws TimeoutException if the connection fails to establish
      */
     public static Connection createRabbitConnection(String host, int port, String user, String pass)
         throws IOException, TimeoutException
     {
-        return createRabbitConnection(createLyraConnectionOptions(host, port, user, pass), createLyraConfig(1, 30, 20));
+        final RabbitConfiguration rc = new RabbitConfiguration();
+        rc.setRabbitHost(host);
+        rc.setRabbitPort(port);
+        rc.setRabbitUser(user);
+        rc.setRabbitPassword(pass);
+        rc.setMaxBackoffInterval(30);
+        rc.setBackoffInterval(1);
+        rc.setMaxAttempts(20);
+        return createRabbitConnection(rc);
     }
 
     /**
-     * Create a new Lyra managed RabbitMQ connection with custom settings.
+     * Create a new RabbitMQ connection with custom settings.
      *
-     * @param opts the Lyra ConnectionOptions
-     * @param config the Lyra Config
-     * @return a valid connection to RabbitMQ, managed by Lyra
+     * @param rc the connection config
+     * @return a valid connection to RabbitMQ
      * @throws IOException if the connection fails to establish
      * @throws TimeoutException if the connection fails to establish
      */
-    public static Connection createRabbitConnection(ConnectionOptions opts, Config config)
-        throws IOException, TimeoutException
+    public static Connection createRabbitConnection(final RabbitConfiguration rc) throws IOException, TimeoutException
     {
-        return Connections.create(opts, config);
+        return createRabbitConnection(rc, null);
     }
 
     /**
-     * Generate a pre-populated Lyra ConnectionOptions object which can be used together with a Lyra Config object to establish a RabbitMQ
-     * connection. If you wish to use defaults, just call the createRabbitConnection(RabbitConfiguration) method.
+     * Create a new RabbitMQ connection with custom settings.
      *
-     * @param host the host or IP running RabbitMQ
-     * @param port the port that the RabbitMQ server is exposed on
-     * @param user the username to use when authenticating with RabbitMQ
-     * @param pass the password to use when autenticating with RabbitMQ
-     * @return a Lyra ConnectionOptions object with settings configured from the RabbitConfiguration specified
+     * @param rc the connection config
+     * @param exceptionHandler the exception handling implementation, a default handler will be used if null.
+     * @return a valid connection to RabbitMQ
+     * @throws IOException if the connection fails to establish
+     * @throws TimeoutException if the connection fails to establish
      */
-    public static ConnectionOptions createLyraConnectionOptions(String host, int port, String user, String pass)
+    public static Connection createRabbitConnection(final RabbitConfiguration rc,
+                                                    final ExceptionHandler exceptionHandler)
+            throws IOException, TimeoutException
     {
-        return new ConnectionOptions().withHost(host).withPort(port).withUsername(user).withPassword(pass);
-    }
-
-    /**
-     * Generate a pre-populated Lyra Config object which can be used together with a Lyra ConnectionOptions object to establish a RabbitMQ
-     * connection. If you wish to use defaults, just call the createRabbitConnection(RabbitConfiguration) method.
-     *
-     * @param backoffInterval the initial interval, in seconds, between re-attempts upon failed RabbitMQ operations
-     * @param maxBackoffInterval the maximum interval, in seconds, between re-attempts upon failed RabbitMQ operations
-     * @param maxAttempts the maximum number of attempts to retry failed RabbitMQ operations, -1 is unlimited
-     * @return a Lyra Config object with settings configured from the RabbitConfiguration specified
-     */
-    public static Config createLyraConfig(int backoffInterval, int maxBackoffInterval, int maxAttempts)
-    {
-        RecoveryPolicy recoveryPolicy
-            = new RecoveryPolicy().withBackoff(Duration.seconds(backoffInterval), Duration.seconds(maxBackoffInterval));
-        RetryPolicy retryPolicy
-            = new RetryPolicy().withBackoff(Duration.seconds(backoffInterval), Duration.seconds(maxBackoffInterval)).withMaxAttempts(maxAttempts);
-        return new Config().withRetryPolicy(retryPolicy).withRecoveryPolicy(recoveryPolicy.withMaxAttempts(maxAttempts));
+        final ConnectionFactory factory = new ConnectionFactory();
+        factory.setUsername(rc.getRabbitUser());
+        factory.setPassword(rc.getRabbitPassword());
+        factory.setHost(rc.getRabbitHost());
+        factory.setPort(rc.getRabbitPort());
+        if (exceptionHandler != null) {
+            factory.setExceptionHandler(exceptionHandler);
+        }
+        final List<Long> backOff = new ArrayList<>();
+        long backOffCount = rc.getBackoffInterval();
+        backOff.add(backOffCount);
+        while (backOffCount < rc.getMaxBackoffInterval()) {
+            backOffCount += rc.getBackoffInterval();
+            backOff.add(backOffCount);
+        }
+        factory.setRecoveryDelayHandler(new RecoveryDelayHandler.ExponentialBackoffDelayHandler(backOff));
+        factory.setAutomaticRecoveryEnabled(true);
+        return factory.newConnection();
     }
 
     /**
