@@ -64,18 +64,18 @@ public class RabbitWorkerQueuePublisherTest
         BlockingQueue<Event<QueueConsumer>> consumerEvents = new LinkedBlockingQueue<>();
         BlockingQueue<Event<WorkerPublisher>> publisherEvents = new LinkedBlockingQueue<>();
         Channel channel = Mockito.mock(Channel.class);
-        WorkerConfirmListener listener = Mockito.mock(WorkerConfirmListener.class);
-        WorkerPublisher impl = new WorkerPublisherImpl(channel, metrics, consumerEvents, listener);
-        EventPoller<WorkerPublisher> publisher = new EventPoller<>(2, publisherEvents, impl);
-        Thread t = new Thread(publisher);
-        t.start();
-        publisherEvents.add(new WorkerPublishQueueEvent(data, testQueue, taskInformation));
         CountDownLatch latch = new CountDownLatch(1);
         Answer<Void> a = invocationOnMock -> {
             latch.countDown();
             return null;
         };
         Mockito.doAnswer(a).when(channel).basicPublish(Mockito.any(), Mockito.eq(testQueue), Mockito.any(), Mockito.eq(data));
+        WorkerConfirmListener listener = Mockito.mock(WorkerConfirmListener.class);
+        WorkerPublisher impl = new WorkerPublisherImpl(channel, metrics, consumerEvents, listener);
+        EventPoller<WorkerPublisher> publisher = new EventPoller<>(2, publisherEvents, impl);
+        Thread t = new Thread(publisher);
+        t.start();
+        publisherEvents.add(new WorkerPublishQueueEvent(data, testQueue, taskInformation));
         latch.await(5000, TimeUnit.MILLISECONDS);
         publisher.shutdown();
         Assert.assertEquals(0, publisherEvents.size());
