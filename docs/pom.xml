@@ -69,7 +69,9 @@
                             <alias>source-code</alias>
                             <name>${project.artifactId}-source-code:${project.version}</name>
                             <build>
+                                <from>${dockerHubPublic}/library/busybox:latest</from>
                                 <assembly>
+                                    <exportTargetDir>true</exportTargetDir>
                                     <targetDir>/data</targetDir>
                                     <inline xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
                                             xmlns="http://maven.apache.org/plugins/maven-assembly-plugin/assembly/1.1.2"
