@@ -4,10 +4,12 @@ ${version-number}
 
 #### New Features
 
-* caf-common upgraded to [1.20.0-288](https://github.com/CAFapi/caf-common/releases/tag/v1.20.0)
+* caf-common upgraded to [1.20.0-288](https://github.com/CAFapi/caf-common/releases/tag/v1.20.0)  
+Configuration files can now be supplied as resources in addition to external files.  
+Configuration files now support ECMAScript 2020 features.
 
 #### Breaking Changes
-*   [SCMOD-9988](https://portal.digitalsafe.net/browse/SCMOD-9988): Lyra client dropped  
+*   SCMOD-9988: Lyra client dropped  
     * The Lyra client used to create an auto-recovering connection to RabbitMQ has been replaced with the latest RabbitMQ 
       Java client.  
     * Registering as a `net.jodah.lyra.event.ConnectionListener` is no longer supported.
