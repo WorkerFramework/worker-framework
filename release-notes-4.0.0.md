@@ -1,14 +1,13 @@
-!not-ready-for-release!
 
 #### Version Number
 ${version-number}
 
 #### New Features
 
-#### Known Issues
+* caf-common upgraded to [1.20.0-288](https://github.com/CAFapi/caf-common/releases/tag/v1.20.0)
 
 #### Breaking Changes
-*   SCMOD-9988: Lyra client dropped  
+*   [SCMOD-9988](https://portal.digitalsafe.net/browse/SCMOD-9988): Lyra client dropped  
     * The Lyra client used to create an auto-recovering connection to RabbitMQ has been replaced with the latest RabbitMQ 
       Java client.  
     * Registering as a `net.jodah.lyra.event.ConnectionListener` is no longer supported.
@@ -19,3 +18,6 @@ ${version-number}
         * `createLyraConnectionOptions(String host, int port, String user, String pass)`
         * `createLyraConfig(int backoffInterval, int maxBackoffInterval, int maxAttempts)`  
 
+#### Known Issues
+
+* None
