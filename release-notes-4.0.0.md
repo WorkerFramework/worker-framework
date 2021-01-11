@@ -1,11 +1,12 @@
-!not-ready-for-release!
 
 #### Version Number
 ${version-number}
 
 #### New Features
 
-#### Known Issues
+* caf-common upgraded to [1.20.0-288](https://github.com/CAFapi/caf-common/releases/tag/v1.20.0)  
+Configuration files can now be supplied as resources in addition to external files.  
+Configuration files now support ECMAScript 2020 features.
 
 #### Breaking Changes
 *   SCMOD-9988: Lyra client dropped  
@@ -19,3 +20,6 @@ ${version-number}
         * `createLyraConnectionOptions(String host, int port, String user, String pass)`
         * `createLyraConfig(int backoffInterval, int maxBackoffInterval, int maxAttempts)`  
 
+#### Known Issues
+
+* None

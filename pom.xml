@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!--
 
-    Copyright 2015-2020 Micro Focus or one of its affiliates.
+    Copyright 2015-2021 Micro Focus or one of its affiliates.
 
     Licensed under the Apache License, Version 2.0 (the "License");
     you may not use this file except in compliance with the License.
@@ -59,7 +59,7 @@
     </developers>
     
     <properties>
-        <copyrightYear>2020</copyrightYear>
+        <copyrightYear>2021</copyrightYear>
         <gitRepo>https://github.com/WorkerFramework/worker-framework</gitRepo>
         <enforceCorrectDependencies>true</enforceCorrectDependencies>
     </properties>
