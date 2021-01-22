@@ -60,7 +60,6 @@
     
     <properties>
         <copyrightYear>2021</copyrightYear>
-        <gitRepo>https://github.com/WorkerFramework/worker-framework</gitRepo>
         <enforceCorrectDependencies>true</enforceCorrectDependencies>
     </properties>
 
@@ -202,7 +201,7 @@
     <scm>
         <connection>scm:git:https://github.com/WorkerFramework/worker-framework.git</connection>
         <developerConnection>scm:git:https://github.com/WorkerFramework/worker-framework.git</developerConnection>
-        <url>${gitRepo}</url>
+        <url>https://github.com/WorkerFramework/worker-framework</url>
     </scm>
 
 </project>

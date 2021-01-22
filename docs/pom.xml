@@ -88,13 +88,6 @@
                                         </fileSets>
                                     </inline>
                                 </assembly>
-                                <labels>
-                                    <Build.Number>${project.version}</Build.Number>
-                                    <Build.Date>${maven.build.timestamp}</Build.Date>
-                                    <Git.Repo>${gitRepo}</Git.Repo>
-                                    <Git.Branch>${git.branch}</Git.Branch>
-                                    <Git.Commit>${git.revision}</Git.Commit>
-                                </labels>
                             </build>
                         </image>
 
