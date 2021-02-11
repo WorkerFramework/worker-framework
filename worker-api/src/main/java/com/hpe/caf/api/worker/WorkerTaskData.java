@@ -44,7 +44,6 @@ public interface WorkerTaskData
      * Retrieves any task specific context associated with the task
      */
     byte[] getContext();
-    
     /**
      * Retrieves task specific correlationId
      */
