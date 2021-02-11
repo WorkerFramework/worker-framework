@@ -123,6 +123,7 @@ class WorkerTaskImpl implements WorkerTask
     {
         return taskMessage.getContext().get(servicePath.toString());
     }
+
     @Override
     public String getCorrelationId()
     {
