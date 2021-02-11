@@ -24,6 +24,7 @@ import java.util.UUID;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.slf4j.MDC;
 
 /**
  * A wrapper for a worker used internally by the worker core. It is a Runnable that executes a worker but ensures that a result is always
@@ -31,6 +32,7 @@ import org.slf4j.LoggerFactory;
  */
 class StreamingWorkerWrapper implements Runnable
 {
+    private static final String CORRELATION_ID = "correlationId";
     private final Worker worker;
     private final WorkerTaskImpl workerTask;
     private static final Timer TIMER = new Timer();
@@ -58,6 +60,7 @@ class StreamingWorkerWrapper implements Runnable
                 throw new RuntimeException("Worker [" + worker.getWorkerIdentifier() + "] did not handle poisoned message, when it was passed for processing.");
             } else {
                 Timer.Context t = TIMER.time();
+                MDC.put(CORRELATION_ID, workerTask.getCorrelationId());
                 WorkerResponse response = worker.doWork();
                 t.stop();
                 workerTask.setResponse(response);
@@ -72,6 +75,9 @@ class StreamingWorkerWrapper implements Runnable
         } catch (RuntimeException e) {
             LOG.warn("Worker threw unhandled exception", e);
             workerTask.setResponse(worker.getGeneralFailureResult(e));
+        }
+        finally {
+            MDC.remove(CORRELATION_ID);
         }
     }
 
@@ -95,7 +101,8 @@ class StreamingWorkerWrapper implements Runnable
                 Collections.<String, byte[]>emptyMap(),
                 workerTask.getRejectQueue(),
                 workerTask.getTrackingInfo(),
-                workerTask.getSourceInfo());
+                workerTask.getSourceInfo(),
+                workerTask.getCorrelationId());
         workerTask.sendMessage(poisonMessage);
     }
 }

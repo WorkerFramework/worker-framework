@@ -46,6 +46,11 @@ public interface WorkerTaskData
     byte[] getContext();
 
     /**
+     * Retrieves task specific correlationId
+     */
+    String getCorrelationId();
+
+    /**
      * Retrieves tracking information associated with the task
      */
     TrackingInfo getTrackingInfo();
