@@ -112,7 +112,7 @@ public final class TaskMessage
     public TaskMessage(final String taskId, final String taskClassifier, final int taskApiVersion, final byte[] taskData,
                        final TaskStatus taskStatus, final Map<String, byte[]> context, final String to, final TrackingInfo tracking)
     {
-        this(taskId, taskClassifier, taskApiVersion, taskData, taskStatus, context, to, tracking, null, null);
+        this(taskId, taskClassifier, taskApiVersion, taskData, taskStatus, context, to, tracking, null);
     }
 
     public TaskMessage(final String taskId, final String taskClassifier, final int taskApiVersion, final byte[] taskData,
