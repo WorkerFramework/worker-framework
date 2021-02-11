@@ -32,7 +32,7 @@ import org.slf4j.MDC;
  */
 class StreamingWorkerWrapper implements Runnable
 {
-    public static final String CORRELATION_ID = "correlationId";
+    private static final String CORRELATION_ID = "correlationId";
     private final Worker worker;
     private final WorkerTaskImpl workerTask;
     private static final Timer TIMER = new Timer();
@@ -60,7 +60,7 @@ class StreamingWorkerWrapper implements Runnable
                 throw new RuntimeException("Worker [" + worker.getWorkerIdentifier() + "] did not handle poisoned message, when it was passed for processing.");
             } else {
                 Timer.Context t = TIMER.time();
-                MDC.put(CORRELATION_ID, workerTask.getCorrelationID());
+                MDC.put(CORRELATION_ID, workerTask.getCorrelationId());
                 WorkerResponse response = worker.doWork();
                 t.stop();
                 workerTask.setResponse(response);
@@ -76,7 +76,9 @@ class StreamingWorkerWrapper implements Runnable
             LOG.warn("Worker threw unhandled exception", e);
             workerTask.setResponse(worker.getGeneralFailureResult(e));
         }
-        MDC.remove(CORRELATION_ID);
+        finally {
+            MDC.remove(CORRELATION_ID);
+        }
     }
 
     /**
@@ -100,7 +102,7 @@ class StreamingWorkerWrapper implements Runnable
                 workerTask.getRejectQueue(),
                 workerTask.getTrackingInfo(),
                 workerTask.getSourceInfo(),
-                workerTask.getCorrelationID());
+                workerTask.getCorrelationId());
         workerTask.sendMessage(poisonMessage);
     }
 }

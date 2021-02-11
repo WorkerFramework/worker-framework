@@ -125,9 +125,9 @@ class WorkerTaskImpl implements WorkerTask
     }
     
     @Override
-    public String getCorrelationID()
+    public String getCorrelationId()
     {
-        return taskMessage.getCorrelationID();
+        return taskMessage.getCorrelationId();
     }
 
     @Override
@@ -203,7 +203,7 @@ class WorkerTaskImpl implements WorkerTask
             response.getApiVersion(), response.getData(),
             response.getTaskStatus(), responseContext,
             response.getQueueReference(), trackingInfo,
-            new TaskSourceInfo(getWorkerName(responseMessageType), getWorkerVersion()), taskMessage.getCorrelationID());
+            new TaskSourceInfo(getWorkerName(responseMessageType), getWorkerVersion()), taskMessage.getCorrelationId());
         responseMessage.setPriority(priorityManager.getResponsePriority(taskMessage));
 
         return responseMessage;
@@ -264,7 +264,7 @@ class WorkerTaskImpl implements WorkerTask
             workerFactory.getInvalidTaskQueue(),
             taskMessage.getTracking(),
             new TaskSourceInfo(getWorkerName(taskClassifier), getWorkerVersion()),
-            taskMessage.getCorrelationID());
+            taskMessage.getCorrelationId());
 
         completeResponse(invalidResponse);
     }

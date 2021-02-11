@@ -91,7 +91,7 @@ public final class TaskMessage
     /**
      * This field contains the correlation id which is eventually logged via MDC.
      */
-    private String correlationID;
+    private String correlationId;
 
     public TaskMessage()
     {
@@ -116,8 +116,14 @@ public final class TaskMessage
     }
 
     public TaskMessage(final String taskId, final String taskClassifier, final int taskApiVersion, final byte[] taskData,
+        final TaskStatus taskStatus, final Map<String, byte[]> context, final String to, final TrackingInfo tracking, final TaskSourceInfo sourceInfo)
+    {
+        this(taskId, taskClassifier, taskApiVersion, taskData, taskStatus, context, to, tracking, sourceInfo, null);
+    }
+
+    public TaskMessage(final String taskId, final String taskClassifier, final int taskApiVersion, final byte[] taskData,
                        final TaskStatus taskStatus, final Map<String, byte[]> context, final String to, final TrackingInfo tracking, final TaskSourceInfo sourceInfo,
-                       final String correlationID)
+                       final String correlationId)
     {
         this.taskId = Objects.requireNonNull(taskId);
         this.taskClassifier = Objects.requireNonNull(taskClassifier);
@@ -128,7 +134,7 @@ public final class TaskMessage
         this.to = to;
         this.tracking = tracking;
         this.sourceInfo = sourceInfo;
-        this.correlationID = correlationID;
+        this.correlationId = correlationId;
     }
 
     public int getVersion()
@@ -241,13 +247,13 @@ public final class TaskMessage
         this.priority = priority;
     }
     
-    public String getCorrelationID()
+    public String getCorrelationId()
     {
-        return correlationID;
+        return correlationId;
     }
     
-    public void setCorrelationID(String correlationID)
+    public void setCorrelationId(String correlationId)
     {
-        this.correlationID = correlationID;
+        this.correlationId = correlationId;
     }
 }
