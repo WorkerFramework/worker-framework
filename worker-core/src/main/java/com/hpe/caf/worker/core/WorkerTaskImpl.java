@@ -622,7 +622,7 @@ class WorkerTaskImpl implements WorkerTask
         final TaskMessage reportUpdateMessage = new TaskMessage(
                 UUID.randomUUID().toString(), TrackingReportConstants.TRACKING_REPORT_TASK_NAME,
                 TrackingReportConstants.TRACKING_REPORT_TASK_API_VER, reportUpdatesTaskData, TaskStatus.NEW_TASK,
-                Collections.<String, byte[]>emptyMap(), trackingPipe);
+                Collections.<String, byte[]>emptyMap(), trackingPipe, null, null, taskMessage.getCorrelationId());
 
         //  Publish the task message comprising the report updates.
         workerCallback.reportUpdate(taskInformation, reportUpdateMessage);
