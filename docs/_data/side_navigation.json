@@ -19,14 +19,6 @@
                 "en-us": "pages/en-us/Features"
             }
         },
-        {
-            "title": {
-                "en-us": "Getting Started"
-            },
-            "url": {
-                "en-us": "pages/en-us/Getting-Started"
-            }
-        },
 		{
             "title": {
                 "en-us": "API"

@@ -10,7 +10,6 @@ Manifest of the components which make up the CAF Worker Framework:
 * standard-worker-container
 * util-rabbitmq
 * worker-api
-* worker-archetype
 * worker-caf
 * worker-configs
 * worker-core
