@@ -47,7 +47,7 @@ public class JobStatusResponseCacheTest
     public static void globalSetup() throws Exception
     {
         maxAgeHeaderValue = "max-age=" + String.valueOf(responseExpirySecs);
-        dummyUri = new URI("http://thehost:1234/job-service/v1/jobs/1356184177/isActive");
+        dummyUri = new URI("http://thehost:1234/job-service/v1/jobs/1356184177/status");
     }
 
     @BeforeMethod
