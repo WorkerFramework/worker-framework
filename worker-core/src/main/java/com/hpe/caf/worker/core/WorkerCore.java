@@ -180,18 +180,20 @@ final class WorkerCore
                                     taskInformation.getInboundMessageId(),
                                     pausedQueue);
                                 try {
+                                    // TODO increment stats?
                                     workerQueue.publish(taskInformation, taskMessage, pausedQueue, headers);
                                 } catch (final QueueException ex) {
                                     // TODO call abandon(taskInformation, e) or throw RuntimeException?
-                                    LOG.error("Cannot publish data for task: {} to paused queue: {}, rejecting", tm.getTaskId(), pausedQueue, ex);
+                                    LOG.error("Cannot publish data for task: {} to paused queue: {}, rejecting",
+                                              tm.getTaskId(), pausedQueue, ex);
                                     throw new RuntimeException(ex);
                                 }
                             } else {
                                 LOG.debug(
-                                    "Task {} is paused but the paused queue has not been set, so the task message (message id: {}) will be executed as normal",
+                                    "Task {} is paused but the paused queue has not been set. "
+                                    + "Task message (message id: {}) will be executed as normal",
                                     tm.getTaskId(),
-                                    taskInformation.getInboundMessageId(),
-                                    pausedQueue);
+                                    taskInformation.getInboundMessageId());
                                 executeTask(tm, taskInformation, poison, headers);
                             }
                         } else {
@@ -260,7 +262,9 @@ final class WorkerCore
                 tm.getTaskId(),
                 taskInformation.hashCode(),
                 workerQueue.getInputQueue(),
-                (tm.getTo() != null) ? "is intended for this worker" : "has no explicit destination, therefore assuming it is intended for this worker");
+                (tm.getTo() != null)
+                ? "is intended for this worker"
+                : "has no explicit destination, therefore assuming it is intended for this worker");
             executor.executeTask(tm, taskInformation, poison, headers, codec);
         }
 
