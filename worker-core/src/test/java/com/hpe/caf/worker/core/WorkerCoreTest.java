@@ -554,6 +554,12 @@ public class WorkerCoreTest
         }
 
         @Override
+        public String getPausedQueue()
+        {
+            return null; // TODO
+        }
+
+        @Override
         public void shutdownIncoming()
         {
         }

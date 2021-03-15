@@ -198,6 +198,17 @@ public final class RabbitWorkerQueue implements ManagedWorkerQueue
     /**
      * {@inheritDoc}
      *
+     * Return the name of the paused queue.
+     */
+    @Override
+    public String getPausedQueue()
+    {
+        return config.getPausedQueue();
+    }
+
+    /**
+     * {@inheritDoc}
+     *
      * The incoming queues will all be cancelled so the consumer will fall back to idle.
      */
     @Override

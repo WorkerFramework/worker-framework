@@ -17,6 +17,7 @@
     prefetchBuffer: getenv("CAF_RABBITMQ_PREFETCH_BUFFER") || 1,
     inputQueue: getenv("CAF_WORKER_INPUT_QUEUE")
             || (getenv("CAF_WORKER_BASE_QUEUE_NAME") || getenv("CAF_WORKER_NAME") || "worker") + "-in",
+    pausedQueue: getenv("CAF_WORKER_PAUSED_QUEUE") || undefined,
     retryQueue: getenv("CAF_WORKER_RETRY_QUEUE") || undefined,
     rejectedQueue: "worker-rejected",
     retryLimit: getenv("CAF_WORKER_RETRY_LIMIT") || 10,

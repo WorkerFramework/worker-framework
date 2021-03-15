@@ -11,6 +11,7 @@
 
 - prefetchBuffer: the number of additional messages (tasks) to request from the RabbitMQ server beyond the number of tasks the worker can simultaneously handle. Minimum 0, Maximum 100000.
 - inputQueue: the routing key for a direct exchange (ie. queue name) to receive input tasks from, this must be set
+- pausedQueue: the routing key to use to send messages to when a worker is paused, this is optional, and if not set, messages sent to a paused worker will be processed as normal (as if the worker was not paused)
 - retryQueue: the routing key to use for sending messages to retry to, this may be the same as the inputQueue, and will default to this if unset application, and messages that exceed the retryLimit, this must be set
 - retryLimit: the maximum number of retries before sending the messages to the rejectedQueue, must be at least 1
 

@@ -31,6 +31,7 @@ import java.io.InputStreamReader;
 import java.net.URL;
 import java.net.URLConnection;
 import java.util.*;
+import java.util.logging.Level;
 
 /**
  * WorkerCore represents the main logic of the microservice worker. It is responsible for accepting new tasks from a WorkerQueue, handing
@@ -157,36 +158,46 @@ final class WorkerCore
                 TaskMessage tm = codec.deserialise(taskMessage, TaskMessage.class, DecodeMethod.LENIENT);
 
                 LOG.debug("Received task {} (message id: {})", tm.getTaskId(), taskInformation.getInboundMessageId());
-
-                boolean poison = isTaskPoisoned(headers);
+                final boolean poison = isTaskPoisoned(headers);
                 validateTaskMessage(tm);
                 final JobStatus jobStatus = checkStatus(tm);
+                final String pausedQueue = workerQueue.getPausedQueue();
                 switch (jobStatus) {
                     case Active:
                     case Waiting:
-                        if (tm.getTo() != null && tm.getTo().equalsIgnoreCase(workerQueue.getInputQueue())) {
-                            LOG.debug(
-                                "Task {} (message id: {}) on input queue {} {}",
-                                tm.getTaskId(),
-                                taskInformation.hashCode(),
-                                workerQueue.getInputQueue(),
-                                (tm.getTo() != null) ? "is intended for this worker" : "has no explicit destination, therefore assuming it is intended for this worker");
-                            executor.executeTask(tm, taskInformation, poison, headers, codec);
+                        if (isTaskIntendedForThisWorker(tm)) {
+                            executeTask(tm, taskInformation, poison, headers);
                         } else {
-                            LOG.debug(
-                                "Task {} (message id: {}) is not intended for this worker: input queue {} does not match message destination queue {}",
-                                tm.getTaskId(),
-                                taskInformation.getInboundMessageId(),
-                                workerQueue.getInputQueue(),
-                                tm.getTo());
-                            executor.forwardTask(tm, taskInformation, headers);
+                            forwardTask(tm, taskInformation, headers);
                         }
                         break;
-
                     case Paused:
-                        // TODO
+                        if (isTaskIntendedForThisWorker(tm)) {
+                            if (pausedQueue != null) {
+                                LOG.debug(
+                                    "Task {} is paused. The task message (message id: {}) will be sent to the paused queue: {}",
+                                    tm.getTaskId(),
+                                    taskInformation.getInboundMessageId(),
+                                    pausedQueue);
+                                try {
+                                    workerQueue.publish(taskInformation, taskMessage, pausedQueue, headers);
+                                } catch (final QueueException ex) {
+                                    // TODO call abandon(taskInformation, e) or throw RuntimeException?
+                                    LOG.error("Cannot publish data for task: {} to paused queue: {}, rejecting", tm.getTaskId(), pausedQueue, ex);
+                                    throw new RuntimeException(ex);
+                                }
+                            } else {
+                                LOG.debug(
+                                    "Task {} is paused but the paused queue has not been set, so the task message (message id: {}) will be executed as normal",
+                                    tm.getTaskId(),
+                                    taskInformation.getInboundMessageId(),
+                                    pausedQueue);
+                                executeTask(tm, taskInformation, poison, headers);
+                            }
+                        } else {
+                            forwardTask(tm, taskInformation, headers);
+                        }
                         break;
-
                     default:
                         LOG.debug(
                             "Task {} is no longer active. The task message (message id: {}) will not be executed",
@@ -233,6 +244,36 @@ final class WorkerCore
             if (taskId == null) {
                 throw new InvalidTaskException("Task identifier not specified");
             }
+        }
+
+        private boolean isTaskIntendedForThisWorker(final TaskMessage tm)
+        {
+            return tm.getTo() != null && tm.getTo().equalsIgnoreCase(workerQueue.getInputQueue());
+        }
+
+        private void executeTask(
+            final TaskMessage tm, final TaskInformation taskInformation, final boolean poison, final Map<String, Object> headers)
+            throws TaskRejectedException
+        {
+            LOG.debug(
+                "Task {} (message id: {}) on input queue {} {}",
+                tm.getTaskId(),
+                taskInformation.hashCode(),
+                workerQueue.getInputQueue(),
+                (tm.getTo() != null) ? "is intended for this worker" : "has no explicit destination, therefore assuming it is intended for this worker");
+            executor.executeTask(tm, taskInformation, poison, headers, codec);
+        }
+
+        private void forwardTask(
+            final TaskMessage tm, final TaskInformation taskInformation, final Map<String, Object> headers) throws TaskRejectedException
+        {
+            LOG.debug(
+                "Task {} (message id: {}) is not intended for this worker: input queue {} does not match message destination queue {}",
+                tm.getTaskId(),
+                taskInformation.getInboundMessageId(),
+                workerQueue.getInputQueue(),
+                tm.getTo());
+            executor.forwardTask(tm, taskInformation, headers);
         }
 
         /**

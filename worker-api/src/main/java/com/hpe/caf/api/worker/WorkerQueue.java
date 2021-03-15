@@ -88,4 +88,10 @@ public interface WorkerQueue
      */
     String getInputQueue();
 
+    /**
+     * Return the name of the paused queue.
+     *
+     * @return the name of the paused queue
+     */
+    String getPausedQueue();
 }
