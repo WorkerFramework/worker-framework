@@ -27,6 +27,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.BufferedReader;
+import java.io.IOException;
 import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
 import java.net.URL;
@@ -392,7 +393,7 @@ final class WorkerCore
                     jobStatusResponse.setJobStatus(JobStatus.Active);
                 }
                 jobStatusResponse.setStatusCheckIntervalMillis(statusCheckIntervalMillis);
-            } catch (Exception e) {
+            } catch (final IOException e) {
                 LOG.warn("Job {} : assuming that job is active - failed to perform status check using URL {}. ", jobId, statusCheckUrl, e);
                 jobStatusResponse.setJobStatus(JobStatus.Active);
             }
