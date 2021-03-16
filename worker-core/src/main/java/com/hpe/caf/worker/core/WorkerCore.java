@@ -379,8 +379,10 @@ final class WorkerCore
                 try (BufferedReader response = new BufferedReader(new InputStreamReader(connection.getInputStream()))) {
                     String responseValue;
                     if ((responseValue = response.readLine()) != null) {
-                        LOG.debug("Job {} : retrieved job status '{}' from status check URL {}.", jobId, responseValue, statusCheckUrl);
-                        jobStatusResponse.setJobStatus(JobStatus.valueOf(responseValue));
+                        final String responseValueWithoutQuotes = responseValue.replaceAll("\"", "");
+                        LOG.debug("Job {} : retrieved job status '{}' from status check URL {}.",
+                                  jobId, responseValueWithoutQuotes, statusCheckUrl);
+                        jobStatusResponse.setJobStatus(JobStatus.valueOf(responseValueWithoutQuotes));
                     } else {
                         LOG.warn("Job {} : assuming that job is active - no suitable response from status check URL {}.", jobId, statusCheckUrl);
                         jobStatusResponse.setJobStatus(JobStatus.Active);
