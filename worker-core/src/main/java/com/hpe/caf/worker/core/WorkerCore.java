@@ -28,10 +28,9 @@ import org.slf4j.LoggerFactory;
 
 import java.io.BufferedReader;
 import java.io.InputStreamReader;
+import java.net.HttpURLConnection;
 import java.net.URL;
-import java.net.URLConnection;
 import java.util.*;
-import java.util.logging.Level;
 
 /**
  * WorkerCore represents the main logic of the microservice worker. It is responsible for accepting new tasks from a WorkerQueue, handing
@@ -160,44 +159,41 @@ final class WorkerCore
                 LOG.debug("Received task {} (message id: {})", tm.getTaskId(), taskInformation.getInboundMessageId());
                 final boolean poison = isTaskPoisoned(headers);
                 validateTaskMessage(tm);
-                final JobStatus jobStatus = checkStatus(tm);
+                final JobStatus jobStatus;
+                try {
+                    jobStatus = checkStatus(tm);
+                } catch (final JobNotFoundException e) {
+                    LOG.debug(
+                        e.getMessage() + ". Assuming task {} is no longer active. The task message (message id: {}) will not be executed",
+                        tm.getTaskId(),
+                        taskInformation.getInboundMessageId());
+                    executor.discardTask(tm, taskInformation);
+                    return;
+                }
                 final String pausedQueue = workerQueue.getPausedQueue();
                 switch (jobStatus) {
                     case Active:
                     case Waiting:
-                        if (isTaskIntendedForThisWorker(tm)) {
-                            executeTask(tm, taskInformation, poison, headers);
+                        if (isTaskIntendedForThisWorker(tm, taskInformation)) {
+                            executor.executeTask(tm, taskInformation, poison, headers, codec);
                         } else {
-                            forwardTask(tm, taskInformation, headers);
+                            executor.forwardTask(tm, taskInformation, headers);
                         }
                         break;
                     case Paused:
-                        if (isTaskIntendedForThisWorker(tm)) {
+                        if (isTaskIntendedForThisWorker(tm, taskInformation)) {
                             if (pausedQueue != null) {
-                                LOG.debug(
-                                    "Task {} is paused. The task message (message id: {}) will be sent to the paused queue: {}",
-                                    tm.getTaskId(),
-                                    taskInformation.getInboundMessageId(),
-                                    pausedQueue);
-                                try {
-                                    // TODO increment stats?
-                                    workerQueue.publish(taskInformation, taskMessage, pausedQueue, headers);
-                                } catch (final QueueException ex) {
-                                    // TODO call abandon(taskInformation, e) or throw RuntimeException?
-                                    LOG.error("Cannot publish data for task: {} to paused queue: {}, rejecting",
-                                              tm.getTaskId(), pausedQueue, ex);
-                                    throw new RuntimeException(ex);
-                                }
+                                publishTaskToPausedQueue(tm, taskInformation, pausedQueue, taskMessage, headers);
                             } else {
                                 LOG.debug(
                                     "Task {} is paused but the paused queue has not been set. "
                                     + "Task message (message id: {}) will be executed as normal",
                                     tm.getTaskId(),
                                     taskInformation.getInboundMessageId());
-                                executeTask(tm, taskInformation, poison, headers);
+                                executor.executeTask(tm, taskInformation, poison, headers, codec);
                             }
                         } else {
-                            forwardTask(tm, taskInformation, headers);
+                            executor.forwardTask(tm, taskInformation, headers);
                         }
                         break;
                     default:
@@ -248,36 +244,48 @@ final class WorkerCore
             }
         }
 
-        private boolean isTaskIntendedForThisWorker(final TaskMessage tm)
+        private boolean isTaskIntendedForThisWorker(final TaskMessage tm, final TaskInformation taskInformation)
         {
-            return tm.getTo() != null && tm.getTo().equalsIgnoreCase(workerQueue.getInputQueue());
+            if (tm.getTo() != null && tm.getTo().equalsIgnoreCase(workerQueue.getInputQueue())) {
+                LOG.debug(
+                    "Task {} (message id: {}) on input queue {} {}",
+                    tm.getTaskId(),
+                    taskInformation.hashCode(),
+                    workerQueue.getInputQueue(),
+                    (tm.getTo() != null)
+                    ? "is intended for this worker"
+                    : "has no explicit destination, therefore assuming it is intended for this worker");
+                return true;
+            } else {
+                LOG.debug(
+                    "Task {} (message id: {}) is not intended for this worker: "
+                    + "input queue {} does not match message destination queue {}",
+                    tm.getTaskId(),
+                    taskInformation.getInboundMessageId(),
+                    workerQueue.getInputQueue(),
+                    tm.getTo());
+                return false;
+            }
         }
 
-        private void executeTask(
-            final TaskMessage tm, final TaskInformation taskInformation, final boolean poison, final Map<String, Object> headers)
-            throws TaskRejectedException
+        private void publishTaskToPausedQueue(final TaskMessage tm, final TaskInformation taskInformation, final String pausedQueue,
+                                              final byte[] taskMessage, final Map<String, Object> headers)
+            throws RuntimeException
         {
             LOG.debug(
-                "Task {} (message id: {}) on input queue {} {}",
-                tm.getTaskId(),
-                taskInformation.hashCode(),
-                workerQueue.getInputQueue(),
-                (tm.getTo() != null)
-                ? "is intended for this worker"
-                : "has no explicit destination, therefore assuming it is intended for this worker");
-            executor.executeTask(tm, taskInformation, poison, headers, codec);
-        }
-
-        private void forwardTask(
-            final TaskMessage tm, final TaskInformation taskInformation, final Map<String, Object> headers) throws TaskRejectedException
-        {
-            LOG.debug(
-                "Task {} (message id: {}) is not intended for this worker: input queue {} does not match message destination queue {}",
+                "Task {} is paused. The task message (message id: {}) will be sent to the paused queue: {}",
                 tm.getTaskId(),
                 taskInformation.getInboundMessageId(),
-                workerQueue.getInputQueue(),
-                tm.getTo());
-            executor.forwardTask(tm, taskInformation, headers);
+                pausedQueue);
+            try {
+                // TODO increment stats?
+                workerQueue.publish(taskInformation, taskMessage, pausedQueue, headers);
+            } catch (final QueueException ex) {
+                // TODO call abandon(taskInformation, e) or throw RuntimeException?
+                LOG.error("Cannot publish data for task: {} to paused queue: {}, rejecting",
+                          tm.getTaskId(), pausedQueue, ex);
+                throw new RuntimeException(ex);
+            }
         }
 
         /**
@@ -299,7 +307,7 @@ final class WorkerCore
          * @param tm task message to be checked to verify whether the task is still active
          * @return JobStatus.Active if the task is still active
          */
-        private JobStatus checkStatus(TaskMessage tm) throws InvalidJobTaskIdException
+        private JobStatus checkStatus(TaskMessage tm) throws InvalidJobTaskIdException, JobNotFoundException
         {
             Objects.requireNonNull(tm);
 
@@ -327,7 +335,7 @@ final class WorkerCore
          * job is found to be inactive (aborted, cancelled, etc.)
          * @return status of job - JobStatus.Active will be returned if the job is active or if the check could not be performed.
          */
-        private JobStatus performJobStatusCheck(TaskMessage tm) throws InvalidJobTaskIdException
+        private JobStatus performJobStatusCheck(TaskMessage tm) throws InvalidJobTaskIdException, JobNotFoundException
         {
             Objects.requireNonNull(tm);
             TrackingInfo tracking = tm.getTracking();
@@ -356,12 +364,16 @@ final class WorkerCore
          * @return job status response including status of job - JobStatusResponse.JobStatus.Active will be returned if the job is active
          * or if the check could not be performed.
          */
-        private JobStatusResponse getJobStatus(String jobId, String statusCheckUrl)
+        private JobStatusResponse getJobStatus(String jobId, String statusCheckUrl) throws JobNotFoundException
         {
             JobStatusResponse jobStatusResponse = new JobStatusResponse();
             try {
                 URL url = new URL(statusCheckUrl);
-                URLConnection connection = url.openConnection();
+                final HttpURLConnection connection = (HttpURLConnection)url.openConnection();
+                if (connection.getResponseCode() == HttpURLConnection.HTTP_NOT_FOUND) {
+                    throw new JobNotFoundException(
+                        "Unable to check job status as job " + jobId + " was not found using status check URL " + statusCheckUrl);
+                }
                 long statusCheckIntervalMillis = JobStatusResponseCache.getStatusCheckIntervalMillis(connection);
                 try (BufferedReader response = new BufferedReader(new InputStreamReader(connection.getInputStream()))) {
                     String responseValue;
@@ -376,8 +388,6 @@ final class WorkerCore
                     LOG.warn("Job {} : assuming that job is active - failed to perform status check using URL {}. ", jobId, statusCheckUrl, ex);
                     jobStatusResponse.setJobStatus(JobStatus.Active);
                 }
-                // TODO catch 404 and set status to active=false
-
                 jobStatusResponse.setStatusCheckIntervalMillis(statusCheckIntervalMillis);
             } catch (Exception e) {
                 LOG.warn("Job {} : assuming that job is active - failed to perform status check using URL {}. ", jobId, statusCheckUrl, e);
