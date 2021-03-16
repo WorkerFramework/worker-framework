@@ -171,7 +171,6 @@ final class WorkerCore
                     executor.discardTask(tm, taskInformation);
                     return;
                 }
-                final String pausedQueue = workerQueue.getPausedQueue();
                 switch (jobStatus) {
                     case Active:
                     case Waiting:
@@ -183,6 +182,7 @@ final class WorkerCore
                         break;
                     case Paused:
                         if (isTaskIntendedForThisWorker(tm, taskInformation)) {
+                            final String pausedQueue = workerQueue.getPausedQueue();
                             if (pausedQueue != null) {
                                 publishTaskToPausedQueue(tm, taskInformation, pausedQueue, taskMessage, headers);
                             } else {
