@@ -164,7 +164,8 @@ final class WorkerCore
                     jobStatus = checkStatus(tm);
                 } catch (final JobNotFoundException e) {
                     LOG.debug(
-                        e.getMessage() + ". Assuming task {} is no longer active. The task message (message id: {}) will not be executed",
+                        e.getMessage()
+                        + " (Assuming task {} is no longer active. The task message (message id: {}) will not be executed)",
                         tm.getTaskId(),
                         taskInformation.getInboundMessageId());
                     executor.discardTask(tm, taskInformation);
