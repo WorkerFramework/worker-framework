@@ -96,6 +96,20 @@ final class WorkerExecutor
     }
 
     /**
+     * Forward the supplied task message to the paused queue.
+     *
+     * @param tm the task message
+     * @param taskInformation the reference to the message this task arrived on
+     * @param pausedQueue the message to put on the paused queue
+     * @param headers the map of key/value paired headers to be stamped on the message
+     */
+    public void pauseTask(final TaskMessage tm, final TaskInformation taskInformation, final String pausedQueue,
+                          final Map<String, Object> headers) throws TaskRejectedException
+    {
+        callback.pause(taskInformation, tm.getTo(), tm, headers);
+    }
+
+    /**
      * Discard the supplied task message.
      *
      * @param tm the task message to be discarded

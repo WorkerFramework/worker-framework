@@ -185,7 +185,7 @@ final class WorkerCore
                         if (isTaskIntendedForThisWorker(tm, taskInformation)) {
                             final String pausedQueue = workerQueue.getPausedQueue();
                             if (pausedQueue != null) {
-                                publishTaskToPausedQueue(tm, taskInformation, pausedQueue, taskMessage, headers);
+                                executor.pauseTask(tm, taskInformation, pausedQueue, headers);
                             } else {
                                 LOG.debug(
                                     "Task {} is paused but the paused queue has not been set. "
@@ -267,26 +267,6 @@ final class WorkerCore
                     workerQueue.getInputQueue(),
                     tm.getTo());
                 return false;
-            }
-        }
-
-        private void publishTaskToPausedQueue(final TaskMessage tm, final TaskInformation taskInformation, final String pausedQueue,
-                                              final byte[] taskMessage, final Map<String, Object> headers)
-            throws RuntimeException
-        {
-            LOG.debug(
-                "Task {} is paused. The task message (message id: {}) will be sent to the paused queue: {}",
-                tm.getTaskId(),
-                taskInformation.getInboundMessageId(),
-                pausedQueue);
-            try {
-                // TODO increment stats?
-                workerQueue.publish(taskInformation, taskMessage, pausedQueue, headers);
-            } catch (final QueueException ex) {
-                // TODO call abandon(taskInformation, e) or throw RuntimeException?
-                LOG.error("Cannot publish data for task: {} to paused queue: {}, rejecting",
-                          tm.getTaskId(), pausedQueue, ex);
-                throw new RuntimeException(ex);
             }
         }
 
@@ -578,6 +558,26 @@ final class WorkerCore
                 }
             } catch (CodecException | QueueException e) {
                 LOG.error("Cannot publish data for forwarded task {}, rejecting", forwardedMessage.getTaskId(), e);
+                abandon(taskInformation, e);
+            }
+        }
+
+        @Override
+        public void pause(final TaskInformation taskInformation, final String pausedQueue, final TaskMessage taskMessage,
+                          final Map<String, Object> headers)
+        {
+            Objects.requireNonNull(taskInformation);
+            Objects.requireNonNull(pausedQueue);
+            Objects.requireNonNull(taskMessage);
+            LOG.debug("Task {} (message id: {}) being forwarded to paused queue {}",
+                      taskMessage.getTaskId(), taskInformation.getInboundMessageId(), pausedQueue);
+            try {
+                final byte[] taskMessageBytes = codec.serialise(taskMessage);
+                workerQueue.publish(taskInformation, taskMessageBytes, pausedQueue, headers,
+                                    taskMessage.getPriority() == null ? 0 : taskMessage.getPriority(), true);
+                stats.incrementTasksPaused();
+            } catch (final CodecException | QueueException e) {
+                LOG.error("Cannot publish data for task: {} to paused queue: {}, rejecting", taskMessage.getTaskId(), pausedQueue, e);
                 abandon(taskInformation, e);
             }
         }

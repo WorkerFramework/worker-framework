@@ -31,6 +31,7 @@ class WorkerStats
     private final AtomicLong tasksFailed = new AtomicLong(0);
     private final AtomicLong tasksAborted = new AtomicLong(0);
     private final AtomicLong tasksForwarded = new AtomicLong(0);
+    private final AtomicLong tasksPaused = new AtomicLong(0);
     private final AtomicLong tasksDiscarded = new AtomicLong(0);
     private final AtomicLong lastTaskFinished = new AtomicLong(System.currentTimeMillis());
     private final Histogram inputSizes = new Histogram(new ExponentiallyDecayingReservoir());
@@ -117,6 +118,19 @@ class WorkerStats
     public void incrementTasksForwarded()
     {
         tasksForwarded.incrementAndGet();
+    }
+
+    /**
+     * @return the number of tasks WorkerCore has forwarded to a WorkerQueue designated for paused tasks
+     */
+    public long getTasksPaused()
+    {
+        return tasksPaused.get();
+    }
+
+    public void incrementTasksPaused()
+    {
+        tasksPaused.incrementAndGet();
     }
 
     /**

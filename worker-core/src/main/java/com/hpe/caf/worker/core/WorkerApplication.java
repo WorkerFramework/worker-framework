@@ -163,6 +163,7 @@ public final class WorkerApplication extends Application<WorkerConfiguration>
         metrics.register(MetricRegistry.name("core.tasksFailed"), (Gauge<Long>) core.getStats()::getTasksFailed);
         metrics.register(MetricRegistry.name("core.tasksAborted"), (Gauge<Long>) core.getStats()::getTasksAborted);
         metrics.register(MetricRegistry.name("core.tasksForwarded"), (Gauge<Long>) core.getStats()::getTasksForwarded);
+        metrics.register(MetricRegistry.name("core.tasksPaused"), (Gauge<Long>) core.getStats()::getTasksPaused);
         metrics.register(MetricRegistry.name("core.tasksDiscarded"), (Gauge<Long>) core.getStats()::getTasksDiscarded);
         metrics.register(MetricRegistry.name("core.currentIdleTime"), (Gauge<Long>) core::getCurrentIdleTime);
         metrics.register(MetricRegistry.name("core.inputSizes"), core.getStats().getInputSizes());
