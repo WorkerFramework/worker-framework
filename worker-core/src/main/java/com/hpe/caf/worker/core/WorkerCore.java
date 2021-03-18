@@ -31,6 +31,7 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
 import java.net.URL;
+import java.net.URLConnection;
 import java.util.*;
 
 /**
@@ -351,10 +352,12 @@ final class WorkerCore
             JobStatusResponse jobStatusResponse = new JobStatusResponse();
             try {
                 URL url = new URL(statusCheckUrl);
-                final HttpURLConnection connection = (HttpURLConnection)url.openConnection();
-                if (connection.getResponseCode() == HttpURLConnection.HTTP_NOT_FOUND) {
-                    throw new JobNotFoundException(
-                        "Unable to check job status as job " + jobId + " was not found using status check URL " + statusCheckUrl);
+                final URLConnection connection = url.openConnection();
+                if (connection instanceof HttpURLConnection) {
+                    if (((HttpURLConnection) connection).getResponseCode() == HttpURLConnection.HTTP_NOT_FOUND) {
+                        throw new JobNotFoundException(
+                            "Unable to check job status as job " + jobId + " was not found using status check URL " + statusCheckUrl);
+                    }
                 }
                 long statusCheckIntervalMillis = JobStatusResponseCache.getStatusCheckIntervalMillis(connection);
                 try (BufferedReader response = new BufferedReader(new InputStreamReader(connection.getInputStream()))) {
@@ -373,7 +376,9 @@ final class WorkerCore
                     jobStatusResponse.setJobStatus(JobStatus.Active);
                 }
                 jobStatusResponse.setStatusCheckIntervalMillis(statusCheckIntervalMillis);
-            } catch (final IOException e) {
+            } catch (final JobNotFoundException e) {
+                throw e;
+            } catch (final Exception e) {
                 LOG.warn("Job {} : assuming that job is active - failed to perform status check using URL {}. ", jobId, statusCheckUrl, e);
                 jobStatusResponse.setJobStatus(JobStatus.Active);
             }

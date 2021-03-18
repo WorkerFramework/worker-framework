@@ -106,7 +106,7 @@ final class WorkerExecutor
     public void pauseTask(final TaskMessage tm, final TaskInformation taskInformation, final String pausedQueue,
                           final Map<String, Object> headers) throws TaskRejectedException
     {
-        callback.pause(taskInformation, tm.getTo(), tm, headers);
+        callback.pause(taskInformation, pausedQueue, tm, headers);
     }
 
     /**
