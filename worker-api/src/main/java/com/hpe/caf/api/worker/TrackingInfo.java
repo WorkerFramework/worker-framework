@@ -39,9 +39,14 @@ public class TrackingInfo
     private String jobTaskId;
 
     /**
-     * The time after which it is appropriate to try to confirm that the task has not been cancelled or aborted.
+     * The last time the status of the task was checked.
      */
-    private Date statusCheckTime;
+    private Date lastStatusCheckTime;
+
+    /**
+     * The interval in milliseconds to wait between task status checks.
+     */
+    private long statusCheckIntervalMillis;
 
     /**
      * The url to use to check whether the job has been cancelled or aborted.
@@ -68,10 +73,12 @@ public class TrackingInfo
     {
     }
 
-    public TrackingInfo(String jobTaskId, Date statusCheckTime, String statusCheckUrl, String trackingPipe, String trackTo)
+    public TrackingInfo(String jobTaskId, Date lastStatusCheckTime, long statusCheckIntervalMillis, String statusCheckUrl,
+                        String trackingPipe, String trackTo)
     {
         this.jobTaskId = jobTaskId;
-        this.statusCheckTime = statusCheckTime;
+        this.lastStatusCheckTime = lastStatusCheckTime;
+        this.statusCheckIntervalMillis = statusCheckIntervalMillis;
         this.statusCheckUrl = statusCheckUrl;
         this.trackingPipe = trackingPipe;
         this.trackTo = trackTo;
@@ -80,7 +87,8 @@ public class TrackingInfo
     public TrackingInfo(final TrackingInfo trackingInfo)
     {
         this.jobTaskId = trackingInfo.jobTaskId;
-        this.statusCheckTime = nullSafeCloneDate(trackingInfo.statusCheckTime);
+        this.lastStatusCheckTime = nullSafeCloneDate(trackingInfo.lastStatusCheckTime);
+        this.statusCheckIntervalMillis = trackingInfo.statusCheckIntervalMillis;
         this.statusCheckUrl = trackingInfo.statusCheckUrl;
         this.trackingPipe = trackingInfo.trackingPipe;
         this.trackTo = trackingInfo.trackTo;
@@ -96,14 +104,24 @@ public class TrackingInfo
         this.jobTaskId = jobTaskId;
     }
 
-    public Date getStatusCheckTime()
+    public Date getLastStatusCheckTime()
     {
-        return statusCheckTime;
+        return lastStatusCheckTime;
     }
 
-    public void setStatusCheckTime(Date statusCheckTime)
+    public void setLastStatusCheckTime(Date lastStatusCheckTime)
     {
-        this.statusCheckTime = statusCheckTime;
+        this.lastStatusCheckTime = lastStatusCheckTime;
+    }
+
+    public long getStatusCheckIntervalMillis()
+    {
+        return statusCheckIntervalMillis;
+    }
+
+    public void setStatusCheckIntervalMillis(long statusCheckIntervalMillis)
+    {
+        this.statusCheckIntervalMillis = statusCheckIntervalMillis;
     }
 
     public String getStatusCheckUrl()

@@ -133,7 +133,7 @@ public class WorkerCoreTest
         core.start();
         // at this point, the queue should hand off the task to the app, the app should get a worker from the mocked WorkerFactory,
         // and the Worker itself is a mock wrapped in a WorkerWrapper, which should return success and the appropriate result data
-        final TrackingInfo tracking = new TrackingInfo("J23.1.2", new Date(), "http://thehost:1234/job-service/v1/jobs/23/status", "trackingQueue", "trackTo");
+        final TrackingInfo tracking = new TrackingInfo("J23.1.2", new Date(), 0, "http://thehost:1234/job-service/v1/jobs/23/status", "trackingQueue", "trackTo");
         final byte[] stuff = codec.serialise(getTaskMessage(task, codec, WORKER_NAME, tracking));
         queue.submitTask(taskInformation, stuff);
 
@@ -255,7 +255,7 @@ public class WorkerCoreTest
         final WorkerCore core = new WorkerCore(codec, wtp, queue, priorityManager, getInvalidTaskWorkerFactory(), path, healthCheckRegistry, transientHealthCheck);
         core.start();
 
-        final TrackingInfo tracking = new TrackingInfo("J23.1.2", new Date(), "http://thehost:1234/job-service/v1/jobs/23/status", "trackingQueue", "trackTo");
+        final TrackingInfo tracking = new TrackingInfo("J23.1.2", new Date(), 0, "http://thehost:1234/job-service/v1/jobs/23/status", "trackingQueue", "trackTo");
         final TaskMessage tm = getTaskMessage(task, codec, WORKER_NAME, tracking);
         tm.setTaskData(codec.serialise("invalid task data"));
         final Map<String, byte[]> context = new HashMap<>();
@@ -406,7 +406,7 @@ public class WorkerCoreTest
         core.start();
         // at this point, the queue should hand off the task to the app, the app should get a worker from the mocked WorkerFactory,
         // and the Worker itself is a mock wrapped in a WorkerWrapper, which should return success and the appropriate result data
-        final TrackingInfo tracking = new TrackingInfo("J23.1.2", new Date(),
+        final TrackingInfo tracking = new TrackingInfo("J23.1.2", new Date(), 0,
             new File("src/test/resources/paused-status-check-url-response.json").toURI().toURL().toString(), "trackingQueue", "trackTo");
         final byte[] stuff = codec.serialise(getTaskMessage(task, codec, WORKER_NAME, tracking));
         queue.submitTask(taskInformation, stuff);
@@ -451,7 +451,7 @@ public class WorkerCoreTest
         core.start();
         // at this point, the queue should hand off the task to the app, the app should get a worker from the mocked WorkerFactory,
         // and the Worker itself is a mock wrapped in a WorkerWrapper, which should return success and the appropriate result data
-        final TrackingInfo tracking = new TrackingInfo("J23.1.2", new Date(),
+        final TrackingInfo tracking = new TrackingInfo("J23.1.2", new Date(), 0,
             new File("src/test/resources/paused-status-check-url-response.json").toURI().toURL().toString(), "trackingQueue", "trackTo");
         final byte[] stuff = codec.serialise(getTaskMessage(task, codec, WORKER_NAME, tracking));
         queue.submitTask(taskInformation, stuff);

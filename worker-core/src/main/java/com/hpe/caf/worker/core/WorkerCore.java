@@ -295,11 +295,14 @@ final class WorkerCore
 
             TrackingInfo tracking = tm.getTracking();
             if (tracking != null) {
-                Date statusCheckTime = tracking.getStatusCheckTime();
-                if (statusCheckTime == null || statusCheckTime.getTime() <= System.currentTimeMillis()) {
+                final Date lastStatusCheckTime = tracking.getLastStatusCheckTime();
+                final long nextStatusCheckTime = lastStatusCheckTime != null ?
+                    lastStatusCheckTime.getTime() + tracking.getStatusCheckIntervalMillis() : null;
+                if (lastStatusCheckTime == null || (nextStatusCheckTime <= System.currentTimeMillis())) {
                     return performJobStatusCheck(tm);
                 }
-                LOG.debug("Task {} job status is not being checked - it is not yet time for the status check to be performed: status check due at {}", tm.getTaskId(), statusCheckTime);
+                LOG.debug("Task {} job status is not being checked - it is not yet time for the status check to be performed: "
+                    + "status check due at {}", tm.getTaskId(), new Date(nextStatusCheckTime));
             } else {
                 LOG.debug("Task {} job status is not being checked - the task message does not have tracking info", tm.getTaskId());
             }
@@ -332,9 +335,11 @@ final class WorkerCore
             String jobId = tracking.getJobId();
             LOG.debug("Task {} (job {}) - attempting to check job status", tm.getTaskId(), jobId);
             JobStatusResponse jobStatusResponse = getJobStatus(jobId, statusCheckUrl);
-            long newStatusCheckTime = System.currentTimeMillis() + jobStatusResponse.getStatusCheckIntervalMillis();
-            LOG.debug("Task {} (job {}) - updating status check time from {} to {}", tm.getTaskId(), jobId, tracking.getStatusCheckTime(), new Date(newStatusCheckTime));
-            tracking.setStatusCheckTime(new Date(newStatusCheckTime));
+            final Date now = new Date(System.currentTimeMillis());
+            LOG.debug("Task {} (job {}) - updating last status check time from {} to {}",
+                      tm.getTaskId(), jobId, tracking.getLastStatusCheckTime(), now);
+            tracking.setLastStatusCheckTime(now);
+            tracking.setStatusCheckIntervalMillis(jobStatusResponse.getStatusCheckIntervalMillis());
             return jobStatusResponse.getJobStatus();
         }
 
