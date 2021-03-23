@@ -297,7 +297,7 @@ final class WorkerCore
             if (tracking != null) {
                 final Date lastStatusCheckTime = tracking.getLastStatusCheckTime();
                 final long nextStatusCheckTime = lastStatusCheckTime != null ?
-                    lastStatusCheckTime.getTime() + tracking.getStatusCheckIntervalMillis() : null;
+                    lastStatusCheckTime.getTime() + tracking.getStatusCheckIntervalMillis() : 0L;
                 if (lastStatusCheckTime == null || (nextStatusCheckTime <= System.currentTimeMillis())) {
                     return performJobStatusCheck(tm);
                 }
