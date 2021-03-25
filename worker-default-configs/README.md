@@ -36,6 +36,7 @@ The default RabbitWorkerQueue configuration file checks for values as below;
 | inputQueue  |  `CAF_WORKER_INPUT_QUEUE` | worker-in  |
 |             |  `CAF_WORKER_BASE_QUEUE_NAME` with '-in' appended to the value if present    |    |
 |             |  `CAF_WORKER_NAME` with '-in' appended to the value if present        |    |
+| pausedQueue  |  `CAF_WORKER_PAUSED_QUEUE` |   |
 | retryQueue  |  `CAF_WORKER_RETRY_QUEUE` |   |
 | rejectedQueue  |   | worker-rejected  |
 | retryLimit  |  `CAF_WORKER_RETRY_LIMIT` | 10  |

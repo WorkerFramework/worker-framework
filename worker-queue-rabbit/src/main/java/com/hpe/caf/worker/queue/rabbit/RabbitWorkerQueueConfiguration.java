@@ -51,6 +51,12 @@ public class RabbitWorkerQueueConfiguration
     @Size(min = 1)
     private String inputQueue;
     /**
+     * The queue to put messages sent to a paused worker on. If this is null, messages sent to a paused worker will be processed as
+     * normal (as if the worker was not paused).
+     */
+    @Size(min = 1)
+    private String pausedQueue;
+    /**
      * The queue to put redelivered messages on. If this null, the inputQueue will be used.
      */
     private String retryQueue;
@@ -107,6 +113,16 @@ public class RabbitWorkerQueueConfiguration
     public void setInputQueue(String inputQueue)
     {
         this.inputQueue = inputQueue;
+    }
+
+    public String getPausedQueue()
+    {
+        return pausedQueue;
+    }
+
+    public void setPausedQueue(String pausedQueue)
+    {
+        this.pausedQueue = pausedQueue;
     }
 
     public String getRetryQueue()

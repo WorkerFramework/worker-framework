@@ -59,6 +59,16 @@ public interface WorkerCallback
     void forward(TaskInformation taskInformation, String queue, TaskMessage forwardedMessage, Map<String, Object> headers);
 
     /**
+     * Indicates the Worker wishes to forward this task to the specified paused queue without processing it.
+     *
+     * @param taskInformation a queue-specific reference for the incoming message to be forwarded to the paused queue
+     * @param pausedQueue the queue to hold the forwarded message
+     * @param taskMessage the message to put on the paused queue
+     * @param headers the map of key/value paired headers to be stamped on the message
+     */
+    void pause(TaskInformation taskInformation, String pausedQueue, TaskMessage taskMessage, Map<String, Object> headers);
+
+    /**
      * Indicates the Worker wishes to discard this task without returning it to the queue for retry.
      *
      * @param taskInformation the id of the task's queue message to discard

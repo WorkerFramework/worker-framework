@@ -28,6 +28,7 @@ import org.slf4j.LoggerFactory;
 
 import java.io.BufferedReader;
 import java.io.InputStreamReader;
+import java.net.HttpURLConnection;
 import java.net.URL;
 import java.net.URLConnection;
 import java.util.*;
@@ -157,21 +158,52 @@ final class WorkerCore
                 TaskMessage tm = codec.deserialise(taskMessage, TaskMessage.class, DecodeMethod.LENIENT);
 
                 LOG.debug("Received task {} (message id: {})", tm.getTaskId(), taskInformation.getInboundMessageId());
-
-                boolean poison = isTaskPoisoned(headers);
+                final boolean poison = isTaskPoisoned(headers);
                 validateTaskMessage(tm);
-                boolean taskIsActive = checkStatus(tm);
-                if (taskIsActive) {
-                    if (tm.getTo() != null && tm.getTo().equalsIgnoreCase(workerQueue.getInputQueue())) {
-                        LOG.debug("Task {} (message id: {}) on input queue {} {}", tm.getTaskId(), taskInformation.hashCode(), workerQueue.getInputQueue(), (tm.getTo() != null) ? "is intended for this worker" : "has no explicit destination, therefore assuming it is intended for this worker");
-                        executor.executeTask(tm, taskInformation, poison, headers, codec);
-                    } else {
-                        LOG.debug("Task {} (message id: {}) is not intended for this worker: input queue {} does not match message destination queue {}", tm.getTaskId(), taskInformation.getInboundMessageId(), workerQueue.getInputQueue(), tm.getTo());
-                        executor.forwardTask(tm, taskInformation, headers);
-                    }
-                } else {
-                    LOG.debug("Task {} is no longer active. The task message (message id: {}) will not be executed", tm.getTaskId(), taskInformation.getInboundMessageId());
+                final JobStatus jobStatus;
+                try {
+                    jobStatus = checkStatus(tm);
+                } catch (final JobNotFoundException e) {
+                    LOG.debug(
+                        e.getMessage()
+                        + " (Assuming task {} is no longer active. The task message (message id: {}) will not be executed)",
+                        tm.getTaskId(),
+                        taskInformation.getInboundMessageId());
                     executor.discardTask(tm, taskInformation);
+                    return;
+                }
+                switch (jobStatus) {
+                    case Active:
+                    case Waiting:
+                        if (isTaskIntendedForThisWorker(tm, taskInformation)) {
+                            executor.executeTask(tm, taskInformation, poison, headers, codec);
+                        } else {
+                            executor.forwardTask(tm, taskInformation, headers);
+                        }
+                        break;
+                    case Paused:
+                        if (isTaskIntendedForThisWorker(tm, taskInformation)) {
+                            final String pausedQueue = workerQueue.getPausedQueue();
+                            if (pausedQueue != null) {
+                                executor.pauseTask(tm, taskInformation, pausedQueue, headers);
+                            } else {
+                                LOG.debug(
+                                    "Task {} is paused but the paused queue has not been set. "
+                                    + "Task message (message id: {}) will be executed as normal",
+                                    tm.getTaskId(),
+                                    taskInformation.getInboundMessageId());
+                                executor.executeTask(tm, taskInformation, poison, headers, codec);
+                            }
+                        } else {
+                            executor.forwardTask(tm, taskInformation, headers);
+                        }
+                        break;
+                    default:
+                        LOG.debug(
+                            "Task {} is no longer active. The task message (message id: {}) will not be executed",
+                            tm.getTaskId(),
+                            taskInformation.getInboundMessageId());
+                        executor.discardTask(tm, taskInformation);
                 }
             } catch (CodecException e) {
                 throw new InvalidTaskException("Queue data did not deserialise to a TaskMessage", e);
@@ -214,6 +246,30 @@ final class WorkerCore
             }
         }
 
+        private boolean isTaskIntendedForThisWorker(final TaskMessage tm, final TaskInformation taskInformation)
+        {
+            if (tm.getTo() != null && tm.getTo().equalsIgnoreCase(workerQueue.getInputQueue())) {
+                LOG.debug(
+                    "Task {} (message id: {}) on input queue {} {}",
+                    tm.getTaskId(),
+                    taskInformation.hashCode(),
+                    workerQueue.getInputQueue(),
+                    (tm.getTo() != null)
+                    ? "is intended for this worker"
+                    : "has no explicit destination, therefore assuming it is intended for this worker");
+                return true;
+            } else {
+                LOG.debug(
+                    "Task {} (message id: {}) is not intended for this worker: "
+                    + "input queue {} does not match message destination queue {}",
+                    tm.getTaskId(),
+                    taskInformation.getInboundMessageId(),
+                    workerQueue.getInputQueue(),
+                    tm.getTo());
+                return false;
+            }
+        }
+
         /**
          * Cancel all the Future objects in our Map of running tasks. If the task is not yet running it will just be thrown out of the
          * queue. If it has completed this has no effect. If it is running the Thread will be interrupted.
@@ -227,40 +283,44 @@ final class WorkerCore
         }
 
         /**
-         * Checks whether a task is still active. If a status check cannot be performed then the task is assumed to be active. Checking
-         * status may result in a change to the tracking info on the supplied task message.
+         * Checks a task's status. If a status check cannot be performed then the task is assumed to be active. Checking status may
+         * result in a change to the tracking info on the supplied task message.
          *
          * @param tm task message to be checked to verify whether the task is still active
-         * @return true if the task is still active, false otherwise
+         * @return JobStatus.Active if the task is still active
          */
-        private boolean checkStatus(TaskMessage tm) throws InvalidJobTaskIdException
+        private JobStatus checkStatus(TaskMessage tm) throws InvalidJobTaskIdException, JobNotFoundException
         {
             Objects.requireNonNull(tm);
 
             TrackingInfo tracking = tm.getTracking();
             if (tracking != null) {
-                Date statusCheckTime = tracking.getStatusCheckTime();
-                if (statusCheckTime == null || statusCheckTime.getTime() <= System.currentTimeMillis()) {
+                final Date lastStatusCheckTime = tracking.getLastStatusCheckTime();
+                final long nextStatusCheckTime = lastStatusCheckTime != null ?
+                    lastStatusCheckTime.getTime() + tracking.getStatusCheckIntervalMillis() : 0L;
+                if (lastStatusCheckTime == null || (nextStatusCheckTime <= System.currentTimeMillis())) {
                     return performJobStatusCheck(tm);
                 }
-                LOG.debug("Task {} active status is not being checked - it is not yet time for the status check to be performed: status check due at {}", tm.getTaskId(), statusCheckTime);
+                LOG.debug("Task {} job status is not being checked - it is not yet time for the status check to be performed: "
+                    + "status check due at {}", tm.getTaskId(), new Date(nextStatusCheckTime));
             } else {
-                LOG.debug("Task {} active status is not being checked - the task message does not have tracking info", tm.getTaskId());
+                LOG.debug("Task {} job status is not being checked - the task message does not have tracking info", tm.getTaskId());
             }
 
             //By default a task is considered to be active.
-            return true;
+            return JobStatus.Active;
         }
 
         /**
-         * Checks the current active status of the job to which the task belongs. If this check can be made successfully then the status
-         * check time of the supplied task message is updated.
+         * Checks the current status of the job to which the task belongs. If this check can be made successfully then the status check
+         * time of the supplied task message is updated.
          *
          * @param tm the task message whose job status will be verified
          * @return true if the task's job is active or the job status could not be checked, false if the status could be checked and the
          * job is found to be inactive (aborted, cancelled, etc.)
+         * @return status of job - JobStatus.Active will be returned if the job is active or if the check could not be performed.
          */
-        private boolean performJobStatusCheck(TaskMessage tm) throws InvalidJobTaskIdException
+        private JobStatus performJobStatusCheck(TaskMessage tm) throws InvalidJobTaskIdException, JobNotFoundException
         {
             Objects.requireNonNull(tm);
             TrackingInfo tracking = tm.getTracking();
@@ -269,80 +329,90 @@ final class WorkerCore
             String statusCheckUrl = tracking.getStatusCheckUrl();
             if (statusCheckUrl == null) {
                 //If statusCheckUrl is null then we can't perform the status check so we have to assume the job is active.
-                return true;
+                return JobStatus.Active;
             }
 
             String jobId = tracking.getJobId();
             LOG.debug("Task {} (job {}) - attempting to check job status", tm.getTaskId(), jobId);
-            JobStatusResponse jobStatus = getJobStatus(jobId, statusCheckUrl);
-            long newStatusCheckTime = System.currentTimeMillis() + jobStatus.getStatusCheckIntervalMillis();
-            LOG.debug("Task {} (job {}) - updating status check time from {} to {}", tm.getTaskId(), jobId, tracking.getStatusCheckTime(), new Date(newStatusCheckTime));
-            tracking.setStatusCheckTime(new Date(newStatusCheckTime));
-            return jobStatus.isActive();
+            JobStatusResponse jobStatusResponse = getJobStatus(jobId, statusCheckUrl);
+            final Date now = new Date(System.currentTimeMillis());
+            LOG.debug("Task {} (job {}) - updating last status check time from {} to {}",
+                      tm.getTaskId(), jobId, tracking.getLastStatusCheckTime(), now);
+            tracking.setLastStatusCheckTime(now);
+            tracking.setStatusCheckIntervalMillis(jobStatusResponse.getStatusCheckIntervalMillis());
+            return jobStatusResponse.getJobStatus();
         }
 
         /**
-         * Makes a call to the status check URL to determine whether the job is active. This should make implicit use of
-         * JobStatusResponseCache.
+         * Makes a call to the status check URL to determine  the job's status. This should make implicit use of JobStatusResponseCache.
          *
-         * @param jobId checks the active status of this job
+         * @param jobId checks the status of this job
          * @param statusCheckUrl full path that can be used to check job status
-         * @return job status response including active status of job - true if the job is active or if the check could not be performed,
-         * false if the job is inactive
+         * @return job status response including status of job - JobStatusResponse.JobStatus.Active will be returned if the job is active
+         * or if the check could not be performed.
          */
-        private JobStatusResponse getJobStatus(String jobId, String statusCheckUrl)
+        private JobStatusResponse getJobStatus(String jobId, String statusCheckUrl) throws JobNotFoundException
         {
             JobStatusResponse jobStatusResponse = new JobStatusResponse();
             try {
                 URL url = new URL(statusCheckUrl);
-                URLConnection connection = url.openConnection();
+                final URLConnection connection = url.openConnection();
+                if (connection instanceof HttpURLConnection) {
+                    if (((HttpURLConnection) connection).getResponseCode() == HttpURLConnection.HTTP_NOT_FOUND) {
+                        throw new JobNotFoundException(
+                            "Unable to check job status as job " + jobId + " was not found using status check URL " + statusCheckUrl);
+                    }
+                }
                 long statusCheckIntervalMillis = JobStatusResponseCache.getStatusCheckIntervalMillis(connection);
                 try (BufferedReader response = new BufferedReader(new InputStreamReader(connection.getInputStream()))) {
                     String responseValue;
                     if ((responseValue = response.readLine()) != null) {
-                        LOG.debug("Job {} : retrieved active status '{}' from status check URL {}.", jobId, responseValue, statusCheckUrl);
-                        jobStatusResponse.setActive(Boolean.parseBoolean(responseValue));
+                        final String responseValueWithoutQuotes = responseValue.replaceAll("\"", "");
+                        LOG.debug("Job {} : retrieved job status '{}' from status check URL {}.",
+                                  jobId, responseValueWithoutQuotes, statusCheckUrl);
+                        jobStatusResponse.setJobStatus(JobStatus.valueOf(responseValueWithoutQuotes));
                     } else {
                         LOG.warn("Job {} : assuming that job is active - no suitable response from status check URL {}.", jobId, statusCheckUrl);
-                        jobStatusResponse.setActive(true);
+                        jobStatusResponse.setJobStatus(JobStatus.Active);
                     }
                 } catch (Exception ex) {
                     LOG.warn("Job {} : assuming that job is active - failed to perform status check using URL {}. ", jobId, statusCheckUrl, ex);
-                    jobStatusResponse.setActive(true);
+                    jobStatusResponse.setJobStatus(JobStatus.Active);
                 }
-
                 jobStatusResponse.setStatusCheckIntervalMillis(statusCheckIntervalMillis);
-            } catch (Exception e) {
+            } catch (final JobNotFoundException e) {
+                throw e;
+            } catch (final Exception e) {
                 LOG.warn("Job {} : assuming that job is active - failed to perform status check using URL {}. ", jobId, statusCheckUrl, e);
-                jobStatusResponse.setActive(true);
+                jobStatusResponse.setJobStatus(JobStatus.Active);
             }
             return jobStatusResponse;
         }
 
         private static class JobStatusResponse
         {
-            private boolean isActive;
+            private JobStatus jobStatus;
             private long statusCheckIntervalMillis;
 
             public JobStatusResponse()
             {
-                this(true, JobStatusResponseCache.getDefaultJobStatusCheckIntervalMillis());
+                this(JobStatus.Active, JobStatusResponseCache.getDefaultJobStatusCheckIntervalMillis());
             }
 
-            public JobStatusResponse(boolean isActive, long statusCheckInterval)
+            public JobStatusResponse(JobStatus jobStatus, long statusCheckInterval)
             {
-                this.isActive = isActive;
+                this.jobStatus = jobStatus;
                 this.statusCheckIntervalMillis = statusCheckInterval;
             }
 
-            public boolean isActive()
+            public JobStatus getJobStatus()
             {
-                return isActive;
+                return jobStatus;
             }
 
-            public void setActive(boolean active)
+            public void setJobStatus(JobStatus jobStatus)
             {
-                isActive = active;
+                this.jobStatus = jobStatus;
             }
 
             public long getStatusCheckIntervalMillis()
@@ -354,6 +424,19 @@ final class WorkerCore
             {
                 this.statusCheckIntervalMillis = statusCheckIntervalMillis;
             }
+        }
+
+        /**
+         * Job status returned by the status check URL.
+         */
+        private static enum JobStatus
+        {
+            Active,
+            Cancelled,
+            Completed,
+            Failed,
+            Paused,
+            Waiting
         }
     }
 
@@ -484,6 +567,26 @@ final class WorkerCore
                 }
             } catch (CodecException | QueueException e) {
                 LOG.error("Cannot publish data for forwarded task {}, rejecting", forwardedMessage.getTaskId(), e);
+                abandon(taskInformation, e);
+            }
+        }
+
+        @Override
+        public void pause(final TaskInformation taskInformation, final String pausedQueue, final TaskMessage taskMessage,
+                          final Map<String, Object> headers)
+        {
+            Objects.requireNonNull(taskInformation);
+            Objects.requireNonNull(pausedQueue);
+            Objects.requireNonNull(taskMessage);
+            LOG.debug("Task {} (message id: {}) being forwarded to paused queue {}",
+                      taskMessage.getTaskId(), taskInformation.getInboundMessageId(), pausedQueue);
+            try {
+                final byte[] taskMessageBytes = codec.serialise(taskMessage);
+                workerQueue.publish(taskInformation, taskMessageBytes, pausedQueue, headers,
+                                    taskMessage.getPriority() == null ? 0 : taskMessage.getPriority(), true);
+                stats.incrementTasksPaused();
+            } catch (final CodecException | QueueException e) {
+                LOG.error("Cannot publish data for task: {} to paused queue: {}, rejecting", taskMessage.getTaskId(), pausedQueue, e);
                 abandon(taskInformation, e);
             }
         }

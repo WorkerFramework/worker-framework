@@ -359,6 +359,13 @@ public class StreamingWorkerWrapperTest
         }
 
         @Override
+        public void pause(TaskInformation taskInformation, String pausedQueue, TaskMessage taskMessage, Map<String, Object> headers)
+        {
+            this.taskInformation = taskInformation;
+            latch.countDown();
+        }
+
+        @Override
         public void discard(TaskInformation taskInformation)
         {
             this.taskInformation = taskInformation;
