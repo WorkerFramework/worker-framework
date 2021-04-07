@@ -194,6 +194,8 @@ final class WorkerCore
                                     taskInformation.getInboundMessageId());
                                 executor.executeTask(tm, taskInformation, poison, headers, codec);
                             }
+                        } else if (isThisWorkerATaskStowingWorker()) {
+                            executor.executeTask(tm, taskInformation, poison, headers, codec);
                         } else {
                             executor.forwardTask(tm, taskInformation, headers);
                         }
@@ -268,6 +270,19 @@ final class WorkerCore
                     tm.getTo());
                 return false;
             }
+        }
+
+        private static boolean isThisWorkerATaskStowingWorker()
+        {
+            // A task stowing worker's input queue will NOT be the same as the target/to queue in the task message it receives, so the
+            // isTaskIntendedForThisWorker(...) method will always return false for a task stowing worker.
+            //
+            // As such, we need a way to determine if this worker is a task stowing worker so that it can execute a task that is
+            // technically not intended for it (as determined by the isTaskIntendedForThisWorker(...) method).
+            //
+            // To do this, check if this worker has a non-null value for one of the task stowing worker's required env vars, if so, then
+            // this worker must be a task stowing worker.
+            return System.getenv("CAF_WORKER_TASKSTOWING_DATABASE_HOST") != null;
         }
 
         /**
