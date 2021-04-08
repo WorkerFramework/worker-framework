@@ -106,7 +106,7 @@ final class WorkerExecutor
                     executeTask(tm, taskInformation, poison, headers, codec);
                     break;
                 case Forward:
-                    forwardTask(tm, taskInformation, poison, headers, codec, jobStatus);
+                    callback.forward(taskInformation, tm.getTo(), tm, headers);
                     break;
                 default:
                     throw new RuntimeException("Unexpected task forwarding action returned by worker: " + taskForwardingAction);
