@@ -74,7 +74,7 @@ public class WorkerExecutorTest
         WorkerExecutor executor = new WorkerExecutor(path, callback, factory, pool, priorityManager);
         TaskMessage tm = new TaskMessage("test", "test", 1, "test".getBytes(StandardCharsets.UTF_8), TaskStatus.NEW_TASK, new HashMap<>(), "testTo");
         TaskInformation taskInformation = mock(TaskInformation.class);
-        executor.forwardTask(tm, taskInformation, new HashMap<>());
+        executor.forwardTask(tm, taskInformation, false, new HashMap<>(), null, null);
         Mockito.verify(callback, Mockito.times(1)).forward(taskInformation, "testTo", tm, new HashMap<>());
     }
 
@@ -111,7 +111,7 @@ public class WorkerExecutorTest
 
         WorkerExecutor executor = new WorkerExecutor(path, callback, factory, pool, priorityManager);
         TaskInformation taskInformation =mock(TaskInformation.class);
-        executor.forwardTask(tm, taskInformation, new HashMap<>());
+        executor.forwardTask(tm, taskInformation, false, new HashMap<>(), null, null);
         Mockito.verify((TaskMessageForwardingEvaluator) factory, Mockito.times(1)).determineForwardingAction(tm, taskInformation, new HashMap<>(), callback);
         Mockito.verify(callback, Mockito.times(1)).discard(taskInformation);
     }

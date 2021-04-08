@@ -15,6 +15,7 @@
  */
 package com.hpe.caf.worker.core;
 
+import com.hpe.caf.api.worker.JobStatus;
 import com.codahale.metrics.health.HealthCheckRegistry;
 import com.hpe.caf.api.Codec;
 import com.hpe.caf.api.CodecException;
@@ -178,7 +179,7 @@ final class WorkerCore
                         if (isTaskIntendedForThisWorker(tm, taskInformation)) {
                             executor.executeTask(tm, taskInformation, poison, headers, codec);
                         } else {
-                            executor.forwardTask(tm, taskInformation, headers);
+                            executor.forwardTask(tm, taskInformation, poison, headers, codec, jobStatus);
                         }
                         break;
                     case Paused:
@@ -194,10 +195,8 @@ final class WorkerCore
                                     taskInformation.getInboundMessageId());
                                 executor.executeTask(tm, taskInformation, poison, headers, codec);
                             }
-                        } else if (isThisWorkerATaskStowingWorker()) {
-                            executor.executeTask(tm, taskInformation, poison, headers, codec);
-                        } else {
-                            executor.forwardTask(tm, taskInformation, headers);
+                        }  else {
+                            executor.forwardTask(tm, taskInformation, poison, headers, codec, jobStatus);
                         }
                         break;
                     default:
@@ -439,19 +438,6 @@ final class WorkerCore
             {
                 this.statusCheckIntervalMillis = statusCheckIntervalMillis;
             }
-        }
-
-        /**
-         * Job status returned by the status check URL.
-         */
-        private static enum JobStatus
-        {
-            Active,
-            Cancelled,
-            Completed,
-            Failed,
-            Paused,
-            Waiting
         }
     }
 

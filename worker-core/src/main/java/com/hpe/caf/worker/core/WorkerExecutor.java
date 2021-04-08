@@ -78,17 +78,39 @@ final class WorkerExecutor
     }
 
     /**
-     * Decide whether the message is to be forwarded or discarded.
+     * Decide whether the message is to be forwarded, executed, or discarded.
      *
      * @param tm the task message
      * @param taskInformation the reference to the message this task arrived on
+     * @param poison flag indicating if the message is a poison message
      * @param headers the map of key/value paired headers to be stamped on the message
+     * @param codec the Codec that can be used to serialise/deserialise data
+     * @param jobStatus the job status as returned by the status check URL
      */
-    public void forwardTask(final TaskMessage tm, final TaskInformation taskInformation, Map<String, Object> headers) throws TaskRejectedException
+    public void forwardTask(final TaskMessage tm, final TaskInformation taskInformation, final boolean poison,
+                            final Map<String, Object> headers, final Codec codec, final JobStatus jobStatus)
+        throws TaskRejectedException
     {
         //Check whether this worker application can evaluate messages for forwarding.
         if (factory instanceof TaskMessageForwardingEvaluator) {
             ((TaskMessageForwardingEvaluator) factory).determineForwardingAction(tm, taskInformation, headers, callback);
+        } //Check whether this worker application can evaluate messages not indended for it for forwarding.
+        else if (factory instanceof NotIndendedTaskMessageForwardingEvaluator) {
+            final TaskForwardingAction taskForwardingAction = ((NotIndendedTaskMessageForwardingEvaluator) factory).
+                determineForwardingAction(tm, taskInformation, poison, headers, codec, jobStatus, callback);
+            switch (taskForwardingAction) {
+                case Discard:
+                    discardTask(tm, taskInformation);
+                    break;
+                case Execute:
+                    executeTask(tm, taskInformation, poison, headers, codec);
+                    break;
+                case Forward:
+                    forwardTask(tm, taskInformation, poison, headers, codec, jobStatus);
+                    break;
+                default:
+                    throw new RuntimeException("Unexpected task forwarding action returned by worker: " + taskForwardingAction);
+            }
         } else {
             //Messages are forwarded by default.
             callback.forward(taskInformation, tm.getTo(), tm, headers);
@@ -128,6 +150,6 @@ final class WorkerExecutor
                                             final Map<String, Object> headers, final Codec codec)
     {
         return new WorkerTaskImpl(servicePath, callback, factory, taskInformation, taskMessage, poison, headers, codec,
-                priorityManager);
+                                  priorityManager);
     }
 }
