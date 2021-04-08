@@ -434,6 +434,7 @@ final class WorkerCore
             Active,
             Cancelled,
             Completed,
+            Expired,
             Failed,
             Paused,
             Waiting
