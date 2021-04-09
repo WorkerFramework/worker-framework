@@ -164,6 +164,6 @@ final class WorkerExecutor
                                             final Map<String, Object> headers, final Codec codec)
     {
         return new WorkerTaskImpl(servicePath, callback, factory, taskInformation, taskMessage, poison, headers, codec,
-                                  priorityManager);
+                priorityManager);
     }
 }
