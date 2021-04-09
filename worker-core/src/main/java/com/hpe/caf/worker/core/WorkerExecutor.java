@@ -97,14 +97,14 @@ final class WorkerExecutor
         }
         //Check whether this worker application can evaluate messages not indended for it for forwarding.
         else if (factory instanceof NotIndendedTaskMessageForwardingEvaluator) {
-            determineNotIntendedTaskForwardingAction(tm, taskInformation, poison, headers, codec, jobStatus);
+            processNotIntendedTaskForwardingAction(tm, taskInformation, poison, headers, codec, jobStatus);
         //Else messages are forwarded by default.
         } else {
             callback.forward(taskInformation, tm.getTo(), tm, headers);
         }
     }
 
-    private void determineNotIntendedTaskForwardingAction(final TaskMessage tm, final TaskInformation taskInformation,
+    private void processNotIntendedTaskForwardingAction(final TaskMessage tm, final TaskInformation taskInformation,
                                                           final boolean poison,
                                                           final Map<String, Object> headers, final Codec codec, final JobStatus jobStatus)
         throws TaskRejectedException
