@@ -94,30 +94,39 @@ final class WorkerExecutor
         //Check whether this worker application can evaluate messages for forwarding.
         if (factory instanceof TaskMessageForwardingEvaluator) {
             ((TaskMessageForwardingEvaluator) factory).determineForwardingAction(tm, taskInformation, headers, callback);
-        } //Check whether this worker application can evaluate messages not indended for it for forwarding.
+        }
+        //Check whether this worker application can evaluate messages not indended for it for forwarding.
         else if (factory instanceof NotIndendedTaskMessageForwardingEvaluator) {
-            final TaskForwardingAction taskForwardingAction = ((NotIndendedTaskMessageForwardingEvaluator) factory).
-                determineForwardingAction(tm, taskInformation, poison, headers, codec, jobStatus, callback);
-            LOG.debug("Worker returned forwarding action {} for task {} (message id: {})",
-                      taskForwardingAction, tm.getTaskId(), taskInformation.getInboundMessageId());
-            switch (taskForwardingAction) {
-                case Discard:
-                    discardTask(tm, taskInformation);
-                    break;
-                case Execute:
-                    executeTask(tm, taskInformation, poison, headers, codec);
-                    break;
-                case Forward:
-                    callback.forward(taskInformation, tm.getTo(), tm, headers);
-                    break;
-                default:
-                    LOG.warn("Worker returned an unexpected forwarding action {} for task {} (message id: {}). "
-                        + "Defaulting to forwarding the task.", taskForwardingAction, tm.getTaskId(),
-                             taskInformation.getInboundMessageId());
-            }
+            determineTaskNotIntendedForwardingAction(tm, taskInformation, poison, headers, codec, jobStatus);
+        //Else messages are forwarded by default.
         } else {
-            //Messages are forwarded by default.
             callback.forward(taskInformation, tm.getTo(), tm, headers);
+        }
+    }
+
+    private void determineTaskNotIntendedForwardingAction(final TaskMessage tm, final TaskInformation taskInformation,
+                                                          final boolean poison,
+                                                          final Map<String, Object> headers, final Codec codec, final JobStatus jobStatus)
+        throws TaskRejectedException
+    {
+        final TaskForwardingAction taskForwardingAction = ((NotIndendedTaskMessageForwardingEvaluator) factory).
+            determineForwardingAction(tm, taskInformation, poison, headers, codec, jobStatus, callback);
+        LOG.debug("Worker returned forwarding action {} for task {} (message id: {})",
+                  taskForwardingAction, tm.getTaskId(), taskInformation.getInboundMessageId());
+        switch (taskForwardingAction) {
+            case Discard:
+                discardTask(tm, taskInformation);
+                break;
+            case Execute:
+                executeTask(tm, taskInformation, poison, headers, codec);
+                break;
+            case Forward:
+                callback.forward(taskInformation, tm.getTo(), tm, headers);
+                break;
+            default:
+                LOG.warn("Worker returned an unexpected forwarding action {} for task {} (message id: {}). "
+                    + "Defaulting to forwarding the task.", taskForwardingAction, tm.getTaskId(),
+                         taskInformation.getInboundMessageId());
         }
     }
 
