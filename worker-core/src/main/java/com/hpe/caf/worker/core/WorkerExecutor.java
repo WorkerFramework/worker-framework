@@ -127,6 +127,7 @@ final class WorkerExecutor
                 LOG.warn("Worker returned an unexpected forwarding action {} for task {} (message id: {}). "
                     + "Defaulting to forwarding the task.", taskForwardingAction, tm.getTaskId(),
                          taskInformation.getInboundMessageId());
+                callback.forward(taskInformation, tm.getTo(), tm, headers);
         }
     }
 
