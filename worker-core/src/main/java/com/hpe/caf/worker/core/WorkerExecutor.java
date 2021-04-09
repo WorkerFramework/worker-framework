@@ -111,7 +111,7 @@ final class WorkerExecutor
     {
         final TaskForwardingAction taskForwardingAction = ((NotIndendedTaskMessageForwardingEvaluator) factory).
             determineForwardingAction(tm, taskInformation, poison, headers, codec, jobStatus, callback);
-        LOG.debug("Worker returned forwarding action {} for task {} (message id: {})",
+        LOG.debug("Worker returned forwarding action: {} for task: {} (message id: {})",
                   taskForwardingAction, tm.getTaskId(), taskInformation.getInboundMessageId());
         switch (taskForwardingAction) {
             case Discard:
@@ -124,7 +124,7 @@ final class WorkerExecutor
                 callback.forward(taskInformation, tm.getTo(), tm, headers);
                 break;
             default:
-                LOG.warn("Worker returned an unexpected forwarding action {} for task {} (message id: {}). "
+                LOG.warn("Worker returned an unexpected forwarding action: {} for task: {} (message id: {}). "
                     + "Defaulting to forwarding the task.", taskForwardingAction, tm.getTaskId(),
                          taskInformation.getInboundMessageId());
                 callback.forward(taskInformation, tm.getTo(), tm, headers);
