@@ -195,7 +195,7 @@ final class WorkerCore
                                     taskInformation.getInboundMessageId());
                                 executor.executeTask(tm, taskInformation, poison, headers, codec);
                             }
-                        }  else {
+                        } else {
                             executor.forwardTask(tm, taskInformation, poison, headers, codec, jobStatus);
                         }
                         break;
