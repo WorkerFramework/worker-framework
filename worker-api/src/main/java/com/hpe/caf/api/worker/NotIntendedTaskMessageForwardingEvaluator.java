@@ -23,7 +23,7 @@ import java.util.Map;
  * worker's input queue is different from the target/to queue in the task message), and deciding whether they are to be discarded,
  * executed or forwarded.
  */
-public interface NotIndendedTaskMessageForwardingEvaluator
+public interface NotIntendedTaskMessageForwardingEvaluator
 {
     /**
      * Examines the task message and decides whether to discard, execute or forward it.
