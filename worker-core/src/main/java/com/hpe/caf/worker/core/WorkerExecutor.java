@@ -78,7 +78,7 @@ final class WorkerExecutor
     }
 
     /**
-     * Decide whether the message is to be forwarded, executed, or discarded.
+     * Handle the supplied diverted task message.
      *
      * @param tm the task message
      * @param taskInformation the reference to the message this task arrived on
@@ -87,33 +87,33 @@ final class WorkerExecutor
      * @param codec the Codec that can be used to serialise/deserialise data
      * @param jobStatus the job status as returned by the status check URL
      */
-    public void forwardTask(final TaskMessage tm, final TaskInformation taskInformation, final boolean poison,
-                            final Map<String, Object> headers, final Codec codec, final JobStatus jobStatus)
+    public void handleDivertedTask(final TaskMessage tm, final TaskInformation taskInformation, final boolean poison,
+                                   final Map<String, Object> headers, final Codec codec, final JobStatus jobStatus)
         throws TaskRejectedException
     {
-        //Check whether this worker application can evaluate messages for forwarding.
-        if (factory instanceof TaskMessageForwardingEvaluator) {
-            ((TaskMessageForwardingEvaluator) factory).determineForwardingAction(tm, taskInformation, headers, callback);
+        //Check whether this worker application can evaluate diverted task messages.
+        if (factory instanceof DivertedTaskHandler) {
+            processDivertedTaskAction(tm, taskInformation, poison, headers, codec, jobStatus);
         }
-        //Check whether this worker application can evaluate messages not indended for it for forwarding.
-        else if (factory instanceof NotIntendedTaskMessageForwardingEvaluator) {
-            processNotIntendedTaskForwardingAction(tm, taskInformation, poison, headers, codec, jobStatus);
+        //Check whether this worker application can evaluate messages for forwarding.
+        else if (factory instanceof TaskMessageForwardingEvaluator) {
+            ((TaskMessageForwardingEvaluator) factory).determineForwardingAction(tm, taskInformation, headers, callback);
         //Else messages are forwarded by default.
         } else {
             callback.forward(taskInformation, tm.getTo(), tm, headers);
         }
     }
 
-    private void processNotIntendedTaskForwardingAction(final TaskMessage tm, final TaskInformation taskInformation,
-                                                          final boolean poison,
-                                                          final Map<String, Object> headers, final Codec codec, final JobStatus jobStatus)
+    private void processDivertedTaskAction(final TaskMessage tm, final TaskInformation taskInformation,
+                                           final boolean poison, final Map<String, Object> headers, final Codec codec,
+                                           final JobStatus jobStatus)
         throws TaskRejectedException
     {
-        final TaskForwardingAction taskForwardingAction = ((NotIntendedTaskMessageForwardingEvaluator) factory).
-            determineForwardingAction(tm, taskInformation, poison, headers, codec, jobStatus, callback);
-        LOG.debug("Worker returned forwarding action: {} for task: {} (message id: {})",
-                  taskForwardingAction, tm.getTaskId(), taskInformation.getInboundMessageId());
-        switch (taskForwardingAction) {
+        final DivertedTaskAction divertedTaskAction
+            = ((DivertedTaskHandler) factory).handleDivertedTask(tm, taskInformation, poison, headers, codec, jobStatus, callback);
+        LOG.debug("Worker returned diverted task action: {} for task: {} (message id: {})",
+                  divertedTaskAction, tm.getTaskId(), taskInformation.getInboundMessageId());
+        switch (divertedTaskAction) {
             case Discard:
                 discardTask(tm, taskInformation);
                 break;
@@ -124,8 +124,8 @@ final class WorkerExecutor
                 callback.forward(taskInformation, tm.getTo(), tm, headers);
                 break;
             default:
-                LOG.warn("Worker returned an unexpected forwarding action: {} for task: {} (message id: {}). "
-                    + "Defaulting to forwarding the task.", taskForwardingAction, tm.getTaskId(),
+                LOG.warn("Worker returned an unexpected diverted task action: {} for task: {} (message id: {}). "
+                    + "Defaulting to forwarding the task.", divertedTaskAction, tm.getTaskId(),
                          taskInformation.getInboundMessageId());
                 callback.forward(taskInformation, tm.getTo(), tm, headers);
         }

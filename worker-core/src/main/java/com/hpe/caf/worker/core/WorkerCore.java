@@ -179,7 +179,7 @@ final class WorkerCore
                         if (isTaskIntendedForThisWorker(tm, taskInformation)) {
                             executor.executeTask(tm, taskInformation, poison, headers, codec);
                         } else {
-                            executor.forwardTask(tm, taskInformation, poison, headers, codec, jobStatus);
+                            executor.handleDivertedTask(tm, taskInformation, poison, headers, codec, jobStatus);
                         }
                         break;
                     case Paused:
@@ -196,7 +196,7 @@ final class WorkerCore
                                 executor.executeTask(tm, taskInformation, poison, headers, codec);
                             }
                         } else {
-                            executor.forwardTask(tm, taskInformation, poison, headers, codec, jobStatus);
+                            executor.handleDivertedTask(tm, taskInformation, poison, headers, codec, jobStatus);
                         }
                         break;
                     default:

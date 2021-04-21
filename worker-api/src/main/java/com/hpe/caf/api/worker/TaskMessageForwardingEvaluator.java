@@ -20,7 +20,11 @@ import java.util.Map;
 /**
  * A worker should implement this interface if it is capable of evaluating task messages and deciding whether they are to be forwarded
  * rather than executed.
+ *
+ * @deprecated This interface is limited in the arguments the determineForwardingAction method takes, and the fact that it can only
+ * return void. Use {@link DivertedTaskHandler} instead.
  */
+@Deprecated
 public interface TaskMessageForwardingEvaluator
 {
     /**

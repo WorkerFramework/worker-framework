@@ -16,9 +16,9 @@
 package com.hpe.caf.api.worker;
 
 /**
- * The action to be taken by a worker when it receives a message for forwarding.
+ * The action to be taken by a worker when it receives a message that has been diverted.
  */
-public enum TaskForwardingAction
+public enum DivertedTaskAction
 {
     Discard,
     Execute,
