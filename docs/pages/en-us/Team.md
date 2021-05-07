@@ -49,7 +49,18 @@ team_members:
           icon: hpe-social-email
           url: mailto:guido.rugo@microfocus.com
 
-     - name: Josehp Astin
+    - name: Himanshi Agrawal
+      email: himanshi.agrawal@microfocus.com
+      avatar: /assets/img/himanshi.png
+      social:
+        - title: GitHub
+          icon: hpe-social-github
+          url: https://github.com/himanshi-agrawal
+        - title: Email
+          icon: hpe-social-email
+          url: mailto:himanshi.agrawal@microfocus.com
+
+    - name: Joseph Astin
       email: joseph.astin@microfocus.com
       avatar: /assets/img/joseph.jpg
       social:
@@ -58,9 +69,9 @@ team_members:
           url: https://github.com/JoeAstin
         - title: Email
           icon: hpe-social-email
-          url: mailto:joseph.astin@microfocus.com           
+          url: mailto:joseph.astin@microfocus.com            
      
-     - name: Kleyton O'Hare 
+    - name: Kleyton O'Hare 
       email: kleyton.ohare@microfocus.com
       avatar: /assets/img/kleyton.jpg
       social:
@@ -69,7 +80,7 @@ team_members:
           url: https://github.com/kleyton-ohare
         - title: Email
           icon: hpe-social-email
-          url: mailto:kleyton.ohare@microfocus.com
+          url: mailto:kleyton.ohare@microfocus.com 
 
     - name: Kusuma Ghosh Dastidar
       email: vgkusuma@microfocus.com
@@ -125,4 +136,5 @@ team_members:
         - title: Email
           icon: hpe-social-email
           url: mailto:xavier.lamourec@microfocus.com
+
 ---
