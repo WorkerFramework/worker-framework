@@ -51,7 +51,7 @@ team_members:
 
     - name: Himanshi Agrawal
       email: himanshi.agrawal@microfocus.com
-      avatar: /assets/img/himanshi.png
+      avatar: /assets/img/himanshi.jpg
       social:
         - title: GitHub
           icon: hpe-social-github
