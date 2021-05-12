@@ -80,7 +80,7 @@ public class FileSystemDataStore implements ManagedDataStore, FilePathProvider, 
         LOG.debug("Initialised");
     }
     
-    private void throwExceptionIfPathDoesNotExist(final Path path) throws ReferenceNotFoundException
+    private static void throwExceptionIfPathDoesNotExist(final Path path) throws ReferenceNotFoundException
     {
         try {
             path.getFileSystem().provider().checkAccess(path);
