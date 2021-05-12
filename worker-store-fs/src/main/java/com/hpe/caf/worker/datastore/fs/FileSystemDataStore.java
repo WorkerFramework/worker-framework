@@ -65,11 +65,12 @@ public class FileSystemDataStore implements ManagedDataStore, FilePathProvider, 
         throws DataStoreException
     {
         dataStorePath = FileSystems.getDefault().getPath(config.getDataDir());
-        throwExceptionIfPathDoesNotExist(dataStorePath);
-        try {
-            Files.createDirectory(dataStorePath);
-        } catch (IOException e) {
-            throw new DataStoreException("Cannot create data store directory", e);
+        if (!Files.exists(dataStorePath)) {
+            try {
+                Files.createDirectory(dataStorePath);
+            } catch (IOException e) {
+                throw new DataStoreException("Cannot create data store directory", e);
+            }
         }
         healthcheck = new FileSystemDataStoreHealthcheck(dataStorePath);
         healthcheckTimeout = getDataDirHealthcheckTimeoutSeconds(config);
@@ -299,8 +300,9 @@ public class FileSystemDataStore implements ManagedDataStore, FilePathProvider, 
         Path p;
         if (partialReference != null && !partialReference.isEmpty()) {
             p = verifyReference(validateReference(partialReference));
-            throwExceptionIfPathDoesNotExist(p);
-            Files.createDirectories(p);
+            if (!Files.exists(p)) {
+                Files.createDirectories(p);
+            }
         } else {
             p = dataStorePath;
         }
