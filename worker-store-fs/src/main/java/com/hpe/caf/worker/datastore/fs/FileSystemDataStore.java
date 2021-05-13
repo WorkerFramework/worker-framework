@@ -65,7 +65,7 @@ public class FileSystemDataStore implements ManagedDataStore, FilePathProvider, 
         throws DataStoreException
     {
         dataStorePath = FileSystems.getDefault().getPath(config.getDataDir());
-        if (!Files.exists(dataStorePath)) {
+        if (pathDoesNotExist(dataStorePath)) {
             try {
                 Files.createDirectory(dataStorePath);
             } catch (IOException e) {
@@ -80,7 +80,18 @@ public class FileSystemDataStore implements ManagedDataStore, FilePathProvider, 
         LOG.debug("Initialised");
     }
     
-    private static void throwExceptionIfPathDoesNotExist(final Path path) throws ReferenceNotFoundException
+    private static boolean pathDoesNotExist(final Path path)
+    {
+        try {
+            path.getFileSystem().provider().checkAccess(path);
+        } catch(final IOException ex) {
+            LOG.debug("path "+path+" does not exist or is not accessible.", ex);
+            return true;
+        }
+        return false;
+    }
+    
+    private static void throwExceptionIfPathIsNotAccessible(final Path path) throws ReferenceNotFoundException
     {
         try {
             path.getFileSystem().provider().checkAccess(path);
@@ -300,7 +311,7 @@ public class FileSystemDataStore implements ManagedDataStore, FilePathProvider, 
         Path p;
         if (partialReference != null && !partialReference.isEmpty()) {
             p = verifyReference(validateReference(partialReference));
-            if (!Files.exists(p)) {
+            if (pathDoesNotExist(p)) {
                 Files.createDirectories(p);
             }
         } else {
@@ -353,7 +364,7 @@ public class FileSystemDataStore implements ManagedDataStore, FilePathProvider, 
     private Path checkReferenceExists(final Path reference)
         throws ReferenceNotFoundException
     {
-        throwExceptionIfPathDoesNotExist(reference);
+        throwExceptionIfPathIsNotAccessible(reference);
         return reference;
     }
 
