@@ -80,13 +80,14 @@ public class FileSystemDataStore implements ManagedDataStore, FilePathProvider, 
         LOG.debug("Initialised");
     }
     
-    private static boolean doesPathExist(final Path path) throws DataStoreException
+    private boolean doesPathExist(final Path path) throws DataStoreException
     {
         try {
             path.getFileSystem().provider().checkAccess(path);
         } catch (final NoSuchFileException ex) {
             return false;
         } catch (final IOException ex) {
+            errors.incrementAndGet();
             throw new DataStoreException("Path "+path+" is not accessible.", ex);
         }
         return true;
