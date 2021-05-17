@@ -91,16 +91,7 @@ public class FileSystemDataStore implements ManagedDataStore, FilePathProvider, 
         }
         return true;
     }
-    
-    private static void throwExceptionIfPathIsNotAccessible(final Path path) throws ReferenceNotFoundException
-    {
-        try {
-            path.getFileSystem().provider().checkAccess(path);
-        } catch(final IOException ex) {
-            throw new ReferenceNotFoundException("Reference not found ", ex);
-        }
-    }
-    
+
     @Override
     public void shutdown()
     {
@@ -363,9 +354,11 @@ public class FileSystemDataStore implements ManagedDataStore, FilePathProvider, 
      * @throws ReferenceNotFoundException if the Path does not exist
      */
     private Path checkReferenceExists(final Path reference)
-        throws ReferenceNotFoundException
+        throws DataStoreException, ReferenceNotFoundException
     {
-        throwExceptionIfPathIsNotAccessible(reference);
+        if (!doesPathExist(reference)) {
+            throw new ReferenceNotFoundException("Reference not found: " + reference);
+        }
         return reference;
     }
 
