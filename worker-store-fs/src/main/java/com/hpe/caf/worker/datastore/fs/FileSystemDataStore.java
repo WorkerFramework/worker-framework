@@ -79,19 +79,6 @@ public class FileSystemDataStore implements ManagedDataStore, FilePathProvider, 
 
         LOG.debug("Initialised");
     }
-    
-    private boolean doesPathExist(final Path path) throws DataStoreException
-    {
-        try {
-            path.getFileSystem().provider().checkAccess(path);
-        } catch (final NoSuchFileException ex) {
-            return false;
-        } catch (final IOException ex) {
-            errors.incrementAndGet();
-            throw new DataStoreException("Path "+path+" is not accessible.", ex);
-        }
-        return true;
-    }
 
     @Override
     public void shutdown()
@@ -286,6 +273,20 @@ public class FileSystemDataStore implements ManagedDataStore, FilePathProvider, 
         numRx.incrementAndGet();
         LOG.debug("Requesting file path for {}", reference);
         return checkReferenceExists(verifyReference(reference));
+    }
+
+    private boolean doesPathExist(final Path path) throws DataStoreException
+    {
+        try {
+            path.getFileSystem().provider().checkAccess(path);
+        } catch (final NoSuchFileException ex) {
+            return false;
+        } catch (final IOException ex) {
+            errors.incrementAndGet();
+            throw new DataStoreException("Path " + path + " is not accessible.", ex);
+        }
+
+        return true;
     }
 
     /**
