@@ -7,6 +7,7 @@ The Correlation Id will be included in the output message so downstream workers 
 
 #### Bug Fixes
 - SCMOD-13301: Worker-Framework: Move away from Files.exists()
+- SCMOD-12319: Removed worker archetype
 
 #### Breaking Changes
 - SCMOD-12730: Added pause task functionality.
@@ -19,6 +20,5 @@ The Correlation Id will be included in the output message so downstream workers 
   the task to the `CAF_WORKER_PAUSED_QUEUE` instead of processing it.
   - If the task has been paused, and the `CAF_WORKER_PAUSED_QUEUE` environment variable is NOT set, the worker process 
   the task as normal (as if the task was not paused).
-
 #### Known Issues
 - None
