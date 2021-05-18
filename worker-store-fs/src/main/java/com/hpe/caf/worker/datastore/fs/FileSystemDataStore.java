@@ -65,7 +65,7 @@ public class FileSystemDataStore implements ManagedDataStore, FilePathProvider, 
         throws DataStoreException
     {
         dataStorePath = FileSystems.getDefault().getPath(config.getDataDir());
-        if (!Files.exists(dataStorePath)) {
+        if (!doesPathExist(dataStorePath)) {
             try {
                 Files.createDirectory(dataStorePath);
             } catch (IOException e) {
@@ -275,6 +275,20 @@ public class FileSystemDataStore implements ManagedDataStore, FilePathProvider, 
         return checkReferenceExists(verifyReference(reference));
     }
 
+    private boolean doesPathExist(final Path path) throws DataStoreException
+    {
+        try {
+            path.getFileSystem().provider().checkAccess(path);
+        } catch (final NoSuchFileException ex) {
+            return false;
+        } catch (final IOException ex) {
+            errors.incrementAndGet();
+            throw new DataStoreException("Path " + path + " is not accessible.", ex);
+        }
+
+        return true;
+    }
+
     /**
      * The returned Path will be the partial reference resolved relative to the store's dataStorePath (from its configuration) and a
      * randomly generated UUID file name will be made relative to that. Subdirectories under the dataStorePath will automatically be
@@ -291,7 +305,7 @@ public class FileSystemDataStore implements ManagedDataStore, FilePathProvider, 
         Path p;
         if (partialReference != null && !partialReference.isEmpty()) {
             p = verifyReference(validateReference(partialReference));
-            if (!Files.exists(p)) {
+            if (!doesPathExist(p)) {
                 Files.createDirectories(p);
             }
         } else {
@@ -342,9 +356,9 @@ public class FileSystemDataStore implements ManagedDataStore, FilePathProvider, 
      * @throws ReferenceNotFoundException if the Path does not exist
      */
     private Path checkReferenceExists(final Path reference)
-        throws ReferenceNotFoundException
+        throws DataStoreException, ReferenceNotFoundException
     {
-        if (!Files.exists(reference)) {
+        if (!doesPathExist(reference)) {
             throw new ReferenceNotFoundException("Reference not found: " + reference);
         }
         return reference;
