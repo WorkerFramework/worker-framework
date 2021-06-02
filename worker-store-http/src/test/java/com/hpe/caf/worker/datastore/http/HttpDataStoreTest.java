@@ -15,6 +15,8 @@
  */
 package com.hpe.caf.worker.datastore.http;
 
+import com.google.common.base.Charsets;
+import com.google.common.io.ByteSource;
 import com.hpe.caf.api.ConfigurationException;
 import com.hpe.caf.api.HealthResult;
 import com.hpe.caf.api.HealthStatus;
@@ -24,6 +26,7 @@ import com.hpe.caf.api.worker.FilePathProvider;
 import com.hpe.caf.api.worker.ReferenceNotFoundException;
 import com.hpe.caf.util.store.HashStoreResult;
 import com.hpe.caf.util.store.StoreUtil;
+import java.io.BufferedReader;
 import org.apache.commons.codec.digest.DigestUtils;
 import org.testng.annotations.AfterMethod;
 import org.testng.annotations.BeforeMethod;
@@ -36,20 +39,23 @@ import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.io.OutputStream;
 import java.lang.reflect.Field;
+import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.FileSystems;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
+import java.util.Scanner;
 import java.util.UUID;
 import java.util.concurrent.Callable;
+import java.util.stream.Collectors;
 
 public class HttpDataStoreTest
 {
-    private static final Integer HEALTHCHECK_TIMEOUT_SECONDS = 10;
     private File temp;
     private final String testData = "test123";
 
@@ -76,17 +82,18 @@ public class HttpDataStoreTest
 //        file.delete();
 //    }
 //
-//    @Test
-//    public void testDataStoreStream()
-//        throws ConfigurationException, DataStoreException, IOException
-//    {
-//        FileSystemDataStoreConfiguration conf = createConfig();
-//        DataStore store = new FileSystemDataStore(conf);
-//        final byte[] data = testData.getBytes(StandardCharsets.UTF_8);
-//        String storeRef = store.store(new ByteArrayInputStream(data), "test");
-//        verifyStoredData(store, data, storeRef);
-//        Assert.assertEquals(testData.length(), store.size(storeRef));
-//    }
+    @Test
+    public void testStoreInputStream()
+        throws ConfigurationException, DataStoreException, IOException, Exception
+    {
+       // TestHttpServer.start();
+        final HttpDataStoreConfiguration config = createConfig();
+        final DataStore httpDataStore = new HttpDataStore(config);
+        final byte[] data = testData.getBytes(StandardCharsets.UTF_8);
+        String storeRef = httpDataStore.store(new ByteArrayInputStream(data), "test");
+        verifyStoredData(httpDataStore, data, storeRef);
+        Assert.assertEquals(testData.length(), httpDataStore.size(storeRef), "Size of stored data not as expected");
+    }
 //
 //    @Test
 //    public void testDataStoreStreamHash()
@@ -318,33 +325,35 @@ public class HttpDataStoreTest
 //                            "Healthcheck message is incorrect");
 //    }
 //
-//    private FileSystemDataStoreConfiguration createConfig()
-//    {
-//        FileSystemDataStoreConfiguration conf = new FileSystemDataStoreConfiguration();
-//        conf.setDataDir(temp.getAbsolutePath());
-//        conf.setDataDirHealthcheckTimeoutSeconds(HEALTHCHECK_TIMEOUT_SECONDS);
-//        return conf;
-//    }
-//
-//    private static void verifyStoredData(final DataStore dataStore, final byte[] expectedData, final String actualReference)
-//        throws IOException, DataStoreException
-//    {
-//        try (InputStream inStr = dataStore.retrieve(actualReference)) {
-//            verifyData(expectedData, inStr);
-//        }
-//    }
-//
-//    private static void verifyData(final byte[] expected, final InputStream actual)
-//        throws IOException
-//    {
-//        try (final ByteArrayOutputStream bos = new ByteArrayOutputStream()) {
-//            int nRead;
-//            final byte[] buffer = new byte[1024];
-//            while ((nRead = actual.read(buffer, 0, expected.length)) != -1) {
-//                bos.write(buffer, 0, nRead);
-//            }
-//            bos.flush();
-//            ArrayAsserts.assertArrayEquals(expected, bos.toByteArray());
-//        }
-//    }
+
+    private static HttpDataStoreConfiguration createConfig()
+    {
+        final HttpDataStoreConfiguration config = new HttpDataStoreConfiguration();
+        config.setUrl("http://localhost:8000");
+        config.setHttpCallTimeoutSeconds(30L);
+        config.setHealthcheckHttpCallTimeoutSeconds(30L);
+        return config;
+    }
+
+    private static void verifyStoredData(final DataStore dataStore, final byte[] expectedData, final String actualReference)
+        throws IOException, DataStoreException
+    {
+        try (final InputStream inputStream = dataStore.retrieve(actualReference)) {
+            verifyData(expectedData, inputStream);
+        }
+    }
+
+    private static void verifyData(final byte[] expected, final InputStream actual)
+        throws IOException
+    {   
+        try (final ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream()) {
+            int nRead;
+            final byte[] buffer = new byte[1024];
+            while ((nRead = actual.read(buffer, 0, expected.length)) != -1) {
+                byteArrayOutputStream.write(buffer, 0, nRead);
+            }
+            byteArrayOutputStream.flush();
+            ArrayAsserts.assertArrayEquals("Stored data not as expected", expected, byteArrayOutputStream.toByteArray());
+        }
+    }
 }

@@ -134,7 +134,8 @@ public class HttpDataStore implements ManagedDataStore//, DataStoreOutputStreamS
         Objects.requireNonNull(reference);
         final Request request = new Request.Builder().url(String.join("/", url, reference)).build();
         LOG.debug("Retrieving data at url: {}", request.url());
-        try (final Response response = httpClient.newCall(request).execute()) {
+        try {
+            final Response response = httpClient.newCall(request).execute();
             if (response.isSuccessful()) {
                 final InputStream responseBodyInputStream = response.body().byteStream(); // TODO
                 LOG.debug("Successfully retrieved data with reference: {}", reference);
