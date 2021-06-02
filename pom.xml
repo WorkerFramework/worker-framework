@@ -80,6 +80,7 @@
         <module>worker-framework</module>
         <module>worker-store-s3</module>
         <module>worker-store-mem</module>
+        <module>worker-store-http</module>
         <module>worker-tracking-report</module>
     </modules>
 
@@ -184,6 +185,11 @@
                 <version>5.8.0</version>
             </dependency>
 
+            <dependency>
+                <groupId>com.squareup.okhttp3</groupId>
+                <artifactId>okhttp</artifactId>
+                <version>4.9.1</version>
+            </dependency>
             <dependency>
                 <groupId>jakarta.validation</groupId>
                 <artifactId>jakarta.validation-api</artifactId>
