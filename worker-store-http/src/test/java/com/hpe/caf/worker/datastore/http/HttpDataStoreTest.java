@@ -53,72 +53,115 @@ import java.util.Scanner;
 import java.util.UUID;
 import java.util.concurrent.Callable;
 import java.util.stream.Collectors;
+import org.junit.Rule;
+import org.junit.rules.TemporaryFolder;
 
 public class HttpDataStoreTest
 {
     private File temp;
-    private final String testData = "test123";
+    private static final String TEST_DATA = "test123";
+//    
+//    @Rule
+//    public TemporaryFolder temporaryFolder = new TemporaryFolder();
 
-//    @BeforeMethod
-//    public void setUp()
-//    {
-//        temp = new File("temp");
-//    }
-//
-//    @AfterMethod
-//    public void tearDown()
-//    {
-//        deleteDir(temp);
-//    }
-//
-//    private void deleteDir(File file)
-//    {
-//        File[] contents = file.listFiles();
-//        if (contents != null) {
-//            for (File f : contents) {
-//                deleteDir(f);
-//            }
-//        }
-//        file.delete();
-//    }
-//
-    @Test
-    public void testStoreInputStream()
-        throws ConfigurationException, DataStoreException, IOException, Exception
+    @BeforeMethod
+    public void setUp()
     {
-       // TestHttpServer.start();
-        final HttpDataStoreConfiguration config = createConfig();
-        final DataStore httpDataStore = new HttpDataStore(config);
-        final byte[] data = testData.getBytes(StandardCharsets.UTF_8);
-        String storeRef = httpDataStore.store(new ByteArrayInputStream(data), "test");
-        verifyStoredData(httpDataStore, data, storeRef);
-        Assert.assertEquals(testData.length(), httpDataStore.size(storeRef), "Size of stored data not as expected");
+        temp = new File("temp");
     }
-//
+
+    @AfterMethod
+    public void tearDown()
+    {
+        deleteDir(temp);
+    }
+
+    private void deleteDir(final File file)
+    {
+        File[] contents = file.listFiles();
+        if (contents != null) {
+            for (File f : contents) {
+                deleteDir(f);
+            }
+        }
+        file.delete();
+    }
+
+    @Test
+    public void testStoreInputStream() throws Exception
+    {
+        try (final TestHttpServer testHttpServer = new TestHttpServer()) {
+            final HttpDataStoreConfiguration config = createConfig(testHttpServer.getPort());
+            final DataStore httpDataStore = new HttpDataStore(config);
+            final byte[] testDataBytes = TEST_DATA.getBytes(StandardCharsets.UTF_8);
+            final String storeReference = httpDataStore.store(new ByteArrayInputStream(testDataBytes), "test");
+            verifyStoredData(httpDataStore, TEST_DATA.getBytes(StandardCharsets.UTF_8), storeReference);
+            Assert.assertEquals(httpDataStore.size(storeReference), TEST_DATA.length(), "Size of stored data not as expected");
+        }
+    }
+
+    //@Test
+    public void testStoreByteArray() throws Exception
+    {
+        try (final TestHttpServer testHttpServer = new TestHttpServer()) {
+            final HttpDataStoreConfiguration config = createConfig(testHttpServer.getPort());
+            final DataStore httpDataStore = new HttpDataStore(config);
+            final byte[] testDataBytes = TEST_DATA.getBytes(StandardCharsets.UTF_8);
+            final String storeReference = httpDataStore.store(testDataBytes, "test");
+            verifyStoredData(httpDataStore, testDataBytes, storeReference);
+            Assert.assertEquals(httpDataStore.size(storeReference), TEST_DATA.length(), "Size of stored data not as expected");
+        }
+    }
+
+//    @Test
+//    public void testStoreFile() throws Exception
+//    {
+////        FileSystemDataStoreConfiguration conf = createConfig();
+////        DataStore store = new FileSystemDataStore(conf);
+////        final byte[] data = TEST_DATA.getBytes(StandardCharsets.UTF_8);
+////        Path p = Paths.get(temp.getAbsolutePath()).resolve(UUID.randomUUID().toString());
+////        Files.write(p, data);
+////        String storeRef = store.store(p, "test");
+////        verifyStoredData(store, data, storeRef);
+////        Assert.assertEquals(TEST_DATA.length(), store.size(storeRef));
+//        
+//        try (final TestHttpServer testHttpServer = new TestHttpServer()) {
+//            final HttpDataStoreConfiguration config = createConfig(testHttpServer.getPort());
+//            final DataStore httpDataStore = new HttpDataStore(config);
+//            final byte[] testDataBytes = TEST_DATA.getBytes(StandardCharsets.UTF_8);
+//            final Path path = Paths.get(temp.getAbsolutePath()).resolve(UUID.randomUUID().toString());
+//            //final Path path = Paths.get(temporaryFolder.getAbsolutePath()).resolve(UUID.randomUUID().toString());
+//            
+//          //  File f = temporaryFolder.newFile(UUID.randomUUID().toString());
+//            Files.write(f.toPath(), testDataBytes);
+//            final String storeReference = httpDataStore.store(path, "test");
+//            verifyStoredData(httpDataStore, testDataBytes, storeReference);
+//            Assert.assertEquals(httpDataStore.size(storeReference), TEST_DATA.length(), "Size of stored data not as expected");
+//        }
+//    }
+
 //    @Test
 //    public void testDataStoreStreamHash()
 //        throws ConfigurationException, DataStoreException, IOException
 //    {
+//        try (final TestHttpServer testHttpServer = new TestHttpServer()) {
+//            final HttpDataStoreConfiguration config = createConfig(testHttpServer.getPort());
+//            final DataStore httpDataStore = new HttpDataStore(config);
+//            final byte[] testDataBytes = TEST_DATA.getBytes(StandardCharsets.UTF_8);
+//            final String storeReference = httpDataStore.store(new ByteArrayInputStream(testDataBytes), "test");
+//            verifyStoredData(httpDataStore, TEST_DATA.getBytes(StandardCharsets.UTF_8), storeReference);
+//            Assert.assertEquals(httpDataStore.size(storeReference), TEST_DATA.length(), "Size of stored data not as expected");
+//        }
+//        
 //        FileSystemDataStoreConfiguration conf = createConfig();
 //        DataStore store = new FileSystemDataStore(conf);
-//        final byte[] data = testData.getBytes(StandardCharsets.UTF_8);
+//        final byte[] data = TEST_DATA.getBytes(StandardCharsets.UTF_8);
 //        final HashStoreResult storeResult = StoreUtil.hashStore(store, new ByteArrayInputStream(data), "test");
 //        verifyStoredData(store, data, storeResult.getReference());
-//        Assert.assertEquals(testData.length(), store.size(storeResult.getReference()));
+//        Assert.assertEquals(TEST_DATA.length(), store.size(storeResult.getReference()));
 //        Assert.assertEquals(DigestUtils.sha1Hex(data), storeResult.getHash());
 //    }
 //
-//    @Test
-//    public void testDataStoreBytes()
-//        throws ConfigurationException, DataStoreException, IOException
-//    {
-//        FileSystemDataStoreConfiguration conf = createConfig();
-//        DataStore store = new FileSystemDataStore(conf);
-//        final byte[] data = testData.getBytes(StandardCharsets.UTF_8);
-//        String storeRef = store.store(data, "test");
-//        verifyStoredData(store, data, storeRef);
-//        Assert.assertEquals(testData.length(), store.size(storeRef));
-//    }
 //
 //    @Test
 //    public void testDataStoreBytesHash()
@@ -126,10 +169,10 @@ public class HttpDataStoreTest
 //    {
 //        FileSystemDataStoreConfiguration conf = createConfig();
 //        DataStore store = new FileSystemDataStore(conf);
-//        final byte[] data = testData.getBytes(StandardCharsets.UTF_8);
+//        final byte[] data = TEST_DATA.getBytes(StandardCharsets.UTF_8);
 //        final HashStoreResult storeResult = StoreUtil.hashStore(store, data, "test");
 //        verifyStoredData(store, data, storeResult.getReference());
-//        Assert.assertEquals(testData.length(), store.size(storeResult.getReference()));
+//        Assert.assertEquals(TEST_DATA.length(), store.size(storeResult.getReference()));
 //        Assert.assertEquals(DigestUtils.sha1Hex(data), storeResult.getHash());
 //    }
 //
@@ -139,12 +182,12 @@ public class HttpDataStoreTest
 //    {
 //        FileSystemDataStoreConfiguration conf = createConfig();
 //        DataStore store = new FileSystemDataStore(conf);
-//        final byte[] data = testData.getBytes(StandardCharsets.UTF_8);
+//        final byte[] data = TEST_DATA.getBytes(StandardCharsets.UTF_8);
 //        Path p = Paths.get(temp.getAbsolutePath()).resolve(UUID.randomUUID().toString());
 //        Files.write(p, data);
 //        String storeRef = store.store(p, "test");
 //        verifyStoredData(store, data, storeRef);
-//        Assert.assertEquals(testData.length(), store.size(storeRef));
+//        Assert.assertEquals(TEST_DATA.length(), store.size(storeRef));
 //    }
 //
 //    @Test
@@ -153,14 +196,14 @@ public class HttpDataStoreTest
 //    {
 //        FileSystemDataStoreConfiguration conf = createConfig();
 //        DataStore store = new FileSystemDataStore(conf);
-//        final byte[] data = testData.getBytes(StandardCharsets.UTF_8);
+//        final byte[] data = TEST_DATA.getBytes(StandardCharsets.UTF_8);
 //        Path p = Paths.get(temp.getAbsolutePath()).resolve(UUID.randomUUID().toString());
 //        Files.write(p, data);
 //        final HashStoreResult storeResult = StoreUtil.hashStore(store, p, "test");
 //        try (InputStream inStr = store.retrieve(storeResult.getReference())) {
 //            verifyData(data, inStr);
 //        }
-//        Assert.assertEquals(testData.length(), store.size(storeResult.getReference()));
+//        Assert.assertEquals(TEST_DATA.length(), store.size(storeResult.getReference()));
 //        Assert.assertEquals(DigestUtils.sha1Hex(data), storeResult.getHash());
 //    }
 //
@@ -170,7 +213,7 @@ public class HttpDataStoreTest
 //    {
 //        FileSystemDataStoreConfiguration conf = createConfig();
 //        DataStore store = new FileSystemDataStore(conf);
-//        final byte[] data = testData.getBytes(StandardCharsets.UTF_8);
+//        final byte[] data = TEST_DATA.getBytes(StandardCharsets.UTF_8);
 //        Path p = Paths.get(temp.getAbsolutePath()).resolve(UUID.randomUUID().toString());
 //        Files.write(p, data);
 //        String storeRef = store.store(p, "test");
@@ -188,7 +231,7 @@ public class HttpDataStoreTest
 //    {
 //        final FileSystemDataStoreConfiguration conf = createConfig();
 //        final FileSystemDataStore store = new FileSystemDataStore(conf);
-//        final byte[] data = testData.getBytes(StandardCharsets.UTF_8);
+//        final byte[] data = TEST_DATA.getBytes(StandardCharsets.UTF_8);
 //        final ArrayList<String> storeRefs = new ArrayList<>();
 //        try (final OutputStream outputStream = store.store("test", storeRefs::add)) {
 //            outputStream.write(data);
@@ -249,7 +292,7 @@ public class HttpDataStoreTest
 //    {
 //        FileSystemDataStoreConfiguration conf = createConfig();
 //        DataStore store = new FileSystemDataStore(conf);
-//        final byte[] data = testData.getBytes(StandardCharsets.UTF_8);
+//        final byte[] data = TEST_DATA.getBytes(StandardCharsets.UTF_8);
 //        String storeRef = store.store(data, "test");
 //
 //        Path p = Paths.get(temp.toString(), storeRef);
@@ -325,13 +368,12 @@ public class HttpDataStoreTest
 //                            "Healthcheck message is incorrect");
 //    }
 //
-
-    private static HttpDataStoreConfiguration createConfig()
+    private static HttpDataStoreConfiguration createConfig(final int httpServerPort)
     {
         final HttpDataStoreConfiguration config = new HttpDataStoreConfiguration();
-        config.setUrl("http://localhost:8000");
-        config.setHttpCallTimeoutSeconds(30L);
-        config.setHealthcheckHttpCallTimeoutSeconds(30L);
+        config.setUrl("http://localhost:" + httpServerPort);
+        config.setHttpCallTimeoutSeconds(3000L);//TODO
+        config.setHealthcheckHttpCallTimeoutSeconds(3000L);//TODO
         return config;
     }
 
@@ -345,7 +387,7 @@ public class HttpDataStoreTest
 
     private static void verifyData(final byte[] expected, final InputStream actual)
         throws IOException
-    {   
+    {
         try (final ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream()) {
             int nRead;
             final byte[] buffer = new byte[1024];

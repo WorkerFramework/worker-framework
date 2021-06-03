@@ -20,53 +20,41 @@ import com.hpe.caf.api.HealthResult;
 import com.hpe.caf.api.HealthStatus;
 import com.hpe.caf.api.QuietResource;
 import com.hpe.caf.api.worker.*;
-//import org.apache.commons.io.output.ProxyOutputStream;
+import java.io.DataOutputStream;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.net.HttpURLConnection;
+import java.net.MalformedURLException;
+import java.net.URL;
 import java.nio.file.*;
 import java.util.Objects;
 import java.util.UUID;
-import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
-import okhttp3.MediaType;
-import okhttp3.MultipartBody;
-import okhttp3.OkHttpClient;
-import okhttp3.Request;
-import okhttp3.RequestBody;
-import okhttp3.Response;
-
 /**
  * A {@link DataStore} that reads and writes files to and from a HTTP server.
  */
-public class HttpDataStore implements ManagedDataStore//, DataStoreOutputStreamSupport
+public class HttpDataStore implements ManagedDataStore
 {
     private static final Logger LOG = LoggerFactory.getLogger(HttpDataStore.class);
-    private static final MediaType OCTET_STREAM_MEDIA_TYPE = MediaType.parse("application/octet-stream");
-
+    private static final String OCTET_STREAM_MEDIA_TYPE = "application/octet-stream";
+    private static final String X_WWW_FORM_URLENCODED_MEDIA_TYPE = "application/x-www-form-urlencoded";
+    
     private final AtomicInteger numErrors = new AtomicInteger(0);
     private final AtomicInteger numRetrieveRequests = new AtomicInteger(0);
     private final AtomicInteger numStoreRequests = new AtomicInteger(0);
     private final AtomicInteger numDeleteRequests = new AtomicInteger(0);
     private final DataStoreMetricsReporter metrics = new HttpDataStoreMetricsReporter();
 
-    private String url;
-    //   private final int outputBufferSize;
-    private final OkHttpClient httpClient;
-    private final OkHttpClient healthcheckHttpClient;
+    private final String url;
 
     public HttpDataStore(final HttpDataStoreConfiguration config)
         throws DataStoreException
     {
         url = config.getUrl();
-        httpClient
-            = new OkHttpClient().newBuilder().callTimeout(config.getHttpCallTimeoutSeconds(), TimeUnit.SECONDS).build();
-        healthcheckHttpClient
-            = new OkHttpClient().newBuilder().callTimeout(config.getHealthcheckHttpCallTimeoutSeconds(), TimeUnit.SECONDS).build();
-        //   outputBufferSize = getOutputBufferSize(config);
+        // TODO timeouts
         LOG.debug("Initialised");
     }
 
@@ -84,21 +72,28 @@ public class HttpDataStore implements ManagedDataStore//, DataStoreOutputStreamS
 
     @Override
     public HealthResult healthCheck()
-    {
-        final Request request = new Request.Builder().url(url).build(); // TODO just HEAD request?
-        try (final Response response = healthcheckHttpClient.newCall(request).execute()) {
-            if (response.isSuccessful()) {
+    {        
+        HttpURLConnection httpUrlConnection = null;
+        try {
+            httpUrlConnection = (HttpURLConnection) new URL(url).openConnection();
+            httpUrlConnection.setRequestMethod("GET");
+            final int responseCode = httpUrlConnection.getResponseCode();
+            if (isSuccessfulResponseCode(responseCode)) {
                 return HealthResult.RESULT_HEALTHY;
             } else {
                 return new HealthResult(
                     HealthStatus.UNHEALTHY,
-                    String.format("Unexpected response code: %s returned from url: %s", response.code(), url));
+                    String.format("Unexpected response code: %s returned from url: %s", responseCode, url));
             }
         } catch (final IOException e) {
             LOG.warn("Exception thrown trying to access url: {} during healthcheck", url, e);
             return new HealthResult(
                 HealthStatus.UNHEALTHY,
                 String.format("Exception thrown trying access url: %s during healthcheck", url));
+        } finally {
+            if (httpUrlConnection != null) {
+                httpUrlConnection.disconnect();
+            }
         }
     }
 
@@ -107,21 +102,30 @@ public class HttpDataStore implements ManagedDataStore//, DataStoreOutputStreamS
         throws DataStoreException
     {
         LOG.debug("Received delete request for data with reference: {}", reference);
-        numDeleteRequests.incrementAndGet();
         Objects.requireNonNull(reference);
-        final Request request = new Request.Builder().url(String.join("/", url, reference)).delete().build();
-        LOG.debug("Deleting data at url: {}", request.url());
-        try (final Response response = httpClient.newCall(request).execute()) {
-            if (response.isSuccessful()) {
+        HttpURLConnection httpUrlConnection = null;
+        try {
+            final URL urlWithReference = new URL(String.join("/", url, reference));
+            httpUrlConnection = (HttpURLConnection) urlWithReference.openConnection();
+            httpUrlConnection.setDoOutput(true);
+            httpUrlConnection.setRequestProperty("Content-Type", X_WWW_FORM_URLENCODED_MEDIA_TYPE); // TODO check
+            httpUrlConnection.setRequestMethod("DELETE");
+            final int responseCode = httpUrlConnection.getResponseCode();
+            if (isSuccessfulResponseCode(responseCode)) {
                 LOG.debug("Successfully deleted data with reference: {}", reference);
             } else {
                 numErrors.incrementAndGet();
                 throw new DataStoreException(String.format(
-                    "Failed to delete data with reference: %s. Response details: %s.", reference, response));
+                    "Failed to delete data with reference: %s. Response code: %s. Response message: %s",
+                    reference, httpUrlConnection.getResponseCode(), httpUrlConnection.getResponseMessage()));
             }
         } catch (final IOException e) {
             numErrors.incrementAndGet();
-            throw new DataStoreException("Failed to delete data with reference: " + reference, e);
+            throw new DataStoreException(String.format("Failed to delete data with reference: %s", reference), e);
+        } finally {
+            if (httpUrlConnection != null) {
+                httpUrlConnection.disconnect();
+            }
         }
     }
 
@@ -132,23 +136,26 @@ public class HttpDataStore implements ManagedDataStore//, DataStoreOutputStreamS
         LOG.debug("Received retrieve request for data with reference: {}", reference);
         numRetrieveRequests.incrementAndGet();
         Objects.requireNonNull(reference);
-        final Request request = new Request.Builder().url(String.join("/", url, reference)).build();
-        LOG.debug("Retrieving data at url: {}", request.url());
+        HttpURLConnection httpUrlConnection = null;
         try {
-            final Response response = httpClient.newCall(request).execute();
-            if (response.isSuccessful()) {
-                final InputStream responseBodyInputStream = response.body().byteStream(); // TODO
+            final URL urlWithReference = new URL(String.join("/", url, reference));
+            httpUrlConnection = (HttpURLConnection) urlWithReference.openConnection();
+            httpUrlConnection.setRequestMethod("GET");
+            final int responseCode = httpUrlConnection.getResponseCode();
+            if (isSuccessfulResponseCode(responseCode)) {
                 LOG.debug("Successfully retrieved data with reference: {}", reference);
-                return responseBodyInputStream;
+                return httpUrlConnection.getInputStream();
             } else {
                 numErrors.incrementAndGet();
                 throw new DataStoreException(String.format(
-                    "Failed to retrieve data with reference: %s. Response details: %s.", reference, response));
+                    "Failed to retrieve data with reference: %s. Response code: %s. Response message: %s",
+                    reference, httpUrlConnection.getResponseCode(), httpUrlConnection.getResponseMessage()));
             }
         } catch (final IOException e) {
             numErrors.incrementAndGet();
-            throw new DataStoreException("Failed to retrieve data with reference: " + reference, e);
+            throw new DataStoreException(String.format("Failed to retrieve data with reference: %s", reference), e);
         }
+        // Don't close httpUrlConnection as that will close the returned input stream, which the client is responsible for closing.
     }
 
     @Override
@@ -157,21 +164,28 @@ public class HttpDataStore implements ManagedDataStore//, DataStoreOutputStreamS
     {
         LOG.debug("Received size request for data with reference: {}", reference);
         Objects.requireNonNull(reference);
-        final Request request = new Request.Builder().url(String.join("/", url, reference)).build();
-        LOG.debug("Getting size of data at url: {}", request.url());
-        try (final Response response = httpClient.newCall(request).execute()) {
-            if (response.isSuccessful()) {
-                final long responseBodyContentLength = response.body().contentLength(); // TODO
+        HttpURLConnection httpUrlConnection = null;
+        try {
+            final URL urlWithReference = new URL(String.join("/", url, reference));
+            httpUrlConnection = (HttpURLConnection) urlWithReference.openConnection();
+            httpUrlConnection.setRequestMethod("GET");
+            final int responseCode = httpUrlConnection.getResponseCode();
+            if (isSuccessfulResponseCode(responseCode)) {
                 LOG.debug("Successfully got size of data with reference: {}", reference);
-                return responseBodyContentLength;
+                return httpUrlConnection.getContentLengthLong();
             } else {
                 numErrors.incrementAndGet();
                 throw new DataStoreException(String.format(
-                    "Failed to get size of data with reference: %s. Response details: %s.", reference, response));
+                    "Failed to get size data with reference: %s. Response code: %s. Response message: %s",
+                    reference, httpUrlConnection.getResponseCode(), httpUrlConnection.getResponseMessage()));
             }
         } catch (final IOException e) {
             numErrors.incrementAndGet();
-            throw new DataStoreException("Failed to get size of data with reference: " + reference, e);
+            throw new DataStoreException(String.format("Failed to get size of data with reference: %s", reference), e);
+        } finally {
+            if (httpUrlConnection != null) {
+                httpUrlConnection.disconnect();
+            }
         }
     }
 
@@ -184,24 +198,41 @@ public class HttpDataStore implements ManagedDataStore//, DataStoreOutputStreamS
         final String reference = (partialReference != null && !partialReference.isEmpty())
             ? String.join("/", partialReference, UUID.randomUUID().toString())
             : UUID.randomUUID().toString();
-        final RequestBody requestBody = new MultipartBody.Builder()
-            .setType(MultipartBody.FORM)
-            .addFormDataPart("file", reference, RequestBody.create(data, OCTET_STREAM_MEDIA_TYPE))
-            .build();
-        final Request request = new Request.Builder().url(String.join("/", url, reference)).post(requestBody).build();
-        LOG.debug("Storing data at url: {}", request.url());
-        try (final Response response = httpClient.newCall(request).execute()) {
-            if (response.isSuccessful()) {
+        HttpURLConnection httpUrlConnection = null;
+        DataOutputStream dataOutputStream = null;
+        try {
+            final URL urlWithReference = new URL(String.join("/", url, reference));
+            httpUrlConnection = (HttpURLConnection) urlWithReference.openConnection();
+            httpUrlConnection.setDoOutput(true);
+            httpUrlConnection.setRequestMethod("PUT");
+            httpUrlConnection.setRequestProperty("Content-Type", OCTET_STREAM_MEDIA_TYPE);
+            dataOutputStream = new DataOutputStream(httpUrlConnection.getOutputStream());
+            dataOutputStream.write(data, 0, data.length);
+            final int responseCode = httpUrlConnection.getResponseCode();
+            if (isSuccessfulResponseCode(responseCode)) {
                 LOG.debug("Successfully stored data with reference: {}", reference);
                 return reference;
             } else {
                 numErrors.incrementAndGet();
                 throw new DataStoreException(String.format(
-                    "Failed to store data with reference: %s. Response details: %s.", reference, response));
+                    "Failed to store data with reference: %s. Response code: %s. Response message: %s",
+                    reference, httpUrlConnection.getResponseCode(), httpUrlConnection.getResponseMessage()));
             }
         } catch (final IOException e) {
             numErrors.incrementAndGet();
-            throw new DataStoreException("Failed to store data with reference: " + reference, e);
+            throw new DataStoreException(String.format("Failed to store data with reference: %s", reference), e);
+        } finally {
+            if (dataOutputStream != null) {
+                try {
+                    dataOutputStream.flush();
+                    dataOutputStream.close();
+                } catch (final IOException e) {
+                    LOG.warn("Unable to flush and/or close output stream", e);
+                }
+            }
+            if (httpUrlConnection != null) {
+                httpUrlConnection.disconnect();
+            }
         }
     }
 
@@ -231,32 +262,6 @@ public class HttpDataStore implements ManagedDataStore//, DataStoreOutputStreamS
         }
     }
 
-    // TODO needed?
-//    @Override
-//    public OutputStream store(final String partialReference, final Consumer<String> setReferenceFunction)
-//        throws DataStoreException
-//    {
-//        Objects.requireNonNull(setReferenceFunction);
-//
-//        try {
-//            final Path ref = getStoreReference(partialReference);
-//            final String reference = dataStorePath.relativize(ref).toString().replace('\\', '/');
-//            final OutputStream fos = Files.newOutputStream(ref);
-//            final BufferedOutputStream bos = new BufferedOutputStream(fos, outputBufferSize);
-//            return new ProxyOutputStream(bos)
-//            {
-//                @Override
-//                public void close() throws IOException
-//                {
-//                    super.close();
-//                    setReferenceFunction.accept(reference);
-//                }
-//            };
-//        } catch (final IOException e) {
-//            numErrors.incrementAndGet();
-//            throw new DataStoreException("Failed to get output stream for store", e);
-//        }
-//    }
     private class HttpDataStoreMetricsReporter implements DataStoreMetricsReporter
     {
         @Override
@@ -284,22 +289,8 @@ public class HttpDataStore implements ManagedDataStore//, DataStoreOutputStreamS
         }
     }
 
-//    private static int getOutputBufferSize(final HttpDataStoreConfiguration config)
-//    {
-//        final int DEFAULT_OUTPUT_BUFFER_SIZE = 16384;
-//
-//        final Integer configSetting = config.getOutputBufferSize();
-//
-//        return (configSetting == null || configSetting <= 0)
-//            ? DEFAULT_OUTPUT_BUFFER_SIZE
-//            : configSetting;
-//    }
-//
-//    private static Duration getHealthcheckTimeoutSeconds(final HttpDataStoreConfiguration config)
-//    {
-//        final Integer configValue = config.getHealthcheckTimeoutSeconds();
-//        return (configValue == null || configValue <= 0)
-//            ? Duration.ofSeconds(DEFAULT_HEALTHCHECK_TIMEOUT_SECONDS)
-//            : Duration.ofSeconds(configValue);
-//    }
+    private static boolean isSuccessfulResponseCode(final int responseCode)
+    {
+        return responseCode >= 200 && responseCode <= 299;
+    }
 }

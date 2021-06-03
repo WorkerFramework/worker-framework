@@ -22,39 +22,87 @@ import java.net.InetSocketAddress;
 import com.sun.net.httpserver.HttpExchange;
 import com.sun.net.httpserver.HttpHandler;
 import com.sun.net.httpserver.HttpServer;
-import java.nio.charset.Charset;
-import java.nio.charset.StandardCharsets;
+import java.net.ServerSocket;
+import java.util.HashMap;
+import java.util.Map;
+import org.apache.commons.io.IOUtils;
 
-public class TestHttpServer
+final class TestHttpServer implements AutoCloseable
 {
-    
-    public static void start() throws Exception
+    private final int port;
+    private final HttpServer server;
+
+    public TestHttpServer() throws IOException
     {
-        HttpServer server = HttpServer.create(new InetSocketAddress(8000), 0);
-        server.createContext("/test", new MyHandler());
-        server.setExecutor(null); // creates a default executor
+        port = findFreePort();
+        server = HttpServer.create(new InetSocketAddress(port), 0);
+        server.createContext("/test", new DefaultHandler());
+        server.setExecutor(null);
         server.start();
     }
-    
-    public static void stop() throws Exception
+
+    @Override
+    public void close() throws Exception
     {
-//        HttpServer server = HttpServer.create(new InetSocketAddress(8000), 0);
-//        server.createContext("/test", new MyHandler());
-//        server.setExecutor(null); // creates a default executor
-//        server.start();
+        server.stop(0);
     }
 
-    static class MyHandler implements HttpHandler
+    public int getPort()
     {
+        return port;
+    }
+    
+    static class DefaultHandler implements HttpHandler
+    {
+        private final Map<String, byte[]> storedData = new HashMap<>();
+
         @Override
-        public void handle(HttpExchange t) throws IOException
+        public void handle(HttpExchange httpExchange) throws IOException
         {
-            String response = "test123";
-            t.sendResponseHeaders(200, response.length());
-            OutputStream os = t.getResponseBody();
-            os.write(response.getBytes(StandardCharsets.UTF_8));
-            os.close();
+            switch (httpExchange.getRequestMethod()) {
+                case "GET":
+                    handleGet(httpExchange);
+                    break;
+                case "PUT":
+                    handlePut(httpExchange);
+                    break;
+                    // TODO deelte
+//                case "POST":
+//                    handlePost(httpExchange);
+//                    break;
+                default:
+                    throw new RuntimeException("Only GET and PUT are supported by this HTTP server");
+            }
+        }
+
+        private void handleGet(final HttpExchange httpExchange) throws IOException
+        {
+            final String storedDataReference = httpExchange.getRequestURI().toString().replaceFirst("/", "");
+            final byte[] storedDataByteArray = storedData.get(storedDataReference);
+            if (storedDataByteArray != null) {
+                httpExchange.sendResponseHeaders(200, storedDataByteArray.length);
+                try (final OutputStream outputStream = httpExchange.getResponseBody()) {
+                    outputStream.write(storedDataByteArray);
+                }
+            } else {
+                httpExchange.sendResponseHeaders(404, -1);
+            }
+        }
+        
+        private void handlePut(final HttpExchange httpExchange) throws IOException
+        {
+            final String storedDataReference = httpExchange.getRequestURI().toString().replaceFirst("/", "");
+            storedData.put(storedDataReference, IOUtils.toByteArray(httpExchange.getRequestBody()));
+            httpExchange.sendResponseHeaders(200, 0);
         }
     }
 
+    private static int findFreePort()
+    {
+        try (final ServerSocket serverSocket = new ServerSocket(0)) {
+            return serverSocket.getLocalPort();
+        } catch (final IOException e) {
+            throw new RuntimeException("Unable to find free port for HTTP server", e);
+        }
+    }
 }
