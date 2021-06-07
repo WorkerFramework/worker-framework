@@ -1,4 +1,4 @@
-# worker-store-fs
+# worker-store-http
 
 ---
 
