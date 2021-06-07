@@ -29,6 +29,7 @@
         <groupId>com.github.workerframework</groupId>
         <artifactId>worker-framework-aggregator</artifactId>
         <version>5.1.0-SNAPSHOT</version>
+        
     </parent>
 
     <dependencies>
@@ -88,6 +89,10 @@
             <groupId>com.github.workerframework</groupId>
             <artifactId>worker-configs</artifactId>
         </dependency>
+<!--        <dependency>
+            <groupId>com.github.workerframework</groupId>
+            <artifactId>worker-store-http</artifactId>
+        </dependency>-->
         <dependency>
             <groupId>junit</groupId>
             <artifactId>junit</artifactId>
