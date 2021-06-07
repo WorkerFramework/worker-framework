@@ -24,6 +24,7 @@ import com.hpe.caf.config.system.SystemBootstrapConfiguration;
 import com.hpe.caf.naming.ServicePath;
 import com.hpe.caf.util.ModuleLoader;
 import com.hpe.caf.util.ModuleLoaderException;
+import com.hpe.caf.worker.datastore.http.HttpDataStoreProvider;
 
 /**
  * Created by ploch on 22/10/2015.
@@ -46,7 +47,8 @@ public class WorkerServicesFactory
         Cipher cipher = ModuleLoader.getService(CipherProvider.class, NullCipherProvider.class).getCipher(bootstrapConfiguration);
         ServicePath path = bootstrapConfiguration.getServicePath();
         ConfigurationSource configurationSource = ModuleLoader.getService(ConfigurationSourceProvider.class).getConfigurationSource(bootstrapConfiguration, cipher, path, decoder);
-        DataStore dataStore = ModuleLoader.getService(DataStoreProvider.class).getDataStore(configurationSource);
+//        DataStore dataStore = ModuleLoader.getService(DataStoreProvider.class).getDataStore(configurationSource);
+        DataStore dataStore = new HttpDataStoreProvider().getDataStore(configurationSource);
 
         return new WorkerServices(bootstrapConfiguration, codec, cipher, configurationSource, dataStore);
     }
