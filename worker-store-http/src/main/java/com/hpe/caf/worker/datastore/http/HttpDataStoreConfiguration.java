@@ -43,10 +43,10 @@ public class HttpDataStoreConfiguration
     private String url;
 
     @Max(60)
-    private long httpCallTimeoutSeconds;
+    private int connectTimeoutMillis;
 
     @Max(60)
-    private long healthcheckHttpCallTimeoutSeconds;
+    private int readTimeoutMillis;
 
     public String getUrl()
     {
@@ -58,23 +58,23 @@ public class HttpDataStoreConfiguration
         this.url = url;
     }
 
-    public long getHttpCallTimeoutSeconds()
+    public int getConnectTimeoutMillis()
     {
-        return httpCallTimeoutSeconds;
+        return connectTimeoutMillis;
     }
 
-    public void setHttpCallTimeoutSeconds(final long httpCallTimeoutSeconds)
+    public void setConnectTimeoutMillis(final int connectTimeoutMillis)
     {
-        this.httpCallTimeoutSeconds = httpCallTimeoutSeconds;
+        this.connectTimeoutMillis = connectTimeoutMillis;
     }
 
-    public long getHealthcheckHttpCallTimeoutSeconds()
+    public int getReadTimeoutMillis()
     {
-        return healthcheckHttpCallTimeoutSeconds;
+        return readTimeoutMillis;
     }
 
-    public void setHealthcheckHttpCallTimeoutSeconds(final long healthcheckHttpCallTimeoutSeconds)
+    public void setReadTimeoutMillis(final int readTimeoutMillis)
     {
-        this.healthcheckHttpCallTimeoutSeconds = healthcheckHttpCallTimeoutSeconds;
+        this.readTimeoutMillis = readTimeoutMillis;
     }
 }

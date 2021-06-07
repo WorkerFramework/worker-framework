@@ -36,7 +36,7 @@ final class TestHttpServer implements AutoCloseable
     {
         port = findFreePort();
         server = HttpServer.create(new InetSocketAddress(port), 0);
-        server.createContext("/test", new DefaultHandler());
+        server.createContext("/", new DefaultHandler());
         server.setExecutor(null);
         server.start();
     }
@@ -51,7 +51,7 @@ final class TestHttpServer implements AutoCloseable
     {
         return port;
     }
-    
+
     static class DefaultHandler implements HttpHandler
     {
         private final Map<String, byte[]> storedData = new HashMap<>();
@@ -66,10 +66,9 @@ final class TestHttpServer implements AutoCloseable
                 case "PUT":
                     handlePut(httpExchange);
                     break;
-                    // TODO deelte
-//                case "POST":
-//                    handlePost(httpExchange);
-//                    break;
+                case "DELETE":
+                    handleDelete(httpExchange);
+                    break;
                 default:
                     throw new RuntimeException("Only GET and PUT are supported by this HTTP server");
             }
@@ -78,22 +77,33 @@ final class TestHttpServer implements AutoCloseable
         private void handleGet(final HttpExchange httpExchange) throws IOException
         {
             final String storedDataReference = httpExchange.getRequestURI().toString().replaceFirst("/", "");
-            final byte[] storedDataByteArray = storedData.get(storedDataReference);
-            if (storedDataByteArray != null) {
-                httpExchange.sendResponseHeaders(200, storedDataByteArray.length);
-                try (final OutputStream outputStream = httpExchange.getResponseBody()) {
-                    outputStream.write(storedDataByteArray);
-                }
+            if (storedDataReference.isEmpty()) {
+                httpExchange.sendResponseHeaders(200, -1); // Healthcheck
             } else {
-                httpExchange.sendResponseHeaders(404, -1);
+                final byte[] storedDataByteArray = storedData.get(storedDataReference);
+                if (storedDataByteArray != null) {
+                    httpExchange.sendResponseHeaders(200, storedDataByteArray.length);
+                    try (final OutputStream outputStream = httpExchange.getResponseBody()) {
+                        outputStream.write(storedDataByteArray);
+                    }
+                } else {
+                    httpExchange.sendResponseHeaders(404, -1);
+                }
             }
         }
-        
+
         private void handlePut(final HttpExchange httpExchange) throws IOException
         {
             final String storedDataReference = httpExchange.getRequestURI().toString().replaceFirst("/", "");
             storedData.put(storedDataReference, IOUtils.toByteArray(httpExchange.getRequestBody()));
             httpExchange.sendResponseHeaders(200, 0);
+        }
+
+        private void handleDelete(final HttpExchange httpExchange) throws IOException
+        {
+            final String storedDataReference = httpExchange.getRequestURI().toString().replaceFirst("/", "");
+            storedData.remove(storedDataReference);
+            httpExchange.sendResponseHeaders(204, 0);
         }
     }
 
