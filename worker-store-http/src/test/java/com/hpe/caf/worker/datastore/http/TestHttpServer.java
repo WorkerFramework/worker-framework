@@ -70,7 +70,7 @@ final class TestHttpServer implements AutoCloseable
                     handleDelete(httpExchange);
                     break;
                 default:
-                    throw new RuntimeException("Only GET and PUT are supported by this HTTP server");
+                    throw new RuntimeException("Only GET, PUT and DELETE are supported by this HTTP server");
             }
         }
 
