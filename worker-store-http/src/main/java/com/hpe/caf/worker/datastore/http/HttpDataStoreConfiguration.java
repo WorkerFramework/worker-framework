@@ -16,37 +16,19 @@
 package com.hpe.caf.worker.datastore.http;
 
 import com.hpe.caf.api.Configuration;
-import javax.validation.constraints.Max;
-import javax.validation.constraints.Min;
-
 import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Size;
 
 @Configuration
 public class HttpDataStoreConfiguration
 {
-//    @NotNull
-//    @Size(min = 1)
-//    private String protocol;
-//
-//    @NotNull
-//    @Size(min = 1)
-//    private String host;
-//
-//    @Min(1)
-//    @Max(65535)
-//    private int port;
-
-    // TODO authentication
     @NotNull
     @Size(min = 1)
     private String url;
 
-    @Max(60)
-    private int connectTimeoutMillis;
+    private Integer connectTimeoutMillis;
 
-    @Max(60)
-    private int readTimeoutMillis;
+    private Integer readTimeoutMillis;
 
     public String getUrl()
     {
@@ -58,17 +40,17 @@ public class HttpDataStoreConfiguration
         this.url = url;
     }
 
-    public int getConnectTimeoutMillis()
+    public Integer getConnectTimeoutMillis()
     {
         return connectTimeoutMillis;
     }
 
-    public void setConnectTimeoutMillis(final int connectTimeoutMillis)
+    public void setConnectTimeoutMillis(final Integer connectTimeoutMillis)
     {
         this.connectTimeoutMillis = connectTimeoutMillis;
     }
 
-    public int getReadTimeoutMillis()
+    public Integer getReadTimeoutMillis()
     {
         return readTimeoutMillis;
     }

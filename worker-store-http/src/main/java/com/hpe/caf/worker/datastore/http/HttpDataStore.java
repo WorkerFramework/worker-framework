@@ -41,6 +41,8 @@ public class HttpDataStore implements ManagedDataStore
     private static final Logger LOG = LoggerFactory.getLogger(HttpDataStore.class);
     private static final String OCTET_STREAM_MEDIA_TYPE = "application/octet-stream";
     private static final String X_WWW_FORM_URLENCODED_MEDIA_TYPE = "application/x-www-form-urlencoded";
+    private static final int DEFAULT_CONNECT_TIMEOUT_MILLIS = 10000;
+    private static final int DEFAULT_READ_TIMEOUT_MILLIS = 10000;
 
     private final AtomicInteger numErrors = new AtomicInteger(0);
     private final AtomicInteger numRetrieveRequests = new AtomicInteger(0);
@@ -56,8 +58,8 @@ public class HttpDataStore implements ManagedDataStore
         throws DataStoreException
     {
         url = config.getUrl();
-        connectTimeoutMillis = config.getConnectTimeoutMillis();
-        readTimeoutMillis = config.getReadTimeoutMillis();
+        connectTimeoutMillis = getConnectTimeoutMillis(config);
+        readTimeoutMillis = getReadTimeoutMillis(config);
         LOG.debug("Initialised");
     }
 
@@ -304,6 +306,18 @@ public class HttpDataStore implements ManagedDataStore
         {
             return numErrors.get();
         }
+    }
+
+    private static int getConnectTimeoutMillis(final HttpDataStoreConfiguration config)
+    {
+        final Integer configValue = config.getConnectTimeoutMillis();
+        return (configValue == null || configValue <= 0) ? DEFAULT_CONNECT_TIMEOUT_MILLIS : configValue;
+    }
+
+    private static int getReadTimeoutMillis(final HttpDataStoreConfiguration config)
+    {
+        final Integer configValue = config.getReadTimeoutMillis();
+        return (configValue == null || configValue <= 0) ? DEFAULT_READ_TIMEOUT_MILLIS : configValue;
     }
 
     private static boolean isSuccessfulResponseCode(final int responseCode)
