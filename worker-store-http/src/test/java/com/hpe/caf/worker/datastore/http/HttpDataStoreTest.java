@@ -189,12 +189,13 @@ public class HttpDataStoreTest
     @Test
     public void testHealthcheckUnhealthy() throws DataStoreException
     {
-        final HttpDataStoreConfiguration configWithWrongPort = createConfig(-1);
-        final HttpDataStore httpDataStore = new HttpDataStore(configWithWrongPort);
+        final HttpDataStoreConfiguration configWithBadUrl = new HttpDataStoreConfiguration();
+        configWithBadUrl.setUrl("http://idontexist:1234");
+        final HttpDataStore httpDataStore = new HttpDataStore(configWithBadUrl);
         final HealthResult healthResult = httpDataStore.healthCheck();
         Assert.assertEquals(healthResult.getStatus(), HealthStatus.UNHEALTHY, "Healthcheck status should be UNHEALTHY");
         Assert.assertEquals(healthResult.getMessage(),
-                            "Unexpected response code: 404 returned from url: http://localhost:-1. Response message: Not Found",
+                            "Exception thrown trying access url: http://idontexist:1234 during healthcheck",
                             "Healthcheck message is incorrect");
     }
 
