@@ -29,7 +29,6 @@
         <groupId>com.github.workerframework</groupId>
         <artifactId>worker-framework-aggregator</artifactId>
         <version>5.1.0-SNAPSHOT</version>
-        
     </parent>
 
     <dependencies>

@@ -17,6 +17,7 @@ package com.hpe.caf.worker.datastore.http;
 
 import com.hpe.caf.api.ConfigurationException;
 import com.hpe.caf.api.HealthResult;
+import com.hpe.caf.api.HealthStatus;
 import com.hpe.caf.api.worker.DataStore;
 import com.hpe.caf.api.worker.DataStoreException;
 import com.hpe.caf.api.worker.ReferenceNotFoundException;
@@ -47,16 +48,18 @@ public class HttpDataStoreTest
     private static final String PARTIAL_REFERENCE = "partial-reference";
     private static final String TEST_DATA = "test123";
     private TestHttpServer testHttpServer;
+    private HttpDataStoreConfiguration config;
     private File temporaryFolder;
 
     @BeforeClass
-    public void startHttpServer() throws IOException
+    public void beforeClassSetup() throws IOException
     {
         testHttpServer = new TestHttpServer();
+        config = createConfig(testHttpServer.getPort());
     }
 
     @AfterClass
-    public void stopHttpServer() throws Exception
+    public void afterClassTeardown() throws Exception
     {
         testHttpServer.close();
     }
@@ -90,7 +93,6 @@ public class HttpDataStoreTest
     @Test
     public void testStoreInputStream() throws Exception
     {
-        final HttpDataStoreConfiguration config = createConfig(testHttpServer.getPort());
         final DataStore httpDataStore = new HttpDataStore(config);
         final byte[] testDataBytes = TEST_DATA.getBytes(StandardCharsets.UTF_8);
         final String storeReference = httpDataStore.store(new ByteArrayInputStream(testDataBytes), PARTIAL_REFERENCE);
@@ -101,7 +103,6 @@ public class HttpDataStoreTest
     @Test
     public void testStoreByteArray() throws Exception
     {
-        final HttpDataStoreConfiguration config = createConfig(testHttpServer.getPort());
         final DataStore httpDataStore = new HttpDataStore(config);
         final byte[] testDataBytes = TEST_DATA.getBytes(StandardCharsets.UTF_8);
         final String storeReference = httpDataStore.store(testDataBytes, PARTIAL_REFERENCE);
@@ -112,7 +113,6 @@ public class HttpDataStoreTest
     @Test
     public void testStoreFile() throws Exception
     {
-        final HttpDataStoreConfiguration config = createConfig(testHttpServer.getPort());
         final DataStore httpDataStore = new HttpDataStore(config);
         final byte[] testDataBytes = TEST_DATA.getBytes(StandardCharsets.UTF_8);
         final Path path = Paths.get(temporaryFolder.getAbsolutePath()).resolve(UUID.randomUUID().toString());
@@ -123,10 +123,8 @@ public class HttpDataStoreTest
     }
 
     @Test
-    public void testStoreInputStreamWithHash()
-        throws ConfigurationException, DataStoreException, IOException
+    public void testStoreInputStreamWithHash() throws DataStoreException, IOException
     {
-        final HttpDataStoreConfiguration config = createConfig(testHttpServer.getPort());
         final DataStore httpDataStore = new HttpDataStore(config);
         final byte[] testDataBytes = TEST_DATA.getBytes(StandardCharsets.UTF_8);
         final HashStoreResult storeResult
@@ -137,10 +135,8 @@ public class HttpDataStoreTest
     }
 
     @Test
-    public void testStoreBytesWithHash()
-        throws ConfigurationException, DataStoreException, IOException
+    public void testStoreBytesWithHash() throws DataStoreException, IOException
     {
-        final HttpDataStoreConfiguration config = createConfig(testHttpServer.getPort());
         final DataStore httpDataStore = new HttpDataStore(config);
         final byte[] testDataBytes = TEST_DATA.getBytes(StandardCharsets.UTF_8);
         final HashStoreResult storeResult = StoreUtil.hashStore(httpDataStore, testDataBytes, PARTIAL_REFERENCE);
@@ -150,10 +146,8 @@ public class HttpDataStoreTest
     }
 
     @Test
-    public void testStoreFileWithHash()
-        throws ConfigurationException, DataStoreException, IOException
+    public void testStoreFileWithHash() throws DataStoreException, IOException
     {
-        final HttpDataStoreConfiguration config = createConfig(testHttpServer.getPort());
         final DataStore httpDataStore = new HttpDataStore(config);
         final byte[] testDataBytes = TEST_DATA.getBytes(StandardCharsets.UTF_8);
         Path p = Paths.get(temporaryFolder.getAbsolutePath()).resolve(UUID.randomUUID().toString());
@@ -166,12 +160,10 @@ public class HttpDataStoreTest
         Assert.assertEquals(DigestUtils.sha1Hex(testDataBytes), storeResult.getHash());
     }
 
-    @Test
-    public void testDeleteData()
-        throws DataStoreException, IOException
+    @Test(expectedExceptions = {ReferenceNotFoundException.class})
+    public void testDeleteData() throws DataStoreException, IOException
     {
         // Store
-        final HttpDataStoreConfiguration config = createConfig(testHttpServer.getPort());
         final DataStore httpDataStore = new HttpDataStore(config);
         final byte[] testDataBytes = TEST_DATA.getBytes(StandardCharsets.UTF_8);
         final String storeReference = httpDataStore.store(new ByteArrayInputStream(testDataBytes), PARTIAL_REFERENCE);
@@ -184,22 +176,26 @@ public class HttpDataStoreTest
         httpDataStore.delete(storeReference);
 
         // Retrieve after deletion
-        try {
-            httpDataStore.retrieve(storeReference);
-            Assert.fail(
-                "Expected a ReferenceNotFoundException exception to be thrown when trying to retrieve data that has been deleted");
-        } catch (final ReferenceNotFoundException e) {
-            // Expected
-        }
+        httpDataStore.retrieve(storeReference);
     }
 
     @Test
-    public void testHealthcheck()
-        throws ConfigurationException, DataStoreException, IOException
+    public void testHealthcheck() throws DataStoreException
     {
-        final HttpDataStoreConfiguration config = createConfig(testHttpServer.getPort());
         final HttpDataStore httpDataStore = new HttpDataStore(config);
         Assert.assertEquals(httpDataStore.healthCheck(), HealthResult.RESULT_HEALTHY, "Healthcheck status should be HEALTHY");
+    }
+
+    @Test
+    public void testHealthcheckUnhealthy() throws DataStoreException
+    {
+        final HttpDataStoreConfiguration configWithWrongPort = createConfig(-1);
+        final HttpDataStore httpDataStore = new HttpDataStore(configWithWrongPort);
+        final HealthResult healthResult = httpDataStore.healthCheck();
+        Assert.assertEquals(healthResult.getStatus(), HealthStatus.UNHEALTHY, "Healthcheck status should be UNHEALTHY");
+        Assert.assertEquals(healthResult.getMessage(),
+                            "Unexpected response code: 404 returned from url: http://localhost:-1. Response message: Not Found",
+                            "Healthcheck message is incorrect");
     }
 
     private static HttpDataStoreConfiguration createConfig(final int httpServerPort)

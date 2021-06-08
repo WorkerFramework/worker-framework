@@ -72,7 +72,7 @@ public class HttpDataStore implements ManagedDataStore
     @Override
     public void shutdown()
     {
-        // Nothing to do
+        LOG.debug("Shutdown");
     }
 
     @Override
@@ -156,7 +156,7 @@ public class HttpDataStore implements ManagedDataStore
             final int responseCode = httpUrlConnection.getResponseCode();
             if (isSuccessfulResponseCode(responseCode)) {
                 LOG.debug("Successfully retrieved data with reference: {}", reference);
-                return httpUrlConnection.getInputStream();
+                return  new HttpURLConnectionInputStream(httpUrlConnection, httpUrlConnection.getInputStream());
             } else if (responseCode == 404) {
                 numErrors.incrementAndGet();
                 throw new ReferenceNotFoundException(String.format("No data found with reference: %s", reference));
@@ -278,6 +278,36 @@ public class HttpDataStore implements ManagedDataStore
             numErrors.incrementAndGet();
             throw new DataStoreException(String.format(
                 "Unable to store data withCould not create file input stream from path: %s.", path.toString()), ex);
+        }
+    }
+
+    // A custom InputStream implementation that automatically closes the HttpURLConnection when the stream is closed.
+    private final class HttpURLConnectionInputStream extends InputStream
+    {
+        private final HttpURLConnection httpUrlConnection;
+        private final InputStream inputStream;
+
+        public HttpURLConnectionInputStream(final HttpURLConnection httpUrlConnection, final InputStream inputStream) throws IOException
+        {
+            this.httpUrlConnection = httpUrlConnection;
+            this.inputStream = inputStream;
+        }
+
+        @Override
+        public int read() throws IOException
+        {
+            return inputStream.read();
+        }
+
+        @Override
+        public void close() throws IOException
+        {
+            try {
+                inputStream.close();
+            } catch (final IOException e) {
+                LOG.warn("Unable to close input stream", e);
+            }
+            httpUrlConnection.disconnect();
         }
     }
 

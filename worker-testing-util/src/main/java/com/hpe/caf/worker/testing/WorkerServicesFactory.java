@@ -47,8 +47,9 @@ public class WorkerServicesFactory
         Cipher cipher = ModuleLoader.getService(CipherProvider.class, NullCipherProvider.class).getCipher(bootstrapConfiguration);
         ServicePath path = bootstrapConfiguration.getServicePath();
         ConfigurationSource configurationSource = ModuleLoader.getService(ConfigurationSourceProvider.class).getConfigurationSource(bootstrapConfiguration, cipher, path, decoder);
-//        DataStore dataStore = ModuleLoader.getService(DataStoreProvider.class).getDataStore(configurationSource);
-        DataStore dataStore = new HttpDataStoreProvider().getDataStore(configurationSource);
+        final DataStore dataStore = new SystemSettingsProvider().getBooleanSetting("worker.testing.usehttpdatastore")
+            ? new HttpDataStoreProvider().getDataStore(configurationSource)
+            : ModuleLoader.getService(DataStoreProvider.class).getDataStore(configurationSource);
 
         return new WorkerServices(bootstrapConfiguration, codec, cipher, configurationSource, dataStore);
     }
