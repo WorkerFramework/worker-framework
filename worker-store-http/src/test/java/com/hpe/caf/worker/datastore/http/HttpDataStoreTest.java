@@ -15,7 +15,6 @@
  */
 package com.hpe.caf.worker.datastore.http;
 
-import com.hpe.caf.api.ConfigurationException;
 import com.hpe.caf.api.HealthResult;
 import com.hpe.caf.api.HealthStatus;
 import com.hpe.caf.api.worker.DataStore;
