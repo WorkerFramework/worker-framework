@@ -22,6 +22,9 @@ import javax.validation.constraints.Size;
 @Configuration
 public class HttpDataStoreConfiguration
 {
+    private static final int DEFAULT_CONNECT_TIMEOUT_MILLIS = 10000;
+    public static final int DEFAULT_READ_TIMEOUT_MILLIS = 10000;
+
     @NotNull
     @Size(min = 1)
     private String url;
@@ -40,9 +43,10 @@ public class HttpDataStoreConfiguration
         this.url = url;
     }
 
+    @SuppressWarnings("null") // Not unboxing null value, checked before returning
     public Integer getConnectTimeoutMillis()
     {
-        return connectTimeoutMillis;
+        return (connectTimeoutMillis == null || connectTimeoutMillis <= 0) ? DEFAULT_CONNECT_TIMEOUT_MILLIS : connectTimeoutMillis;
     }
 
     public void setConnectTimeoutMillis(final Integer connectTimeoutMillis)
@@ -50,9 +54,10 @@ public class HttpDataStoreConfiguration
         this.connectTimeoutMillis = connectTimeoutMillis;
     }
 
+    @SuppressWarnings("null") // Not unboxing null value, checked before returning
     public Integer getReadTimeoutMillis()
     {
-        return readTimeoutMillis;
+        return (readTimeoutMillis == null || readTimeoutMillis <= 0) ? DEFAULT_READ_TIMEOUT_MILLIS : readTimeoutMillis;
     }
 
     public void setReadTimeoutMillis(final int readTimeoutMillis)
