@@ -11,6 +11,15 @@ The default FileSystemDataStore configuration file checks for values as below;
 | dataDir  |  `CAF_WORKER_DATASTORE_PATH` | /mnt/caf-datastore-root  |
 | dataDirHealthcheckTimeoutSeconds  |  `CAF_WORKER_DATASTORE_HEALTHCHECK_TIMEOUT_SECONDS` | 10  |
 
+## HttpDataStoreConfiguration
+
+The HttpDataStore configuration file checks for values as below;
+
+| Property | Checked Environment Variables | Default               |
+|----------|-------------------------------|-----------------------|
+| url  |  `CAF_WORKER_HTTP_DATASTORE_URL` | undefined  |
+| connectTimeoutMillis  |  `CAF_WORKER_HTTP_DATASTORE_CONNECT_TIMEOUT_MILLIS` | 10000  |
+| readTimeoutMillis  |  `CAF_WORKER_HTTP_DATASTORE_READ_TIMEOUT_MILLIS` | 10000  |
 
 ## RabbitConfiguration
 

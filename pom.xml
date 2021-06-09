@@ -80,6 +80,7 @@
         <module>worker-framework</module>
         <module>worker-store-s3</module>
         <module>worker-store-mem</module>
+        <module>worker-store-http</module>
         <module>worker-tracking-report</module>
     </modules>
 
@@ -156,6 +157,11 @@
             <dependency>
                 <groupId>com.github.workerframework</groupId>
                 <artifactId>worker-store-fs</artifactId>
+                <version>5.1.0-SNAPSHOT</version>
+            </dependency>
+            <dependency>
+                <groupId>com.github.workerframework</groupId>
+                <artifactId>worker-store-http</artifactId>
                 <version>5.1.0-SNAPSHOT</version>
             </dependency>
             <dependency>
