@@ -1,1 +1,2 @@
 DISABLE_AUTOTAGGING=true
+SEPG_BUILD_ENV_IMAGE=cafapi/opensuse-jdk8-maven:1.0.0
