@@ -97,25 +97,25 @@ public final class TaskMessage
     {
     }
 
-    public TaskMessage(final String taskId, final String taskClassifier, final int taskApiVersion, final byte[] taskData,
+    public TaskMessage(final String taskId, final String taskClassifier, final int taskApiVersion, final Object taskData,
                        final TaskStatus taskStatus, final Map<String, byte[]> context)
     {
         this(taskId, taskClassifier, taskApiVersion, taskData, taskStatus, context, null);
     }
 
-    public TaskMessage(final String taskId, final String taskClassifier, final int taskApiVersion, final byte[] taskData,
+    public TaskMessage(final String taskId, final String taskClassifier, final int taskApiVersion, final Object taskData,
                        final TaskStatus taskStatus, final Map<String, byte[]> context, final String to)
     {
         this(taskId, taskClassifier, taskApiVersion, taskData, taskStatus, context, to, null);
     }
 
-    public TaskMessage(final String taskId, final String taskClassifier, final int taskApiVersion, final byte[] taskData,
+    public TaskMessage(final String taskId, final String taskClassifier, final int taskApiVersion, final Object taskData,
                        final TaskStatus taskStatus, final Map<String, byte[]> context, final String to, final TrackingInfo tracking)
     {
         this(taskId, taskClassifier, taskApiVersion, taskData, taskStatus, context, to, tracking, null);
     }
 
-    public TaskMessage(final String taskId, final String taskClassifier, final int taskApiVersion, final byte[] taskData,
+    public TaskMessage(final String taskId, final String taskClassifier, final int taskApiVersion, final Object taskData,
                        final TaskStatus taskStatus, final Map<String, byte[]> context, final String to, final TrackingInfo tracking,
                        final TaskSourceInfo sourceInfo)
     {
