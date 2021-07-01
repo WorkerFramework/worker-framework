@@ -74,7 +74,8 @@ public abstract class AbstractWorker<T, V> implements Worker
     @Override
     public final WorkerResponse getGeneralFailureResult(final Throwable t)
     {
-        return new WorkerResponse(getResultQueue(), TaskStatus.RESULT_EXCEPTION, getExceptionData(t), getWorkerIdentifier(), getWorkerApiVersion(), null);
+        return new WorkerResponse(getResultQueue(), TaskStatus.RESULT_EXCEPTION, getExceptionData(t), getWorkerIdentifier(),
+                getWorkerApiVersion(), null);
     }
 
     /**
@@ -163,7 +164,7 @@ public abstract class AbstractWorker<T, V> implements Worker
      */
     protected final WorkerResponse createSuccessNoOutputToQueue()
     {
-        return new WorkerResponse(null, TaskStatus.RESULT_SUCCESS, new byte[]{}, getWorkerIdentifier(), getWorkerApiVersion(), null);
+        return new WorkerResponse(null, TaskStatus.RESULT_SUCCESS, "", getWorkerIdentifier(), getWorkerApiVersion(), null);
     }
 
     /**
@@ -174,7 +175,7 @@ public abstract class AbstractWorker<T, V> implements Worker
      */
     protected final WorkerResponse createTaskCompleteResponse()
     {
-        return new WorkerResponse(null, TaskStatus.RESULT_SUCCESS, new byte[]{}, getWorkerIdentifier(), getWorkerApiVersion(), null, null);
+        return new WorkerResponse(null, TaskStatus.RESULT_SUCCESS, "", getWorkerIdentifier(), getWorkerApiVersion(), null, null);
     }
 
     /**
@@ -197,12 +198,12 @@ public abstract class AbstractWorker<T, V> implements Worker
      */
     protected final WorkerResponse createFailureResult(final V result, final byte[] context)
     {
-        try {
-            byte[] data = (result != null ? getCodec().serialise(result) : new byte[]{});
+//        try {
+            Object data = (result != null ? result : "");
             return new WorkerResponse(getResultQueue(), TaskStatus.RESULT_FAILURE, data, getWorkerIdentifier(), getWorkerApiVersion(), context);
-        } catch (CodecException e) {
-            throw new TaskFailedException("Failed to serialise result", e);
-        }
+//        } catch (CodecException e) {
+//            throw new TaskFailedException("Failed to serialise result", e);
+//        }
     }
 
     /**
