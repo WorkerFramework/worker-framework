@@ -15,6 +15,7 @@
  */
 package com.hpe.caf.worker.core;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.base.MoreObjects;
 import com.hpe.caf.api.Codec;
 import com.hpe.caf.api.CodecException;
@@ -113,7 +114,7 @@ class WorkerTaskImpl implements WorkerTask
     }
 
     @Override
-    public byte[] getData()
+    public Object getData()
     {
         return taskMessage.getTaskData();
     }
@@ -610,18 +611,22 @@ class WorkerTaskImpl implements WorkerTask
         }
 
         //  Serialise the list of progress report updates to send.
-        final byte[] reportUpdatesTaskData;
-        try {
-            reportUpdatesTaskData = codec.serialise(trackingReportTask);
-        } catch (final CodecException e) {
-            LOG.error("Failed to serialise report update task data.");
-            throw new RuntimeException(e);
-        }
+//        final byte[] reportUpdatesTaskData;
+//        try {
+//            reportUpdatesTaskData = codec.serialise(trackingReportTask);
+//        } catch (final CodecException e) {
+//            LOG.error("Failed to serialise report update task data.");
+//            throw new RuntimeException(e);
+//        }
 
         //  Create a task message comprising the progress report updates.
+//        final TaskMessage reportUpdateMessage = new TaskMessage(
+//                UUID.randomUUID().toString(), TrackingReportConstants.TRACKING_REPORT_TASK_NAME,
+//                TrackingReportConstants.TRACKING_REPORT_TASK_API_VER, reportUpdatesTaskData, TaskStatus.NEW_TASK,
+//                Collections.<String, byte[]>emptyMap(), trackingPipe, null, null, taskMessage.getCorrelationId());
         final TaskMessage reportUpdateMessage = new TaskMessage(
                 UUID.randomUUID().toString(), TrackingReportConstants.TRACKING_REPORT_TASK_NAME,
-                TrackingReportConstants.TRACKING_REPORT_TASK_API_VER, reportUpdatesTaskData, TaskStatus.NEW_TASK,
+                TrackingReportConstants.TRACKING_REPORT_TASK_API_VER, trackingReportTask, TaskStatus.NEW_TASK,
                 Collections.<String, byte[]>emptyMap(), trackingPipe, null, null, taskMessage.getCorrelationId());
 
         //  Publish the task message comprising the report updates.
@@ -673,9 +678,10 @@ class WorkerTaskImpl implements WorkerTask
                 failure.failureId= taskStatus.toString();
                 failure.failureTime = new Date();
                 failure.failureSource = getWorkerName(tm);
-                final byte[] taskData = tm.getTaskData();
+                final Object taskData = tm.getTaskData();
                 if (taskData != null) {
-                    failure.failureMessage = new String(taskData, StandardCharsets.UTF_8);
+//                    failure.failureMessage = new String(taskData, StandardCharsets.UTF_8);
+                    failure.failureMessage = new ObjectMapper().convertValue(taskData, String.class);
                 }
                 trackingReport.failure = failure;
 

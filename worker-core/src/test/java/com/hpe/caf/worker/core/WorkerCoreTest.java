@@ -16,6 +16,7 @@
 package com.hpe.caf.worker.core;
 
 import com.codahale.metrics.health.HealthCheckRegistry;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.hpe.caf.api.Codec;
 import com.hpe.caf.api.CodecException;
 import com.hpe.caf.api.ConfigurationException;
@@ -62,7 +63,8 @@ public class WorkerCoreTest
     private static final String QUEUE_PAUSED = "pausedQueue";
     private static final String SERVICE_PATH = "/test/group";
     private static final int PRIORITY = 2;
-
+    public static final ObjectMapper OBJECT_MAPPER = new ObjectMapper();
+    
     private TaskInformation taskInformation;
 
     @BeforeMethod
@@ -104,7 +106,8 @@ public class WorkerCoreTest
         Assert.assertEquals(TaskStatus.RESULT_SUCCESS, taskMessage.getTaskStatus());
         Assert.assertEquals(WORKER_NAME, taskMessage.getTaskClassifier());
         Assert.assertEquals(WORKER_API_VER, taskMessage.getTaskApiVersion());
-        TestWorkerResult workerResult = codec.deserialise(taskMessage.getTaskData(), TestWorkerResult.class);
+//        TestWorkerResult workerResult = codec.deserialise(taskMessage.getTaskData(), TestWorkerResult.class);
+        TestWorkerResult workerResult = OBJECT_MAPPER.convertValue(taskMessage.getTaskData(), TestWorkerResult.class) ;
         Assert.assertEquals(SUCCESS, workerResult.getResultString());
         Assert.assertTrue(taskMessage.getContext().containsKey(path.toString()));
         ArrayAsserts.assertArrayEquals(SUCCESS.getBytes(StandardCharsets.UTF_8), taskMessage.getContext().get(path.toString()));
@@ -148,7 +151,8 @@ public class WorkerCoreTest
         Assert.assertEquals(TaskStatus.NEW_TASK, rutTaskMessage.getTaskStatus());
         Assert.assertEquals(TrackingReportConstants.TRACKING_REPORT_TASK_NAME, rutTaskMessage.getTaskClassifier());
         Assert.assertEquals(TrackingReportConstants.TRACKING_REPORT_TASK_API_VER, rutTaskMessage.getTaskApiVersion());
-        final TrackingReportTask rutWorkerResult = codec.deserialise(rutTaskMessage.getTaskData(), TrackingReportTask.class);
+//        final TrackingReportTask rutWorkerResult = codec.deserialise(rutTaskMessage.getTaskData(), TrackingReportTask.class);
+        final TrackingReportTask rutWorkerResult = OBJECT_MAPPER.convertValue( rutTaskMessage.getTaskData(), TrackingReportTask.class);
         Assert.assertEquals("J23.1.2", rutWorkerResult.trackingReports.get(0).jobTaskId);
         Assert.assertEquals(TrackingReportStatus.Progress, rutWorkerResult.trackingReports.get(0).status);
         // Verify result for message completion.
@@ -160,7 +164,9 @@ public class WorkerCoreTest
         Assert.assertEquals(TaskStatus.RESULT_SUCCESS, msgCompletionTaskMessage.getTaskStatus());
         Assert.assertEquals(WORKER_NAME, msgCompletionTaskMessage.getTaskClassifier());
         Assert.assertEquals(WORKER_API_VER, msgCompletionTaskMessage.getTaskApiVersion());
-        final TestWorkerResult msgCompletionWorkerResult = codec.deserialise(msgCompletionTaskMessage.getTaskData(), TestWorkerResult.class);
+//        final TestWorkerResult msgCompletionWorkerResult = codec.deserialise(msgCompletionTaskMessage.getTaskData(), TestWorkerResult.class);
+        final TestWorkerResult msgCompletionWorkerResult = OBJECT_MAPPER.convertValue(msgCompletionTaskMessage.getTaskData(),
+                TestWorkerResult.class);
         Assert.assertEquals(SUCCESS, msgCompletionWorkerResult.getResultString());
         Assert.assertTrue(msgCompletionTaskMessage.getContext().containsKey(path.toString()));
         ArrayAsserts.assertArrayEquals(SUCCESS.getBytes(StandardCharsets.UTF_8), msgCompletionTaskMessage.getContext().get(path.toString()));
@@ -277,7 +283,7 @@ public class WorkerCoreTest
         Assert.assertEquals(TaskStatus.NEW_TASK, rutTaskMessage.getTaskStatus());
         Assert.assertEquals(TrackingReportConstants.TRACKING_REPORT_TASK_NAME, rutTaskMessage.getTaskClassifier());
         Assert.assertEquals(TrackingReportConstants.TRACKING_REPORT_TASK_API_VER, rutTaskMessage.getTaskApiVersion());
-        final TrackingReportTask rutWorkerResult = codec.deserialise(rutTaskMessage.getTaskData(), TrackingReportTask.class);
+        final TrackingReportTask rutWorkerResult = OBJECT_MAPPER.convertValue(rutTaskMessage.getTaskData(), TrackingReportTask.class);
         Assert.assertEquals("J23.1.2", rutWorkerResult.trackingReports.get(0).jobTaskId);
         Assert.assertEquals(TrackingReportStatus.Failed, rutWorkerResult.trackingReports.get(0).status);
         Assert.assertEquals(TaskStatus.INVALID_TASK.name(), rutWorkerResult.trackingReports.get(0).failure.failureId);
@@ -421,7 +427,8 @@ public class WorkerCoreTest
         Assert.assertEquals(pausedMsgTaskMessage.getTaskClassifier(), WORKER_NAME);
         Assert.assertEquals(pausedMsgTaskMessage.getTaskApiVersion(), WORKER_API_VER);
         Assert.assertEquals(queue.getLastQueue(), QUEUE_PAUSED);
-        final TestWorkerTask testWorkerTask = codec.deserialise(pausedMsgTaskMessage.getTaskData(), TestWorkerTask.class);
+//        final TestWorkerTask testWorkerTask = (TestWorkerTask)pausedMsgTaskMessage.getTaskData();
+        final TestWorkerTask testWorkerTask = OBJECT_MAPPER.convertValue(pausedMsgTaskMessage.getTaskData(), TestWorkerTask.class);
         Assert.assertEquals(testWorkerTask.getData(), "test123");
     }
 
@@ -468,7 +475,7 @@ public class WorkerCoreTest
         Assert.assertEquals(TaskStatus.NEW_TASK, rutTaskMessage.getTaskStatus());
         Assert.assertEquals(TrackingReportConstants.TRACKING_REPORT_TASK_NAME, rutTaskMessage.getTaskClassifier());
         Assert.assertEquals(TrackingReportConstants.TRACKING_REPORT_TASK_API_VER, rutTaskMessage.getTaskApiVersion());
-        final TrackingReportTask rutWorkerResult = codec.deserialise(rutTaskMessage.getTaskData(), TrackingReportTask.class);
+        final TrackingReportTask rutWorkerResult = OBJECT_MAPPER.convertValue(rutTaskMessage.getTaskData(), TrackingReportTask.class);
         Assert.assertEquals("J23.1.2", rutWorkerResult.trackingReports.get(0).jobTaskId);
         Assert.assertEquals(TrackingReportStatus.Progress, rutWorkerResult.trackingReports.get(0).status);
         // Verify result for message completion.
@@ -481,7 +488,8 @@ public class WorkerCoreTest
         Assert.assertEquals(TaskStatus.RESULT_SUCCESS, msgCompletionTaskMessage.getTaskStatus());
         Assert.assertEquals(WORKER_NAME, msgCompletionTaskMessage.getTaskClassifier());
         Assert.assertEquals(WORKER_API_VER, msgCompletionTaskMessage.getTaskApiVersion());
-        final TestWorkerResult msgCompletionWorkerResult = codec.deserialise(msgCompletionTaskMessage.getTaskData(), TestWorkerResult.class);
+        final TestWorkerResult msgCompletionWorkerResult = OBJECT_MAPPER.convertValue(msgCompletionTaskMessage.getTaskData(),
+                TestWorkerResult.class);
         Assert.assertEquals(SUCCESS, msgCompletionWorkerResult.getResultString());
         Assert.assertTrue(msgCompletionTaskMessage.getContext().containsKey(path.toString()));
         ArrayAsserts.assertArrayEquals(SUCCESS.getBytes(StandardCharsets.UTF_8), msgCompletionTaskMessage.getContext().get(path.toString()));
@@ -501,7 +509,8 @@ public class WorkerCoreTest
         tm.setTaskStatus(TaskStatus.NEW_TASK);
         tm.setTaskClassifier(WORKER_NAME);
         tm.setTaskApiVersion(WORKER_API_VER);
-        tm.setTaskData(codec.serialise(task));
+//        tm.setTaskData(codec.serialise(task));
+        tm.setTaskData(task);
         tm.setTo(QUEUE_IN);
         tm.setTracking(tracking);
         return tm;
@@ -640,7 +649,8 @@ public class WorkerCoreTest
             tm.setTo(QUEUE_OUT);
             tm.setTracking(null);
             try {
-                tm.setTaskData(codec.serialise(taskInformation.getInboundMessageId().getBytes()));
+//                tm.setTaskData(codec.serialise(taskInformation.getInboundMessageId().getBytes()));
+                tm.setTaskData(taskInformation.getInboundMessageId());
                 results.offer(codec.serialise(tm));
             } catch (CodecException ex) {
                 Logger.error("CodecException" + ex);

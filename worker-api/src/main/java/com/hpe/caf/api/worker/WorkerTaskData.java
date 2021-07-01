@@ -38,7 +38,7 @@ public interface WorkerTaskData
     /**
      * Retrieves the actual task data in a serialised form
      */
-    byte[] getData();
+    Object getData();
 
     /**
      * Retrieves any task specific context associated with the task

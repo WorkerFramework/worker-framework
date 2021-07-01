@@ -24,7 +24,7 @@ public class WorkerResponse
 {
     private final String queueReference;
     private final TaskStatus taskStatus;
-    private final byte[] data;
+    private final Object data;
     private final String messageType;
     private final int apiVersion;
     private final byte[] context;
@@ -40,7 +40,8 @@ public class WorkerResponse
      * @param version the task-specific message API version
      * @param context the new context to add to the task message, can be null
      */
-    public WorkerResponse(final String queue, final TaskStatus status, final byte[] data, final String msgType, final int version, final byte[] context)
+    public WorkerResponse(final String queue, final TaskStatus status, final Object data, final String msgType, final int version,
+                          final byte[] context)
     {
         this(queue, status, data, msgType, version, context, "");
     }
@@ -56,7 +57,8 @@ public class WorkerResponse
      * @param context the new context to add to the task message, can be null
      * @param trackTo the tracking 'trackTo' pipe to set
      */
-    public WorkerResponse(final String queue, final TaskStatus status, final byte[] data, final String msgType, final int version, final byte[] context, final String trackTo)
+    public WorkerResponse(final String queue, final TaskStatus status, final Object data, final String msgType, final int version,
+                          final byte[] context, final String trackTo)
     {
         this.queueReference = queue; // queueReference can be 'null' for a dead end worker and
         // 'null' for a worker who does not send success messages to
@@ -79,7 +81,7 @@ public class WorkerResponse
         return queueReference;
     }
 
-    public byte[] getData()
+    public Object getData()
     {
         return data;
     }

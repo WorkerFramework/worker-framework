@@ -36,7 +36,7 @@ public interface WorkerFactory extends HealthReporter
      * @throws TaskRejectedException if a Worker cannot be created to handle this task currently
      * @throws InvalidTaskException if it appears this task cannot possibly be handled by a Worker of this type
      */
-    default Worker getWorker(String classifier, int version, TaskStatus status, byte[] data, byte[] context, TrackingInfo tracking)
+    default Worker getWorker(String classifier, int version, TaskStatus status, Object data, byte[] context, TrackingInfo tracking)
         throws TaskRejectedException, InvalidTaskException
     {
         throw new UnsupportedOperationException();

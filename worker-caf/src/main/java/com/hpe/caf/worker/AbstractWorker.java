@@ -129,12 +129,13 @@ public abstract class AbstractWorker<T, V> implements Worker
      */
     protected final WorkerResponse createSuccessResult(final V result, final byte[] context)
     {
-        try {
-            byte[] data = (result != null ? getCodec().serialise(result) : new byte[]{});
-            return new WorkerResponse(getResultQueue(), TaskStatus.RESULT_SUCCESS, data, getWorkerIdentifier(), getWorkerApiVersion(), context);
-        } catch (CodecException e) {
-            throw new TaskFailedException("Failed to serialise result", e);
-        }
+//        try {
+//            byte[] data = (result != null ? getCodec().serialise(result) : new byte[]{});
+            return new WorkerResponse(getResultQueue(), TaskStatus.RESULT_SUCCESS, result, getWorkerIdentifier(), getWorkerApiVersion(),
+                    context);
+//        } catch (CodecException e) {
+//            throw new TaskFailedException("Failed to serialise result", e);
+//        }
     }
 
     /**
@@ -214,7 +215,8 @@ public abstract class AbstractWorker<T, V> implements Worker
      * @param messageApiVersion the API version for the task-specific message
      * @return a WorkerResponse that represents a new task submission to a specific queue
      */
-    protected final WorkerResponse createTaskSubmission(final String queue, final byte[] data, final String messageIdentifier, final int messageApiVersion)
+    protected final WorkerResponse createTaskSubmission(final String queue, final Object data, final String messageIdentifier,
+                                                        final int messageApiVersion)
     {
         return createTaskSubmission(queue, data, messageIdentifier, messageApiVersion, null);
     }
@@ -230,7 +232,8 @@ public abstract class AbstractWorker<T, V> implements Worker
      * @param context the context entries to add to the published message
      * @return a WorkerResponse that represents a new task submission to a specific queue
      */
-    protected final WorkerResponse createTaskSubmission(final String queue, final byte[] data, final String messageIdentifier, final int messageApiVersion,
+    protected final WorkerResponse createTaskSubmission(final String queue, final Object data, final String messageIdentifier,
+                                                        final int messageApiVersion,
                                                         final byte[] context)
     {
         return new WorkerResponse(queue, TaskStatus.NEW_TASK, data, messageIdentifier, messageApiVersion, context);
@@ -253,15 +256,15 @@ public abstract class AbstractWorker<T, V> implements Worker
      * @param t the Throwable from the Worker
      * @return a byte array that is either the serialised Class of the Throwable or empty
      */
-    private byte[] getExceptionData(final Throwable t)
+    private String getExceptionData(final Throwable t)
     {
-        try {
-            String exceptionDetail = buildExceptionStackTrace(t);
-            return getCodec().serialise(exceptionDetail);
-        } catch (CodecException e) {
-            LOG.warn("Failed to serialise exception, continuing", e);
-            return new byte[]{};
-        }
+//        try {
+            return buildExceptionStackTrace(t);
+//            return getCodec().serialise(exceptionDetail);
+//        } catch (CodecException e) {
+//            LOG.warn("Failed to serialise exception, continuing", e);
+//            return "";
+//        }
     }
 
     /**

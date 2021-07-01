@@ -15,11 +15,10 @@
  */
 package com.hpe.caf.worker;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.hpe.caf.api.Codec;
-import com.hpe.caf.api.CodecException;
 import com.hpe.caf.api.ConfigurationException;
 import com.hpe.caf.api.ConfigurationSource;
-import com.hpe.caf.api.DecodeMethod;
 import com.hpe.caf.api.worker.*;
 
 import java.util.Objects;
@@ -121,7 +120,7 @@ public abstract class AbstractWorkerFactory<C, T> implements WorkerFactory
     private T verifyWorkerTask(
         final String classifier,
         final int version,
-        final byte[] data
+        final Object data
     )
         throws TaskRejectedException, InvalidTaskException
     {
@@ -142,8 +141,10 @@ public abstract class AbstractWorkerFactory<C, T> implements WorkerFactory
         }
 
         try {
-            return codec.deserialise(data, taskClass, DecodeMethod.LENIENT);
-        } catch (CodecException e) {
+//            return codec.deserialise(data, taskClass, DecodeMethod.LENIENT);
+              return new ObjectMapper().convertValue(data, taskClass);
+//        } catch (CodecException e) {
+        } catch (final ClassCastException e) {
             throw new InvalidTaskException("Invalid input message", e);
         }
     }

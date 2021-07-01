@@ -51,10 +51,10 @@ public final class TaskMessage
     private int taskApiVersion;
 
     /**
-     * The serialised data of the task-specific message.
+     * Object of the task-specific message.
      */
     @NotNull
-    private byte[] taskData;
+    private Object taskDataObj;
 
     /**
      * Status of this task.
@@ -122,14 +122,14 @@ public final class TaskMessage
         this(taskId, taskClassifier, taskApiVersion, taskData, taskStatus, context, to, tracking, sourceInfo, null);
     }
 
-    public TaskMessage(final String taskId, final String taskClassifier, final int taskApiVersion, final byte[] taskData,
+    public TaskMessage(final String taskId, final String taskClassifier, final int taskApiVersion, final Object taskDataObj,
                        final TaskStatus taskStatus, final Map<String, byte[]> context, final String to, final TrackingInfo tracking,
                        final TaskSourceInfo sourceInfo, final String correlationId)
     {
         this.taskId = Objects.requireNonNull(taskId);
         this.taskClassifier = Objects.requireNonNull(taskClassifier);
         this.taskApiVersion = Objects.requireNonNull(taskApiVersion);
-        this.taskData = Objects.requireNonNull(taskData);
+        this.taskDataObj = Objects.requireNonNull(taskDataObj);
         this.taskStatus = Objects.requireNonNull(taskStatus);
         this.context = Objects.requireNonNull(context);
         this.to = to;
@@ -168,14 +168,14 @@ public final class TaskMessage
         this.taskClassifier = taskClassifier;
     }
 
-    public byte[] getTaskData()
+    public Object getTaskData()
     {
-        return taskData;
+        return taskDataObj;
     }
 
-    public void setTaskData(final byte[] taskData)
+    public void setTaskData(final Object taskDataObj)
     {
-        this.taskData = taskData;
+        this.taskDataObj = taskDataObj;
     }
 
     public TaskStatus getTaskStatus()

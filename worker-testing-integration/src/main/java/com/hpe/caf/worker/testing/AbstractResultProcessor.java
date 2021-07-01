@@ -15,6 +15,7 @@
  */
 package com.hpe.caf.worker.testing;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.hpe.caf.api.Codec;
 import com.hpe.caf.api.CodecException;
 import com.hpe.caf.api.worker.TaskMessage;
@@ -81,7 +82,8 @@ public abstract class AbstractResultProcessor<TResult, TInput, TExpected> implem
         if (message.getTaskStatus() != TaskStatus.RESULT_SUCCESS && message.getTaskStatus() != TaskStatus.RESULT_FAILURE) {
             throw new AssertionError("Task status was failure.");
         }
-        TResult workerResult = codec.deserialise(message.getTaskData(), resultClass);
+//        TResult workerResult = codec.deserialise(message.getTaskData(), resultClass);
+        TResult workerResult = new ObjectMapper().convertValue(message.getTaskData(), resultClass);
         return workerResult;
     }
 

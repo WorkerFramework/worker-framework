@@ -76,7 +76,7 @@ public class StreamingWorkerWrapperTest
         latch.await(5, TimeUnit.SECONDS);
         Assert.assertEquals(queueMsgId, callback.getQueueMsgId());
         Assert.assertEquals(TaskStatus.RESULT_SUCCESS, callback.getStatus());
-        TestWorkerResult res = codec.deserialise(callback.getResultData(), TestWorkerResult.class);
+        TestWorkerResult res = (TestWorkerResult)callback.getResultData();
         Assert.assertEquals(SUCCESS, res.getResultString());
         Assert.assertEquals(PRIORITY, callback.getPriority());
         Assert.assertEquals(TASK_ID, callback.getTaskId());
@@ -111,7 +111,7 @@ public class StreamingWorkerWrapperTest
         latch.await(5, TimeUnit.SECONDS);
         Assert.assertEquals(queueMsgId, callback.getQueueMsgId());
         Assert.assertEquals(TaskStatus.NEW_TASK, callback.getStatus());
-        ArrayAsserts.assertArrayEquals(SUCCESS_BYTES, callback.getResultData());
+        Assert.assertEquals(SUCCESS, (String)callback.getResultData());
         Assert.assertEquals(TASK_ID, callback.getTaskId());
         Assert.assertEquals(REDIRECT_NAME, callback.getClassifier());
         Assert.assertEquals(QUEUE_REDIRECT, callback.getQueue());
@@ -152,7 +152,7 @@ public class StreamingWorkerWrapperTest
         Assert.assertEquals(QUEUE_OUT, callback.getQueue());
         Assert.assertTrue(callback.getContext().containsKey(path.toString()));
         ArrayAsserts.assertArrayEquals(SUCCESS_BYTES, callback.getContext().get(path.toString()));
-        String s = codec.deserialise(callback.getResultData(), String.class);
+        String s = (String)callback.getResultData();
         Assert.assertEquals(true, s.contains("class com.hpe.caf.api.worker.TaskFailedException whoops"));
     }
 
@@ -286,7 +286,7 @@ public class StreamingWorkerWrapperTest
             @Override
             public WorkerResponse doWork()
             {
-                return createTaskSubmission(QUEUE_REDIRECT, SUCCESS_BYTES, REDIRECT_NAME, WORKER_API_VER);
+                return createTaskSubmission(QUEUE_REDIRECT, SUCCESS, REDIRECT_NAME, WORKER_API_VER);
             }
 
             @Override
@@ -308,7 +308,7 @@ public class StreamingWorkerWrapperTest
         private TaskInformation taskInformation;
         private String taskId;
         private TaskStatus status;
-        private byte[] resultData;
+        private Object resultData;
         private String queue;
         private String sendQueue;
         private String classifier;
@@ -402,7 +402,7 @@ public class StreamingWorkerWrapperTest
             return status;
         }
 
-        public byte[] getResultData()
+        public Object getResultData()
         {
             return resultData;
         }
