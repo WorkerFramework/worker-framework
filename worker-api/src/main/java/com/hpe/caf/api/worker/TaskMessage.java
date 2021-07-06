@@ -263,7 +263,7 @@ public final class TaskMessage
     public static TaskMessage from(final QueueTaskMessage queueTaskMessage) {
         return new TaskMessage(queueTaskMessage.getTaskId(),
                 queueTaskMessage.getTaskClassifier(),
-                4,
+                queueTaskMessage.getTaskApiVersion(),
                 new byte[]{},
                 queueTaskMessage.getTaskStatus(),
                 queueTaskMessage.getContext(),

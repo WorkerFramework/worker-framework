@@ -218,7 +218,7 @@ public final class QueueTaskMessage
         return to;
     }
 
-    public void setTo(String to)
+    public void setTo(final String to)
     {
         this.to = to;
     }
@@ -228,7 +228,7 @@ public final class QueueTaskMessage
         return tracking;
     }
 
-    public void setTracking(TrackingInfo tracking)
+    public void setTracking(final TrackingInfo tracking)
     {
         this.tracking = tracking;
     }
@@ -238,7 +238,7 @@ public final class QueueTaskMessage
         return sourceInfo;
     }
 
-    public void setSourceInfo(TaskSourceInfo sourceInfo)
+    public void setSourceInfo(final TaskSourceInfo sourceInfo)
     {
         this.sourceInfo = sourceInfo;
     }
@@ -248,7 +248,7 @@ public final class QueueTaskMessage
         return priority;
     }
 
-    public void setPriority(Integer priority)
+    public void setPriority(final Integer priority)
     {
         this.priority = priority;
     }
@@ -258,7 +258,7 @@ public final class QueueTaskMessage
         return correlationId;
     }
 
-    public void setCorrelationId(String correlationId)
+    public void setCorrelationId(final String correlationId)
     {
         this.correlationId = correlationId;
     }
