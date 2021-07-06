@@ -23,7 +23,9 @@ import com.hpe.caf.api.DecodeMethod;
 import com.hpe.caf.api.worker.*;
 import com.hpe.caf.naming.ServicePath;
 import com.hpe.caf.util.rabbitmq.RabbitHeaders;
+import com.microfocus.caf.api.worker.QueueTaskMessage;
 
+import org.apache.commons.codec.binary.Base64;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -156,8 +158,14 @@ final class WorkerCore
             throws InvalidTaskException, TaskRejectedException
         {
             try {
-                TaskMessage tm = codec.deserialise(taskMessage, TaskMessage.class, DecodeMethod.LENIENT);
-
+                final QueueTaskMessage queueTaskMessage = codec.deserialise(taskMessage, QueueTaskMessage.class, DecodeMethod.LENIENT);
+                final TaskMessage tm = TaskMessage.from(queueTaskMessage);
+    
+                if(queueTaskMessage.getTaskData() instanceof String) {
+                    tm.setTaskData(Base64.decodeBase64((String)queueTaskMessage.getTaskData()));
+                } else {
+                    tm.setTaskData(codec.serialise(queueTaskMessage.getTaskData()));
+                }
                 LOG.debug("Received task {} (message id: {})", tm.getTaskId(), taskInformation.getInboundMessageId());
                 final boolean poison = isTaskPoisoned(headers);
                 validateTaskMessage(tm);
