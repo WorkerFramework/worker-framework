@@ -13,17 +13,13 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.microfocus.caf.api.worker;
+package com.hpe.caf.api.worker;
 
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
 
 import javax.validation.constraints.NotNull;
-
-import com.hpe.caf.api.worker.TaskSourceInfo;
-import com.hpe.caf.api.worker.TaskStatus;
-import com.hpe.caf.api.worker.TrackingInfo;
 
 /**
  * The generic task message class to be serialised from or to a queue. This will contain the serialised worker-specific data inside.

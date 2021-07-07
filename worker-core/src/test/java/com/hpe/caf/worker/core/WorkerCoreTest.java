@@ -28,7 +28,7 @@ import com.hpe.caf.worker.AbstractWorker;
 import com.hpe.caf.worker.tracking.report.TrackingReportStatus;
 import com.hpe.caf.worker.tracking.report.TrackingReportTask;
 import com.hpe.caf.worker.tracking.report.TrackingReportConstants;
-import com.microfocus.caf.api.worker.QueueTaskMessage;
+import com.hpe.caf.api.worker.QueueTaskMessage;
 
 import java.io.File;
 import java.net.MalformedURLException;
