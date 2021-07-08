@@ -55,6 +55,7 @@ class WorkerTaskImpl implements WorkerTask
     private final TaskInformation taskInformation;
     private final TaskMessage taskMessage;
     private final MessagePriorityManager priorityManager;
+    private final boolean sendNewFormat;
     private int responseCount;
     private final Object responseCountLock;
     private final SingleResponseMessageBuffer singleMessageBuffer;
@@ -72,10 +73,10 @@ class WorkerTaskImpl implements WorkerTask
             final TaskInformation taskInformation,
             final TaskMessage taskMessage,
             final boolean poison,
-            final Map<String, Object> headers,
+            final Map<String,Object> headers,
             final Codec codec,
-            final MessagePriorityManager priorityManager
-    )
+            final MessagePriorityManager priorityManager,
+            final boolean sendNewFormat)
     {
         this.servicePath = servicePath;
         this.workerCallback = workerCallback;
@@ -83,6 +84,7 @@ class WorkerTaskImpl implements WorkerTask
         this.taskInformation = taskInformation;
         this.taskMessage = taskMessage;
         this.priorityManager = Objects.requireNonNull(priorityManager);
+        this.sendNewFormat = sendNewFormat;
         this.responseCount = 0;
         this.responseCountLock = new Object();
         this.singleMessageBuffer = new SingleResponseMessageBuffer();
@@ -167,7 +169,7 @@ class WorkerTaskImpl implements WorkerTask
         Objects.requireNonNull(tm);
 
         // Publish this message
-        workerCallback.send(taskInformation, tm);
+        workerCallback.send(taskInformation, tm, sendNewFormat);
     }
 
     @Override
@@ -519,7 +521,7 @@ class WorkerTaskImpl implements WorkerTask
         progressReportBuffer.add(responseMessage);
 
         // Publish this message
-        workerCallback.send(taskInformation, responseMessage);
+        workerCallback.send(taskInformation, responseMessage, sendNewFormat);
 
         // Allow the final task to complete (in case it was blocking waiting on the message to be published)
         subtasksPublishedSemaphore.release();
@@ -552,7 +554,7 @@ class WorkerTaskImpl implements WorkerTask
         progressReportBuffer.flush();
         
         // Complete the task
-        workerCallback.complete(taskInformation, responseMessage.getTo(), responseMessage);
+        workerCallback.complete(taskInformation, responseMessage.getTo(), responseMessage, sendNewFormat);
     }
 
     /**
@@ -625,7 +627,7 @@ class WorkerTaskImpl implements WorkerTask
                 Collections.<String, byte[]>emptyMap(), trackingPipe, null, null, taskMessage.getCorrelationId());
 
         //  Publish the task message comprising the report updates.
-        workerCallback.reportUpdate(taskInformation, reportUpdateMessage);
+        workerCallback.reportUpdate(taskInformation, reportUpdateMessage, sendNewFormat);
     }
 
     private static String getTrackingPipe(final List<TaskMessage> taskMessages)

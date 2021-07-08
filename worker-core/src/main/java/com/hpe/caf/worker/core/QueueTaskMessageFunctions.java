@@ -31,7 +31,7 @@ public final class QueueTaskMessageFunctions
     public static TaskMessage from(final QueueTaskMessage queueTaskMessage, final Codec codec) throws CodecException
     {
         final byte[] taskData;
-        if (queueTaskMessage.getTaskData() instanceof String) {
+        if (isTaskDataString(queueTaskMessage)) {
             taskData = Base64.decodeBase64((String)queueTaskMessage.getTaskData());
         } else {
             taskData = codec.serialise(queueTaskMessage.getTaskData());
@@ -46,5 +46,10 @@ public final class QueueTaskMessageFunctions
                 queueTaskMessage.getTracking(),
                 queueTaskMessage.getSourceInfo(),
                 queueTaskMessage.getCorrelationId());
+    }
+    
+    public static boolean isTaskDataString(final QueueTaskMessage queueTaskMessage)
+    {
+        return queueTaskMessage.getTaskData() instanceof String;
     }
 }

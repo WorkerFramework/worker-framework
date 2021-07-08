@@ -66,13 +66,14 @@ final class WorkerExecutor
      * @param tm the task message
      * @param taskInformation the reference to the message this task arrived on
      * @param headers the map of key/value paired headers to be stamped on the message
+     * @param sendNewFormat
      * @throws TaskRejectedException if the WorkerFactory indicates the task cannot be handled at this time
      */
     public void executeTask(final TaskMessage tm, final TaskInformation taskInformation, final boolean poison,
-                            final Map<String, Object> headers, final Codec codec)
+                            final Map<String,Object> headers, final Codec codec, final boolean sendNewFormat)
         throws TaskRejectedException
     {
-        final WorkerTaskImpl workerTask = createWorkerTask(taskInformation, tm, poison, headers, codec);
+        final WorkerTaskImpl workerTask = createWorkerTask(taskInformation, tm, poison, headers, codec, sendNewFormat);
 
         threadPool.submitWorkerTask(workerTask);
     }
@@ -118,7 +119,7 @@ final class WorkerExecutor
                 discardTask(tm, taskInformation);
                 break;
             case Execute:
-                executeTask(tm, taskInformation, poison, headers, codec);
+                executeTask(tm, taskInformation, poison, headers, codec, true);
                 break;
             case Forward:
                 callback.forward(taskInformation, tm.getTo(), tm, headers);
@@ -161,9 +162,9 @@ final class WorkerExecutor
      * Creates a WorkerTask for the specified message
      */
     private WorkerTaskImpl createWorkerTask(final TaskInformation taskInformation, final TaskMessage taskMessage, final boolean poison,
-                                            final Map<String, Object> headers, final Codec codec)
+                                            final Map<String,Object> headers, final Codec codec, final boolean sendNewFormat)
     {
         return new WorkerTaskImpl(servicePath, callback, factory, taskInformation, taskMessage, poison, headers, codec,
-                priorityManager);
+                priorityManager, sendNewFormat);
     }
 }

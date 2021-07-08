@@ -156,9 +156,14 @@ final class WorkerCore
         private void registerNewTaskImpl(final TaskInformation taskInformation, final byte[] taskMessage, Map<String, Object> headers)
             throws InvalidTaskException, TaskRejectedException
         {
+            boolean sendNewFormat = false;
             try {
                 final QueueTaskMessage queueTaskMessage = codec.deserialise(taskMessage, QueueTaskMessage.class, DecodeMethod.LENIENT);
                 final TaskMessage tm = QueueTaskMessageFunctions.from(queueTaskMessage, codec);
+                
+                if(!QueueTaskMessageFunctions.isTaskDataString(queueTaskMessage)) {
+                    sendNewFormat = true;
+                }
 
                 LOG.debug("Received task {} (message id: {})", tm.getTaskId(), taskInformation.getInboundMessageId());
                 final boolean poison = isTaskPoisoned(headers);
@@ -179,7 +184,7 @@ final class WorkerCore
                     case Active:
                     case Waiting:
                         if (isTaskIntendedForThisWorker(tm, taskInformation)) {
-                            executor.executeTask(tm, taskInformation, poison, headers, codec);
+                            executor.executeTask(tm, taskInformation, poison, headers, codec, sendNewFormat);
                         } else {
                             executor.handleDivertedTask(tm, taskInformation, poison, headers, codec, jobStatus);
                         }
@@ -195,7 +200,7 @@ final class WorkerCore
                                     + "Task message (message id: {}) will be executed as normal",
                                     tm.getTaskId(),
                                     taskInformation.getInboundMessageId());
-                                executor.executeTask(tm, taskInformation, poison, headers, codec);
+                                executor.executeTask(tm, taskInformation, poison, headers, codec, sendNewFormat);
                             }
                         } else {
                             executor.handleDivertedTask(tm, taskInformation, poison, headers, codec, jobStatus);
@@ -451,7 +456,7 @@ final class WorkerCore
         }
 
         @Override
-        public void send(final TaskInformation taskInformation, final TaskMessage responseMessage)
+        public void send(final TaskInformation taskInformation, final TaskMessage responseMessage, boolean sendNewFormat)
         {
             Objects.requireNonNull(taskInformation);
             Objects.requireNonNull(responseMessage);
@@ -483,7 +488,10 @@ final class WorkerCore
          * we reject the task.
          */
         @Override
-        public void complete(final TaskInformation taskInformation, final String queue, final TaskMessage responseMessage)
+        public void complete(final TaskInformation taskInformation,
+                             final String queue,
+                             final TaskMessage responseMessage,
+                             final boolean sendNewFormat)
         {
             Objects.requireNonNull(taskInformation);
             Objects.requireNonNull(responseMessage);
@@ -591,12 +599,12 @@ final class WorkerCore
         }
 
         @Override
-        public void reportUpdate(final TaskInformation taskInformation, final TaskMessage reportUpdateMessage)
+        public void reportUpdate(final TaskInformation taskInformation, final TaskMessage reportUpdateMessage, boolean sendNewFormat)
         {
             Objects.requireNonNull(taskInformation);
             Objects.requireNonNull(reportUpdateMessage);
             LOG.debug("Sending report updates to queue {})", reportUpdateMessage.getTo());
-
+            
             final byte[] output;
             try {
                 output = codec.serialise(reportUpdateMessage);

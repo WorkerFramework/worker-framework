@@ -24,20 +24,20 @@ public interface WorkerCallback
 {
     /**
      * Used to send responses prior to the final response (when complete should be used instead).
-     *
-     * @param taskInformation a queue-specific reference for the incoming message that generated the response
+     *  @param taskInformation a queue-specific reference for the incoming message that generated the response
      * @param responseMessage the message to put on the queue (target specified by the {@code to} property)
+     * @param sendNewFormat
      */
-    void send(TaskInformation taskInformation, TaskMessage responseMessage);
+    void send(TaskInformation taskInformation, TaskMessage responseMessage, final boolean sendNewFormat);
 
     /**
      * Indicate a task was completed.
-     *
-     * @param taskInformation a queue-specific reference for the incoming message that generated the response
+     *  @param taskInformation a queue-specific reference for the incoming message that generated the response
      * @param queue the queue to hold the message
      * @param responseMessage the message to put on the queue
+     * @param sendNewFormat
      */
-    void complete(TaskInformation taskInformation, String queue, TaskMessage responseMessage);
+    void complete(TaskInformation taskInformation, String queue, TaskMessage responseMessage, final boolean sendNewFormat);
 
     /**
      * Indicates the Worker wishes to abandon this task, but return it to the queue so that it can be retried by this or another Worker
@@ -77,9 +77,9 @@ public interface WorkerCallback
 
     /**
      * Used to send a report update message.
-     *
-     * @param taskInformation a queue-specific reference for the incoming message
+     *  @param taskInformation a queue-specific reference for the incoming message
      * @param reportUpdateMessage the report update message to put on the queue
+     * @param sendNewFormat
      */
-    void reportUpdate(final TaskInformation taskInformation, final TaskMessage reportUpdateMessage);
+    void reportUpdate(final TaskInformation taskInformation, final TaskMessage reportUpdateMessage, final boolean sendNewFormat);
 }
