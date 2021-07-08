@@ -20,11 +20,6 @@ import java.util.Map;
 import java.util.Objects;
 import javax.validation.constraints.NotNull;
 
-import org.apache.commons.codec.binary.Base64;
-
-import com.hpe.caf.api.Codec;
-import com.hpe.caf.api.CodecException;
-
 /**
  * The generic task message class to be serialised from or to a queue. This will contain the serialised worker-specific data inside.
  */
@@ -261,25 +256,5 @@ public final class TaskMessage
     public void setCorrelationId(String correlationId)
     {
         this.correlationId = correlationId;
-    }
-    
-    public static TaskMessage from(final QueueTaskMessage queueTaskMessage, final Codec codec) throws CodecException
-    {
-        final byte[] taskData;
-        if(queueTaskMessage.getTaskData() instanceof String) {
-            taskData = Base64.decodeBase64((String)queueTaskMessage.getTaskData());
-        } else {
-            taskData = codec.serialise(queueTaskMessage.getTaskData());
-        }
-        return new TaskMessage(queueTaskMessage.getTaskId(),
-                queueTaskMessage.getTaskClassifier(),
-                queueTaskMessage.getTaskApiVersion(),
-                taskData,
-                queueTaskMessage.getTaskStatus(),
-                queueTaskMessage.getContext(),
-                queueTaskMessage.getTo(),
-                queueTaskMessage.getTracking(),
-                queueTaskMessage.getSourceInfo(),
-                queueTaskMessage.getCorrelationId());
     }
 }

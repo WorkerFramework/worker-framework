@@ -158,7 +158,7 @@ final class WorkerCore
         {
             try {
                 final QueueTaskMessage queueTaskMessage = codec.deserialise(taskMessage, QueueTaskMessage.class, DecodeMethod.LENIENT);
-                final TaskMessage tm = TaskMessage.from(queueTaskMessage, codec);
+                final TaskMessage tm = QueueTaskMessageFunctions.from(queueTaskMessage, codec);
 
                 LOG.debug("Received task {} (message id: {})", tm.getTaskId(), taskInformation.getInboundMessageId());
                 final boolean poison = isTaskPoisoned(headers);
