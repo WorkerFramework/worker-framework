@@ -54,7 +54,7 @@ public class WorkerExecutorTest
 
         WorkerExecutor executor = new WorkerExecutor(path, callback, factory, pool, priorityManager);
         TaskMessage tm = new TaskMessage("test", "test", 1, "test".getBytes(StandardCharsets.UTF_8), TaskStatus.NEW_TASK, new HashMap<>(), "testTo");
-        executor.executeTask(tm, mock(TaskInformation.class), false, headers, codec, true);
+        executor.executeTask(tm, mock(TaskInformation.class), false, headers, codec, false);
         Mockito.verify(factory, Mockito.times(1)).getWorker(Mockito.any());
     }
 
@@ -160,7 +160,7 @@ public class WorkerExecutorTest
             Assert.assertEquals(ver, tm.getTaskApiVersion());
             return null;
         };
-        Mockito.doAnswer(a).when(callback).complete(Mockito.any(), Mockito.any(), Mockito.any(), false);
+        Mockito.doAnswer(a).when(callback).complete(Mockito.any(), Mockito.any(), Mockito.any(), Mockito.any());
         WorkerFactory factory = mock(WorkerFactory.class);
         Mockito.when(factory.getInvalidTaskQueue()).thenReturn(invalidQueue);
         Mockito.when(factory.getWorker(Mockito.any())).thenThrow(
@@ -202,7 +202,7 @@ public class WorkerExecutorTest
             Assert.assertEquals(ver, tm.getTaskApiVersion());
             return null;
         };
-        Mockito.doAnswer(a).when(callback).complete(Mockito.any(), Mockito.any(), Mockito.any(), false);
+        Mockito.doAnswer(a).when(callback).complete(Mockito.any(), Mockito.any(), Mockito.any(), Mockito.any());
         WorkerFactory factory = mock(WorkerFactory.class);
         Mockito.when(factory.getInvalidTaskQueue()).thenReturn(invalidQueue);
         Mockito.when(factory.getWorker(Mockito.any())).thenThrow(
