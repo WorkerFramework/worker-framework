@@ -50,13 +50,18 @@ public interface WorkerCallback
 
     /**
      * Indicates the Worker wishes to forward this task to the specified queue without processing it.
-     *
-     * @param taskInformation a queue-specific reference for the incoming message to be forwarded
+     *  @param taskInformation a queue-specific reference for the incoming message to be forwarded
      * @param queue the queue to hold the forwarded message
      * @param forwardedMessage the message to put on the queue
      * @param headers the map of key/value paired headers to be stamped on the message
+     * @param sendNewFormat boolean flag which decides whether the message will be published with
+     *                      taskData as object or byte[].
      */
-    void forward(TaskInformation taskInformation, String queue, TaskMessage forwardedMessage, Map<String, Object> headers);
+    void forward(TaskInformation taskInformation,
+                 String queue,
+                 TaskMessage forwardedMessage,
+                 Map<String,Object> headers,
+                 boolean sendNewFormat);
 
     /**
      * Indicates the Worker wishes to forward this task to the specified paused queue without processing it.

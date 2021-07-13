@@ -87,27 +87,30 @@ final class WorkerExecutor
      * @param headers the map of key/value paired headers to be stamped on the message
      * @param codec the Codec that can be used to serialise/deserialise data
      * @param jobStatus the job status as returned by the status check URL
+     * @param sendNewFormat boolean flag which decides whether the message will be published with
+     *      *                      taskData as object or byte[].
      */
     public void handleDivertedTask(final TaskMessage tm, final TaskInformation taskInformation, final boolean poison,
-                                   final Map<String, Object> headers, final Codec codec, final JobStatus jobStatus)
+                                   final Map<String,Object> headers, final Codec codec, final JobStatus jobStatus,
+                                   final boolean sendNewFormat)
         throws TaskRejectedException
     {
         //Check whether this worker application can evaluate diverted task messages.
         if (factory instanceof DivertedTaskHandler) {
-            processDivertedTaskAction(tm, taskInformation, poison, headers, codec, jobStatus);
+            processDivertedTaskAction(tm, taskInformation, poison, headers, codec, jobStatus, sendNewFormat);
         }
         //Check whether this worker application can evaluate messages for forwarding.
         else if (factory instanceof TaskMessageForwardingEvaluator) {
             ((TaskMessageForwardingEvaluator) factory).determineForwardingAction(tm, taskInformation, headers, callback);
         //Else messages are forwarded by default.
         } else {
-            callback.forward(taskInformation, tm.getTo(), tm, headers);
+            callback.forward(taskInformation, tm.getTo(), tm, headers, sendNewFormat);
         }
     }
 
     private void processDivertedTaskAction(final TaskMessage tm, final TaskInformation taskInformation,
-                                           final boolean poison, final Map<String, Object> headers, final Codec codec,
-                                           final JobStatus jobStatus)
+                                           final boolean poison, final Map<String,Object> headers, final Codec codec,
+                                           final JobStatus jobStatus, final boolean sendNewFormat)
         throws TaskRejectedException
     {
         final DivertedTaskAction divertedTaskAction
@@ -119,16 +122,16 @@ final class WorkerExecutor
                 discardTask(tm, taskInformation);
                 break;
             case Execute:
-                executeTask(tm, taskInformation, poison, headers, codec, true);
+                executeTask(tm, taskInformation, poison, headers, codec, sendNewFormat);
                 break;
             case Forward:
-                callback.forward(taskInformation, tm.getTo(), tm, headers);
+                callback.forward(taskInformation, tm.getTo(), tm, headers, sendNewFormat);
                 break;
             default:
                 LOG.warn("Worker returned an unexpected diverted task action: {} for task: {} (message id: {}). "
                     + "Defaulting to forwarding the task.", divertedTaskAction, tm.getTaskId(),
                          taskInformation.getInboundMessageId());
-                callback.forward(taskInformation, tm.getTo(), tm, headers);
+                callback.forward(taskInformation, tm.getTo(), tm, headers, sendNewFormat);
         }
     }
 

@@ -181,7 +181,7 @@ public class StreamingWorkerWrapperTest
         Thread t = new Thread(wrapper);
         t.start();
         Thread.sleep(1000);
-        Mockito.verify(callback, Mockito.times(0)).complete(Mockito.any(), Mockito.any(), Mockito.any(), false);
+        Mockito.verify(callback, Mockito.times(0)).complete(Mockito.any(), Mockito.any(), Mockito.any(), Mockito.anyBoolean());
     }
 
     @Test
@@ -352,7 +352,11 @@ public class StreamingWorkerWrapperTest
         }
 
         @Override
-        public void forward(TaskInformation taskInformation, String queue, TaskMessage forwardedMessage, Map<String, Object> headers)
+        public void forward(TaskInformation taskInformation,
+                            String queue,
+                            TaskMessage forwardedMessage,
+                            Map<String,Object> headers,
+                            final boolean sendNewFormat)
         {
             this.taskInformation = taskInformation;
             latch.countDown();
