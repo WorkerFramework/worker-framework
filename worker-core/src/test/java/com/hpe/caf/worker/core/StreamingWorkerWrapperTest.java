@@ -322,7 +322,7 @@ public class StreamingWorkerWrapperTest
         }
 
         @Override
-        public void send(TaskInformation taskInformation, TaskMessage responseMessage, boolean sendNewFormat)
+        public void send(TaskInformation taskInformation, TaskMessage responseMessage, final boolean publishTaskDataAsObject)
         {
             this.taskInformation = taskInformation;
             this.status = responseMessage.getTaskStatus();
@@ -331,7 +331,7 @@ public class StreamingWorkerWrapperTest
         }
 
         @Override
-        public void complete(TaskInformation taskInformation, final String queue, final TaskMessage tm, boolean sendNewFormat)
+        public void complete(TaskInformation taskInformation, final String queue, final TaskMessage tm, final boolean publishTaskDataAsObject)
         {
             this.taskInformation = taskInformation;
             this.status = tm.getTaskStatus();
@@ -356,7 +356,7 @@ public class StreamingWorkerWrapperTest
                             String queue,
                             TaskMessage forwardedMessage,
                             Map<String,Object> headers,
-                            final boolean sendNewFormat)
+                            final boolean publishTaskDataAsObject)
         {
             this.taskInformation = taskInformation;
             latch.countDown();
@@ -377,7 +377,7 @@ public class StreamingWorkerWrapperTest
         }
 
         @Override
-        public void reportUpdate(final TaskInformation taskInformation, final TaskMessage reportUpdateMessage, boolean sendNewFormat)
+        public void reportUpdate(final TaskInformation taskInformation, final TaskMessage reportUpdateMessage, final boolean publishTaskDataAsObject)
         {
         }
 
