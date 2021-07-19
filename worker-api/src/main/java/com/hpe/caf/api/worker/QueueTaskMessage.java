@@ -105,18 +105,21 @@ public final class QueueTaskMessage
     }
 
     public QueueTaskMessage(final String taskId, final String taskClassifier, final int taskApiVersion, final Object taskData,
+    public QueueTaskMessage(final String taskId, final String taskClassifier, final int taskApiVersion, final byte[] taskData,
                             final TaskStatus taskStatus, final Map<String, byte[]> context, final String to)
     {
         this(taskId, taskClassifier, taskApiVersion, taskData, taskStatus, context, to, null);
     }
 
     public QueueTaskMessage(final String taskId, final String taskClassifier, final int taskApiVersion, final Object taskData,
+    public QueueTaskMessage(final String taskId, final String taskClassifier, final int taskApiVersion, final byte[] taskData,
                             final TaskStatus taskStatus, final Map<String, byte[]> context, final String to, final TrackingInfo tracking)
     {
         this(taskId, taskClassifier, taskApiVersion, taskData, taskStatus, context, to, tracking, null);
     }
 
     public QueueTaskMessage(final String taskId, final String taskClassifier, final int taskApiVersion, final Object taskData,
+    public QueueTaskMessage(final String taskId, final String taskClassifier, final int taskApiVersion, final byte[] taskData,
                             final TaskStatus taskStatus, final Map<String, byte[]> context, final String to, final TrackingInfo tracking,
                             final TaskSourceInfo sourceInfo)
     {
@@ -124,6 +127,7 @@ public final class QueueTaskMessage
     }
 
     public QueueTaskMessage(final String taskId, final String taskClassifier, final int taskApiVersion, final Object taskData,
+    public QueueTaskMessage(final String taskId, final String taskClassifier, final int taskApiVersion, final byte[] taskData,
                             final TaskStatus taskStatus, final Map<String, byte[]> context, final String to, final TrackingInfo tracking,
                             final TaskSourceInfo sourceInfo, final String correlationId)
     {
