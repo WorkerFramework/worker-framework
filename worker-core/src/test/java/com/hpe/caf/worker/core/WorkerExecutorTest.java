@@ -81,20 +81,30 @@ public class WorkerExecutorTest
     @Test
     public void testDefaultForwardTaskWithTaskDataAsObject() throws InvalidNameException, TaskRejectedException, InvalidTaskException
     {
-        ServicePath path = new ServicePath("/unitTest/test");
-        WorkerCallback callback = mock(WorkerCallback.class);
-        Worker worker = mock(Worker.class);
-        WorkerFactory factory = mock(WorkerFactory.class);
+        final ServicePath path = new ServicePath("/unitTest/test");
+        final WorkerCallback callback = mock(WorkerCallback.class);
+        final Worker worker = mock(Worker.class);
+        final WorkerFactory factory = mock(WorkerFactory.class);
         Mockito.when(factory.getWorker(Mockito.any())).thenReturn(worker);
-        WorkerThreadPool pool = mock(WorkerThreadPool.class);
-        MessagePriorityManager priorityManager = mock(MessagePriorityManager.class);
+        final WorkerThreadPool pool = mock(WorkerThreadPool.class);
+        final MessagePriorityManager priorityManager = mock(MessagePriorityManager.class);
         Mockito.when(priorityManager.getResponsePriority(Mockito.any())).thenReturn(2);
 
-        WorkerExecutor executor = new WorkerExecutor(path, callback, factory, pool, priorityManager);
-        TaskMessage tm = new TaskMessage("test", "test", 1, "test".getBytes(StandardCharsets.UTF_8), TaskStatus.NEW_TASK, new HashMap<>(), "testTo");
-        TaskInformation taskInformation = mock(TaskInformation.class);
+        final WorkerExecutor executor = new WorkerExecutor(path, callback, factory, pool, priorityManager);
+        final TaskMessage tm = new TaskMessage("test",
+                "test",
+                1,
+                "test".getBytes(StandardCharsets.UTF_8),
+                TaskStatus.NEW_TASK,
+                new HashMap<>(),
+                "testTo");
+        final TaskInformation taskInformation = mock(TaskInformation.class);
         executor.handleDivertedTask(tm, taskInformation, false, new HashMap<>(), null, null, true);
-        Mockito.verify(callback, Mockito.times(1)).forward(taskInformation, "testTo", tm, new HashMap<>(), true);
+        Mockito.verify(callback, Mockito.times(1)).forward(taskInformation,
+                "testTo",
+                tm,
+                new HashMap<>(),
+                true);
     }
 
     @Test
