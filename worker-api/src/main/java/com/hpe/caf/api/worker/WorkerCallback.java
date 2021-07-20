@@ -29,7 +29,7 @@ public interface WorkerCallback
      * @param publishTaskDataAsObject boolean flag which decides whether the message will be published with
      *                      taskData as object or byte[].
      */
-    void send(TaskInformation taskInformation, TaskMessage responseMessage, final boolean publishTaskDataAsObject);
+    void send(TaskInformation taskInformation, TaskMessage responseMessage, boolean publishTaskDataAsObject);
 
     /**
      * Indicate a task was completed.
