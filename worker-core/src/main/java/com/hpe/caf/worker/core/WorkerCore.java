@@ -462,11 +462,10 @@ final class WorkerCore
             final String queue = responseMessage.getTo();
             checkForTrackingTermination(taskInformation, queue, responseMessage);
             try {
-    
                 final byte[] output = convertAndSerializeMessage(responseMessage, publishTaskDataAsObject);
-    
+
                 final int priority = responseMessage.getPriority() == null ? 0 : responseMessage.getPriority();
-        
+
                 workerQueue.publish(taskInformation, output, queue, Collections.emptyMap(), priority);
             } catch (final QueueException | CodecException ex) {
                 throw new RuntimeException(ex);
