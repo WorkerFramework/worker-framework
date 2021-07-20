@@ -355,7 +355,7 @@ public class StreamingWorkerWrapperTest
         public void forward(TaskInformation taskInformation,
                             String queue,
                             TaskMessage forwardedMessage,
-                            Map<String,Object> headers,
+                            Map<String, Object> headers,
                             final boolean publishTaskDataAsObject)
         {
             this.taskInformation = taskInformation;

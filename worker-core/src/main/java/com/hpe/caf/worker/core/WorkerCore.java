@@ -504,11 +504,11 @@ final class WorkerCore
                     // messages.
                     workerQueue.acknowledgeTask(taskInformation);
                 } else {
-                    // **** Normal Worker ****
+                    // **** Normal Worker ****                    
                     // A worker with an input and output queue.
                     final byte[] output = convertAndSerializeMessage(responseMessage, publishTaskDataAsObject);
-                    workerQueue.publish(taskInformation, output, queue, Collections.emptyMap(),
-                                           responseMessage.getPriority() == null ? 0 : responseMessage.getPriority(), true);
+                    workerQueue.publish(taskInformation, output, queue, Collections.emptyMap(), 
+                                           responseMessage.getPriority() == null ? 0 : responseMessage.getPriority(), true);                    
                     stats.getOutputSizes().update(output.length);
                 }
                 stats.updatedLastTaskFinishedTime();
@@ -538,7 +538,7 @@ final class WorkerCore
         public void forward(TaskInformation taskInformation,
                             String queue,
                             TaskMessage forwardedMessage,
-                            Map<String,Object> headers,
+                            Map<String, Object> headers,
                             final boolean publishTaskDataAsObj)
         {
             Objects.requireNonNull(taskInformation);
@@ -601,9 +601,9 @@ final class WorkerCore
             LOG.debug("Sending report updates to queue {})", reportUpdateMessage.getTo());
             try {
                 final byte[] output = convertAndSerializeMessage(reportUpdateMessage, publishTaskDataAsObject);
-        
+
                 final int priority = reportUpdateMessage.getPriority() == null ? 0 : reportUpdateMessage.getPriority();
-        
+
                 workerQueue.publish(taskInformation, output, reportUpdateMessage.getTo(), Collections.emptyMap(), priority);
             } catch (final QueueException | CodecException ex) {
                 throw new RuntimeException(ex);

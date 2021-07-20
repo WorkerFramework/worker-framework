@@ -77,7 +77,7 @@ public class WorkerExecutorTest
         executor.handleDivertedTask(tm, taskInformation, false, new HashMap<>(), null, null, false);
         Mockito.verify(callback, Mockito.times(1)).forward(taskInformation, "testTo", tm, new HashMap<>(), false);
     }
-    
+
     @Test
     public void testDefaultForwardTaskWithTaskDataAsObject() throws InvalidNameException, TaskRejectedException, InvalidTaskException
     {

@@ -71,7 +71,7 @@ final class WorkerExecutor
      * @throws TaskRejectedException if the WorkerFactory indicates the task cannot be handled at this time
      */
     public void executeTask(final TaskMessage tm, final TaskInformation taskInformation, final boolean poison,
-                            final Map<String,Object> headers, final Codec codec, final boolean publishTaskDataAsObject)
+                            final Map<String, Object> headers, final Codec codec, final boolean publishTaskDataAsObject)
         throws TaskRejectedException
     {
         final WorkerTaskImpl workerTask = createWorkerTask(taskInformation, tm, poison, headers, codec, publishTaskDataAsObject);
@@ -92,7 +92,7 @@ final class WorkerExecutor
      *                           taskData as object or byte[].
      */
     public void handleDivertedTask(final TaskMessage tm, final TaskInformation taskInformation, final boolean poison,
-                                   final Map<String,Object> headers, final Codec codec, final JobStatus jobStatus,
+                                   final Map<String, Object> headers, final Codec codec, final JobStatus jobStatus,
                                    final boolean publishTaskDataAsObject)
         throws TaskRejectedException
     {
@@ -110,7 +110,7 @@ final class WorkerExecutor
     }
 
     private void processDivertedTaskAction(final TaskMessage tm, final TaskInformation taskInformation,
-                                           final boolean poison, final Map<String,Object> headers, final Codec codec,
+                                           final boolean poison, final Map<String, Object> headers, final Codec codec,
                                            final JobStatus jobStatus, final boolean publishTaskDataAsObject)
         throws TaskRejectedException
     {
@@ -166,7 +166,7 @@ final class WorkerExecutor
      * Creates a WorkerTask for the specified message
      */
     private WorkerTaskImpl createWorkerTask(final TaskInformation taskInformation, final TaskMessage taskMessage, final boolean poison,
-                                            final Map<String,Object> headers, final Codec codec, final boolean publishTaskDataAsObject)
+                                            final Map<String, Object> headers, final Codec codec, final boolean publishTaskDataAsObject)
     {
         return new WorkerTaskImpl(servicePath, callback, factory, taskInformation, taskMessage, poison, headers, codec,
                 priorityManager, publishTaskDataAsObject);

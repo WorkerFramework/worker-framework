@@ -73,7 +73,7 @@ class WorkerTaskImpl implements WorkerTask
             final TaskInformation taskInformation,
             final TaskMessage taskMessage,
             final boolean poison,
-            final Map<String,Object> headers,
+            final Map<String, Object> headers,
             final Codec codec,
             final MessagePriorityManager priorityManager,
             final boolean publishTaskDataAsObject)
