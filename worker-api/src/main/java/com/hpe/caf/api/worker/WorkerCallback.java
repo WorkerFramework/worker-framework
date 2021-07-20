@@ -27,8 +27,10 @@ public interface WorkerCallback
      *
      * @param taskInformation a queue-specific reference for the incoming message that generated the response
      * @param responseMessage the message to put on the queue (target specified by the {@code to} property)
+     * @param publishTaskDataAsObject boolean flag which decides whether the message will be published with
+     *                      taskData as object or byte[].
      */
-    void send(TaskInformation taskInformation, TaskMessage responseMessage);
+    void send(TaskInformation taskInformation, TaskMessage responseMessage, boolean publishTaskDataAsObject);
 
     /**
      * Indicate a task was completed.
@@ -36,8 +38,10 @@ public interface WorkerCallback
      * @param taskInformation a queue-specific reference for the incoming message that generated the response
      * @param queue the queue to hold the message
      * @param responseMessage the message to put on the queue
+     * @param publishTaskDataAsObject boolean flag which decides whether the message will be published with
+     *                      taskData as object or byte[].
      */
-    void complete(TaskInformation taskInformation, String queue, TaskMessage responseMessage);
+    void complete(TaskInformation taskInformation, String queue, TaskMessage responseMessage, final boolean publishTaskDataAsObject);
 
     /**
      * Indicates the Worker wishes to abandon this task, but return it to the queue so that it can be retried by this or another Worker
@@ -55,8 +59,14 @@ public interface WorkerCallback
      * @param queue the queue to hold the forwarded message
      * @param forwardedMessage the message to put on the queue
      * @param headers the map of key/value paired headers to be stamped on the message
+     * @param publishTaskDataAsObj boolean flag which decides whether the message will be published with
+     *                      taskData as object or byte[].
      */
-    void forward(TaskInformation taskInformation, String queue, TaskMessage forwardedMessage, Map<String, Object> headers);
+    void forward(TaskInformation taskInformation,
+                 String queue,
+                 TaskMessage forwardedMessage,
+                 Map<String, Object> headers,
+                 boolean publishTaskDataAsObj);
 
     /**
      * Indicates the Worker wishes to forward this task to the specified paused queue without processing it.
@@ -80,6 +90,8 @@ public interface WorkerCallback
      *
      * @param taskInformation a queue-specific reference for the incoming message
      * @param reportUpdateMessage the report update message to put on the queue
+     * @param publishTaskDataAsObject boolean flag which decides whether the message will be published with
+     *                      taskData as object or byte[].
      */
-    void reportUpdate(final TaskInformation taskInformation, final TaskMessage reportUpdateMessage);
+    void reportUpdate(final TaskInformation taskInformation, final TaskMessage reportUpdateMessage, final boolean publishTaskDataAsObject);
 }

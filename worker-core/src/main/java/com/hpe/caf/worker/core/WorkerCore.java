@@ -160,6 +160,8 @@ final class WorkerCore
                 final QueueTaskMessage queueTaskMessage = codec.deserialise(taskMessage, QueueTaskMessage.class, DecodeMethod.LENIENT);
                 final TaskMessage tm = QueueTaskMessageFunctions.from(queueTaskMessage, codec);
 
+                final boolean publishTaskDataAsObject = !QueueTaskMessageFunctions.isTaskDataString(queueTaskMessage);
+
                 LOG.debug("Received task {} (message id: {})", tm.getTaskId(), taskInformation.getInboundMessageId());
                 final boolean poison = isTaskPoisoned(headers);
                 validateTaskMessage(tm);
@@ -179,9 +181,9 @@ final class WorkerCore
                     case Active:
                     case Waiting:
                         if (isTaskIntendedForThisWorker(tm, taskInformation)) {
-                            executor.executeTask(tm, taskInformation, poison, headers, codec);
+                            executor.executeTask(tm, taskInformation, poison, headers, codec, publishTaskDataAsObject);
                         } else {
-                            executor.handleDivertedTask(tm, taskInformation, poison, headers, codec, jobStatus);
+                            executor.handleDivertedTask(tm, taskInformation, poison, headers, codec, jobStatus, publishTaskDataAsObject);
                         }
                         break;
                     case Paused:
@@ -195,10 +197,10 @@ final class WorkerCore
                                     + "Task message (message id: {}) will be executed as normal",
                                     tm.getTaskId(),
                                     taskInformation.getInboundMessageId());
-                                executor.executeTask(tm, taskInformation, poison, headers, codec);
+                                executor.executeTask(tm, taskInformation, poison, headers, codec, publishTaskDataAsObject);
                             }
                         } else {
-                            executor.handleDivertedTask(tm, taskInformation, poison, headers, codec, jobStatus);
+                            executor.handleDivertedTask(tm, taskInformation, poison, headers, codec, jobStatus, publishTaskDataAsObject);
                         }
                         break;
                     default:
@@ -451,7 +453,7 @@ final class WorkerCore
         }
 
         @Override
-        public void send(final TaskInformation taskInformation, final TaskMessage responseMessage)
+        public void send(final TaskInformation taskInformation, final TaskMessage responseMessage, final boolean publishTaskDataAsObject)
         {
             Objects.requireNonNull(taskInformation);
             Objects.requireNonNull(responseMessage);
@@ -459,19 +461,13 @@ final class WorkerCore
 
             final String queue = responseMessage.getTo();
             checkForTrackingTermination(taskInformation, queue, responseMessage);
-
-            final byte[] output;
             try {
-                output = codec.serialise(responseMessage);
-            } catch (final CodecException ex) {
-                throw new RuntimeException(ex);
-            }
+                final byte[] output = convertAndSerializeMessage(responseMessage, publishTaskDataAsObject);
 
-            final int priority = responseMessage.getPriority() == null ? 0 : responseMessage.getPriority();
+                final int priority = responseMessage.getPriority() == null ? 0 : responseMessage.getPriority();
 
-            try {
                 workerQueue.publish(taskInformation, output, queue, Collections.emptyMap(), priority);
-            } catch (final QueueException ex) {
+            } catch (final QueueException | CodecException ex) {
                 throw new RuntimeException(ex);
             }
         }
@@ -483,7 +479,10 @@ final class WorkerCore
          * we reject the task.
          */
         @Override
-        public void complete(final TaskInformation taskInformation, final String queue, final TaskMessage responseMessage)
+        public void complete(final TaskInformation taskInformation,
+                             final String queue,
+                             final TaskMessage responseMessage,
+                             final boolean publishTaskDataAsObject)
         {
             Objects.requireNonNull(taskInformation);
             Objects.requireNonNull(responseMessage);
@@ -507,7 +506,7 @@ final class WorkerCore
                 } else {
                     // **** Normal Worker ****                    
                     // A worker with an input and output queue.
-                    byte[] output = codec.serialise(responseMessage);
+                    final byte[] output = convertAndSerializeMessage(responseMessage, publishTaskDataAsObject);
                     workerQueue.publish(taskInformation, output, queue, Collections.emptyMap(), 
                                            responseMessage.getPriority() == null ? 0 : responseMessage.getPriority(), true);                    
                     stats.getOutputSizes().update(output.length);
@@ -536,7 +535,11 @@ final class WorkerCore
         }
 
         @Override
-        public void forward(TaskInformation taskInformation, String queue, TaskMessage forwardedMessage, Map<String, Object> headers)
+        public void forward(TaskInformation taskInformation,
+                            String queue,
+                            TaskMessage forwardedMessage,
+                            Map<String, Object> headers,
+                            final boolean publishTaskDataAsObj)
         {
             Objects.requireNonNull(taskInformation);
             Objects.requireNonNull(forwardedMessage);
@@ -549,7 +552,7 @@ final class WorkerCore
                     workerQueue.acknowledgeTask(taskInformation);
                 } else {
                     // Else forward the task
-                    byte[] output = codec.serialise(forwardedMessage);
+                    final byte[] output = convertAndSerializeMessage(forwardedMessage, publishTaskDataAsObj);
                     workerQueue.publish(taskInformation, output, queue, headers, forwardedMessage.getPriority() == null ? 0 : forwardedMessage.getPriority(), true);
                     stats.incrementTasksForwarded();
                     //TODO - I'm guessing this stat should not be updated for forwarded messages:
@@ -591,26 +594,31 @@ final class WorkerCore
         }
 
         @Override
-        public void reportUpdate(final TaskInformation taskInformation, final TaskMessage reportUpdateMessage)
+        public void reportUpdate(final TaskInformation taskInformation, final TaskMessage reportUpdateMessage, final boolean publishTaskDataAsObject)
         {
             Objects.requireNonNull(taskInformation);
             Objects.requireNonNull(reportUpdateMessage);
             LOG.debug("Sending report updates to queue {})", reportUpdateMessage.getTo());
-
-            final byte[] output;
             try {
-                output = codec.serialise(reportUpdateMessage);
-            } catch (final CodecException ex) {
-                throw new RuntimeException(ex);
-            }
+                final byte[] output = convertAndSerializeMessage(reportUpdateMessage, publishTaskDataAsObject);
 
-            final int priority = reportUpdateMessage.getPriority() == null ? 0 : reportUpdateMessage.getPriority();
+                final int priority = reportUpdateMessage.getPriority() == null ? 0 : reportUpdateMessage.getPriority();
 
-            try {                
                 workerQueue.publish(taskInformation, output, reportUpdateMessage.getTo(), Collections.emptyMap(), priority);
-            } catch (final QueueException ex) {
+            } catch (final QueueException | CodecException ex) {
                 throw new RuntimeException(ex);
             }
+        }
+    
+        private byte[] convertAndSerializeMessage(final TaskMessage responseMessage, final boolean publishTaskDataAsObject) throws CodecException
+        {
+            final byte[] output;
+            if (publishTaskDataAsObject) {
+                output = codec.serialise(QueueTaskMessageFunctions.from(responseMessage));
+            } else {
+                output = codec.serialise(responseMessage);
+            }
+            return output;
         }
 
         /**
