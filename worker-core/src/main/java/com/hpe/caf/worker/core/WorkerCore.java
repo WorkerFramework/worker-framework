@@ -594,7 +594,9 @@ final class WorkerCore
         }
 
         @Override
-        public void reportUpdate(final TaskInformation taskInformation, final TaskMessage reportUpdateMessage, final boolean publishTaskDataAsObject)
+        public void reportUpdate(final TaskInformation taskInformation,
+                                 final TaskMessage reportUpdateMessage,
+                                 final boolean publishTaskDataAsObject)
         {
             Objects.requireNonNull(taskInformation);
             Objects.requireNonNull(reportUpdateMessage);
@@ -610,7 +612,8 @@ final class WorkerCore
             }
         }
     
-        private byte[] convertAndSerializeMessage(final TaskMessage responseMessage, final boolean publishTaskDataAsObject) throws CodecException
+        private byte[] convertAndSerializeMessage(final TaskMessage responseMessage, final boolean publishTaskDataAsObject) 
+                throws CodecException
         {
             final byte[] output;
             if (publishTaskDataAsObject) {
