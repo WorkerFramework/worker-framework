@@ -78,34 +78,6 @@ public class WorkerExecutorTest
         Mockito.verify(callback, Mockito.times(1)).forward(taskInformation, "testTo", tm, new HashMap<>());
     }
 
-    @Test
-    public void testDefaultForwardTaskWithTaskDataAsObject() throws InvalidNameException, TaskRejectedException, InvalidTaskException
-    {
-        final ServicePath path = new ServicePath("/unitTest/test");
-        final WorkerCallback callback = mock(WorkerCallback.class);
-        final Worker worker = mock(Worker.class);
-        final WorkerFactory factory = mock(WorkerFactory.class);
-        Mockito.when(factory.getWorker(Mockito.any())).thenReturn(worker);
-        final WorkerThreadPool pool = mock(WorkerThreadPool.class);
-        final MessagePriorityManager priorityManager = mock(MessagePriorityManager.class);
-        Mockito.when(priorityManager.getResponsePriority(Mockito.any())).thenReturn(2);
-
-        final WorkerExecutor executor = new WorkerExecutor(path, callback, factory, pool, priorityManager);
-        final TaskMessage tm = new TaskMessage("test",
-                "test",
-                1,
-                "test".getBytes(StandardCharsets.UTF_8),
-                TaskStatus.NEW_TASK,
-                new HashMap<>(),
-                "testTo");
-        final TaskInformation taskInformation = mock(TaskInformation.class);
-        executor.handleDivertedTask(tm, taskInformation, false, new HashMap<>(), null, null);
-        Mockito.verify(callback, Mockito.times(1)).forward(taskInformation,
-                "testTo",
-                tm,
-                new HashMap<>()
-        );
-    }
 
     @Test
     public void testForwardDiscardTask()
