@@ -54,7 +54,7 @@ public class WorkerExecutorTest
 
         WorkerExecutor executor = new WorkerExecutor(path, callback, factory, pool, priorityManager);
         TaskMessage tm = new TaskMessage("test", "test", 1, "test".getBytes(StandardCharsets.UTF_8), TaskStatus.NEW_TASK, new HashMap<>(), "testTo");
-        executor.executeTask(tm, mock(TaskInformation.class), false, headers, codec, false);
+        executor.executeTask(tm, mock(TaskInformation.class), false, headers, codec);
         Mockito.verify(factory, Mockito.times(1)).getWorker(Mockito.any());
     }
 
@@ -74,8 +74,8 @@ public class WorkerExecutorTest
         WorkerExecutor executor = new WorkerExecutor(path, callback, factory, pool, priorityManager);
         TaskMessage tm = new TaskMessage("test", "test", 1, "test".getBytes(StandardCharsets.UTF_8), TaskStatus.NEW_TASK, new HashMap<>(), "testTo");
         TaskInformation taskInformation = mock(TaskInformation.class);
-        executor.handleDivertedTask(tm, taskInformation, false, new HashMap<>(), null, null, false);
-        Mockito.verify(callback, Mockito.times(1)).forward(taskInformation, "testTo", tm, new HashMap<>(), false);
+        executor.handleDivertedTask(tm, taskInformation, false, new HashMap<>(), null, null);
+        Mockito.verify(callback, Mockito.times(1)).forward(taskInformation, "testTo", tm, new HashMap<>());
     }
 
     @Test
@@ -99,12 +99,12 @@ public class WorkerExecutorTest
                 new HashMap<>(),
                 "testTo");
         final TaskInformation taskInformation = mock(TaskInformation.class);
-        executor.handleDivertedTask(tm, taskInformation, false, new HashMap<>(), null, null, true);
+        executor.handleDivertedTask(tm, taskInformation, false, new HashMap<>(), null, null);
         Mockito.verify(callback, Mockito.times(1)).forward(taskInformation,
                 "testTo",
                 tm,
-                new HashMap<>(),
-                true);
+                new HashMap<>()
+        );
     }
 
     @Test
@@ -140,7 +140,7 @@ public class WorkerExecutorTest
 
         WorkerExecutor executor = new WorkerExecutor(path, callback, factory, pool, priorityManager);
         TaskInformation taskInformation =mock(TaskInformation.class);
-        executor.handleDivertedTask(tm, taskInformation, false, new HashMap<>(), null, null, false);
+        executor.handleDivertedTask(tm, taskInformation, false, new HashMap<>(), null, null);
         Mockito.verify((TaskMessageForwardingEvaluator) factory, Mockito.times(1)).determineForwardingAction(tm, taskInformation, new HashMap<>(), callback);
         Mockito.verify(callback, Mockito.times(1)).discard(taskInformation);
     }
@@ -162,7 +162,7 @@ public class WorkerExecutorTest
 
         WorkerExecutor executor = new WorkerExecutor(path, callback, factory, pool, priorityManager);
         TaskMessage tm = new TaskMessage("test", "test", 1, "test".getBytes(StandardCharsets.UTF_8), TaskStatus.NEW_TASK, new HashMap<>(), "test");
-        executor.executeTask(tm, mock(TaskInformation.class), false, headers, codec, true);
+        executor.executeTask(tm, mock(TaskInformation.class), false, headers, codec);
     }
 
     @Test
@@ -189,7 +189,7 @@ public class WorkerExecutorTest
             Assert.assertEquals(ver, tm.getTaskApiVersion());
             return null;
         };
-        Mockito.doAnswer(a).when(callback).complete(Mockito.any(), Mockito.any(), Mockito.any(), Mockito.anyBoolean());
+        Mockito.doAnswer(a).when(callback).complete(Mockito.any(), Mockito.any(), Mockito.any());
         WorkerFactory factory = mock(WorkerFactory.class);
         Mockito.when(factory.getInvalidTaskQueue()).thenReturn(invalidQueue);
         Mockito.when(factory.getWorker(Mockito.any())).thenThrow(
@@ -202,9 +202,9 @@ public class WorkerExecutorTest
         WorkerExecutor executor = new WorkerExecutor(path, callback, factory, pool, priorityManager);
 
         TaskMessage tm = new TaskMessage(taskId, classifier, ver, data, TaskStatus.NEW_TASK, new HashMap<>(), "queue");
-        executor.executeTask(tm, taskInformation, false, headers, codec, true);
+        executor.executeTask(tm, taskInformation, false, headers, codec);
         Mockito.verify(factory, Mockito.times(1)).getWorker(Mockito.any());
-        Mockito.verify(callback, Mockito.times(1)).complete(Mockito.any(), Mockito.any(), Mockito.any(), Mockito.anyBoolean());
+        Mockito.verify(callback, Mockito.times(1)).complete(Mockito.any(), Mockito.any(), Mockito.any());
     }
 
     @Test
@@ -231,7 +231,7 @@ public class WorkerExecutorTest
             Assert.assertEquals(ver, tm.getTaskApiVersion());
             return null;
         };
-        Mockito.doAnswer(a).when(callback).complete(Mockito.any(), Mockito.any(), Mockito.any(), Mockito.anyBoolean());
+        Mockito.doAnswer(a).when(callback).complete(Mockito.any(), Mockito.any(), Mockito.any());
         WorkerFactory factory = mock(WorkerFactory.class);
         Mockito.when(factory.getInvalidTaskQueue()).thenReturn(invalidQueue);
         Mockito.when(factory.getWorker(Mockito.any())).thenThrow(
@@ -248,9 +248,9 @@ public class WorkerExecutorTest
         tm.setTaskData(null);
         tm.setContext(null);
 
-        executor.executeTask(tm, taskInformation, false, headers, codec, true);
+        executor.executeTask(tm, taskInformation, false, headers, codec);
         Mockito.verify(factory, Mockito.times(1)).getWorker(Mockito.any());
-        Mockito.verify(callback, Mockito.times(1)).complete(Mockito.any(), Mockito.any(), Mockito.any(), Mockito.anyBoolean());
+        Mockito.verify(callback, Mockito.times(1)).complete(Mockito.any(), Mockito.any(), Mockito.any());
     }
 
     @Test(expectedExceptions = TaskRejectedException.class)
@@ -271,6 +271,6 @@ public class WorkerExecutorTest
 
         WorkerExecutor executor = new WorkerExecutor(path, callback, factory, pool, priorityManager);
         TaskMessage tm = new TaskMessage("test", "test", 1, "test".getBytes(StandardCharsets.UTF_8), TaskStatus.NEW_TASK, new HashMap<>(), "test");
-        executor.executeTask(tm, mock(TaskInformation.class), false, headers, codec, true);
+        executor.executeTask(tm, mock(TaskInformation.class), false, headers, codec);
     }
 }

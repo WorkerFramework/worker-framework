@@ -66,15 +66,13 @@ final class WorkerExecutor
      * @param tm the task message
      * @param taskInformation the reference to the message this task arrived on
      * @param headers the map of key/value paired headers to be stamped on the message
-     * @param publishTaskDataAsObject boolean flag which decides whether the message will be published with
-     *                      taskData as object or byte[].
      * @throws TaskRejectedException if the WorkerFactory indicates the task cannot be handled at this time
      */
     public void executeTask(final TaskMessage tm, final TaskInformation taskInformation, final boolean poison,
-                            final Map<String, Object> headers, final Codec codec, final boolean publishTaskDataAsObject)
+                            final Map<String, Object> headers, final Codec codec)
         throws TaskRejectedException
     {
-        final WorkerTaskImpl workerTask = createWorkerTask(taskInformation, tm, poison, headers, codec, publishTaskDataAsObject);
+        final WorkerTaskImpl workerTask = createWorkerTask(taskInformation, tm, poison, headers, codec);
 
         threadPool.submitWorkerTask(workerTask);
     }
@@ -88,30 +86,27 @@ final class WorkerExecutor
      * @param headers the map of key/value paired headers to be stamped on the message
      * @param codec the Codec that can be used to serialise/deserialise data
      * @param jobStatus the job status as returned by the status check URL
-     * @param publishTaskDataAsObject boolean flag which decides whether the message will be published with
-     *                           taskData as object or byte[].
      */
     public void handleDivertedTask(final TaskMessage tm, final TaskInformation taskInformation, final boolean poison,
-                                   final Map<String, Object> headers, final Codec codec, final JobStatus jobStatus,
-                                   final boolean publishTaskDataAsObject)
+                                   final Map<String, Object> headers, final Codec codec, final JobStatus jobStatus)
         throws TaskRejectedException
     {
         //Check whether this worker application can evaluate diverted task messages.
         if (factory instanceof DivertedTaskHandler) {
-            processDivertedTaskAction(tm, taskInformation, poison, headers, codec, jobStatus, publishTaskDataAsObject);
+            processDivertedTaskAction(tm, taskInformation, poison, headers, codec, jobStatus);
         }
         //Check whether this worker application can evaluate messages for forwarding.
         else if (factory instanceof TaskMessageForwardingEvaluator) {
             ((TaskMessageForwardingEvaluator) factory).determineForwardingAction(tm, taskInformation, headers, callback);
         //Else messages are forwarded by default.
         } else {
-            callback.forward(taskInformation, tm.getTo(), tm, headers, publishTaskDataAsObject);
+            callback.forward(taskInformation, tm.getTo(), tm, headers);
         }
     }
 
     private void processDivertedTaskAction(final TaskMessage tm, final TaskInformation taskInformation,
                                            final boolean poison, final Map<String, Object> headers, final Codec codec,
-                                           final JobStatus jobStatus, final boolean publishTaskDataAsObject)
+                                           final JobStatus jobStatus)
         throws TaskRejectedException
     {
         final DivertedTaskAction divertedTaskAction
@@ -123,16 +118,16 @@ final class WorkerExecutor
                 discardTask(tm, taskInformation);
                 break;
             case Execute:
-                executeTask(tm, taskInformation, poison, headers, codec, publishTaskDataAsObject);
+                executeTask(tm, taskInformation, poison, headers, codec);
                 break;
             case Forward:
-                callback.forward(taskInformation, tm.getTo(), tm, headers, publishTaskDataAsObject);
+                callback.forward(taskInformation, tm.getTo(), tm, headers);
                 break;
             default:
                 LOG.warn("Worker returned an unexpected diverted task action: {} for task: {} (message id: {}). "
                     + "Defaulting to forwarding the task.", divertedTaskAction, tm.getTaskId(),
                          taskInformation.getInboundMessageId());
-                callback.forward(taskInformation, tm.getTo(), tm, headers, publishTaskDataAsObject);
+                callback.forward(taskInformation, tm.getTo(), tm, headers);
         }
     }
 
@@ -166,9 +161,9 @@ final class WorkerExecutor
      * Creates a WorkerTask for the specified message
      */
     private WorkerTaskImpl createWorkerTask(final TaskInformation taskInformation, final TaskMessage taskMessage, final boolean poison,
-                                            final Map<String, Object> headers, final Codec codec, final boolean publishTaskDataAsObject)
+                                            final Map<String, Object> headers, final Codec codec)
     {
         return new WorkerTaskImpl(servicePath, callback, factory, taskInformation, taskMessage, poison, headers, codec,
-                priorityManager, publishTaskDataAsObject);
+                priorityManager);
     }
 }
