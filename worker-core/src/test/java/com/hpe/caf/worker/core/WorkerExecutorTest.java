@@ -78,7 +78,6 @@ public class WorkerExecutorTest
         Mockito.verify(callback, Mockito.times(1)).forward(taskInformation, "testTo", tm, new HashMap<>());
     }
 
-
     @Test
     public void testForwardDiscardTask()
         throws InvalidNameException, TaskRejectedException, InvalidTaskException
