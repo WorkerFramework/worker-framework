@@ -158,9 +158,7 @@ final class WorkerCore
         {
             try {
                 final QueueTaskMessage queueTaskMessage = codec.deserialise(taskMessage, QueueTaskMessage.class, DecodeMethod.LENIENT);
-                final TaskInformation coreTaskInformation = new CoreTaskInformation(taskInformation.getInboundMessageId(),
-                        taskInformation,
-                        queueTaskMessage);
+                final TaskInformation coreTaskInformation = new CoreTaskInformation(taskInformation, queueTaskMessage);
                 final TaskMessage tm = QueueTaskMessageFunctions.from(queueTaskMessage, codec);
 
                 LOG.debug("Received task {} (message id: {})", tm.getTaskId(), taskInformation.getInboundMessageId());

@@ -20,15 +20,14 @@ import com.hpe.caf.api.worker.TaskInformation;
 
 public class CoreTaskInformation implements TaskInformation
 {
-    private final String inboundMessageId;
     private final TaskInformation taskInformation;
     private final QueueTaskMessage queueTaskMessage;
 
-    public CoreTaskInformation(final String inboundMessageId,
-                               final TaskInformation taskInformation,
-                               final QueueTaskMessage queueTaskMessage)
+    public CoreTaskInformation(
+        final TaskInformation taskInformation,
+        final QueueTaskMessage queueTaskMessage
+    )
     {
-        this.inboundMessageId = inboundMessageId;
         this.taskInformation = taskInformation;
         this.queueTaskMessage = queueTaskMessage;
     }
@@ -36,7 +35,7 @@ public class CoreTaskInformation implements TaskInformation
     @Override
     public String getInboundMessageId()
     {
-        return inboundMessageId;
+        return taskInformation.getInboundMessageId();
     }
 
     public TaskInformation getTaskInformation()
