@@ -454,6 +454,123 @@ final class WorkerCore
         }
 
         @Override
+        public void send(
+            final TaskInformation taskInformation,
+            final TaskMessage responseMessage
+        )
+        {
+            final CoreTaskInformation coreTaskInformation = ((CoreTaskInformation) taskInformation);
+            final TaskInformation queueTaskInformation = coreTaskInformation.getTaskInformation();
+            createCallbackImpl(coreTaskInformation).send(queueTaskInformation, responseMessage);
+        }
+
+        @Override
+        public void complete(
+            final TaskInformation taskInformation,
+            final String queue,
+            final TaskMessage responseMessage
+        )
+        {
+            final CoreTaskInformation coreTaskInformation = ((CoreTaskInformation) taskInformation);
+            final TaskInformation queueTaskInformation = coreTaskInformation.getTaskInformation();
+            createCallbackImpl(coreTaskInformation).complete(queueTaskInformation, queue, responseMessage);
+        }
+
+        @Override
+        public void abandon(
+            final TaskInformation taskInformation,
+            final Exception e
+        )
+        {
+            final CoreTaskInformation coreTaskInformation = ((CoreTaskInformation) taskInformation);
+            final TaskInformation queueTaskInformation = coreTaskInformation.getTaskInformation();
+            createCallbackImpl(coreTaskInformation).abandon(queueTaskInformation, e);
+        }
+
+        @Override
+        public void forward(
+            final TaskInformation taskInformation,
+            final String queue,
+            final TaskMessage forwardedMessage,
+            final Map<String, Object> headers
+        )
+        {
+            final CoreTaskInformation coreTaskInformation = ((CoreTaskInformation) taskInformation);
+            final TaskInformation queueTaskInformation = coreTaskInformation.getTaskInformation();
+            createCallbackImpl(coreTaskInformation).forward(queueTaskInformation, queue, forwardedMessage, headers);
+        }
+
+        @Override
+        public void pause(
+            final TaskInformation taskInformation,
+            final String pausedQueue,
+            final TaskMessage taskMessage,
+            final Map<String, Object> headers
+        )
+        {
+            final CoreTaskInformation coreTaskInformation = ((CoreTaskInformation) taskInformation);
+            final TaskInformation queueTaskInformation = coreTaskInformation.getTaskInformation();
+            createCallbackImpl(coreTaskInformation).pause(queueTaskInformation, pausedQueue, taskMessage, headers);
+        }
+
+        @Override
+        public void discard(final TaskInformation taskInformation)
+        {
+            final CoreTaskInformation coreTaskInformation = ((CoreTaskInformation) taskInformation);
+            final TaskInformation queueTaskInformation = coreTaskInformation.getTaskInformation();
+            createCallbackImpl(coreTaskInformation).discard(queueTaskInformation);
+        }
+
+        @Override
+        public void reportUpdate(
+            final TaskInformation taskInformation,
+            final TaskMessage reportUpdateMessage
+        )
+        {
+            final CoreTaskInformation coreTaskInformation = ((CoreTaskInformation) taskInformation);
+            final TaskInformation queueTaskInformation = coreTaskInformation.getTaskInformation();
+            createCallbackImpl(coreTaskInformation).reportUpdate(queueTaskInformation, reportUpdateMessage);
+        }
+
+        private CoreWorkerCallbackImpl createCallbackImpl(final CoreTaskInformation coreTaskInformation)
+        {
+            return new CoreWorkerCallbackImpl(
+                codec,
+                workerQueue,
+                stats,
+                healthCheckRegistry,
+                transientHealthCheck,
+                coreTaskInformation.getQueueTaskMessage());
+        }
+    }
+
+    private static class CoreWorkerCallbackImpl implements WorkerCallback
+    {
+        private final Codec codec;
+        private final ManagedWorkerQueue workerQueue;
+        private final WorkerStats stats;
+        private final HealthCheckRegistry healthCheckRegistry;
+        private final TransientHealthCheck transientHealthCheck;
+        private final QueueTaskMessage queueTaskMessage;
+
+        public CoreWorkerCallbackImpl(
+            final Codec codec,
+            final ManagedWorkerQueue workerQueue,
+            final WorkerStats stats,
+            final HealthCheckRegistry healthCheckRegistry,
+            final TransientHealthCheck transientHealthCheck,
+            final QueueTaskMessage queueTaskMessage
+        )
+        {
+            this.codec = Objects.requireNonNull(codec);
+            this.workerQueue = Objects.requireNonNull(workerQueue);
+            this.stats = Objects.requireNonNull(stats);
+            this.healthCheckRegistry = Objects.requireNonNull(healthCheckRegistry);
+            this.transientHealthCheck = Objects.requireNonNull(transientHealthCheck);
+            this.queueTaskMessage = Objects.requireNonNull(queueTaskMessage);
+        }
+
+        @Override
         public void send(final TaskInformation taskInformation, final TaskMessage responseMessage)
         {
             Objects.requireNonNull(taskInformation);
@@ -462,13 +579,19 @@ final class WorkerCore
 
             final String queue = responseMessage.getTo();
             checkForTrackingTermination(taskInformation, queue, responseMessage);
+
+            final byte[] output;
             try {
-                final byte[] output = convertAndSerializeMessage(responseMessage, taskInformation);
+                output = convertAndSerializeMessage(responseMessage);
+            } catch (final CodecException ex) {
+                throw new RuntimeException(ex);
+            }
 
-                final int priority = responseMessage.getPriority() == null ? 0 : responseMessage.getPriority();
+            final int priority = responseMessage.getPriority() == null ? 0 : responseMessage.getPriority();
 
-                workerQueue.publish(getTaskInformation(taskInformation), output, queue, Collections.emptyMap(), priority);
-            } catch (final QueueException | CodecException ex) {
+            try {
+                workerQueue.publish(taskInformation, output, queue, Collections.emptyMap(), priority);
+            } catch (final QueueException ex) {
                 throw new RuntimeException(ex);
             }
         }
@@ -504,8 +627,8 @@ final class WorkerCore
                 } else {
                     // **** Normal Worker ****                    
                     // A worker with an input and output queue.
-                    final byte[] output = convertAndSerializeMessage(responseMessage, taskInformation);
-                    workerQueue.publish(getTaskInformation(taskInformation), output, queue, Collections.emptyMap(), 
+                    final byte[] output = convertAndSerializeMessage(responseMessage);
+                    workerQueue.publish(taskInformation, output, queue, Collections.emptyMap(), 
                                            responseMessage.getPriority() == null ? 0 : responseMessage.getPriority(), true);                    
                     stats.getOutputSizes().update(output.length);
                 }
@@ -546,13 +669,8 @@ final class WorkerCore
                     workerQueue.acknowledgeTask(taskInformation);
                 } else {
                     // Else forward the task
-                    final byte[] output = convertAndSerializeMessage(forwardedMessage, taskInformation);
-                    workerQueue.publish(getTaskInformation(taskInformation),
-                            output,
-                            queue,
-                            headers,
-                            forwardedMessage.getPriority() == null ? 0 : forwardedMessage.getPriority(),
-                            true);
+                    final byte[] output = convertAndSerializeMessage(forwardedMessage);
+                    workerQueue.publish(taskInformation, output, queue, headers, forwardedMessage.getPriority() == null ? 0 : forwardedMessage.getPriority(), true);
                     stats.incrementTasksForwarded();
                     //TODO - I'm guessing this stat should not be updated for forwarded messages:
                     // stats.getOutputSizes().update(output.length);
@@ -573,8 +691,8 @@ final class WorkerCore
             LOG.debug("Task {} (message id: {}) being forwarded to paused queue {}",
                       taskMessage.getTaskId(), taskInformation.getInboundMessageId(), pausedQueue);
             try {
-                final byte[] taskMessageBytes = convertAndSerializeMessage(taskMessage, taskInformation);
-                workerQueue.publish(getTaskInformation(taskInformation), taskMessageBytes, pausedQueue, headers,
+                final byte[] taskMessageBytes = convertAndSerializeMessage(taskMessage);
+                workerQueue.publish(taskInformation, taskMessageBytes, pausedQueue, headers,
                                     taskMessage.getPriority() == null ? 0 : taskMessage.getPriority(), true);
                 stats.incrementTasksPaused();
             } catch (final CodecException | QueueException e) {
@@ -588,7 +706,7 @@ final class WorkerCore
         {
             Objects.requireNonNull(taskInformation);
             LOG.debug("Discarding message id {}", taskInformation.getInboundMessageId());
-            workerQueue.discardTask(getTaskInformation(taskInformation));
+            workerQueue.discardTask(taskInformation);
             stats.incrementTasksDiscarded();
         }
 
@@ -598,31 +716,28 @@ final class WorkerCore
             Objects.requireNonNull(taskInformation);
             Objects.requireNonNull(reportUpdateMessage);
             LOG.debug("Sending report updates to queue {})", reportUpdateMessage.getTo());
+
+            final byte[] output;
             try {
-                final byte[] output = convertAndSerializeMessage(reportUpdateMessage, taskInformation);
+                output = convertAndSerializeMessage(reportUpdateMessage);
+            } catch (final CodecException ex) {
+                throw new RuntimeException(ex);
+            }
 
-                final int priority = reportUpdateMessage.getPriority() == null ? 0 : reportUpdateMessage.getPriority();
+            final int priority = reportUpdateMessage.getPriority() == null ? 0 : reportUpdateMessage.getPriority();
 
-                workerQueue.publish(getTaskInformation(taskInformation),
-                        output,
-                        reportUpdateMessage.getTo(),
-                        Collections.emptyMap(),
-                        priority);
-            } catch (final QueueException | CodecException ex) {
+            try {                
+                workerQueue.publish(taskInformation, output, reportUpdateMessage.getTo(), Collections.emptyMap(), priority);
+            } catch (final QueueException ex) {
                 throw new RuntimeException(ex);
             }
         }
 
-        private TaskInformation getTaskInformation(final TaskInformation taskInformation)
-        {
-            return ((CoreTaskInformation)taskInformation).getTaskInformation();
-        }
-
-        private byte[] convertAndSerializeMessage(final TaskMessage responseMessage, final TaskInformation coreTaskInformation) 
-                throws CodecException
+        private byte[] convertAndSerializeMessage(final TaskMessage responseMessage)
+            throws CodecException
         {
             final byte[] output;
-            if (!QueueTaskMessageFunctions.isTaskDataString(((CoreTaskInformation)coreTaskInformation).getQueueTaskMessage())) {
+            if (!QueueTaskMessageFunctions.isTaskDataString(queueTaskMessage)) {
                 output = codec.serialise(QueueTaskMessageFunctions.from(responseMessage));
             } else {
                 output = codec.serialise(responseMessage);
