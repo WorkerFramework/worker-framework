@@ -207,7 +207,7 @@ final class WorkerCore
                             "Task {} is no longer active. The task message (message id: {}) will not be executed",
                             tm.getTaskId(),
                             taskInformation.getInboundMessageId());
-                        executor.discardTask(tm, taskInformation);
+                        executor.discardTask(tm, coreTaskInformation);
                 }
             } catch (CodecException e) {
                 throw new InvalidTaskException("Queue data did not deserialise to a TaskMessage", e);
