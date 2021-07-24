@@ -18,7 +18,7 @@ package com.hpe.caf.worker.core;
 import com.hpe.caf.api.worker.QueueTaskMessage;
 import com.hpe.caf.api.worker.TaskInformation;
 
-public class CoreTaskInformation implements TaskInformation
+class CoreTaskInformation implements TaskInformation
 {
     private final TaskInformation taskInformation;
     private final QueueTaskMessage queueTaskMessage;
