@@ -255,7 +255,7 @@ final class WorkerCore
                 LOG.debug(
                     "Task {} (message id: {}) on input queue {} {}",
                     tm.getTaskId(),
-                    taskInformation.hashCode(),
+                    taskInformation.getInboundMessageId(),
                     workerQueue.getInputQueue(),
                     (tm.getTo() != null)
                     ? "is intended for this worker"
