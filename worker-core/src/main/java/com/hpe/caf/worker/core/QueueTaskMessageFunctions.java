@@ -15,8 +15,11 @@
  */
 package com.hpe.caf.worker.core;
 
+import java.io.IOException;
+
 import org.apache.commons.codec.binary.Base64;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.hpe.caf.api.Codec;
 import com.hpe.caf.api.CodecException;
 import com.hpe.caf.api.worker.QueueTaskMessage;
@@ -24,6 +27,9 @@ import com.hpe.caf.api.worker.TaskMessage;
 
 public final class QueueTaskMessageFunctions
 {
+    
+    private static final ObjectMapper OBJECT_MAPPER = new ObjectMapper();
+    
     private QueueTaskMessageFunctions()
     {
     }
@@ -31,7 +37,7 @@ public final class QueueTaskMessageFunctions
     public static TaskMessage from(final QueueTaskMessage queueTaskMessage, final Codec codec) throws CodecException
     {
         final byte[] taskData;
-        if (queueTaskMessage.getTaskData() instanceof String) {
+        if (isTaskDataString(queueTaskMessage)) {
             taskData = Base64.decodeBase64((String)queueTaskMessage.getTaskData());
         } else {
             taskData = codec.serialise(queueTaskMessage.getTaskData());
@@ -46,5 +52,30 @@ public final class QueueTaskMessageFunctions
                 queueTaskMessage.getTracking(),
                 queueTaskMessage.getSourceInfo(),
                 queueTaskMessage.getCorrelationId());
+    }
+    
+    public static QueueTaskMessage from(final TaskMessage taskMessage) throws CodecException
+    {
+        final Object taskData;
+        try {
+            taskData = OBJECT_MAPPER.readTree(taskMessage.getTaskData());
+        } catch (final IOException e) {
+            throw new CodecException("Exception while converting taskData to JsonNode", e);
+        }
+        return new QueueTaskMessage(taskMessage.getTaskId(),
+                taskMessage.getTaskClassifier(),
+                taskMessage.getTaskApiVersion(),
+                taskData,
+                taskMessage.getTaskStatus(),
+                taskMessage.getContext(),
+                taskMessage.getTo(),
+                taskMessage.getTracking(),
+                taskMessage.getSourceInfo(),
+                taskMessage.getCorrelationId());
+    }
+    
+    public static boolean isTaskDataString(final QueueTaskMessage queueTaskMessage)
+    {
+        return queueTaskMessage.getTaskData() instanceof String;
     }
 }
