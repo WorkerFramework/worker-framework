@@ -115,7 +115,7 @@
                         <!-- Used to compile the source code -->
                         <image>
                             <alias>compile-source</alias>
-                            <name>${dockerHubPublic}/cafapi/doc-site-compiler:1.0</name>
+                            <name>${dockerHubPublic}/cafapi/prereleases:doc-site-compiler-2.0.0-SNAPSHOT</name>
                             <run>
                                 <env>
                                     <!-- Enable internet access -->
