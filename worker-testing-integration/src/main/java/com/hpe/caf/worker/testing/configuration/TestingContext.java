@@ -15,9 +15,6 @@
  */
 package com.hpe.caf.worker.testing.configuration;
 
-import com.hpe.caf.worker.testing.QueueServices;
-import com.hpe.caf.worker.testing.WorkerServices;
-
 /**
  * Created by ploch on 05/12/2015.
  */

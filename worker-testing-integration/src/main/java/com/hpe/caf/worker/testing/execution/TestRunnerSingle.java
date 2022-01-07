@@ -15,10 +15,6 @@
  */
 package com.hpe.caf.worker.testing.execution;
 
-import com.hpe.caf.worker.testing.TestControllerSingle;
-import com.hpe.caf.worker.testing.TestItem;
-import com.hpe.caf.worker.testing.TestItemProvider;
-
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.Set;

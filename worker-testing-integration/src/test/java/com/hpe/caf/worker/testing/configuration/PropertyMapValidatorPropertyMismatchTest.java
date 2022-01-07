@@ -15,8 +15,6 @@
  */
 package com.hpe.caf.worker.testing.configuration;
 
-import com.hpe.caf.worker.testing.SettingNames;
-import com.hpe.caf.worker.testing.TestConfiguration;
 import com.hpe.caf.worker.testing.validation.PropertyMap;
 import com.hpe.caf.worker.testing.validation.PropertyMapValidator;
 import com.hpe.caf.worker.testing.validation.ValidatorFactory;

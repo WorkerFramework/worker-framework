@@ -16,7 +16,6 @@
 package com.hpe.caf.worker.testing;
 
 import java.util.Collection;
-import java.util.Set;
 
 /**
  * Created by ploch on 05/02/2016.

@@ -1,5 +1,5 @@
 /*
- * Copyright 2015-2021 Micro Focus or one of its affiliates.
+ * Copyright 2022-2022 Micro Focus or one of its affiliates.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -24,8 +24,6 @@ import com.fasterxml.jackson.dataformat.yaml.YAMLMapper;
 import com.fasterxml.jackson.datatype.guava.GuavaModule;
 import com.google.common.base.Strings;
 import com.hpe.caf.worker.testing.configuration.TestCaseFormat;
-
-import java.io.File;
 
 /**
  * Created by ploch on 25/11/2015.

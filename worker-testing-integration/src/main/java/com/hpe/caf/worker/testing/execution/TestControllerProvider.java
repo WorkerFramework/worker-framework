@@ -15,10 +15,6 @@
  */
 package com.hpe.caf.worker.testing.execution;
 
-import com.hpe.caf.worker.testing.TestController;
-import com.hpe.caf.worker.testing.TestControllerSingle;
-import com.hpe.caf.worker.testing.TestItemProvider;
-
 /**
  * The test controller provider interface. Implementations are responsible for creating configured {@link TestController} instances used
  * to execute worker tests or preparation of initial test case data. Implementations of this interface should be advertised to

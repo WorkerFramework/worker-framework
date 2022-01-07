@@ -15,12 +15,14 @@
  */
 package com.hpe.caf.worker.testing;
 
-import com.google.common.base.Strings;
-import com.hpe.caf.api.CodecException;
-import com.hpe.caf.api.worker.TaskMessage;
+import java.io.IOException;
+
 import org.apache.commons.lang3.exception.ExceptionUtils;
 
-import java.io.IOException;
+import com.google.common.base.Strings;
+import com.hpe.caf.api.CodecException;
+import com.hpe.caf.api.worker.QueueTaskMessage;
+import com.hpe.caf.api.worker.TaskMessage;
 
 /**
  * Created by ploch on 08/11/2015.
@@ -40,9 +42,66 @@ public class ProcessorDeliveryHandler implements ResultHandler
     }
 
     @Override
-    public void handleResult(TaskMessage taskMessage)
+    public void handleResult(Object taskMessage)
     {
+        if (taskMessage instanceof TaskMessage) {
+            extracted((TaskMessage)taskMessage);
+        } else {
+            extracted((QueueTaskMessage)taskMessage);
+        }
+    }
 
+    private void extracted(TaskMessage taskMessage)
+    {
+        if (this.queueManager.isDebugEnabled()) {
+            try {
+                queueManager.publishDebugOutput(taskMessage);
+            } catch (CodecException e) {
+                e.printStackTrace();
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }
+
+        System.out.println("New delivery: task id: " + taskMessage.getTaskId() + ", status: " + taskMessage.getTaskStatus());
+
+        TestItem testItem;
+
+        String inputIdentifier = resultProcessor.getInputIdentifier(taskMessage);
+        if (Strings.isNullOrEmpty(inputIdentifier)) {
+            testItem = context.getItemStore().find(taskMessage.getTaskId());
+        } else {
+            testItem = context.getItemStore().find(inputIdentifier);
+        }
+        if (testItem == null) {
+            System.out.println("Item with id " + taskMessage.getTaskId() + " was not found. Skipping.");
+            checkForFinished();
+            return;
+        }
+
+        try {
+            boolean success = resultProcessor.process(testItem, taskMessage);
+            System.out.println("Item " + testItem.getTag() + ": Result processor success: " + success);
+            if (!success) {
+                context.failed(testItem, "Item " + testItem.getTag() + ": Result processor didn't return success. Result processor name: " + resultProcessor.getClass().getName() + "\nNo detailed message returned.");
+                testItem.setCompleted(true);
+            } else {
+                context.succeeded(testItem);
+            }
+        } catch (Throwable e) {
+            e.printStackTrace();
+            context.failed(testItem, buildFailedMessage(testItem, e));
+            testItem.setCompleted(true);
+        }
+
+        if (testItem.isCompleted()) {
+            context.getItemStore().remove(testItem.getTag());
+        }
+        checkForFinished();
+    }
+
+    private void extracted(QueueTaskMessage taskMessage)
+    {
         if (this.queueManager.isDebugEnabled()) {
             try {
                 queueManager.publishDebugOutput(taskMessage);

@@ -1,5 +1,5 @@
 /*
- * Copyright 2015-2021 Micro Focus or one of its affiliates.
+ * Copyright 2022-2022 Micro Focus or one of its affiliates.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,23 +15,22 @@
  */
 package com.hpe.caf.worker.testing;
 
+import java.nio.charset.StandardCharsets;
+import java.util.Collections;
+import java.util.Map;
+
 import com.hpe.caf.api.Codec;
 import com.hpe.caf.api.CodecException;
 import com.hpe.caf.api.worker.TaskMessage;
 import com.hpe.caf.api.worker.TaskStatus;
 import com.hpe.caf.api.worker.TrackingInfo;
 
-import java.nio.charset.StandardCharsets;
-import java.util.Collections;
-import java.util.Date;
-import java.util.Map;
-
 /**
  * The {@code TaskMessageFactory} class creates messages for publishing to the worker queue.
  */
 public class TaskMessageFactory
 {
-    private final java.lang.String CONTEXT_KEY = "context";
+    private final String CONTEXT_KEY = "context";
     private final byte[] CONTEXT_DATA = "testData".getBytes(StandardCharsets.UTF_8);
     private final Codec codec;
     private final String workerName;
@@ -63,7 +62,7 @@ public class TaskMessageFactory
      */
     public TaskMessage create(final Object workerTask, TrackingInfo tracking, final String taskId) throws CodecException
     {
-        Map<java.lang.String, byte[]> context = Collections.singletonMap(CONTEXT_KEY, CONTEXT_DATA);
+        Map<String, byte[]> context = Collections.singletonMap(CONTEXT_KEY, CONTEXT_DATA);
 
         TaskMessage msg = new TaskMessage(taskId, workerName, apiVersion, codec.serialise(workerTask), TaskStatus.NEW_TASK, context, workerInputQueueName, tracking);
         return msg;

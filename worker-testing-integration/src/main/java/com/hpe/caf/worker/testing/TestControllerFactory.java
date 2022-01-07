@@ -1,5 +1,5 @@
 /*
- * Copyright 2015-2021 Micro Focus or one of its affiliates.
+ * Copyright 2022-2022 Micro Focus or one of its affiliates.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,11 +14,6 @@
  * limitations under the License.
  */
 package com.hpe.caf.worker.testing;
-
-import com.hpe.caf.api.ConfigurationSource;
-import com.hpe.caf.worker.queue.rabbit.RabbitWorkerQueueConfiguration;
-
-import java.util.function.Function;
 
 /**
  * Created by ploch on 08/11/2015.

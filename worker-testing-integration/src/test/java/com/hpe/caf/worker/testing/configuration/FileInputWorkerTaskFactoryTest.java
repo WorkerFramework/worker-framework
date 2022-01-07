@@ -17,20 +17,15 @@ package com.hpe.caf.worker.testing.configuration;
 
 import com.hpe.caf.api.worker.DataStore;
 import com.hpe.caf.util.ref.ReferencedData;
-import com.hpe.caf.worker.testing.FileInputWorkerTaskFactory;
-import com.hpe.caf.worker.testing.FileTestInputData;
-import com.hpe.caf.worker.testing.TestItem;
 import com.sun.management.UnixOperatingSystemMXBean;
-import org.apache.commons.lang3.exception.ExceptionUtils;
+
 import org.mockito.Mockito;
-import org.testng.Assert;
 import org.testng.annotations.Test;
 
 import java.io.File;
 import java.io.InputStream;
 import java.lang.management.ManagementFactory;
 import java.lang.management.OperatingSystemMXBean;
-import java.nio.file.FileSystemException;
 import java.util.UUID;
 
 public class FileInputWorkerTaskFactoryTest

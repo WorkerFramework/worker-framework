@@ -100,6 +100,50 @@ public class ContentResultValidationProcessor<TResult, TInput extends FileTestIn
         return true;
     }
 
+    @Override
+    protected boolean processWorkerResult(TestItem<TInput, TExpected> testItem, QueueTaskMessage message, TResult workerResult)
+            throws Exception
+    {
+        final String func = "Process Worker Result";
+
+        DataSource dataSource = new DataStoreSource(dataStore, getCodec());
+
+        ReferencedData referencedData = getContentFunc.apply(workerResult);
+
+        String contentFileName = testItem.getExpectedOutputData().getExpectedContentFile();
+        if (contentFileName != null && contentFileName.length() > 0) {
+
+            logWithTimestamp(func + " aquire from source: " + referencedData.getReference() == null
+                    ? "<blob info>"
+                    : referencedData.getReference());
+            InputStream dataStream = referencedData.acquire(dataSource);
+            logWithTimestamp(func + " aquire from source finished");
+
+            String ocrText = IOUtils.toString(dataStream, StandardCharsets.UTF_8);
+
+            Path contentFile = Paths.get(contentFileName);
+            if (Files.notExists(contentFile)) {
+                contentFile = Paths.get(testDataFolder, contentFileName);
+            }
+            // Make sure we read the expect file in the same character set as the input stream for the returned result content.
+            String expectedOcrText = FileUtils.readFileToString(contentFile.toFile(), StandardCharsets.UTF_8);
+
+            double similarity = ContentComparer.calculateSimilarityPercentage(expectedOcrText, ocrText);
+
+            logWithTimestamp(func + " Test item: " + testItem.getTag() + ". Similarity: " + similarity + "%");
+            if (similarity < testItem.getExpectedOutputData().getExpectedSimilarityPercentage()) {
+                TestResultHelper.testFailed(
+                        testItem,
+                        "Expected similarity of " + testItem.getExpectedOutputData().getExpectedSimilarityPercentage() + "% "
+                                + "but actual similarity was " + similarity + "%");
+            }
+        } else if (referencedData != null) {
+            TestResultHelper.testFailed(testItem, "Expected null result.");
+        }
+
+        return true;
+    }
+
     private void logWithTimestamp(final String debugInfo)
     {
         System.out.println(DateTime.now().toLocalTime().toString() + debugInfo);

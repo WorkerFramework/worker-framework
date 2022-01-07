@@ -16,8 +16,6 @@
 package com.hpe.caf.worker.testing.configuration;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.hpe.caf.worker.testing.SettingNames;
-import com.hpe.caf.worker.testing.SettingsProvider;
 
 /**
  * Created by ploch on 04/12/2015.

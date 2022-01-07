@@ -17,7 +17,6 @@ package com.hpe.caf.worker.testing.validation;
 
 import com.hpe.caf.api.Codec;
 import com.hpe.caf.api.worker.DataStore;
-import com.hpe.caf.worker.testing.TestConfiguration;
 import com.hpe.caf.worker.testing.configuration.ValidationSettings;
 
 import java.util.Collection;

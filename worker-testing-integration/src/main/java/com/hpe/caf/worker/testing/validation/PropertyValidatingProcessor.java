@@ -18,10 +18,6 @@ package com.hpe.caf.worker.testing.validation;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.datatype.guava.GuavaModule;
 import com.hpe.caf.api.worker.TaskMessage;
-import com.hpe.caf.worker.testing.AbstractResultProcessor;
-import com.hpe.caf.worker.testing.TestConfiguration;
-import com.hpe.caf.worker.testing.TestItem;
-import com.hpe.caf.worker.testing.WorkerServices;
 import com.hpe.caf.worker.testing.configuration.ValidationSettings;
 
 import java.util.Map;

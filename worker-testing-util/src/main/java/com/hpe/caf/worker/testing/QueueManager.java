@@ -15,7 +15,16 @@
  */
 package com.hpe.caf.worker.testing;
 
+import java.io.Closeable;
+import java.io.IOException;
+import java.util.concurrent.BlockingQueue;
+import java.util.concurrent.LinkedBlockingQueue;
+import java.util.concurrent.TimeoutException;
+
+import org.apache.commons.lang3.StringUtils;
+
 import com.hpe.caf.api.CodecException;
+import com.hpe.caf.api.worker.QueueTaskMessage;
 import com.hpe.caf.api.worker.TaskMessage;
 import com.hpe.caf.util.rabbitmq.DefaultRabbitConsumer;
 import com.hpe.caf.util.rabbitmq.Event;
@@ -24,13 +33,6 @@ import com.hpe.caf.util.rabbitmq.RabbitUtil;
 import com.rabbitmq.client.Channel;
 import com.rabbitmq.client.Connection;
 import com.rabbitmq.client.MessageProperties;
-import org.apache.commons.lang3.StringUtils;
-
-import java.io.Closeable;
-import java.io.IOException;
-import java.util.concurrent.BlockingQueue;
-import java.util.concurrent.LinkedBlockingQueue;
-import java.util.concurrent.TimeoutException;
 
 /**
  * Created by ploch on 08/11/2015.
@@ -111,7 +113,22 @@ public class QueueManager implements Closeable
         }
     }
 
+    public void publish(QueueTaskMessage message) throws CodecException, IOException
+    {
+        byte[] data = workerServices.getCodec().serialise(message);
+        pubChan.basicPublish("", queueServices.getWorkerInputQueue(), MessageProperties.TEXT_PLAIN, data);
+        if (debugEnabled) {
+            debugPubChan.basicPublish("", debugInputQueueName, MessageProperties.TEXT_PLAIN, data);
+        }
+    }
+
     public void publishDebugOutput(TaskMessage message) throws CodecException, IOException
+    {
+        byte[] data = workerServices.getCodec().serialise(message);
+        debugConChan.basicPublish("", debugOutputQueueName, MessageProperties.TEXT_PLAIN, data);
+    }
+
+    public void publishDebugOutput(QueueTaskMessage message) throws CodecException, IOException
     {
         byte[] data = workerServices.getCodec().serialise(message);
         debugConChan.basicPublish("", debugOutputQueueName, MessageProperties.TEXT_PLAIN, data);

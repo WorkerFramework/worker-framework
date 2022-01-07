@@ -15,8 +15,6 @@
  */
 package com.hpe.caf.worker.testing.configuration;
 
-import com.hpe.caf.worker.testing.TestItem;
-import com.hpe.caf.worker.testing.TestItemStore;
 import org.testng.Assert;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;

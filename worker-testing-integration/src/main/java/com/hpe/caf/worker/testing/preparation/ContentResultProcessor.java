@@ -20,10 +20,6 @@ import com.hpe.caf.api.worker.DataStore;
 import com.hpe.caf.api.worker.DataStoreSource;
 import com.hpe.caf.api.worker.TaskMessage;
 import com.hpe.caf.util.ref.ReferencedData;
-import com.hpe.caf.worker.testing.ContentFileTestExpectation;
-import com.hpe.caf.worker.testing.FileTestInputData;
-import com.hpe.caf.worker.testing.TestConfiguration;
-import com.hpe.caf.worker.testing.TestItem;
 
 import java.io.InputStream;
 import java.nio.file.Path;

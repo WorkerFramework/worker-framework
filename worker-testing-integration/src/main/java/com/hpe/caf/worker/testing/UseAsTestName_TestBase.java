@@ -15,13 +15,13 @@
  */
 package com.hpe.caf.worker.testing;
 
-import org.testng.ITest;
-import org.testng.annotations.BeforeMethod;
+import static com.google.common.base.Preconditions.checkNotNull;
+import static java.lang.String.format;
 
 import java.lang.reflect.Method;
 
-import static com.google.common.base.Preconditions.checkNotNull;
-import static java.lang.String.format;
+import org.testng.ITest;
+import org.testng.annotations.BeforeMethod;
 
 /**
  * Created by oloughli on 22/07/2016.
