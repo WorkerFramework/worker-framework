@@ -17,6 +17,7 @@ package com.hpe.caf.worker.testing.preparation;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.hpe.caf.api.Codec;
+import com.hpe.caf.api.worker.QueueTaskMessage;
 import com.hpe.caf.api.worker.TaskMessage;
 import com.hpe.caf.worker.testing.*;
 import org.apache.commons.io.FilenameUtils;
@@ -58,6 +59,13 @@ public class PreparationResultProcessor<TWorkerTask, TWorkerResult, TInput exten
     @Override
     protected byte[] getOutputContent(TWorkerResult workerResult, TaskMessage message, TestItem<TInput, TExpected> testItem)
         throws Exception
+    {
+        return getSerializedTestItem(testItem, configuration);
+    }
+
+    @Override
+    protected byte[] getOutputContent(TWorkerResult tWorkerResult, QueueTaskMessage message, TestItem<TInput,TExpected> testItem)
+            throws Exception
     {
         return getSerializedTestItem(testItem, configuration);
     }

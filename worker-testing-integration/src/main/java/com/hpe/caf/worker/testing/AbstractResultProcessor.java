@@ -17,6 +17,7 @@ package com.hpe.caf.worker.testing;
 
 import com.hpe.caf.api.Codec;
 import com.hpe.caf.api.CodecException;
+import com.hpe.caf.api.worker.QueueTaskMessage;
 import com.hpe.caf.api.worker.TaskMessage;
 import com.hpe.caf.api.worker.TaskStatus;
 
@@ -68,6 +69,13 @@ public abstract class AbstractResultProcessor<TResult, TInput, TExpected> implem
         return processWorkerResult(testItem, resultMessage, workerResult);
     }
 
+    @Override
+    public boolean process(TestItem testItem, QueueTaskMessage resultMessage) throws Exception
+    {
+        TResult workerResult = deserializeMessage(resultMessage, resultClass);
+        return processWorkerResult(testItem, resultMessage, workerResult);
+    }
+
     /**
      * Deserialize message to the worker-under-test result using configured {@link Codec} implementation.
      *
@@ -85,6 +93,15 @@ public abstract class AbstractResultProcessor<TResult, TInput, TExpected> implem
         return workerResult;
     }
 
+    protected TResult deserializeMessage(QueueTaskMessage message, Class<TResult> resultClass) throws CodecException
+    {
+        if (message.getTaskStatus() != TaskStatus.RESULT_SUCCESS && message.getTaskStatus() != TaskStatus.RESULT_FAILURE) {
+            throw new AssertionError("Task status was failure.");
+        }
+        TResult workerResult = codec.deserialise((byte[])message.getTaskData(), resultClass);
+        return workerResult;
+    }
+
     /**
      * Processes deserialized worker-under-test result.
      *
@@ -95,8 +112,13 @@ public abstract class AbstractResultProcessor<TResult, TInput, TExpected> implem
      * @throws Exception the exception
      */
     protected abstract boolean processWorkerResult(TestItem<TInput, TExpected> testItem, TaskMessage message, TResult result) throws Exception;
+    protected abstract boolean processWorkerResult(TestItem<TInput, TExpected> testItem, QueueTaskMessage message, TResult result) throws Exception;
 
     public String getInputIdentifier(TaskMessage message)
+    {
+        return "";
+    }
+    public String getInputIdentifier(QueueTaskMessage message)
     {
         return "";
     }
