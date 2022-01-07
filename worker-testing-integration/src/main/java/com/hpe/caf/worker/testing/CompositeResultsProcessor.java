@@ -16,6 +16,7 @@
 package com.hpe.caf.worker.testing;
 
 import com.hpe.caf.api.CodecException;
+import com.hpe.caf.api.worker.QueueTaskMessage;
 import com.hpe.caf.api.worker.TaskMessage;
 
 import java.io.IOException;
@@ -34,6 +35,18 @@ public class CompositeResultsProcessor implements ResultProcessor
     }
 
     @Override
+    public boolean process(TestItem testItem, QueueTaskMessage resultMessage) throws Exception
+    {
+        boolean success = true;
+        for (ResultProcessor processor : processors) {
+            if (!processor.process(testItem, resultMessage)) {
+                success = false;
+            }
+        }
+        return success;
+    }
+
+    @Override
     public boolean process(TestItem testItem, TaskMessage resultMessage) throws Exception
     {
         boolean success = true;
@@ -46,6 +59,11 @@ public class CompositeResultsProcessor implements ResultProcessor
     }
 
     public String getInputIdentifier(TaskMessage message)
+    {
+        return "";
+    }
+
+    public String getInputIdentifier(QueueTaskMessage message)
     {
         return "";
     }

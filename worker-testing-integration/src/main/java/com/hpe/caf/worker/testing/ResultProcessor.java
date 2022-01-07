@@ -16,6 +16,7 @@
 package com.hpe.caf.worker.testing;
 
 import com.hpe.caf.api.CodecException;
+import com.hpe.caf.api.worker.QueueTaskMessage;
 import com.hpe.caf.api.worker.TaskMessage;
 
 import java.io.IOException;
@@ -37,6 +38,8 @@ public interface ResultProcessor
      * @throws IOException the io exception
      */
     boolean process(TestItem testItem, TaskMessage resultMessage) throws Exception;
+    boolean process(TestItem testItem, QueueTaskMessage resultMessage) throws Exception;
 
     String getInputIdentifier(TaskMessage message);
+    String getInputIdentifier(QueueTaskMessage message);
 }

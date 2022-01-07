@@ -16,6 +16,7 @@
 package com.hpe.caf.worker.testing;
 
 import com.hpe.caf.api.CodecException;
+import com.hpe.caf.api.worker.QueueTaskMessage;
 import com.hpe.caf.api.worker.TaskMessage;
 import com.hpe.caf.util.rabbitmq.DefaultRabbitConsumer;
 import com.hpe.caf.util.rabbitmq.Event;
@@ -109,6 +110,12 @@ public class QueueManager implements Closeable
         if (debugEnabled) {
             debugPubChan.basicPublish("", debugInputQueueName, MessageProperties.TEXT_PLAIN, data);
         }
+    }
+
+    public void publishDebugOutput(QueueTaskMessage message) throws CodecException, IOException
+    {
+        byte[] data = workerServices.getCodec().serialise(message);
+        debugConChan.basicPublish("", debugOutputQueueName, MessageProperties.TEXT_PLAIN, data);
     }
 
     public void publishDebugOutput(TaskMessage message) throws CodecException, IOException

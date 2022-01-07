@@ -15,6 +15,7 @@
  */
 package com.hpe.caf.worker.testing;
 
+import com.hpe.caf.api.worker.QueueTaskMessage;
 import com.hpe.caf.api.worker.TaskMessage;
 
 /**
@@ -22,5 +23,7 @@ import com.hpe.caf.api.worker.TaskMessage;
  */
 public interface ResultHandler
 {
+    void handleResult(QueueTaskMessage taskMessage);
+
     void handleResult(TaskMessage taskMessage);
 }
