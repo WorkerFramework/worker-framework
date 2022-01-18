@@ -23,7 +23,7 @@
 
     <groupId>com.github.workerframework</groupId>
     <artifactId>worker-framework-aggregator</artifactId>
-    <version>5.2.0-SNAPSHOT</version>
+    <version>6.0.0-SNAPSHOT</version>
     <packaging>pom</packaging>
 
     <name>Worker Framework</name>
@@ -75,8 +75,6 @@
         <module>worker-core</module>
         <module>worker-queue-rabbit</module>
         <module>worker-store-fs</module>
-        <module>worker-testing-util</module>
-        <module>worker-testing-integration</module>
         <module>worker-framework</module>
         <module>worker-store-s3</module>
         <module>worker-store-mem</module>
@@ -111,78 +109,68 @@
                 <groupId>com.github.workerframework</groupId>
                 <artifactId>standard-worker-container</artifactId>
                 <type>pom</type>
-                <version>5.2.0-SNAPSHOT</version>
+                <version>6.0.0-SNAPSHOT</version>
             </dependency>
 
             <dependency>
                 <groupId>com.github.workerframework</groupId>
                 <artifactId>util-rabbitmq</artifactId>
-                <version>5.2.0-SNAPSHOT</version>
+                <version>6.0.0-SNAPSHOT</version>
             </dependency>
             <dependency>
                 <groupId>com.github.workerframework</groupId>
                 <artifactId>util-store</artifactId>
-                <version>5.2.0-SNAPSHOT</version>
+                <version>6.0.0-SNAPSHOT</version>
             </dependency>
             <dependency>
                 <groupId>com.github.workerframework</groupId>
                 <artifactId>worker-api</artifactId>
-                <version>5.2.0-SNAPSHOT</version>
+                <version>6.0.0-SNAPSHOT</version>
             </dependency>
             <dependency>
                 <groupId>com.github.workerframework</groupId>
                 <artifactId>worker-caf</artifactId>
-                <version>5.2.0-SNAPSHOT</version>
+                <version>6.0.0-SNAPSHOT</version>
             </dependency>
             <dependency>
                 <groupId>com.github.workerframework</groupId>
                 <artifactId>worker-configs</artifactId>
-                <version>5.2.0-SNAPSHOT</version>
+                <version>6.0.0-SNAPSHOT</version>
             </dependency>
            <dependency>
                 <groupId>com.github.workerframework</groupId>
                 <artifactId>worker-core</artifactId>
-                <version>5.2.0-SNAPSHOT</version>
+                <version>6.0.0-SNAPSHOT</version>
             </dependency>
             <dependency>
                 <groupId>com.github.workerframework</groupId>
                 <artifactId>worker-default-configs</artifactId>
-                <version>5.2.0-SNAPSHOT</version>
+                <version>6.0.0-SNAPSHOT</version>
             </dependency>
             <dependency>
                 <groupId>com.github.workerframework</groupId>
                 <artifactId>worker-queue-rabbit</artifactId>
-                <version>5.2.0-SNAPSHOT</version>
+                <version>6.0.0-SNAPSHOT</version>
             </dependency>
             <dependency>
                 <groupId>com.github.workerframework</groupId>
                 <artifactId>worker-store-fs</artifactId>
-                <version>5.2.0-SNAPSHOT</version>
+                <version>6.0.0-SNAPSHOT</version>
             </dependency>
             <dependency>
                 <groupId>com.github.workerframework</groupId>
                 <artifactId>worker-store-http</artifactId>
-                <version>5.2.0-SNAPSHOT</version>
+                <version>6.0.0-SNAPSHOT</version>
             </dependency>
             <dependency>
                 <groupId>com.github.workerframework</groupId>
                 <artifactId>worker-store-mem</artifactId>
-                <version>5.2.0-SNAPSHOT</version>
-            </dependency>
-            <dependency>
-                <groupId>com.github.workerframework</groupId>
-                <artifactId>worker-testing-integration</artifactId>
-                <version>5.2.0-SNAPSHOT</version>
-            </dependency>
-            <dependency>
-                <groupId>com.github.workerframework</groupId>
-                <artifactId>worker-testing-util</artifactId>
-                <version>5.2.0-SNAPSHOT</version>
+                <version>6.0.0-SNAPSHOT</version>
             </dependency>
             <dependency>
                 <groupId>com.github.workerframework</groupId>
                 <artifactId>worker-tracking-report</artifactId>
-                <version>5.2.0-SNAPSHOT</version>
+                <version>6.0.0-SNAPSHOT</version>
             </dependency>
             <dependency>
                 <groupId>com.rabbitmq</groupId>
