@@ -32,7 +32,7 @@
     </parent>
 
     <properties>
-        <awsVersion>1.11.39</awsVersion>
+        <awsVersion>1.12.261</awsVersion>
     </properties>
 
     <dependencies>
