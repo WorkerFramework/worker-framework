@@ -60,28 +60,6 @@ team_members:
           icon: hpe-social-email
           url: mailto:himanshi.agrawal@microfocus.com
 
-    - name: Joseph Astin
-      email: joseph.astin@microfocus.com
-      avatar: /assets/img/joseph.jpg
-      social:
-        - title: GitHub
-          icon: hpe-social-github
-          url: https://github.com/JoeAstin
-        - title: Email
-          icon: hpe-social-email
-          url: mailto:joseph.astin@microfocus.com            
-     
-    - name: Kleyton O'Hare 
-      email: kleyton.ohare@microfocus.com
-      avatar: /assets/img/kleyton.jpg
-      social:
-        - title: GitHub
-          icon: hpe-social-github
-          url: https://github.com/kleyton-ohare
-        - title: Email
-          icon: hpe-social-email
-          url: mailto:kleyton.ohare@microfocus.com 
-
     - name: Kusuma Ghosh Dastidar
       email: vgkusuma@microfocus.com
       avatar: /assets/img/kusuma.jpg
@@ -137,4 +115,80 @@ team_members:
           icon: hpe-social-email
           url: mailto:xavier.lamourec@microfocus.com
 
+    - name: Frank McCarry
+      email: frank.mccarry@microfocus.com
+      avatar: /assets/img/frank.jpg
+      social:
+        - title: GitHub
+          icon: hpe-social-github
+          url: https://github.com/frankmccarry
+        - title: Email
+          icon: hpe-social-email
+          url: mailto:frank.mccarry@microfocus.com
+
+    - name: Tony Broadbent
+      email: tony.broadbent@microfocus.com
+      avatar: /assets/img/xavier.jpg
+      social:
+        - title: GitHub
+          icon: hpe-social-github
+          url: https://github.com/xbreizh
+        - title: Email
+          icon: hpe-social-email
+          url: mailto:tony.broadbent@microfocus.com
+
+    - name: Mark McCallion
+      email: mark.mccallion@microfocus.com
+      avatar: /assets/img/markmcc.jpg
+      social:
+        - title: GitHub
+          icon: hpe-social-github
+          url: https://github.com/markmccallion28
+        - title: Email
+          icon: hpe-social-email
+          url: mailto:mark.mccallion@microfocus.com
+
+    - name: Raghavendran Gopalakrishnan
+      email: raghavendran.gopalakrishnan@microfocus.com
+      avatar: /assets/img/raghavendran.jpg
+      social:
+        - title: GitHub
+          icon: hpe-social-github
+          url: https://github.com/raghavendran-gopalakrishnan
+        - title: Email
+          icon: hpe-social-email
+          url: mailto:raghavendran.gopalakrishnan@microfocus.com
+
+    - name: Jonathon McCoubrey
+      email: jonathan.mccoubrey@microfocus.com
+      avatar: /assets/img/jonathan.jpg
+      social:
+        - title: GitHub
+          icon: hpe-social-github
+          url: https://github.com/jonny-mccoubrey
+        - title: Email
+          icon: hpe-social-email
+          url: mailto:jonathan.mccoubrey@microfocus.com
+
+    - name: Vishal Kumar Barnwal
+      email: vishalkumar.barnwal@microfocus.com
+      avatar: /assets/img/vishal.jpg
+      social:
+        - title: GitHub
+          icon: hpe-social-github
+          url: https://github.com/vishalkumar-barnwal
+        - title: Email
+          icon: hpe-social-email
+          url: mailto:vishalkumar.barnwal@microfocus.com
+
+    - name: Caoimhe Lynch
+      email: caoimhe.lynch@microfocus.com
+      avatar: /assets/img/caoimhe.jpg
+      social:
+        - title: GitHub
+          icon: hpe-social-github
+          url: https://github.com/caoimhelynch
+        - title: Email
+          icon: hpe-social-email
+          url: mailto:caoimhe.lynch@microfocus.com
 ---
