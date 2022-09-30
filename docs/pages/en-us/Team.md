@@ -128,11 +128,11 @@ team_members:
 
     - name: Tony Broadbent
       email: tony.broadbent@microfocus.com
-      avatar: /assets/img/xavier.jpg
+      avatar: /assets/img/tony.jpg
       social:
         - title: GitHub
           icon: hpe-social-github
-          url: https://github.com/xbreizh
+          url: https://github.com/tbroadbent22
         - title: Email
           icon: hpe-social-email
           url: mailto:tony.broadbent@microfocus.com
