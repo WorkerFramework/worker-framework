@@ -443,6 +443,7 @@ code {
 */
 .flip-container .front,
 .flip-container .back {
+    height: 240px;
     background-color: #354247;
     box-shadow: none;
     border: 1px solid #192023;
