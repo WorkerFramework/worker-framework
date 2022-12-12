@@ -4,6 +4,7 @@
 ${version-number}
 
 #### New Features
+- US572084 - Jackson version upgraded to [2.13.4](https://github.com/FasterXML/jackson/wiki/Jackson-Release-2.13.4)
 
 #### Breaking Changes
 - 378627: Removes worker-testing-util and worker-testing-integration
