@@ -252,6 +252,10 @@ final class WorkerCore
 
         private boolean isTaskIntendedForThisWorker(final TaskMessage tm, final TaskInformation taskInformation)
         {
+            if (!Boolean.parseBoolean(
+                    System.getProperty("CAF_WORKER_ENABLE_DIVERTED_TASK_CHECKING", "true"))) {
+                return true;
+            }
             if (tm.getTo() != null && tm.getTo().equalsIgnoreCase(workerQueue.getInputQueue())) {
                 LOG.debug(
                     "Task {} (message id: {}) on input queue {} {}",
