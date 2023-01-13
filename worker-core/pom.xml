@@ -107,6 +107,7 @@
         <dependency>
             <groupId>com.microfocus.apollo</groupId>
             <artifactId>worker-message-prioritization</artifactId>
+            <scope>runtime</scope>
         </dependency>
         <dependency>
             <groupId>ch.qos.logback</groupId>
