@@ -25,6 +25,7 @@ import com.hpe.caf.naming.ServicePath;
 import com.hpe.caf.util.rabbitmq.RabbitHeaders;
 import com.hpe.caf.api.worker.QueueTaskMessage;
 
+import io.dropwizard.util.Strings;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -48,6 +49,9 @@ final class WorkerCore
     private final TaskCallback callback;
     private static final Logger LOG = LoggerFactory.getLogger(WorkerCore.class);
     private boolean isStarted;
+    private static final boolean isDivertedTaskCheckingEnabled = Boolean.parseBoolean(
+           System.getenv("CAF_WORKER_ENABLE_DIVERTED_TASK_CHECKING") == null ? 
+                "True" : System.getenv("CAF_WORKER_ENABLE_DIVERTED_TASK_CHECKING"));
 
     public WorkerCore(final Codec codec, final WorkerThreadPool pool, final ManagedWorkerQueue queue, final MessagePriorityManager priorityManager, final WorkerFactory factory, final ServicePath path, final HealthCheckRegistry healthCheckRegistry, final TransientHealthCheck transientHealthCheck)
     {
@@ -252,6 +256,16 @@ final class WorkerCore
 
         private boolean isTaskIntendedForThisWorker(final TaskMessage tm, final TaskInformation taskInformation)
         {
+            if (!isDivertedTaskCheckingEnabled) {
+                LOG.debug(
+                    "Diverted task checking is disabled, so assuming that Task {} (message id: {}) on input queue {} "
+                            + "is intended for this worker",
+                    tm.getTaskId(),
+                    taskInformation.getInboundMessageId(),
+                    workerQueue.getInputQueue());
+                
+                return true;
+            }
             if (tm.getTo() != null && tm.getTo().equalsIgnoreCase(workerQueue.getInputQueue())) {
                 LOG.debug(
                     "Task {} (message id: {}) on input queue {} {}",

@@ -76,6 +76,9 @@
 
  The following environment variables can optionally be set:
  - caf.appname: manual service name to be set if not in a Marathon environment
+ - CAF_WORKER_ENABLE_DIVERTED_TASK_CHECKING: A boolean that indicates if the `to` field of a TaskMessage should be 
+compared to the input queue of the worker, redirecting the message to the queue in the `to` field if it does not match 
+the current input queue. Default is True.
 
 ### Starting the application
 
