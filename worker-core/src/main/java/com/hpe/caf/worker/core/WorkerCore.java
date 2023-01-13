@@ -25,7 +25,7 @@ import com.hpe.caf.naming.ServicePath;
 import com.hpe.caf.util.rabbitmq.RabbitHeaders;
 import com.hpe.caf.api.worker.QueueTaskMessage;
 
-import jdk.internal.joptsimple.internal.Strings;
+import io.dropwizard.util.Strings;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
