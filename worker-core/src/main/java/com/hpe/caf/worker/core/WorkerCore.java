@@ -254,6 +254,14 @@ final class WorkerCore
         {
             if (!Boolean.parseBoolean(
                     System.getProperty("CAF_WORKER_ENABLE_DIVERTED_TASK_CHECKING", "true"))) {
+
+                LOG.debug(
+                    "Diverted task checking is disabled, so assuming that Task {} (message id: {}) on input queue {} "
+                            + "is intended for this worker",
+                    tm.getTaskId(),
+                    taskInformation.getInboundMessageId(),
+                    workerQueue.getInputQueue());                
+                
                 return true;
             }
             if (tm.getTo() != null && tm.getTo().equalsIgnoreCase(workerQueue.getInputQueue())) {
