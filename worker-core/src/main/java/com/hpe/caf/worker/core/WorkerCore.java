@@ -48,6 +48,8 @@ final class WorkerCore
     private final TaskCallback callback;
     private static final Logger LOG = LoggerFactory.getLogger(WorkerCore.class);
     private boolean isStarted;
+    private static final boolean isDivertedTaskCheckingEnabled = Boolean.parseBoolean(
+        System.getProperty("CAF_WORKER_ENABLE_DIVERTED_TASK_CHECKING", "true"));
 
     public WorkerCore(final Codec codec, final WorkerThreadPool pool, final ManagedWorkerQueue queue, final MessagePriorityManager priorityManager, final WorkerFactory factory, final ServicePath path, final HealthCheckRegistry healthCheckRegistry, final TransientHealthCheck transientHealthCheck)
     {
@@ -252,15 +254,13 @@ final class WorkerCore
 
         private boolean isTaskIntendedForThisWorker(final TaskMessage tm, final TaskInformation taskInformation)
         {
-            if (!Boolean.parseBoolean(
-                    System.getProperty("CAF_WORKER_ENABLE_DIVERTED_TASK_CHECKING", "true"))) {
-
+            if (!isDivertedTaskCheckingEnabled) {
                 LOG.debug(
                     "Diverted task checking is disabled, so assuming that Task {} (message id: {}) on input queue {} "
                             + "is intended for this worker",
                     tm.getTaskId(),
                     taskInformation.getInboundMessageId(),
-                    workerQueue.getInputQueue());                
+                    workerQueue.getInputQueue());
                 
                 return true;
             }
