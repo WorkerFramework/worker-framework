@@ -50,7 +50,7 @@ final class WorkerCore
     private static final Logger LOG = LoggerFactory.getLogger(WorkerCore.class);
     private boolean isStarted;
     private static final boolean isDivertedTaskCheckingEnabled = Boolean.parseBoolean(
-            Strings.isNullOrEmpty(System.getenv("CAF_WORKER_ENABLE_DIVERTED_TASK_CHECKING")) ? 
+           System.getenv("CAF_WORKER_ENABLE_DIVERTED_TASK_CHECKING") == null ? 
                 "True" : System.getenv("CAF_WORKER_ENABLE_DIVERTED_TASK_CHECKING"));
 
     public WorkerCore(final Codec codec, final WorkerThreadPool pool, final ManagedWorkerQueue queue, final MessagePriorityManager priorityManager, final WorkerFactory factory, final ServicePath path, final HealthCheckRegistry healthCheckRegistry, final TransientHealthCheck transientHealthCheck)
