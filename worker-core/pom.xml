@@ -105,6 +105,10 @@
             <artifactId>worker-tracking-report</artifactId>
         </dependency>
         <dependency>
+            <groupId>com.microfocus.apollo</groupId>
+            <artifactId>worker-message-prioritization</artifactId>
+        </dependency>
+        <dependency>
             <groupId>ch.qos.logback</groupId>
             <artifactId>logback-classic</artifactId>
         </dependency>
