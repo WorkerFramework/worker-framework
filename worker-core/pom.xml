@@ -106,7 +106,7 @@
         </dependency>
         <dependency>
             <groupId>com.github.workerframework</groupId>
-            <artifactId>worker-message-prioritization</artifactId>
+            <artifactId>worker-message-prioritization-rerouting</artifactId>
             <scope>runtime</scope>
         </dependency>
         <dependency>
