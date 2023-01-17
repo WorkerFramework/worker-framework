@@ -105,7 +105,7 @@
             <artifactId>worker-tracking-report</artifactId>
         </dependency>
         <dependency>
-            <groupId>com.microfocus.apollo</groupId>
+            <groupId>com.github.workerframework</groupId>
             <artifactId>worker-message-prioritization</artifactId>
             <scope>runtime</scope>
         </dependency>
