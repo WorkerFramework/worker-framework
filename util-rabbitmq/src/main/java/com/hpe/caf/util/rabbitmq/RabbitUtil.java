@@ -58,14 +58,7 @@ public final class RabbitUtil
     public static Connection createRabbitConnection(String host, int port, String user, String pass)
         throws IOException, TimeoutException
     {
-        final RabbitConfiguration rc = new RabbitConfiguration();
-        rc.setRabbitHost(host);
-        rc.setRabbitPort(port);
-        rc.setRabbitUser(user);
-        rc.setRabbitPassword(pass);
-        rc.setMaxBackoffInterval(30);
-        rc.setBackoffInterval(1);
-        rc.setMaxAttempts(20);
+        final RabbitConfiguration rc = createRabbitConfiguration(host, port, user, pass);
         return createRabbitConnection(rc);
     }
 
@@ -84,14 +77,7 @@ public final class RabbitUtil
     public static Connection createRabbitConnection(String host, int port, String user, String pass, ExceptionHandler exceptionHandler)
             throws IOException, TimeoutException
     {
-        final RabbitConfiguration rc = new RabbitConfiguration();
-        rc.setRabbitHost(host);
-        rc.setRabbitPort(port);
-        rc.setRabbitUser(user);
-        rc.setRabbitPassword(pass);
-        rc.setMaxBackoffInterval(30);
-        rc.setBackoffInterval(1);
-        rc.setMaxAttempts(20);
+        final RabbitConfiguration rc = createRabbitConfiguration(host, port, user, pass);
         return createRabbitConnection(rc, exceptionHandler);
     }
 
@@ -216,5 +202,18 @@ public final class RabbitUtil
             LOG.warn("IO Exception encountered during queueDeclare. Will try do declare passively.", e);
             channel.queueDeclarePassive(queueName);
         }
+    }
+
+    private static RabbitConfiguration createRabbitConfiguration(final String host, final int port, final String user, final String pass)
+    {
+        final RabbitConfiguration rc = new RabbitConfiguration();
+        rc.setRabbitHost(host);
+        rc.setRabbitPort(port);
+        rc.setRabbitUser(user);
+        rc.setRabbitPassword(pass);
+        rc.setMaxBackoffInterval(30);
+        rc.setBackoffInterval(1);
+        rc.setMaxAttempts(20);
+        return rc;
     }
 }
