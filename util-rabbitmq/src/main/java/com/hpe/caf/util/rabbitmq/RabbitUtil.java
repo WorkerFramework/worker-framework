@@ -50,7 +50,7 @@ public final class RabbitUtil
      * @param host the host or IP running RabbitMQ
      * @param port the port that the RabbitMQ server is exposed on
      * @param user the username to use when authenticating with RabbitMQ
-     * @param pass the password to use when autenticating with RabbitMQ
+     * @param pass the password to use when authenticating with RabbitMQ
      * @return a valid connection to RabbitMQ
      * @throws IOException if the connection fails to establish
      * @throws TimeoutException if the connection fails to establish
@@ -67,6 +67,32 @@ public final class RabbitUtil
         rc.setBackoffInterval(1);
         rc.setMaxAttempts(20);
         return createRabbitConnection(rc);
+    }
+
+    /**
+     * Create a new RabbitMQ connection with a default configuration.
+     *
+     * @param host the host or IP running RabbitMQ
+     * @param port the port that the RabbitMQ server is exposed on
+     * @param user the username to use when authenticating with RabbitMQ
+     * @param pass the password to use when authenticating with RabbitMQ
+     * @param exceptionHandler the exceptionHandler to use for handling exceptions with RabbitMQ
+     * @return a valid connection to RabbitMQ
+     * @throws IOException if the connection fails to establish
+     * @throws TimeoutException if the connection fails to establish
+     */
+    public static Connection createRabbitConnection(String host, int port, String user, String pass, ExceptionHandler exceptionHandler)
+            throws IOException, TimeoutException
+    {
+        final RabbitConfiguration rc = new RabbitConfiguration();
+        rc.setRabbitHost(host);
+        rc.setRabbitPort(port);
+        rc.setRabbitUser(user);
+        rc.setRabbitPassword(pass);
+        rc.setMaxBackoffInterval(30);
+        rc.setBackoffInterval(1);
+        rc.setMaxAttempts(20);
+        return createRabbitConnection(rc, exceptionHandler);
     }
 
     /**
