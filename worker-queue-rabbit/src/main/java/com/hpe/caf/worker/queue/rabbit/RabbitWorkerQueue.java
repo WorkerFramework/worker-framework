@@ -342,6 +342,8 @@ public final class RabbitWorkerQueue implements ManagedWorkerQueue
     {
         if (!declaredQueues.contains(queueName)) {
 
+            LOG.error("RORY declaring worker queue with name " + queueName + " with a max priority of " + maxPriority + ". " +
+                    "This maxPriority setting came from the config with inputQueue=" + config.getInputQueue() + "" + config.getRabbitConfiguration());
             RabbitUtil.declareWorkerQueue(channel, queueName, maxPriority);
         }
     }
