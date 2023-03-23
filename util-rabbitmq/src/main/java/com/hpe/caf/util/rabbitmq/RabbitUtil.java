@@ -50,7 +50,7 @@ public final class RabbitUtil
      * @param host the host or IP running RabbitMQ
      * @param port the port that the RabbitMQ server is exposed on
      * @param user the username to use when authenticating with RabbitMQ
-     * @param pass the password to use when authenticating with RabbitMQ
+     * @param pass the password to use when autenticating with RabbitMQ
      * @return a valid connection to RabbitMQ
      * @throws IOException if the connection fails to establish
      * @throws TimeoutException if the connection fails to establish
@@ -58,31 +58,15 @@ public final class RabbitUtil
     public static Connection createRabbitConnection(String host, int port, String user, String pass)
         throws IOException, TimeoutException
     {
-        final RabbitConfiguration rc = createRabbitConfiguration(host, port, user, pass);
+        final RabbitConfiguration rc = new RabbitConfiguration();
+        rc.setRabbitHost(host);
+        rc.setRabbitPort(port);
+        rc.setRabbitUser(user);
+        rc.setRabbitPassword(pass);
+        rc.setMaxBackoffInterval(30);
+        rc.setBackoffInterval(1);
+        rc.setMaxAttempts(20);
         return createRabbitConnection(rc);
-    }
-
-    /**
-     * Create a new RabbitMQ connection with a default configuration.
-     *
-     * @param host the host or IP running RabbitMQ
-     * @param port the port that the RabbitMQ server is exposed on
-     * @param user the username to use when authenticating with RabbitMQ
-     * @param pass the password to use when authenticating with RabbitMQ
-     * @param exceptionHandler the exceptionHandler to use for handling exceptions with RabbitMQ
-     * @return a valid connection to RabbitMQ
-     * @throws IOException if the connection fails to establish
-     * @throws TimeoutException if the connection fails to establish
-     */
-    public static Connection createRabbitConnection(
-            final String host,
-            final int port,
-            final String user,
-            final String pass,
-            final ExceptionHandler exceptionHandler) throws IOException, TimeoutException
-    {
-        final RabbitConfiguration rc = createRabbitConfiguration(host, port, user, pass);
-        return createRabbitConnection(rc, exceptionHandler);
     }
 
     /**
@@ -206,18 +190,5 @@ public final class RabbitUtil
             LOG.warn("IO Exception encountered during queueDeclare. Will try do declare passively.", e);
             channel.queueDeclarePassive(queueName);
         }
-    }
-
-    private static RabbitConfiguration createRabbitConfiguration(final String host, final int port, final String user, final String pass)
-    {
-        final RabbitConfiguration rc = new RabbitConfiguration();
-        rc.setRabbitHost(host);
-        rc.setRabbitPort(port);
-        rc.setRabbitUser(user);
-        rc.setRabbitPassword(pass);
-        rc.setMaxBackoffInterval(30);
-        rc.setBackoffInterval(1);
-        rc.setMaxAttempts(20);
-        return rc;
     }
 }
