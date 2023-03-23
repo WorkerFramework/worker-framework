@@ -74,8 +74,12 @@ public final class RabbitUtil
      * @throws IOException if the connection fails to establish
      * @throws TimeoutException if the connection fails to establish
      */
-    public static Connection createRabbitConnection(String host, int port, String user, String pass, ExceptionHandler exceptionHandler)
-            throws IOException, TimeoutException
+    public static Connection createRabbitConnection(
+            final String host,
+            final int port,
+            final String user,
+            final String pass,
+            final ExceptionHandler exceptionHandler) throws IOException, TimeoutException
     {
         final RabbitConfiguration rc = createRabbitConfiguration(host, port, user, pass);
         return createRabbitConnection(rc, exceptionHandler);
