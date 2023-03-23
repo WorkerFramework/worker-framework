@@ -50,7 +50,7 @@ public final class RabbitUtil
      * @param host the host or IP running RabbitMQ
      * @param port the port that the RabbitMQ server is exposed on
      * @param user the username to use when authenticating with RabbitMQ
-     * @param pass the password to use when autenticating with RabbitMQ
+     * @param pass the password to use when authenticating with RabbitMQ
      * @return a valid connection to RabbitMQ
      * @throws IOException if the connection fails to establish
      * @throws TimeoutException if the connection fails to establish
