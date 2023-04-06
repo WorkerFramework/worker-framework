@@ -23,7 +23,7 @@
 
     <groupId>com.github.workerframework</groupId>
     <artifactId>worker-framework-aggregator</artifactId>
-    <version>6.0.0-SNAPSHOT</version>
+    <version>6.0.0-1107</version>
     <packaging>pom</packaging>
 
     <name>Worker Framework</name>
@@ -110,68 +110,68 @@
                 <groupId>com.github.workerframework</groupId>
                 <artifactId>standard-worker-container</artifactId>
                 <type>pom</type>
-                <version>6.0.0-SNAPSHOT</version>
+                <version>6.0.0-1107</version>
             </dependency>
 
             <dependency>
                 <groupId>com.github.workerframework</groupId>
                 <artifactId>util-rabbitmq</artifactId>
-                <version>6.0.0-SNAPSHOT</version>
+                <version>6.0.0-1107</version>
             </dependency>
             <dependency>
                 <groupId>com.github.workerframework</groupId>
                 <artifactId>util-store</artifactId>
-                <version>6.0.0-SNAPSHOT</version>
+                <version>6.0.0-1107</version>
             </dependency>
             <dependency>
                 <groupId>com.github.workerframework</groupId>
                 <artifactId>worker-api</artifactId>
-                <version>6.0.0-SNAPSHOT</version>
+                <version>6.0.0-1107</version>
             </dependency>
             <dependency>
                 <groupId>com.github.workerframework</groupId>
                 <artifactId>worker-caf</artifactId>
-                <version>6.0.0-SNAPSHOT</version>
+                <version>6.0.0-1107</version>
             </dependency>
             <dependency>
                 <groupId>com.github.workerframework</groupId>
                 <artifactId>worker-configs</artifactId>
-                <version>6.0.0-SNAPSHOT</version>
+                <version>6.0.0-1107</version>
             </dependency>
            <dependency>
                 <groupId>com.github.workerframework</groupId>
                 <artifactId>worker-core</artifactId>
-                <version>6.0.0-SNAPSHOT</version>
+                <version>6.0.0-1107</version>
             </dependency>
             <dependency>
                 <groupId>com.github.workerframework</groupId>
                 <artifactId>worker-default-configs</artifactId>
-                <version>6.0.0-SNAPSHOT</version>
+                <version>6.0.0-1107</version>
             </dependency>
             <dependency>
                 <groupId>com.github.workerframework</groupId>
                 <artifactId>worker-queue-rabbit</artifactId>
-                <version>6.0.0-SNAPSHOT</version>
+                <version>6.0.0-1107</version>
             </dependency>
             <dependency>
                 <groupId>com.github.workerframework</groupId>
                 <artifactId>worker-store-fs</artifactId>
-                <version>6.0.0-SNAPSHOT</version>
+                <version>6.0.0-1107</version>
             </dependency>
             <dependency>
                 <groupId>com.github.workerframework</groupId>
                 <artifactId>worker-store-http</artifactId>
-                <version>6.0.0-SNAPSHOT</version>
+                <version>6.0.0-1107</version>
             </dependency>
             <dependency>
                 <groupId>com.github.workerframework</groupId>
                 <artifactId>worker-store-mem</artifactId>
-                <version>6.0.0-SNAPSHOT</version>
+                <version>6.0.0-1107</version>
             </dependency>
             <dependency>
                 <groupId>com.github.workerframework</groupId>
                 <artifactId>worker-tracking-report</artifactId>
-                <version>6.0.0-SNAPSHOT</version>
+                <version>6.0.0-1107</version>
             </dependency>          
             <dependency>
                 <groupId>com.rabbitmq</groupId>
