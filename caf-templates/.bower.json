@@ -1,8 +1,15 @@
 {
   "name": "caf-templates",
   "version": "2.0.6",
-  "_source": "art://caf-templates/caf-templates",
-  "_target": "^2.0.5",
-  "_release": "2.0.6",
-  "_originalSource": "caf-templates"
+  "_cacheHeaders": {
+    "ETag": "11983b95228fd1f490f2e5e10244f05e2b40fbd6",
+    "Last-Modified": "Mon, 03 Oct 2022 12:12:27 GMT",
+    "Content-Length": "3797414",
+    "Content-Type": "application/x-gzip",
+    "Content-Disposition": "attachment; filename=\"caf-templates-2.1.0.tgz\""
+  },
+  "_release": "e-tag:11983b9522",
+  "_source": "https://svsartifactory.swinfra.net:443/artifactory/api/npm/company-central-npm/caf-templates-2.1.0.tgz",
+  "_target": "*",
+  "_originalSource": "https://svsartifactory.swinfra.net:443/artifactory/api/npm/company-central-npm/caf-templates-2.1.0.tgz"
 }

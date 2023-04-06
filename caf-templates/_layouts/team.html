@@ -9,7 +9,7 @@ layout: default
 
     {% for team_member in page.team_members %}
 
-    <flippable-card flip-on="hover" flip-style="horizontal" class="m-md ng-isolate-scope">
+    <flippable-card flip-on="hover" flip-style="horizontal">
         <div class="flip-container">
             <div class="flipper">
                 <div class="front">
@@ -22,7 +22,7 @@ layout: default
                     </div>
                 </div>
                 <div class="back">
-                    <div class="business-card ng-scope">
+                    <div class="business-card">
                         <ul class="social">
                             {% for social_link in team_member.social %}
                             <li class="social-link" open-link="{{ social_link.url }}">
