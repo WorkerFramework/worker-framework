@@ -343,6 +343,7 @@ public final class RabbitWorkerQueue implements ManagedWorkerQueue
         if (!declaredQueues.contains(queueName)) {
 
             RabbitUtil.declareWorkerQueue(channel, queueName, maxPriority);
+            declaredQueues.add(queueName);
         }
     }
 
