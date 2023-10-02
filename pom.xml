@@ -80,6 +80,7 @@
         <module>worker-store-s3</module>
         <module>worker-store-mem</module>
         <module>worker-store-http</module>
+        <module>worker-test</module>
         <module>worker-tracking-report</module>
     </modules>
 
@@ -197,5 +198,17 @@
         <developerConnection>scm:git:https://github.com/WorkerFramework/worker-framework.git</developerConnection>
         <url>https://github.com/WorkerFramework/worker-framework</url>
     </scm>
+
+    <build>
+        <pluginManagement>
+            <plugins>
+                <plugin>
+                    <groupId>io.fabric8</groupId>
+                    <artifactId>docker-maven-plugin</artifactId>
+                    <version>0.43.4</version>
+                </plugin>
+            </plugins>
+        </pluginManagement>
+    </build>
 
 </project>

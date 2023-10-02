@@ -1,0 +1,281 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+
+    Copyright 2015-2023 Open Text.
+
+    Licensed under the Apache License, Version 2.0 (the "License");
+    you may not use this file except in compliance with the License.
+    You may obtain a copy of the License at
+
+         http://www.apache.org/licenses/LICENSE-2.0
+
+    Unless required by applicable law or agreed to in writing, software
+    distributed under the License is distributed on an "AS IS" BASIS,
+    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+    See the License for the specific language governing permissions and
+    limitations under the License.
+
+-->
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+
+    <parent>
+        <groupId>com.github.workerframework</groupId>
+        <artifactId>worker-framework-aggregator</artifactId>
+        <version>6.1.0-SNAPSHOT</version>
+    </parent>
+
+    <artifactId>worker-test</artifactId>
+
+    <properties>
+        <targetDockerRegistryPath>devimages</targetDockerRegistryPath>
+    </properties>
+
+    <dependencies>
+        <dependency>
+            <groupId>com.github.cafapi</groupId>
+            <artifactId>caf-api</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>com.github.workerframework</groupId>
+            <artifactId>worker-api</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>jakarta.validation</groupId>
+            <artifactId>jakarta.validation-api</artifactId>
+        </dependency>
+
+        <!-- Runtime dependencies -->
+        <dependency>
+            <groupId>com.github.workerframework</groupId>
+            <artifactId>standard-worker-container</artifactId>
+            <type>pom</type>
+            <scope>runtime</scope>
+        </dependency>
+    </dependencies>
+
+    <build>
+        <plugins>
+            <!-- Unpack the base worker configuration files -->
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-dependency-plugin</artifactId>
+                <executions>
+                    <execution>
+                        <id>unpack-workerframework-config-files</id>
+                        <phase>generate-resources</phase>
+                        <goals>
+                            <goal>unpack</goal>
+                        </goals>
+                        <configuration>
+                            <artifactItems>
+                                <artifactItem>
+                                    <groupId>com.github.workerframework</groupId>
+                                    <artifactId>worker-default-configs</artifactId>
+                                    <outputDirectory>
+                                        ${project.build.directory}/generated-sources/workerframework-config/com/github/workerframework/testworker/config
+                                    </outputDirectory>
+                                    <excludes>META-INF/**</excludes>
+                                </artifactItem>
+                            </artifactItems>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+
+            <!-- Include the base worker configuration files in the jar -->
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-resources-plugin</artifactId>
+                <executions>
+                    <execution>
+                        <id>include-workerframework-config-files</id>
+                        <phase>process-resources</phase>
+                        <goals>
+                            <goal>copy-resources</goal>
+                        </goals>
+                        <configuration>
+                            <resources>
+                                <resource>
+                                    <directory>${project.build.directory}/generated-sources/workerframework-config</directory>
+                                </resource>
+                            </resources>
+                            <outputDirectory>${project.build.outputDirectory}</outputDirectory>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+
+            <!-- Build and run the worker -->
+            <plugin>
+                <groupId>io.fabric8</groupId>
+                <artifactId>docker-maven-plugin</artifactId>
+                <executions>
+                    <execution>
+                        <id>build-docker-image</id>
+                        <phase>package</phase>
+                        <goals>
+                            <goal>build</goal>
+                        </goals>
+                    </execution>
+                    <execution>
+                        <id>start-docker-images</id>
+                        <phase>pre-integration-test</phase>
+                        <goals>
+                            <goal>start</goal>
+                        </goals>
+                    </execution>
+                    <execution>
+                        <id>stop-docker-images</id>
+                        <phase>post-integration-test</phase>
+                        <goals>
+                            <goal>stop</goal>
+                        </goals>
+                    </execution>
+                </executions>
+                <configuration>
+                    <containerNamePattern>%a-%t</containerNamePattern>
+                    <images>
+                        <image>
+                            <alias>webdav</alias>
+                            <name>${dockerHubPublic}/cloudesire/webdav</name>
+                            <run>
+                                <ports>
+                                    <port>${webdav.port}:8080</port>
+                                </ports>
+                                <env>
+                                    <APACHE_PORT>8080</APACHE_PORT>
+                                </env>
+                                <volumes>
+                                    <bind>
+                                        <volume>/srv/common/webdav</volume>
+                                    </bind>
+                                </volumes>
+                                <wait>
+                                    <log>WebDAV Server startup complete</log>
+                                    <http>
+                                        <url>http://${docker.host.address}:${webdav.port}</url>
+                                    </http>
+                                    <time>300000</time>
+                                    <shutdown>500</shutdown>
+                                </wait>
+                                <log>
+                                    <enabled>true</enabled>
+                                </log>
+                            </run>
+                        </image>
+                        <image>
+                            <alias>rabbitmq</alias>
+                            <name>${dockerHubPublic}/library/rabbitmq:3-management</name>
+                            <run>
+                                <ports>
+                                    <port>${rabbitmq.ctrl.port}:15672</port>
+                                </ports>
+                                <wait>
+                                    <log>Server startup complete</log>
+                                    <http>
+                                        <url>http://${docker.host.address}:${rabbitmq.ctrl.port}</url>
+                                    </http>
+                                    <time>300000</time>
+                                    <shutdown>500</shutdown>
+                                </wait>
+                                <log>
+                                    <enabled>true</enabled>
+                                </log>
+                            </run>
+                        </image>
+                        <image>
+                            <alias>worker-test</alias>
+                            <name>${targetDockerRegistryPath}/worker-test:${project.version}</name>
+                            <build>
+                                <from>${dockerHubPublic}/cafapi/opensuse-jre17:1</from>
+                                <cmd>
+                                    <exec>
+                                        <args>/maven/worker.sh</args>
+                                    </exec>
+                                </cmd>
+                                <healthCheck>
+                                    <cmd>curl -f http://localhost:8081/healthcheck || exit 1</cmd>
+                                </healthCheck>
+                                <assembly>
+                                    <mode>tar</mode>
+                                    <inline>
+                                        <fileSets>
+                                            <fileSet>
+                                                <directory>src/main/config</directory>
+                                                <fileMode>0755</fileMode>
+                                                <includes>
+                                                    <include>worker.sh</include>
+                                                </includes>
+                                                <lineEnding>unix</lineEnding>
+                                                <outputDirectory>.</outputDirectory>
+                                            </fileSet>
+                                            <fileSet>
+                                                <directory>src/main/config</directory>
+                                                <includes>
+                                                    <include>worker.yaml</include>
+                                                </includes>
+                                                <lineEnding>unix</lineEnding>
+                                                <outputDirectory>.</outputDirectory>
+                                            </fileSet>
+                                        </fileSets>
+                                        <dependencySets>
+                                            <dependencySet>
+                                                <scope>runtime</scope>
+                                            </dependencySet>
+                                        </dependencySets>
+                                    </inline>
+                                </assembly>
+                            </build>
+                            <run>
+                                <ports>
+                                    <port>${worker.adminport}:8081</port>
+                                    <port>${worker.debugport}:5005</port>
+                                </ports>
+                                <env>
+                                    <CAF_WORKER_DATASTORE_PATH>/srv/common/webdav</CAF_WORKER_DATASTORE_PATH>
+                                    <CAF_WORKER_JAVA_OPTS>
+                                        -agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=*:5005
+                                    </CAF_WORKER_JAVA_OPTS>
+                                </env>
+                                <volumes>
+                                    <from>
+                                        <image>webdav</image>
+                                    </from>
+                                </volumes>
+                                <links>
+                                    <link>rabbitmq</link>
+                                </links>
+                                <log>
+                                    <enabled>true</enabled>
+                                </log>
+                                <wait>
+                                    <http>
+                                        <url>http://${docker.host.address}:${worker.adminport}</url>
+                                    </http>
+                                    <time>120000</time>
+                                    <shutdown>500</shutdown>
+                                </wait>
+                            </run>
+                        </image>
+                    </images>
+                </configuration>
+            </plugin>
+        </plugins>
+    </build>
+
+    <profiles>
+        <profile>
+            <id>use-default-fixed-ports</id>
+            <properties>
+                <rabbitmq.ctrl.port>15672</rabbitmq.ctrl.port>
+                <webdav.port>9090</webdav.port>
+                <worker.adminport>8081</worker.adminport>
+                <worker.debugport>5005</worker.debugport>
+            </properties>
+        </profile>
+    </profiles>
+
+</project>
