@@ -87,6 +87,7 @@ final class WorkerExecutor
      * @param codec the Codec that can be used to serialise/deserialise data
      * @param jobStatus the job status as returned by the status check URL
      */
+    @SuppressWarnings("deprecation")
     public void handleDivertedTask(final TaskMessage tm, final TaskInformation taskInformation, final boolean poison,
                                    final Map<String, Object> headers, final Codec codec, final JobStatus jobStatus)
         throws TaskRejectedException
@@ -96,8 +97,8 @@ final class WorkerExecutor
             processDivertedTaskAction(tm, taskInformation, poison, headers, codec, jobStatus);
         }
         //Check whether this worker application can evaluate messages for forwarding.
-        else if (factory instanceof TaskMessageForwardingEvaluator) {
-            ((TaskMessageForwardingEvaluator) factory).determineForwardingAction(tm, taskInformation, headers, callback);
+        else if (factory instanceof TaskMessageForwardingEvaluator forwardingEvaluator) {
+            forwardingEvaluator.determineForwardingAction(tm, taskInformation, headers, callback);
         //Else messages are forwarded by default.
         } else {
             callback.forward(taskInformation, tm.getTo(), tm, headers);

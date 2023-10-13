@@ -16,8 +16,8 @@
 package com.github.workerframework.testworker;
 
 import com.hpe.caf.api.worker.WorkerConfiguration;
-import javax.validation.constraints.Max;
-import javax.validation.constraints.Min;
+import jakarta.validation.constraints.Max;
+import jakarta.validation.constraints.Min;
 
 final class TestWorkerConfiguration extends WorkerConfiguration
 {

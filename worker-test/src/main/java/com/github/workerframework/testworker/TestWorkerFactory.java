@@ -26,6 +26,7 @@ import com.hpe.caf.api.worker.Worker;
 import com.hpe.caf.api.worker.WorkerException;
 import com.hpe.caf.api.worker.WorkerFactory;
 import com.hpe.caf.api.worker.WorkerTaskData;
+import jakarta.annotation.Nonnull;
 
 final class TestWorkerFactory implements WorkerFactory
 {
@@ -40,6 +41,7 @@ final class TestWorkerFactory implements WorkerFactory
         this.config = getConfiguration(configSource);
     }
 
+    @Nonnull
     private static TestWorkerConfiguration getConfiguration(final ConfigurationSource configSource)
         throws WorkerException
     {
@@ -56,6 +58,7 @@ final class TestWorkerFactory implements WorkerFactory
         return config.getOutputQueue();
     }
 
+    @Nonnull
     @Override
     public Worker getWorker(final WorkerTaskData workerTask) throws TaskRejectedException, InvalidTaskException
     {
@@ -68,6 +71,7 @@ final class TestWorkerFactory implements WorkerFactory
         return config.getThreads();
     }
 
+    @Nonnull
     @Override
     public HealthResult healthCheck()
     {
