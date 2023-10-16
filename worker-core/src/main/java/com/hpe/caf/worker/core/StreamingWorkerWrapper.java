@@ -55,9 +55,8 @@ class StreamingWorkerWrapper implements Runnable
     {
         try {
             if (workerTask.isPoison()) {
-                LOG.warn("Worker [" + worker.getWorkerIdentifier() + "] did not handle poisoned message, when it was passed for processing.");
                 sendPoisonMessage();
-                throw new RuntimeException("Worker [" + worker.getWorkerIdentifier() + "] did not handle poisoned message, when it was passed for processing.");
+                throw new RuntimeException(worker.getWorkerName() + " could not process the document.");
             } else {
                 Timer.Context t = TIMER.time();
                 MDC.put(CORRELATION_ID, workerTask.getCorrelationId());
@@ -71,7 +70,7 @@ class StreamingWorkerWrapper implements Runnable
             workerTask.setResponse(e);
         } catch (InterruptedException e) {
             workerTask.logInterruptedException(e);
-            workerTask.setResponse(new TaskRejectedException("Worker ["+ worker.getWorkerIdentifier()+"] was interrupted.", e));
+            workerTask.setResponse(new TaskRejectedException("["+ worker.getWorkerName() + "] was interrupted.", e));
         } catch (RuntimeException e) {
             LOG.warn("Worker threw unhandled exception", e);
             workerTask.setResponse(worker.getGeneralFailureResult(e));

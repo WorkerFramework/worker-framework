@@ -44,6 +44,7 @@ public class StreamingWorkerWrapperTest
     private static final String QUEUE_OUT = "out";
     private static final String QUEUE_REDIRECT = "redirect";
     private static final String QUEUE_REJECT = "reject";
+    private static final String WORKER_IDENTIFIER = "unitTest";
     private static final String WORKER_NAME = "unitTest";
     private static final String REDIRECT_NAME = "newTask";
     private static final int WORKER_API_VER = 1;
@@ -223,6 +224,7 @@ public class StreamingWorkerWrapperTest
         when(happyWorkerFactory.getWorker(Mockito.any())).thenReturn(happyWorker);
         com.hpe.caf.api.worker.WorkerConfiguration happyConfig = mock(com.hpe.caf.api.worker.WorkerConfiguration.class);
         when(happyWorkerFactory.getWorkerConfiguration()).thenReturn(happyConfig);
+        when(happyConfig.getWorkerName()).thenReturn("worker-test");
         when(happyConfig.getRejectQueue()).thenReturn(QUEUE_REJECT);
         when(happyWorker.doWork()).thenAnswer(invocationOnMock -> {
             throw new TaskRejectedException("rejected...poison message");
@@ -267,7 +269,7 @@ public class StreamingWorkerWrapperTest
             @Override
             public String getWorkerIdentifier()
             {
-                return WORKER_NAME;
+                return WORKER_IDENTIFIER;
             }
 
             @Override
@@ -275,6 +277,9 @@ public class StreamingWorkerWrapperTest
             {
                 return WORKER_API_VER;
             }
+
+            @Override
+            public String getWorkerName(){return WORKER_NAME;}
         };
     }
 
@@ -292,7 +297,7 @@ public class StreamingWorkerWrapperTest
             @Override
             public String getWorkerIdentifier()
             {
-                return WORKER_NAME;
+                return WORKER_IDENTIFIER;
             }
 
             @Override
@@ -300,6 +305,9 @@ public class StreamingWorkerWrapperTest
             {
                 return WORKER_API_VER;
             }
+
+            @Override
+            public String getWorkerName(){return WORKER_NAME;}
         };
     }
 

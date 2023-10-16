@@ -39,12 +39,46 @@
             <artifactId>caf-api</artifactId>
         </dependency>
         <dependency>
+            <groupId>com.google.code.gson</groupId>
+            <artifactId>gson</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>com.google.guava</groupId>
+            <artifactId>guava</artifactId>
+        </dependency>
+        <dependency>
             <groupId>com.github.workerframework</groupId>
             <artifactId>worker-api</artifactId>
         </dependency>
         <dependency>
+            <groupId>com.rabbitmq</groupId>
+            <artifactId>amqp-client</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>com.squareup.okhttp</groupId>
+            <artifactId>okhttp</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>com.squareup.retrofit</groupId>
+            <artifactId>retrofit</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.slf4j</groupId>
+            <artifactId>slf4j-api</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>junit</groupId>
+            <artifactId>junit</artifactId>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
             <groupId>jakarta.validation</groupId>
             <artifactId>jakarta.validation-api</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.json</groupId>
+            <artifactId>json</artifactId>
+            <scope>test</scope>
         </dependency>
 
         <!-- Runtime dependencies -->
@@ -172,6 +206,7 @@
                             <run>
                                 <ports>
                                     <port>${rabbitmq.ctrl.port}:15672</port>
+                                    <port>${rabbitmq.node.port}:5672</port>
                                 </ports>
                                 <wait>
                                     <log>Server startup complete</log>
@@ -271,6 +306,7 @@
             <id>use-default-fixed-ports</id>
             <properties>
                 <rabbitmq.ctrl.port>15672</rabbitmq.ctrl.port>
+                <rabbitmq.node.port>25672</rabbitmq.node.port>
                 <webdav.port>9090</webdav.port>
                 <worker.adminport>8081</worker.adminport>
                 <worker.debugport>5005</worker.debugport>

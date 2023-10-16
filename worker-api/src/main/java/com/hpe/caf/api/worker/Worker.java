@@ -58,6 +58,8 @@ public interface Worker
      */
     int getWorkerApiVersion();
 
+    String getWorkerName();
+
     /**
      * In case of a Worker's doWork() method failing with an unhandled exception, it is expected a Worker should be able to return a
      * general result.

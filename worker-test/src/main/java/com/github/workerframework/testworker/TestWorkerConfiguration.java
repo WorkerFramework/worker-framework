@@ -23,11 +23,14 @@ final class TestWorkerConfiguration extends WorkerConfiguration
 {
     private String outputQueue;
     private int threads;
+    private String workerName;
 
     public String getOutputQueue()
     {
         return outputQueue;
     }
+
+    public String getWorkerName(){return workerName;}
 
     @Min(1)
     @Max(8)
@@ -44,5 +47,10 @@ final class TestWorkerConfiguration extends WorkerConfiguration
     public void setThreads(final int threads)
     {
         this.threads = threads;
+    }
+
+    public void setWorkerName(final String workerName)
+    {
+        this.workerName = workerName;
     }
 }
