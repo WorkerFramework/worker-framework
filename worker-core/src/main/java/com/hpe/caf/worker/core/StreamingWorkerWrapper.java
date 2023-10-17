@@ -59,6 +59,7 @@ class StreamingWorkerWrapper implements Runnable
                 System.getenv(CAF_WORKER_NAME) : worker.getClass().getName();
         try {
             if (workerTask.isPoison()) {
+                LOG.warn(workerFriendlyName + " could not process the document.");
                 sendPoisonMessage();
                 throw new RuntimeException(workerFriendlyName + " could not process the document.");
             } else {
