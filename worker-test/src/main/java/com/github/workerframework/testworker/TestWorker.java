@@ -81,9 +81,4 @@ final class TestWorker implements Worker
         return "TestWorker";
     }
 
-    @Override
-    public String getWorkerName(){
-        return config.getWorkerName();
-    }
-
 }

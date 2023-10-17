@@ -36,7 +36,7 @@ import java.util.concurrent.TimeoutException;
 
 public class GetWorkerNameIT extends TestWorkerTestBase {
     private static final String POISON_ERROR_MESSAGE = "could not process the document.";
-    private static final String WORKER_NAME = "worker-test";
+    private static final String WORKER_NAME = "TestWorker";
 
     @Test
     public void getWorkerNameInPoisonMessageTest() throws IOException, TimeoutException {

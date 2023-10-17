@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 ({
-    workerName: getenv("CAF_WORKER_NAME") || "worker-test",
+    workerName: "worker-test",
     workerVersion: "1.0.0",
     outputQueue: getenv("CAF_WORKER_OUTPUT_QUEUE") || "testworker-out",
     rejectQueue: getenv("CAF_WORKER_REJECT_QUEUE") || "testworker-reject",

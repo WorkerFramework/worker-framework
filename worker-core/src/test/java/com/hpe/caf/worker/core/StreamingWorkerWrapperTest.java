@@ -44,7 +44,6 @@ public class StreamingWorkerWrapperTest
     private static final String QUEUE_OUT = "out";
     private static final String QUEUE_REDIRECT = "redirect";
     private static final String QUEUE_REJECT = "reject";
-    private static final String WORKER_IDENTIFIER = "unitTest";
     private static final String WORKER_NAME = "unitTest";
     private static final String REDIRECT_NAME = "newTask";
     private static final int WORKER_API_VER = 1;
@@ -269,7 +268,7 @@ public class StreamingWorkerWrapperTest
             @Override
             public String getWorkerIdentifier()
             {
-                return WORKER_IDENTIFIER;
+                return WORKER_NAME;
             }
 
             @Override
@@ -277,9 +276,6 @@ public class StreamingWorkerWrapperTest
             {
                 return WORKER_API_VER;
             }
-
-            @Override
-            public String getWorkerName(){return WORKER_NAME;}
         };
     }
 
@@ -297,7 +293,7 @@ public class StreamingWorkerWrapperTest
             @Override
             public String getWorkerIdentifier()
             {
-                return WORKER_IDENTIFIER;
+                return WORKER_NAME;
             }
 
             @Override
@@ -305,9 +301,6 @@ public class StreamingWorkerWrapperTest
             {
                 return WORKER_API_VER;
             }
-
-            @Override
-            public String getWorkerName(){return WORKER_NAME;}
         };
     }
 

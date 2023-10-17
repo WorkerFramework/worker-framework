@@ -17,6 +17,7 @@ package com.hpe.caf.worker.core;
 
 import com.codahale.metrics.Timer;
 import com.google.common.base.MoreObjects;
+import com.google.common.base.Strings;
 import com.hpe.caf.api.worker.*;
 
 import java.util.Collections;
@@ -33,6 +34,7 @@ import org.slf4j.MDC;
 class StreamingWorkerWrapper implements Runnable
 {
     private static final String CORRELATION_ID = "correlationId";
+    private static final String CAF_WORKER_NAME = "CAF_WORKER_NAME";
     private final Worker worker;
     private final WorkerTaskImpl workerTask;
     private static final Timer TIMER = new Timer();
@@ -53,10 +55,12 @@ class StreamingWorkerWrapper implements Runnable
     @Override
     public void run()
     {
+        final String workerFriendlyName = !Strings.isNullOrEmpty(System.getenv(CAF_WORKER_NAME)) ?
+                System.getenv(CAF_WORKER_NAME) : worker.getClass().getName();
         try {
             if (workerTask.isPoison()) {
                 sendPoisonMessage();
-                throw new RuntimeException(worker.getWorkerName() + " could not process the document.");
+                throw new RuntimeException(workerFriendlyName + " could not process the document.");
             } else {
                 Timer.Context t = TIMER.time();
                 MDC.put(CORRELATION_ID, workerTask.getCorrelationId());
@@ -70,7 +74,7 @@ class StreamingWorkerWrapper implements Runnable
             workerTask.setResponse(e);
         } catch (InterruptedException e) {
             workerTask.logInterruptedException(e);
-            workerTask.setResponse(new TaskRejectedException("["+ worker.getWorkerName() + "] was interrupted.", e));
+            workerTask.setResponse(new TaskRejectedException("["+ workerFriendlyName + "] was interrupted.", e));
         } catch (RuntimeException e) {
             LOG.warn("Worker threw unhandled exception", e);
             workerTask.setResponse(worker.getGeneralFailureResult(e));
