@@ -22,8 +22,8 @@ import com.rabbitmq.client.AMQP;
 import com.rabbitmq.client.Consumer;
 import com.rabbitmq.client.ShutdownSignalException;
 import com.rabbitmq.client.Envelope;
-import org.junit.Assert;
-import org.junit.Test;
+import org.testng.annotations.Test;
+import org.testng.Assert;
 
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
@@ -33,10 +33,9 @@ import java.util.Map;
 import java.util.HashMap;
 import java.util.concurrent.TimeoutException;
 
-
 public class GetWorkerNameIT extends TestWorkerTestBase {
-    private static final String POISON_ERROR_MESSAGE = "could not process the document.";
-    private static final String WORKER_NAME = "TestWorker";
+    private static final String POISON_ERROR_MESSAGE = "could not process the item.";
+    private static final String WORKER_FRIENDLY_NAME = "TestWorker";
 
     @Test
     public void getWorkerNameInPoisonMessageTest() throws IOException, TimeoutException {
@@ -47,7 +46,7 @@ public class GetWorkerNameIT extends TestWorkerTestBase {
 
             channel.queueDeclare("testworker-out", true, false, false, Collections.emptyMap());
 
-            MyConsumer poisonConsumer = new MyConsumer();
+            TestWorkerQueueConsumer poisonConsumer = new TestWorkerQueueConsumer();
             channel.basicConsume("testworker-out", true, poisonConsumer);
 
             final Map<String, Object> retryLimitHeaders = new HashMap<>();
@@ -80,6 +79,7 @@ public class GetWorkerNameIT extends TestWorkerTestBase {
                 throw new RuntimeException(e);
             }
 
+            Assert.assertNotNull(poisonConsumer.getLastDeliveredBody());
             String returnedBody = new String(poisonConsumer.getLastDeliveredBody(), StandardCharsets.UTF_8);
             JSONObject obj = new JSONObject(returnedBody);
             byte[] taskData = Base64.getDecoder().decode(obj.getString("taskData"));
@@ -89,13 +89,11 @@ public class GetWorkerNameIT extends TestWorkerTestBase {
             System.out.println("Poison message:" + decodedTaskData);
 
             Assert.assertTrue(decodedTaskData.contains(POISON_ERROR_MESSAGE));
-            Assert.assertTrue(decodedTaskData.contains(WORKER_NAME));
+            Assert.assertTrue(decodedTaskData.contains(WORKER_FRIENDLY_NAME));
         }
-
-
     }
 
-    private static class MyConsumer implements Consumer {
+    private static class TestWorkerQueueConsumer implements Consumer {
         private byte[] lastDeliveredBody = null;
         @Override
         public void handleConsumeOk(String consumerTag) {
@@ -127,7 +125,8 @@ public class GetWorkerNameIT extends TestWorkerTestBase {
         }
 
         @Override
-        public void handleDelivery(String consumerTag, Envelope envelope, AMQP.BasicProperties properties, byte[] body) throws IOException {
+        public void handleDelivery(final String consumerTag, final Envelope envelope, final AMQP.BasicProperties properties,
+                                   final byte[] body) throws IOException {
                 lastDeliveredBody = body;
         }
     }

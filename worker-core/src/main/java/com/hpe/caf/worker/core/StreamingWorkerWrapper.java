@@ -34,7 +34,7 @@ import org.slf4j.MDC;
 class StreamingWorkerWrapper implements Runnable
 {
     private static final String CORRELATION_ID = "correlationId";
-    private static final String CAF_WORKER_NAME = "CAF_WORKER_NAME";
+    private static final String CAF_WORKER_FRIENDLY_NAME = System.getenv("CAF_WORKER_FRIENDLY_NAME");
     private final Worker worker;
     private final WorkerTaskImpl workerTask;
     private static final Timer TIMER = new Timer();
@@ -55,13 +55,13 @@ class StreamingWorkerWrapper implements Runnable
     @Override
     public void run()
     {
-        final String workerFriendlyName = !Strings.isNullOrEmpty(System.getenv(CAF_WORKER_NAME)) ?
-                System.getenv(CAF_WORKER_NAME) : worker.getClass().getName();
+        final String workerFriendlyName = !Strings.isNullOrEmpty(CAF_WORKER_FRIENDLY_NAME) ?
+                CAF_WORKER_FRIENDLY_NAME : worker.getClass().getName();
         try {
             if (workerTask.isPoison()) {
-                LOG.warn(workerFriendlyName + " could not process the document.");
+                LOG.warn(workerFriendlyName + " could not process the item.");
                 sendPoisonMessage();
-                throw new RuntimeException(workerFriendlyName + " could not process the document.");
+                throw new RuntimeException(workerFriendlyName + " could not process the item.");
             } else {
                 Timer.Context t = TIMER.time();
                 MDC.put(CORRELATION_ID, workerTask.getCorrelationId());
