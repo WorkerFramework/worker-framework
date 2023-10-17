@@ -223,7 +223,6 @@ public class StreamingWorkerWrapperTest
         when(happyWorkerFactory.getWorker(Mockito.any())).thenReturn(happyWorker);
         com.hpe.caf.api.worker.WorkerConfiguration happyConfig = mock(com.hpe.caf.api.worker.WorkerConfiguration.class);
         when(happyWorkerFactory.getWorkerConfiguration()).thenReturn(happyConfig);
-        when(happyConfig.getWorkerName()).thenReturn("worker-test");
         when(happyConfig.getRejectQueue()).thenReturn(QUEUE_REJECT);
         when(happyWorker.doWork()).thenAnswer(invocationOnMock -> {
             throw new TaskRejectedException("rejected...poison message");
