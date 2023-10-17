@@ -23,6 +23,7 @@ final class TestWorkerConfiguration extends WorkerConfiguration
 {
     private String outputQueue;
     private int threads;
+
     public String getOutputQueue()
     {
         return outputQueue;
@@ -44,5 +45,4 @@ final class TestWorkerConfiguration extends WorkerConfiguration
     {
         this.threads = threads;
     }
-
 }

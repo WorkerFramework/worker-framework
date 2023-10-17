@@ -39,12 +39,6 @@ final class TestWorker implements Worker
     public WorkerResponse doWork() throws InterruptedException, TaskRejectedException, InvalidTaskException
     {
         final String outputQueue = config.getOutputQueue();
-        final String workerName = config.getWorkerName();
-//        throw new TaskRejectedException("rejected...poison message");
-
-//        throw new RuntimeException("poison");
-
-//        System.exit(1);
 
         return new WorkerResponse(
             outputQueue,
@@ -80,5 +74,4 @@ final class TestWorker implements Worker
     {
         return "TestWorker";
     }
-
 }
