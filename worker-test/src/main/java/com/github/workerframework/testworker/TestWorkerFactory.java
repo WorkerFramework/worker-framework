@@ -31,6 +31,8 @@ final class TestWorkerFactory implements WorkerFactory
 {
     private final TestWorkerConfiguration config;
 
+    private final ConfigurationSource configSource;
+
     public TestWorkerFactory(
         final ConfigurationSource configSource,
         final DataStore dataStore,
@@ -38,6 +40,7 @@ final class TestWorkerFactory implements WorkerFactory
     ) throws WorkerException
     {
         this.config = getConfiguration(configSource);
+        this.configSource = configSource;
     }
 
     private static TestWorkerConfiguration getConfiguration(final ConfigurationSource configSource)
@@ -47,6 +50,15 @@ final class TestWorkerFactory implements WorkerFactory
             return configSource.getConfiguration(TestWorkerConfiguration.class);
         } catch (final ConfigurationException ex) {
             throw new WorkerException("Failed to construct TestWorkerConfiguration object", ex);
+        }
+    }
+
+    @Override
+    public TestWorkerConfiguration getWorkerConfiguration(){
+        try {
+            return getConfiguration(configSource);
+        } catch (WorkerException e) {
+            throw new RuntimeException(e);
         }
     }
 
