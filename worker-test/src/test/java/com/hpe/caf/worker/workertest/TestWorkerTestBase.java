@@ -24,7 +24,6 @@ public class TestWorkerTestBase {
     private static final String CAF_RABBITMQ_PORT = "CAF_RABBITMQ_PORT";
     private static final String CAF_RABBITMQ_USERNAME = "CAF_RABBITMQ_USERNAME";
     private static final String CAF_RABBITMQ_PASSWORD = "CAF_RABBITMQ_PASSWORD";
-    private static final String CAF_RABBITMQ_CTRL_PORT = "CAF_RABBITMQ_CTRL_PORT";
 
     public TestWorkerTestBase() {
         connectionFactory = new ConnectionFactory();

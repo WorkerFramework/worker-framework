@@ -46,7 +46,7 @@ public class GetWorkerNameIT extends TestWorkerTestBase {
 
             channel.queueDeclare("testworker-out", true, false, false, Collections.emptyMap());
 
-            TestWorkerQueueConsumer poisonConsumer = new TestWorkerQueueConsumer();
+            final TestWorkerQueueConsumer poisonConsumer = new TestWorkerQueueConsumer();
             channel.basicConsume("testworker-out", true, poisonConsumer);
 
             final Map<String, Object> retryLimitHeaders = new HashMap<>();
@@ -80,11 +80,11 @@ public class GetWorkerNameIT extends TestWorkerTestBase {
             }
 
             Assert.assertNotNull(poisonConsumer.getLastDeliveredBody());
-            String returnedBody = new String(poisonConsumer.getLastDeliveredBody(), StandardCharsets.UTF_8);
-            JSONObject obj = new JSONObject(returnedBody);
+            final String returnedBody = new String(poisonConsumer.getLastDeliveredBody(), StandardCharsets.UTF_8);
+            final JSONObject obj = new JSONObject(returnedBody);
             byte[] taskData = Base64.getDecoder().decode(obj.getString("taskData"));
 
-            String decodedTaskData = new String(taskData);
+            final String decodedTaskData = new String(taskData);
 
 
             Assert.assertTrue(decodedTaskData.contains(POISON_ERROR_MESSAGE));
