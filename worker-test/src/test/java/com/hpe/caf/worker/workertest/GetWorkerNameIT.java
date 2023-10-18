@@ -86,7 +86,6 @@ public class GetWorkerNameIT extends TestWorkerTestBase {
 
             String decodedTaskData = new String(taskData);
 
-            System.out.println("Poison message:" + decodedTaskData);
 
             Assert.assertTrue(decodedTaskData.contains(POISON_ERROR_MESSAGE));
             Assert.assertTrue(decodedTaskData.contains(WORKER_FRIENDLY_NAME));
