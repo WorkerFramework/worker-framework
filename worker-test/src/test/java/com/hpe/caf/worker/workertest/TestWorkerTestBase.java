@@ -19,7 +19,7 @@ import com.google.common.base.Strings;
 import com.rabbitmq.client.ConnectionFactory;
 
 public class TestWorkerTestBase {
-    protected ConnectionFactory connectionFactory;
+    final protected ConnectionFactory connectionFactory;
     private static final String CAF_RABBITMQ_HOST = "CAF_RABBITMQ_HOST";
     private static final String CAF_RABBITMQ_PORT = "CAF_RABBITMQ_PORT";
     private static final String CAF_RABBITMQ_USERNAME = "CAF_RABBITMQ_USERNAME";

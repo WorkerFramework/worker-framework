@@ -82,7 +82,7 @@ public class GetWorkerNameIT extends TestWorkerTestBase {
             Assert.assertNotNull(poisonConsumer.getLastDeliveredBody());
             final String returnedBody = new String(poisonConsumer.getLastDeliveredBody(), StandardCharsets.UTF_8);
             final JSONObject obj = new JSONObject(returnedBody);
-            byte[] taskData = Base64.getDecoder().decode(obj.getString("taskData"));
+            final byte[] taskData = Base64.getDecoder().decode(obj.getString("taskData"));
 
             final String decodedTaskData = new String(taskData);
 
