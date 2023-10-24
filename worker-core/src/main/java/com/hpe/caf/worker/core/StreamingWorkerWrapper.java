@@ -56,7 +56,7 @@ class StreamingWorkerWrapper implements Runnable
     public void run()
     {
         final String workerFriendlyName = !Strings.isNullOrEmpty(CAF_WORKER_FRIENDLY_NAME) ?
-                CAF_WORKER_FRIENDLY_NAME : worker.getClass().getName();
+                CAF_WORKER_FRIENDLY_NAME : worker.getClass().getSimpleName();
         try {
             if (workerTask.isPoison()) {
                 LOG.warn(workerFriendlyName + " could not process the item.");
