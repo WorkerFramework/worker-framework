@@ -33,13 +33,37 @@ import java.util.ArrayList;
 import java.util.Base64;
 import java.util.concurrent.TimeoutException;
 
-public class AdjustRetryLimitIT extends TestWorkerTestBase {
+public class RetryLimitIT extends TestWorkerTestBase {
     private static final String POISON_ERROR_MESSAGE = "could not process the item.";
     private static final String TEST_WORKER_RESULT = "TestWorkerResult";
 
-    // Test to confirm that changing the retry limit to below the current retry count will throw a poison message as expected.
     @Test
-    public void getWorkerNameInPoisonMessageTest() throws IOException, TimeoutException {
+    public void getResultSuccessIfRetryNumberLessThanRetryLimitTest() throws IOException, TimeoutException {
+
+        final String decodedTaskData = getResponse(10,2);
+
+        Assert.assertTrue(decodedTaskData.contains(TEST_WORKER_RESULT));
+    }
+
+    @Test
+    public void getPoisonMessageIfRetryNumberGreaterThanRetryLimitTest() throws IOException, TimeoutException {
+
+        final String decodedTaskData = getResponse(2,3);
+
+        Assert.assertTrue(decodedTaskData.contains(POISON_ERROR_MESSAGE));
+
+    }
+
+    @Test
+    public void getPoisonMessageIfRetryNumberEqualToRetryLimitTest() throws IOException, TimeoutException {
+
+        final String decodedTaskData = getResponse(10,10);
+
+        Assert.assertTrue(decodedTaskData.contains(POISON_ERROR_MESSAGE));
+
+    }
+
+    private String getResponse(final int retryLimit, final int retryCount) throws IOException, TimeoutException  {
         try(final Connection connection = connectionFactory.newConnection()) {
 
             final Channel channel = connection.createChannel();
@@ -49,20 +73,9 @@ public class AdjustRetryLimitIT extends TestWorkerTestBase {
             final TestWorkerQueueConsumer poisonConsumer = new TestWorkerQueueConsumer();
             channel.basicConsume("testworker-out", true, poisonConsumer);
 
-            final Map<String, Object> belowRetryLimitHeaders = new HashMap<>();
-            belowRetryLimitHeaders.put("x-caf-worker-retry-limit", 10);
-            belowRetryLimitHeaders.put("x-caf-worker-retry", 2);
-
             final Map<String, Object> aboveRetryLimitHeaders = new HashMap<>();
-            aboveRetryLimitHeaders.put("x-caf-worker-retry-limit", 2);
-            aboveRetryLimitHeaders.put("x-caf-worker-retry", 3);
-
-            final AMQP.BasicProperties belowRetryLimitProperties = new AMQP.BasicProperties.Builder()
-                    .headers(belowRetryLimitHeaders)
-                    .contentType("application/json")
-                    .deliveryMode(2)
-                    .priority(1)
-                    .build();
+            aboveRetryLimitHeaders.put("x-caf-worker-retry-limit", retryLimit);
+            aboveRetryLimitHeaders.put("x-caf-worker-retry", retryCount);
 
             final AMQP.BasicProperties aboveRetryLimitProperties = new AMQP.BasicProperties.Builder()
                     .headers(aboveRetryLimitHeaders)
@@ -75,15 +88,15 @@ public class AdjustRetryLimitIT extends TestWorkerTestBase {
                     "\"taskData\":\"cG9pc29uIG1lc3NhZ2U\",\"taskStatus\":\"RESULT_SUCCESS\",\"context\":{},\"to\":\"worker-in\"," +
                     "\"tracking\":null,\"sourceInfo\":{\"name\":\"worker-test\",\"version\":\"1.0.0\"}}";
 
-            channel.basicPublish("", "worker-in", belowRetryLimitProperties, body.getBytes(StandardCharsets.UTF_8));
             channel.basicPublish("", "worker-in", aboveRetryLimitProperties, body.getBytes(StandardCharsets.UTF_8));
 
+            channel.basicConsume("testworker-out", true, poisonConsumer);
             try {
-                for (int i=0; i<100; i++){
+                for (int i = 0; i < 100; i++) {
 
                     Thread.sleep(100);
 
-                    if (poisonConsumer.getResponseTaskData().size() == 2){
+                    if (poisonConsumer.getLastDeliveredBody() != null) {
                         break;
                     }
                 }
@@ -91,16 +104,18 @@ public class AdjustRetryLimitIT extends TestWorkerTestBase {
                 throw new RuntimeException(e);
             }
 
-            Assert.assertNotNull(poisonConsumer.getResponseTaskData());
+            Assert.assertNotNull(poisonConsumer.getLastDeliveredBody());
 
-            final ArrayList<String> messageResponses = poisonConsumer.getResponseTaskData();
+            final String returnedBody = new String(poisonConsumer.getLastDeliveredBody(), StandardCharsets.UTF_8);
+            final JSONObject obj = new JSONObject(returnedBody);
+            final byte[] taskData = Base64.getDecoder().decode(obj.getString("taskData"));
 
-            Assert.assertTrue(messageResponses.get(0).contains(TEST_WORKER_RESULT));
-            Assert.assertTrue(messageResponses.get(1).contains(POISON_ERROR_MESSAGE));
+            return new String(taskData);
         }
     }
+
     private static class TestWorkerQueueConsumer implements Consumer {
-        private final ArrayList<String> responseBodyTaskData = new ArrayList<>();
+        private byte[] lastDeliveredBody = null;
         @Override
         public void handleConsumeOk(String consumerTag) {
 
@@ -125,16 +140,15 @@ public class AdjustRetryLimitIT extends TestWorkerTestBase {
         public void handleRecoverOk(String consumerTag) {
 
         }
-        public ArrayList<String> getResponseTaskData(){ return responseBodyTaskData; }
+
+        public byte[] getLastDeliveredBody() {
+            return lastDeliveredBody;
+        }
 
         @Override
         public void handleDelivery(final String consumerTag, final Envelope envelope, final AMQP.BasicProperties properties,
                                    final byte[] body) throws IOException {
-
-            responseBodyTaskData.add(
-                    new String(Base64.getDecoder().decode(
-                        new JSONObject(
-                            new String(body, StandardCharsets.UTF_8)).getString("taskData"))));
+            lastDeliveredBody = body;
         }
     }
 }
