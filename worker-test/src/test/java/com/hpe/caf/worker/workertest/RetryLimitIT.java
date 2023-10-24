@@ -43,6 +43,7 @@ public class RetryLimitIT extends TestWorkerTestBase {
         final String decodedTaskData = getResponse(10,2);
 
         Assert.assertTrue(decodedTaskData.contains(TEST_WORKER_RESULT));
+
     }
 
     @Test
