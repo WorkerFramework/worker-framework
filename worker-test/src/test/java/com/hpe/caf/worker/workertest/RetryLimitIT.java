@@ -14,6 +14,7 @@
  * limitations under the License.
  */
 package com.hpe.caf.worker.workertest;
+import com.hpe.caf.util.rabbitmq.QueueCreator;
 import com.rabbitmq.client.Connection;
 import com.rabbitmq.client.Channel;
 import com.rabbitmq.client.AMQP;
@@ -26,7 +27,6 @@ import org.testng.annotations.Test;
 
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
-import java.util.Collections;
 import java.util.Map;
 import java.util.HashMap;
 import java.util.Base64;
@@ -68,7 +68,10 @@ public class RetryLimitIT extends TestWorkerTestBase {
 
             final Channel channel = connection.createChannel();
 
-            channel.queueDeclare("testworker-out", true, false, false, Collections.emptyMap());
+            Map<String, Object> args = new HashMap<>();
+            args.put(QueueCreator.RABBIT_PROP_QUEUE_TYPE, QueueCreator.RABBIT_PROP_QUEUE_TYPE_QUORUM);
+
+            channel.queueDeclare("testworker-out", true, false, false, args);
 
             final TestWorkerQueueConsumer poisonConsumer = new TestWorkerQueueConsumer();
             channel.basicConsume("testworker-out", true, poisonConsumer);
@@ -81,7 +84,6 @@ public class RetryLimitIT extends TestWorkerTestBase {
                     .headers(aboveRetryLimitHeaders)
                     .contentType("application/json")
                     .deliveryMode(2)
-                    .priority(1)
                     .build();
 
             final String body = "{\"version\":1,\"taskId\":\"1.1\",\"taskClassifier\":\"testWorkerIdentifier\",\"taskApiVersion\":1," +

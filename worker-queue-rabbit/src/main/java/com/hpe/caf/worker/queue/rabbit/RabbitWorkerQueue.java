@@ -113,8 +113,8 @@ public final class RabbitWorkerQueue implements ManagedWorkerQueue
     }
 
     @Override
-    public void publish(TaskInformation taskInformation, byte[] taskMessage, String targetQueue, Map<String, Object> headers, 
-                                          int priority, boolean isLastMessage) throws QueueException
+    public void publish(TaskInformation taskInformation, byte[] taskMessage, String targetQueue, Map<String, Object> headers,
+                        boolean isLastMessage) throws QueueException
     {
         try {
             declareWorkerQueue(outgoingChannel, targetQueue);
@@ -124,25 +124,13 @@ public final class RabbitWorkerQueue implements ManagedWorkerQueue
         RabbitTaskInformation rabbitTaskInformation = (RabbitTaskInformation)taskInformation;
         //increment the total responseCount (including task, sub task and tracking info)
         rabbitTaskInformation.incrementResponseCount(isLastMessage);
-        publisherQueue.add(new WorkerPublishQueueEvent(taskMessage, targetQueue, rabbitTaskInformation, headers, priority));
+        publisherQueue.add(new WorkerPublishQueueEvent(taskMessage, targetQueue, rabbitTaskInformation, headers));
     }
     
     @Override
-    public void publish(TaskInformation taskInformation, byte[] taskMessage, String targetQueue, Map<String, Object> headers, int priority) throws QueueException
+    public void publish(TaskInformation taskInformation, byte[] taskMessage, String targetQueue, Map<String, Object> headers) throws QueueException
     {
-        publish(taskInformation, taskMessage, targetQueue, headers, priority, false);
-    }
-
-    /**
-     * {@inheritDoc}
-     *
-     * Add a PUBLISH event that the publisher thread will handle.
-     */
-    @Override
-    public void publish(TaskInformation taskInformation, byte[] taskMessage, String targetQueue, Map<String, Object> headers)
-        throws QueueException
-    {
-        publish(taskInformation, taskMessage, targetQueue, headers, 0);
+        publish(taskInformation, taskMessage, targetQueue, headers, false);
     }
 
     /**

@@ -54,7 +54,6 @@ class WorkerTaskImpl implements WorkerTask
     private final WorkerFactory workerFactory;
     private final TaskInformation taskInformation;
     private final TaskMessage taskMessage;
-//    private final MessagePriorityManager priorityManager;
     private int responseCount;
     private final Object responseCountLock;
     private final SingleResponseMessageBuffer singleMessageBuffer;
@@ -74,7 +73,6 @@ class WorkerTaskImpl implements WorkerTask
             final boolean poison,
             final Map<String, Object> headers,
             final Codec codec
-//            final MessagePriorityManager priorityManager
     )
     {
         this.servicePath = servicePath;
@@ -82,7 +80,6 @@ class WorkerTaskImpl implements WorkerTask
         this.workerFactory = workerFactory;
         this.taskInformation = taskInformation;
         this.taskMessage = taskMessage;
-//        this.priorityManager = Objects.requireNonNull(priorityManager);
         this.responseCount = 0;
         this.responseCountLock = new Object();
         this.singleMessageBuffer = new SingleResponseMessageBuffer();
@@ -204,7 +201,6 @@ class WorkerTaskImpl implements WorkerTask
             response.getTaskStatus(), responseContext,
             response.getQueueReference(), trackingInfo,
             new TaskSourceInfo(getWorkerName(responseMessageType), getWorkerVersion()), taskMessage.getCorrelationId());
-//        responseMessage.setPriority(priorityManager.getResponsePriority(taskMessage));
 
         return responseMessage;
     }

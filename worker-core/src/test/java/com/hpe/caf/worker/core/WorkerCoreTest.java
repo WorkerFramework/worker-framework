@@ -642,15 +642,8 @@ public class WorkerCoreTest
         }
         
         @Override
-        public void publish(TaskInformation taskInformation, byte[] taskMessage, String targetQueue, Map<String, Object> headers, int priority, boolean isLastMessage)
+        public void publish(TaskInformation taskInformation, byte[] taskMessage, String targetQueue, Map<String, Object> headers, boolean isLastMessage)
             throws QueueException
-        {
-            this.lastQueue = targetQueue;
-            results.offer(taskMessage);
-        }
-
-        @Override
-        public void publish(TaskInformation taskInformation, byte[] taskMessage, String targetQueue, Map<String, Object> headers, int priority)
         {
             this.lastQueue = targetQueue;
             results.offer(taskMessage);

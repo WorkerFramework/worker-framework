@@ -85,11 +85,6 @@ public final class QueueTaskMessage
     private TaskSourceInfo sourceInfo;
 
     /**
-     * Task message priority.
-     */
-    private Integer priority;
-
-    /**
      * This field contains the correlation id which is eventually logged via MDC.
      */
     private String correlationId;
@@ -237,16 +232,6 @@ public final class QueueTaskMessage
     public void setSourceInfo(final TaskSourceInfo sourceInfo)
     {
         this.sourceInfo = sourceInfo;
-    }
-
-    public Integer getPriority()
-    {
-        return priority;
-    }
-
-    public void setPriority(final Integer priority)
-    {
-        this.priority = priority;
     }
 
     public String getCorrelationId()

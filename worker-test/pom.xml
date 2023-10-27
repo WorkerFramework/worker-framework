@@ -44,6 +44,10 @@
         </dependency>
         <dependency>
             <groupId>com.github.workerframework</groupId>
+            <artifactId>util-rabbitmq</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>com.github.workerframework</groupId>
             <artifactId>worker-api</artifactId>
         </dependency>
         <dependency>

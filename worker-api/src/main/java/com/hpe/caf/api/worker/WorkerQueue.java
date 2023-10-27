@@ -29,23 +29,10 @@ public interface WorkerQueue
      * @param taskMessage the message to publish
      * @param targetQueue the queue to put the message upon
      * @param headers the map of key/value paired headers to be stamped on the message
-     * @param priority the message priority, greater value means higher priority
      * @param isLastMessage the boolean to indicate if current message is final message for the task
      * @throws QueueException if the message cannot be submitted
      */
-    void publish(TaskInformation taskInformation, byte[] taskMessage, String targetQueue, Map<String, Object> headers, int priority, boolean isLastMessage) throws QueueException;
-
-    /**
-     * Acknowledge the original received message but send out a new message to a target queue.
-     *
-     * @param taskInformation the internal queue message id of the message to acknowledge
-     * @param taskMessage the message to publish
-     * @param targetQueue the queue to put the message upon
-     * @param headers the map of key/value paired headers to be stamped on the message
-     * @param priority the message priority, greater value means higher priority
-     * @throws QueueException if the message cannot be submitted
-     */
-    void publish(TaskInformation taskInformation, byte[] taskMessage, String targetQueue, Map<String, Object> headers, int priority) throws QueueException;
+    void publish(TaskInformation taskInformation, byte[] taskMessage, String targetQueue, Map<String, Object> headers, boolean isLastMessage) throws QueueException;
 
     /**
      * Acknowledge the original received message but send out a new message to a target queue.
@@ -56,6 +43,7 @@ public interface WorkerQueue
      * @param headers the map of key/value paired headers to be stamped on the message
      * @throws QueueException if the message cannot be submitted
      */
+
     void publish(TaskInformation taskInformation, byte[] taskMessage, String targetQueue, Map<String, Object> headers)
         throws QueueException;
 

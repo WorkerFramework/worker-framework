@@ -15,6 +15,7 @@
  */
 package com.hpe.caf.worker.workertest;
 
+import com.hpe.caf.util.rabbitmq.QueueCreator;
 import org.json.JSONObject;
 import com.rabbitmq.client.Connection;
 import com.rabbitmq.client.Channel;
@@ -28,7 +29,6 @@ import org.testng.Assert;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.util.Base64;
-import java.util.Collections;
 import java.util.Map;
 import java.util.HashMap;
 import java.util.concurrent.TimeoutException;
@@ -44,7 +44,10 @@ public class GetWorkerNameIT extends TestWorkerTestBase {
 
             final Channel channel = connection.createChannel();
 
-            channel.queueDeclare("testworker-out", true, false, false, Collections.emptyMap());
+            Map<String, Object> args = new HashMap<>();
+            args.put(QueueCreator.RABBIT_PROP_QUEUE_TYPE, QueueCreator.RABBIT_PROP_QUEUE_TYPE_QUORUM);
+
+            channel.queueDeclare("testworker-out", true, false, false, args);
 
             final TestWorkerQueueConsumer poisonConsumer = new TestWorkerQueueConsumer();
             channel.basicConsume("testworker-out", true, poisonConsumer);
@@ -57,7 +60,6 @@ public class GetWorkerNameIT extends TestWorkerTestBase {
                     .headers(retryLimitHeaders)
                     .contentType("application/json")
                     .deliveryMode(2)
-                    .priority(1)
                     .build();
 
             final String body = "{\"version\":1,\"taskId\":\"1.1\",\"taskClassifier\":\"testWorkerIdentifier\",\"taskApiVersion\":1," +

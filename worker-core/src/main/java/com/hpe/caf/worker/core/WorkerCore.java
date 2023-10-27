@@ -599,10 +599,8 @@ final class WorkerCore
                 throw new RuntimeException(ex);
             }
 
-            final int priority = responseMessage.getPriority() == null ? 0 : responseMessage.getPriority();
-
             try {
-                workerQueue.publish(taskInformation, output, queue, Collections.emptyMap(), priority);
+                workerQueue.publish(taskInformation, output, queue, Collections.emptyMap());
             } catch (final QueueException ex) {
                 throw new RuntimeException(ex);
             }
@@ -640,8 +638,7 @@ final class WorkerCore
                     // **** Normal Worker ****                    
                     // A worker with an input and output queue.
                     final byte[] output = convertAndSerializeMessage(responseMessage);
-                    workerQueue.publish(taskInformation, output, queue, Collections.emptyMap(), 
-                                           responseMessage.getPriority() == null ? 0 : responseMessage.getPriority(), true);                    
+                    workerQueue.publish(taskInformation, output, queue, Collections.emptyMap(), true);
                     stats.getOutputSizes().update(output.length);
                 }
                 stats.updatedLastTaskFinishedTime();
@@ -682,7 +679,7 @@ final class WorkerCore
                 } else {
                     // Else forward the task
                     final byte[] output = convertAndSerializeMessage(forwardedMessage);
-                    workerQueue.publish(taskInformation, output, queue, headers, forwardedMessage.getPriority() == null ? 0 : forwardedMessage.getPriority(), true);
+                    workerQueue.publish(taskInformation, output, queue, headers, true);
                     stats.incrementTasksForwarded();
                     //TODO - I'm guessing this stat should not be updated for forwarded messages:
                     // stats.getOutputSizes().update(output.length);
@@ -704,8 +701,7 @@ final class WorkerCore
                       taskMessage.getTaskId(), taskInformation.getInboundMessageId(), pausedQueue);
             try {
                 final byte[] taskMessageBytes = convertAndSerializeMessage(taskMessage);
-                workerQueue.publish(taskInformation, taskMessageBytes, pausedQueue, headers,
-                                    taskMessage.getPriority() == null ? 0 : taskMessage.getPriority(), true);
+                workerQueue.publish(taskInformation, taskMessageBytes, pausedQueue, headers, true);
                 stats.incrementTasksPaused();
             } catch (final CodecException | QueueException e) {
                 LOG.error("Cannot publish data for task: {} to paused queue: {}, rejecting", taskMessage.getTaskId(), pausedQueue, e);
@@ -736,10 +732,8 @@ final class WorkerCore
                 throw new RuntimeException(ex);
             }
 
-            final int priority = reportUpdateMessage.getPriority() == null ? 0 : reportUpdateMessage.getPriority();
-
             try {                
-                workerQueue.publish(taskInformation, output, reportUpdateMessage.getTo(), Collections.emptyMap(), priority);
+                workerQueue.publish(taskInformation, output, reportUpdateMessage.getTo(), Collections.emptyMap());
             } catch (final QueueException ex) {
                 throw new RuntimeException(ex);
             }

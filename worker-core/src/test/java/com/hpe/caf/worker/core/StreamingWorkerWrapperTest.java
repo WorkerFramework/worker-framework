@@ -75,7 +75,6 @@ public class StreamingWorkerWrapperTest
         Assert.assertEquals(TaskStatus.RESULT_SUCCESS, callback.getStatus());
         TestWorkerResult res = codec.deserialise(callback.getResultData(), TestWorkerResult.class);
         Assert.assertEquals(SUCCESS, res.getResultString());
-//        Assert.assertEquals(PRIORITY, callback.getPriority());
         Assert.assertEquals(TASK_ID, callback.getTaskId());
         Assert.assertEquals(QUEUE_OUT, callback.getQueue());
         Assert.assertTrue(callback.getContext().containsKey(path.toString()));
@@ -300,7 +299,6 @@ public class StreamingWorkerWrapperTest
         private String sendQueue;
         private String classifier;
         private Map<String, byte[]> context;
-        private Integer priority;
         private final CountDownLatch latch;
 
         public TestCallback(final CountDownLatch latch)
@@ -327,7 +325,6 @@ public class StreamingWorkerWrapperTest
             this.queue = queue;
             this.context = tm.getContext();
             this.classifier = tm.getTaskClassifier();
-            this.priority = tm.getPriority();
             latch.countDown();
         }
 
@@ -402,11 +399,6 @@ public class StreamingWorkerWrapperTest
         public String getSendQueue()
         {
             return sendQueue;
-        }
-
-        public Integer getPriority()
-        {
-            return priority;
         }
     }
 
