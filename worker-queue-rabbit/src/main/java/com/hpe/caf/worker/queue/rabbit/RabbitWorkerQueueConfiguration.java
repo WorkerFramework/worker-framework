@@ -74,13 +74,6 @@ public class RabbitWorkerQueueConfiguration
     @Min(1)
     private int retryLimit;
 
-    /**
-     * The maximum message priority supported by this worker queue. 0 to disable priority feature.
-     */
-    @Min(0)
-    @Max(255)
-    private int maxPriority;
-
     public RabbitWorkerQueueConfiguration()
     {
     }
@@ -155,15 +148,5 @@ public class RabbitWorkerQueueConfiguration
     public void setRetryLimit(int retryLimit)
     {
         this.retryLimit = retryLimit;
-    }
-
-    public int getMaxPriority()
-    {
-        return maxPriority;
-    }
-
-    public void setMaxPriority(int maxPriority)
-    {
-        this.maxPriority = maxPriority;
     }
 }

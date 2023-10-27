@@ -126,26 +126,8 @@ public final class RabbitUtil
     public static void declareWorkerQueue(Channel channel, String queueName)
         throws IOException
     {
-        declareWorkerQueue(channel, queueName, 0);
-    }
-
-    /**
-     * Ensure a queue for a worker has been declared. Both a consumer *and* a publisher should call this before they attempt to use a
-     * worker queue for the first time.
-     *
-     * @param channel the channel to use to declare the queue
-     * @param queueName the name of the worker queue
-     * @param maxPriority the maximum supported priority, pass 0 to disable priority
-     * @throws IOException if the queue is not valid and cannot be used, this is likely NOT retryable
-     */
-    public static void declareWorkerQueue(Channel channel, String queueName, int maxPriority)
-        throws IOException
-    {
         Map<String, Object> args = new HashMap<>();
-        if (maxPriority > 0) {
-            LOG.trace("Setting up priority to: {}", maxPriority);
-            args.put(QueueCreator.RABBIT_PROP_KEY_MAX_PRIORITY, maxPriority);
-        }
+        args.put(QueueCreator.RABBIT_PROP_QUEUE_TYPE, QueueCreator.RABBIT_PROP_QUEUE_TYPE_QUORUM);
         declareQueue(channel, queueName, Durability.DURABLE, Exclusivity.NON_EXCLUSIVE, EmptyAction.LEAVE_EMPTY, args);
     }
 

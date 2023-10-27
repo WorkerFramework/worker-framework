@@ -53,11 +53,11 @@ final class WorkerCore
            System.getenv("CAF_WORKER_ENABLE_DIVERTED_TASK_CHECKING") == null ? 
                 "True" : System.getenv("CAF_WORKER_ENABLE_DIVERTED_TASK_CHECKING"));
 
-    public WorkerCore(final Codec codec, final WorkerThreadPool pool, final ManagedWorkerQueue queue, final MessagePriorityManager priorityManager, final WorkerFactory factory, final ServicePath path, final HealthCheckRegistry healthCheckRegistry, final TransientHealthCheck transientHealthCheck)
+    public WorkerCore(final Codec codec, final WorkerThreadPool pool, final ManagedWorkerQueue queue, final WorkerFactory factory, final ServicePath path, final HealthCheckRegistry healthCheckRegistry, final TransientHealthCheck transientHealthCheck)
     {
         WorkerCallback taskCallback = new CoreWorkerCallback(codec, queue, stats, healthCheckRegistry, transientHealthCheck);
         this.threadPool = Objects.requireNonNull(pool);
-        this.callback = new CoreTaskCallback(codec, stats, new WorkerExecutor(path, taskCallback, factory, pool, priorityManager), pool, queue);
+        this.callback = new CoreTaskCallback(codec, stats, new WorkerExecutor(path, taskCallback, factory, pool), pool, queue);
         this.workerQueue = Objects.requireNonNull(queue);
         this.isStarted = false;
     }

@@ -31,6 +31,8 @@ public class QueueCreator
     public static final String RABBIT_PROP_KEY_TTL = "x-message-ttl";
     public static final String RABBIT_PROP_KEY_DEAD_ROUTING_KEY = "x-dead-letter-routing-key";
     public static final String RABBIT_PROP_KEY_MAX_PRIORITY = "x-max-priority";
+    public static final String RABBIT_PROP_QUEUE_TYPE = "x-queue-type";
+    public static final String RABBIT_PROP_QUEUE_TYPE_QUORUM = "quorum";
     private Durability durability;
     private EmptyAction emptyAction;
     private Exclusivity exclusivity;
@@ -80,12 +82,6 @@ public class QueueCreator
     public QueueCreator withDeadLetterRoutingKey(String routingKey)
     {
         propsMap.put(RABBIT_PROP_KEY_DEAD_ROUTING_KEY, routingKey);
-        return this;
-    }
-
-    public QueueCreator withMaxPriority(int maxPriority)
-    {
-        propsMap.put(RABBIT_PROP_KEY_MAX_PRIORITY, maxPriority);
         return this;
     }
 

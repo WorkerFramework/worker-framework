@@ -98,8 +98,8 @@ public final class RabbitWorkerQueue implements ManagedWorkerQueue
             consumer = new DefaultRabbitConsumer(consumerQueue, consumerImpl);
             WorkerPublisherImpl publisherImpl = new WorkerPublisherImpl(outgoingChannel, metrics, consumerQueue, confirmListener);
             publisher = new EventPoller<>(2, publisherQueue, publisherImpl);
-            declareWorkerQueue(incomingChannel, config.getInputQueue(), config.getMaxPriority());
-            declareWorkerQueue(outgoingChannel, config.getRetryQueue(), config.getMaxPriority());
+            declareWorkerQueue(incomingChannel, config.getInputQueue());
+            declareWorkerQueue(outgoingChannel, config.getRetryQueue());
             synchronized (consumerLock) {
                 consumerTag = incomingChannel.basicConsume(config.getInputQueue(), consumer);
             }
@@ -117,7 +117,7 @@ public final class RabbitWorkerQueue implements ManagedWorkerQueue
                                           int priority, boolean isLastMessage) throws QueueException
     {
         try {
-            declareWorkerQueue(outgoingChannel, targetQueue, config.getMaxPriority());
+            declareWorkerQueue(outgoingChannel, targetQueue);
         } catch (IOException e) {
             throw new QueueException("Failed to submit task", e);
         }
@@ -337,12 +337,12 @@ public final class RabbitWorkerQueue implements ManagedWorkerQueue
         ((Recoverable)conn).addRecoveryListener(new WorkerConnectionListener(callback, listener));
     }
 
-    private void declareWorkerQueue(Channel channel, String queueName, int maxPriority)
+    private void declareWorkerQueue(Channel channel, String queueName)
         throws IOException
     {
         if (!declaredQueues.contains(queueName)) {
 
-            RabbitUtil.declareWorkerQueue(channel, queueName, maxPriority);
+            RabbitUtil.declareWorkerQueue(channel, queueName);
             declaredQueues.add(queueName);
         }
     }
