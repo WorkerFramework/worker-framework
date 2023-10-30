@@ -14,6 +14,7 @@
  * limitations under the License.
  */
 package com.hpe.caf.worker.workertest;
+import com.google.common.base.Strings;
 import com.hpe.caf.util.rabbitmq.QueueCreator;
 import com.rabbitmq.client.Connection;
 import com.rabbitmq.client.Channel;
@@ -35,6 +36,7 @@ import java.util.concurrent.TimeoutException;
 public class RetryLimitIT extends TestWorkerTestBase {
     private static final String POISON_ERROR_MESSAGE = "could not process the item.";
     private static final String TEST_WORKER_RESULT = "TestWorkerResult";
+    private static final String RABBIT_PROP_QUEUE_TYPE_NAME = System.getenv("RABBIT_PROP_QUEUE_TYPE_NAME");
 
     @Test
     public void getResultSuccessIfRetryNumberLessThanRetryLimitTest() throws IOException, TimeoutException {
@@ -69,7 +71,9 @@ public class RetryLimitIT extends TestWorkerTestBase {
             final Channel channel = connection.createChannel();
 
             Map<String, Object> args = new HashMap<>();
-            args.put(QueueCreator.RABBIT_PROP_QUEUE_TYPE, QueueCreator.RABBIT_PROP_QUEUE_TYPE_QUORUM);
+            final String rabbitQueueTypeName = !Strings.isNullOrEmpty(RABBIT_PROP_QUEUE_TYPE_NAME) ?
+                    RABBIT_PROP_QUEUE_TYPE_NAME : QueueCreator.RABBIT_PROP_QUEUE_TYPE_QUORUM;
+            args.put(QueueCreator.RABBIT_PROP_QUEUE_TYPE, rabbitQueueTypeName);
 
             channel.queueDeclare("testworker-out", true, false, false, args);
 

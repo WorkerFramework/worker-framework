@@ -15,6 +15,7 @@
  */
 package com.hpe.caf.worker.workertest;
 
+import com.google.common.base.Strings;
 import com.hpe.caf.util.rabbitmq.QueueCreator;
 import org.json.JSONObject;
 import com.rabbitmq.client.Connection;
@@ -36,6 +37,7 @@ import java.util.concurrent.TimeoutException;
 public class GetWorkerNameIT extends TestWorkerTestBase {
     private static final String POISON_ERROR_MESSAGE = "could not process the item.";
     private static final String WORKER_FRIENDLY_NAME = "TestWorker";
+    private static final String RABBIT_PROP_QUEUE_TYPE_NAME = System.getenv("RABBIT_PROP_QUEUE_TYPE_NAME");
 
     @Test
     public void getWorkerNameInPoisonMessageTest() throws IOException, TimeoutException {
@@ -45,7 +47,9 @@ public class GetWorkerNameIT extends TestWorkerTestBase {
             final Channel channel = connection.createChannel();
 
             Map<String, Object> args = new HashMap<>();
-            args.put(QueueCreator.RABBIT_PROP_QUEUE_TYPE, QueueCreator.RABBIT_PROP_QUEUE_TYPE_QUORUM);
+            final String rabbitQueueTypeName = !Strings.isNullOrEmpty(RABBIT_PROP_QUEUE_TYPE_NAME) ?
+                    RABBIT_PROP_QUEUE_TYPE_NAME : QueueCreator.RABBIT_PROP_QUEUE_TYPE_QUORUM;
+            args.put(QueueCreator.RABBIT_PROP_QUEUE_TYPE, rabbitQueueTypeName);
 
             channel.queueDeclare("testworker-out", true, false, false, args);
 
