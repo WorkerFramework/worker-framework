@@ -21,6 +21,7 @@ import com.rabbitmq.client.Connection;
 import com.rabbitmq.client.ConnectionFactory;
 import com.rabbitmq.client.ExceptionHandler;
 import com.rabbitmq.client.RecoveryDelayHandler;
+import com.google.common.base.Strings;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -39,6 +40,7 @@ import java.util.concurrent.TimeoutException;
 public final class RabbitUtil
 {
     private static final Logger LOG = LoggerFactory.getLogger(RabbitUtil.class);
+    private static final String RABBIT_PROP_QUEUE_TYPE_NAME = System.getenv("RABBIT_PROP_QUEUE_TYPE_NAME");
 
     private RabbitUtil()
     {
@@ -127,7 +129,9 @@ public final class RabbitUtil
         throws IOException
     {
         Map<String, Object> args = new HashMap<>();
-        args.put(QueueCreator.RABBIT_PROP_QUEUE_TYPE, QueueCreator.RABBIT_PROP_QUEUE_TYPE_QUORUM);
+        final String rabbitQueueTypeName = !Strings.isNullOrEmpty(RABBIT_PROP_QUEUE_TYPE_NAME) ?
+                RABBIT_PROP_QUEUE_TYPE_NAME : QueueCreator.RABBIT_PROP_QUEUE_TYPE_QUORUM;
+        args.put(QueueCreator.RABBIT_PROP_QUEUE_TYPE, rabbitQueueTypeName);
         declareQueue(channel, queueName, Durability.DURABLE, Exclusivity.NON_EXCLUSIVE, EmptyAction.LEAVE_EMPTY, args);
     }
 
