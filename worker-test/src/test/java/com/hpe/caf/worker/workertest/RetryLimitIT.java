@@ -36,8 +36,8 @@ import java.util.concurrent.TimeoutException;
 public class RetryLimitIT extends TestWorkerTestBase {
     private static final String POISON_ERROR_MESSAGE = "could not process the item.";
     private static final String TEST_WORKER_RESULT = "TestWorkerResult";
-    private static final String RABBIT_PROP_QUEUE_TYPE_NAME = System.getenv("RABBIT_PROP_QUEUE_TYPE_NAME");
-
+    private static final String RABBIT_PROP_QUEUE_TYPE_NAME = !Strings.isNullOrEmpty(System.getenv("RABBIT_PROP_QUEUE_TYPE_NAME"))?
+            System.getenv("RABBIT_PROP_QUEUE_TYPE_NAME") : QueueCreator.RABBIT_PROP_QUEUE_TYPE_QUORUM;
     @Test
     public void getResultSuccessIfRetryNumberLessThanRetryLimitTest() throws IOException, TimeoutException {
 
@@ -70,10 +70,8 @@ public class RetryLimitIT extends TestWorkerTestBase {
 
             final Channel channel = connection.createChannel();
 
-            Map<String, Object> args = new HashMap<>();
-            final String rabbitQueueTypeName = !Strings.isNullOrEmpty(RABBIT_PROP_QUEUE_TYPE_NAME) ?
-                    RABBIT_PROP_QUEUE_TYPE_NAME : QueueCreator.RABBIT_PROP_QUEUE_TYPE_QUORUM;
-            args.put(QueueCreator.RABBIT_PROP_QUEUE_TYPE, rabbitQueueTypeName);
+            final Map<String, Object> args = new HashMap<>();
+            args.put(QueueCreator.RABBIT_PROP_QUEUE_TYPE, RABBIT_PROP_QUEUE_TYPE_NAME);
 
             channel.queueDeclare("testworker-out", true, false, false, args);
 
