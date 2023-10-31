@@ -61,8 +61,6 @@
     <properties>
         <copyrightYear>2023</copyrightYear>
         <copyrightNotice>Copyright ${project.inceptionYear}-${copyrightYear} Open Text.</copyrightNotice>
-        <maven.compiler.release>17</maven.compiler.release>
-        <netbeans.hint.jdkPlatform>JDK_17</netbeans.hint.jdkPlatform>
     </properties>
 
     <modules>
