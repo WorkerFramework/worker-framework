@@ -42,6 +42,7 @@ public final class RabbitUtil
     private static final Logger LOG = LoggerFactory.getLogger(RabbitUtil.class);
     private static final String RABBIT_PROP_QUEUE_TYPE_NAME = !Strings.isNullOrEmpty(System.getenv("RABBIT_PROP_QUEUE_TYPE_NAME"))?
             System.getenv("RABBIT_PROP_QUEUE_TYPE_NAME") : QueueCreator.RABBIT_PROP_QUEUE_TYPE_QUORUM;
+
     private RabbitUtil()
     {
     }
