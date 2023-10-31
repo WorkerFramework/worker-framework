@@ -37,11 +37,12 @@ public class RetryLimitIT extends TestWorkerTestBase {
     private static final String POISON_ERROR_MESSAGE = "could not process the item.";
     private static final String TEST_WORKER_RESULT = "TestWorkerResult";
     private static final String RABBIT_PROP_QUEUE_TYPE_NAME = !Strings.isNullOrEmpty(System.getenv("RABBIT_PROP_QUEUE_TYPE_NAME"))?
-            System.getenv("RABBIT_PROP_QUEUE_TYPE_NAME") : QueueCreator.RABBIT_PROP_QUEUE_TYPE_QUORUM;
+            System.getenv("RABBIT_PROP_QUEUE_TYPE_NAME") : QueueCreator.RABBIT_PROP_QUEUE_TYPE_CLASSIC;
+
     @Test
     public void getResultSuccessIfRetryNumberLessThanRetryLimitTest() throws IOException, TimeoutException {
 
-        final String decodedTaskData = getResponse(10,2);
+        final String decodedTaskData = getResponse(10, 2);
 
         Assert.assertTrue(decodedTaskData.contains(TEST_WORKER_RESULT));
 
@@ -50,7 +51,7 @@ public class RetryLimitIT extends TestWorkerTestBase {
     @Test
     public void getPoisonMessageIfRetryNumberGreaterThanRetryLimitTest() throws IOException, TimeoutException {
 
-        final String decodedTaskData = getResponse(2,3);
+        final String decodedTaskData = getResponse(2, 3);
 
         Assert.assertTrue(decodedTaskData.contains(POISON_ERROR_MESSAGE));
 
@@ -59,7 +60,7 @@ public class RetryLimitIT extends TestWorkerTestBase {
     @Test
     public void getPoisonMessageIfRetryNumberEqualToRetryLimitTest() throws IOException, TimeoutException {
 
-        final String decodedTaskData = getResponse(10,10);
+        final String decodedTaskData = getResponse(10, 10);
 
         Assert.assertTrue(decodedTaskData.contains(POISON_ERROR_MESSAGE));
 
