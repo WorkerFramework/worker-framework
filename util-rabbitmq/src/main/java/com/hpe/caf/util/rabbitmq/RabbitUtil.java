@@ -40,7 +40,7 @@ import java.util.concurrent.TimeoutException;
 public final class RabbitUtil
 {
     private static final Logger LOG = LoggerFactory.getLogger(RabbitUtil.class);
-    private static final String RABBIT_PROP_QUEUE_TYPE_NAME = !Strings.isNullOrEmpty(System.getenv("RABBIT_PROP_QUEUE_TYPE_NAME"))?
+    private static final String RABBIT_PROP_QUEUE_TYPE_NAME = !Strings.isNullOrEmpty(System.getenv("RABBIT_PROP_QUEUE_TYPE_NAME")) ?
             System.getenv("RABBIT_PROP_QUEUE_TYPE_NAME") : QueueCreator.RABBIT_PROP_QUEUE_TYPE_CLASSIC;
 
     private RabbitUtil()
@@ -130,7 +130,7 @@ public final class RabbitUtil
         throws IOException
     {
         final Map<String, Object> args = new HashMap<>();
-        LOG.info("Queue type set for queue {}: {}",queueName, RABBIT_PROP_QUEUE_TYPE_NAME);
+        LOG.warn("Queue type set for queue {}: {}",queueName, RABBIT_PROP_QUEUE_TYPE_NAME);
         args.put(QueueCreator.RABBIT_PROP_QUEUE_TYPE, RABBIT_PROP_QUEUE_TYPE_NAME);
         declareQueue(channel, queueName, Durability.DURABLE, Exclusivity.NON_EXCLUSIVE, EmptyAction.LEAVE_EMPTY, args);
     }
