@@ -130,6 +130,7 @@ public final class RabbitUtil
         throws IOException
     {
         final Map<String, Object> args = new HashMap<>();
+        LOG.info("Queue type set: {}",RABBIT_PROP_QUEUE_TYPE_NAME);
         args.put(QueueCreator.RABBIT_PROP_QUEUE_TYPE, RABBIT_PROP_QUEUE_TYPE_NAME);
         declareQueue(channel, queueName, Durability.DURABLE, Exclusivity.NON_EXCLUSIVE, EmptyAction.LEAVE_EMPTY, args);
     }
