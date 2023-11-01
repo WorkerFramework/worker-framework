@@ -20,7 +20,6 @@ import com.hpe.caf.api.Codec;
 import com.hpe.caf.api.CodecException;
 import com.hpe.caf.api.ConfigurationException;
 import com.hpe.caf.api.ConfigurationSource;
-import com.hpe.caf.api.DecodeMethod;
 import com.hpe.caf.api.HealthResult;
 import com.hpe.caf.api.worker.*;
 import com.hpe.caf.codec.JsonCodec;
@@ -143,8 +142,7 @@ public class WorkerCoreTest
         // if the result didn't get back to us, then result will be null
         Assert.assertNotNull(result);
         // deserialise and verify result data
-        final QueueTaskMessage queueTaskMessage = codec.deserialise(result, QueueTaskMessage.class, DecodeMethod.LENIENT);
-        final TaskMessage taskMessage = QueueTaskMessageFunctions.from(queueTaskMessage, codec);
+        final TaskMessage taskMessage = codec.deserialise(result, TaskMessage.class);
         
         //assert
         Assert.assertEquals(TaskStatus.RESULT_SUCCESS, taskMessage.getTaskStatus());
