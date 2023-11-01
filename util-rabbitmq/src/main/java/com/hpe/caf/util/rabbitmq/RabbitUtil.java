@@ -126,10 +126,14 @@ public final class RabbitUtil
      * @param queueName the name of the worker queue
      * @throws IOException if the queue is not valid and cannot be used, this is likely NOT retryable
      */
-    public static void declareWorkerQueue(Channel channel, String queueName)
+    public static void declareWorkerQueue(Channel channel, String queueName, int maxPriority)
         throws IOException
     {
         final Map<String, Object> args = new HashMap<>();
+        if (maxPriority > 0 && Objects.equals(RABBIT_PROP_QUEUE_TYPE_NAME, "classic")) {
+            LOG.warn("Setting up priority to: {}", maxPriority);
+            args.put(QueueCreator.RABBIT_PROP_KEY_MAX_PRIORITY, maxPriority);
+        }
         LOG.warn("Queue type set for queue {}: {}",queueName, RABBIT_PROP_QUEUE_TYPE_NAME);
         args.put(QueueCreator.RABBIT_PROP_QUEUE_TYPE, RABBIT_PROP_QUEUE_TYPE_NAME);
         declareQueue(channel, queueName, Durability.DURABLE, Exclusivity.NON_EXCLUSIVE, EmptyAction.LEAVE_EMPTY, args);
