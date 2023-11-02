@@ -130,6 +130,8 @@ public final class RabbitUtil
         throws IOException
     {
         final Map<String, Object> args = new HashMap<>();
+        LOG.warn("maxPriority: {}",maxPriority);
+        LOG.warn("Queue type: {}",RABBIT_PROP_QUEUE_TYPE_NAME);
         if (maxPriority > 0 && Objects.equals(RABBIT_PROP_QUEUE_TYPE_NAME, "classic")) {
             LOG.warn("Setting up priority to: {}", maxPriority);
             args.put(QueueCreator.RABBIT_PROP_KEY_MAX_PRIORITY, maxPriority);
