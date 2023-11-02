@@ -47,9 +47,9 @@ public class InMemoryDataStoreTest
     @Test
     public void testDataStore() throws DataStoreException, IOException
     {
-        byte[] input = testStr.getBytes();
+        byte[] input = testStr.getBytes(StandardCharsets.UTF_8);
         String absoluteReference = dataStore.store(input, partialReference);
-        String retrievedString = IOUtils.toString(dataStore.retrieve(absoluteReference));
+        String retrievedString = IOUtils.toString(dataStore.retrieve(absoluteReference), StandardCharsets.UTF_8);
         Assert.assertEquals("Test string should equal the retrieved string.", testStr, retrievedString);
     }
 
@@ -58,7 +58,7 @@ public class InMemoryDataStoreTest
     {
         InputStream input = new ByteArrayInputStream(testStr.getBytes(StandardCharsets.UTF_8));
         String absoluteReference = dataStore.store(input, partialReference);
-        String retrievedString = IOUtils.toString(dataStore.retrieve(absoluteReference));
+        String retrievedString = IOUtils.toString(dataStore.retrieve(absoluteReference), StandardCharsets.UTF_8);
         Assert.assertEquals("Test string should equal the retrieved string.", testStr, retrievedString);
     }
 
@@ -68,15 +68,15 @@ public class InMemoryDataStoreTest
         String fileLocation = "src/test/resources/testDataStore_path.txt";
         Path path = Paths.get(fileLocation);
         String absoluteReference = dataStore.store(path, partialReference);
-        String retrievedString = IOUtils.toString(dataStore.retrieve(absoluteReference));
-        String actualString = new String(Files.readAllBytes(path));
+        String retrievedString = IOUtils.toString(dataStore.retrieve(absoluteReference), StandardCharsets.UTF_8);
+        String actualString = new String(Files.readAllBytes(path), StandardCharsets.UTF_8);
         Assert.assertEquals("Test string should equal the retrieved string.", actualString, retrievedString);
     }
 
     @Test(expectedExceptions = DataStoreException.class)
     public void testDelete() throws DataStoreException
     {
-        byte[] input = testStr.getBytes();
+        byte[] input = testStr.getBytes(StandardCharsets.UTF_8);
         String absoluteReference = dataStore.store(input, partialReference);
         dataStore.delete(absoluteReference);
         // If the delete passes, then a retrieve will throw an exception as the reference does not exist.
@@ -86,7 +86,7 @@ public class InMemoryDataStoreTest
     @Test
     public void testSizeMethod() throws DataStoreException, IOException
     {
-        byte[] input = testStr.getBytes();
+        byte[] input = testStr.getBytes(StandardCharsets.UTF_8);
         String absoluteReference = dataStore.store(input, partialReference);
         long size = dataStore.size(absoluteReference);
         Assert.assertEquals("Test string bytes length should equal the retrieved size.", testStr.getBytes().length, size);
@@ -95,7 +95,7 @@ public class InMemoryDataStoreTest
     @Test(expectedExceptions = DataStoreException.class)
     public void testSizeMethod_failure() throws DataStoreException, IOException
     {
-        byte[] input = testStr.getBytes();
+        byte[] input = testStr.getBytes(StandardCharsets.UTF_8);
         String absoluteReference = dataStore.store(input, partialReference);
         dataStore.delete(absoluteReference);
         long size = dataStore.size(absoluteReference);

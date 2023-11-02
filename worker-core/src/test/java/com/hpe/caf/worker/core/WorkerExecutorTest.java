@@ -79,6 +79,7 @@ public class WorkerExecutorTest
     }
 
     @Test
+    @SuppressWarnings("deprecation")
     public void testForwardDiscardTask()
         throws InvalidNameException, TaskRejectedException, InvalidTaskException
     {
