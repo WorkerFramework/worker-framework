@@ -21,5 +21,5 @@
     retryQueue: getenv("CAF_WORKER_RETRY_QUEUE") || undefined,
     rejectedQueue: "worker-rejected",
     retryLimit: getenv("CAF_WORKER_RETRY_LIMIT") || 10,
-    maxPriority: getenv("CAF_RABBITMQ_MAX_PRIORITY") || 0
+    maxPriority: 0
 });
