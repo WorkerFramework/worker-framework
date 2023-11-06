@@ -21,6 +21,7 @@ import com.hpe.caf.api.worker.TaskStatus;
 import com.hpe.caf.api.worker.Worker;
 import com.hpe.caf.api.worker.WorkerResponse;
 import com.hpe.caf.api.worker.WorkerTaskData;
+import jakarta.annotation.Nonnull;
 import java.nio.charset.StandardCharsets;
 
 final class TestWorker implements Worker
@@ -35,6 +36,7 @@ final class TestWorker implements Worker
         this.config = config;
     }
 
+    @Nonnull
     @Override
     public WorkerResponse doWork() throws InterruptedException, TaskRejectedException, InvalidTaskException
     {
@@ -49,6 +51,7 @@ final class TestWorker implements Worker
             null);
     }
 
+    @Nonnull
     @Override
     public WorkerResponse getGeneralFailureResult(final Throwable t)
     {
@@ -69,6 +72,7 @@ final class TestWorker implements Worker
         return 1;
     }
 
+    @Nonnull
     @Override
     public String getWorkerIdentifier()
     {

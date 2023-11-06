@@ -61,7 +61,7 @@ class StreamingWorkerWrapper implements Runnable
             if (workerTask.isPoison()) {
                 LOG.warn(workerFriendlyName + " could not process the item.");
                 sendPoisonMessage();
-                throw new RuntimeException(workerFriendlyName + " could not process the item.");
+                workerTask.setResponse(worker.getPoisonMessageResult(workerFriendlyName));
             } else {
                 Timer.Context t = TIMER.time();
                 MDC.put(CORRELATION_ID, workerTask.getCorrelationId());

@@ -21,9 +21,14 @@ import com.hpe.caf.api.worker.DataStore;
 import com.hpe.caf.api.worker.WorkerException;
 import com.hpe.caf.api.worker.WorkerFactory;
 import com.hpe.caf.api.worker.WorkerFactoryProvider;
+import jakarta.annotation.Nonnull;
 
+/**
+ * Simple test worker used for testing the Worker Framework.
+ */
 public final class TestWorkerFactoryProvider implements WorkerFactoryProvider
 {
+    @Nonnull
     @Override
     public WorkerFactory getWorkerFactory(
         final ConfigurationSource configSource,

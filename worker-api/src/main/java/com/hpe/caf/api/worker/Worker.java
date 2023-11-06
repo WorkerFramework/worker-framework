@@ -66,4 +66,17 @@ public interface Worker
      * @return a response in case of a general unhandled exception failure scenario
      */
     WorkerResponse getGeneralFailureResult(Throwable t);
+
+    /**
+     * If a message has been identified as a poison message, prepare a WorkerResponse that includes the friendly name
+     * of the worker.
+     * For compatibility with existing Worker implementations a default implementation has been provided.
+     * 
+     * @since 6.1.0
+     * @param workerFriendlyName the worker's friendly name
+     * @return a response containing details of the worker that encountered a poison message
+     */
+    default WorkerResponse getPoisonMessageResult(String workerFriendlyName) {
+        return getGeneralFailureResult(new RuntimeException(workerFriendlyName + " could not process the item."));
+    }
 }
