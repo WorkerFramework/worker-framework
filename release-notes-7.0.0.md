@@ -23,7 +23,7 @@ ${version-number}
   from Jakarta EE 8 to Jakarta EE 9.  This may mean that `javax.*` imports in worker
   code need to be updated to `jakarta.*` instead.
 
-- **I854021**: Reinstate base64 encoding of taskData
+- **I854021**: Reinstate base64 encoding of taskData  
   TaskData is once again encoded using base64 and the V4 message format no longer supported.
 
 #### Known Issues
