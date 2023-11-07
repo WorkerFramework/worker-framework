@@ -23,4 +23,6 @@ ${version-number}
   from Jakarta EE 8 to Jakarta EE 9.  This may mean that `javax.*` imports in worker
   code need to be updated to `jakarta.*` instead.
 
+- **US853025**: The `util-store` module has been removed
+
 #### Known Issues

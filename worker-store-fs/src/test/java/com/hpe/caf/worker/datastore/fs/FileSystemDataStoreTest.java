@@ -22,9 +22,6 @@ import com.hpe.caf.api.worker.DataStore;
 import com.hpe.caf.api.worker.DataStoreException;
 import com.hpe.caf.api.worker.FilePathProvider;
 import com.hpe.caf.api.worker.ReferenceNotFoundException;
-import com.hpe.caf.util.store.HashStoreResult;
-import com.hpe.caf.util.store.StoreUtil;
-import org.apache.commons.codec.digest.DigestUtils;
 import org.testng.annotations.AfterMethod;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
@@ -89,19 +86,6 @@ public class FileSystemDataStoreTest
     }
 
     @Test
-    public void testDataStoreStreamHash()
-        throws ConfigurationException, DataStoreException, IOException
-    {
-        FileSystemDataStoreConfiguration conf = createConfig();
-        DataStore store = new FileSystemDataStore(conf);
-        final byte[] data = testData.getBytes(StandardCharsets.UTF_8);
-        final HashStoreResult storeResult = StoreUtil.hashStore(store, new ByteArrayInputStream(data), "test");
-        verifyStoredData(store, data, storeResult.getReference());
-        Assert.assertEquals(testData.length(), store.size(storeResult.getReference()));
-        Assert.assertEquals(DigestUtils.sha1Hex(data), storeResult.getHash());
-    }
-
-    @Test
     public void testDataStoreBytes()
         throws ConfigurationException, DataStoreException, IOException
     {
@@ -111,19 +95,6 @@ public class FileSystemDataStoreTest
         String storeRef = store.store(data, "test");
         verifyStoredData(store, data, storeRef);
         Assert.assertEquals(testData.length(), store.size(storeRef));
-    }
-
-    @Test
-    public void testDataStoreBytesHash()
-        throws ConfigurationException, DataStoreException, IOException
-    {
-        FileSystemDataStoreConfiguration conf = createConfig();
-        DataStore store = new FileSystemDataStore(conf);
-        final byte[] data = testData.getBytes(StandardCharsets.UTF_8);
-        final HashStoreResult storeResult = StoreUtil.hashStore(store, data, "test");
-        verifyStoredData(store, data, storeResult.getReference());
-        Assert.assertEquals(testData.length(), store.size(storeResult.getReference()));
-        Assert.assertEquals(DigestUtils.sha1Hex(data), storeResult.getHash());
     }
 
     @Test
@@ -138,23 +109,6 @@ public class FileSystemDataStoreTest
         String storeRef = store.store(p, "test");
         verifyStoredData(store, data, storeRef);
         Assert.assertEquals(testData.length(), store.size(storeRef));
-    }
-
-    @Test
-    public void testDataStorePathHash()
-        throws ConfigurationException, DataStoreException, IOException
-    {
-        FileSystemDataStoreConfiguration conf = createConfig();
-        DataStore store = new FileSystemDataStore(conf);
-        final byte[] data = testData.getBytes(StandardCharsets.UTF_8);
-        Path p = Paths.get(temp.getAbsolutePath()).resolve(UUID.randomUUID().toString());
-        Files.write(p, data);
-        final HashStoreResult storeResult = StoreUtil.hashStore(store, p, "test");
-        try (InputStream inStr = store.retrieve(storeResult.getReference())) {
-            verifyData(data, inStr);
-        }
-        Assert.assertEquals(testData.length(), store.size(storeResult.getReference()));
-        Assert.assertEquals(DigestUtils.sha1Hex(data), storeResult.getHash());
     }
 
     @Test
