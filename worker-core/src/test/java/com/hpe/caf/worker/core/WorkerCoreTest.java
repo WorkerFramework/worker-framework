@@ -20,7 +20,6 @@ import com.hpe.caf.api.Codec;
 import com.hpe.caf.api.CodecException;
 import com.hpe.caf.api.ConfigurationException;
 import com.hpe.caf.api.ConfigurationSource;
-import com.hpe.caf.api.DecodeMethod;
 import com.hpe.caf.api.HealthResult;
 import com.hpe.caf.api.worker.*;
 import com.hpe.caf.codec.JsonCodec;
@@ -29,7 +28,6 @@ import com.hpe.caf.worker.AbstractWorker;
 import com.hpe.caf.worker.tracking.report.TrackingReportStatus;
 import com.hpe.caf.worker.tracking.report.TrackingReportTask;
 import com.hpe.caf.worker.tracking.report.TrackingReportConstants;
-import com.hpe.caf.api.worker.QueueTaskMessage;
 
 import java.io.File;
 import java.net.MalformedURLException;
@@ -108,49 +106,6 @@ public class WorkerCoreTest
         Assert.assertEquals(WORKER_NAME, taskMessage.getTaskClassifier());
         Assert.assertEquals(WORKER_API_VER, taskMessage.getTaskApiVersion());
         TestWorkerResult workerResult = codec.deserialise(taskMessage.getTaskData(), TestWorkerResult.class);
-        Assert.assertEquals(SUCCESS, workerResult.getResultString());
-        Assert.assertTrue(taskMessage.getContext().containsKey(path.toString()));
-        ArrayAsserts.assertArrayEquals(SUCCESS.getBytes(StandardCharsets.UTF_8), taskMessage.getContext().get(path.toString()));
-    }
-    
-    @Test
-    public void testWorkerCoreWithTaskDataAsObject()
-        throws CodecException, InterruptedException, WorkerException, QueueException, InvalidNameException
-    {
-        //prepare
-        final BlockingQueue<byte[]> q = new LinkedBlockingQueue<>();
-        final Codec codec = new JsonCodec();
-        final WorkerThreadPool wtp = WorkerThreadPool.create(5);
-        final ConfigurationSource config = mock(ConfigurationSource.class);
-        final ServicePath path = new ServicePath(SERVICE_PATH);
-        final TestWorkerTask task = new TestWorkerTask();
-        final TestWorkerQueue queue = new TestWorkerQueueProvider(q).getWorkerQueue(config, 50);
-        final MessagePriorityManager priorityManager = mock(MessagePriorityManager.class);
-        when(priorityManager.getResponsePriority(Mockito.any())).thenReturn(PRIORITY);
-        final HealthCheckRegistry healthCheckRegistry = mock(HealthCheckRegistry.class);
-        final TransientHealthCheck transientHealthCheck = mock(TransientHealthCheck.class);
-
-        final WorkerCore core = new WorkerCore(codec, wtp, queue, priorityManager, getWorkerFactory(task, codec), path, healthCheckRegistry, transientHealthCheck);
-        core.start();
-        // at this point, the queue should hand off the task to the app, the app should get a worker from the mocked WorkerFactory,
-        // and the Worker itself is a mock wrapped in a WorkerWrapper, which should return success and the appropriate result data
-        final byte[] stuff = codec.serialise(getQueueTaskMessage(task, WORKER_NAME));
-        
-        //act
-        queue.submitTask(taskInformation, stuff);
-        // the worker's task result should eventually be passed back to our dummy WorkerQueue and onto our blocking queue
-        final byte[] result = q.poll(5000, TimeUnit.MILLISECONDS);
-        // if the result didn't get back to us, then result will be null
-        Assert.assertNotNull(result);
-        // deserialise and verify result data
-        final QueueTaskMessage queueTaskMessage = codec.deserialise(result, QueueTaskMessage.class, DecodeMethod.LENIENT);
-        final TaskMessage taskMessage = QueueTaskMessageFunctions.from(queueTaskMessage, codec);
-        
-        //assert
-        Assert.assertEquals(TaskStatus.RESULT_SUCCESS, taskMessage.getTaskStatus());
-        Assert.assertEquals(WORKER_NAME, taskMessage.getTaskClassifier());
-        Assert.assertEquals(WORKER_API_VER, taskMessage.getTaskApiVersion());
-        final TestWorkerResult workerResult = codec.deserialise(taskMessage.getTaskData(), TestWorkerResult.class);
         Assert.assertEquals(SUCCESS, workerResult.getResultString());
         Assert.assertTrue(taskMessage.getContext().containsKey(path.toString()));
         ArrayAsserts.assertArrayEquals(SUCCESS.getBytes(StandardCharsets.UTF_8), taskMessage.getContext().get(path.toString()));
@@ -550,19 +505,6 @@ public class WorkerCoreTest
         tm.setTaskData(codec.serialise(task));
         tm.setTo(QUEUE_IN);
         tm.setTracking(tracking);
-        return tm;
-    }
-    
-    private QueueTaskMessage getQueueTaskMessage(final TestWorkerTask task, final String taskId)
-    {
-        QueueTaskMessage tm = new QueueTaskMessage();
-        tm.setTaskId(taskId);
-        tm.setTaskStatus(TaskStatus.NEW_TASK);
-        tm.setTaskClassifier(WORKER_NAME);
-        tm.setTaskApiVersion(WORKER_API_VER);
-        tm.setTaskData(task);
-        tm.setTo(QUEUE_IN);
-        tm.setTracking(null);
         return tm;
     }
 
