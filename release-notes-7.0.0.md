@@ -26,4 +26,6 @@ ${version-number}
 - **I854021**: Reinstate base64 encoding of taskData  
   TaskData is once again encoded using base64 and the V4 message format no longer supported.
 
+- **US853025**: The `util-store` module has been removed
+
 #### Known Issues

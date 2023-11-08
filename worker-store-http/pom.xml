@@ -64,11 +64,6 @@
             <scope>test</scope>
         </dependency>
         <dependency>
-            <groupId>com.github.workerframework</groupId>
-            <artifactId>util-store</artifactId>
-            <scope>test</scope>
-        </dependency>
-        <dependency>
             <groupId>commons-codec</groupId>
             <artifactId>commons-codec</artifactId>
             <scope>test</scope>

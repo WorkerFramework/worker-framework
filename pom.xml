@@ -70,7 +70,6 @@
         <module>worker-api</module>
         <module>worker-caf</module>
         <module>util-rabbitmq</module>
-        <module>util-store</module>
         <module>standard-worker-container</module>
         <module>worker-core</module>
         <module>worker-queue-rabbit</module>
@@ -274,11 +273,6 @@
             <dependency>
                 <groupId>com.github.workerframework</groupId>
                 <artifactId>util-rabbitmq</artifactId>
-                <version>7.0.0-SNAPSHOT</version>
-            </dependency>
-            <dependency>
-                <groupId>com.github.workerframework</groupId>
-                <artifactId>util-store</artifactId>
                 <version>7.0.0-SNAPSHOT</version>
             </dependency>
             <dependency>
