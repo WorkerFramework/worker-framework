@@ -25,6 +25,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
+import java.security.KeyManagementException;
+import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
@@ -56,8 +58,7 @@ public final class RabbitUtil
      * @throws TimeoutException if the connection fails to establish
      */
     public static Connection createRabbitConnection(String host, int port, String user, String pass)
-        throws IOException, TimeoutException
-    {
+            throws IOException, TimeoutException, NoSuchAlgorithmException, KeyManagementException {
         final RabbitConfiguration rc = new RabbitConfiguration();
         rc.setRabbitHost(host);
         rc.setRabbitPort(port);
@@ -77,8 +78,8 @@ public final class RabbitUtil
      * @throws IOException if the connection fails to establish
      * @throws TimeoutException if the connection fails to establish
      */
-    public static Connection createRabbitConnection(final RabbitConfiguration rc) throws IOException, TimeoutException
-    {
+    public static Connection createRabbitConnection(final RabbitConfiguration rc)
+            throws IOException, TimeoutException, NoSuchAlgorithmException, KeyManagementException {
         return createRabbitConnection(rc, null);
     }
 
@@ -93,8 +94,7 @@ public final class RabbitUtil
      */
     public static Connection createRabbitConnection(final RabbitConfiguration rc,
                                                     final ExceptionHandler exceptionHandler)
-            throws IOException, TimeoutException
-    {
+            throws IOException, TimeoutException, NoSuchAlgorithmException, KeyManagementException {
         final ConnectionFactory factory = new ConnectionFactory();
         factory.setUsername(rc.getRabbitUser());
         factory.setPassword(rc.getRabbitPassword());
@@ -112,6 +112,7 @@ public final class RabbitUtil
         }
         factory.setRecoveryDelayHandler(new RecoveryDelayHandler.ExponentialBackoffDelayHandler(backOff));
         factory.setAutomaticRecoveryEnabled(true);
+        factory.useSslProtocol();
         return factory.newConnection();
     }
 
