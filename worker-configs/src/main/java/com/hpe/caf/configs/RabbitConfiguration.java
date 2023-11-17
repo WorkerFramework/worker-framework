@@ -17,10 +17,7 @@ package com.hpe.caf.configs;
 
 import com.hpe.caf.api.Encrypted;
 
-import jakarta.validation.constraints.Max;
-import jakarta.validation.constraints.Min;
-import jakarta.validation.constraints.NotNull;
-import jakarta.validation.constraints.Size;
+import jakarta.validation.constraints.*;
 
 /**
  * General configuration for a RabbitMQ server connection from a client.
@@ -48,6 +45,7 @@ public class RabbitConfiguration
     /**
      * The URL of the RabbitMQ client
      */
+    @Null
     private String rabbitUrl;
     /**
      * The host that runs RabbitMQ.
@@ -119,6 +117,10 @@ public class RabbitConfiguration
      */
     public String getRabbitUrl() {
         return rabbitUrl;
+    }
+
+    public void setRabbitUrl(final String rabbitUrl) {
+        this.rabbitUrl = rabbitUrl;
     }
 
     /**
