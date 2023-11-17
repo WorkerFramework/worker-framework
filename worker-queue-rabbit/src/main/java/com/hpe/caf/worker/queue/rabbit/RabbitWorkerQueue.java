@@ -26,6 +26,9 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
+import java.net.URISyntaxException;
+import java.security.KeyManagementException;
+import java.security.NoSuchAlgorithmException;
 import java.util.*;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.LinkedBlockingQueue;
@@ -103,7 +106,7 @@ public final class RabbitWorkerQueue implements ManagedWorkerQueue
             synchronized (consumerLock) {
                 consumerTag = incomingChannel.basicConsume(config.getInputQueue(), consumer);
             }
-        } catch (IOException | TimeoutException e) {
+        } catch (IOException | TimeoutException | URISyntaxException | NoSuchAlgorithmException | KeyManagementException e) {
             throw new QueueException("Failed to establish queues", e);
         }
         publisherThread = new Thread(publisher);
@@ -331,8 +334,7 @@ public final class RabbitWorkerQueue implements ManagedWorkerQueue
     }
 
     private void createConnection(TaskCallback callback, WorkerConfirmListener listener)
-        throws IOException, TimeoutException
-    {
+            throws IOException, TimeoutException, URISyntaxException, NoSuchAlgorithmException, KeyManagementException {
         conn = RabbitUtil.createRabbitConnection(config.getRabbitConfiguration());
         ((Recoverable)conn).addRecoveryListener(new WorkerConnectionListener(callback, listener));
     }
