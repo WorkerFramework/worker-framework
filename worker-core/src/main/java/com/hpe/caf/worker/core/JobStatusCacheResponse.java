@@ -44,7 +44,7 @@ public class JobStatusCacheResponse extends CacheResponse
             responseHeaders = (Map<String, List<String>>) ois.readObject();
         } catch (ClassNotFoundException e) {
             LOG.error("Failed to read cached job status response headers. ", e);
-            responseHeaders = Collections.EMPTY_MAP;
+            responseHeaders = Collections.emptyMap();
         }
     }
 

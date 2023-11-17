@@ -18,12 +18,14 @@ package com.hpe.caf.worker.datastore.s3;
 import com.amazonaws.ClientConfiguration;
 import com.amazonaws.Protocol;
 import com.amazonaws.auth.AWSCredentials;
+import com.amazonaws.auth.AWSStaticCredentialsProvider;
 import com.amazonaws.auth.BasicAWSCredentials;
-import com.amazonaws.auth.profile.ProfileCredentialsProvider;
 import com.amazonaws.services.devicefarm.model.ArgumentException;
-import com.amazonaws.services.s3.AmazonS3Client;
+import com.amazonaws.services.s3.AmazonS3;
+import com.amazonaws.services.s3.AmazonS3ClientBuilder;
 import com.amazonaws.services.s3.model.*;
 import com.amazonaws.services.s3.transfer.TransferManager;
+import com.amazonaws.services.s3.transfer.TransferManagerBuilder;
 import com.amazonaws.services.s3.transfer.Upload;
 import com.amazonaws.util.StringUtils;
 import com.hpe.caf.api.HealthResult;
@@ -56,7 +58,7 @@ public class S3DataStore implements ManagedDataStore
     private final DataStoreMetricsReporter metrics = new S3DataStoreMetricsReporter();
     private static final Logger LOG = LoggerFactory.getLogger(S3DataStore.class);
 
-    private AmazonS3Client amazonS3Client = null;
+    private AmazonS3 amazonS3Client = null;
     private String bucketName = null;
 
     public S3DataStore(final S3DataStoreConfiguration s3DataStoreConfiguration)
@@ -74,7 +76,10 @@ public class S3DataStore implements ManagedDataStore
         }
         AWSCredentials credentials = new BasicAWSCredentials(s3DataStoreConfiguration.getAccessKey(), s3DataStoreConfiguration.getSecretKey());
         bucketName = s3DataStoreConfiguration.getBucketName();
-        amazonS3Client = new AmazonS3Client(credentials, clientCfg);
+        amazonS3Client = AmazonS3ClientBuilder.standard()
+            .withCredentials(new AWSStaticCredentialsProvider(credentials))
+            .withClientConfiguration(clientCfg)
+            .build();
         amazonS3Client.setBucketAccelerateConfiguration(new SetBucketAccelerateConfigurationRequest(bucketName,
                                                                                                     new BucketAccelerateConfiguration(BucketAccelerateStatus.Enabled)));
     }
@@ -154,7 +159,7 @@ public class S3DataStore implements ManagedDataStore
                 objectMetadata.setContentLength(length);
             }
 
-            TransferManager transferManager = new TransferManager(amazonS3Client);
+            TransferManager transferManager = TransferManagerBuilder.standard().withS3Client(amazonS3Client).build();
             Upload upload = transferManager.upload(bucketName, fullReference, inputStream, objectMetadata);
 
             upload.waitForCompletion();
@@ -198,7 +203,7 @@ public class S3DataStore implements ManagedDataStore
         try {
             LOG.debug("Received healthcheck request for S3.");
 
-            if (!amazonS3Client.doesBucketExist(bucketName)) {
+            if (!amazonS3Client.doesBucketExistV2(bucketName)) {
                 return new HealthResult(HealthStatus.UNHEALTHY, "S3 bucket " + bucketName + " does not exist.");
             }
         } catch (Exception e) {

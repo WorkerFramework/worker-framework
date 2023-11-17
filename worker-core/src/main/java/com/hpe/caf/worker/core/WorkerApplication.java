@@ -34,16 +34,14 @@ import com.hpe.caf.config.system.SystemBootstrapConfiguration;
 import com.hpe.caf.naming.ServicePath;
 import com.hpe.caf.util.ModuleLoader;
 import com.hpe.caf.util.ModuleLoaderException;
-import com.hpe.caf.util.jerseycompat.Jersey2ServiceIteratorProvider;
 
-import ch.qos.logback.classic.util.ContextInitializer;
-import io.dropwizard.Application;
+import ch.qos.logback.classic.util.DefaultJoranConfigurator;
 import io.dropwizard.configuration.EnvironmentVariableSubstitutor;
 import io.dropwizard.configuration.SubstitutingSourceProvider;
-import io.dropwizard.logging.LoggingUtil;
-import io.dropwizard.setup.Bootstrap;
-import io.dropwizard.setup.Environment;
-import org.glassfish.jersey.internal.ServiceFinder;
+import io.dropwizard.core.Application;
+import io.dropwizard.core.setup.Bootstrap;
+import io.dropwizard.core.setup.Environment;
+import io.dropwizard.logging.common.LoggingUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -70,7 +68,6 @@ public final class WorkerApplication extends Application<WorkerConfiguration>
     public static void main(final String[] args)
         throws Exception
     {
-        ServiceFinder.setIteratorProvider(new Jersey2ServiceIteratorProvider());
         new WorkerApplication().run(args);
     }
 
@@ -204,8 +201,8 @@ public final class WorkerApplication extends Application<WorkerConfiguration>
     }
 
     private static boolean shouldBootstrapLogging() {
-        final ContextInitializer ci = new ContextInitializer(LoggingUtil.getLoggerContext());
-        final URL url = ci.findURLOfDefaultConfigurationFile(true);
+        final DefaultJoranConfigurator djc = new DefaultJoranConfigurator();
+        final URL url = djc.findURLOfDefaultConfigurationFile(false);
         return url == null;
     }
 

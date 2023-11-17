@@ -23,19 +23,15 @@
 
     <groupId>com.github.workerframework</groupId>
     <artifactId>worker-core</artifactId>
-    <version>6.1.0-SNAPSHOT</version>
+    <version>7.0.0-SNAPSHOT</version>
 
     <parent>
         <groupId>com.github.workerframework</groupId>
         <artifactId>worker-framework-aggregator</artifactId>
-        <version>6.1.0-SNAPSHOT</version>
+        <version>7.0.0-SNAPSHOT</version>
     </parent>
 
     <dependencies>
-        <dependency>
-            <groupId>commons-codec</groupId>
-            <artifactId>commons-codec</artifactId>
-        </dependency>
         <dependency>
             <groupId>com.google.guava</groupId>
             <artifactId>guava</artifactId>
@@ -65,16 +61,12 @@
             <artifactId>util-moduleloader</artifactId>
         </dependency>
         <dependency>
-            <groupId>com.github.cafapi.util</groupId>
-            <artifactId>util-jerseycompat</artifactId>
-        </dependency>
-        <dependency>
             <groupId>io.dropwizard</groupId>
             <artifactId>dropwizard-core</artifactId>
         </dependency>
         <dependency>
-            <groupId>org.glassfish.jersey.core</groupId>
-            <artifactId>jersey-common</artifactId>
+            <groupId>org.apache.commons</groupId>
+            <artifactId>commons-text</artifactId>
         </dependency>
         <dependency>
             <groupId>io.dropwizard.metrics</groupId>
@@ -112,9 +104,15 @@
             <groupId>io.dropwizard</groupId>
             <artifactId>dropwizard-logging</artifactId>
         </dependency>
+        <!--
+            This is for compatibility with Hibernate Validator 8.
+            dropwizard-validation and jersey-bean-validation are referencing org.glassfish:jakarta.el so that has been excluded.
+            This can probably be removed when DropWizard is updated to use Hibernate Validator 8.
+        -->
         <dependency>
-            <groupId>com.fasterxml.jackson.core</groupId>
-            <artifactId>jackson-databind</artifactId>
+            <groupId>org.glassfish.expressly</groupId>
+            <artifactId>expressly</artifactId>
+            <scope>runtime</scope>
         </dependency>
         <dependency>
             <groupId>junit</groupId>
@@ -142,20 +140,5 @@
             <scope>test</scope>
         </dependency>
     </dependencies>
-
-    <build>
-        <plugins>
-            <!-- Exclude the banner file when checking license headers -->
-            <plugin>
-                <groupId>com.mycila</groupId>
-                <artifactId>license-maven-plugin</artifactId>
-                <configuration>
-                    <excludes combine.children="append">
-                        <exclude>src/main/resources/banner.txt</exclude>
-                    </excludes>
-                </configuration>
-            </plugin>
-        </plugins>
-    </build>
 
 </project>

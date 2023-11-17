@@ -15,7 +15,7 @@
  */
 package com.hpe.caf.worker.core;
 
-import io.dropwizard.Configuration;
+import io.dropwizard.core.Configuration;
 
 public class WorkerConfiguration extends Configuration
 {

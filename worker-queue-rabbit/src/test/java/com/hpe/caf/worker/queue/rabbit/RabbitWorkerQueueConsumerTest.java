@@ -110,7 +110,7 @@ public class RabbitWorkerQueueConsumerTest
         Event<WorkerPublisher> pubEvent = publisherEvents.poll(1, TimeUnit.SECONDS);
         Assert.assertNotNull(pubEvent);
         WorkerPublisher publisher = Mockito.mock(WorkerPublisher.class);
-        ArgumentCaptor<Map> captor = ArgumentCaptor.forClass(Map.class);
+        ArgumentCaptor<Map<String, Object>> captor = buildStringObjectMapCaptor();
         pubEvent.handleEvent(publisher);
         Mockito.verify(publisher, Mockito.times(1)).handlePublish(Mockito.eq(data), Mockito.eq(retryKey), Mockito.any(RabbitTaskInformation.class), captor.capture());
         Assert.assertTrue(captor.getValue().containsKey(RabbitHeaders.RABBIT_HEADER_CAF_WORKER_REJECTED));
@@ -145,7 +145,7 @@ public class RabbitWorkerQueueConsumerTest
         Event<WorkerPublisher> pubEvent = publisherEvents.poll(1, TimeUnit.SECONDS);
         Assert.assertNotNull(pubEvent);
         WorkerPublisher publisher = Mockito.mock(WorkerPublisher.class);
-        ArgumentCaptor<Map> captor = ArgumentCaptor.forClass(Map.class);
+        ArgumentCaptor<Map<String, Object>> captor = buildStringObjectMapCaptor();
         pubEvent.handleEvent(publisher);
         Mockito.verify(publisher, Mockito.times(1)).handlePublish(Mockito.eq(data), Mockito.eq(testQueue), Mockito.any(RabbitTaskInformation.class), captor.capture());
         Assert.assertFalse(captor.getValue().containsKey(RabbitHeaders.RABBIT_HEADER_CAF_WORKER_REJECTED));
@@ -174,7 +174,7 @@ public class RabbitWorkerQueueConsumerTest
         Event<WorkerPublisher> pubEvent = publisherEvents.poll(1, TimeUnit.SECONDS);
         Assert.assertNotNull(pubEvent);
         WorkerPublisher publisher = Mockito.mock(WorkerPublisher.class);
-        ArgumentCaptor<Map> captor = ArgumentCaptor.forClass(Map.class);
+        ArgumentCaptor<Map<String, Object>> captor = buildStringObjectMapCaptor();
         pubEvent.handleEvent(publisher);
         Mockito.verify(publisher, Mockito.times(1)).handlePublish(Mockito.eq(data), Mockito.eq(retryKey), Mockito.any(RabbitTaskInformation.class), captor.capture());
         Assert.assertTrue(captor.getValue().containsKey(RabbitHeaders.RABBIT_HEADER_CAF_WORKER_RETRY));
@@ -206,7 +206,7 @@ public class RabbitWorkerQueueConsumerTest
         Event<WorkerPublisher> pubEvent = publisherEvents.poll(1, TimeUnit.SECONDS);
         Assert.assertNotNull(pubEvent);
         WorkerPublisher publisher = Mockito.mock(WorkerPublisher.class);
-        ArgumentCaptor<Map> captor = ArgumentCaptor.forClass(Map.class);
+        ArgumentCaptor<Map<String, Object>> captor = buildStringObjectMapCaptor();
         pubEvent.handleEvent(publisher);
         Mockito.verify(publisher, Mockito.times(1)).handlePublish(Mockito.eq(data), Mockito.eq(retryKey), Mockito.any(RabbitTaskInformation.class), captor.capture());
         Assert.assertTrue(captor.getValue().containsKey(RabbitHeaders.RABBIT_HEADER_CAF_WORKER_RETRY));
@@ -292,4 +292,9 @@ public class RabbitWorkerQueueConsumerTest
         consumer.shutdown();
     }
 
+    @SuppressWarnings("unchecked")
+    private static ArgumentCaptor<Map<String, Object>> buildStringObjectMapCaptor()
+    {
+        return ArgumentCaptor.forClass(Map.class);
+    }
 }

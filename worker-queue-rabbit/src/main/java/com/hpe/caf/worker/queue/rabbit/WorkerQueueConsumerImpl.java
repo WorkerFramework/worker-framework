@@ -15,11 +15,9 @@
  */
 package com.hpe.caf.worker.queue.rabbit;
 
-import com.google.common.base.Strings;
 import com.hpe.caf.api.worker.InvalidTaskException;
 import com.hpe.caf.api.worker.TaskCallback;
 import com.hpe.caf.api.worker.TaskRejectedException;
-import com.hpe.caf.util.rabbitmq.QueueCreator;
 import com.hpe.caf.util.rabbitmq.QueueConsumer;
 import com.hpe.caf.util.rabbitmq.Event;
 import com.hpe.caf.util.rabbitmq.Delivery;
@@ -179,7 +177,7 @@ public class WorkerQueueConsumerImpl implements QueueConsumer
             LOG.debug("Received redelivered message with id {}, retry count {}, retry limit {}, republishing to retry queue", delivery.getEnvelope().getDeliveryTag(), retryLimit, retries + 1);
             Map<String, Object> headers = new HashMap<>();
             headers.put(RabbitHeaders.RABBIT_HEADER_CAF_WORKER_RETRY, String.valueOf(retries + 1));
-            headers.put(RabbitHeaders.RABBIT_HEADER_CAF_WORKER_RETRY_LIMIT, new Integer(retryLimit));
+            headers.put(RabbitHeaders.RABBIT_HEADER_CAF_WORKER_RETRY_LIMIT, retryLimit);
             taskInformation.incrementResponseCount(true);
             publisherEventQueue.add(new WorkerPublishQueueEvent(delivery.getMessageData(), retryRoutingKey, taskInformation, headers));
         }

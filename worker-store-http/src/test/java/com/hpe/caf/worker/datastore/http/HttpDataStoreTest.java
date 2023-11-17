@@ -20,9 +20,6 @@ import com.hpe.caf.api.HealthStatus;
 import com.hpe.caf.api.worker.DataStore;
 import com.hpe.caf.api.worker.DataStoreException;
 import com.hpe.caf.api.worker.ReferenceNotFoundException;
-import com.hpe.caf.util.store.HashStoreResult;
-import com.hpe.caf.util.store.StoreUtil;
-import org.apache.commons.codec.digest.DigestUtils;
 import org.testng.annotations.AfterMethod;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
@@ -119,44 +116,6 @@ public class HttpDataStoreTest
         final String storeReference = httpDataStore.store(path, "test");
         verifyStoredData(httpDataStore, testDataBytes, storeReference);
         Assert.assertEquals(httpDataStore.size(storeReference), TEST_DATA.length(), "Size of stored data not as expected");
-    }
-
-    @Test
-    public void testStoreInputStreamWithHash() throws DataStoreException, IOException
-    {
-        final DataStore httpDataStore = new HttpDataStore(config);
-        final byte[] testDataBytes = TEST_DATA.getBytes(StandardCharsets.UTF_8);
-        final HashStoreResult storeResult
-            = StoreUtil.hashStore(httpDataStore, new ByteArrayInputStream(testDataBytes), PARTIAL_REFERENCE);
-        verifyStoredData(httpDataStore, testDataBytes, storeResult.getReference());
-        Assert.assertEquals(TEST_DATA.length(), httpDataStore.size(storeResult.getReference()));
-        Assert.assertEquals(DigestUtils.sha1Hex(testDataBytes), storeResult.getHash());
-    }
-
-    @Test
-    public void testStoreBytesWithHash() throws DataStoreException, IOException
-    {
-        final DataStore httpDataStore = new HttpDataStore(config);
-        final byte[] testDataBytes = TEST_DATA.getBytes(StandardCharsets.UTF_8);
-        final HashStoreResult storeResult = StoreUtil.hashStore(httpDataStore, testDataBytes, PARTIAL_REFERENCE);
-        verifyStoredData(httpDataStore, testDataBytes, storeResult.getReference());
-        Assert.assertEquals(TEST_DATA.length(), httpDataStore.size(storeResult.getReference()));
-        Assert.assertEquals(DigestUtils.sha1Hex(testDataBytes), storeResult.getHash());
-    }
-
-    @Test
-    public void testStoreFileWithHash() throws DataStoreException, IOException
-    {
-        final DataStore httpDataStore = new HttpDataStore(config);
-        final byte[] testDataBytes = TEST_DATA.getBytes(StandardCharsets.UTF_8);
-        Path p = Paths.get(temporaryFolder.getAbsolutePath()).resolve(UUID.randomUUID().toString());
-        Files.write(p, testDataBytes);
-        final HashStoreResult storeResult = StoreUtil.hashStore(httpDataStore, p, "test");
-        try (InputStream inStr = httpDataStore.retrieve(storeResult.getReference())) {
-            verifyData(testDataBytes, inStr);
-        }
-        Assert.assertEquals(TEST_DATA.length(), httpDataStore.size(storeResult.getReference()));
-        Assert.assertEquals(DigestUtils.sha1Hex(testDataBytes), storeResult.getHash());
     }
 
     @Test(expectedExceptions = {ReferenceNotFoundException.class})
