@@ -26,8 +26,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
-import java.security.KeyManagementException;
-import java.security.NoSuchAlgorithmException;
 import java.util.*;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.LinkedBlockingQueue;
@@ -105,7 +103,7 @@ public final class RabbitWorkerQueue implements ManagedWorkerQueue
             synchronized (consumerLock) {
                 consumerTag = incomingChannel.basicConsume(config.getInputQueue(), consumer);
             }
-        } catch (IOException | TimeoutException | NoSuchAlgorithmException | KeyManagementException e) {
+        } catch (IOException | TimeoutException e) {
             throw new QueueException("Failed to establish queues", e);
         }
         publisherThread = new Thread(publisher);
@@ -333,7 +331,8 @@ public final class RabbitWorkerQueue implements ManagedWorkerQueue
     }
 
     private void createConnection(TaskCallback callback, WorkerConfirmListener listener)
-            throws IOException, TimeoutException, NoSuchAlgorithmException, KeyManagementException {
+        throws IOException, TimeoutException
+    {
         conn = RabbitUtil.createRabbitConnection(config.getRabbitConfiguration());
         ((Recoverable)conn).addRecoveryListener(new WorkerConnectionListener(callback, listener));
     }
