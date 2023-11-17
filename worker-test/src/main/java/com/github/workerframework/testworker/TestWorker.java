@@ -28,16 +28,23 @@ final class TestWorker implements Worker
     private static final byte[] TEST_WORKER_RESULT = "TestWorkerResult".getBytes(StandardCharsets.UTF_8);
 
     private final TestWorkerConfiguration config;
+    private final WorkerTaskData workerTask;
 
     public TestWorker(final TestWorkerConfiguration config, final WorkerTaskData workerTask)
         throws InvalidTaskException, TaskRejectedException
     {
         this.config = config;
+        this.workerTask = workerTask;
     }
 
     @Override
-    public WorkerResponse doWork() throws InterruptedException, TaskRejectedException, InvalidTaskException
-    {
+    public WorkerResponse doWork() throws InterruptedException, TaskRejectedException, InvalidTaskException {
+
+        final String dataString = new String(workerTask.getData(), StandardCharsets.UTF_8);
+        if(dataString.contains("poison")){
+            System.exit(1);
+        }
+
         final String outputQueue = config.getOutputQueue();
 
         return new WorkerResponse(

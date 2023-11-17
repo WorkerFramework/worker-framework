@@ -15,7 +15,14 @@
  */
 package com.hpe.caf.worker.workertest;
 import com.google.common.base.Strings;
+import com.hpe.caf.api.Codec;
+import com.hpe.caf.api.CodecException;
+
+import com.hpe.caf.api.worker.TaskMessage;
+import com.hpe.caf.api.worker.TaskStatus;
+import com.hpe.caf.codec.JsonCodec;
 import com.hpe.caf.util.rabbitmq.QueueCreator;
+import com.hpe.caf.worker.document.DocumentWorkerTask;
 import com.rabbitmq.client.Connection;
 import com.rabbitmq.client.Channel;
 import com.rabbitmq.client.AMQP;
@@ -36,11 +43,20 @@ import java.util.concurrent.TimeoutException;
 public class RetryLimitIT extends TestWorkerTestBase {
     private static final String POISON_ERROR_MESSAGE = "could not process the item.";
     private static final String TEST_WORKER_RESULT = "TestWorkerResult";
+    private static final String RABBIT_RETRY_LIMIT_HEADER = "x-caf-worker-retry-limit";
+    private static final String RABBIT_RETRY_COUNT_HEADER = "x-caf-worker-retry";
     private static final String RABBIT_PROP_QUEUE_TYPE_NAME = !Strings.isNullOrEmpty(System.getenv("RABBIT_PROP_QUEUE_TYPE_NAME"))?
             System.getenv("RABBIT_PROP_QUEUE_TYPE_NAME") : QueueCreator.RABBIT_PROP_QUEUE_TYPE_CLASSIC;
+    private static final String TEST_WORKER_NAME = "testWorkerIdentifier";
+    private static final String WORKER_IN = "worker-in";
+    private static final String TESTWORKER_OUT = "testworker-out";
+    private static final String TASK_DATA_MESSAGE = "retry limit";
+    private static final String TASK_DATA = "taskData";
+    private static final int TASK_NUMBER = 1;
+    private static final Codec codec = new JsonCodec();
 
     @Test
-    public void getResultSuccessIfRetryNumberLessThanRetryLimitTest() throws IOException, TimeoutException {
+    public void getResultSuccessIfRetryNumberLessThanRetryLimitTest() throws IOException, TimeoutException, CodecException {
 
         final String decodedTaskData = getResponse(10, 2);
 
@@ -49,7 +65,7 @@ public class RetryLimitIT extends TestWorkerTestBase {
     }
 
     @Test
-    public void getPoisonMessageIfRetryNumberGreaterThanRetryLimitTest() throws IOException, TimeoutException {
+    public void getPoisonMessageIfRetryNumberGreaterThanRetryLimitTest() throws IOException, TimeoutException, CodecException {
 
         final String decodedTaskData = getResponse(2, 3);
 
@@ -58,7 +74,7 @@ public class RetryLimitIT extends TestWorkerTestBase {
     }
 
     @Test
-    public void getPoisonMessageIfRetryNumberEqualToRetryLimitTest() throws IOException, TimeoutException {
+    public void getPoisonMessageIfRetryNumberEqualToRetryLimitTest() throws IOException, TimeoutException, CodecException {
 
         final String decodedTaskData = getResponse(10, 10);
 
@@ -66,7 +82,7 @@ public class RetryLimitIT extends TestWorkerTestBase {
 
     }
 
-    private String getResponse(final int retryLimit, final int retryCount) throws IOException, TimeoutException  {
+    private String getResponse(final int retryLimit, final int retryCount) throws IOException, TimeoutException, CodecException {
         try(final Connection connection = connectionFactory.newConnection()) {
 
             final Channel channel = connection.createChannel();
@@ -74,14 +90,16 @@ public class RetryLimitIT extends TestWorkerTestBase {
             final Map<String, Object> args = new HashMap<>();
             args.put(QueueCreator.RABBIT_PROP_QUEUE_TYPE, RABBIT_PROP_QUEUE_TYPE_NAME);
 
-            channel.queueDeclare("testworker-out", true, false, false, args);
+            channel.queueDeclare(TESTWORKER_OUT, true, false, false, args);
 
             final TestWorkerQueueConsumer poisonConsumer = new TestWorkerQueueConsumer();
-            channel.basicConsume("testworker-out", true, poisonConsumer);
+            channel.basicConsume(TESTWORKER_OUT, true, poisonConsumer);
 
             final Map<String, Object> aboveRetryLimitHeaders = new HashMap<>();
-            aboveRetryLimitHeaders.put("x-caf-worker-retry-limit", retryLimit);
-            aboveRetryLimitHeaders.put("x-caf-worker-retry", retryCount);
+            aboveRetryLimitHeaders.put(RABBIT_RETRY_LIMIT_HEADER, retryLimit);
+            aboveRetryLimitHeaders.put(RABBIT_RETRY_COUNT_HEADER, retryCount);
+
+            final TaskMessage requestTaskMessage = getTaskMessage(TASK_DATA_MESSAGE);
 
             final AMQP.BasicProperties aboveRetryLimitProperties = new AMQP.BasicProperties.Builder()
                     .headers(aboveRetryLimitHeaders)
@@ -89,13 +107,9 @@ public class RetryLimitIT extends TestWorkerTestBase {
                     .deliveryMode(2)
                     .build();
 
-            final String body = "{\"version\":1,\"taskId\":\"1.1\",\"taskClassifier\":\"testWorkerIdentifier\",\"taskApiVersion\":1," +
-                    "\"taskData\":\"cG9pc29uIG1lc3NhZ2U\",\"taskStatus\":\"RESULT_SUCCESS\",\"context\":{},\"to\":\"worker-in\"," +
-                    "\"tracking\":null,\"sourceInfo\":{\"name\":\"worker-test\",\"version\":\"1.0.0\"}}";
+            channel.basicPublish("", WORKER_IN, aboveRetryLimitProperties, codec.serialise(requestTaskMessage));
 
-            channel.basicPublish("", "worker-in", aboveRetryLimitProperties, body.getBytes(StandardCharsets.UTF_8));
-
-            channel.basicConsume("testworker-out", true, poisonConsumer);
+            channel.basicConsume(TESTWORKER_OUT, true, poisonConsumer);
             try {
                 for (int i = 0; i < 100; i++) {
 
@@ -113,7 +127,7 @@ public class RetryLimitIT extends TestWorkerTestBase {
 
             final String returnedBody = new String(poisonConsumer.getLastDeliveredBody(), StandardCharsets.UTF_8);
             final JSONObject obj = new JSONObject(returnedBody);
-            final byte[] taskData = Base64.getDecoder().decode(obj.getString("taskData"));
+            final byte[] taskData = Base64.getDecoder().decode(obj.getString(TASK_DATA));
 
             return new String(taskData);
         }
@@ -155,5 +169,21 @@ public class RetryLimitIT extends TestWorkerTestBase {
                                    final byte[] body) throws IOException {
             lastDeliveredBody = body;
         }
+    }
+
+    private static TaskMessage getTaskMessage(final String taskDataMessage) throws CodecException {
+        final TaskMessage requestTaskMessage = new TaskMessage();
+
+        final DocumentWorkerTask documentWorkerTask = new DocumentWorkerTask();
+        documentWorkerTask.customData = new HashMap<>();
+        documentWorkerTask.customData.put("TEST_DATA", taskDataMessage);
+        requestTaskMessage.setTaskId(Integer.toString(TASK_NUMBER));
+        requestTaskMessage.setTaskClassifier(TEST_WORKER_NAME);
+        requestTaskMessage.setTaskApiVersion(TASK_NUMBER);
+        requestTaskMessage.setTaskStatus(TaskStatus.NEW_TASK);
+        requestTaskMessage.setTaskData(codec.serialise(documentWorkerTask));
+        requestTaskMessage.setTo(WORKER_IN);
+
+        return requestTaskMessage;
     }
 }
