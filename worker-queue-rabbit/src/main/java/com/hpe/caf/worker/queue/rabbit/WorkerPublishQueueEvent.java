@@ -30,7 +30,19 @@ public class WorkerPublishQueueEvent implements Event<WorkerPublisher>
     private final String routingKey;
     private final RabbitTaskInformation taskInformation;
     private final Map<String, Object> headerMap;
-    private final int priority;
+
+    /**
+     * Create a new WorkerPublishQueueEvent
+     *
+     * @param messageData the raw message data to publish
+     * @param routingKey the routing key to publish the data on
+     * @param taskInformation the id of a message previously consumed to acknowledge
+     * @param headers the map of key/value paired headers to be stamped on the message
+     */
+//    public WorkerPublishQueueEvent(byte[] messageData, String routingKey, RabbitTaskInformation taskInformation, Map<String, Object> headers)
+//    {
+//        this(messageData, routingKey, taskInformation, headers, 0);
+//    }
 
     /**
      * Create a new WorkerPublishQueueEvent
@@ -42,24 +54,10 @@ public class WorkerPublishQueueEvent implements Event<WorkerPublisher>
      */
     public WorkerPublishQueueEvent(byte[] messageData, String routingKey, RabbitTaskInformation taskInformation, Map<String, Object> headers)
     {
-        this(messageData, routingKey, taskInformation, headers, 0);
-    }
-
-    /**
-     * Create a new WorkerPublishQueueEvent
-     *
-     * @param messageData the raw message data to publish
-     * @param routingKey the routing key to publish the data on
-     * @param taskInformation the id of a message previously consumed to acknowledge
-     * @param headers the map of key/value paired headers to be stamped on the message
-     */
-    public WorkerPublishQueueEvent(byte[] messageData, String routingKey, RabbitTaskInformation taskInformation, Map<String, Object> headers, int priority)
-    {
         this.data = Objects.requireNonNull(messageData);
         this.routingKey = Objects.requireNonNull(routingKey);
         this.taskInformation = taskInformation;
         this.headerMap = Objects.requireNonNull(headers);
-        this.priority = priority;
     }
 
     public WorkerPublishQueueEvent(byte[] messageData, String routingKey, RabbitTaskInformation taskInformation)
@@ -70,7 +68,7 @@ public class WorkerPublishQueueEvent implements Event<WorkerPublisher>
     @Override
     public void handleEvent(WorkerPublisher target)
     {
-        target.handlePublish(data, routingKey, taskInformation, headerMap, priority);
+        target.handlePublish(data, routingKey, taskInformation, headerMap);
     }
 
     /**

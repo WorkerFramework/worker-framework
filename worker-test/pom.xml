@@ -39,6 +39,23 @@
             <artifactId>caf-api</artifactId>
         </dependency>
         <dependency>
+            <groupId>com.github.cafapi.codec</groupId>
+            <artifactId>codec-json</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>com.github.cafdataprocessing</groupId>
+            <artifactId>worker-document-shared</artifactId>
+            <scope>runtime</scope>
+        </dependency>
+        <dependency>
+            <groupId>com.google.guava</groupId>
+            <artifactId>guava</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>com.github.workerframework</groupId>
+            <artifactId>util-rabbitmq</artifactId>
+        </dependency>
+        <dependency>
             <groupId>com.github.workerframework</groupId>
             <artifactId>worker-api</artifactId>
         </dependency>
@@ -287,6 +304,74 @@
                                 </wait>
                             </run>
                         </image>
+                        <image>
+                            <alias>worker-test-2</alias>
+                            <name>${targetDockerRegistryPath}/worker-test:${project.version}</name>
+                            <run>
+                                <ports>
+                                    <port>${worker.testadminport1}:8081</port>
+                                    <port>${worker.testdebugport1}:5005</port>
+                                </ports>
+                                <env>
+                                    <CAF_WORKER_DATASTORE_PATH>/srv/common/webdav</CAF_WORKER_DATASTORE_PATH>
+                                    <CAF_WORKER_JAVA_OPTS>
+                                        -agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=*:5005
+                                    </CAF_WORKER_JAVA_OPTS>
+                                </env>
+                                <volumes>
+                                    <from>
+                                        <image>webdav</image>
+                                    </from>
+                                </volumes>
+                                <links>
+                                    <link>rabbitmq</link>
+                                </links>
+                                <log>
+                                    <enabled>true</enabled>
+                                </log>
+                                <wait>
+                                    <http>
+                                        <url>http://${docker.host.address}:${worker.testadminport1}</url>
+                                    </http>
+                                    <time>120000</time>
+                                    <shutdown>500</shutdown>
+                                </wait>
+                            </run>
+                        </image>
+                        <image>
+                            <alias>worker-test-3</alias>
+                            <name>${targetDockerRegistryPath}/worker-test:${project.version}</name>
+                            <run>
+                                <ports>
+                                    <port>${worker.testadminport2}:8081</port>
+                                    <port>${worker.testdebugport2}:5005</port>
+                                </ports>
+                                <env>
+                                    <CAF_WORKER_DATASTORE_PATH>/srv/common/webdav</CAF_WORKER_DATASTORE_PATH>
+                                    <CAF_WORKER_JAVA_OPTS>
+                                        -agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=*:5005
+                                    </CAF_WORKER_JAVA_OPTS>
+                                </env>
+                                <volumes>
+                                    <from>
+                                        <image>webdav</image>
+                                    </from>
+                                </volumes>
+                                <links>
+                                    <link>rabbitmq</link>
+                                </links>
+                                <log>
+                                    <enabled>true</enabled>
+                                </log>
+                                <wait>
+                                    <http>
+                                        <url>http://${docker.host.address}:${worker.testadminport2}</url>
+                                    </http>
+                                    <time>120000</time>
+                                    <shutdown>500</shutdown>
+                                </wait>
+                            </run>
+                        </image>
                     </images>
                 </configuration>
             </plugin>
@@ -301,7 +386,11 @@
                 <rabbitmq.node.port>25672</rabbitmq.node.port>
                 <webdav.port>9090</webdav.port>
                 <worker.adminport>8081</worker.adminport>
+                <worker.testadminport1>8082</worker.testadminport1>
+                <worker.testadminport2>8083</worker.testadminport2>
                 <worker.debugport>5005</worker.debugport>
+                <worker.testdebugport1>5006</worker.testdebugport1>
+                <worker.testdebugport2>5007</worker.testdebugport2>
             </properties>
         </profile>
     </profiles>

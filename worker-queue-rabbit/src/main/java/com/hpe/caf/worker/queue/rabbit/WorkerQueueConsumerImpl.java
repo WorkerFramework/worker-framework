@@ -15,16 +15,18 @@
  */
 package com.hpe.caf.worker.queue.rabbit;
 
+import com.google.common.base.Strings;
 import com.hpe.caf.api.worker.InvalidTaskException;
 import com.hpe.caf.api.worker.TaskCallback;
 import com.hpe.caf.api.worker.TaskRejectedException;
-import com.hpe.caf.util.rabbitmq.ConsumerAckEvent;
-import com.hpe.caf.util.rabbitmq.ConsumerDropEvent;
-import com.hpe.caf.util.rabbitmq.ConsumerRejectEvent;
-import com.hpe.caf.util.rabbitmq.Delivery;
-import com.hpe.caf.util.rabbitmq.Event;
+import com.hpe.caf.util.rabbitmq.QueueCreator;
 import com.hpe.caf.util.rabbitmq.QueueConsumer;
+import com.hpe.caf.util.rabbitmq.Event;
+import com.hpe.caf.util.rabbitmq.Delivery;
 import com.hpe.caf.util.rabbitmq.RabbitHeaders;
+import com.hpe.caf.util.rabbitmq.ConsumerAckEvent;
+import com.hpe.caf.util.rabbitmq.ConsumerRejectEvent;
+import com.hpe.caf.util.rabbitmq.ConsumerDropEvent;
 import com.rabbitmq.client.Channel;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -171,7 +173,7 @@ public class WorkerQueueConsumerImpl implements QueueConsumer
             Map<String, Object> headers = new HashMap<>();
             headers.put(RabbitHeaders.RABBIT_HEADER_CAF_WORKER_RETRY, String.valueOf(retries));
             headers.put(RabbitHeaders.RABBIT_HEADER_CAF_WORKER_REJECTED, REJECTED_REASON_RETRIES_EXCEEDED);
-            taskInformation.incrementResponseCount(true);                
+            taskInformation.incrementResponseCount(true);
             publisherEventQueue.add(new WorkerPublishQueueEvent(delivery.getMessageData(), retryRoutingKey, taskInformation, headers));
         } else {
             LOG.debug("Received redelivered message with id {}, retry count {}, retry limit {}, republishing to retry queue", delivery.getEnvelope().getDeliveryTag(), retryLimit, retries + 1);
