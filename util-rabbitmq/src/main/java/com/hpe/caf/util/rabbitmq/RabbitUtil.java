@@ -103,7 +103,14 @@ public final class RabbitUtil
 
         if(rc.getRabbitUrl() != null) {
             factory.setUri(rc.getRabbitUrl());
-            LOG.warn("RabbitMQ Host and Port are being ignored as RabbitMQ URL is present");
+            if (!System.getenv("CAF_RABBITMQ_HOST").equals("")) {
+                LOG.warn("'CAF_RABBITMQ_HOST' is being ignored as 'CAF_RABBITMQ_URL' is present");
+            }
+
+            if(!System.getenv("CAF_RABBITMQ_PORT").equals("")) {
+                LOG.warn("'CAF_RABBITMQ_PORT' is being ignored as 'CAF_RABBITMQ_URL' is present");
+            }
+
         } else {
             factory.setHost(rc.getRabbitHost());
             factory.setPort(rc.getRabbitPort());
