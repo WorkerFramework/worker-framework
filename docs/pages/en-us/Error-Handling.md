@@ -29,7 +29,7 @@ We start though by describing the expected flow when messages are handled by Wor
 Some messages however cannot be handled by the Worker and these are described next.
 
 ## Poisoned Messages
-A poisoned message is a message that a worker is unable to handle. The message is deemed poisonous during processing when repeated catastrophic failure of the worker occurs. Regardless of how many times the message is retried, the worker will not be able to handle the message in a graceful manor. The flow of a poisoned message is described in Figure 2 below:
+A poisoned message is a message that a worker is unable to handle. The message is deemed poisonous during processing when repeated catastrophic failure of the worker occurs. Regardless of how many times the message is retried, the worker will not be able to handle the message in a graceful manner. The flow of a poisoned message is described in Figure 2 below:
 
 ![Poisoned Messages](images/PoisonedMessage.png)
 *Figure 2 - Poisoned message flow*
