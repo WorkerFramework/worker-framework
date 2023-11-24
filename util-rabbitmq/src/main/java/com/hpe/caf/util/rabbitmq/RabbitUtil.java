@@ -101,13 +101,13 @@ public final class RabbitUtil
         factory.setUsername(rc.getRabbitUser());
         factory.setPassword(rc.getRabbitPassword());
 
-        if(rc.getRabbitUrl() != null) {
+        if (rc.getRabbitUrl() != null) {
             factory.setUri(rc.getRabbitUrl());
-            if (!System.getenv("CAF_RABBITMQ_HOST").equals("")) {
+            if (!rc.getRabbitHost().equals("rabbitmq")) {
                 LOG.warn("'CAF_RABBITMQ_HOST' is being ignored as 'CAF_RABBITMQ_URL' is present");
             }
 
-            if(!System.getenv("CAF_RABBITMQ_PORT").equals("")) {
+            if (rc.getRabbitPort() != 5672) {
                 LOG.warn("'CAF_RABBITMQ_PORT' is being ignored as 'CAF_RABBITMQ_URL' is present");
             }
 
