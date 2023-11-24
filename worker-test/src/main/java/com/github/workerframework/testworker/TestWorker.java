@@ -42,6 +42,8 @@ final class TestWorker implements Worker
     @Override
     public WorkerResponse doWork() throws InterruptedException, TaskRejectedException, InvalidTaskException {
 
+        // Required for PoisonMessageIT. If the task data contains the message 'poison', the worker
+        // will get killed repeatedly until the retry exceeds the limit, therefore a poison message is returned.
         final String dataString = new String(workerTask.getData(), StandardCharsets.UTF_8);
         if(dataString.contains("poison")){
             System.exit(1);

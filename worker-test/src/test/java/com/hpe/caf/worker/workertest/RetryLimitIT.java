@@ -29,7 +29,6 @@ import com.rabbitmq.client.AMQP;
 import com.rabbitmq.client.Consumer;
 import com.rabbitmq.client.ShutdownSignalException;
 import com.rabbitmq.client.Envelope;
-import org.json.JSONObject;
 import org.testng.Assert;
 import org.testng.annotations.Test;
 
@@ -37,7 +36,6 @@ import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.util.Map;
 import java.util.HashMap;
-import java.util.Base64;
 import java.util.concurrent.TimeoutException;
 
 public class RetryLimitIT extends TestWorkerTestBase {
@@ -46,7 +44,7 @@ public class RetryLimitIT extends TestWorkerTestBase {
     private static final String RABBIT_RETRY_LIMIT_HEADER = "x-caf-worker-retry-limit";
     private static final String RABBIT_RETRY_COUNT_HEADER = "x-caf-worker-retry";
     private static final String RABBIT_PROP_QUEUE_TYPE_NAME = !Strings.isNullOrEmpty(System.getenv("RABBIT_PROP_QUEUE_TYPE_NAME"))?
-            System.getenv("RABBIT_PROP_QUEUE_TYPE_NAME") : QueueCreator.RABBIT_PROP_QUEUE_TYPE_CLASSIC;
+            System.getenv("RABBIT_PROP_QUEUE_TYPE_NAME") : QueueCreator.RABBIT_PROP_QUEUE_TYPE_QUORUM;
     private static final String TEST_WORKER_NAME = "testWorkerIdentifier";
     private static final String WORKER_IN = "worker-in";
     private static final String TESTWORKER_OUT = "testworker-out";
@@ -124,12 +122,8 @@ public class RetryLimitIT extends TestWorkerTestBase {
             }
 
             Assert.assertNotNull(poisonConsumer.getLastDeliveredBody());
-
-            final String returnedBody = new String(poisonConsumer.getLastDeliveredBody(), StandardCharsets.UTF_8);
-            final JSONObject obj = new JSONObject(returnedBody);
-            final byte[] taskData = Base64.getDecoder().decode(obj.getString(TASK_DATA));
-
-            return new String(taskData);
+            final TaskMessage decodedBody = codec.deserialise(poisonConsumer.getLastDeliveredBody(), TaskMessage.class);
+            return new String(decodedBody.getTaskData(), StandardCharsets.UTF_8);
         }
     }
 

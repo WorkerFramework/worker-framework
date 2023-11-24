@@ -29,13 +29,11 @@ import com.rabbitmq.client.AMQP;
 import com.rabbitmq.client.Consumer;
 import com.rabbitmq.client.ShutdownSignalException;
 import com.rabbitmq.client.Envelope;
-import org.json.JSONObject;
 import org.testng.Assert;
 import org.testng.annotations.Test;
 
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
-import java.util.Base64;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.TimeoutException;
@@ -46,7 +44,7 @@ public class PoisonMessageIT  extends TestWorkerTestBase{
     private static final String RABBIT_RETRY_LIMIT_HEADER = "x-caf-worker-retry-limit";
     private static final String RABBIT_RETRY_COUNT_HEADER = "x-caf-worker-retry";
     private static final String RABBIT_PROP_QUEUE_TYPE_NAME = !Strings.isNullOrEmpty(System.getenv("RABBIT_PROP_QUEUE_TYPE_NAME"))?
-            System.getenv("RABBIT_PROP_QUEUE_TYPE_NAME") : QueueCreator.RABBIT_PROP_QUEUE_TYPE_CLASSIC;
+            System.getenv("RABBIT_PROP_QUEUE_TYPE_NAME") : QueueCreator.RABBIT_PROP_QUEUE_TYPE_QUORUM;
     private static final String TEST_WORKER_NAME = "testWorkerIdentifier";
     private static final String WORKER_IN = "worker-in";
     private static final String TESTWORKER_OUT = "testworker-out";
@@ -110,15 +108,11 @@ public class PoisonMessageIT  extends TestWorkerTestBase{
             }
 
             Assert.assertNotNull(poisonConsumer.getLastDeliveredBody());
+            final TaskMessage decodedBody = codec.deserialise(poisonConsumer.getLastDeliveredBody(), TaskMessage.class);
+            final String taskData = new String(decodedBody.getTaskData(), StandardCharsets.UTF_8);
 
-            final String returnedBody = new String(poisonConsumer.getLastDeliveredBody(), StandardCharsets.UTF_8);
-            final JSONObject obj = new JSONObject(returnedBody);
-            final byte[] taskData = Base64.getDecoder().decode(obj.getString(TASK_DATA));
-
-            final String decodedTaskData = new String(taskData);
-
-            Assert.assertTrue(decodedTaskData.contains(POISON_ERROR_MESSAGE));
-            Assert.assertTrue(decodedTaskData.contains(WORKER_FRIENDLY_NAME));
+            Assert.assertTrue(taskData.contains(POISON_ERROR_MESSAGE));
+            Assert.assertTrue(taskData.contains(WORKER_FRIENDLY_NAME));
         }
     }
 

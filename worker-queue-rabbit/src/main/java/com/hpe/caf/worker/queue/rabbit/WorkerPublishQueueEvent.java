@@ -39,19 +39,6 @@ public class WorkerPublishQueueEvent implements Event<WorkerPublisher>
      * @param taskInformation the id of a message previously consumed to acknowledge
      * @param headers the map of key/value paired headers to be stamped on the message
      */
-//    public WorkerPublishQueueEvent(byte[] messageData, String routingKey, RabbitTaskInformation taskInformation, Map<String, Object> headers)
-//    {
-//        this(messageData, routingKey, taskInformation, headers, 0);
-//    }
-
-    /**
-     * Create a new WorkerPublishQueueEvent
-     *
-     * @param messageData the raw message data to publish
-     * @param routingKey the routing key to publish the data on
-     * @param taskInformation the id of a message previously consumed to acknowledge
-     * @param headers the map of key/value paired headers to be stamped on the message
-     */
     public WorkerPublishQueueEvent(byte[] messageData, String routingKey, RabbitTaskInformation taskInformation, Map<String, Object> headers)
     {
         this.data = Objects.requireNonNull(messageData);
