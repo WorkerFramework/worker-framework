@@ -119,11 +119,13 @@ public class RabbitConfiguration
     /**
      * @return the URL of the RabbitMQ server
      */
-    public String getRabbitUrl() {
+    public String getRabbitUrl()
+    {
         return rabbitUrl;
     }
 
-    public void setRabbitUrl(final String rabbitUrl) {
+    public void setRabbitUrl(final String rabbitUrl)
+    {
         this.rabbitUrl = rabbitUrl;
     }
 
