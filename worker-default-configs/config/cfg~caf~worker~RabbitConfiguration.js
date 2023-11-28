@@ -17,7 +17,7 @@
     backoffInterval: getenv("CAF_RABBITMQ_BACKOFF_INTERVAL") || 5,
     maxBackoffInterval: getenv("CAF_RABBITMQ_MAX_BACKOFF_INTERVAL") || 15,
     maxAttempts: getenv("CAF_RABBITMQ_MAX_ATTEMPTS") || 3,
-    rabbitUrl: getenv("CAF_RABBITMQ_URL") || null,
+    rabbitProtocol: getenv("CAF_RABBITMQ_PROTOCOL") || "amqp",
     rabbitHost: getenv("CAF_RABBITMQ_HOST") || "rabbitmq",
     rabbitPort: getenv("CAF_RABBITMQ_PORT") || 5672,
     rabbitUser: getenv("CAF_RABBITMQ_USERNAME") || "guest",

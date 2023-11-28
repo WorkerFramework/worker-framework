@@ -47,10 +47,11 @@ public class RabbitConfiguration
     @Max(1000)
     private int maxAttempts = 20;
     /**
-     * The URL of the RabbitMQ client
+     * The protocol of the RabbitMQ client
      */
-    @Null
-    private String rabbitUrl;
+    @NotNull
+    @Size(min = 1)
+    private String rabbitProtocol;
     /**
      * The host that runs RabbitMQ.
      */
@@ -117,16 +118,16 @@ public class RabbitConfiguration
     }
 
     /**
-     * @return the URL of the RabbitMQ server
+     * @return the protocol of the RabbitMQ server
      */
-    public String getRabbitUrl()
+    public String getRabbitProtocol()
     {
-        return rabbitUrl;
+        return rabbitProtocol;
     }
 
-    public void setRabbitUrl(final String rabbitUrl)
+    public void setRabbitProtocol(final String rabbitProtocol)
     {
-        this.rabbitUrl = rabbitUrl;
+        this.rabbitProtocol = rabbitProtocol;
     }
 
     /**

@@ -30,7 +30,7 @@ The default Rabbit configuration file checks for values as below;
 | backoffInterval    | `CAF_RABBITMQ_BACKOFF_INTERVAL`     | 5        |
 | maxBackoffInterval | `CAF_RABBITMQ_MAX_BACKOFF_INTERVAL` | 15       |
 | maxAttempts        | `CAF_RABBITMQ_MAX_ATTEMPTS`         | 3        |
-| rabbitUrl          | `CAF_RABBITMQ_URL`                  | null     |
+| rabbitProtocol     | `CAF_RABBITMQ_PROTOCOL`             | amqp     |
 | rabbitHost         | `CAF_RABBITMQ_HOST`                 | rabbitmq |
 | rabbitPort         | `CAF_RABBITMQ_PORT`                 | 5672     |
 | rabbitUser         | `CAF_RABBITMQ_USERNAME`             | guest    |

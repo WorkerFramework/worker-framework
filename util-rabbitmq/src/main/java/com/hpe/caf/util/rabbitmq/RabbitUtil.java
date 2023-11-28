@@ -21,10 +21,12 @@ import com.rabbitmq.client.Connection;
 import com.rabbitmq.client.ConnectionFactory;
 import com.rabbitmq.client.ExceptionHandler;
 import com.rabbitmq.client.RecoveryDelayHandler;
+import org.apache.http.client.utils.URIBuilder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
+import java.net.URI;
 import java.net.URISyntaxException;
 import java.security.KeyManagementException;
 import java.security.NoSuchAlgorithmException;
@@ -58,11 +60,11 @@ public final class RabbitUtil
      * @throws IOException if the connection fails to establish
      * @throws TimeoutException if the connection fails to establish
      */
-    public static Connection createRabbitConnection(String url, String host, int port, String user, String pass)
+    public static Connection createRabbitConnection(String protocol, String host, int port, String user, String pass)
             throws IOException, TimeoutException, URISyntaxException, NoSuchAlgorithmException, KeyManagementException
     {
         final RabbitConfiguration rc = new RabbitConfiguration();
-        rc.setRabbitUrl(url);
+        rc.setRabbitProtocol(protocol);
         rc.setRabbitHost(host);
         rc.setRabbitPort(port);
         rc.setRabbitUser(user);
@@ -104,12 +106,13 @@ public final class RabbitUtil
         factory.setUsername(rc.getRabbitUser());
         factory.setPassword(rc.getRabbitPassword());
 
-        if (rc.getRabbitUrl() != null) {
-            factory.setUri(rc.getRabbitUrl());
-        } else {
-            factory.setHost(rc.getRabbitHost());
-            factory.setPort(rc.getRabbitPort());
-        }
+        final URI rabbitUri = new URIBuilder()
+                .setScheme(rc.getRabbitProtocol())
+                .setHost(rc.getRabbitHost())
+                .setPort(rc.getRabbitPort())
+                .build();
+
+        factory.setUri(rabbitUri);
 
         if (exceptionHandler != null) {
             factory.setExceptionHandler(exceptionHandler);
