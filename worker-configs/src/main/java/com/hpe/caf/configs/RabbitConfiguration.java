@@ -49,19 +49,20 @@ public class RabbitConfiguration
     /**
      * The URL of the RabbitMQ client
      */
-    @NotNull
-    @Size(min = 1)
+    @Null
     private String rabbitUrl;
     /**
      * The host that runs RabbitMQ.
      */
-    @Null
+    @NotNull
+    @Size(min = 1)
     private String rabbitHost;
     /**
      * The port exposed on the host to access RabbitMQ by.
      */
-    @Null
-    private Integer rabbitPort;
+    @Min(1024)
+    @Max(65535)
+    private int rabbitPort;
     /**
      * The username to access the RabbitMQ server with.
      */
@@ -139,12 +140,12 @@ public class RabbitConfiguration
         this.rabbitHost = rabbitHost;
     }
 
-    public Integer getRabbitPort()
+    public int getRabbitPort()
     {
         return rabbitPort;
     }
 
-    public void setRabbitPort(final Integer rabbitPort)
+    public void setRabbitPort(final int rabbitPort)
     {
         this.rabbitPort = rabbitPort;
     }
