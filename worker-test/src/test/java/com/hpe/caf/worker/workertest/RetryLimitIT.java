@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 package com.hpe.caf.worker.workertest;
-import com.google.common.base.Strings;
+import com.github.workerframework.testworker.TestWorkerTask;
 import com.hpe.caf.api.Codec;
 import com.hpe.caf.api.CodecException;
 
@@ -22,7 +22,7 @@ import com.hpe.caf.api.worker.TaskMessage;
 import com.hpe.caf.api.worker.TaskStatus;
 import com.hpe.caf.codec.JsonCodec;
 import com.hpe.caf.util.rabbitmq.QueueCreator;
-import com.hpe.caf.worker.document.DocumentWorkerTask;
+import com.hpe.caf.worker.queue.rabbit.RabbitWorkerQueueConfiguration;
 import com.rabbitmq.client.Connection;
 import com.rabbitmq.client.Channel;
 import com.rabbitmq.client.AMQP;
@@ -41,15 +41,9 @@ import java.util.concurrent.TimeoutException;
 public class RetryLimitIT extends TestWorkerTestBase {
     private static final String POISON_ERROR_MESSAGE = "could not process the item.";
     private static final String TEST_WORKER_RESULT = "TestWorkerResult";
-    private static final String RABBIT_RETRY_LIMIT_HEADER = "x-caf-worker-retry-limit";
-    private static final String RABBIT_RETRY_COUNT_HEADER = "x-caf-worker-retry";
-    private static final String RABBIT_PROP_QUEUE_TYPE_NAME = !Strings.isNullOrEmpty(System.getenv("RABBIT_PROP_QUEUE_TYPE_NAME"))?
-            System.getenv("RABBIT_PROP_QUEUE_TYPE_NAME") : QueueCreator.RABBIT_PROP_QUEUE_TYPE_QUORUM;
     private static final String TEST_WORKER_NAME = "testWorkerIdentifier";
     private static final String WORKER_IN = "worker-in";
     private static final String TESTWORKER_OUT = "testworker-out";
-    private static final String TASK_DATA_MESSAGE = "retry limit";
-    private static final String TASK_DATA = "taskData";
     private static final int TASK_NUMBER = 1;
     private static final Codec codec = new JsonCodec();
 
@@ -85,8 +79,10 @@ public class RetryLimitIT extends TestWorkerTestBase {
 
             final Channel channel = connection.createChannel();
 
+            final RabbitWorkerQueueConfiguration rabbitWorkerQueueConfiguration = new RabbitWorkerQueueConfiguration();
+
             final Map<String, Object> args = new HashMap<>();
-            args.put(QueueCreator.RABBIT_PROP_QUEUE_TYPE, RABBIT_PROP_QUEUE_TYPE_NAME);
+            args.put(QueueCreator.RABBIT_PROP_QUEUE_TYPE, rabbitWorkerQueueConfiguration.getQueueType());
 
             channel.queueDeclare(TESTWORKER_OUT, true, false, false, args);
 
@@ -94,10 +90,10 @@ public class RetryLimitIT extends TestWorkerTestBase {
             channel.basicConsume(TESTWORKER_OUT, true, poisonConsumer);
 
             final Map<String, Object> aboveRetryLimitHeaders = new HashMap<>();
-            aboveRetryLimitHeaders.put(RABBIT_RETRY_LIMIT_HEADER, retryLimit);
-            aboveRetryLimitHeaders.put(RABBIT_RETRY_COUNT_HEADER, retryCount);
+            aboveRetryLimitHeaders.put(QueueCreator.RABBIT_RETRY_LIMIT_HEADER, retryLimit);
+            aboveRetryLimitHeaders.put(QueueCreator.RABBIT_RETRY_COUNT_HEADER, retryCount);
 
-            final TaskMessage requestTaskMessage = getTaskMessage(TASK_DATA_MESSAGE);
+            final TaskMessage requestTaskMessage = getTaskMessage();
 
             final AMQP.BasicProperties aboveRetryLimitProperties = new AMQP.BasicProperties.Builder()
                     .headers(aboveRetryLimitHeaders)
@@ -165,12 +161,11 @@ public class RetryLimitIT extends TestWorkerTestBase {
         }
     }
 
-    private static TaskMessage getTaskMessage(final String taskDataMessage) throws CodecException {
+    private static TaskMessage getTaskMessage() throws CodecException {
         final TaskMessage requestTaskMessage = new TaskMessage();
 
-        final DocumentWorkerTask documentWorkerTask = new DocumentWorkerTask();
-        documentWorkerTask.customData = new HashMap<>();
-        documentWorkerTask.customData.put("TEST_DATA", taskDataMessage);
+        final TestWorkerTask documentWorkerTask = new TestWorkerTask();
+        documentWorkerTask.setPoison(false);
         requestTaskMessage.setTaskId(Integer.toString(TASK_NUMBER));
         requestTaskMessage.setTaskClassifier(TEST_WORKER_NAME);
         requestTaskMessage.setTaskApiVersion(TASK_NUMBER);

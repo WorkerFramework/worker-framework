@@ -81,6 +81,9 @@ public class RabbitWorkerQueueConfiguration
     @Max(255)
     private int maxPriority;
 
+    @NotNull
+    private String queueType;
+
     public RabbitWorkerQueueConfiguration()
     {
     }
@@ -165,5 +168,15 @@ public class RabbitWorkerQueueConfiguration
     public void setMaxPriority(int maxPriority)
     {
         this.maxPriority = maxPriority;
+    }
+
+    public String getQueueType()
+    {
+        return queueType;
+    }
+
+    public void setQueueType(String queueType)
+    {
+        this.queueType = queueType;
     }
 }

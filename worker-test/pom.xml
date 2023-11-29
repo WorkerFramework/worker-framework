@@ -91,11 +91,6 @@
 
         <!-- Test dependencies -->
         <dependency>
-            <groupId>com.github.cafdataprocessing</groupId>
-            <artifactId>worker-document-shared</artifactId>
-            <scope>test</scope>
-        </dependency>
-        <dependency>
             <groupId>org.json</groupId>
             <artifactId>json</artifactId>
             <scope>test</scope>

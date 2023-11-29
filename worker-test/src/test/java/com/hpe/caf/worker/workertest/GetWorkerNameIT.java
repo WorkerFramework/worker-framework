@@ -15,14 +15,14 @@
  */
 package com.hpe.caf.worker.workertest;
 
-import com.google.common.base.Strings;
+import com.github.workerframework.testworker.TestWorkerTask;
 import com.hpe.caf.api.Codec;
 import com.hpe.caf.api.CodecException;
 import com.hpe.caf.api.worker.TaskMessage;
 import com.hpe.caf.api.worker.TaskStatus;
 import com.hpe.caf.codec.JsonCodec;
 import com.hpe.caf.util.rabbitmq.QueueCreator;
-import com.hpe.caf.worker.document.DocumentWorkerTask;
+import com.hpe.caf.worker.queue.rabbit.RabbitWorkerQueueConfiguration;
 import com.rabbitmq.client.Connection;
 import com.rabbitmq.client.Channel;
 import com.rabbitmq.client.AMQP;
@@ -41,16 +41,9 @@ import java.util.concurrent.TimeoutException;
 public class GetWorkerNameIT extends TestWorkerTestBase {
     private static final String POISON_ERROR_MESSAGE = "could not process the item.";
     private static final String WORKER_FRIENDLY_NAME = "TestWorker";
-    private static final String RABBIT_RETRY_LIMIT_HEADER = "x-caf-worker-retry-limit";
-    private static final String RABBIT_RETRY_COUNT_HEADER = "x-caf-worker-retry";
-    private static final String RABBIT_PROP_QUEUE_TYPE_NAME = !Strings.isNullOrEmpty(System.getenv("RABBIT_PROP_QUEUE_TYPE_NAME"))?
-            System.getenv("RABBIT_PROP_QUEUE_TYPE_NAME") : QueueCreator.RABBIT_PROP_QUEUE_TYPE_QUORUM;
     private static final String TEST_WORKER_NAME = "testWorkerIdentifier";
     private static final String WORKER_IN = "worker-in";
     private static final String TESTWORKER_OUT = "testworker-out";
-    private static final String TASK_DATA_MESSAGE = "worker name";
-    private static final String TEST_DATA = "TEST_DATA";
-    private static final String TASK_DATA = "taskData";
     private static final int TASK_NUMBER = 1;
     private static final Codec codec = new JsonCodec();
 
@@ -59,10 +52,12 @@ public class GetWorkerNameIT extends TestWorkerTestBase {
 
         try(final Connection connection = connectionFactory.newConnection()) {
 
+            final RabbitWorkerQueueConfiguration rabbitWorkerQueueConfiguration = new RabbitWorkerQueueConfiguration();
+
             final Channel channel = connection.createChannel();
 
             final Map<String, Object> args = new HashMap<>();
-            args.put(QueueCreator.RABBIT_PROP_QUEUE_TYPE, RABBIT_PROP_QUEUE_TYPE_NAME);
+            args.put(QueueCreator.RABBIT_PROP_QUEUE_TYPE, rabbitWorkerQueueConfiguration.getQueueType());
 
             channel.queueDeclare(TESTWORKER_OUT, true, false, false, args);
 
@@ -70,8 +65,8 @@ public class GetWorkerNameIT extends TestWorkerTestBase {
             channel.basicConsume(TESTWORKER_OUT, true, poisonConsumer);
 
             final Map<String, Object> retryLimitHeaders = new HashMap<>();
-            retryLimitHeaders.put(RABBIT_RETRY_LIMIT_HEADER, 3);
-            retryLimitHeaders.put(RABBIT_RETRY_COUNT_HEADER, 3);
+            retryLimitHeaders.put(QueueCreator.RABBIT_RETRY_LIMIT_HEADER, 3);
+            retryLimitHeaders.put(QueueCreator.RABBIT_RETRY_COUNT_HEADER, 3);
 
             final AMQP.BasicProperties properties = new AMQP.BasicProperties.Builder()
                     .headers(retryLimitHeaders)
@@ -81,9 +76,8 @@ public class GetWorkerNameIT extends TestWorkerTestBase {
 
             final TaskMessage requestTaskMessage = new TaskMessage();
 
-            final DocumentWorkerTask documentWorkerTask = new DocumentWorkerTask();
-            documentWorkerTask.customData = new HashMap<>();
-            documentWorkerTask.customData.put(TEST_DATA, TASK_DATA_MESSAGE);
+            final TestWorkerTask documentWorkerTask = new TestWorkerTask();
+            documentWorkerTask.setPoison(false);
             requestTaskMessage.setTaskId(Integer.toString(TASK_NUMBER));
             requestTaskMessage.setTaskClassifier(TEST_WORKER_NAME);
             requestTaskMessage.setTaskApiVersion(TASK_NUMBER);

@@ -21,7 +21,6 @@ import com.rabbitmq.client.Connection;
 import com.rabbitmq.client.ConnectionFactory;
 import com.rabbitmq.client.ExceptionHandler;
 import com.rabbitmq.client.RecoveryDelayHandler;
-import com.google.common.base.Strings;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -40,8 +39,6 @@ import java.util.concurrent.TimeoutException;
 public final class RabbitUtil
 {
     private static final Logger LOG = LoggerFactory.getLogger(RabbitUtil.class);
-    private static final String RABBIT_PROP_QUEUE_TYPE_NAME = !Strings.isNullOrEmpty(System.getenv("RABBIT_PROP_QUEUE_TYPE_NAME")) ?
-            System.getenv("RABBIT_PROP_QUEUE_TYPE_NAME") : QueueCreator.RABBIT_PROP_QUEUE_TYPE_CLASSIC;
 
     private RabbitUtil()
     {
@@ -126,18 +123,31 @@ public final class RabbitUtil
      * @param queueName the name of the worker queue
      * @throws IOException if the queue is not valid and cannot be used, this is likely NOT retryable
      */
-    public static void declareWorkerQueue(Channel channel, String queueName, int maxPriority)
+    public static void declareWorkerQueue(Channel channel, String queueName)
+        throws IOException
+    {
+        declareWorkerQueue(channel, queueName, 0, QueueCreator.RABBIT_PROP_QUEUE_TYPE_QUORUM);
+    }
+
+    /**
+     * Ensure a queue for a worker has been declared. Both a consumer *and* a publisher should call this before they attempt to use a
+     * worker queue for the first time.
+     *
+     * @param channel the channel to use to declare the queue
+     * @param queueName the name of the worker queue
+     * @param maxPriority the maximum supported priority, pass 0 to disable priority
+     * @param queueType the type of queue to be created eg: classic or quorum
+     * @throws IOException if the queue is not valid and cannot be used, this is likely NOT retryable
+     */
+    public static void declareWorkerQueue(Channel channel, String queueName, int maxPriority, String queueType)
         throws IOException
     {
         final Map<String, Object> args = new HashMap<>();
-        LOG.warn("maxPriority: {}",maxPriority);
-        LOG.warn("Queue type: {}",RABBIT_PROP_QUEUE_TYPE_NAME);
-        if (maxPriority > 0 && Objects.equals(RABBIT_PROP_QUEUE_TYPE_NAME, "classic")) {
-            LOG.warn("Setting up priority to: {}", maxPriority);
+        if (maxPriority > 0 && Objects.equals(queueType, "classic")) {
+            LOG.trace("Setting up priority to: {}", maxPriority);
             args.put(QueueCreator.RABBIT_PROP_KEY_MAX_PRIORITY, maxPriority);
         }
-        LOG.warn("Queue type set for queue {}: {}",queueName, RABBIT_PROP_QUEUE_TYPE_NAME);
-        args.put(QueueCreator.RABBIT_PROP_QUEUE_TYPE, RABBIT_PROP_QUEUE_TYPE_NAME);
+        args.put(QueueCreator.RABBIT_PROP_QUEUE_TYPE, queueType);
         declareQueue(channel, queueName, Durability.DURABLE, Exclusivity.NON_EXCLUSIVE, EmptyAction.LEAVE_EMPTY, args);
     }
 
