@@ -15,8 +15,9 @@
  */
 package com.hpe.caf.worker.workertest;
 
-import com.google.common.base.Strings;
 import com.rabbitmq.client.ConnectionFactory;
+
+import java.util.Objects;
 
 public class TestWorkerTestBase {
     final protected ConnectionFactory connectionFactory;
@@ -37,6 +38,6 @@ public class TestWorkerTestBase {
     private static String getEnvOrDefault(final String name, final String defaultValue) {
         final String value = System.getenv(name);
 
-        return !Strings.isNullOrEmpty(value) ? value : defaultValue;
+        return value != null && !Objects.equals(value, "") ? value : defaultValue;
     }
 }
