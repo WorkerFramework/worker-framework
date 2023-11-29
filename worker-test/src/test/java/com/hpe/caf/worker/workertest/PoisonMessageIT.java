@@ -22,7 +22,6 @@ import com.hpe.caf.api.worker.TaskMessage;
 import com.hpe.caf.api.worker.TaskStatus;
 import com.hpe.caf.codec.JsonCodec;
 import com.hpe.caf.util.rabbitmq.QueueCreator;
-import com.hpe.caf.worker.queue.rabbit.RabbitWorkerQueueConfiguration;
 import com.rabbitmq.client.Connection;
 import com.rabbitmq.client.Channel;
 import com.rabbitmq.client.AMQP;
@@ -54,10 +53,8 @@ public class PoisonMessageIT  extends TestWorkerTestBase{
 
             final Channel channel = connection.createChannel();
 
-            final RabbitWorkerQueueConfiguration rabbitWorkerQueueConfiguration = new RabbitWorkerQueueConfiguration();
-
             final Map<String, Object> args = new HashMap<>();
-            args.put(QueueCreator.RABBIT_PROP_QUEUE_TYPE, rabbitWorkerQueueConfiguration.getQueueType());
+            args.put(QueueCreator.RABBIT_PROP_QUEUE_TYPE, QueueCreator.RABBIT_PROP_QUEUE_TYPE_QUORUM);
             channel.queueDeclare(WORKER_IN, true, false, false, args);
 
             final Map<String, Object> retryLimitHeaders = new HashMap<>();
