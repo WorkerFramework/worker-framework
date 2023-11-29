@@ -21,10 +21,10 @@ import com.rabbitmq.client.Connection;
 import com.rabbitmq.client.ConnectionFactory;
 import com.rabbitmq.client.ExceptionHandler;
 import com.rabbitmq.client.RecoveryDelayHandler;
-import org.apache.http.client.utils.URIBuilder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import javax.ws.rs.core.UriBuilder;
 import java.io.IOException;
 import java.net.URI;
 import java.net.URISyntaxException;
@@ -106,11 +106,8 @@ public final class RabbitUtil
         factory.setUsername(rc.getRabbitUser());
         factory.setPassword(rc.getRabbitPassword());
 
-        final URI rabbitUri = new URIBuilder()
-                .setScheme(rc.getRabbitProtocol())
-                .setHost(rc.getRabbitHost())
-                .setPort(rc.getRabbitPort())
-                .build();
+        final URI rabbitUri = UriBuilder.fromUri("{protocol}://{host}:{port}")
+                .build(rc.getRabbitProtocol(), rc.getRabbitHost(), rc.getRabbitPort());
 
         factory.setUri(rabbitUri);
 
