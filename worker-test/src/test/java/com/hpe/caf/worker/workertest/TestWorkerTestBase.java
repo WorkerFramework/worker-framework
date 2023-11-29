@@ -15,8 +15,13 @@
  */
 package com.hpe.caf.worker.workertest;
 
+import com.rabbitmq.client.AMQP;
 import com.rabbitmq.client.ConnectionFactory;
+import com.rabbitmq.client.Consumer;
+import com.rabbitmq.client.Envelope;
+import com.rabbitmq.client.ShutdownSignalException;
 
+import java.io.IOException;
 import java.util.Objects;
 
 public class TestWorkerTestBase {
@@ -39,5 +44,42 @@ public class TestWorkerTestBase {
         final String value = System.getenv(name);
 
         return value != null && !Objects.equals(value, "") ? value : defaultValue;
+    }
+    public static class TestWorkerQueueConsumer implements Consumer {
+        private byte[] lastDeliveredBody = null;
+        @Override
+        public void handleConsumeOk(String consumerTag) {
+
+        }
+
+        @Override
+        public void handleCancelOk(String consumerTag) {
+
+        }
+
+        @Override
+        public void handleCancel(String consumerTag) throws IOException {
+
+        }
+
+        @Override
+        public void handleShutdownSignal(String consumerTag, ShutdownSignalException sig) {
+
+        }
+
+        @Override
+        public void handleRecoverOk(String consumerTag) {
+
+        }
+
+        public byte[] getLastDeliveredBody() {
+            return lastDeliveredBody;
+        }
+
+        @Override
+        public void handleDelivery(final String consumerTag, final Envelope envelope, final AMQP.BasicProperties properties,
+                                   final byte[] body) throws IOException {
+            lastDeliveredBody = body;
+        }
     }
 }

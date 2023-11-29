@@ -53,7 +53,7 @@ final class TestWorker implements Worker
             if(testWorkerTask.isPoison()){
                 System.exit(1);
             }
-        } catch (CodecException e) {
+        } catch (final CodecException e) {
             throw new RuntimeException(e);
         }
 

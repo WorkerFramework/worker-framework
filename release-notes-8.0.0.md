@@ -4,7 +4,10 @@
 ${version-number}
 
 #### New Features
-- **US749035**: RabbitMQ: Updated to create Quorum rather than classic queues.
-  Handling of classic queues still supported. 
 
 #### Known Issues
+
+#### Breaking Changes
+- **US749035**: Support for the creation of priority queues has been removed and classic queues deprecated. 
+When using cfg~caf~worker~RabbitConfiguration.js, the type of queue created by workers can be controlled by the ENV 
+CAF_RABBITMQ_QUEUE_TYPE, this currently defaults to 'classic', but will change to 'quorum' in a future release .

@@ -74,6 +74,9 @@ public class RabbitWorkerQueueConfiguration
     @Min(1)
     private int retryLimit;
 
+    /**
+     * The type of queues to create, can currently be either quorum or classic 
+     */
     @NotNull
     private String queueType;
 

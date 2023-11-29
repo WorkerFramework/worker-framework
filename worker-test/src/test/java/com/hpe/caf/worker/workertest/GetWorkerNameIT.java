@@ -25,9 +25,6 @@ import com.hpe.caf.util.rabbitmq.QueueCreator;
 import com.rabbitmq.client.Connection;
 import com.rabbitmq.client.Channel;
 import com.rabbitmq.client.AMQP;
-import com.rabbitmq.client.Consumer;
-import com.rabbitmq.client.ShutdownSignalException;
-import com.rabbitmq.client.Envelope;
 import org.testng.annotations.Test;
 import org.testng.Assert;
 
@@ -103,44 +100,6 @@ public class GetWorkerNameIT extends TestWorkerTestBase {
 
             Assert.assertTrue(taskData.contains(POISON_ERROR_MESSAGE));
             Assert.assertTrue(taskData.contains(WORKER_FRIENDLY_NAME));
-        }
-    }
-
-    private static class TestWorkerQueueConsumer implements Consumer {
-        private byte[] lastDeliveredBody = null;
-        @Override
-        public void handleConsumeOk(String consumerTag) {
-
-        }
-
-        @Override
-        public void handleCancelOk(String consumerTag) {
-
-        }
-
-        @Override
-        public void handleCancel(String consumerTag) throws IOException {
-
-        }
-
-        @Override
-        public void handleShutdownSignal(String consumerTag, ShutdownSignalException sig) {
-
-        }
-
-        @Override
-        public void handleRecoverOk(String consumerTag) {
-
-        }
-
-        public byte[] getLastDeliveredBody() {
-            return lastDeliveredBody;
-        }
-
-        @Override
-        public void handleDelivery(final String consumerTag, final Envelope envelope, final AMQP.BasicProperties properties,
-                                   final byte[] body) throws IOException {
-                lastDeliveredBody = body;
         }
     }
 }

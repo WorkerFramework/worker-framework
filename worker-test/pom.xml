@@ -374,9 +374,9 @@
                 <rabbitmq.node.port>25672</rabbitmq.node.port>
                 <webdav.port>9090</webdav.port>
                 <worker.adminport>8081</worker.adminport>
+                <worker.debugport>5005</worker.debugport>
                 <worker.testadminport2>8082</worker.testadminport2>
                 <worker.testadminport3>8083</worker.testadminport3>
-                <worker.debugport>5005</worker.debugport>
                 <worker.testdebugport2>5006</worker.testdebugport2>
                 <worker.testdebugport3>5007</worker.testdebugport3>
             </properties>
