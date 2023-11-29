@@ -24,7 +24,6 @@ import com.rabbitmq.client.RecoveryDelayHandler;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import javax.ws.rs.core.UriBuilder;
 import java.io.IOException;
 import java.net.URI;
 import java.net.URISyntaxException;
@@ -106,10 +105,8 @@ public final class RabbitUtil
         factory.setUsername(rc.getRabbitUser());
         factory.setPassword(rc.getRabbitPassword());
 
-        final URI rabbitUri = UriBuilder.fromUri("{protocol}://{host}:{port}")
-                .build(rc.getRabbitProtocol(), rc.getRabbitHost(), rc.getRabbitPort());
-
-        factory.setUri(rabbitUri);
+        final URI rabbitUrl = new URI(String.format("%s://%s:%s", rc.getRabbitProtocol(), rc.getRabbitHost(), rc.getRabbitPort()));
+        factory.setUri(rabbitUrl);
 
         if (exceptionHandler != null) {
             factory.setExceptionHandler(exceptionHandler);
