@@ -58,11 +58,6 @@
             <scope>runtime</scope>
         </dependency>
         <dependency>
-            <groupId>com.google.guava</groupId>
-            <artifactId>guava</artifactId>
-            <scope>runtime</scope>
-        </dependency>
-        <dependency>
             <groupId>com.github.workerframework</groupId>
             <artifactId>standard-worker-container</artifactId>
             <type>pom</type>
@@ -80,11 +75,6 @@
         </dependency>
 
         <!-- Test dependencies -->
-        <dependency>
-            <groupId>org.json</groupId>
-            <artifactId>json</artifactId>
-            <scope>test</scope>
-        </dependency>
         <dependency>
             <groupId>org.testng</groupId>
             <artifactId>testng</artifactId>
@@ -172,12 +162,14 @@
                     </execution>
                 </executions>
                 <configuration>
+                    <startParallel>true</startParallel>
                     <containerNamePattern>%a-%t</containerNamePattern>
                     <images>
                         <image>
                             <alias>webdav</alias>
                             <name>${dockerHubPublic}/cloudesire/webdav</name>
                             <run>
+                                <platform>linux/amd64</platform>
                                 <ports>
                                     <port>${webdav.port}:8080</port>
                                 </ports>
@@ -267,6 +259,7 @@
                                 </assembly>
                             </build>
                             <run>
+                                <platform>linux/amd64</platform>
                                 <ports>
                                     <port>${worker.adminport}:8081</port>
                                     <port>${worker.debugport}:5005</port>
@@ -301,6 +294,7 @@
                             <alias>worker-test-2</alias>
                             <name>${targetDockerRegistryPath}/worker-test:${project.version}</name>
                             <run>
+                                <platform>linux/amd64</platform>
                                 <ports>
                                     <port>${worker.testadminport2}:8081</port>
                                     <port>${worker.testdebugport2}:5005</port>
@@ -335,6 +329,7 @@
                             <alias>worker-test-3</alias>
                             <name>${targetDockerRegistryPath}/worker-test:${project.version}</name>
                             <run>
+                                <platform>linux/amd64</platform>
                                 <ports>
                                     <port>${worker.testadminport3}:8081</port>
                                     <port>${worker.testdebugport3}:5005</port>
