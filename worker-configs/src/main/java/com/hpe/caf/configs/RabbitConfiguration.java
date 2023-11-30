@@ -46,6 +46,12 @@ public class RabbitConfiguration
     @Max(1000)
     private int maxAttempts = 20;
     /**
+     * The protocol of the RabbitMQ client, either amqp or amqps
+     */
+    @NotNull
+    @Size(min = 1)
+    private String rabbitProtocol;
+    /**
      * The host that runs RabbitMQ.
      */
     @NotNull
@@ -108,6 +114,19 @@ public class RabbitConfiguration
     public void setMaxAttempts(final int maxAttempts)
     {
         this.maxAttempts = maxAttempts;
+    }
+
+    /**
+     * @return the protocol of the RabbitMQ server
+     */
+    public String getRabbitProtocol()
+    {
+        return rabbitProtocol;
+    }
+
+    public void setRabbitProtocol(final String rabbitProtocol)
+    {
+        this.rabbitProtocol = rabbitProtocol;
     }
 
     /**

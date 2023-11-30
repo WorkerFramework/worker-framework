@@ -25,6 +25,10 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
+import java.net.URI;
+import java.net.URISyntaxException;
+import java.security.KeyManagementException;
+import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
@@ -55,10 +59,11 @@ public final class RabbitUtil
      * @throws IOException if the connection fails to establish
      * @throws TimeoutException if the connection fails to establish
      */
-    public static Connection createRabbitConnection(String host, int port, String user, String pass)
-        throws IOException, TimeoutException
+    public static Connection createRabbitConnection(String protocol, String host, int port, String user, String pass)
+        throws IOException, TimeoutException, URISyntaxException, NoSuchAlgorithmException, KeyManagementException
     {
         final RabbitConfiguration rc = new RabbitConfiguration();
+        rc.setRabbitProtocol(protocol);
         rc.setRabbitHost(host);
         rc.setRabbitPort(port);
         rc.setRabbitUser(user);
@@ -77,7 +82,8 @@ public final class RabbitUtil
      * @throws IOException if the connection fails to establish
      * @throws TimeoutException if the connection fails to establish
      */
-    public static Connection createRabbitConnection(final RabbitConfiguration rc) throws IOException, TimeoutException
+    public static Connection createRabbitConnection(final RabbitConfiguration rc)
+            throws IOException, TimeoutException, URISyntaxException, NoSuchAlgorithmException, KeyManagementException
     {
         return createRabbitConnection(rc, null);
     }
@@ -93,13 +99,16 @@ public final class RabbitUtil
      */
     public static Connection createRabbitConnection(final RabbitConfiguration rc,
                                                     final ExceptionHandler exceptionHandler)
-            throws IOException, TimeoutException
+            throws IOException, TimeoutException, URISyntaxException, NoSuchAlgorithmException, KeyManagementException
     {
         final ConnectionFactory factory = new ConnectionFactory();
         factory.setUsername(rc.getRabbitUser());
         factory.setPassword(rc.getRabbitPassword());
-        factory.setHost(rc.getRabbitHost());
-        factory.setPort(rc.getRabbitPort());
+
+        final URI rabbitUrl = new URI(String.format("%s://%s:%s", rc.getRabbitProtocol(), rc.getRabbitHost(), 
+                rc.getRabbitPort()));
+        factory.setUri(rabbitUrl);
+
         if (exceptionHandler != null) {
             factory.setExceptionHandler(exceptionHandler);
         }
