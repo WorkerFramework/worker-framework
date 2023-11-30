@@ -46,7 +46,7 @@ public class RabbitConfiguration
     @Max(1000)
     private int maxAttempts = 20;
     /**
-     * The protocol of the RabbitMQ client
+     * The protocol of the RabbitMQ client, either amqp or amqps
      */
     @NotNull
     @Size(min = 1)

@@ -106,7 +106,9 @@ public final class RabbitWorkerQueue implements ManagedWorkerQueue
             synchronized (consumerLock) {
                 consumerTag = incomingChannel.basicConsume(config.getInputQueue(), consumer);
             }
-        } catch (final IOException | TimeoutException | URISyntaxException | NoSuchAlgorithmException | KeyManagementException e) {
+        } catch (final IOException | TimeoutException | URISyntaxException | NoSuchAlgorithmException | 
+                       KeyManagementException e) 
+        {
             throw new QueueException("Failed to establish queues", e);
         }
         publisherThread = new Thread(publisher);
@@ -334,7 +336,7 @@ public final class RabbitWorkerQueue implements ManagedWorkerQueue
     }
 
     private void createConnection(TaskCallback callback, WorkerConfirmListener listener)
-            throws IOException, TimeoutException, URISyntaxException, NoSuchAlgorithmException, KeyManagementException
+        throws IOException, TimeoutException, URISyntaxException, NoSuchAlgorithmException, KeyManagementException
     {
         conn = RabbitUtil.createRabbitConnection(config.getRabbitConfiguration());
         ((Recoverable)conn).addRecoveryListener(new WorkerConnectionListener(callback, listener));

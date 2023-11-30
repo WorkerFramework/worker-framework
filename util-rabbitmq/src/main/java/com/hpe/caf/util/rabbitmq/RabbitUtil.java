@@ -60,7 +60,7 @@ public final class RabbitUtil
      * @throws TimeoutException if the connection fails to establish
      */
     public static Connection createRabbitConnection(String protocol, String host, int port, String user, String pass)
-            throws IOException, TimeoutException, URISyntaxException, NoSuchAlgorithmException, KeyManagementException
+        throws IOException, TimeoutException, URISyntaxException, NoSuchAlgorithmException, KeyManagementException
     {
         final RabbitConfiguration rc = new RabbitConfiguration();
         rc.setRabbitProtocol(protocol);
@@ -105,7 +105,8 @@ public final class RabbitUtil
         factory.setUsername(rc.getRabbitUser());
         factory.setPassword(rc.getRabbitPassword());
 
-        final URI rabbitUrl = new URI(String.format("%s://%s:%s", rc.getRabbitProtocol(), rc.getRabbitHost(), rc.getRabbitPort()));
+        final URI rabbitUrl = new URI(String.format("%s://%s:%s", rc.getRabbitProtocol(), rc.getRabbitHost(), 
+                rc.getRabbitPort()));
         factory.setUri(rabbitUrl);
 
         if (exceptionHandler != null) {
