@@ -33,6 +33,7 @@ final class TestWorkerFactory implements WorkerFactory
     private final TestWorkerConfiguration config;
 
     private final ConfigurationSource configSource;
+    private final Codec codec;
 
     public TestWorkerFactory(
         final ConfigurationSource configSource,
@@ -42,6 +43,7 @@ final class TestWorkerFactory implements WorkerFactory
     {
         this.config = getConfiguration(configSource);
         this.configSource = configSource;
+        this.codec = codec;
     }
 
     @Nonnull
@@ -74,7 +76,7 @@ final class TestWorkerFactory implements WorkerFactory
     @Override
     public Worker getWorker(final WorkerTaskData workerTask) throws TaskRejectedException, InvalidTaskException
     {
-        return new TestWorker(config, workerTask);
+        return new TestWorker(config, codec, workerTask);
     }
 
     @Override

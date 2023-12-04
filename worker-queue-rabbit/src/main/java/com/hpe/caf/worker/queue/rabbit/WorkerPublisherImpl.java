@@ -62,7 +62,7 @@ public class WorkerPublisherImpl implements WorkerPublisher
     }
 
     @Override
-    public void handlePublish(byte[] data, String routingKey, RabbitTaskInformation taskInformation, Map<String, Object> headers, int priority)
+    public void handlePublish(byte[] data, String routingKey, RabbitTaskInformation taskInformation, Map<String, Object> headers)
     {
         try {
             LOG.debug("Publishing message to {} with ack id {}", routingKey, taskInformation.getInboundMessageId());
@@ -70,7 +70,6 @@ public class WorkerPublisherImpl implements WorkerPublisher
             builder.headers(headers);
             builder.contentType("text/plain");
             builder.deliveryMode(2);
-            builder.priority(priority);
 
             confirmListener.registerResponseSequence(channel.getNextPublishSeqNo(), taskInformation);
             channel.basicPublish("", routingKey, builder.build(), data);

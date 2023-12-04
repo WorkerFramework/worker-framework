@@ -51,11 +51,11 @@ final class WorkerCore
            System.getenv("CAF_WORKER_ENABLE_DIVERTED_TASK_CHECKING") == null ? 
                 "True" : System.getenv("CAF_WORKER_ENABLE_DIVERTED_TASK_CHECKING"));
 
-    public WorkerCore(final Codec codec, final WorkerThreadPool pool, final ManagedWorkerQueue queue, final MessagePriorityManager priorityManager, final WorkerFactory factory, final ServicePath path, final HealthCheckRegistry healthCheckRegistry, final TransientHealthCheck transientHealthCheck)
+    public WorkerCore(final Codec codec, final WorkerThreadPool pool, final ManagedWorkerQueue queue, final WorkerFactory factory, final ServicePath path, final HealthCheckRegistry healthCheckRegistry, final TransientHealthCheck transientHealthCheck)
     {
         WorkerCallback taskCallback = new CoreWorkerCallback(codec, queue, stats, healthCheckRegistry, transientHealthCheck);
         this.threadPool = Objects.requireNonNull(pool);
-        this.callback = new CoreTaskCallback(codec, stats, new WorkerExecutor(path, taskCallback, factory, pool, priorityManager), pool, queue);
+        this.callback = new CoreTaskCallback(codec, stats, new WorkerExecutor(path, taskCallback, factory, pool), pool, queue);
         this.workerQueue = Objects.requireNonNull(queue);
         this.isStarted = false;
     }
@@ -478,10 +478,8 @@ final class WorkerCore
                 throw new RuntimeException(ex);
             }
 
-            final int priority = responseMessage.getPriority() == null ? 0 : responseMessage.getPriority();
-
             try {
-                workerQueue.publish(taskInformation, output, queue, Collections.emptyMap(), priority);
+                workerQueue.publish(taskInformation, output, queue, Collections.emptyMap());
             } catch (final QueueException ex) {
                 throw new RuntimeException(ex);
             }
@@ -519,8 +517,7 @@ final class WorkerCore
                     // **** Normal Worker ****                    
                     // A worker with an input and output queue.
                     final byte[] output = codec.serialise(responseMessage);
-                    workerQueue.publish(taskInformation, output, queue, Collections.emptyMap(), 
-                                           responseMessage.getPriority() == null ? 0 : responseMessage.getPriority(), true);                    
+                    workerQueue.publish(taskInformation, output, queue, Collections.emptyMap(), true);
                     stats.getOutputSizes().update(output.length);
                 }
                 stats.updatedLastTaskFinishedTime();
@@ -561,7 +558,7 @@ final class WorkerCore
                 } else {
                     // Else forward the task
                     final byte[] output = codec.serialise(forwardedMessage);
-                    workerQueue.publish(taskInformation, output, queue, headers, forwardedMessage.getPriority() == null ? 0 : forwardedMessage.getPriority(), true);
+                    workerQueue.publish(taskInformation, output, queue, headers, true);
                     stats.incrementTasksForwarded();
                     //TODO - I'm guessing this stat should not be updated for forwarded messages:
                     // stats.getOutputSizes().update(output.length);
@@ -583,8 +580,7 @@ final class WorkerCore
                       taskMessage.getTaskId(), taskInformation.getInboundMessageId(), pausedQueue);
             try {
                 final byte[] taskMessageBytes = codec.serialise(taskMessage);
-                workerQueue.publish(taskInformation, taskMessageBytes, pausedQueue, headers,
-                                    taskMessage.getPriority() == null ? 0 : taskMessage.getPriority(), true);
+                workerQueue.publish(taskInformation, taskMessageBytes, pausedQueue, headers, true);
                 stats.incrementTasksPaused();
             } catch (final CodecException | QueueException e) {
                 LOG.error("Cannot publish data for task: {} to paused queue: {}, rejecting", taskMessage.getTaskId(), pausedQueue, e);
@@ -615,10 +611,8 @@ final class WorkerCore
                 throw new RuntimeException(ex);
             }
 
-            final int priority = reportUpdateMessage.getPriority() == null ? 0 : reportUpdateMessage.getPriority();
-
             try {                
-                workerQueue.publish(taskInformation, output, reportUpdateMessage.getTo(), Collections.emptyMap(), priority);
+                workerQueue.publish(taskInformation, output, reportUpdateMessage.getTo(), Collections.emptyMap());
             } catch (final QueueException ex) {
                 throw new RuntimeException(ex);
             }

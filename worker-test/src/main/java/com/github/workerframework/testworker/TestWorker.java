@@ -15,6 +15,8 @@
  */
 package com.github.workerframework.testworker;
 
+import com.hpe.caf.api.Codec;
+import com.hpe.caf.api.CodecException;
 import com.hpe.caf.api.worker.InvalidTaskException;
 import com.hpe.caf.api.worker.TaskRejectedException;
 import com.hpe.caf.api.worker.TaskStatus;
@@ -29,17 +31,31 @@ final class TestWorker implements Worker
     private static final byte[] TEST_WORKER_RESULT = "TestWorkerResult".getBytes(StandardCharsets.UTF_8);
 
     private final TestWorkerConfiguration config;
+    private final Codec codec;
+    private final WorkerTaskData workerTask;
 
-    public TestWorker(final TestWorkerConfiguration config, final WorkerTaskData workerTask)
+    public TestWorker(final TestWorkerConfiguration config, final Codec codec, final WorkerTaskData workerTask)
         throws InvalidTaskException, TaskRejectedException
     {
         this.config = config;
+        this.codec = codec;
+        this.workerTask = workerTask;
     }
 
     @Nonnull
     @Override
-    public WorkerResponse doWork() throws InterruptedException, TaskRejectedException, InvalidTaskException
-    {
+    public WorkerResponse doWork() throws InterruptedException, TaskRejectedException, InvalidTaskException {
+
+        // Required for PoisonMessageIT. If isPoison is true, the worker will exit to simulate a poison message.
+        try {
+            final TestWorkerTask testWorkerTask = codec.deserialise(workerTask.getData(), TestWorkerTask.class);
+            if(testWorkerTask.isPoison()){
+                System.exit(1);
+            }
+        } catch (final CodecException e) {
+            throw new RuntimeException(e);
+        }
+
         final String outputQueue = config.getOutputQueue();
 
         return new WorkerResponse(

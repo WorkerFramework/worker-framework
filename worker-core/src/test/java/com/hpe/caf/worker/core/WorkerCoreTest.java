@@ -62,8 +62,6 @@ public class WorkerCoreTest
     private static final String QUEUE_OUT = "outQueue";
     private static final String QUEUE_PAUSED = "pausedQueue";
     private static final String SERVICE_PATH = "/test/group";
-    private static final int PRIORITY = 2;
-
     private TaskInformation taskInformation;
 
     @BeforeMethod
@@ -85,12 +83,10 @@ public class WorkerCoreTest
         ServicePath path = new ServicePath(SERVICE_PATH);
         TestWorkerTask task = new TestWorkerTask();
         TestWorkerQueue queue = new TestWorkerQueueProvider(q).getWorkerQueue(config, 50);
-        MessagePriorityManager priorityManager = Mockito.mock(MessagePriorityManager.class);
-        Mockito.when(priorityManager.getResponsePriority(Mockito.any())).thenReturn(PRIORITY);
         HealthCheckRegistry healthCheckRegistry = Mockito.mock(HealthCheckRegistry.class);
         TransientHealthCheck transientHealthCheck = Mockito.mock(TransientHealthCheck.class);
 
-        WorkerCore core = new WorkerCore(codec, wtp, queue, priorityManager, getWorkerFactory(task, codec), path, healthCheckRegistry, transientHealthCheck);
+        WorkerCore core = new WorkerCore(codec, wtp, queue, getWorkerFactory(task, codec), path, healthCheckRegistry, transientHealthCheck);
         core.start();
         // at this point, the queue should hand off the task to the app, the app should get a worker from the mocked WorkerFactory,
         // and the Worker itself is a mock wrapped in a WorkerWrapper, which should return success and the appropriate result data
@@ -125,12 +121,10 @@ public class WorkerCoreTest
         final ServicePath path = new ServicePath(SERVICE_PATH);
         final TestWorkerTask task = new TestWorkerTask();
         final TestWorkerQueue queue = new TestWorkerQueueProvider(q).getWorkerQueue(config, 50);
-        final MessagePriorityManager priorityManager = Mockito.mock(MessagePriorityManager.class);
-        Mockito.when(priorityManager.getResponsePriority(Mockito.any())).thenReturn(PRIORITY);
         final HealthCheckRegistry healthCheckRegistry = Mockito.mock(HealthCheckRegistry.class);
         final TransientHealthCheck transientHealthCheck = Mockito.mock(TransientHealthCheck.class);
 
-        final WorkerCore core = new WorkerCore(codec, wtp, queue, priorityManager, getWorkerFactory(task, codec), path, healthCheckRegistry, transientHealthCheck);
+        final WorkerCore core = new WorkerCore(codec, wtp, queue, getWorkerFactory(task, codec), path, healthCheckRegistry, transientHealthCheck);
         core.start();
         // at this point, the queue should hand off the task to the app, the app should get a worker from the mocked WorkerFactory,
         // and the Worker itself is a mock wrapped in a WorkerWrapper, which should return success and the appropriate result data
@@ -181,12 +175,10 @@ public class WorkerCoreTest
         ServicePath path = new ServicePath(SERVICE_PATH);
         TestWorkerTask task = new TestWorkerTask();
         TestWorkerQueue queue = new TestWorkerQueueProvider(q).getWorkerQueue(config, 50);
-        MessagePriorityManager priorityManager = Mockito.mock(MessagePriorityManager.class);
-        Mockito.when(priorityManager.getResponsePriority(Mockito.any())).thenReturn(PRIORITY);
         HealthCheckRegistry healthCheckRegistry = Mockito.mock(HealthCheckRegistry.class);
         TransientHealthCheck transientHealthCheck = Mockito.mock(TransientHealthCheck.class);
 
-        WorkerCore core = new WorkerCore(codec, wtp, queue, priorityManager, getWorkerFactory(task, codec), path, healthCheckRegistry, transientHealthCheck);
+        WorkerCore core = new WorkerCore(codec, wtp, queue, getWorkerFactory(task, codec), path, healthCheckRegistry, transientHealthCheck);
         core.start();
         byte[] stuff = codec.serialise("nonsense");
         queue.submitTask(taskInformation, stuff);
@@ -206,12 +198,10 @@ public class WorkerCoreTest
         ServicePath path = new ServicePath(SERVICE_PATH);
         TestWorkerTask task = new TestWorkerTask();
         TestWorkerQueue queue = new TestWorkerQueueProvider(q).getWorkerQueue(config, 50);
-        MessagePriorityManager priorityManager = Mockito.mock(MessagePriorityManager.class);
-        Mockito.when(priorityManager.getResponsePriority(Mockito.any())).thenReturn(PRIORITY);
         HealthCheckRegistry healthCheckRegistry = Mockito.mock(HealthCheckRegistry.class);
         TransientHealthCheck transientHealthCheck = Mockito.mock(TransientHealthCheck.class);
 
-        WorkerCore core = new WorkerCore(codec, wtp, queue, priorityManager, getInvalidTaskWorkerFactory(), path, healthCheckRegistry, transientHealthCheck);
+        WorkerCore core = new WorkerCore(codec, wtp, queue, getInvalidTaskWorkerFactory(), path, healthCheckRegistry, transientHealthCheck);
         core.start();
         TaskMessage tm = getTaskMessage(task, codec, WORKER_NAME);
         tm.setTaskData(codec.serialise("invalid task data"));
@@ -248,12 +238,10 @@ public class WorkerCoreTest
         final ServicePath path = new ServicePath(SERVICE_PATH);
         final TestWorkerTask task = new TestWorkerTask();
         final TestWorkerQueue queue = new TestWorkerQueueProvider(q).getWorkerQueue(config, 50);
-        final MessagePriorityManager priorityManager = Mockito.mock(MessagePriorityManager.class);
-        Mockito.when(priorityManager.getResponsePriority(Mockito.any())).thenReturn(PRIORITY);
         final HealthCheckRegistry healthCheckRegistry = Mockito.mock(HealthCheckRegistry.class);
         final TransientHealthCheck transientHealthCheck = Mockito.mock(TransientHealthCheck.class);
 
-        final WorkerCore core = new WorkerCore(codec, wtp, queue, priorityManager, getInvalidTaskWorkerFactory(), path, healthCheckRegistry, transientHealthCheck);
+        final WorkerCore core = new WorkerCore(codec, wtp, queue, getInvalidTaskWorkerFactory(), path, healthCheckRegistry, transientHealthCheck);
         core.start();
 
         final TrackingInfo tracking = new TrackingInfo("J23.1.2", new Date(), 0, "http://thehost:1234/job-service/v1/jobs/23/status", "trackingQueue", "trackTo");
@@ -313,12 +301,10 @@ public class WorkerCoreTest
         TestWorkerTask task = new TestWorkerTask();
         CountDownLatch latch = new CountDownLatch(2);
         TestWorkerQueue queue = new TestWorkerQueueProvider(q).getWorkerQueue(config, 20);
-        MessagePriorityManager priorityManager = Mockito.mock(MessagePriorityManager.class);
-        Mockito.when(priorityManager.getResponsePriority(Mockito.any())).thenReturn(PRIORITY);
         HealthCheckRegistry healthCheckRegistry = Mockito.mock(HealthCheckRegistry.class);
         TransientHealthCheck transientHealthCheck = Mockito.mock(TransientHealthCheck.class);
 
-        WorkerCore core = new WorkerCore(codec, wtp, queue, priorityManager, getSlowWorkerFactory(latch, task, codec), path, healthCheckRegistry, transientHealthCheck);
+        WorkerCore core = new WorkerCore(codec, wtp, queue, getSlowWorkerFactory(latch, task, codec), path, healthCheckRegistry, transientHealthCheck);
         core.start();
         byte[] task1 = codec.serialise(getTaskMessage(task, codec, UUID.randomUUID().toString()));
         byte[] task2 = codec.serialise(getTaskMessage(task, codec, UUID.randomUUID().toString()));
@@ -348,12 +334,10 @@ public class WorkerCoreTest
         ServicePath path = new ServicePath(SERVICE_PATH);
         TestWorkerTask task = new TestWorkerTask();
         TestWorkerQueue queue = new TestWorkerQueueProvider(q).getWorkerQueue(config, 20);
-        MessagePriorityManager priorityManager = Mockito.mock(MessagePriorityManager.class);
-        Mockito.when(priorityManager.getResponsePriority(Mockito.any())).thenReturn(PRIORITY);
         HealthCheckRegistry healthCheckRegistry = Mockito.mock(HealthCheckRegistry.class);
         TransientHealthCheck transientHealthCheck = Mockito.mock(TransientHealthCheck.class);
 
-        WorkerCore core = new WorkerCore(codec, wtp, queue, priorityManager, getInterruptedExceptionWorkerFactory(task, codec),
+        WorkerCore core = new WorkerCore(codec, wtp, queue, getInterruptedExceptionWorkerFactory(task, codec),
                                          path, healthCheckRegistry, transientHealthCheck);
         core.start();
 
@@ -397,13 +381,11 @@ public class WorkerCoreTest
         final ServicePath path = new ServicePath(SERVICE_PATH);
         final TestWorkerTask task = new TestWorkerTask();
         final TestWorkerQueue queue = new TestWorkerQueueProvider(q).getWorkerQueue(config, 50);
-        final MessagePriorityManager priorityManager = Mockito.mock(MessagePriorityManager.class);
-        Mockito.when(priorityManager.getResponsePriority(Mockito.any())).thenReturn(PRIORITY);
         final HealthCheckRegistry healthCheckRegistry = Mockito.mock(HealthCheckRegistry.class);
         final TransientHealthCheck transientHealthCheck = Mockito.mock(TransientHealthCheck.class);
 
         final WorkerCore core = new WorkerCore(
-            codec, wtp, queue, priorityManager, getWorkerFactory(task, codec), path, healthCheckRegistry, transientHealthCheck);
+            codec, wtp, queue, getWorkerFactory(task, codec), path, healthCheckRegistry, transientHealthCheck);
         core.start();
         // at this point, the queue should hand off the task to the app, the app should get a worker from the mocked WorkerFactory,
         // and the Worker itself is a mock wrapped in a WorkerWrapper, which should return success and the appropriate result data
@@ -442,13 +424,11 @@ public class WorkerCoreTest
         final ServicePath path = new ServicePath(SERVICE_PATH);
         final TestWorkerTask task = new TestWorkerTask();
         final TestWorkerQueue queue = new TestWorkerQueueWithNullPausedQueueProvider(q).getWorkerQueue(config, 50);
-        final MessagePriorityManager priorityManager = Mockito.mock(MessagePriorityManager.class);
-        Mockito.when(priorityManager.getResponsePriority(Mockito.any())).thenReturn(PRIORITY);
         final HealthCheckRegistry healthCheckRegistry = Mockito.mock(HealthCheckRegistry.class);
         final TransientHealthCheck transientHealthCheck = Mockito.mock(TransientHealthCheck.class);
 
         final WorkerCore core = new WorkerCore(
-            codec, wtp, queue, priorityManager, getWorkerFactory(task, codec), path, healthCheckRegistry, transientHealthCheck);
+            codec, wtp, queue, getWorkerFactory(task, codec), path, healthCheckRegistry, transientHealthCheck);
         core.start();
         // at this point, the queue should hand off the task to the app, the app should get a worker from the mocked WorkerFactory,
         // and the Worker itself is a mock wrapped in a WorkerWrapper, which should return success and the appropriate result data
@@ -606,15 +586,8 @@ public class WorkerCoreTest
         }
         
         @Override
-        public void publish(TaskInformation taskInformation, byte[] taskMessage, String targetQueue, Map<String, Object> headers, int priority, boolean isLastMessage)
+        public void publish(TaskInformation taskInformation, byte[] taskMessage, String targetQueue, Map<String, Object> headers, boolean isLastMessage)
             throws QueueException
-        {
-            this.lastQueue = targetQueue;
-            results.offer(taskMessage);
-        }
-
-        @Override
-        public void publish(TaskInformation taskInformation, byte[] taskMessage, String targetQueue, Map<String, Object> headers, int priority)
         {
             this.lastQueue = targetQueue;
             results.offer(taskMessage);

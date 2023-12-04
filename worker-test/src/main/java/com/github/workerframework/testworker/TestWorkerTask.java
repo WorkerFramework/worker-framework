@@ -13,20 +13,16 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.hpe.caf.worker.queue.rabbit;
+package com.github.workerframework.testworker;
 
-import com.hpe.caf.api.worker.MessagePriorityManager;
-import com.hpe.caf.api.worker.TaskMessage;
+public class TestWorkerTask {
+    private boolean isPoison;
 
-/**
- * Implementation of MessagePriorityManager which always return zero. It should be used when priorities are disabled or queue
- * implementation doesn't support them.
- */
-public class ZeroMessagePriorityManager implements MessagePriorityManager
-{
-    @Override
-    public Integer getResponsePriority(final TaskMessage originalTaskMessage)
-    {
-        return 0;
+    public boolean isPoison() {
+        return isPoison;
+    }
+
+    public void setPoison(boolean poison) {
+        isPoison = poison;
     }
 }

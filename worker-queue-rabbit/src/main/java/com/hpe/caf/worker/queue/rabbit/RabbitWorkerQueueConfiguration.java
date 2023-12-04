@@ -81,6 +81,12 @@ public class RabbitWorkerQueueConfiguration
     @Max(255)
     private int maxPriority;
 
+    /**
+     * The type of queues to create, can currently be either quorum or classic 
+     */
+    @NotNull
+    private String queueType;
+
     public RabbitWorkerQueueConfiguration()
     {
     }
@@ -162,8 +168,17 @@ public class RabbitWorkerQueueConfiguration
         return maxPriority;
     }
 
-    public void setMaxPriority(int maxPriority)
-    {
+    public void setMaxPriority(int maxPriority) {
         this.maxPriority = maxPriority;
+    }
+
+    public String getQueueType()
+    {
+        return queueType;
+    }
+
+    public void setQueueType(String queueType)
+    {
+        this.queueType = queueType;
     }
 }
