@@ -14,4 +14,4 @@ ${version-number}
 - **US749035**: Classic queues and priority queues are deprecated, priority queues can still be created however it is no
   longer possible to publish messages with a priority.
   When using `cfg~caf~worker~RabbitConfiguration.js`, the type of queue created by workers can be controlled by the ENV
-  CAF_RABBITMQ_QUEUE_TYPE, this currently defaults to 'classic', but will change to 'quorum' in a future release.
+  CAF_RABBITMQ_QUEUE_TYPE, this currently defaults to 'quorum', but will be removed in a future release.

@@ -144,6 +144,7 @@ public final class RabbitUtil
      *
      * @param channel the channel to use to declare the queue
      * @param queueName the name of the worker queue
+     * @param maxPriority the maximum supported priority, pass 0 to disable priority
      * @param queueType the type of queue to be created eg: classic or quorum
      * @throws IOException if the queue is not valid and cannot be used, this is likely NOT retryable
      */
