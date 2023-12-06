@@ -22,6 +22,7 @@ import com.hpe.caf.api.worker.TaskMessage;
 import com.hpe.caf.api.worker.TaskStatus;
 import com.hpe.caf.codec.JsonCodec;
 import com.hpe.caf.util.rabbitmq.QueueCreator;
+import com.hpe.caf.util.rabbitmq.RabbitHeaders;
 import com.rabbitmq.client.Connection;
 import com.rabbitmq.client.Channel;
 import com.rabbitmq.client.AMQP;
@@ -59,8 +60,8 @@ public class GetWorkerNameIT extends TestWorkerTestBase {
             channel.basicConsume(TESTWORKER_OUT, true, poisonConsumer);
 
             final Map<String, Object> retryLimitHeaders = new HashMap<>();
-            retryLimitHeaders.put(QueueCreator.RABBIT_RETRY_LIMIT_HEADER, 3);
-            retryLimitHeaders.put(QueueCreator.RABBIT_RETRY_COUNT_HEADER, 3);
+            retryLimitHeaders.put(RabbitHeaders.RABBIT_HEADER_CAF_WORKER_RETRY_LIMIT, 2);
+            retryLimitHeaders.put(RabbitHeaders.RABBIT_HEADER_CAF_DELIVERY_COUNT, 2);
 
             final AMQP.BasicProperties properties = new AMQP.BasicProperties.Builder()
                     .headers(retryLimitHeaders)

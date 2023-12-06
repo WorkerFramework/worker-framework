@@ -269,6 +269,7 @@
                                     <CAF_WORKER_JAVA_OPTS>
                                         -agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=*:5005
                                     </CAF_WORKER_JAVA_OPTS>
+                                    <CAF_WORKER_RETRY_LIMIT>2</CAF_WORKER_RETRY_LIMIT>
                                 </env>
                                 <volumes>
                                     <from>
@@ -304,6 +305,7 @@
                                     <CAF_WORKER_JAVA_OPTS>
                                         -agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=*:5005
                                     </CAF_WORKER_JAVA_OPTS>
+                                    <CAF_WORKER_RETRY_LIMIT>2</CAF_WORKER_RETRY_LIMIT>
                                 </env>
                                 <volumes>
                                     <from>
@@ -339,6 +341,7 @@
                                     <CAF_WORKER_JAVA_OPTS>
                                         -agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=*:5005
                                     </CAF_WORKER_JAVA_OPTS>
+                                    <CAF_WORKER_RETRY_LIMIT>2</CAF_WORKER_RETRY_LIMIT>
                                 </env>
                                 <volumes>
                                     <from>

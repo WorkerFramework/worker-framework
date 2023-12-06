@@ -75,25 +75,34 @@ public class WorkerQueueConsumerImpl implements QueueConsumer
     @Override
     public void processDelivery(Delivery delivery)
     {
-        RabbitTaskInformation taskInformation = new RabbitTaskInformation(String.valueOf(delivery.getEnvelope().getDeliveryTag()));
+        final RabbitTaskInformation taskInformation = new RabbitTaskInformation(String.valueOf(delivery.getEnvelope().getDeliveryTag()));
         metrics.incrementReceived();
         if (delivery.getEnvelope().isRedeliver()) {
-            handleRedelivery(delivery);
-        } else {
-            try {
-                LOG.debug("Registering new message {}", taskInformation.getInboundMessageId());
-                callback.registerNewTask(taskInformation, delivery.getMessageData(), delivery.getHeaders());
-            } catch (InvalidTaskException e) {
-                LOG.error("Cannot register new message, rejecting {}", taskInformation.getInboundMessageId(), e);
-                taskInformation.incrementResponseCount(true);
-                publisherEventQueue.add(new WorkerPublishQueueEvent(delivery.getMessageData(), retryRoutingKey, taskInformation,
-                                                                    Collections.singletonMap(RabbitHeaders.RABBIT_HEADER_CAF_WORKER_REJECTED, REJECTED_REASON_TASKMESSAGE)));
-            } catch (TaskRejectedException e) {
-                LOG.warn("Message {} rejected as a task at this time, returning to queue", taskInformation.getInboundMessageId(), e);
-                taskInformation.incrementResponseCount(true);
-                publisherEventQueue.add(new WorkerPublishQueueEvent(delivery.getMessageData(), delivery.getEnvelope().getRoutingKey(),
-                        taskInformation));
+            final int quorumRetryCount = Integer.parseInt(String.valueOf(delivery.getHeaders().getOrDefault(
+                        RabbitHeaders.RABBIT_HEADER_CAF_DELIVERY_COUNT, "0")));
+            if(quorumRetryCount == 0){
+                handleClassicRedelivery(delivery);
+                return;
             }
+            if(quorumRetryCount >= retryLimit){
+                handleQuorumRetryLimit(delivery, quorumRetryCount);
+                return;
+            }
+        }
+
+        try {
+            LOG.debug("Registering new message {}", taskInformation.getInboundMessageId());
+            callback.registerNewTask(taskInformation, delivery.getMessageData(), delivery.getHeaders());
+        } catch (InvalidTaskException e) {
+            LOG.error("Cannot register new message, rejecting {}", taskInformation.getInboundMessageId(), e);
+            taskInformation.incrementResponseCount(true);
+            publisherEventQueue.add(new WorkerPublishQueueEvent(delivery.getMessageData(), retryRoutingKey, taskInformation,
+                    Collections.singletonMap(RabbitHeaders.RABBIT_HEADER_CAF_WORKER_REJECTED, REJECTED_REASON_TASKMESSAGE)));
+        } catch (TaskRejectedException e) {
+            LOG.warn("Message {} rejected as a task at this time, returning to queue", taskInformation.getInboundMessageId(), e);
+            taskInformation.incrementResponseCount(true);
+            publisherEventQueue.add(new WorkerPublishQueueEvent(delivery.getMessageData(), delivery.getEnvelope().getRoutingKey(),
+                    taskInformation));
         }
     }
 
@@ -162,7 +171,7 @@ public class WorkerQueueConsumerImpl implements QueueConsumer
      *
      * @param delivery the redelivered message
      */
-    private void handleRedelivery(Delivery delivery)
+    private void handleClassicRedelivery(Delivery delivery)
     {
         RabbitTaskInformation taskInformation = new RabbitTaskInformation(String.valueOf(delivery.getEnvelope().getDeliveryTag()));
         int retries = Integer.parseInt(String.valueOf(delivery.getHeaders().getOrDefault(RabbitHeaders.RABBIT_HEADER_CAF_WORKER_RETRY, "0")));
@@ -181,5 +190,18 @@ public class WorkerQueueConsumerImpl implements QueueConsumer
             taskInformation.incrementResponseCount(true);
             publisherEventQueue.add(new WorkerPublishQueueEvent(delivery.getMessageData(), retryRoutingKey, taskInformation, headers));
         }
+    }
+
+    private void handleQuorumRetryLimit(Delivery delivery, final int retries)
+    {
+        RabbitTaskInformation taskInformation = new RabbitTaskInformation(String.valueOf(delivery.getEnvelope().getDeliveryTag()));
+        LOG.debug("Retry exceeded for message with id {}, republishing to rejected queue", delivery.getEnvelope().getDeliveryTag());
+        Map<String, Object> headers = new HashMap<>();
+        headers.put(RabbitHeaders.RABBIT_HEADER_CAF_WORKER_RETRY, String.valueOf(retries));
+        headers.put(RabbitHeaders.RABBIT_HEADER_CAF_WORKER_REJECTED, REJECTED_REASON_RETRIES_EXCEEDED);
+        headers.put(RabbitHeaders.RABBIT_HEADER_CAF_WORKER_RETRY_LIMIT, retryLimit);
+        taskInformation.incrementResponseCount(true);
+        publisherEventQueue.add(new WorkerPublishQueueEvent(delivery.getMessageData(), retryRoutingKey, taskInformation, headers));
+
     }
 }

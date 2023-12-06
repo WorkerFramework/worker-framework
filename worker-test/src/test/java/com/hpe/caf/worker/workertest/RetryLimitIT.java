@@ -22,6 +22,7 @@ import com.hpe.caf.api.worker.TaskMessage;
 import com.hpe.caf.api.worker.TaskStatus;
 import com.hpe.caf.codec.JsonCodec;
 import com.hpe.caf.util.rabbitmq.QueueCreator;
+import com.hpe.caf.util.rabbitmq.RabbitHeaders;
 import com.rabbitmq.client.Connection;
 import com.rabbitmq.client.Channel;
 import com.rabbitmq.client.AMQP;
@@ -46,7 +47,7 @@ public class RetryLimitIT extends TestWorkerTestBase {
     @Test
     public void getResultSuccessIfRetryNumberLessThanRetryLimitTest() throws IOException, TimeoutException, CodecException {
 
-        final String decodedTaskData = getResponse(10, 2);
+        final String decodedTaskData = getResponse(2, 1);
 
         Assert.assertTrue(decodedTaskData.contains(TEST_WORKER_RESULT));
 
@@ -64,7 +65,7 @@ public class RetryLimitIT extends TestWorkerTestBase {
     @Test
     public void getPoisonMessageIfRetryNumberEqualToRetryLimitTest() throws IOException, TimeoutException, CodecException {
 
-        final String decodedTaskData = getResponse(10, 10);
+        final String decodedTaskData = getResponse(2, 2);
 
         Assert.assertTrue(decodedTaskData.contains(POISON_ERROR_MESSAGE));
 
@@ -84,8 +85,8 @@ public class RetryLimitIT extends TestWorkerTestBase {
             channel.basicConsume(TESTWORKER_OUT, true, poisonConsumer);
 
             final Map<String, Object> aboveRetryLimitHeaders = new HashMap<>();
-            aboveRetryLimitHeaders.put(QueueCreator.RABBIT_RETRY_LIMIT_HEADER, retryLimit);
-            aboveRetryLimitHeaders.put(QueueCreator.RABBIT_RETRY_COUNT_HEADER, retryCount);
+            aboveRetryLimitHeaders.put(RabbitHeaders.RABBIT_HEADER_CAF_WORKER_RETRY_LIMIT, retryLimit);
+            aboveRetryLimitHeaders.put(RabbitHeaders.RABBIT_HEADER_CAF_DELIVERY_COUNT, retryCount);
 
             final TaskMessage requestTaskMessage = getTaskMessage();
 
