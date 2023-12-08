@@ -233,7 +233,8 @@ final class WorkerCore
             if (null != headers.get(RabbitHeaders.RABBIT_HEADER_CAF_DELIVERY_COUNT)){
                 retries = Integer.parseInt(headers.get(RabbitHeaders.RABBIT_HEADER_CAF_DELIVERY_COUNT).toString());
             }
-            if (null != headers.get(RabbitHeaders.RABBIT_HEADER_CAF_WORKER_RETRY) && null == headers.get(RabbitHeaders.RABBIT_HEADER_CAF_DELIVERY_COUNT)) {
+            else if (null != headers.get(RabbitHeaders.RABBIT_HEADER_CAF_WORKER_RETRY))
+            {
                 retries = Integer.parseInt(headers.get(RabbitHeaders.RABBIT_HEADER_CAF_WORKER_RETRY).toString());
             }
             boolean poison = false;
