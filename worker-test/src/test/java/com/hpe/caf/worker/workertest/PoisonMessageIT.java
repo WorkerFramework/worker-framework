@@ -54,10 +54,6 @@ public class PoisonMessageIT  extends TestWorkerTestBase{
             args.put(QueueCreator.RABBIT_PROP_QUEUE_TYPE, QueueCreator.RABBIT_PROP_QUEUE_TYPE_QUORUM);
             channel.queueDeclare(WORKER_IN, true, false, false, args);
 
-            final Map<String, Object> retryLimitHeaders = new HashMap<>();
-            retryLimitHeaders.put(QueueCreator.RABBIT_RETRY_LIMIT_HEADER, 10);
-            retryLimitHeaders.put(QueueCreator.RABBIT_RETRY_COUNT_HEADER, 8);
-
             final TaskMessage requestTaskMessage = new TaskMessage();
 
             final TestWorkerTask documentWorkerTask = new TestWorkerTask();
@@ -70,7 +66,6 @@ public class PoisonMessageIT  extends TestWorkerTestBase{
             requestTaskMessage.setTo(WORKER_IN);
 
             final AMQP.BasicProperties properties = new AMQP.BasicProperties.Builder()
-                    .headers(retryLimitHeaders)
                     .contentType("application/json")
                     .deliveryMode(2)
                     .build();

@@ -34,8 +34,6 @@ public class QueueCreator
     public static final String RABBIT_PROP_QUEUE_TYPE = "x-queue-type";
     public static final String RABBIT_PROP_QUEUE_TYPE_CLASSIC = "classic";
     public static final String RABBIT_PROP_QUEUE_TYPE_QUORUM = "quorum";
-    public static final String RABBIT_RETRY_LIMIT_HEADER = "x-caf-worker-retry-limit";
-    public static final String RABBIT_RETRY_COUNT_HEADER = "x-caf-worker-retry";
     private Durability durability;
     private EmptyAction emptyAction;
     private Exclusivity exclusivity;
