@@ -22,4 +22,5 @@
     rabbitPort: getenv("CAF_RABBITMQ_PORT") || 5672,
     rabbitUser: getenv("CAF_RABBITMQ_USERNAME") || "guest",
     rabbitPassword: getenv("CAF_RABBITMQ_PASSWORD") || "guest"
+    queueType: getenv("CAF_RABBITMQ_QUEUE_TYPE") || "quorum"
 });
