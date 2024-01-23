@@ -61,7 +61,7 @@ final class TestWorker implements Worker
 
         if(testWorkerTask.getDelaySeconds() > 0) {
             // Used to test graceful shutdown in the ShutdownDeveloperTest
-            Thread.sleep(testWorkerTask.getDelaySeconds() * 1000);
+            Thread.sleep(testWorkerTask.getDelaySeconds() * 1000L);
         }
         
         return new WorkerResponse(
