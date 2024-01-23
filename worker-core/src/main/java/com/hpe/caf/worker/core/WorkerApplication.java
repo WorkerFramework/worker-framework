@@ -131,8 +131,9 @@ public final class WorkerApplication extends Application<WorkerConfiguration>
                 workerQueue.shutdownIncoming();
                 while (!wtp.isIdle()) {
                     try {
-                        //TODO Timeout?
-                        LOG.trace("Awaiting the Worker Thread Pool to become idle, {} tasks in the backlog.", wtp.getBacklogSize());
+                        //The grace period will expire and the process killed so no need for time limit here
+                        LOG.trace("Awaiting the Worker Thread Pool to become idle, {} tasks in the backlog.", 
+                                wtp.getBacklogSize());
                         Thread.sleep(1000);
                     } catch (final InterruptedException e) {
                         throw new RuntimeException(e);

@@ -26,18 +26,15 @@ import com.hpe.caf.util.rabbitmq.RabbitHeaders;
 import com.rabbitmq.client.AMQP;
 import com.rabbitmq.client.Channel;
 import com.rabbitmq.client.Connection;
-import org.testng.Assert;
+import org.testng.annotations.Ignore;
 import org.testng.annotations.Test;
 
 import java.io.IOException;
-import java.nio.charset.StandardCharsets;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.TimeoutException;
 
-public class ShutdownIT extends TestWorkerTestBase {
-    private static final String POISON_ERROR_MESSAGE = "could not process the item.";
-    private static final String WORKER_FRIENDLY_NAME = "TestWorker";
+public class ShutdownDeveloperTest extends TestWorkerTestBase {
     private static final String TEST_WORKER_NAME = "testWorkerIdentifier";
     private static final String WORKER_IN = "worker-in";
     private static final String TESTWORKER_OUT = "testworker-out";
@@ -45,8 +42,19 @@ public class ShutdownIT extends TestWorkerTestBase {
     private static final Codec codec = new JsonCodec();
 
     @Test
+    @Ignore 
     public void shutdownTest() throws IOException, TimeoutException, CodecException {
 
+        // Usage instructions
+        // Comment out the iages for test worker 2 and 3 in this module's pom.xml
+        // Use mvn docker:start to start test worker
+        // Remove the @Ignore and run the test to create 100 test messages
+        // From a terminal execute docker stop -t 300 CONTAINER_ID 
+        // This will issue a SIGTERM and wait for 300 seconds before issuing SIGKILL
+        // Observe worker-in in the RabbitMQ Management UI 
+        // The worker will stop consuming new messages and process all the pre-fetched messages
+        // When all prefetched messages are ack'd the worker container will stop before 300 s grace period
+        
         try(final Connection connection = connectionFactory.newConnection()) {
 
             final Channel channel = connection.createChannel();
@@ -59,7 +67,6 @@ public class ShutdownIT extends TestWorkerTestBase {
             
             final Map<String, Object> retryLimitHeaders = new HashMap<>();
             retryLimitHeaders.put(RabbitHeaders.RABBIT_HEADER_CAF_WORKER_RETRY_LIMIT, 2);
-//            retryLimitHeaders.put(RabbitHeaders.RABBIT_HEADER_CAF_DELIVERY_COUNT, 2);
 
             final AMQP.BasicProperties properties = new AMQP.BasicProperties.Builder()
                     .headers(retryLimitHeaders)
@@ -67,14 +74,14 @@ public class ShutdownIT extends TestWorkerTestBase {
                     .deliveryMode(2)
                     .build();
             
-            //Send 100 messages, the test worker will consume 1 every 1 second, from the console send a 
-            // docker stop -t 30 and worker should stop consuming new messages and process what it has pre fetched 
-            for(int index = 0; index < 100; index ++) {
+            // Send 100 messages, the test worker will consume 1 message every 5 seconds.
+            for(int index = 1; index <= 100; index ++) {
                 final TaskMessage requestTaskMessage = new TaskMessage();
 
                 final TestWorkerTask documentWorkerTask = new TestWorkerTask();
                 documentWorkerTask.setPoison(false);
-                requestTaskMessage.setTaskId(Integer.toString(TASK_NUMBER));
+                documentWorkerTask.setDelaySeconds(5);
+                requestTaskMessage.setTaskId(Integer.toString(index));
                 requestTaskMessage.setTaskClassifier(TEST_WORKER_NAME);
                 requestTaskMessage.setTaskApiVersion(TASK_NUMBER);
                 requestTaskMessage.setTaskStatus(TaskStatus.NEW_TASK);

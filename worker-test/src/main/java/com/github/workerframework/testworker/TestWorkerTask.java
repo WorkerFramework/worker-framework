@@ -18,11 +18,24 @@ package com.github.workerframework.testworker;
 public class TestWorkerTask {
     private boolean isPoison;
 
+    /**
+     * Configurable delay in processing a message
+     */
+    private int delaySeconds;
+
     public boolean isPoison() {
         return isPoison;
     }
 
     public void setPoison(boolean poison) {
         isPoison = poison;
+    }
+
+    public int getDelaySeconds() {
+        return delaySeconds;
+    }
+
+    public void setDelaySeconds(int delaySeconds) {
+        this.delaySeconds = delaySeconds;
     }
 }
