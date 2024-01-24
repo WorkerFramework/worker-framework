@@ -41,6 +41,7 @@ import io.dropwizard.configuration.SubstitutingSourceProvider;
 import io.dropwizard.core.Application;
 import io.dropwizard.core.setup.Bootstrap;
 import io.dropwizard.core.setup.Environment;
+import io.dropwizard.lifecycle.Managed;
 import io.dropwizard.logging.common.LoggingUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -88,7 +89,7 @@ public final class WorkerApplication extends Application<WorkerConfiguration>
     public void run(final WorkerConfiguration workerConfiguration, final Environment environment)
         throws QueueException, ModuleLoaderException, CipherException, ConfigurationException, DataStoreException, WorkerException
     {
-        LOG.debug("Starting up");
+        LOG.info("Worker initializing.");
 
         ResponseCache.setDefault(new JobStatusResponseCache());
         BootstrapConfiguration bootstrap = new SystemBootstrapConfiguration();
@@ -108,13 +109,38 @@ public final class WorkerApplication extends Application<WorkerConfiguration>
         ManagedWorkerQueue workerQueue = queueProvider.getWorkerQueue(config, nThreads);
         TransientHealthCheck transientHealthCheck = new TransientHealthCheck();
         WorkerCore core = new WorkerCore(codec, wtp, workerQueue, workerFactory, path, environment.healthChecks(), transientHealthCheck);
-        Runtime.getRuntime().addShutdownHook(new Thread()
-        {
+
+        environment.lifecycle().manage(new Managed() {
             @Override
-            public void run()
-            {
-                LOG.debug("Shutting down");
+            public void start() {
+                LOG.info("Worker starting up.");
+
+                initCoreMetrics(environment.metrics(), core);
+                initComponentMetrics(environment.metrics(), config, store, core);
+
+                final GatedHealthProvider gatedHealthProvider = new GatedHealthProvider(workerQueue, core);
+                environment.healthChecks().register("queue", gatedHealthProvider.new GatedHealthCheck("queue", new WorkerHealthCheck(core.getWorkerQueue())));
+                environment.healthChecks().register("configuration", gatedHealthProvider.new GatedHealthCheck("configuration", new WorkerHealthCheck(config)));
+                environment.healthChecks().register("store", gatedHealthProvider.new GatedHealthCheck("store", new WorkerHealthCheck(store)));
+                environment.healthChecks().register("worker", gatedHealthProvider.new GatedHealthCheck("worker", new WorkerHealthCheck(workerFactory)));
+                environment.healthChecks().register("transient", gatedHealthProvider.new GatedHealthCheck("transient", new WorkerHealthCheck(transientHealthCheck)));
+            }
+            @Override
+            public void stop() {
+                LOG.info("Worker stop requested, allowing in-progress tasks to complete.");
                 workerQueue.shutdownIncoming();
+                while (!wtp.isIdle()) {
+                    try {
+                        //The grace period will expire and the process killed so no need for time limit here
+                        LOG.trace("Awaiting the Worker Thread Pool to become idle, {} tasks in the backlog.", 
+                                wtp.getBacklogSize());
+                        Thread.sleep(1000);
+                    } catch (final InterruptedException e) {
+                        Thread.currentThread().interrupt();
+                        throw new RuntimeException(e);
+                    }
+                }
+                LOG.trace("Worker Thread Pool is idle.");
                 wtp.shutdown();
                 try {
                     wtp.awaitTermination(10_000, TimeUnit.MILLISECONDS);
@@ -126,17 +152,9 @@ public final class WorkerApplication extends Application<WorkerConfiguration>
                 workerFactory.shutdown();
                 store.shutdown();
                 config.shutdown();
+                LOG.info("Worker stopped.");
             }
         });
-        initCoreMetrics(environment.metrics(), core);
-        initComponentMetrics(environment.metrics(), config, store, core);
-
-        final GatedHealthProvider gatedHealthProvider = new GatedHealthProvider(workerQueue, core);
-        environment.healthChecks().register("queue", gatedHealthProvider.new GatedHealthCheck("queue", new WorkerHealthCheck(core.getWorkerQueue())));
-        environment.healthChecks().register("configuration", gatedHealthProvider.new GatedHealthCheck("configuration", new WorkerHealthCheck(config)));
-        environment.healthChecks().register("store", gatedHealthProvider.new GatedHealthCheck("store", new WorkerHealthCheck(store)));
-        environment.healthChecks().register("worker", gatedHealthProvider.new GatedHealthCheck("worker", new WorkerHealthCheck(workerFactory)));
-        environment.healthChecks().register("transient", gatedHealthProvider.new GatedHealthCheck("transient", new WorkerHealthCheck(transientHealthCheck)));
     }
 
     @Override

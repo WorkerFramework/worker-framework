@@ -58,6 +58,11 @@
             <scope>runtime</scope>
         </dependency>
         <dependency>
+            <groupId>com.github.cafapi.logging</groupId>
+            <artifactId>caf-logging-logback</artifactId>
+            <scope>runtime</scope>
+        </dependency>
+        <dependency>
             <groupId>com.github.workerframework</groupId>
             <artifactId>standard-worker-container</artifactId>
             <type>pom</type>
@@ -265,6 +270,7 @@
                                     <port>${worker.debugport}:5005</port>
                                 </ports>
                                 <env>
+                                    <CAF_RABBITMQ_PREFETCH_BUFFER>10</CAF_RABBITMQ_PREFETCH_BUFFER>
                                     <CAF_WORKER_DATASTORE_PATH>/srv/common/webdav</CAF_WORKER_DATASTORE_PATH>
                                     <CAF_WORKER_JAVA_OPTS>
                                         -agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=*:5005

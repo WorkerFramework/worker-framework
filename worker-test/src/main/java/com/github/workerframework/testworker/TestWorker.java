@@ -47,8 +47,9 @@ final class TestWorker implements Worker
     public WorkerResponse doWork() throws InterruptedException, TaskRejectedException, InvalidTaskException {
 
         // Required for PoisonMessageIT. If isPoison is true, the worker will exit to simulate a poison message.
+        final TestWorkerTask testWorkerTask;
         try {
-            final TestWorkerTask testWorkerTask = codec.deserialise(workerTask.getData(), TestWorkerTask.class);
+            testWorkerTask = codec.deserialise(workerTask.getData(), TestWorkerTask.class);
             if(testWorkerTask.isPoison()){
                 System.exit(1);
             }
@@ -58,6 +59,11 @@ final class TestWorker implements Worker
 
         final String outputQueue = config.getOutputQueue();
 
+        if(testWorkerTask.getDelaySeconds() > 0) {
+            // Used to test graceful shutdown in the ShutdownDeveloperTest
+            Thread.sleep(testWorkerTask.getDelaySeconds() * 1000L);
+        }
+        
         return new WorkerResponse(
             outputQueue,
             TaskStatus.RESULT_SUCCESS,

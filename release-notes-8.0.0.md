@@ -4,10 +4,13 @@
 ${version-number}
 
 #### New Features
-- **US857114:** Introduced `CAF_RABBITMQ_PROTOCOL` environment variable so that RabbitMQ URL protocol is customisable.
+- **US857114**: Introduced `CAF_RABBITMQ_PROTOCOL` environment variable so that RabbitMQ URL protocol is customisable.
         This allows for TLS-enabled connections to be made to RabbitMQ if desired.
         By default, this variable is set to "amqp" so there is no change in behaviour unless specified. 
 - **US857114:** Quorum queues leveraging 'x-delivery-count' for the handling of poison messages.
+
+#### Bug Fixes
+- **I445035**: Workers now attempt to complete all in-progress and pre-fetched tasks before shutting down.
 
 #### Known Issues
 
