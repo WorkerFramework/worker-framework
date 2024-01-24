@@ -89,7 +89,7 @@ public final class WorkerApplication extends Application<WorkerConfiguration>
     public void run(final WorkerConfiguration workerConfiguration, final Environment environment)
         throws QueueException, ModuleLoaderException, CipherException, ConfigurationException, DataStoreException, WorkerException
     {
-        LOG.debug("Worker initializing.");
+        LOG.info("Worker initializing.");
 
         ResponseCache.setDefault(new JobStatusResponseCache());
         BootstrapConfiguration bootstrap = new SystemBootstrapConfiguration();
@@ -113,7 +113,7 @@ public final class WorkerApplication extends Application<WorkerConfiguration>
         environment.lifecycle().manage(new Managed() {
             @Override
             public void start() {
-                LOG.debug("Worker starting up.");
+                LOG.info("Worker starting up.");
 
                 initCoreMetrics(environment.metrics(), core);
                 initComponentMetrics(environment.metrics(), config, store, core);
@@ -127,7 +127,7 @@ public final class WorkerApplication extends Application<WorkerConfiguration>
             }
             @Override
             public void stop() {
-                LOG.debug("Worker stop requested, allowing in-progress tasks to complete.");
+                LOG.info("Worker stop requested, allowing in-progress tasks to complete.");
                 workerQueue.shutdownIncoming();
                 while (!wtp.isIdle()) {
                     try {
@@ -136,6 +136,7 @@ public final class WorkerApplication extends Application<WorkerConfiguration>
                                 wtp.getBacklogSize());
                         Thread.sleep(1000);
                     } catch (final InterruptedException e) {
+                        Thread.currentThread().interrupt();
                         throw new RuntimeException(e);
                     }
                 }
@@ -151,6 +152,7 @@ public final class WorkerApplication extends Application<WorkerConfiguration>
                 workerFactory.shutdown();
                 store.shutdown();
                 config.shutdown();
+                LOG.info("Worker stopped.");
             }
         });
     }
