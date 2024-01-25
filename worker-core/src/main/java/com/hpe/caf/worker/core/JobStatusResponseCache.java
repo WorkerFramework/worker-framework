@@ -93,7 +93,13 @@ public class JobStatusResponseCache extends ResponseCache
             if (maxAgeValueMatcher.find()) {
                 intervalMillis = 1000 * Integer.parseInt(maxAgeValueMatcher.group(1));
                 LOG.debug("Returning interval derived from {} header as {}ms", CACHE_CONTROL_HEADER_NAME, intervalMillis);
+            } else {
+                LOG.debug("Returning default interval {}ms as {} header did not contain a max-age value",
+                        DEFAULT_JOB_STATUS_CHECK_INTERVAL_MILLIS, CACHE_CONTROL_HEADER_NAME);
             }
+        } else {
+            LOG.debug("Returning default interval {}ms as {} header was null",
+                    DEFAULT_JOB_STATUS_CHECK_INTERVAL_MILLIS, CACHE_CONTROL_HEADER_NAME);
         }
         return intervalMillis;
     }

@@ -316,7 +316,11 @@ final class WorkerCore
                 final Date lastStatusCheckTime = tracking.getLastStatusCheckTime();
                 final long nextStatusCheckTime = lastStatusCheckTime != null ?
                     lastStatusCheckTime.getTime() + tracking.getStatusCheckIntervalMillis() : 0L;
+                final long now = System.currentTimeMillis();
                 if (lastStatusCheckTime == null || (nextStatusCheckTime <= System.currentTimeMillis())) {
+                    LOG.debug("Task {} job status is now being checked because either the last status check time is null OR " +
+                                    "the next status check time {} is <= the time now {}",
+                            tm.getTaskId(), nextStatusCheckTime, now);
                     return performJobStatusCheck(tm);
                 }
                 LOG.debug("Task {} job status is not being checked - it is not yet time for the status check to be performed: "
@@ -354,8 +358,9 @@ final class WorkerCore
             LOG.debug("Task {} (job {}) - attempting to check job status", tm.getTaskId(), jobId);
             JobStatusResponse jobStatusResponse = getJobStatus(jobId, statusCheckUrl);
             final Date now = new Date(System.currentTimeMillis());
-            LOG.debug("Task {} (job {}) - updating last status check time from {} to {}",
-                      tm.getTaskId(), jobId, tracking.getLastStatusCheckTime(), now);
+            final long statusCheckIntervalMillis = jobStatusResponse.getStatusCheckIntervalMillis();
+            LOG.debug("Task {} (job {}) - updating last status check time from {} to {}. Setting status check interval to {}ms.",
+                      tm.getTaskId(), jobId, tracking.getLastStatusCheckTime(), now, statusCheckIntervalMillis);
             tracking.setLastStatusCheckTime(now);
             tracking.setStatusCheckIntervalMillis(jobStatusResponse.getStatusCheckIntervalMillis());
             return jobStatusResponse.getJobStatus();
