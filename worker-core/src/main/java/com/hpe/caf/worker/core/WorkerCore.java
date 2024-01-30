@@ -354,11 +354,10 @@ final class WorkerCore
             LOG.debug("Task {} (job {}) - attempting to check job status", tm.getTaskId(), jobId);
             JobStatusResponse jobStatusResponse = getJobStatus(jobId, statusCheckUrl);
             final Date now = new Date(System.currentTimeMillis());
-            final long statusCheckIntervalMillis = jobStatusResponse.getStatusCheckIntervalMillis();
-            LOG.debug("Task {} (job {}) - updating last status check time from {} to {}. Setting status check interval to {}ms.",
-                      tm.getTaskId(), jobId, tracking.getLastStatusCheckTime(), now, statusCheckIntervalMillis);
+            LOG.debug("Task {} (job {}) - updating last status check time from {} to {}",
+                      tm.getTaskId(), jobId, tracking.getLastStatusCheckTime(), now);
             tracking.setLastStatusCheckTime(now);
-            tracking.setStatusCheckIntervalMillis(statusCheckIntervalMillis);
+            tracking.setStatusCheckIntervalMillis(jobStatusResponse.getStatusCheckIntervalMillis());
             return jobStatusResponse.getJobStatus();
         }
 
