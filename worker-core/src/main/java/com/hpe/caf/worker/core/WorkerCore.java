@@ -317,7 +317,7 @@ final class WorkerCore
                 final long nextStatusCheckTime = lastStatusCheckTime != null ?
                     lastStatusCheckTime.getTime() + tracking.getStatusCheckIntervalMillis() : 0L;
                 final long now = System.currentTimeMillis();
-                if (lastStatusCheckTime == null || (nextStatusCheckTime <= System.currentTimeMillis())) {
+                if (lastStatusCheckTime == null || (nextStatusCheckTime <= now)) {
                     LOG.debug("Task {} job status is now being checked because either the last status check time is null OR " +
                                     "the next status check time {} is <= the time now {}",
                             tm.getTaskId(), nextStatusCheckTime, now);
