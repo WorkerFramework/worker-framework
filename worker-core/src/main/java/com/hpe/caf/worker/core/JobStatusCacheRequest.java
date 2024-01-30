@@ -42,7 +42,7 @@ public class JobStatusCacheRequest extends CacheRequest
         this.jobStatusCache = jobStatusCache;
         this.uri = uri;
         this.responseStream = new ByteArrayOutputStream();
-        this.jobStatusCache.put(uri, responseStream, JobStatusResponseCache.getStatusCheckIntervalMillis(connection));
+        this.jobStatusCache.put(uri, responseStream, JobStatusResponseCache.getStatusCheckIntervalMillis(connection), connection);
         LOG.debug("Writing job status request headers to cache for URI={}", uri);
         ObjectOutputStream oos = new ObjectOutputStream(this.responseStream);
         oos.writeObject(connection.getHeaderFields());

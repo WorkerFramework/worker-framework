@@ -24,6 +24,8 @@ import java.net.InetSocketAddress;
 import java.net.ResponseCache;
 import java.net.URL;
 import java.net.URLConnection;
+import java.util.List;
+import java.util.Map;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -50,15 +52,20 @@ final class ResponseCacheTempTest
 //        getJobStatus("rory16", "http://localhost:1080/test");
 
         // HTTP - cache working
-//        LOG.debug("Request 1");
-//        getJobStatus("rory16", "http://larry-int01.swinfra.net:9410/job-service/v1/partitions/tenant-rorywin1/jobs/rory16/status");
-//        LOG.debug("Request 2 (Fetched from cache successfully");
-//        getJobStatus("rory16", "http://larry-int01.swinfra.net:9410/job-service/v1/partitions/tenant-rorywin1/jobs/rory16/status");
+        LOG.debug("HTTP");
+        LOG.debug("Request 1");
+        getJobStatus("rory16", "http://larry-int01.swinfra.net:9410/job-service/v1/partitions/tenant-rorywin1/jobs/rory16/status");
+        LOG.debug("Request 2 (Fetched from cache successfully");
+        getJobStatus("rory16", "http://larry-int01.swinfra.net:9410/job-service/v1/partitions/tenant-rorywin1/jobs/rory16/status");
 
         // HTTPS - cache not working
+        LOG.debug("HTTPS");
         LOG.debug("Request 1");
         getJobStatus("rory16", "https://larry-int01.swinfra.net:10056/job-service/v1/partitions/tenant-rorywin1/jobs/rory16/status");
-        LOG.debug("Request 2 (NOT Fetched from cache");
+        LOG.debug("Request 2");
+        getJobStatus("rory16", "https://larry-int01.swinfra.net:10056/job-service/v1/partitions/tenant-rorywin1/jobs/rory16/status");
+        LOG.debug("Request 3");
+        Thread.sleep(6000);
         getJobStatus("rory16", "https://larry-int01.swinfra.net:10056/job-service/v1/partitions/tenant-rorywin1/jobs/rory16/status");
     }
 
@@ -69,10 +76,25 @@ final class ResponseCacheTempTest
             URL url = new URL(statusCheckUrl);
             final URLConnection connection = url.openConnection();
             if (connection instanceof HttpURLConnection) {
+                // Get the request headers
+                Map<String,List<String>> requestHeaders = connection.getRequestProperties();
+
+                // Print or process the headers
+                for (Map.Entry<String, List<String>> entry : requestHeaders.entrySet()) {
+                    String key = entry.getKey();
+                    List<String> values = entry.getValue();
+                    LOG.info("Request header: " + key + ": " + String.join(", ", values));
+                    //   System.out.println(key + ": " + String.join(", ", values));
+                }
+
+
+
                 if (((HttpURLConnection) connection).getResponseCode() == HttpURLConnection.HTTP_NOT_FOUND) {
                     throw new JobNotFoundException(
                             "Unable to check job status as job " + jobId + " was not found using status check URL " + statusCheckUrl);
                 }
+
+
             }
             long statusCheckIntervalMillis = JobStatusResponseCache.getStatusCheckIntervalMillis(connection);
             try (BufferedReader response = new BufferedReader(new InputStreamReader(connection.getInputStream()))) {
