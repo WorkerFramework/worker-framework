@@ -11,6 +11,7 @@ ${version-number}
 
 #### Bug Fixes
 - **I445035**: Workers now attempt to complete all in-progress and pre-fetched tasks before shutting down.
+- **I874162**: Fixed issue where the `JobStatusResponseCache` was not working for HTTPS requests.
 
 #### Known Issues
 

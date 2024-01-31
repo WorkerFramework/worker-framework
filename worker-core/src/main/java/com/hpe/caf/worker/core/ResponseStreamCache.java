@@ -19,8 +19,16 @@ import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
 
 import java.io.ByteArrayOutputStream;
+import java.io.IOException;
 import java.net.URI;
+import java.net.URLConnection;
+import java.security.Principal;
+import java.security.cert.Certificate;
+import java.util.Arrays;
+import java.util.List;
 import java.util.concurrent.TimeUnit;
+
+import javax.net.ssl.HttpsURLConnection;
 
 /**
  * Provides in-memory caching of web responses on per-URI basis.
@@ -41,16 +49,35 @@ public class ResponseStreamCache
             .build();
     }
 
-    public void put(final URI uri, ByteArrayOutputStream baos, long lifetimeMillis)
+    public void put(final URI uri, ByteArrayOutputStream baos, long lifetimeMillis, URLConnection urlConnection) throws IOException
     {
-        cacheImpl.put(uri, new ResponseStreamCacheEntry(System.currentTimeMillis() + lifetimeMillis, baos));
+        if (urlConnection instanceof HttpsURLConnection) {
+            HttpsURLConnection httpsURLConnection = (HttpsURLConnection)urlConnection;
+            Certificate[] localCertificates = httpsURLConnection.getLocalCertificates();
+            Certificate[] serverCertificates = httpsURLConnection.getServerCertificates();
+            cacheImpl.put(
+                    uri,
+                    new SecureResponseStreamCacheEntry(
+                            System.currentTimeMillis() + lifetimeMillis,
+                            baos,
+                            httpsURLConnection.getCipherSuite(),
+                            localCertificates == null ? null : Arrays.asList(localCertificates),
+                            serverCertificates == null ? null : Arrays.asList(serverCertificates),
+                            httpsURLConnection.getPeerPrincipal(),
+                            httpsURLConnection.getLocalPrincipal()));
+        } else {
+            cacheImpl.put(
+                    uri,
+                    new ResponseStreamCacheEntry(
+                            System.currentTimeMillis() + lifetimeMillis,
+                            baos));
+        }
     }
 
-    public ByteArrayOutputStream get(final URI uri)
+    public ResponseStreamCacheEntry get(final URI uri)
     {
         checkExpiry(uri);
-        ResponseStreamCacheEntry cacheEntry = cacheImpl.getIfPresent(uri);
-        return cacheEntry == null ? null : cacheEntry.getResponseStream();
+        return cacheImpl.getIfPresent(uri);
     }
 
     public void remove(final URI uri)
@@ -66,7 +93,7 @@ public class ResponseStreamCache
         }
     }
 
-    private static class ResponseStreamCacheEntry
+    public static class ResponseStreamCacheEntry
     {
         private long expiryTimeMillis;
         private ByteArrayOutputStream responseStream;
@@ -85,6 +112,57 @@ public class ResponseStreamCache
         public ByteArrayOutputStream getResponseStream()
         {
             return responseStream;
+        }
+    }
+
+    public static class SecureResponseStreamCacheEntry extends ResponseStreamCacheEntry
+    {
+        private String cipherSuite;
+        private List<Certificate> localCertificateChain;
+        private List<Certificate> serverCertificateChain;
+        private Principal peerPrincipal;
+        private Principal localPrincipal;
+
+        public SecureResponseStreamCacheEntry(
+                long expiryTimeMillis,
+                ByteArrayOutputStream responseStream,
+                String cipherSuite,
+                List<Certificate> localCertificateChain,
+                List<Certificate> serverCertificateChain,
+                Principal peerPrincipal,
+                Principal localPrincipal)
+        {
+            super(expiryTimeMillis, responseStream);
+            this.cipherSuite = cipherSuite;
+            this.localCertificateChain = localCertificateChain;
+            this.serverCertificateChain = serverCertificateChain;
+            this.peerPrincipal = peerPrincipal;
+            this.localPrincipal = localPrincipal;
+        }
+
+        public String getCipherSuite()
+        {
+            return cipherSuite;
+        }
+
+        public List<Certificate> getLocalCertificateChain()
+        {
+            return localCertificateChain;
+        }
+
+        public List<Certificate> getServerCertificateChain()
+        {
+            return serverCertificateChain;
+        }
+
+        public Principal getPeerPrincipal()
+        {
+            return peerPrincipal;
+        }
+
+        public Principal getLocalPrincipal()
+        {
+            return localPrincipal;
         }
     }
 }

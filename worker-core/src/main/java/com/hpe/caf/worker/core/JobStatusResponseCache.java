@@ -18,7 +18,6 @@ package com.hpe.caf.worker.core;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.net.*;
 import java.util.List;
@@ -47,10 +46,23 @@ public class JobStatusResponseCache extends ResponseCache
     @Override
     public CacheResponse get(URI uri, String requestMethod, Map<String, List<String>> requestHeaders) throws IOException
     {
-        ByteArrayOutputStream cachedResponseStream = jobStatusCache.get(uri);
-        if (cachedResponseStream != null) {
+        ResponseStreamCache.ResponseStreamCacheEntry responseStreamCacheEntry = jobStatusCache.get(uri);
+        if (responseStreamCacheEntry != null) {
             LOG.debug("Job status response cache hit for URI={}", uri);
-            return new JobStatusCacheResponse(cachedResponseStream);
+            if (responseStreamCacheEntry instanceof ResponseStreamCache.SecureResponseStreamCacheEntry) {
+                ResponseStreamCache.SecureResponseStreamCacheEntry secureResponseStreamCacheEntry =
+                        (ResponseStreamCache.SecureResponseStreamCacheEntry)responseStreamCacheEntry;
+
+                return new JobStatusSecureCacheResponse(
+                        secureResponseStreamCacheEntry.getResponseStream(),
+                        secureResponseStreamCacheEntry.getCipherSuite(),
+                        secureResponseStreamCacheEntry.getLocalCertificateChain(),
+                        secureResponseStreamCacheEntry.getServerCertificateChain(),
+                        secureResponseStreamCacheEntry.getPeerPrincipal(),
+                        secureResponseStreamCacheEntry.getLocalPrincipal());
+            } else {
+                return new JobStatusCacheResponse(responseStreamCacheEntry.getResponseStream());
+            }
         }
         LOG.debug("Job status response cache miss for URI={}", uri);
         return null;
@@ -93,7 +105,13 @@ public class JobStatusResponseCache extends ResponseCache
             if (maxAgeValueMatcher.find()) {
                 intervalMillis = 1000 * Integer.parseInt(maxAgeValueMatcher.group(1));
                 LOG.debug("Returning interval derived from {} header as {}ms", CACHE_CONTROL_HEADER_NAME, intervalMillis);
+            } else {
+                LOG.debug("Returning default interval {}ms as {} header did not contain a max-age value",
+                        DEFAULT_JOB_STATUS_CHECK_INTERVAL_MILLIS, CACHE_CONTROL_HEADER_NAME);
             }
+        } else {
+            LOG.debug("Returning default interval {}ms as {} header was null",
+                    DEFAULT_JOB_STATUS_CHECK_INTERVAL_MILLIS, CACHE_CONTROL_HEADER_NAME);
         }
         return intervalMillis;
     }
