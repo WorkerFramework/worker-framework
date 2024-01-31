@@ -39,7 +39,7 @@ public class ResponseStreamCache
     private static final long CACHE_ITEM_LIFETIME_SECS = 3600; //Store each cached response for up to 1 hour.
 
     // Underlying in-memory cache.
-    private final Cache<URI,Entry> cacheImpl;
+    private final Cache<URI, ResponseStreamCacheEntry> cacheImpl;
 
     public ResponseStreamCache()
     {
@@ -74,7 +74,7 @@ public class ResponseStreamCache
         }
     }
 
-    public Entry get(final URI uri)
+    public ResponseStreamCacheEntry get(final URI uri)
     {
         checkExpiry(uri);
         return cacheImpl.getIfPresent(uri);
@@ -87,18 +87,18 @@ public class ResponseStreamCache
 
     private void checkExpiry(final URI uri)
     {
-        Entry cacheEntry = cacheImpl.getIfPresent(uri);
+        ResponseStreamCacheEntry cacheEntry = cacheImpl.getIfPresent(uri);
         if (cacheEntry != null && System.currentTimeMillis() >= cacheEntry.getExpiryTimeMillis()) {
             cacheImpl.invalidate(uri);
         }
     }
 
-    public static abstract class Entry
+    public static class ResponseStreamCacheEntry
     {
         private long expiryTimeMillis;
         private ByteArrayOutputStream responseStream;
 
-        public Entry(long expiryTimeMillis, ByteArrayOutputStream responseStream)
+        public ResponseStreamCacheEntry(long expiryTimeMillis, ByteArrayOutputStream responseStream)
         {
             this.expiryTimeMillis = expiryTimeMillis;
             this.responseStream = responseStream;
@@ -115,15 +115,7 @@ public class ResponseStreamCache
         }
     }
 
-    public static class ResponseStreamCacheEntry extends Entry
-    {
-        public ResponseStreamCacheEntry(final long expiryTimeMillis, final ByteArrayOutputStream responseStream)
-        {
-            super(expiryTimeMillis, responseStream);
-        }
-    }
-
-    public static class SecureResponseStreamCacheEntry extends Entry
+    public static class SecureResponseStreamCacheEntry extends ResponseStreamCacheEntry
     {
         private String cipherSuite;
         private List<Certificate> localCertificateChain;

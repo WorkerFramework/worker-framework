@@ -46,12 +46,12 @@ public class JobStatusResponseCache extends ResponseCache
     @Override
     public CacheResponse get(URI uri, String requestMethod, Map<String, List<String>> requestHeaders) throws IOException
     {
-        ResponseStreamCache.Entry entry = jobStatusCache.get(uri);
-        if (entry != null) {
+        ResponseStreamCache.ResponseStreamCacheEntry responseStreamCacheEntry = jobStatusCache.get(uri);
+        if (responseStreamCacheEntry != null) {
             LOG.debug("Job status response cache hit for URI={}", uri);
-            if (entry instanceof ResponseStreamCache.SecureResponseStreamCacheEntry) {
+            if (responseStreamCacheEntry instanceof ResponseStreamCache.SecureResponseStreamCacheEntry) {
                 ResponseStreamCache.SecureResponseStreamCacheEntry secureResponseStreamCacheEntry =
-                        (ResponseStreamCache.SecureResponseStreamCacheEntry)entry;
+                        (ResponseStreamCache.SecureResponseStreamCacheEntry)responseStreamCacheEntry;
 
                 return new JobStatusSecureCacheResponse(
                         secureResponseStreamCacheEntry.getResponseStream(),
@@ -61,7 +61,7 @@ public class JobStatusResponseCache extends ResponseCache
                         secureResponseStreamCacheEntry.getPeerPrincipal(),
                         secureResponseStreamCacheEntry.getLocalPrincipal());
             } else {
-                return new JobStatusCacheResponse(entry.getResponseStream());
+                return new JobStatusCacheResponse(responseStreamCacheEntry.getResponseStream());
             }
         }
         LOG.debug("Job status response cache miss for URI={}", uri);
