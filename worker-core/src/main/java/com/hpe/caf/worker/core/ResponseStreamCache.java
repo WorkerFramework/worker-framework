@@ -98,10 +98,10 @@ public class ResponseStreamCache
         private long expiryTimeMillis;
         private ByteArrayOutputStream responseStream;
 
-        public ResponseStreamCacheEntry(long expiryTimeMillis, ByteArrayOutputStream responseStream)
+        public ResponseStreamCacheEntry(long expiryTimeMillis, ByteArrayOutputStream baos)
         {
             this.expiryTimeMillis = expiryTimeMillis;
-            this.responseStream = responseStream;
+            this.responseStream = baos;
         }
 
         public long getExpiryTimeMillis()
