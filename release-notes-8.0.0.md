@@ -4,9 +4,9 @@
 ${version-number}
 
 #### New Features
-- **US857114**: Introduced `CAF_RABBITMQ_PROTOCOL` environment variable so that RabbitMQ URL protocol is customisable.
-        This allows for TLS-enabled connections to be made to RabbitMQ if desired.
-        By default, this variable is set to "amqp" so there is no change in behaviour unless specified. 
+- **US857114: Introduced configurable Rabbit MQ protocol so that, if desired, Rabbit MQ communication can be TLS enabled. 
+  When using `cfg~caf~worker~RabbitConfiguration`, the protocol used by workers can be configured using the 
+  CAF_RABBITMQ_PROTOCOL environment variable. The default value is 'amqp'.
 - **US857114:** Quorum queues leveraging 'x-delivery-count' for the handling of poison messages.
 
 #### Bug Fixes
@@ -18,5 +18,9 @@ ${version-number}
 #### Breaking Changes
 - **US749035**: Classic queues and priority queues are deprecated, priority queues can still be created however it is no
   longer possible to publish messages with a priority.
-  When using `cfg~caf~worker~RabbitConfiguration.js`, the type of queue created by workers can be controlled by the ENV
-  CAF_RABBITMQ_QUEUE_TYPE, this currently defaults to 'quorum', but will be removed in a future release.
+  When using `cfg~caf~worker~RabbitWorkerQueueConfiguration.js`, the type of queue created by workers can be controlled 
+  by the ENV CAF_RABBITMQ_QUEUE_TYPE, this currently defaults to 'quorum', but will be removed in a future release.
+- **US857114**: Consumers using the util-rabbitmq module will need to handle additional exceptions when creating a 
+  Rabbit MQ connection through `RabbitUtil.java`. If creating a Rabbit connection using default configuration, where
+  previously host, port, user and pass were provided, protocol will now also be required.
+
