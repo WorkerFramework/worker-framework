@@ -21,6 +21,5 @@ ${version-number}
   enabled. When using `cfg~caf~worker~RabbitConfiguration`, the rabbit protocol used by services can be configured using 
   the CAF_RABBITMQ_PROTOCOL environment variable. The default value is 'amqp'.
   Consumers using the util-rabbitmq module will need to handle additional exceptions when creating a Rabbit connection
-  through `RabbitUtil.java`. If creating a Rabbit connection using default configuration, where previously host, port, 
-  user and pass were provided, protocol will now also be required.
+  through `RabbitUtil.java`. RabbitUtil.createRabbitConnection now requires a protocol argument.
 
