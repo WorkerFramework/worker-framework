@@ -1,10 +1,8 @@
-!not-ready-for-release!
-
 #### Version Number
 ${version-number}
 
 #### New Features
-- **US857114:** Quorum queues leveraging 'x-delivery-count' for the handling of poison messages.
+- **US862045:** Quorum queues leveraging 'x-delivery-count' for the handling of poison messages.
 
 #### Bug Fixes
 - **I445035**: Workers now attempt to complete all in-progress and pre-fetched tasks before shutting down.
