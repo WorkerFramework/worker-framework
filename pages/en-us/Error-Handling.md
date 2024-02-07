@@ -32,7 +32,7 @@ Some messages however cannot be handled by the Worker and these are described ne
 A poisoned message is a message that a worker is unable to handle. The message is deemed poisonous during processing when repeated catastrophic failure of the worker occurs. Regardless of how many times the message is retried, the worker will not be able to handle the message in a graceful manner. The flow of a poisoned message is described in Figure 2 below:
 
 ![Poisoned Messages](images/PoisonedMessage.png)
-*Figure 2 - Poisoned message flow*
+*Figure 2 - Classic Queue Poisoned message flow*
 
 1. The Worker receives a message from the messaging input queue, `worker-input-queue` and will start to process it.
 2. The processing of the message causes the worker to die unexpectedly.
@@ -40,6 +40,11 @@ A poisoned message is a message that a worker is unable to handle. The message i
 4. The original message is re-delivered for retry where the `x-caf-worker-retry` message header is stamped on the message and incremented. Messages which cause a worker to crash are retried up to 10 times by default before the worker gives up trying to process them and marks them as poisoned. Note that the number of permitted retries is configurable via the environment variable `CAF_WORKER_RETRY_LIMIT`.
 5. When the permitted number of retries is exceeded, a `RESULT_EXCEPTION` response including the poisoned message details is published on the messaging output queue `worker-output-queue` by the worker framework. The poison message details will contain the worker friendly name defined using environment variable `CAF_WORKER_FRIENDLY_NAME`. Setting `CAF_WORKER_FRIENDLY_NAME` for the worker is preferable. If not set, the worker friendly name will default to the worker class name.  
 6. When the response has been published, the original message is then acknowledged.
+
+### Changes for Quorum Queues
+With Quorum Queues the number of delivery attempts is supplied in a header `x-delivery-count`. This removes the need for
+`x-caf-worker-retry` to be managed by the framework and messages republished with an updated `x-caf-worker-retry` 
+header.
 
 ## OutOfMemory / StackOverflow Errors
 Messages which cause OutOfMemory / StackOverflow errors also cause the Worker to crash. These are treated the same as poisoned messages and will be retried until successful or until the retry count exceeds the permitted number of retries.  If the permitted number of retries is exceeded the message will be placed on the `worker-output-queue` by the framework, with a task status of `RESULT_EXCEPTION`. See Figure 2 above for further details.
