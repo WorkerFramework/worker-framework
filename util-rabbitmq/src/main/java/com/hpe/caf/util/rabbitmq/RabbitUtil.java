@@ -24,10 +24,16 @@ import com.rabbitmq.client.RecoveryDelayHandler;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import javax.net.ssl.KeyManagerFactory;
+import javax.net.ssl.SSLContext;
+import javax.net.ssl.TrustManagerFactory;
+import java.io.FileInputStream;
 import java.io.IOException;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.security.KeyManagementException;
+import java.security.KeyStore;
+import java.security.KeyStoreException;
 import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -104,6 +110,15 @@ public final class RabbitUtil
         final ConnectionFactory factory = new ConnectionFactory();
         factory.setUsername(rc.getRabbitUser());
         factory.setPassword(rc.getRabbitPassword());
+
+        if (rc.getRabbitProtocol().equals("amqps")) {
+            final TrustManagerFactory trustManagerFactory = TrustManagerFactory.getInstance("PKIX");
+
+            final SSLContext context = SSLContext.getInstance("TLS");
+            context.init(null, trustManagerFactory.getTrustManagers(), null);
+
+            factory.useSslProtocol(context);
+        }
 
         final URI rabbitUrl = new URI(String.format("%s://%s:%s", rc.getRabbitProtocol(), rc.getRabbitHost(), 
                 rc.getRabbitPort()));
