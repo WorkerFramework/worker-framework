@@ -111,11 +111,10 @@ public final class RabbitUtil
         factory.setPassword(rc.getRabbitPassword());
 
         if (rc.getRabbitProtocol().equalsIgnoreCase("amqps")) {
-            final String defaultAlgorithm = KeyManagerFactory.getDefaultAlgorithm();
-            final TrustManagerFactory trustManagerFactory = TrustManagerFactory.getInstance(defaultAlgorithm);
+            final TrustManagerFactory trustManagerFactory = TrustManagerFactory.getInstance(TrustManagerFactory.getDefaultAlgorithm());
             trustManagerFactory.init((KeyStore) null);
 
-            final SSLContext context = SSLContext.getInstance("TLS");
+            final SSLContext context = SSLContext.getInstance("TLSv1.2");
             context.init(null, trustManagerFactory.getTrustManagers(), null);
 
             factory.useSslProtocol(context);
