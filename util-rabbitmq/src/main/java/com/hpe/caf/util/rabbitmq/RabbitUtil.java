@@ -47,6 +47,7 @@ import java.util.concurrent.TimeoutException;
 public final class RabbitUtil
 {
     private static final Logger LOG = LoggerFactory.getLogger(RabbitUtil.class);
+    private static final String TRUST_MANAGER_FACTORY_ALGORITHM = "ssl.trustManagerFactory.algorithm";
 
     private RabbitUtil()
     {
@@ -110,10 +111,12 @@ public final class RabbitUtil
         factory.setPassword(rc.getRabbitPassword());
 
         if (rc.getRabbitProtocol().equalsIgnoreCase("amqps")) {
-            final TrustManagerFactory trustManagerFactory = TrustManagerFactory.getInstance(TrustManagerFactory.getDefaultAlgorithm());
+            final String tmfAlgorithm = System.getProperty(TRUST_MANAGER_FACTORY_ALGORITHM, TrustManagerFactory.getDefaultAlgorithm());
+            final TrustManagerFactory trustManagerFactory = TrustManagerFactory.getInstance(tmfAlgorithm);
             trustManagerFactory.init((KeyStore) null);
 
-            final SSLContext context = SSLContext.getInstance("TLSv1.2");
+            // TODO: if security protocol was to be configurable, would we have to add it to rabbit config?
+            final SSLContext context = SSLContext.getInstance("TLS");
             context.init(null, trustManagerFactory.getTrustManagers(), null);
 
             factory.useSslProtocol(context);
