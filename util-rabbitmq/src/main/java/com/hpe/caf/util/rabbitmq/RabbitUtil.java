@@ -27,7 +27,6 @@ import org.slf4j.LoggerFactory;
 import javax.net.ssl.KeyManagerFactory;
 import javax.net.ssl.SSLContext;
 import javax.net.ssl.TrustManagerFactory;
-import java.io.FileInputStream;
 import java.io.IOException;
 import java.net.URI;
 import java.net.URISyntaxException;
@@ -66,8 +65,8 @@ public final class RabbitUtil
      * @throws TimeoutException if the connection fails to establish
      */
     public static Connection createRabbitConnection(String protocol, String host, int port, String user, String pass)
-        throws IOException, TimeoutException, URISyntaxException, NoSuchAlgorithmException, KeyManagementException
-    {
+        throws IOException, TimeoutException, URISyntaxException, NoSuchAlgorithmException,
+            KeyManagementException, KeyStoreException {
         final RabbitConfiguration rc = new RabbitConfiguration();
         rc.setRabbitProtocol(protocol);
         rc.setRabbitHost(host);
@@ -89,8 +88,8 @@ public final class RabbitUtil
      * @throws TimeoutException if the connection fails to establish
      */
     public static Connection createRabbitConnection(final RabbitConfiguration rc)
-            throws IOException, TimeoutException, URISyntaxException, NoSuchAlgorithmException, KeyManagementException
-    {
+            throws IOException, TimeoutException, URISyntaxException, NoSuchAlgorithmException,
+            KeyManagementException, KeyStoreException {
         return createRabbitConnection(rc, null);
     }
 
@@ -105,14 +104,16 @@ public final class RabbitUtil
      */
     public static Connection createRabbitConnection(final RabbitConfiguration rc,
                                                     final ExceptionHandler exceptionHandler)
-            throws IOException, TimeoutException, URISyntaxException, NoSuchAlgorithmException, KeyManagementException
-    {
+            throws IOException, TimeoutException, URISyntaxException, NoSuchAlgorithmException,
+            KeyManagementException, KeyStoreException {
         final ConnectionFactory factory = new ConnectionFactory();
         factory.setUsername(rc.getRabbitUser());
         factory.setPassword(rc.getRabbitPassword());
 
-        if (rc.getRabbitProtocol().equals("amqps")) {
-            final TrustManagerFactory trustManagerFactory = TrustManagerFactory.getInstance("PKIX");
+        if (rc.getRabbitProtocol().equalsIgnoreCase("amqps")) {
+            final String defaultAlgorithm = KeyManagerFactory.getDefaultAlgorithm();
+            final TrustManagerFactory trustManagerFactory = TrustManagerFactory.getInstance(defaultAlgorithm);
+            trustManagerFactory.init((KeyStore) null);
 
             final SSLContext context = SSLContext.getInstance("TLS");
             context.init(null, trustManagerFactory.getTrustManagers(), null);
