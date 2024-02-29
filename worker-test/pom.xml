@@ -202,6 +202,9 @@
                         <image>
                             <alias>rabbitmq</alias>
                             <name>${dockerHubPublic}/library/rabbitmq:3-management</name>
+                            <build>
+                                <dockerFileDir>.</dockerFileDir>
+                            </build>
                             <run>
                                 <ports>
                                     <port>${rabbitmq.ctrl.port}:15672</port>
