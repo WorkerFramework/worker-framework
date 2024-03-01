@@ -171,6 +171,25 @@
                     <containerNamePattern>%a-%t</containerNamePattern>
                     <images>
                         <image>
+                            <alias>keystore</alias>
+                            <name>${project.artifactId}-keystore:${project.version}</name>
+                            <build>
+                                <from>${dockerHubPublic}/cafapi/opensuse-jre11:3.0.0</from>
+                                <runCmds>
+                                    <runCmd>mkdir /test-keystore</runCmd>
+                                    <runCmd>openssl genrsa -out /test-keystore/ca_key.pem 2048</runCmd>
+                                    <runCmd>openssl req -x509 -new -key /test-keystore/ca_key.pem -out /test-keystore/ca_certificate.pem -days 3650 -subj "/CN=myname/OU=myorganisational.unit/O=myorganisation/L=mycity/S=myprovince/C=GB"</runCmd>
+                                    <runCmd>openssl genrsa -out /test-keystore/server_key.pem 2048</runCmd>
+                                    <runCmd>openssl req -new -key /test-keystore/server_key.pem -out /test-keystore/server.csr -subj "/CN=myname/OU=myorganisational.unit/O=myorganisation/L=mycity/S=myprovince/C=GB"</runCmd>
+                                    <runCmd>chmod 664 /test-keystore/server_key.pem</runCmd>
+                                    <runCmd>openssl x509 -req -in /test-keystore/server.csr -CA /test-keystore/ca_certificate.pem -CAkey /test-keystore/ca_key.pem -CAcreateserial -out /test-keystore/server_certificate.pem -days 3650</runCmd>
+                                </runCmds>
+                                <volumes>
+                                    <volume>/test-keystore</volume>
+                                </volumes>
+                            </build>
+                        </image>
+                        <image>
                             <alias>webdav</alias>
                             <name>${dockerHubPublic}/cloudesire/webdav</name>
                             <run>
@@ -393,23 +412,44 @@
                             </run>
                         </image>
                         <image>
-                            <alias>keystore</alias>
-                            <name>${project.artifactId}-keystore:${project.version}</name>
-                            <build>
-                                <from>${dockerHubPublic}/cafapi/opensuse-jre11:3.0.0</from>
-                                <runCmds>
-                                    <runCmd>mkdir /test-keystore</runCmd>
-                                    <runCmd>openssl genrsa -out /test-keystore/ca_key.pem 2048</runCmd>
-                                    <runCmd>openssl req -x509 -new -key /test-keystore/ca_key.pem -out /test-keystore/ca_certificate.pem -days 3650 -subj "/CN=myname/OU=myorganisational.unit/O=myorganisation/L=mycity/S=myprovince/C=GB"</runCmd>
-                                    <runCmd>openssl genrsa -out /test-keystore/server_key.pem 2048</runCmd>
-                                    <runCmd>openssl req -new -key /test-keystore/server_key.pem -out /test-keystore/server.csr -subj "/CN=myname/OU=myorganisational.unit/O=myorganisation/L=mycity/S=myprovince/C=GB"</runCmd>
-                                    <runCmd>chmod 664 /test-keystore/server_key.pem</runCmd>
-                                    <runCmd>openssl x509 -req -in /test-keystore/server.csr -CA /test-keystore/ca_certificate.pem -CAkey /test-keystore/ca_key.pem -CAcreateserial -out /test-keystore/server_certificate.pem -days 3650</runCmd>
-                                </runCmds>
+                            <alias>worker-test-no-valid-cert</alias>
+                            <name>${targetDockerRegistryPath}/worker-test:${project.version}</name>
+                            <run>
+                                <platform>linux/amd64</platform>
+                                <ports>
+                                    <port>${worker.testadminport4}:8081</port>
+                                    <port>${worker.testdebugport4}:5005</port>
+                                </ports>
+                                <env>
+                                    <CAF_WORKER_DATASTORE_PATH>/srv/common/webdav</CAF_WORKER_DATASTORE_PATH>
+                                    <CAF_WORKER_JAVA_OPTS>
+                                        -agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=*:5005
+                                    </CAF_WORKER_JAVA_OPTS>
+                                    <CAF_WORKER_RETRY_LIMIT>2</CAF_WORKER_RETRY_LIMIT>
+                                    <CAF_RABBITMQ_PROTOCOL>amqps</CAF_RABBITMQ_PROTOCOL>
+                                    <CAF_RABBITMQ_PORT>5671</CAF_RABBITMQ_PORT>
+                                </env>
                                 <volumes>
-                                    <volume>/test-keystore</volume>
+                                    <from>
+                                        <image>webdav</image>
+                                    </from>
                                 </volumes>
-                            </build>
+                                <links>
+                                    <link>rabbitmq</link>
+                                </links>
+                                <log>
+                                    <enabled>true</enabled>
+                                </log>
+                                <!--Expect healthcheck to return 500 as trying to use SSL without valid certificate-->
+                                <wait>
+                                    <http>
+                                        <url>http://${docker.host.address}:${worker.testadminport4}/healthcheck</url>
+                                        <status>500</status>
+                                    </http>
+                                    <time>120000</time>
+                                    <shutdown>500</shutdown>
+                                </wait>
+                            </run>
                         </image>
                     </images>
                 </configuration>
@@ -428,8 +468,10 @@
                 <worker.debugport>5005</worker.debugport>
                 <worker.testadminport2>8082</worker.testadminport2>
                 <worker.testadminport3>8083</worker.testadminport3>
+                <worker.testadminport4>8084</worker.testadminport4>
                 <worker.testdebugport2>5006</worker.testdebugport2>
                 <worker.testdebugport3>5007</worker.testdebugport3>
+                <worker.testdebugport4>5008</worker.testdebugport4>
             </properties>
         </profile>
     </profiles>
