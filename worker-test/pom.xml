@@ -284,10 +284,15 @@
                                         -agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=*:5005
                                     </CAF_WORKER_JAVA_OPTS>
                                     <CAF_WORKER_RETRY_LIMIT>2</CAF_WORKER_RETRY_LIMIT>
+                                    <CAF_RABBITMQ_PROTOCOL>amqps</CAF_RABBITMQ_PROTOCOL>
+                                    <CAF_RABBITMQ_PORT>5671</CAF_RABBITMQ_PORT>
+                                    <SSL_CA_CRT_DIR>/test-keystore</SSL_CA_CRT_DIR>
+                                    <SSL_CA_CRT>ca_certificate.pem</SSL_CA_CRT>
                                 </env>
                                 <volumes>
                                     <from>
                                         <image>webdav</image>
+                                        <image>keystore</image>
                                     </from>
                                 </volumes>
                                 <links>
@@ -320,10 +325,15 @@
                                         -agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=*:5005
                                     </CAF_WORKER_JAVA_OPTS>
                                     <CAF_WORKER_RETRY_LIMIT>2</CAF_WORKER_RETRY_LIMIT>
+                                    <CAF_RABBITMQ_PROTOCOL>amqps</CAF_RABBITMQ_PROTOCOL>
+                                    <CAF_RABBITMQ_PORT>5671</CAF_RABBITMQ_PORT>
+                                    <SSL_CA_CRT_DIR>/test-keystore</SSL_CA_CRT_DIR>
+                                    <SSL_CA_CRT>ca_certificate.pem</SSL_CA_CRT>
                                 </env>
                                 <volumes>
                                     <from>
                                         <image>webdav</image>
+                                        <image>keystore</image>
                                     </from>
                                 </volumes>
                                 <links>
@@ -356,10 +366,15 @@
                                         -agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=*:5005
                                     </CAF_WORKER_JAVA_OPTS>
                                     <CAF_WORKER_RETRY_LIMIT>2</CAF_WORKER_RETRY_LIMIT>
+                                    <CAF_RABBITMQ_PROTOCOL>amqps</CAF_RABBITMQ_PROTOCOL>
+                                    <CAF_RABBITMQ_PORT>5671</CAF_RABBITMQ_PORT>
+                                    <SSL_CA_CRT_DIR>/test-keystore</SSL_CA_CRT_DIR>
+                                    <SSL_CA_CRT>ca_certificate.pem</SSL_CA_CRT>
                                 </env>
                                 <volumes>
                                     <from>
                                         <image>webdav</image>
+                                        <image>keystore</image>
                                     </from>
                                 </volumes>
                                 <links>
