@@ -202,6 +202,9 @@
                         <image>
                             <alias>rabbitmq</alias>
                             <name>${dockerHubPublic}/library/rabbitmq:3-management</name>
+                            <build>
+                                <dockerFileDir>.</dockerFileDir>
+                            </build>
                             <run>
                                 <ports>
                                     <port>${rabbitmq.ctrl.port}:15672</port>
@@ -285,9 +288,6 @@
                                 <volumes>
                                     <from>
                                         <image>webdav</image>
-                                    </from>
-                                    <from>
-                                        <image>keystore</image>
                                     </from>
                                 </volumes>
                                 <links>
@@ -384,11 +384,12 @@
                                 <from>${dockerHubPublic}/cafapi/opensuse-jre11:3.0.0</from>
                                 <runCmds>
                                     <runCmd>mkdir /test-keystore</runCmd>
-                                    <runCmd>openssl genrsa -out /test-keystore/ca.key 2048</runCmd>
-                                    <runCmd>openssl req -x509 -new -key /test-keystore/ca.key -out /test-keystore/ca_certificate.pem -days 3650 -subj "/CN=myname/OU=myorganisational.unit/O=myorganisation/L=mycity/S=myprovince/C=GB"</runCmd>
-                                    <runCmd>openssl genrsa -out /test-keystore/server.key 2048</runCmd>
-                                    <runCmd>openssl req -new -key /test-keystore/server.key -out /test-keystore/server.csr -subj "/CN=myname/OU=myorganisational.unit/O=myorganisation/L=mycity/S=myprovince/C=GB"</runCmd>
-                                    <runCmd>openssl x509 -req -in /test-keystore/server.csr -CA /test-keystore/ca_certificate.pem -CAkey /test-keystore/ca.key -CAcreateserial -out /test-keystore/server_certificate.pem -days 3650</runCmd>
+                                    <runCmd>openssl genrsa -out /test-keystore/ca_key.pem 2048</runCmd>
+                                    <runCmd>openssl req -x509 -new -key /test-keystore/ca_key.pem -out /test-keystore/ca_certificate.pem -days 3650 -subj "/CN=myname/OU=myorganisational.unit/O=myorganisation/L=mycity/S=myprovince/C=GB"</runCmd>
+                                    <runCmd>openssl genrsa -out /test-keystore/server_key.pem 2048</runCmd>
+                                    <runCmd>openssl req -new -key /test-keystore/server_key.pem -out /test-keystore/server.csr -subj "/CN=myname/OU=myorganisational.unit/O=myorganisation/L=mycity/S=myprovince/C=GB"</runCmd>
+                                    <runCmd>chmod 664 /test-keystore/server_key.pem</runCmd>
+                                    <runCmd>openssl x509 -req -in /test-keystore/server.csr -CA /test-keystore/ca_certificate.pem -CAkey /test-keystore/ca_key.pem -CAcreateserial -out /test-keystore/server_certificate.pem -days 3650</runCmd>
                                 </runCmds>
                                 <volumes>
                                     <volume>/test-keystore</volume>
