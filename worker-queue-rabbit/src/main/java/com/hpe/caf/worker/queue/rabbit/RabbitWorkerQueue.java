@@ -324,7 +324,7 @@ public final class RabbitWorkerQueue implements ManagedWorkerQueue
     }
 
     private void createConnection(TaskCallback callback, WorkerConfirmListener listener)
-            throws IOException, TimeoutException, URISyntaxException, NoSuchAlgorithmException, KeyManagementException
+        throws IOException, TimeoutException, URISyntaxException, NoSuchAlgorithmException, KeyManagementException
     {
         conn = RabbitUtil.createRabbitConnection(config.getRabbitConfiguration());
         ((Recoverable)conn).addRecoveryListener(new WorkerConnectionListener(callback, listener));
