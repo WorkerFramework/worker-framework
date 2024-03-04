@@ -188,6 +188,9 @@
                                     <volume>/test-keystore</volume>
                                 </volumes>
                             </build>
+                            <run>
+                                <platform>linux/amd64</platform>
+                            </run>
                         </image>
                         <image>
                             <alias>webdav</alias>
