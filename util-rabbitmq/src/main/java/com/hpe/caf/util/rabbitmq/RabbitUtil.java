@@ -87,8 +87,7 @@ public final class RabbitUtil
      * @throws TimeoutException if the connection fails to establish
      */
     public static Connection createRabbitConnection(final RabbitConfiguration rc)
-            throws IOException, TimeoutException, URISyntaxException, NoSuchAlgorithmException,
-            KeyManagementException {
+            throws IOException, TimeoutException, URISyntaxException, NoSuchAlgorithmException, KeyManagementException {
         return createRabbitConnection(rc, null);
     }
 
