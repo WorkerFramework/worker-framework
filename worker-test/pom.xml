@@ -411,6 +411,7 @@
                                 </wait>
                             </run>
                         </image>
+                        <!--Worker to test SSL certificate trust manager when connecting to RabbitMQ-->
                         <image>
                             <alias>worker-test-no-valid-cert</alias>
                             <name>${targetDockerRegistryPath}/worker-test:${project.version}</name>

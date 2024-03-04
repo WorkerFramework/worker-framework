@@ -115,7 +115,6 @@ public final class RabbitUtil
             final TrustManagerFactory trustManagerFactory = TrustManagerFactory.getInstance(tmfAlgorithm);
             trustManagerFactory.init((KeyStore) null);
 
-            // TODO: if security protocol was to be configurable, would we have to add it to rabbit config?
             final SSLContext context = SSLContext.getInstance("TLS");
             context.init(null, trustManagerFactory.getTrustManagers(), null);
 
