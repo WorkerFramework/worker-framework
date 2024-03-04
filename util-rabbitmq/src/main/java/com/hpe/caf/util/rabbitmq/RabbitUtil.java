@@ -65,8 +65,7 @@ public final class RabbitUtil
      * @throws TimeoutException if the connection fails to establish
      */
     public static Connection createRabbitConnection(String protocol, String host, int port, String user, String pass)
-        throws IOException, TimeoutException, URISyntaxException, NoSuchAlgorithmException,
-            KeyManagementException, KeyStoreException {
+        throws IOException, TimeoutException, URISyntaxException, NoSuchAlgorithmException, KeyManagementException {
         final RabbitConfiguration rc = new RabbitConfiguration();
         rc.setRabbitProtocol(protocol);
         rc.setRabbitHost(host);
@@ -89,7 +88,7 @@ public final class RabbitUtil
      */
     public static Connection createRabbitConnection(final RabbitConfiguration rc)
             throws IOException, TimeoutException, URISyntaxException, NoSuchAlgorithmException,
-            KeyManagementException, KeyStoreException {
+            KeyManagementException {
         return createRabbitConnection(rc, null);
     }
 
@@ -104,21 +103,24 @@ public final class RabbitUtil
      */
     public static Connection createRabbitConnection(final RabbitConfiguration rc,
                                                     final ExceptionHandler exceptionHandler)
-            throws IOException, TimeoutException, URISyntaxException, NoSuchAlgorithmException,
-            KeyManagementException, KeyStoreException {
+            throws IOException, TimeoutException, URISyntaxException, NoSuchAlgorithmException, KeyManagementException {
         final ConnectionFactory factory = new ConnectionFactory();
         factory.setUsername(rc.getRabbitUser());
         factory.setPassword(rc.getRabbitPassword());
 
         if (rc.getRabbitProtocol().equalsIgnoreCase("amqps")) {
-            final String tmfAlgorithm = System.getProperty(TRUST_MANAGER_FACTORY_ALGORITHM, TrustManagerFactory.getDefaultAlgorithm());
-            final TrustManagerFactory trustManagerFactory = TrustManagerFactory.getInstance(tmfAlgorithm);
-            trustManagerFactory.init((KeyStore) null);
+            try {
+                final String tmfAlgorithm = System.getProperty(TRUST_MANAGER_FACTORY_ALGORITHM, TrustManagerFactory.getDefaultAlgorithm());
+                final TrustManagerFactory trustManagerFactory = TrustManagerFactory.getInstance(tmfAlgorithm);
+                trustManagerFactory.init((KeyStore) null);
 
-            final SSLContext context = SSLContext.getInstance("TLS");
-            context.init(null, trustManagerFactory.getTrustManagers(), null);
+                final SSLContext context = SSLContext.getInstance("TLS");
+                context.init(null, trustManagerFactory.getTrustManagers(), null);
 
-            factory.useSslProtocol(context);
+                factory.useSslProtocol(context);
+            } catch (final KeyStoreException e) {
+                throw new IllegalStateException("Trust Manager Initialization Failed", e);
+            }
         }
 
         final URI rabbitUrl = new URI(String.format("%s://%s:%s", rc.getRabbitProtocol(), rc.getRabbitHost(), 
