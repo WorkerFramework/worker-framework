@@ -149,29 +149,6 @@
 
             <!-- Download the target file -->
             <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-antrun-plugin</artifactId>
-                <executions>
-                    <execution>
-                        <id>download-files</id>
-                        <phase>prepare-package</phase>
-                        <goals>
-                            <goal>run</goal>
-                        </goals>
-                        <configuration>
-                            <target>
-                                <!-- download file -->
-                                <get src="http://${docker.host.address}:${webServerPort}/docs-site.tar.gz"
-                                     dest="${project.build.finalName}.tar.gz"
-                                     verbose="false"
-                                     usetimestamp="true"/>
-                             </target>
-                         </configuration>
-                     </execution>
-                 </executions>
-             </plugin>
-<!--            
-            <plugin>
                 <groupId>com.googlecode.maven-download-plugin</groupId>
                 <artifactId>download-maven-plugin</artifactId>
                 <executions>
@@ -190,7 +167,7 @@
                     </execution>
                 </executions>
             </plugin>
--->
+
             <!-- In this project, only include the project file itself when checking license headers -->
             <plugin>
                 <groupId>com.mycila</groupId>
