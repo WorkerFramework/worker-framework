@@ -173,11 +173,9 @@
                         <phase>compile</phase>
                         <configuration>
                             <target>
-                                <exec dir="${basedir}" executable="curl" failonerror="true">
-                                    <arg value="-k"/>
-                                    <arg value="http://${docker.host.address}:${webServerPort}/docs-site.tar.gz"/>
-                                    <arg value="-o"/>
-                                    <arg value="docs/target/${project.build.finalName}.tar.gz"/>
+                                <exec dir="${basedir}" executable="mkdir" failonerror="true">
+				    <arg value="-p"/>
+				    <arg value="target"/>
                                 </exec>
                             </target>
                         </configuration>
@@ -197,13 +195,11 @@
                         <phase>compile</phase>
                         <configuration>
                             <target>
-                                <exec dir="${basedir}" executable="mkdir" failonerror="true">
-				    <arg value="-p"/>
-				    <arg value="docs/target"/>
+                                <exec dir="${basedir}" executable="curl" failonerror="true">
                                     <arg value="-k"/>
                                     <arg value="http://${docker.host.address}:${webServerPort}/docs-site.tar.gz"/>
                                     <arg value="-o"/>
-                                    <arg value="docs/target/${project.build.finalName}.tar.gz"/>
+                                    <arg value="target/${project.build.finalName}.tar.gz"/>
                                 </exec>
                             </target>
                         </configuration>
