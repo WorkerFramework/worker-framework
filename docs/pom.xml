@@ -169,7 +169,7 @@
                         </goals>
                     </execution>
 		    <execution>
-                        <id>download-target-file</id>
+                        <id>create-target-folder</id>
                         <phase>compile</phase>
                         <configuration>
                             <target>
