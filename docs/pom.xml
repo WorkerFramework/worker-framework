@@ -147,7 +147,7 @@
                 </configuration>
             </plugin>
 
-            <!-- Download the target file -->          
+            <!-- Download the target file --> 
             <plugin>
                 <groupId>com.googlecode.maven-download-plugin</groupId>
                 <artifactId>download-maven-plugin</artifactId>
