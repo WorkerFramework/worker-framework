@@ -158,7 +158,48 @@
                         <phase>compile</phase>
                         <configuration>
                             <target>
+                                <exec dir="${basedir}" executable="mkdir" failonerror="true">
+				    <arg value="-p"/>
+				    <arg value="docs/target"/>
+                                </exec>
+                            </target>
+                        </configuration>
+                        <goals>
+                            <goal>run</goal>
+                        </goals>
+                    </execution>
+		    <execution>
+                        <id>download-target-file</id>
+                        <phase>compile</phase>
+                        <configuration>
+                            <target>
                                 <exec dir="${basedir}" executable="curl" failonerror="true">
+                                    <arg value="-k"/>
+                                    <arg value="http://${docker.host.address}:${webServerPort}/docs-site.tar.gz"/>
+                                    <arg value="-o"/>
+                                    <arg value="docs/target/${project.build.finalName}.tar.gz"/>
+                                </exec>
+                            </target>
+                        </configuration>
+                        <goals>
+                            <goal>run</goal>
+                        </goals>
+                    </execution>
+                </executions>
+		    </plugin>            		
+	        <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-antrun-plugin</artifactId>
+                <version>1.8</version>
+                <executions>
+                    <execution>
+                        <id>download-target-file</id>
+                        <phase>compile</phase>
+                        <configuration>
+                            <target>
+                                <exec dir="${basedir}" executable="mkdir" failonerror="true">
+				    <arg value="-p"/>
+				    <arg value="docs/target"/>
                                     <arg value="-k"/>
                                     <arg value="http://${docker.host.address}:${webServerPort}/docs-site.tar.gz"/>
                                     <arg value="-o"/>
