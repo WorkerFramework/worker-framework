@@ -158,12 +158,11 @@
                         <phase>compile</phase>
                         <configuration>
                             <target>
-                                <echo>Proxy Test</echo>
                                 <exec dir="${basedir}" executable="curl" failonerror="true">
                                     <arg value="-k"/>
                                     <arg value="http://${docker.host.address}:${webServerPort}/docs-site.tar.gz"/>
                                     <arg value="-o"/>
-                                    <arg value="${project.build.finalName}.tar.gz"/>
+                                    <arg value="docs/target/${project.build.finalName}.tar.gz"/>
                                 </exec>
                             </target>
                         </configuration>
