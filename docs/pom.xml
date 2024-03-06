@@ -148,31 +148,28 @@
             </plugin>
 
             <!-- Download the target file -->
-	        <plugin>
+            <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-antrun-plugin</artifactId>
-                <version>1.8</version>
                 <executions>
                     <execution>
-                        <id>download-target-file</id>
-                        <phase>compile</phase>
-                        <configuration>
-                            <target>
-                                <echo>Proxy Test</echo>
-                                <exec dir="${basedir}" executable="curl" failonerror="true">
-                                    <arg value="-k"/>
-                                    <arg value="http://${docker.host.address}:${webServerPort}/docs-site.tar.gz"/>
-                                    <arg value="-o"/>
-                                    <arg value="${project.build.finalName}.tar.gz"/>
-                                </exec>
-                            </target>
-                        </configuration>
+                        <id>download-files</id>
+                        <phase>prepare-package</phase>
                         <goals>
                             <goal>run</goal>
                         </goals>
-                    </execution>
-                </executions>
-		    </plugin>            
+                        <configuration>
+                            <target>
+                                <!-- download file -->
+                                <get src="http://${docker.host.address}:${webServerPort}/docs-site.tar.gz"
+                                     dest="${project.build.finalName}.tar.gz"
+                                     verbose="false"
+                                     usetimestamp="true"/>
+                             </target>
+                         </configuration>
+                     </execution>
+                 </executions>
+             </plugin>
 <!--            
             <plugin>
                 <groupId>com.googlecode.maven-download-plugin</groupId>
