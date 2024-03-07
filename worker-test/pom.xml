@@ -223,9 +223,9 @@
                         </image>
                         <image>
                             <alias>rabbitmq</alias>
-                            <name>${dockerHubPublic}/library/rabbitmq:3-management</name>
+                            <name>${project.artifactId}-rabbitmq:${project.version}</name>
                             <build>
-                                <dockerFileDir>.</dockerFileDir>
+                                <contextDir>${project.basedir}/src/test/docker</contextDir>
                             </build>
                             <run>
                                 <ports>
