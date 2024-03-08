@@ -24,10 +24,14 @@ import com.rabbitmq.client.RecoveryDelayHandler;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import javax.net.ssl.SSLContext;
+import javax.net.ssl.TrustManagerFactory;
 import java.io.IOException;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.security.KeyManagementException;
+import java.security.KeyStore;
+import java.security.KeyStoreException;
 import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -104,6 +108,21 @@ public final class RabbitUtil
         final ConnectionFactory factory = new ConnectionFactory();
         factory.setUsername(rc.getRabbitUser());
         factory.setPassword(rc.getRabbitPassword());
+
+        if (rc.getRabbitProtocol().equalsIgnoreCase("amqps")) {
+            try {
+                final String tmfAlgorithm = TrustManagerFactory.getDefaultAlgorithm();
+                final TrustManagerFactory trustManagerFactory = TrustManagerFactory.getInstance(tmfAlgorithm);
+                trustManagerFactory.init((KeyStore) null);
+
+                final SSLContext context = SSLContext.getInstance("TLS");
+                context.init(null, trustManagerFactory.getTrustManagers(), null);
+
+                factory.useSslProtocol(context);
+            } catch (final KeyStoreException e) {
+                throw new IllegalStateException("Trust Manager Initialization Failed", e);
+            }
+        }
 
         final URI rabbitUrl = new URI(String.format("%s://%s:%s", rc.getRabbitProtocol(), rc.getRabbitHost(), 
                 rc.getRabbitPort()));
