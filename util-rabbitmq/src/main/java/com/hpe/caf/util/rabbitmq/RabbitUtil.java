@@ -47,7 +47,6 @@ import java.util.concurrent.TimeoutException;
 public final class RabbitUtil
 {
     private static final Logger LOG = LoggerFactory.getLogger(RabbitUtil.class);
-    private static final String TRUST_MANAGER_FACTORY_ALGORITHM = "ssl.trustManagerFactory.algorithm";
 
     private RabbitUtil()
     {
@@ -112,7 +111,7 @@ public final class RabbitUtil
 
         if (rc.getRabbitProtocol().equalsIgnoreCase("amqps")) {
             try {
-                final String tmfAlgorithm = System.getProperty(TRUST_MANAGER_FACTORY_ALGORITHM, TrustManagerFactory.getDefaultAlgorithm());
+                final String tmfAlgorithm = TrustManagerFactory.getDefaultAlgorithm();
                 final TrustManagerFactory trustManagerFactory = TrustManagerFactory.getInstance(tmfAlgorithm);
                 trustManagerFactory.init((KeyStore) null);
 
