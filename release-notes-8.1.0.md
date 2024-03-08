@@ -6,7 +6,7 @@ ${version-number}
 #### New Features
 
 #### Bug Fixes
-- **I887031:** Providing a Trust Manager when connecting to RabbitMQ server via TLS. Trust Manager factory algorithm can be set by
-  the System Property `ssl.trustManagerFactory.algorithm`, otherwise it will be set to `TrustManagerFactory` default.
+- **I887031:** Replace use of the TrustEverythingTrustManager with a TrustManager provided by the
+  `javax.net.ssl.TrustManagerFactory`.
 
 #### Known Issues
