@@ -97,9 +97,11 @@ public final class WorkerApplication extends Application<WorkerConfiguration>
     {
         LOG.info("Worker initializing.");
 
-        final HealthFactory healthFactory = new DefaultHealthFactory();
+        final DefaultHealthFactory healthFactory = new DefaultHealthFactory();
         final List<HealthCheckConfiguration> healthCheckConfigurations = new ArrayList<>();
 
+        // TODO schedule
+        // TODO add the rest of the health checks (queue, store etc)
         final HealthCheckConfiguration workerAliveHealthCheckConfiguration = new HealthCheckConfiguration();
         workerAliveHealthCheckConfiguration.setName("worker-alive");
         workerAliveHealthCheckConfiguration.setType(HealthCheckType.ALIVE);
@@ -109,6 +111,8 @@ public final class WorkerApplication extends Application<WorkerConfiguration>
         workerReadyHealthCheckConfiguration.setName("worker-ready");
         workerReadyHealthCheckConfiguration.setType(HealthCheckType.READY);
         healthCheckConfigurations.add(workerReadyHealthCheckConfiguration);
+
+        healthFactory.setHealthCheckConfigurations(healthCheckConfigurations);
 
         healthFactory.configure(
                 environment.lifecycle(), environment.servlets(), environment.jersey(), environment.health(), environment.getObjectMapper(), getName());

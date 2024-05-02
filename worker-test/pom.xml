@@ -310,6 +310,7 @@
                                     <CAF_RABBITMQ_PORT>5671</CAF_RABBITMQ_PORT>
                                     <SSL_CA_CRT_DIR>/test-keystore</SSL_CA_CRT_DIR>
                                     <SSL_CA_CRT>ca_certificate.pem</SSL_CA_CRT>
+                                    <CAF_LOG_LEVEL>TRACE</CAF_LOG_LEVEL>
                                 </env>
                                 <volumes>
                                     <from>
