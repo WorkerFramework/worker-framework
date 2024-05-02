@@ -23,11 +23,11 @@ import java.util.Map;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.hpe.caf.api.HealthReporter;
 import com.hpe.caf.api.HealthResult;
 import com.hpe.caf.api.HealthStatus;
+import com.hpe.caf.api.ReadyReporter;
 
-public class TransientHealthCheck implements HealthReporter
+public class TransientHealthCheck implements ReadyReporter
 {
     private static final Logger LOG = LoggerFactory.getLogger(TransientHealthCheck.class);
 
@@ -43,7 +43,7 @@ public class TransientHealthCheck implements HealthReporter
      * @return HealthResult the result of the Transient Health Check, Healthy or Unhealthy
      */
     @Override
-    public HealthResult healthCheck()
+    public HealthResult checkReady()
     {
         LOG.debug("Transient Health Check executing");
         HealthResult healthResult = HealthResult.RESULT_HEALTHY;

@@ -41,6 +41,10 @@ import io.dropwizard.configuration.SubstitutingSourceProvider;
 import io.dropwizard.core.Application;
 import io.dropwizard.core.setup.Bootstrap;
 import io.dropwizard.core.setup.Environment;
+import io.dropwizard.health.DefaultHealthFactory;
+import io.dropwizard.health.HealthCheckConfiguration;
+import io.dropwizard.health.HealthCheckType;
+import io.dropwizard.health.HealthFactory;
 import io.dropwizard.lifecycle.Managed;
 import io.dropwizard.logging.common.LoggingUtil;
 import org.slf4j.Logger;
@@ -48,6 +52,8 @@ import org.slf4j.LoggerFactory;
 
 import java.net.ResponseCache;
 import java.net.URL;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.concurrent.TimeUnit;
 
 /**
@@ -91,6 +97,23 @@ public final class WorkerApplication extends Application<WorkerConfiguration>
     {
         LOG.info("Worker initializing.");
 
+        final HealthFactory healthFactory = new DefaultHealthFactory();
+        final List<HealthCheckConfiguration> healthCheckConfigurations = new ArrayList<>();
+
+        final HealthCheckConfiguration workerAliveHealthCheckConfiguration = new HealthCheckConfiguration();
+        workerAliveHealthCheckConfiguration.setName("worker-alive");
+        workerAliveHealthCheckConfiguration.setType(HealthCheckType.ALIVE);
+        healthCheckConfigurations.add(workerAliveHealthCheckConfiguration);
+
+        final HealthCheckConfiguration workerReadyHealthCheckConfiguration = new HealthCheckConfiguration();
+        workerReadyHealthCheckConfiguration.setName("worker-ready");
+        workerReadyHealthCheckConfiguration.setType(HealthCheckType.READY);
+        healthCheckConfigurations.add(workerReadyHealthCheckConfiguration);
+
+        healthFactory.configure(
+                environment.lifecycle(), environment.servlets(), environment.jersey(), environment.health(), environment.getObjectMapper(), getName());
+        workerConfiguration.setHealthFactory(healthFactory);
+
         ResponseCache.setDefault(new JobStatusResponseCache());
         BootstrapConfiguration bootstrap = new SystemBootstrapConfiguration();
         Cipher cipher = ModuleLoader.getService(CipherProvider.class, NullCipherProvider.class).getCipher(bootstrap);
@@ -119,11 +142,19 @@ public final class WorkerApplication extends Application<WorkerConfiguration>
                 initComponentMetrics(environment.metrics(), config, store, core);
 
                 final GatedHealthProvider gatedHealthProvider = new GatedHealthProvider(workerQueue, core);
-                environment.healthChecks().register("queue", gatedHealthProvider.new GatedHealthCheck("queue", new WorkerHealthCheck(core.getWorkerQueue())));
-                environment.healthChecks().register("configuration", gatedHealthProvider.new GatedHealthCheck("configuration", new WorkerHealthCheck(config)));
-                environment.healthChecks().register("store", gatedHealthProvider.new GatedHealthCheck("store", new WorkerHealthCheck(store)));
-                environment.healthChecks().register("worker", gatedHealthProvider.new GatedHealthCheck("worker", new WorkerHealthCheck(workerFactory)));
-                environment.healthChecks().register("transient", gatedHealthProvider.new GatedHealthCheck("transient", new WorkerHealthCheck(transientHealthCheck)));
+
+                // Liveness checks
+                // TODO deadlocks here in liveness checks
+                environment.healthChecks().register("worker-alive", gatedHealthProvider.new GatedHealthCheck("worker-alive", new WorkerAliveCheck(workerFactory)));
+
+                // Readiness checks
+                environment.healthChecks().register("worker-ready", gatedHealthProvider.new GatedHealthCheck("worker-ready", new WorkerReadyCheck(workerFactory)));
+                environment.healthChecks().register("queue", gatedHealthProvider.new GatedHealthCheck("queue", new WorkerReadyCheck(core.getWorkerQueue())));
+                environment.healthChecks().register("configuration", gatedHealthProvider.new GatedHealthCheck("configuration", new WorkerReadyCheck(config)));
+                environment.healthChecks().register("store", gatedHealthProvider.new GatedHealthCheck("store", new WorkerReadyCheck(store)));
+                environment.healthChecks().register("transient", gatedHealthProvider.new GatedHealthCheck("transient", new WorkerReadyCheck(transientHealthCheck)));
+
+
             }
             @Override
             public void stop() {
@@ -160,6 +191,22 @@ public final class WorkerApplication extends Application<WorkerConfiguration>
     @Override
     public void initialize(Bootstrap<WorkerConfiguration> bootstrap)
     {
+//        final HealthFactory healthFactory = new DefaultHealthFactory();
+//        final List<HealthCheckConfiguration> healthCheckConfigurations = new ArrayList<>();
+//
+//        final HealthCheckConfiguration workerAliveHealthCheckConfiguration = new HealthCheckConfiguration();
+//        workerAliveHealthCheckConfiguration.setName("worker-alive");
+//        workerAliveHealthCheckConfiguration.setType(HealthCheckType.ALIVE);
+//        healthCheckConfigurations.add(workerAliveHealthCheckConfiguration);
+//
+//        final HealthCheckConfiguration workerReadyHealthCheckConfiguration = new HealthCheckConfiguration();
+//        workerReadyHealthCheckConfiguration.setName("worker-ready");
+//        workerReadyHealthCheckConfiguration.setType(HealthCheckType.READY);
+//        healthCheckConfigurations.add(workerReadyHealthCheckConfiguration);
+//
+//        health.configure(this.environment.lifecycle(), this.environment.servlets(), this.environment.jersey(), this.environment.health(), this.environment.getObjectMapper(), this.application.getName());
+//       // workerConfiguration.setHealthFactory(healthFactory);
+
         bootstrap.setConfigurationSourceProvider(
             new SubstitutingSourceProvider(bootstrap.getConfigurationSourceProvider(), new EnvironmentVariableSubstitutor(false, true))
         );

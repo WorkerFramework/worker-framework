@@ -184,7 +184,7 @@ public class InMemoryDataStore implements ManagedDataStore
      * @return RESULT_HEALTHY
      */
     @Override
-    public HealthResult healthCheck()
+    public HealthResult checkReady()
     {
         return HealthResult.RESULT_HEALTHY;
     }

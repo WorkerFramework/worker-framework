@@ -15,12 +15,12 @@
  */
 package com.hpe.caf.api.worker;
 
-import com.hpe.caf.api.HealthReporter;
+import com.hpe.caf.api.ReadyReporter;
 
 /**
  * A DataStore with management methods for use within an application.
  */
-public interface ManagedDataStore extends HealthReporter, DataStore
+public interface ManagedDataStore extends ReadyReporter, DataStore
 {
     /**
      * @return metrics for the data store

@@ -87,7 +87,14 @@ final class TestWorkerFactory implements WorkerFactory
 
     @Nonnull
     @Override
-    public HealthResult healthCheck()
+    public HealthResult checkAlive()
+    {
+        return HealthResult.RESULT_HEALTHY;
+    }
+
+    @Nonnull
+    @Override
+    public HealthResult checkReady()
     {
         return HealthResult.RESULT_HEALTHY;
     }

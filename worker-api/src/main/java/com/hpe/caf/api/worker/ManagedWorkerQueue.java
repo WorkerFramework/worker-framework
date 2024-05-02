@@ -15,12 +15,12 @@
  */
 package com.hpe.caf.api.worker;
 
-import com.hpe.caf.api.HealthReporter;
+import com.hpe.caf.api.ReadyReporter;
 
 /**
  * A WorkerQueue for use at an application level, supporting management methods.
  */
-public interface ManagedWorkerQueue extends HealthReporter, WorkerQueue
+public interface ManagedWorkerQueue extends ReadyReporter, WorkerQueue
 {
     /**
      * Open queues to start accepting tasks and results.
