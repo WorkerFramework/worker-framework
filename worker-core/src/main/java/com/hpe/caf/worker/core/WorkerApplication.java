@@ -100,23 +100,23 @@ public final class WorkerApplication extends Application<WorkerConfiguration>
         final DefaultHealthFactory healthFactory = new DefaultHealthFactory();
         final List<HealthCheckConfiguration> healthCheckConfigurations = new ArrayList<>();
 
-        // TODO schedule
-        // TODO add the rest of the health checks (queue, store etc)
-        final HealthCheckConfiguration workerAliveHealthCheckConfiguration = new HealthCheckConfiguration();
-        workerAliveHealthCheckConfiguration.setName("worker-alive");
-        workerAliveHealthCheckConfiguration.setType(HealthCheckType.ALIVE);
-        healthCheckConfigurations.add(workerAliveHealthCheckConfiguration);
-
-        final HealthCheckConfiguration workerReadyHealthCheckConfiguration = new HealthCheckConfiguration();
-        workerReadyHealthCheckConfiguration.setName("worker-ready");
-        workerReadyHealthCheckConfiguration.setType(HealthCheckType.READY);
-        healthCheckConfigurations.add(workerReadyHealthCheckConfiguration);
-
-        healthFactory.setHealthCheckConfigurations(healthCheckConfigurations);
-
-        healthFactory.configure(
-                environment.lifecycle(), environment.servlets(), environment.jersey(), environment.health(), environment.getObjectMapper(), getName());
-        workerConfiguration.setHealthFactory(healthFactory);
+//        // TODO schedule
+//        // TODO add the rest of the health checks (queue, store etc)
+//        final HealthCheckConfiguration workerAliveHealthCheckConfiguration = new HealthCheckConfiguration();
+//        workerAliveHealthCheckConfiguration.setName("worker-alive");
+//        workerAliveHealthCheckConfiguration.setType(HealthCheckType.ALIVE);
+//        healthCheckConfigurations.add(workerAliveHealthCheckConfiguration);
+//
+//        final HealthCheckConfiguration workerReadyHealthCheckConfiguration = new HealthCheckConfiguration();
+//        workerReadyHealthCheckConfiguration.setName("worker-ready");
+//        workerReadyHealthCheckConfiguration.setType(HealthCheckType.READY);
+//        healthCheckConfigurations.add(workerReadyHealthCheckConfiguration);
+//
+//        healthFactory.setHealthCheckConfigurations(healthCheckConfigurations);
+//
+//        healthFactory.configure(
+//                environment.lifecycle(), environment.servlets(), environment.jersey(), environment.health(), environment.getObjectMapper(), getName());
+//        workerConfiguration.setHealthFactory(healthFactory);
 
         ResponseCache.setDefault(new JobStatusResponseCache());
         BootstrapConfiguration bootstrap = new SystemBootstrapConfiguration();
@@ -157,6 +157,24 @@ public final class WorkerApplication extends Application<WorkerConfiguration>
                 environment.healthChecks().register("configuration", gatedHealthProvider.new GatedHealthCheck("configuration", new WorkerReadyCheck(config)));
                 environment.healthChecks().register("store", gatedHealthProvider.new GatedHealthCheck("store", new WorkerReadyCheck(store)));
                 environment.healthChecks().register("transient", gatedHealthProvider.new GatedHealthCheck("transient", new WorkerReadyCheck(transientHealthCheck)));
+
+                // TODO schedule
+                // TODO add the rest of the health checks (queue, store etc)
+                final HealthCheckConfiguration workerAliveHealthCheckConfiguration = new HealthCheckConfiguration();
+                workerAliveHealthCheckConfiguration.setName("worker-alive");
+                workerAliveHealthCheckConfiguration.setType(HealthCheckType.ALIVE);
+                healthCheckConfigurations.add(workerAliveHealthCheckConfiguration);
+
+                final HealthCheckConfiguration workerReadyHealthCheckConfiguration = new HealthCheckConfiguration();
+                workerReadyHealthCheckConfiguration.setName("worker-ready");
+                workerReadyHealthCheckConfiguration.setType(HealthCheckType.READY);
+                healthCheckConfigurations.add(workerReadyHealthCheckConfiguration);
+
+                healthFactory.setHealthCheckConfigurations(healthCheckConfigurations);
+
+                healthFactory.configure(
+                        environment.lifecycle(), environment.servlets(), environment.jersey(), environment.health(), environment.getObjectMapper(), getName());
+                workerConfiguration.setHealthFactory(healthFactory);
 
 
             }
