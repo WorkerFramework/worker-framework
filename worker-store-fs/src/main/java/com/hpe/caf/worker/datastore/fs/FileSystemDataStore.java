@@ -235,7 +235,13 @@ public class FileSystemDataStore implements ManagedDataStore, FilePathProvider, 
     }
 
     @Override
-    public HealthResult checkReady() // TODO liveness? E.g. if this is local disk, if its full, a restart will empty it?
+    public HealthResult checkAlive()
+    {
+        return new HealthResult(HealthStatus.HEALTHY);
+    }
+
+    @Override
+    public HealthResult checkReady()
     {
         final Future<HealthResult> healthcheckFuture = healthcheckExecutor.submit(healthcheck);
         try {

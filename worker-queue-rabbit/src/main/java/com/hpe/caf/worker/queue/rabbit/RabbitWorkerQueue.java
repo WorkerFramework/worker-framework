@@ -306,6 +306,12 @@ public final class RabbitWorkerQueue implements ManagedWorkerQueue
     }
 
     @Override
+    public HealthResult checkAlive()
+    {
+        return HealthResult.RESULT_HEALTHY;
+    }
+
+    @Override
     public HealthResult checkReady()
     {
         if (conn == null || !conn.isOpen()) {

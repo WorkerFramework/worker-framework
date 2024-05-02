@@ -21,17 +21,17 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.codahale.metrics.health.HealthCheck;
+import com.hpe.caf.api.HealthReporter;
 import com.hpe.caf.api.HealthResult;
 import com.hpe.caf.api.HealthStatus;
-import com.hpe.caf.api.ReadyReporter;
 
 class WorkerReadyCheck extends HealthCheck
 {
     private static final Logger LOG = LoggerFactory.getLogger(WorkerReadyCheck.class);
 
-    private final ReadyReporter reporter;
+    private final HealthReporter reporter;
 
-    public WorkerReadyCheck(final ReadyReporter healthReporter)
+    public WorkerReadyCheck(final HealthReporter healthReporter)
     {
         this.reporter = Objects.requireNonNull(healthReporter);
     }

@@ -198,6 +198,12 @@ public class S3DataStore implements ManagedDataStore
     }
 
     @Override
+    public HealthResult checkAlive()
+    {
+        return HealthResult.RESULT_HEALTHY;
+    }
+
+    @Override
     public HealthResult checkReady()
     {
         try {

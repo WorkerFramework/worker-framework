@@ -21,7 +21,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.codahale.metrics.health.HealthCheck;
-import com.hpe.caf.api.AliveReporter;
+import com.hpe.caf.api.HealthReporter;
 import com.hpe.caf.api.HealthResult;
 import com.hpe.caf.api.HealthStatus;
 
@@ -29,9 +29,9 @@ class WorkerAliveCheck extends HealthCheck
 {
     private static final Logger LOG = LoggerFactory.getLogger(WorkerAliveCheck.class);
 
-    private final AliveReporter reporter;
+    private final HealthReporter reporter;
 
-    public WorkerAliveCheck(final AliveReporter healthReporter)
+    public WorkerAliveCheck(final HealthReporter healthReporter)
     {
         this.reporter = Objects.requireNonNull(healthReporter);
     }

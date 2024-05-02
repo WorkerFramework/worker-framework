@@ -25,15 +25,21 @@ import org.slf4j.LoggerFactory;
 
 import com.hpe.caf.api.HealthResult;
 import com.hpe.caf.api.HealthStatus;
-import com.hpe.caf.api.ReadyReporter;
+import com.hpe.caf.api.HealthReporter;
 
-public class TransientHealthCheck implements ReadyReporter
+public class TransientHealthCheck implements HealthReporter
 {
     private static final Logger LOG = LoggerFactory.getLogger(TransientHealthCheck.class);
 
     private final Map<String, LocalDateTime> transientExceptionRegistry = new HashMap<>();
     private final Object transientExceptionRegistryLock = new Object();
     private final long elapsedTime = 30;
+
+    @Override
+    public HealthResult checkAlive()
+    {
+        return HealthResult.RESULT_HEALTHY;
+    }
 
     /**
      * This method checks if any entry in the Transient Exception Registry is newer than the time now, minus the elapsed time interval. If

@@ -74,6 +74,12 @@ public class HttpDataStore implements ManagedDataStore
     }
 
     @Override
+    public HealthResult checkAlive()
+    {
+        return new HealthResult(HealthStatus.HEALTHY);
+    }
+
+    @Override
     public HealthResult checkReady()
     {
         HttpURLConnection httpUrlConnection = null;

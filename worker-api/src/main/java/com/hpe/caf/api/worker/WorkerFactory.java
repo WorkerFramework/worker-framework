@@ -15,14 +15,13 @@
  */
 package com.hpe.caf.api.worker;
 
-import com.hpe.caf.api.AliveReporter;
-import com.hpe.caf.api.ReadyReporter;
+import com.hpe.caf.api.HealthReporter;
 
 /**
  * Instantiates a new instance of a Worker given task-specific data. Most implementations of WorkerFactory should extend
  * DefaultWorkerFactory.
  */
-public interface WorkerFactory extends AliveReporter, ReadyReporter
+public interface WorkerFactory extends HealthReporter
 {
     /**
      * Instantiate a new worker for given task data

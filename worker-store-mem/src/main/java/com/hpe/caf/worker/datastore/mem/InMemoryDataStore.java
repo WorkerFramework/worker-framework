@@ -184,6 +184,17 @@ public class InMemoryDataStore implements ManagedDataStore
      * @return RESULT_HEALTHY
      */
     @Override
+    public HealthResult checkAlive()
+    {
+        return HealthResult.RESULT_HEALTHY;
+    }
+
+    /**
+     * Always return a RESULT_HEALTHY health check as the data store is in memory.
+     *
+     * @return RESULT_HEALTHY
+     */
+    @Override
     public HealthResult checkReady()
     {
         return HealthResult.RESULT_HEALTHY;
