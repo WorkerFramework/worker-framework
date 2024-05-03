@@ -17,4 +17,5 @@ package com.hpe.caf.api.worker;
 
 public interface TaskInformation {
     String getInboundMessageId();
+    default boolean isPoison() {return false;}
 }

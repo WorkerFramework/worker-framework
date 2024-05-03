@@ -70,7 +70,6 @@ class WorkerTaskImpl implements WorkerTask
             final WorkerFactory workerFactory,
             final TaskInformation taskInformation,
             final TaskMessage taskMessage,
-            final boolean poison,
             final Map<String, Object> headers,
             final Codec codec
     )
@@ -86,7 +85,7 @@ class WorkerTaskImpl implements WorkerTask
         this.progressReportBuffer = new ProgressReportBuffer();
         this.currentSubtaskId = new AtomicInteger();
         this.subtasksPublishedSemaphore = new Semaphore(0);
-        this.poison = poison;
+        this.poison = taskInformation.isPoison();
         this.headers = headers;
         this.codec = codec;
     }

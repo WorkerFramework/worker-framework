@@ -75,17 +75,16 @@ public class WorkerQueueConsumerImpl implements QueueConsumer
     @Override
     public void processDelivery(Delivery delivery)
     {
-        final RabbitTaskInformation taskInformation = new RabbitTaskInformation(String.valueOf(delivery.getEnvelope().getDeliveryTag()));
+        final boolean isPoison = false;
+        
+        //TODO Set isPoison
+        
+        final RabbitTaskInformation taskInformation = new RabbitTaskInformation(String.valueOf(delivery.getEnvelope().getDeliveryTag()), isPoison);
         metrics.incrementReceived();
         if (delivery.getEnvelope().isRedeliver()) {
             final int retries;
-            if(delivery.getHeaders().containsKey(RabbitHeaders.RABBIT_HEADER_CAF_DELIVERY_COUNT)) {
-                //RABBIT_HEADER_CAF_DELIVERY_COUNT is available for messages from quorum queues
-                retries = Integer.parseInt(String.valueOf(delivery.getHeaders().getOrDefault(
-                        RabbitHeaders.RABBIT_HEADER_CAF_DELIVERY_COUNT, "0")));
-            }
-            else {
-                //RABBIT_HEADER_CAF_WORKER_RETRY is available for classic queues
+            if(!delivery.getHeaders().containsKey(RabbitHeaders.RABBIT_HEADER_CAF_DELIVERY_COUNT)) {
+                //RABBIT_HEADER_CAF_DELIVERY_COUNT is not available, message was delivered from CLASSIC queue
                 retries = Integer.parseInt(String.valueOf(delivery.getHeaders()
                         .getOrDefault(RabbitHeaders.RABBIT_HEADER_CAF_WORKER_RETRY, "0")));
                 if(retries < retryLimit) {
@@ -95,11 +94,6 @@ public class WorkerQueueConsumerImpl implements QueueConsumer
                     republishClassicRedelivery(delivery, retries);
                     return;
                 }
-            }
-            
-            if(retries >= retryLimit) {
-                handleRetriesExceeded(delivery, retries);
-                return;
             }
         }
 
@@ -190,25 +184,6 @@ public class WorkerQueueConsumerImpl implements QueueConsumer
                 delivery.getEnvelope().getDeliveryTag(), retryLimit, retries + 1);
         final Map<String, Object> headers = new HashMap<>();
         headers.put(RabbitHeaders.RABBIT_HEADER_CAF_WORKER_RETRY, String.valueOf(retries + 1));
-        headers.put(RabbitHeaders.RABBIT_HEADER_CAF_WORKER_RETRY_LIMIT, retryLimit);
-        taskInformation.incrementResponseCount(true);
-        publisherEventQueue.add(new WorkerPublishQueueEvent(delivery.getMessageData(), retryRoutingKey, 
-                taskInformation, headers));
-    }
-    
-    /**
-     * Republish the delivery to the rejected queue with a rejected reason stamped in the headers
-     *
-     * @param delivery the redelivered message
-     */
-    private void handleRetriesExceeded(final Delivery delivery, final int retries) {
-        final RabbitTaskInformation taskInformation = 
-                new RabbitTaskInformation(String.valueOf(delivery.getEnvelope().getDeliveryTag()));
-        LOG.debug("Retry exceeded for message with id {}, republishing to rejected queue", 
-                delivery.getEnvelope().getDeliveryTag());
-        final Map<String, Object> headers = new HashMap<>();
-        headers.put(RabbitHeaders.RABBIT_HEADER_CAF_WORKER_RETRY, String.valueOf(retries));
-        headers.put(RabbitHeaders.RABBIT_HEADER_CAF_WORKER_REJECTED, REJECTED_REASON_RETRIES_EXCEEDED);
         headers.put(RabbitHeaders.RABBIT_HEADER_CAF_WORKER_RETRY_LIMIT, retryLimit);
         taskInformation.incrementResponseCount(true);
         publisherEventQueue.add(new WorkerPublishQueueEvent(delivery.getMessageData(), retryRoutingKey, 

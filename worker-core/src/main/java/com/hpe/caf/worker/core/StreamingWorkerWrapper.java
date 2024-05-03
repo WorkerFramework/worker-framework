@@ -58,17 +58,19 @@ class StreamingWorkerWrapper implements Runnable
         final String workerFriendlyName = !Strings.isNullOrEmpty(CAF_WORKER_FRIENDLY_NAME) ?
                 CAF_WORKER_FRIENDLY_NAME : worker.getClass().getSimpleName();
         try {
-            if (workerTask.isPoison()) {
-                LOG.warn(workerFriendlyName + " could not process the item.");
-                sendPoisonMessage();
-                workerTask.setResponse(worker.getPoisonMessageResult(workerFriendlyName));
-            } else {
-                Timer.Context t = TIMER.time();
-                MDC.put(CORRELATION_ID, workerTask.getCorrelationId());
-                WorkerResponse response = worker.doWork();
-                t.stop();
-                workerTask.setResponse(response);
+            Timer.Context t = TIMER.time();
+            MDC.put(CORRELATION_ID, workerTask.getCorrelationId());
+
+            final WorkerResponse response;
+            if(workerTask.isPoison()) {
+                response = worker.getPoisonMessageResult(workerFriendlyName);
+                sendCopyToReject();
             }
+            else {
+                response = worker.doWork();
+            }
+            t.stop();
+            workerTask.setResponse(response);
         } catch (TaskRejectedException e) {
             workerTask.setResponse(e);
         } catch (InvalidTaskException e) {
@@ -85,28 +87,26 @@ class StreamingWorkerWrapper implements Runnable
         }
     }
 
-    /**
-     * @return the timer used for keeping statistics on worker run times
-     */
-    public static Timer getTimer()
-    {
-        return TIMER;
-    }
-
-    private void sendPoisonMessage()
-    {
-        // Publish poison message to "reject" queue
+    private void sendCopyToReject() {
         final TaskMessage poisonMessage = new TaskMessage(
                 UUID.randomUUID().toString(),
                 MoreObjects.firstNonNull(workerTask.getClassifier(), ""),
                 workerTask.getVersion(),
                 workerTask.getData(),
                 TaskStatus.RESULT_EXCEPTION,
-                Collections.<String, byte[]>emptyMap(),
+                Collections.emptyMap(),
                 workerTask.getRejectQueue(),
                 workerTask.getTrackingInfo(),
                 workerTask.getSourceInfo(),
                 workerTask.getCorrelationId());
         workerTask.sendMessage(poisonMessage);
+    }
+
+    /**
+     * @return the timer used for keeping statistics on worker run times
+     */
+    public static Timer getTimer()
+    {
+        return TIMER;
     }
 }
