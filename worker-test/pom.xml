@@ -174,7 +174,7 @@
                             <alias>keystore</alias>
                             <name>${project.artifactId}-keystore:${project.version}</name>
                             <build>
-                                <from>${dockerHubPublic}/cafapi/opensuse-jre11:3.0.0</from>
+                                <from>${projectDockerRegistry}/cafapi/opensuse-jre11</from>
                                 <runCmds>
                                     <runCmd>mkdir /test-keystore</runCmd>
                                     <runCmd>openssl genrsa -out /test-keystore/ca_key.pem 2048</runCmd>
@@ -194,7 +194,7 @@
                         </image>
                         <image>
                             <alias>webdav</alias>
-                            <name>${dockerHubPublic}/cloudesire/webdav</name>
+                            <name>${projectDockerRegistry}/cloudesire/webdav</name>
                             <run>
                                 <platform>linux/amd64</platform>
                                 <ports>
@@ -254,7 +254,7 @@
                             <alias>worker-test</alias>
                             <name>${targetDockerRegistryPath}/worker-test:${project.version}</name>
                             <build>
-                                <from>${dockerHubPublic}/cafapi/opensuse-jre17:1</from>
+                                <from>${projectDockerRegistry}/cafapi/opensuse-jre17</from>
                                 <cmd>
                                     <exec>
                                         <args>/maven/worker.sh</args>
