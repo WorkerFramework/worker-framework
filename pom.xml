@@ -884,6 +884,47 @@
                 </plugin>
             </plugins>
         </pluginManagement>
+        <plugins>
+            <plugin>
+                <groupId>com.github.cafapi.plugins.docker.versions</groupId>
+                <artifactId>docker-versions-maven-plugin</artifactId>
+                <extensions>true</extensions>
+                <configuration>
+                    <imageManagement>
+                        <image>
+                            <repository>${dockerHubPublic}/cafapi/doc-site-compiler</repository>
+                            <tag>2</tag>
+                        </image>
+                        <image>
+                            <repository>${dockerHubPublic}/cafapi/opensuse-jre11</repository>
+                            <tag>3.0.0</tag>
+                        </image>
+                        <image>
+                            <repository>${dockerHubPublic}/cafapi/opensuse-jre17</repository>
+                            <tag>1.5.1</tag>
+                            <digest>sha256:b046524c5ea1f67a28ce8f91eb513f319c113a9b2ac6a7152ae4789c7e822f6c</digest>
+                        </image>
+                        <image>
+                            <repository>${dockerHubPublic}/cloudesire/webdav</repository>
+                            <tag>latest</tag>
+                            <digest>sha256:92a7498003381dc5b939dbc7d53b5e6c380758f3947588230dfaf7e73718bda8</digest>
+                        </image>
+                        <image>
+                            <repository>${dockerHubPublic}/library/busybox</repository>
+                            <tag>latest</tag>
+                        </image>
+                        <image>
+                            <repository>${dockerHubPublic}/library/httpd</repository>
+                            <tag>2.4</tag>
+                        </image>
+                        <image>
+                            <repository>${dockerHubPublic}/library/rabbitmq</repository>
+                            <tag>3-management</tag>
+                        </image>
+                    </imageManagement>
+                </configuration>
+            </plugin>
+        </plugins>
     </build>
 
 </project>
