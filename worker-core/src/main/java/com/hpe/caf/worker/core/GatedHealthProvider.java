@@ -80,7 +80,7 @@ final class GatedHealthProvider
                         workerQueue.reconnectIncoming();
                     }
                 } else {
-                    LOG.debug("Disconnecting the incoming queue due to the [{}] health check failing", name);
+                    LOG.debug("Disconnecting the incoming queue due to the {} health check(s) failing", unhealthySet);
                     workerQueue.disconnectIncoming();
                 }
 

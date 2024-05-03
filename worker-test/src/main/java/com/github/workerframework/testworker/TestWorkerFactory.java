@@ -19,6 +19,7 @@ import com.hpe.caf.api.Codec;
 import com.hpe.caf.api.ConfigurationException;
 import com.hpe.caf.api.ConfigurationSource;
 import com.hpe.caf.api.HealthResult;
+import com.hpe.caf.api.HealthStatus;
 import com.hpe.caf.api.worker.DataStore;
 import com.hpe.caf.api.worker.InvalidTaskException;
 import com.hpe.caf.api.worker.TaskRejectedException;
@@ -30,6 +31,8 @@ import jakarta.annotation.Nonnull;
 
 final class TestWorkerFactory implements WorkerFactory
 {
+    long count = 0;
+
     private final TestWorkerConfiguration config;
 
     private final ConfigurationSource configSource;
@@ -96,6 +99,12 @@ final class TestWorkerFactory implements WorkerFactory
     @Override
     public HealthResult checkReady()
     {
-        return HealthResult.RESULT_HEALTHY;
+        count++;
+        System.err.println("RORY COUNT IS " + count);
+        if (count < 30) {
+            return new HealthResult(HealthStatus.UNHEALTHY, "NOT READY!! count =" + count);
+        } else {
+            return HealthResult.RESULT_HEALTHY;
+        }
     }
 }
