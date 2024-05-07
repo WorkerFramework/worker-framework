@@ -158,13 +158,13 @@
                             <goal>start</goal>
                         </goals>
                     </execution>
-<!--                    <execution>-->
-<!--                        <id>stop-docker-images</id>-->
-<!--                        <phase>post-integration-test</phase>-->
-<!--                        <goals>-->
-<!--                            <goal>stop</goal>-->
-<!--                        </goals>-->
-<!--                    </execution>-->
+                    <execution>
+                        <id>stop-docker-images</id>
+                        <phase>post-integration-test</phase>
+                        <goals>
+                            <goal>stop</goal>
+                        </goals>
+                    </execution>
                 </executions>
                 <configuration>
                     <startParallel>true</startParallel>
