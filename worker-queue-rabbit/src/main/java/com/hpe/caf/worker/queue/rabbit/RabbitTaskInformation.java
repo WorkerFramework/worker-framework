@@ -134,8 +134,9 @@ public class RabbitTaskInformation implements TaskInformation {
     }
 
     /**
-     * TODO Add some JavaDoc
-     * @return
+     * Check if the message is poison
+     *
+     * @return true if the message has been marked as poisonous
      */
     public boolean isPoison() {
         return isPoison;

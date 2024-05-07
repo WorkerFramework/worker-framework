@@ -75,18 +75,23 @@ public class WorkerQueueConsumerImpl implements QueueConsumer
     @Override
     public void processDelivery(Delivery delivery)
     {
-        final boolean isPoison = false;
-        
-        //TODO Set isPoison
-        
+        boolean isPoison = false;
+
+        final int retries = delivery.getHeaders().containsKey(RabbitHeaders.RABBIT_HEADER_CAF_DELIVERY_COUNT) ?
+                Integer.parseInt(String.valueOf(delivery.getHeaders()
+                .getOrDefault(RabbitHeaders.RABBIT_HEADER_CAF_DELIVERY_COUNT, "0"))) :
+                Integer.parseInt(String.valueOf(delivery.getHeaders()
+                .getOrDefault(RabbitHeaders.RABBIT_HEADER_CAF_WORKER_RETRY, "0")));
+
+        if(retries >= retryLimit){
+            isPoison = true;
+        }
+
         final RabbitTaskInformation taskInformation = new RabbitTaskInformation(String.valueOf(delivery.getEnvelope().getDeliveryTag()), isPoison);
         metrics.incrementReceived();
         if (delivery.getEnvelope().isRedeliver()) {
-            final int retries;
             if(!delivery.getHeaders().containsKey(RabbitHeaders.RABBIT_HEADER_CAF_DELIVERY_COUNT)) {
                 //RABBIT_HEADER_CAF_DELIVERY_COUNT is not available, message was delivered from CLASSIC queue
-                retries = Integer.parseInt(String.valueOf(delivery.getHeaders()
-                        .getOrDefault(RabbitHeaders.RABBIT_HEADER_CAF_WORKER_RETRY, "0")));
                 if(retries < retryLimit) {
                     //Republish the delivery with a header recording the incremented number of retries.
                     //Classic queues do not record delivery count, so we republish the message with an incremented

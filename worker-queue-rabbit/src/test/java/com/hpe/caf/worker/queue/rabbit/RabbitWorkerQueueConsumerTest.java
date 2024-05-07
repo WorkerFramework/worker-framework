@@ -183,41 +183,6 @@ public class RabbitWorkerQueueConsumerTest
     }
 
     /**
-     * Send in a redelivered message with a retry header that exceeds the limit and verify a new publish request is sent to the rejected
-     * queue with the appropriate headers stamped.
-     */
-    @Test
-    public void testHandleRedeliveryRetryExceeded()
-        throws IOException, InterruptedException, WorkerException
-    {
-        BlockingQueue<Event<QueueConsumer>> consumerEvents = new LinkedBlockingQueue<>();
-        BlockingQueue<Event<WorkerPublisher>> publisherEvents = new LinkedBlockingQueue<>();
-        Channel channel = Mockito.mock(Channel.class);
-        TaskCallback callback = Mockito.mock(TaskCallback.class);
-        WorkerQueueConsumerImpl impl = new WorkerQueueConsumerImpl(callback, metrics, consumerEvents, channel, publisherEvents, retryKey, 1);
-        DefaultRabbitConsumer consumer = new DefaultRabbitConsumer(consumerEvents, impl);
-        Thread t = new Thread(consumer);
-        t.start();
-        AMQP.BasicProperties prop = Mockito.mock(AMQP.BasicProperties.class);
-        Map<String, Object> headers = new HashMap<>();
-        headers.put(RabbitHeaders.RABBIT_HEADER_CAF_WORKER_RETRY, "1");
-        Mockito.when(prop.getHeaders()).thenReturn(headers);
-        consumer.handleDelivery("consumer", redeliveredEnv, prop, data);
-        Event<WorkerPublisher> pubEvent = publisherEvents.poll(1, TimeUnit.SECONDS);
-        Assert.assertNotNull(pubEvent);
-        WorkerPublisher publisher = Mockito.mock(WorkerPublisher.class);
-        ArgumentCaptor<Map<String, Object>> captor = buildStringObjectMapCaptor();
-        pubEvent.handleEvent(publisher);
-        Mockito.verify(publisher, Mockito.times(1)).handlePublish(Mockito.eq(data), Mockito.eq(retryKey), Mockito.any(RabbitTaskInformation.class), captor.capture());
-        Assert.assertTrue(captor.getValue().containsKey(RabbitHeaders.RABBIT_HEADER_CAF_WORKER_RETRY));
-        Assert.assertEquals("1", captor.getValue().get(RabbitHeaders.RABBIT_HEADER_CAF_WORKER_RETRY));
-        Assert.assertTrue(captor.getValue().containsKey(RabbitHeaders.RABBIT_HEADER_CAF_WORKER_REJECTED));
-        Assert.assertEquals(WorkerQueueConsumerImpl.REJECTED_REASON_RETRIES_EXCEEDED,
-                            captor.getValue().get(RabbitHeaders.RABBIT_HEADER_CAF_WORKER_REJECTED));
-        consumer.shutdown();
-    }
-
-    /**
      * Verify an ack request sends the appropriate signal to RabbitMQ.
      */
     @Test

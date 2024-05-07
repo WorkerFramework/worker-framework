@@ -226,7 +226,7 @@ public class StreamingWorkerWrapperTest
         m.setContext(contextMap);
         m.setTaskData("Test data".getBytes(StandardCharsets.UTF_8));
         Map<String, Object> headers = new HashMap<>();
-        WorkerTaskImpl workerTask = new WorkerTaskImpl(path, callback, happyWorkerFactory, getMockTaskInformation(queueMsgId), m,
+        WorkerTaskImpl workerTask = new WorkerTaskImpl(path, callback, happyWorkerFactory, getMockTaskInformationPoisonTrue(queueMsgId), m,
                 headers, codec);
         StreamingWorkerWrapper wrapper = new StreamingWorkerWrapper(workerTask);
         Thread t = new Thread(wrapper);
@@ -405,6 +405,14 @@ public class StreamingWorkerWrapperTest
     TaskInformation getMockTaskInformation(final String inboundMessageId){
         final TaskInformation taskInformation = mock(TaskInformation.class);
         when(taskInformation.getInboundMessageId()).thenReturn(inboundMessageId);
+
+        return taskInformation;
+    }
+
+    TaskInformation getMockTaskInformationPoisonTrue(final String inboundMessageId){
+        final TaskInformation taskInformation = mock(TaskInformation.class);
+        when(taskInformation.getInboundMessageId()).thenReturn(inboundMessageId);
+        when(taskInformation.isPoison()).thenReturn(true);
 
         return taskInformation;
     }
