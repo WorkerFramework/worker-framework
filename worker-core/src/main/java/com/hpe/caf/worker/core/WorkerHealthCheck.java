@@ -15,33 +15,27 @@
  */
 package com.hpe.caf.worker.core;
 
-import java.util.Objects;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import com.codahale.metrics.health.HealthCheck;
-import com.hpe.caf.api.HealthReporter;
 import com.hpe.caf.api.HealthResult;
 import com.hpe.caf.api.HealthStatus;
 
-class WorkerReadyCheck extends HealthCheck
+import java.util.Objects;
+import java.util.function.Supplier;
+
+class WorkerHealthCheck extends HealthCheck
 {
-    private static final Logger LOG = LoggerFactory.getLogger(WorkerReadyCheck.class);
+    private final Supplier<HealthResult> healthResultSupplier;
 
-    private final HealthReporter reporter;
-
-    public WorkerReadyCheck(final HealthReporter healthReporter)
+    public WorkerHealthCheck(final Supplier<HealthResult> healthResultSupplier)
     {
-        this.reporter = Objects.requireNonNull(healthReporter);
+        this.healthResultSupplier = Objects.requireNonNull(healthResultSupplier);
     }
 
     @Override
     protected Result check()
         throws Exception
     {
-        LOG.error("WorkerReadyCheck.check() called");
-        HealthResult result = reporter.checkReady();
+        HealthResult result = healthResultSupplier.get();
         String message = result.getMessage();
 
         if (result.getStatus() == HealthStatus.HEALTHY) {

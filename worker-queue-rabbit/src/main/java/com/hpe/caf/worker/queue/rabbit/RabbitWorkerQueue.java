@@ -308,12 +308,6 @@ public final class RabbitWorkerQueue implements ManagedWorkerQueue
     @Override
     public HealthResult checkAlive()
     {
-        return HealthResult.RESULT_HEALTHY;
-    }
-
-    @Override
-    public HealthResult checkReady()
-    {
         if (conn == null || !conn.isOpen()) {
             return new HealthResult(HealthStatus.UNHEALTHY, "Rabbit connection failed");
         } else if (!incomingChannel.isOpen()) {
@@ -327,6 +321,12 @@ public final class RabbitWorkerQueue implements ManagedWorkerQueue
         } else {
             return HealthResult.RESULT_HEALTHY;
         }
+    }
+
+    @Override
+    public HealthResult checkReady()
+    {
+        return checkAlive();
     }
 
     private void createConnection(TaskCallback callback, WorkerConfirmListener listener)

@@ -101,7 +101,7 @@ final class TestWorkerFactory implements WorkerFactory
     {
         count++;
         System.err.println("RORY COUNT IS " + count);
-        if (count < 30) {
+        if (count < 10) {
             return new HealthResult(HealthStatus.UNHEALTHY, "NOT READY!! count =" + count);
         } else {
             return HealthResult.RESULT_HEALTHY;
