@@ -893,11 +893,13 @@
                     <imageManagement>
                         <image>
                             <repository>${dockerHubPublic}/cafapi/doc-site-compiler</repository>
-                            <tag>2</tag>
+                            <tag>2.0.0</tag>
+                            <digest>sha256:f86cfd00743cf4c61672313c9fe1f4b955608cec2b19a251f9d3845145f8a2d6</digest>
                         </image>
                         <image>
                             <repository>${dockerHubPublic}/cafapi/opensuse-jre11</repository>
                             <tag>3.0.0</tag>
+                            <digest>sha256:8db07658c8a74c3c00747288744f57526788580402b709fe2e093ef0207cff63</digest>
                         </image>
                         <image>
                             <repository>${dockerHubPublic}/cafapi/opensuse-jre17</repository>
@@ -912,14 +914,17 @@
                         <image>
                             <repository>${dockerHubPublic}/library/busybox</repository>
                             <tag>latest</tag>
+                            <digest>sha256:6776a33c72b3af7582a5b301e3a08186f2c21a3409f0d2b52dfddbdbe24a5b04</digest>
                         </image>
                         <image>
                             <repository>${dockerHubPublic}/library/httpd</repository>
                             <tag>2.4</tag>
+                            <digest>sha256:36c8c79f900108f0f09fd4148ad35ade57cba0dc19d13f3d15be24ce94e6a639</digest>
                         </image>
                         <image>
                             <repository>${dockerHubPublic}/library/rabbitmq</repository>
                             <tag>3-management</tag>
+                            <digest>sha256:eee9afbc17c32424ba6309dfd2d9efc9b9b1863ffe231b3d2be2815758b0d649</digest>
                         </image>
                     </imageManagement>
                 </configuration>
