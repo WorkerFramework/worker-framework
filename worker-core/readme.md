@@ -19,7 +19,7 @@
  - A worker can output a result message, or another task message
  - The workers are stateless, and so can be trivially scaled
  - A worker will not lose requests, and gracefully handle failure
- - A worker will provide metrics and healthchecks
+ - A worker will provide metrics and liveness and readiness checks
  - Input and output messages are wrapped in a fixed container
  - A worker will not accept any new work if a shutdown is triggered
  - A worker will abort its current work if interrupted
@@ -66,11 +66,9 @@
  words, the number of simultaneous tasks to perform) is dictated by the
  `WorkerFactory` supplied to the application.
  
- The `worker-core` application exposes health checks and metrics from itself
- and dependent modules to the Dropwizard admin port (default 8081).
- 
- At time of writing, `worker-core` has no operations available on the REST
- port (default 8080).
+ The `worker-core` application exposes metrics from itself and dependent 
+ modules to the Dropwizard admin port (default 8081), and exposes liveness 
+ and readiness checks on the REST port (default 8080).
  
 ### Configuration
 
@@ -186,14 +184,14 @@ the current input queue. Default is True.
 
  While `InvalidTaskException` is a non-retryable case, there may be retryable
  scenarios for instance a brief disconnection from a temporary resources such as
- a database. If you have a health check in your `WorkerFactory` and this is
- currently failing, you may wish to throw `TaskRejectedException`, which will
- push the task back onto the queue. Once inside a Worker itself, either the
- code or the libraries used should be able to tolerate some amount of transient
- failures in connected resources, but if this still cannot be rectified in a
- reasonable time frame then it is also valid to throw `TaskRejectedException` from
- inside the Worker, with the understanding that any amount of work done so
- far will be abandoned.
+ a database. If you have a liveness or readiness check in your `WorkerFactory` 
+ and this is currently failing, you may wish to throw `TaskRejectedException`, 
+ which will push the task back onto the queue. Once inside a Worker itself, 
+ either the code or the libraries used should be able to tolerate some amount 
+ of transient failures in connected resources, but if this still cannot be 
+ rectified in a reasonable time frame then it is also valid to throw 
+ `TaskRejectedException` from inside the Worker, with the understanding that 
+ any amount of work done so far will be abandoned.
 
  Throwing `TaskFailedException` should be a last resort, for situations that
  should not occur and are not recoverable. Most times, any checked exceptions
@@ -287,57 +285,124 @@ the current input queue. Default is True.
  - queue.errors: the number of errors encountered by the WorkerQueue.
 
 
-## Health checks within the worker framework
+## Liveness and readiness checks within the worker framework
 
- All Dropwizard applications have support for health checks and the worker
- framework is no exception. The `caf-api` abstracts this away however so there
- is no need to know about Dropwizard or directly include its dependencies.
+ All Dropwizard applications have support for liveness and readiness checks and 
+ the worker framework is no exception. The `caf-api` abstracts this away however 
+ so there is no need to know about Dropwizard or directly include its dependencies.
 
- The following components have health checks:
+ A liveness check is used to determine whether to restart a worker, while a 
+ readiness check is used to determine whether a worker is ready to start 
+ accepting traffic. For a worker, this means that its liveness check should
+ not check downstream dependencies (as restarting the worker is unlikely to 
+ fix a broken downstream dependency). On the other hand, a worker's 
+ readiness check should fail if there is a problem with its downstream 
+ dependencies, as this will stop the worker taking in work until its 
+ dependencies are fixed.
 
-  - ConfigurationSource
-  - DataStore
-  - WorkerQueue
-  - WorkerFactory
+ The following components have been configured with liveness checks:
+
+  - WorkerFactory (readiness check is named `worker-alive`)
+  - WorkerQueue (readiness check is named `queue`)
+
+ The following components have been configured with readiness checks:
+
+  - WorkerFactory (liveness check is named `worker-ready`)
+  - ConfigurationSource (liveness check is named `configuration`)
+  - DataStore (liveness check is named `store`)
 
  Each of these classes implements the interface `HealthReporter` which enforces
- a method called `healthCheck()` which returns a `HealthResult`. Typically, a
- pre-made "healthy" result can be returned via `HealthResult.RESULT_HEALTHY`
- but it is possible to construct others. If the status in unhealthy, a
- message with additional information about the problem should be supplied.
+ methods called `checkAlive()` and `checkReady()`, which each return a 
+ `HealthResult`. Depending on whether a component has been configured with a
+ liveness or readiness check, only one of these methods may get called. For
+ example, `WorkerQueue` has only been configured with a liveness check, so
+ `WorkerQueue::checkAlive` will get called on the configured schedule 
+ (see below), but `WorkerQueue::checkReady` will never get called. On the
+ other hand, `WorkerFactory` has been configured with both a liveness and 
+ readiness check, so `WorkerFctory::checkAlive` and `WorkerFactory::checkReady`
+ will both get called on the configured schedule. Typically, a pre-made 
+ "healthy" result can be returned via `HealthResult.RESULT_HEALTHY` but it 
+ is possible to construct others. If the status is unhealthy, a message 
+ with additional information about the problem should be supplied. 
 
- All of these health checks are exposed via the worker framework to the
- underlying Dropwizard health checks environment (which under the hood uses
- the Codahale Metrics library). Thus, the "/healthchecks" URL present on the
- Dropwizard admin port (default 8081) will output the result of all the
- health checks in JSON format. This includes the four health checks listed
- above along with in-built deadlock checks.
+ The liveness and readiness checks are run on a schedule. This schedule can be 
+ configured via the environment variables described in [worker-default-configs](https://github.com/WorkerFramework/worker-framework/blob/develop/worker-default-configs/README.md).
+ The result of the last scheduled run is then exposed on the 
+ `/health-checks&name=all&type=alive` and `/health-checks&name=all&type=ready`
+ urls present on the Dropwizard rest port (default 8080).
 
- If any of the health checks failed (returning unhealthy) then the HTTP
- response (along with the JSON) will have status 500, indicating an error. It
- is possible to utilise this with monitoring systems to look for this status
- code, so even parsing JSON is not required for basic monitoring.
- This kind of remote health check can be performed with Marathon by adding an
- appropriate section to your Marathon task descriptor. See the Marathon
- documentation for more information on how to do this. As a general
- reference, a single "unhealthy" return is unlikely to destroy the container
- in a reasonable Marathon descriptor. Typically, multiple consecutive
- failures are required to trigger destruction of the container instance, but
- this is entirely up to the developer. If you are producing a container that
- may be re-used by other applications, it may be worth investigating and
- advising in your documentation about the general behaviour of your health
- checks and how many consecutive failures would likely indicate beyond all
- doubt that the container is unhealthy.
+ The HTTP response body of both these calls will include *all* liveness and 
+ readiness checks in JSON format (the `type` query param only affects the 
+ HTTP response code of the calls). The liveness checks also include the 
+ built-in Dropwizard `deadlocks` check. Here is an example response:
 
- Note that a call to `healthCheck()` is expected to be trivial and take a
- negligible amount of time. As such, if a health check is of a much heavier
- nature, it is preferred to have a thread that periodically performs this and
- then the `healthCheck()` call merely returns the latest value available.
+```json
+[
+  {
+    "name": "worker-alive",
+    "healthy": true,
+    "type": "ALIVE",
+    "critical": true
+  },
+  {
+    "name": "deadlocks",
+    "healthy": true,
+    "type": "ALIVE",
+    "critical": true
+  },
+  {
+    "name": "worker-ready",
+    "healthy": false,
+    "type": "READY",
+    "critical": true
+  },
+  {
+    "name": "configuration",
+    "healthy": true,
+    "type": "READY",
+    "critical": true
+  },
+  {
+    "name": "transient",
+    "healthy": true,
+    "type": "READY",
+    "critical": true
+  },
+  {
+    "name": "store",
+    "healthy": true,
+    "type": "READY",
+    "critical": true
+  },
+  {
+    "name": "queue",
+    "healthy": true,
+    "type": "ALIVE",
+    "critical": true
+  }
+]
+```
 
- Finally, health checks should not be relied upon to deal with startup error
- conditions. If a containerised application cannot initialise, it should
- fail-fast and terminate immediately, rather than wait for health checks to
- report unhealthy several times and eventually be forcibly terminated.
+ If any of the liveness or readiness checks failed (returning unhealthy) then 
+ the HTTP response (along with the JSON) will have status 503, indicating an 
+ error. It is possible to utilise this with monitoring systems to look for 
+ this status code, so even parsing JSON is not required for basic monitoring.
+
+ This kind of remote health check can be performed with Kubernetes. As a 
+ general reference, a single "unhealthy" return is unlikely to result in 
+ a failure of a liveness or readiness check. Typically, multiple consecutive 
+ failures are required to mark the liveness or readiness check as failed, but 
+ this is entirely up to the developer. If you are producing a container that 
+ may be re-used by other applications, it may be worth investigating and 
+ advising in your documentation about the general behaviour of your liveness 
+ and readiness checks and how many consecutive failures would likely indicate 
+ beyond all doubt that the container is not alive or not ready.
+
+ Finally, liveness checks should not be relied upon to deal with 
+ startup error conditions. If a containerised application cannot initialise, 
+ it should fail-fast and terminate immediately, rather than wait for the 
+ liveness checks to report unhealthy several times and eventually 
+ be forcibly terminated.
 
 
 ## Tutorial: creating a new Worker backend
@@ -527,9 +592,10 @@ the current input queue. Default is True.
  Since we already have the task data passed in for each task via the
  `getWorker(...)` method, the only other things we need is our
  configured sleep time, and also something (a `Codec`) with which to
- serialise our result to return. For the purposes of this tutorial, the health
- check will always return successful, and the invalid task respones will be put
- onto the same result queue. So the `WorkerFactory` looks like this:
+ serialise our result to return. For the purposes of this tutorial, the 
+ liveness and readiness checks will always return successful, and the invalid 
+ task response will be put onto the same result queue. So the `WorkerFactory` 
+ looks like this:
 
 ```
  package com.hpe.caf.test.worker;
@@ -582,7 +648,14 @@ the current input queue. Default is True.
 
 
     @Override
-    public HealthResult healthCheck()
+    public HealthResult checkAlive()
+    {
+      return HealthCheck.RESULT_HEALTY;
+    }
+    
+    
+    @Override
+    public HealthResult checkReady()
     {
       return HealthCheck.RESULT_HEALTY;
     }
@@ -599,7 +672,7 @@ the current input queue. Default is True.
  `WorkerFactory` while still allowing the plug-in nature of the components with
  the worker application itself. The provider must also give some basic data
  on identifying the worker. Finally it is worth mentioning that if your Worker
- depends upon any external resources, then it may be worth adding a health
+ depends upon any external resources, then it may be worth adding a readiness
  check here so that there is some way to monitor these underlying resources
  and prompt automated systems or ops teams to take action when necessary.
 

@@ -261,7 +261,7 @@
                                     </exec>
                                 </cmd>
                                 <healthCheck>
-                                    <cmd>curl -f http://localhost:8081/healthcheck || exit 1</cmd>
+                                    <cmd>curl -f http://localhost:8080/health-check?name=all&amp;type=READY || exit 1</cmd>
                                 </healthCheck>
                                 <assembly>
                                     <mode>tar</mode>
@@ -352,6 +352,16 @@
                                     <CAF_RABBITMQ_PORT>5671</CAF_RABBITMQ_PORT>
                                     <SSL_CA_CRT_DIR>/test-keystore</SSL_CA_CRT_DIR>
                                     <SSL_CA_CRT>ca_certificate.pem</SSL_CA_CRT>
+                                    <CAF_LIVENESS_INITIAL_DELAY_SECONDS>16</CAF_LIVENESS_INITIAL_DELAY_SECONDS>
+                                    <CAF_LIVENESS_CHECK_INTERVAL_SECONDS>61</CAF_LIVENESS_CHECK_INTERVAL_SECONDS>
+                                    <CAF_LIVENESS_DOWNTIME_INTERVAL_SECONDS>62</CAF_LIVENESS_DOWNTIME_INTERVAL_SECONDS>
+                                    <CAF_LIVENESS_SUCCESS_ATTEMPTS>2</CAF_LIVENESS_SUCCESS_ATTEMPTS>
+                                    <CAF_LIVENESS_FAILURE_ATTEMPTS>2</CAF_LIVENESS_FAILURE_ATTEMPTS>
+                                    <CAF_READINESS_INITIAL_DELAY_SECONDS>17</CAF_READINESS_INITIAL_DELAY_SECONDS>
+                                    <CAF_READINESS_CHECK_INTERVAL_SECONDS>63</CAF_READINESS_CHECK_INTERVAL_SECONDS>
+                                    <CAF_READINESS_DOWNTIME_INTERVAL_SECONDS>64</CAF_READINESS_DOWNTIME_INTERVAL_SECONDS>
+                                    <CAF_READINESS_SUCCESS_ATTEMPTS>2</CAF_READINESS_SUCCESS_ATTEMPTS>
+                                    <CAF_READINESS_FAILURE_ATTEMPTS>3</CAF_READINESS_FAILURE_ATTEMPTS>
                                 </env>
                                 <volumes>
                                     <from>
@@ -424,6 +434,7 @@
                                 <ports>
                                     <port>${worker.testadminport4}:8081</port>
                                     <port>${worker.testdebugport4}:5005</port>
+                                    <port>${worker.testhttpport4}:8080</port>
                                 </ports>
                                 <env>
                                     <CAF_WORKER_DATASTORE_PATH>/srv/common/webdav</CAF_WORKER_DATASTORE_PATH>
@@ -445,11 +456,11 @@
                                 <log>
                                     <enabled>true</enabled>
                                 </log>
-                                <!--Expect healthcheck to return 500 as trying to use SSL without valid certificate-->
+                                <!--Expect healthcheck to return 503 as trying to use SSL without valid certificate-->
                                 <wait>
                                     <http>
-                                        <url>http://${docker.host.address}:${worker.testadminport4}/healthcheck</url>
-                                        <status>500</status>
+                                        <url>http://${docker.host.address}:${worker.testhttpport4}/health-check?name=all&amp;type=READY</url>
+                                        <status>503</status>
                                     </http>
                                     <time>120000</time>
                                     <shutdown>500</shutdown>
@@ -474,6 +485,7 @@
                 <worker.testadminport2>8082</worker.testadminport2>
                 <worker.testadminport3>8083</worker.testadminport3>
                 <worker.testadminport4>8084</worker.testadminport4>
+                <worker.testhttpport4>8085</worker.testhttpport4>
                 <worker.testdebugport2>5006</worker.testdebugport2>
                 <worker.testdebugport3>5007</worker.testdebugport3>
                 <worker.testdebugport4>5008</worker.testdebugport4>

@@ -31,6 +31,7 @@ import com.hpe.caf.api.ManagedConfigurationSource;
 import com.hpe.caf.api.worker.*;
 import com.hpe.caf.cipher.NullCipherProvider;
 import com.hpe.caf.config.system.SystemBootstrapConfiguration;
+import com.hpe.caf.configs.HealthConfiguration;
 import com.hpe.caf.naming.ServicePath;
 import com.hpe.caf.util.ModuleLoader;
 import com.hpe.caf.util.ModuleLoaderException;
@@ -55,6 +56,7 @@ import org.slf4j.LoggerFactory;
 import java.net.ResponseCache;
 import java.net.URL;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 
@@ -115,6 +117,21 @@ public final class WorkerApplication extends Application<WorkerConfiguration>
         WorkerThreadPool wtp = WorkerThreadPool.create(workerFactory);
         final int nThreads = workerFactory.getWorkerThreads();
         ManagedWorkerQueue workerQueue = queueProvider.getWorkerQueue(config, nThreads);
+
+        final HealthConfiguration healthConfiguration = config.getConfiguration(HealthConfiguration.class);
+        LOG.error("RORY!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!");
+        LOG.error(String.valueOf(healthConfiguration.getLivenessInitialDelaySeconds()));
+        LOG.error(String.valueOf(healthConfiguration.getLivenessCheckIntervalSeconds()));
+        LOG.error(String.valueOf(healthConfiguration.getLivenessDowntimeIntervalSeconds()));
+        LOG.error(String.valueOf(healthConfiguration.getLivenessSuccessAttempts()));
+        LOG.error(String.valueOf(healthConfiguration.getLivenessFailureAttempts()));
+
+        LOG.error(String.valueOf(healthConfiguration.getReadinessInitialDelaySeconds()));
+        LOG.error(String.valueOf(healthConfiguration.getReadinessCheckIntervalSeconds()));
+        LOG.error(String.valueOf(healthConfiguration.getReadinessDowntimeIntervalSeconds()));
+        LOG.error(String.valueOf(healthConfiguration.getReadinessSuccessAttempts()));
+        LOG.error(String.valueOf(healthConfiguration.getReadinessFailureAttempts()));
+
         TransientHealthCheck transientHealthCheck = new TransientHealthCheck();
         WorkerCore core = new WorkerCore(codec, wtp, workerQueue, workerFactory, path, environment.healthChecks(), transientHealthCheck);
 
@@ -144,30 +161,30 @@ public final class WorkerApplication extends Application<WorkerConfiguration>
 
                 environment.healthChecks().register("worker-alive", gatedHealthProvider.new GatedHealthCheck("worker-alive",
                         new WorkerHealthCheck(workerFactory::checkAlive)));
-                healthCheckConfigurations.add(createHealthCheckConfiguration("worker-alive", HealthCheckType.ALIVE));
+                healthCheckConfigurations.add(createHealthCheckConfiguration("worker-alive", HealthCheckType.ALIVE, healthConfiguration));
 
                 // deadlocks is supplied by default by Dropwizard, we don't need to register it
-                healthCheckConfigurations.add(createHealthCheckConfiguration("deadlocks", HealthCheckType.ALIVE));
+                healthCheckConfigurations.add(createHealthCheckConfiguration("deadlocks", HealthCheckType.ALIVE, healthConfiguration));
 
                 environment.healthChecks().register("queue", gatedHealthProvider.new GatedHealthCheck("queue",
                         new WorkerHealthCheck(core.getWorkerQueue()::checkAlive)));
-                healthCheckConfigurations.add(createHealthCheckConfiguration("queue", HealthCheckType.ALIVE));
+                healthCheckConfigurations.add(createHealthCheckConfiguration("queue", HealthCheckType.ALIVE, healthConfiguration));
 
                 environment.healthChecks().register("worker-ready", gatedHealthProvider.new GatedHealthCheck("worker-ready",
                         new WorkerHealthCheck(workerFactory::checkReady)));
-                healthCheckConfigurations.add(createHealthCheckConfiguration("worker-ready", HealthCheckType.READY));
+                healthCheckConfigurations.add(createHealthCheckConfiguration("worker-ready", HealthCheckType.READY, healthConfiguration));
 
                 environment.healthChecks().register("configuration", gatedHealthProvider.new GatedHealthCheck("configuration",
                         new WorkerHealthCheck(config::checkReady)));
-                healthCheckConfigurations.add(createHealthCheckConfiguration("configuration", HealthCheckType.READY));
+                healthCheckConfigurations.add(createHealthCheckConfiguration("configuration", HealthCheckType.READY, healthConfiguration));
 
                 environment.healthChecks().register("store", gatedHealthProvider.new GatedHealthCheck("store",
                         new WorkerHealthCheck(store::checkReady)));
-                healthCheckConfigurations.add(createHealthCheckConfiguration("store", HealthCheckType.READY));
+                healthCheckConfigurations.add(createHealthCheckConfiguration("store", HealthCheckType.READY, healthConfiguration));
 
                 environment.healthChecks().register("transient", gatedHealthProvider.new GatedHealthCheck("transient",
                         new WorkerHealthCheck(transientHealthCheck::checkReady)));
-                healthCheckConfigurations.add(createHealthCheckConfiguration("transient", HealthCheckType.READY));
+                healthCheckConfigurations.add(createHealthCheckConfiguration("transient", HealthCheckType.READY, healthConfiguration));
 
                 final DefaultHealthFactory healthFactory = new DefaultHealthFactory();
                 healthFactory.setHealthCheckConfigurations(healthCheckConfigurations);
@@ -276,7 +293,10 @@ public final class WorkerApplication extends Application<WorkerConfiguration>
         return url == null;
     }
 
-    private static HealthCheckConfiguration createHealthCheckConfiguration(final String name, final HealthCheckType healthCheckType) {
+    private static HealthCheckConfiguration createHealthCheckConfiguration(
+            final String name,
+            final HealthCheckType healthCheckType,
+            final HealthConfiguration healthConfiguration) {
         final HealthCheckConfiguration healthCheckConfiguration = new HealthCheckConfiguration();
         healthCheckConfiguration.setName(name);
         healthCheckConfiguration.setType(healthCheckType);
@@ -286,13 +306,30 @@ public final class WorkerApplication extends Application<WorkerConfiguration>
         // not desired. Setting critical to true means that the /health-check endpoint returns HTTP 503 when a healthcheck fails.
         healthCheckConfiguration.setCritical(true);
 
-        // TODO make schedule configurable
         final Schedule schedule = new Schedule();
-        schedule.setInitialDelay(Duration.seconds(15));
-        schedule.setCheckInterval(Duration.seconds(180));
-        schedule.setDowntimeInterval(Duration.seconds(180));
-        schedule.setSuccessAttempts(1);
-        schedule.setFailureAttempts(3);
+
+        switch (healthCheckType) {
+            case ALIVE:
+                schedule.setInitialDelay(Duration.seconds(healthConfiguration.getLivenessInitialDelaySeconds()));
+                schedule.setCheckInterval(Duration.seconds(healthConfiguration.getLivenessCheckIntervalSeconds()));
+                schedule.setDowntimeInterval(Duration.seconds(healthConfiguration.getLivenessDowntimeIntervalSeconds()));
+                schedule.setSuccessAttempts(healthConfiguration.getLivenessSuccessAttempts());
+                schedule.setFailureAttempts(healthConfiguration.getLivenessFailureAttempts());
+                break;
+
+            case READY:
+                schedule.setInitialDelay(Duration.seconds(healthConfiguration.getReadinessInitialDelaySeconds()));
+                schedule.setCheckInterval(Duration.seconds(healthConfiguration.getReadinessCheckIntervalSeconds()));
+                schedule.setDowntimeInterval(Duration.seconds(healthConfiguration.getReadinessDowntimeIntervalSeconds()));
+                schedule.setSuccessAttempts(healthConfiguration.getReadinessSuccessAttempts());
+                schedule.setFailureAttempts(healthConfiguration.getReadinessFailureAttempts());
+                break;
+
+            default:
+                throw new RuntimeException(String.format(
+                        "Unknown health check type: %s. Known types are: %s", healthCheckType, Arrays.toString(HealthCheckType.values())));
+        }
+
         healthCheckConfiguration.setSchedule(schedule);
 
         return healthCheckConfiguration;

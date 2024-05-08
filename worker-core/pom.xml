@@ -118,6 +118,10 @@
         </dependency>
         <dependency>
             <groupId>com.github.workerframework</groupId>
+            <artifactId>worker-configs</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>com.github.workerframework</groupId>
             <artifactId>worker-tracking-report</artifactId>
         </dependency>
         <dependency>
