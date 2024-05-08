@@ -44,7 +44,6 @@ import java.util.concurrent.BlockingQueue;
 public class WorkerQueueConsumerImpl implements QueueConsumer
 {
     public static final String REJECTED_REASON_TASKMESSAGE = "TASKMESSAGE_INVALID";
-    public static final String REJECTED_REASON_RETRIES_EXCEEDED = "RETRIES_EXCEEDED";
     private final TaskCallback callback;
     private final RabbitMetricsReporter metrics;
     private final BlockingQueue<Event<QueueConsumer>> consumerEventQueue;
