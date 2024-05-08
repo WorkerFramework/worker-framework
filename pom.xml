@@ -909,21 +909,21 @@
                         <image>
                             <repository>${dockerHubPublic}/cloudesire/webdav</repository>
                             <tag>latest</tag>
-                            <digest>sha256:92a7498003381dc5b939dbc7d53b5e6c380758f3947588230dfaf7e73718bda8</digest>
                         </image>
                         <image>
                             <repository>${dockerHubPublic}/library/busybox</repository>
-                            <tag>latest</tag>
-                            <digest>sha256:6776a33c72b3af7582a5b301e3a08186f2c21a3409f0d2b52dfddbdbe24a5b04</digest>
+                            <tag>1.36.1</tag>
+                            <digest>sha256:5eef5ed34e1e1ff0a4ae850395cbf665c4de6b4b83a32a0bc7bcb998e24e7bbb</digest>
                         </image>
                         <image>
                             <repository>${dockerHubPublic}/library/httpd</repository>
-                            <tag>2.4</tag>
+                            <tag>2.4.59-bookworm</tag>
                             <digest>sha256:36c8c79f900108f0f09fd4148ad35ade57cba0dc19d13f3d15be24ce94e6a639</digest>
                         </image>
                         <image>
                             <repository>${dockerHubPublic}/library/rabbitmq</repository>
-                            <tag>3-management</tag>
+                            <tag>3.13.2-management</tag>
+                            <latestTag>management</latestTag>
                             <digest>sha256:eee9afbc17c32424ba6309dfd2d9efc9b9b1863ffe231b3d2be2815758b0d649</digest>
                         </image>
                     </imageManagement>
