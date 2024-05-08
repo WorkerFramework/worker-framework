@@ -61,13 +61,13 @@ public class HealthConfiguration
     /**
      * The interval on which to perform a readiness check for while in a healthy state.
      */
-    @Min(1)
+    @Min(60)
     private int readinessCheckIntervalSeconds = 60;
 
     /**
      * The interval on which to perform a readiness check for while in an unhealthy state.
      */
-    @Min(1)
+    @Min(60)
     private int readinessDowntimeIntervalSeconds = 60;
 
     /**
