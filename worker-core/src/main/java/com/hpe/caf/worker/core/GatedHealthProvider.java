@@ -62,6 +62,9 @@ final class GatedHealthProvider
 
                 if (!result.isHealthy()) {
                     // Add the name of the failed health check to the set of unhealthy checks
+                    LOG.warn("Health check failing: Name={}, Message={}, Details={}, Time={}, Timestamp={}, Duration={}, Error={}",
+                            name, result.getMessage(), result.getDetails(), result.getTime(), result.getTimestamp(), result.getDuration(),
+                            result.getError() != null ? result.getError().toString() : "null");
                     unhealthySet.add(name);
                 } else if (!unhealthySet.isEmpty()) {
                     // Remove the name of the health check if it is present in the unhealthy set

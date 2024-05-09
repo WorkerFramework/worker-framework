@@ -261,7 +261,7 @@
                                     </exec>
                                 </cmd>
                                 <healthCheck>
-                                    <cmd>curl -f http://localhost:8080/health-check?name=all&amp;type=READY || exit 1</cmd>
+                                    <cmd>curl -f http://localhost:8080/health-check?type=READY || exit 1</cmd>
                                 </healthCheck>
                                 <assembly>
                                     <mode>tar</mode>
@@ -459,7 +459,7 @@
                                 <!--Expect healthcheck to return 503 as trying to use SSL without valid certificate-->
                                 <wait>
                                     <http>
-                                        <url>http://${docker.host.address}:${worker.testhttpport4}/health-check?name=all&amp;type=READY</url>
+                                        <url>http://${docker.host.address}:${worker.testhttpport4}/health-check?type=READY</url>
                                         <status>503</status>
                                     </http>
                                     <time>120000</time>
