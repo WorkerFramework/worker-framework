@@ -19,7 +19,6 @@ import com.hpe.caf.api.Codec;
 import com.hpe.caf.api.ConfigurationException;
 import com.hpe.caf.api.ConfigurationSource;
 import com.hpe.caf.api.HealthResult;
-import com.hpe.caf.api.HealthStatus;
 import com.hpe.caf.api.worker.DataStore;
 import com.hpe.caf.api.worker.InvalidTaskException;
 import com.hpe.caf.api.worker.TaskRejectedException;
@@ -99,12 +98,6 @@ final class TestWorkerFactory implements WorkerFactory
     @Override
     public HealthResult checkReady()
     {
-        count++;
-        System.err.println("RORY COUNT IS " + count);
-        if (count < 10) {
-            return new HealthResult(HealthStatus.UNHEALTHY, "NOT READY!! count =" + count);
-        } else {
-            return HealthResult.RESULT_HEALTHY;
-        }
+        return HealthResult.RESULT_HEALTHY;
     }
 }

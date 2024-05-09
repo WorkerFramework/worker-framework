@@ -123,17 +123,6 @@ public final class WorkerApplication extends Application<WorkerConfiguration>
         WorkerCore core = new WorkerCore(codec, wtp, workerQueue, workerFactory, path, environment.healthChecks(), transientHealthCheck);
         HealthConfiguration healthConfiguration = config.getConfiguration(HealthConfiguration.class);
 
-        // TODO temp start
-        final io.dropwizard.core.setup.HealthCheckConfiguration healthChecksBefore =
-                workerConfiguration.getAdminFactory().getHealthChecks();
-        LOG.error("RORY BEFORE!!!!!!!!!!!!!!! " + healthChecksBefore);
-
-        workerConfiguration.getAdminFactory().getHealthChecks().setServletEnabled(false);
-        final io.dropwizard.core.setup.HealthCheckConfiguration healthChecksAfter =
-                workerConfiguration.getAdminFactory().getHealthChecks();
-        LOG.error("RORY AFTER!!!!!!!!!!!!!!! " + healthChecksAfter);
-        // TODO temp end
-
         environment.lifecycle().manage(new Managed() {
             @Override
             public void start() {
@@ -238,13 +227,14 @@ public final class WorkerApplication extends Application<WorkerConfiguration>
         // localhost:8081/healthcheck
         //
         // Configuring those health checks via the healthFactory.setHealthCheckConfigurations(...) results in them being run on a
-        // schedule and being returned when calling these endpoints:
+        // schedule and *also* being returned when calling these endpoints:
         //
         // localhost:8080/health-check?name=all&type=alive OR
         // localhost:8080/health-check?name=all&type=ready
         //
-        // TODO: Disable healthcheck endpoint? (https://www.dropwizard.io/en/release-4.0.x/manual/configuration.html#health-checks)
-        // admin.healthChecks.servletEnabled in yaml, how to do it here programmatically?
+        // Ideally, we would disable the localhost:8081/healthcheck endpoint and just use the newer localhost:8080/health-check
+        // endpoint, but disabling it is not working as of dropwizard-core:4.0.3 and metrics-jakarta.servlets:4.2.21
+        // See: https://github.com/dropwizard/dropwizard/issues/8748
 
         final GatedHealthProvider gatedHealthProvider = new GatedHealthProvider(workerQueue, workerCore);
 

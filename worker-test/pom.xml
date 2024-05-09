@@ -341,6 +341,7 @@
                                 <ports>
                                     <port>${worker.testadminport2}:8081</port>
                                     <port>${worker.testdebugport2}:5005</port>
+                                    <port>8999:8080</port>
                                 </ports>
                                 <env>
                                     <CAF_WORKER_DATASTORE_PATH>/srv/common/webdav</CAF_WORKER_DATASTORE_PATH>
@@ -352,16 +353,6 @@
                                     <CAF_RABBITMQ_PORT>5671</CAF_RABBITMQ_PORT>
                                     <SSL_CA_CRT_DIR>/test-keystore</SSL_CA_CRT_DIR>
                                     <SSL_CA_CRT>ca_certificate.pem</SSL_CA_CRT>
-                                    <CAF_LIVENESS_INITIAL_DELAY_SECONDS>16</CAF_LIVENESS_INITIAL_DELAY_SECONDS>
-                                    <CAF_LIVENESS_CHECK_INTERVAL_SECONDS>61</CAF_LIVENESS_CHECK_INTERVAL_SECONDS>
-                                    <CAF_LIVENESS_DOWNTIME_INTERVAL_SECONDS>62</CAF_LIVENESS_DOWNTIME_INTERVAL_SECONDS>
-                                    <CAF_LIVENESS_SUCCESS_ATTEMPTS>2</CAF_LIVENESS_SUCCESS_ATTEMPTS>
-                                    <CAF_LIVENESS_FAILURE_ATTEMPTS>2</CAF_LIVENESS_FAILURE_ATTEMPTS>
-                                    <CAF_READINESS_INITIAL_DELAY_SECONDS>17</CAF_READINESS_INITIAL_DELAY_SECONDS>
-                                    <CAF_READINESS_CHECK_INTERVAL_SECONDS>63</CAF_READINESS_CHECK_INTERVAL_SECONDS>
-                                    <CAF_READINESS_DOWNTIME_INTERVAL_SECONDS>64</CAF_READINESS_DOWNTIME_INTERVAL_SECONDS>
-                                    <CAF_READINESS_SUCCESS_ATTEMPTS>2</CAF_READINESS_SUCCESS_ATTEMPTS>
-                                    <CAF_READINESS_FAILURE_ATTEMPTS>3</CAF_READINESS_FAILURE_ATTEMPTS>
                                 </env>
                                 <volumes>
                                     <from>
