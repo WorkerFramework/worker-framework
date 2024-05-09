@@ -388,7 +388,7 @@
                                     <CAF_WORKER_JAVA_OPTS>
                                         -agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=*:5005
                                     </CAF_WORKER_JAVA_OPTS>
-                                    <CAF_WORKER_RETRY_LIMIT>2</CAF_WORKER_RETRY_LIMIT>
+                                    <CAF_WORKER_RETRY_LIMIT>1</CAF_WORKER_RETRY_LIMIT>
                                     <CAF_RABBITMQ_PROTOCOL>amqps</CAF_RABBITMQ_PROTOCOL>
                                     <CAF_RABBITMQ_PORT>5671</CAF_RABBITMQ_PORT>
                                 </env>

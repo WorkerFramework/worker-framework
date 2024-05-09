@@ -66,7 +66,6 @@ public class ShutdownDeveloperTest extends TestWorkerTestBase {
             channel.queueDeclare(WORKER_IN, true, false, false, args);
             
             final Map<String, Object> retryLimitHeaders = new HashMap<>();
-            retryLimitHeaders.put(RabbitHeaders.RABBIT_HEADER_CAF_WORKER_RETRY_LIMIT, 2);
 
             final AMQP.BasicProperties properties = new AMQP.BasicProperties.Builder()
                     .headers(retryLimitHeaders)
