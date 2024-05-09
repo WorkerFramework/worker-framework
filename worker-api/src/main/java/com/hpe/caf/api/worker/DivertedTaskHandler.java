@@ -29,7 +29,6 @@ public interface DivertedTaskHandler
      *
      * @param tm the task message
      * @param taskInformation the reference to the message this task arrived on
-     * @param poison flag indicating if the message is a poison message
      * @param headers the map of key/value paired headers to be stamped on the message
      * @param codec the Codec that can be used to serialise/deserialise data
      * @param jobStatus the job status as returned by the status check URL
@@ -39,7 +38,6 @@ public interface DivertedTaskHandler
     DivertedTaskAction handleDivertedTask(
         TaskMessage tm,
         TaskInformation taskInformation,
-        boolean poison,
         Map<String, Object> headers,
         Codec codec,
         JobStatus jobStatus,
