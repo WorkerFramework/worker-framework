@@ -92,7 +92,7 @@ public class RabbitWorkerQueueConsumerTest
      */
     @Test
     public void testPoisonDelivery()
-            throws IOException, InterruptedException, WorkerException
+            throws InterruptedException, WorkerException
     {
         BlockingQueue<Event<QueueConsumer>> consumerEvents = new LinkedBlockingQueue<>();
         BlockingQueue<Event<WorkerPublisher>> publisherEvents = new LinkedBlockingQueue<>();
