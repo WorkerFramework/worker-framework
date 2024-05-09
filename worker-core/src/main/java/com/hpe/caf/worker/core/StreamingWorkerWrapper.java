@@ -87,6 +87,14 @@ class StreamingWorkerWrapper implements Runnable
         }
     }
 
+    /**
+     * @return the timer used for keeping statistics on worker run times
+     */
+    public static Timer getTimer()
+    {
+        return TIMER;
+    }
+
     private void sendCopyToReject() {
         final TaskMessage poisonMessage = new TaskMessage(
                 UUID.randomUUID().toString(),
@@ -102,11 +110,4 @@ class StreamingWorkerWrapper implements Runnable
         workerTask.sendMessage(poisonMessage);
     }
 
-    /**
-     * @return the timer used for keeping statistics on worker run times
-     */
-    public static Timer getTimer()
-    {
-        return TIMER;
-    }
 }
