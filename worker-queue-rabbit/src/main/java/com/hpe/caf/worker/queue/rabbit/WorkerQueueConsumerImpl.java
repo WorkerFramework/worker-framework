@@ -89,7 +89,6 @@ public class WorkerQueueConsumerImpl implements QueueConsumer
                     //Republish the delivery with a header recording the incremented number of retries.
                     //Classic queues do not record delivery count, so we republish the message with an incremented
                     //retry count. This allows us to track the number of attempts to process the message.
-
                     republishClassicRedelivery(delivery, retries);
                     return;
                 }
