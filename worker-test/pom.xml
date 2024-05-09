@@ -305,7 +305,7 @@
                                     <CAF_WORKER_JAVA_OPTS>
                                         -agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=*:5005
                                     </CAF_WORKER_JAVA_OPTS>
-                                    <CAF_WORKER_RETRY_LIMIT>2</CAF_WORKER_RETRY_LIMIT>
+                                    <CAF_WORKER_RETRY_LIMIT>1</CAF_WORKER_RETRY_LIMIT>
                                     <CAF_RABBITMQ_PROTOCOL>amqps</CAF_RABBITMQ_PROTOCOL>
                                     <CAF_RABBITMQ_PORT>5671</CAF_RABBITMQ_PORT>
                                     <SSL_CA_CRT_DIR>/test-keystore</SSL_CA_CRT_DIR>
@@ -346,7 +346,7 @@
                                     <CAF_WORKER_JAVA_OPTS>
                                         -agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=*:5005
                                     </CAF_WORKER_JAVA_OPTS>
-                                    <CAF_WORKER_RETRY_LIMIT>2</CAF_WORKER_RETRY_LIMIT>
+                                    <CAF_WORKER_RETRY_LIMIT>1</CAF_WORKER_RETRY_LIMIT>
                                     <CAF_RABBITMQ_PROTOCOL>amqps</CAF_RABBITMQ_PROTOCOL>
                                     <CAF_RABBITMQ_PORT>5671</CAF_RABBITMQ_PORT>
                                     <SSL_CA_CRT_DIR>/test-keystore</SSL_CA_CRT_DIR>
@@ -373,47 +373,6 @@
                                 </wait>
                             </run>
                         </image>
-                        <image>
-                            <alias>worker-test-3</alias>
-                            <name>${targetDockerRegistryPath}/worker-test:${project.version}</name>
-                            <run>
-                                <platform>linux/amd64</platform>
-                                <ports>
-                                    <port>${worker.testadminport3}:8081</port>
-                                    <port>${worker.testdebugport3}:5005</port>
-                                </ports>
-                                <env>
-                                    <CAF_WORKER_DATASTORE_PATH>/srv/common/webdav</CAF_WORKER_DATASTORE_PATH>
-                                    <CAF_WORKER_JAVA_OPTS>
-                                        -agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=*:5005
-                                    </CAF_WORKER_JAVA_OPTS>
-                                    <CAF_WORKER_RETRY_LIMIT>2</CAF_WORKER_RETRY_LIMIT>
-                                    <CAF_RABBITMQ_PROTOCOL>amqps</CAF_RABBITMQ_PROTOCOL>
-                                    <CAF_RABBITMQ_PORT>5671</CAF_RABBITMQ_PORT>
-                                    <SSL_CA_CRT_DIR>/test-keystore</SSL_CA_CRT_DIR>
-                                    <SSL_CA_CRT>ca_certificate.pem</SSL_CA_CRT>
-                                </env>
-                                <volumes>
-                                    <from>
-                                        <image>webdav</image>
-                                        <image>keystore</image>
-                                    </from>
-                                </volumes>
-                                <links>
-                                    <link>rabbitmq</link>
-                                </links>
-                                <log>
-                                    <enabled>true</enabled>
-                                </log>
-                                <wait>
-                                    <http>
-                                        <url>http://${docker.host.address}:${worker.testadminport3}</url>
-                                    </http>
-                                    <time>120000</time>
-                                    <shutdown>500</shutdown>
-                                </wait>
-                            </run>
-                        </image>
                         <!--Worker to test SSL certificate trust manager when connecting to RabbitMQ-->
                         <image>
                             <alias>worker-test-no-valid-cert</alias>
@@ -421,8 +380,8 @@
                             <run>
                                 <platform>linux/amd64</platform>
                                 <ports>
-                                    <port>${worker.testadminport4}:8081</port>
-                                    <port>${worker.testdebugport4}:5005</port>
+                                    <port>${worker.testadminport3}:8081</port>
+                                    <port>${worker.testdebugport3}:5005</port>
                                 </ports>
                                 <env>
                                     <CAF_WORKER_DATASTORE_PATH>/srv/common/webdav</CAF_WORKER_DATASTORE_PATH>
@@ -447,7 +406,7 @@
                                 <!--Expect healthcheck to return 500 as trying to use SSL without valid certificate-->
                                 <wait>
                                     <http>
-                                        <url>http://${docker.host.address}:${worker.testadminport4}/healthcheck</url>
+                                        <url>http://${docker.host.address}:${worker.testadminport3}/healthcheck</url>
                                         <status>500</status>
                                     </http>
                                     <time>120000</time>
@@ -472,10 +431,8 @@
                 <worker.debugport>5005</worker.debugport>
                 <worker.testadminport2>8082</worker.testadminport2>
                 <worker.testadminport3>8083</worker.testadminport3>
-                <worker.testadminport4>8084</worker.testadminport4>
                 <worker.testdebugport2>5006</worker.testdebugport2>
                 <worker.testdebugport3>5007</worker.testdebugport3>
-                <worker.testdebugport4>5008</worker.testdebugport4>
             </properties>
         </profile>
     </profiles>

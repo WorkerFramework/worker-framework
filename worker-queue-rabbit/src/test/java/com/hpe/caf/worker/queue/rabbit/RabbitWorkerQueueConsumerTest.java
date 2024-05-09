@@ -44,6 +44,7 @@ public class RabbitWorkerQueueConsumerTest
     private RabbitTaskInformation taskInformation;
     private byte[] data = "test123".getBytes(StandardCharsets.UTF_8);
     private Envelope newEnv;
+    private Envelope poisonEnv;
     private Envelope redeliveredEnv;
     private String retryKey = "retry";
     private RabbitMetricsReporter metrics = new RabbitMetricsReporter();
@@ -53,6 +54,7 @@ public class RabbitWorkerQueueConsumerTest
     public void beforeMethod() {
         taskInformation = new RabbitTaskInformation("101");
         newEnv = new Envelope(Long.valueOf(taskInformation.getInboundMessageId()), false, "", testQueue);
+        poisonEnv = new Envelope(Long.valueOf(taskInformation.getInboundMessageId()), true, "", testQueue);
         redeliveredEnv = new Envelope(Long.valueOf(taskInformation.getInboundMessageId()), true, "", testQueue);
     }
 
@@ -80,6 +82,41 @@ public class RabbitWorkerQueueConsumerTest
         AMQP.BasicProperties prop = Mockito.mock(AMQP.BasicProperties.class);
         Mockito.when(prop.getHeaders()).thenReturn(Collections.emptyMap());
         consumer.handleDelivery("consumer", newEnv, prop, data);
+        Assert.assertTrue(latch.await(1000, TimeUnit.MILLISECONDS));
+        consumer.shutdown();
+    }
+
+    /**
+     * Send in a message that has been retried once with retry limit set to 1, and verify the task information marks the message as
+     * poisonous.
+     */
+    @Test
+    public void testPoisonDelivery()
+            throws IOException, InterruptedException, WorkerException
+    {
+        BlockingQueue<Event<QueueConsumer>> consumerEvents = new LinkedBlockingQueue<>();
+        BlockingQueue<Event<WorkerPublisher>> publisherEvents = new LinkedBlockingQueue<>();
+        Channel channel = Mockito.mock(Channel.class);
+        CountDownLatch latch = new CountDownLatch(1);
+        TaskCallback callback = Mockito.mock(TaskCallback.class);
+        Answer<Void> a = invocationOnMock -> {
+            latch.countDown();
+            return null;
+        };
+        Mockito.doAnswer(a).when(callback).registerNewTask(Mockito.any(), Mockito.any(), Mockito.anyMap());
+        WorkerQueueConsumerImpl impl = new WorkerQueueConsumerImpl(callback, metrics, consumerEvents, channel, publisherEvents, retryKey, 1);
+        DefaultRabbitConsumer consumer = new DefaultRabbitConsumer(consumerEvents, impl);
+        Thread t = new Thread(consumer);
+        t.start();
+        AMQP.BasicProperties prop = Mockito.mock(AMQP.BasicProperties.class);
+        Map<String, Object> headers = new HashMap<>();
+        headers.put(RabbitHeaders.RABBIT_HEADER_CAF_WORKER_RETRY, "1");
+        Mockito.when(prop.getHeaders()).thenReturn(headers);
+        consumer.handleDelivery("consumer", poisonEnv, prop, data);
+        Assert.assertTrue(latch.await(1000, TimeUnit.MILLISECONDS));
+        ArgumentCaptor<TaskInformation> taskInfoCaptor = ArgumentCaptor.forClass(TaskInformation.class);
+        Mockito.verify(callback).registerNewTask(taskInfoCaptor.capture(), Mockito.any(), Mockito.any());
+        Assert.assertTrue(taskInfoCaptor.getValue().isPoison());
         Assert.assertTrue(latch.await(1000, TimeUnit.MILLISECONDS));
         consumer.shutdown();
     }

@@ -47,7 +47,7 @@ public class RetryLimitIT extends TestWorkerTestBase {
     @Test
     public void getResultSuccessIfRetryNumberLessThanRetryLimitTest() throws IOException, TimeoutException, CodecException {
 
-        final String decodedTaskData = getResponse(2, 1);
+        final String decodedTaskData = getResponse(1, 0);
 
         Assert.assertTrue(decodedTaskData.contains(TEST_WORKER_RESULT));
 
@@ -56,7 +56,7 @@ public class RetryLimitIT extends TestWorkerTestBase {
     @Test
     public void getPoisonMessageIfRetryNumberGreaterThanRetryLimitTest() throws IOException, TimeoutException, CodecException {
 
-        final String decodedTaskData = getResponse(2, 3);
+        final String decodedTaskData = getResponse(1, 2);
 
         Assert.assertTrue(decodedTaskData.contains(POISON_ERROR_MESSAGE));
 
@@ -65,7 +65,7 @@ public class RetryLimitIT extends TestWorkerTestBase {
     @Test
     public void getPoisonMessageIfRetryNumberEqualToRetryLimitTest() throws IOException, TimeoutException, CodecException {
 
-        final String decodedTaskData = getResponse(2, 2);
+        final String decodedTaskData = getResponse(1, 1);
 
         Assert.assertTrue(decodedTaskData.contains(POISON_ERROR_MESSAGE));
 

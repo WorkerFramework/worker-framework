@@ -74,33 +74,34 @@ public class WorkerQueueConsumerImpl implements QueueConsumer
     @Override
     public void processDelivery(Delivery delivery)
     {
-        boolean isPoison = false;
-
         final int retries = delivery.getHeaders().containsKey(RabbitHeaders.RABBIT_HEADER_CAF_DELIVERY_COUNT) ?
                 Integer.parseInt(String.valueOf(delivery.getHeaders()
                 .getOrDefault(RabbitHeaders.RABBIT_HEADER_CAF_DELIVERY_COUNT, "0"))) :
                 Integer.parseInt(String.valueOf(delivery.getHeaders()
                 .getOrDefault(RabbitHeaders.RABBIT_HEADER_CAF_WORKER_RETRY, "0")));
 
-        if(retries >= retryLimit){
-            isPoison = true;
-        }
-
-        final RabbitTaskInformation taskInformation = new RabbitTaskInformation(String.valueOf(delivery.getEnvelope().getDeliveryTag()), isPoison);
         metrics.incrementReceived();
+        final boolean isPoison;
         if (delivery.getEnvelope().isRedeliver()) {
-            if(!delivery.getHeaders().containsKey(RabbitHeaders.RABBIT_HEADER_CAF_DELIVERY_COUNT)) {
+            if (!delivery.getHeaders().containsKey(RabbitHeaders.RABBIT_HEADER_CAF_DELIVERY_COUNT)) {
                 //RABBIT_HEADER_CAF_DELIVERY_COUNT is not available, message was delivered from CLASSIC queue
-                if(retries < retryLimit) {
+                if (retries < retryLimit) {
                     //Republish the delivery with a header recording the incremented number of retries.
                     //Classic queues do not record delivery count, so we republish the message with an incremented
                     //retry count. This allows us to track the number of attempts to process the message.
+
                     republishClassicRedelivery(delivery, retries);
                     return;
                 }
+                isPoison = true;
+            } else {
+                isPoison = retries > retryLimit;
             }
+        } else {
+            isPoison = false;
         }
 
+        final RabbitTaskInformation taskInformation = new RabbitTaskInformation(String.valueOf(delivery.getEnvelope().getDeliveryTag()), isPoison);
         try {
             LOG.debug("Registering new message {}", taskInformation.getInboundMessageId());
             callback.registerNewTask(taskInformation, delivery.getMessageData(), delivery.getHeaders());
