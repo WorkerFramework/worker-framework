@@ -408,7 +408,7 @@
                                 <!--Expect healthcheck to return 503 as trying to use SSL without valid certificate-->
                                 <wait>
                                     <http>
-                                        <url>http://${docker.host.address}:${worker.testhttpport4}/health-check?type=READY</url>
+                                        <url>http://${docker.host.address}:${worker.testhttpport3}/health-check?type=READY</url>
                                         <status>503</status>
                                     </http>
                                     <time>120000</time>
