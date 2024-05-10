@@ -5,7 +5,7 @@ ${version-number}
 
 #### Breaking Changes
 - US915147: Liveness and readiness check support has been added to the `WorkerFactory` interface.  
-  - The `healthcheck` method has been removed from the `WorkerFactory` interface, and replaced by new `checkAlive` and `checkReady`methods.
+  - The `healthCheck` method has been removed from the `WorkerFactory` interface, and replaced by new `checkAlive` and `checkReady`methods.
   - See the [documentation](https://github.com/WorkerFramework/worker-framework/tree/develop/worker-core#liveness-and-readiness-checks-within-the-worker-framework)
     for more details.
 
