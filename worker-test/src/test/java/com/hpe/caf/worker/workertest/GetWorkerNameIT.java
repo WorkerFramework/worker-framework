@@ -60,7 +60,6 @@ public class GetWorkerNameIT extends TestWorkerTestBase {
             channel.basicConsume(TESTWORKER_OUT, true, poisonConsumer);
 
             final Map<String, Object> retryLimitHeaders = new HashMap<>();
-            retryLimitHeaders.put(RabbitHeaders.RABBIT_HEADER_CAF_WORKER_RETRY_LIMIT, 2);
             retryLimitHeaders.put(RabbitHeaders.RABBIT_HEADER_CAF_DELIVERY_COUNT, 2);
 
             final AMQP.BasicProperties properties = new AMQP.BasicProperties.Builder()

@@ -58,17 +58,19 @@ class StreamingWorkerWrapper implements Runnable
         final String workerFriendlyName = !Strings.isNullOrEmpty(CAF_WORKER_FRIENDLY_NAME) ?
                 CAF_WORKER_FRIENDLY_NAME : worker.getClass().getSimpleName();
         try {
-            if (workerTask.isPoison()) {
-                LOG.warn(workerFriendlyName + " could not process the item.");
-                sendPoisonMessage();
-                workerTask.setResponse(worker.getPoisonMessageResult(workerFriendlyName));
-            } else {
+
+            final WorkerResponse response;
+            if(workerTask.isPoison()) {
+                response = worker.getPoisonMessageResult(workerFriendlyName);
+                sendCopyToReject();
+            }
+            else {
                 Timer.Context t = TIMER.time();
                 MDC.put(CORRELATION_ID, workerTask.getCorrelationId());
-                WorkerResponse response = worker.doWork();
+                response = worker.doWork();
                 t.stop();
-                workerTask.setResponse(response);
             }
+            workerTask.setResponse(response);
         } catch (TaskRejectedException e) {
             workerTask.setResponse(e);
         } catch (InvalidTaskException e) {
@@ -93,20 +95,19 @@ class StreamingWorkerWrapper implements Runnable
         return TIMER;
     }
 
-    private void sendPoisonMessage()
-    {
-        // Publish poison message to "reject" queue
+    private void sendCopyToReject() {
         final TaskMessage poisonMessage = new TaskMessage(
                 UUID.randomUUID().toString(),
                 MoreObjects.firstNonNull(workerTask.getClassifier(), ""),
                 workerTask.getVersion(),
                 workerTask.getData(),
                 TaskStatus.RESULT_EXCEPTION,
-                Collections.<String, byte[]>emptyMap(),
+                Collections.emptyMap(),
                 workerTask.getRejectQueue(),
                 workerTask.getTrackingInfo(),
                 workerTask.getSourceInfo(),
                 workerTask.getCorrelationId());
         workerTask.sendMessage(poisonMessage);
     }
+
 }

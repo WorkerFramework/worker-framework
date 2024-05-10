@@ -14,8 +14,6 @@
 # limitations under the License.
 #
 
-ARG DOCKER_HUB_PUBLIC=dockerhub-public.svsartifactory.swinfra.net
-
-FROM ${DOCKER_HUB_PUBLIC}/library/rabbitmq:3-management
+FROM ${projectDockerRegistry}/library/rabbitmq
 
 COPY rabbitmq.conf /etc/rabbitmq

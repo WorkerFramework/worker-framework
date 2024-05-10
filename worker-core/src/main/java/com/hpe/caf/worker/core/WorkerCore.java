@@ -22,7 +22,6 @@ import com.hpe.caf.api.CodecException;
 import com.hpe.caf.api.DecodeMethod;
 import com.hpe.caf.api.worker.*;
 import com.hpe.caf.naming.ServicePath;
-import com.hpe.caf.util.rabbitmq.RabbitHeaders;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -162,7 +161,6 @@ final class WorkerCore
                 final TaskMessage tm = codec.deserialise(taskMessage, TaskMessage.class, DecodeMethod.LENIENT);
 
                 LOG.debug("Received task {} (message id: {})", tm.getTaskId(), taskInformation.getInboundMessageId());
-                final boolean poison = isTaskPoisoned(headers);
                 validateTaskMessage(tm);
                 final JobStatus jobStatus;
                 try {
@@ -180,9 +178,9 @@ final class WorkerCore
                     case Active:
                     case Waiting:
                         if (isTaskIntendedForThisWorker(tm, taskInformation)) {
-                            executor.executeTask(tm, taskInformation, poison, headers, codec);
+                            executor.executeTask(tm, taskInformation, headers, codec);
                         } else {
-                            executor.handleDivertedTask(tm, taskInformation, poison, headers, codec, jobStatus);
+                            executor.handleDivertedTask(tm, taskInformation, headers, codec, jobStatus);
                         }
                         break;
                     case Paused:
@@ -196,10 +194,10 @@ final class WorkerCore
                                     + "Task message (message id: {}) will be executed as normal",
                                     tm.getTaskId(),
                                     taskInformation.getInboundMessageId());
-                                executor.executeTask(tm, taskInformation, poison, headers, codec);
+                                executor.executeTask(tm, taskInformation, headers, codec);
                             }
                         } else {
-                            executor.handleDivertedTask(tm, taskInformation, poison, headers, codec, jobStatus);
+                            executor.handleDivertedTask(tm, taskInformation, headers, codec, jobStatus);
                         }
                         break;
                     default:
@@ -214,34 +212,6 @@ final class WorkerCore
             } catch (InvalidJobTaskIdException ijte) {
                 throw new InvalidTaskException("TaskMessage contains an invalid job task identifier", ijte);
             }
-        }
-
-        /**
-         * Check the headers for retry limit and retry count. If retry count is greater than or equal to retry limit, mark the message as
-         * poisoned.
-         *
-         * @param headers Map&lt;String, Object&gt; of headers associated with the current message
-         * @return boolean true if message is determined to be poisoned
-         */
-        private boolean isTaskPoisoned(Map<String, Object> headers)
-        {
-            int retryLimit = 0;
-            if (null != headers.get(RabbitHeaders.RABBIT_HEADER_CAF_WORKER_RETRY_LIMIT)) {
-                retryLimit = Integer.parseInt(headers.get(RabbitHeaders.RABBIT_HEADER_CAF_WORKER_RETRY_LIMIT).toString());
-            }
-            int retries = 0;
-            if (null != headers.get(RabbitHeaders.RABBIT_HEADER_CAF_DELIVERY_COUNT)){
-                retries = Integer.parseInt(headers.get(RabbitHeaders.RABBIT_HEADER_CAF_DELIVERY_COUNT).toString());
-            }
-            else if (null != headers.get(RabbitHeaders.RABBIT_HEADER_CAF_WORKER_RETRY))
-            {
-                retries = Integer.parseInt(headers.get(RabbitHeaders.RABBIT_HEADER_CAF_WORKER_RETRY).toString());
-            }
-            boolean poison = false;
-            if (retryLimit > 0 && retries > 0 && retries >= retryLimit) {
-                poison = true;
-            }
-            return poison;
         }
 
         private void validateTaskMessage(TaskMessage tm) throws InvalidTaskException

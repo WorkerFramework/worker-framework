@@ -65,11 +65,10 @@ final class WorkerExecutor
      * @param headers the map of key/value paired headers to be stamped on the message
      * @throws TaskRejectedException if the WorkerFactory indicates the task cannot be handled at this time
      */
-    public void executeTask(final TaskMessage tm, final TaskInformation taskInformation, final boolean poison,
-                            final Map<String, Object> headers, final Codec codec)
+    public void executeTask(final TaskMessage tm, final TaskInformation taskInformation, final Map<String, Object> headers, final Codec codec)
         throws TaskRejectedException
     {
-        final WorkerTaskImpl workerTask = createWorkerTask(taskInformation, tm, poison, headers, codec);
+        final WorkerTaskImpl workerTask = createWorkerTask(taskInformation, tm, headers, codec);
 
         threadPool.submitWorkerTask(workerTask);
     }
@@ -79,19 +78,18 @@ final class WorkerExecutor
      *
      * @param tm the task message
      * @param taskInformation the reference to the message this task arrived on
-     * @param poison flag indicating if the message is a poison message
      * @param headers the map of key/value paired headers to be stamped on the message
      * @param codec the Codec that can be used to serialise/deserialise data
      * @param jobStatus the job status as returned by the status check URL
      */
     @SuppressWarnings("deprecation")
-    public void handleDivertedTask(final TaskMessage tm, final TaskInformation taskInformation, final boolean poison,
+    public void handleDivertedTask(final TaskMessage tm, final TaskInformation taskInformation, 
                                    final Map<String, Object> headers, final Codec codec, final JobStatus jobStatus)
         throws TaskRejectedException
     {
         //Check whether this worker application can evaluate diverted task messages.
         if (factory instanceof DivertedTaskHandler) {
-            processDivertedTaskAction(tm, taskInformation, poison, headers, codec, jobStatus);
+            processDivertedTaskAction(tm, taskInformation, headers, codec, jobStatus);
         }
         //Check whether this worker application can evaluate messages for forwarding.
         else if (factory instanceof TaskMessageForwardingEvaluator forwardingEvaluator) {
@@ -102,13 +100,13 @@ final class WorkerExecutor
         }
     }
 
-    private void processDivertedTaskAction(final TaskMessage tm, final TaskInformation taskInformation,
-                                           final boolean poison, final Map<String, Object> headers, final Codec codec,
+    private void processDivertedTaskAction(final TaskMessage tm, final TaskInformation taskInformation, 
+                                           final Map<String, Object> headers, final Codec codec,
                                            final JobStatus jobStatus)
         throws TaskRejectedException
     {
         final DivertedTaskAction divertedTaskAction
-            = ((DivertedTaskHandler) factory).handleDivertedTask(tm, taskInformation, poison, headers, codec, jobStatus, callback);
+            = ((DivertedTaskHandler) factory).handleDivertedTask(tm, taskInformation, headers, codec, jobStatus, callback);
         LOG.debug("Worker returned diverted task action: {} for task: {} (message id: {})",
                   divertedTaskAction, tm.getTaskId(), taskInformation.getInboundMessageId());
         switch (divertedTaskAction) {
@@ -116,7 +114,7 @@ final class WorkerExecutor
                 discardTask(tm, taskInformation);
                 break;
             case Execute:
-                executeTask(tm, taskInformation, poison, headers, codec);
+                executeTask(tm, taskInformation, headers, codec);
                 break;
             case Forward:
                 callback.forward(taskInformation, tm.getTo(), tm, headers);
@@ -158,9 +156,9 @@ final class WorkerExecutor
     /**
      * Creates a WorkerTask for the specified message
      */
-    private WorkerTaskImpl createWorkerTask(final TaskInformation taskInformation, final TaskMessage taskMessage, final boolean poison,
+    private WorkerTaskImpl createWorkerTask(final TaskInformation taskInformation, final TaskMessage taskMessage, 
                                             final Map<String, Object> headers, final Codec codec)
     {
-        return new WorkerTaskImpl(servicePath, callback, factory, taskInformation, taskMessage, poison, headers, codec);
+        return new WorkerTaskImpl(servicePath, callback, factory, taskInformation, taskMessage, headers, codec);
     }
 }

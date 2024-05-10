@@ -61,6 +61,7 @@
     <properties>
         <copyrightYear>2024</copyrightYear>
         <copyrightNotice>Copyright ${project.inceptionYear}-${copyrightYear} Open Text.</copyrightNotice>
+        <projectDockerRegistry>worker-framework-${project.version}.project-registries.local</projectDockerRegistry>
     </properties>
 
     <modules>
@@ -867,6 +868,11 @@
         <pluginManagement>
             <plugins>
                 <plugin>
+                    <groupId>com.github.cafapi.plugins.docker.versions</groupId>
+                    <artifactId>docker-versions-maven-plugin</artifactId>
+                    <version>1.0.0-SNAPSHOT</version>
+                </plugin>
+                <plugin>
                     <groupId>com.googlecode.maven-download-plugin</groupId>
                     <artifactId>download-maven-plugin</artifactId>
                     <version>1.7.1</version>
@@ -878,6 +884,52 @@
                 </plugin>
             </plugins>
         </pluginManagement>
+        <plugins>
+            <plugin>
+                <groupId>com.github.cafapi.plugins.docker.versions</groupId>
+                <artifactId>docker-versions-maven-plugin</artifactId>
+                <extensions>true</extensions>
+                <configuration>
+                    <imageManagement>
+                        <image>
+                            <repository>${dockerHubPublic}/cafapi/doc-site-compiler</repository>
+                            <tag>2.0.0</tag>
+                            <digest>sha256:f86cfd00743cf4c61672313c9fe1f4b955608cec2b19a251f9d3845145f8a2d6</digest>
+                        </image>
+                        <image>
+                            <repository>${dockerHubPublic}/cafapi/opensuse-jre11</repository>
+                            <tag>3.0.0</tag>
+                            <digest>sha256:8db07658c8a74c3c00747288744f57526788580402b709fe2e093ef0207cff63</digest>
+                        </image>
+                        <image>
+                            <repository>${dockerHubPublic}/cafapi/opensuse-jre17</repository>
+                            <tag>1.5.1</tag>
+                            <digest>sha256:b046524c5ea1f67a28ce8f91eb513f319c113a9b2ac6a7152ae4789c7e822f6c</digest>
+                        </image>
+                        <image>
+                            <repository>${dockerHubPublic}/cloudesire/webdav</repository>
+                            <tag>latest</tag>
+                        </image>
+                        <image>
+                            <repository>${dockerHubPublic}/library/busybox</repository>
+                            <tag>1.36.1</tag>
+                            <digest>sha256:5eef5ed34e1e1ff0a4ae850395cbf665c4de6b4b83a32a0bc7bcb998e24e7bbb</digest>
+                        </image>
+                        <image>
+                            <repository>${dockerHubPublic}/library/httpd</repository>
+                            <tag>2.4.59-bookworm</tag>
+                            <digest>sha256:36c8c79f900108f0f09fd4148ad35ade57cba0dc19d13f3d15be24ce94e6a639</digest>
+                        </image>
+                        <image>
+                            <repository>${dockerHubPublic}/library/rabbitmq</repository>
+                            <tag>3.13.2-management</tag>
+                            <latestTag>management</latestTag>
+                            <digest>sha256:eee9afbc17c32424ba6309dfd2d9efc9b9b1863ffe231b3d2be2815758b0d649</digest>
+                        </image>
+                    </imageManagement>
+                </configuration>
+            </plugin>
+        </plugins>
     </build>
 
 </project>

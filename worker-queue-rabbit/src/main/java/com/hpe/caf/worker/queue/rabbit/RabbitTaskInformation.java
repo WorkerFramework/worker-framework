@@ -29,14 +29,20 @@ public class RabbitTaskInformation implements TaskInformation {
     private final AtomicBoolean isResponseCountFinal;
     private final AtomicInteger acknowledgementCount;
     private static final Logger LOG = LoggerFactory.getLogger(RabbitTaskInformation.class);
+    private final boolean isPoison;
 
     public RabbitTaskInformation(final String inboundMessageId) {
+        this(inboundMessageId, false);
+    }
+    
+    public RabbitTaskInformation(final String inboundMessageId, final boolean isPoison) {
         this.inboundMessageId = inboundMessageId;
         this.responseCount = new AtomicInteger(0);
         this.isResponseCountFinal = new AtomicBoolean(false);
         this.acknowledgementCount = new AtomicInteger(0);
         this.negativeAckEventSent = new AtomicBoolean(false);
         this.ackEventSent = new AtomicBoolean(false);
+        this.isPoison = isPoison;
     }
 
     @Override
@@ -125,5 +131,14 @@ public class RabbitTaskInformation implements TaskInformation {
     public void markAckEventAsSent()
     {
         ackEventSent.set(true);
+    }
+
+    /**
+     * Check if the message is poison
+     *
+     * @return true if the message has been marked as poisonous
+     */
+    public boolean isPoison() {
+        return isPoison;
     }
 }
