@@ -3,17 +3,18 @@
 #### Version Number
 ${version-number}
 
-#### New Features
-- None
-
 #### Breaking Changes
-- US915147: Removal of `/healthcheck` endpoint.  
-  The `/healthcheck` endpoint has been removed, and has been replaced by liveness and readiness endpoints:
-  - `/health-check?name=all&type=ALIVE`  
-  - `/health-check?name=all&type=READY`  
+- US915147: Liveness and readiness check support has been added to the `WorkerFactory` interface.  
+  - The `healthcheck` method has been removed from the `WorkerFactory` interface, and replaced by new `checkAlive` and `checkReady`methods.
+  - See the [documentation](https://github.com/WorkerFramework/worker-framework/tree/develop/worker-core#liveness-and-readiness-checks-within-the-worker-framework)
+    for more details.
 
-  See the [documentation](https://github.com/WorkerFramework/worker-framework/tree/develop/worker-core#health-checks-within-the-worker-framework) 
-  for more details on these new endpoints.
+#### New Features
+- US915147: New liveness and readiness endpoints added.   
+  - A new `/health-check?name=all&type=ALIVE` endpoint has been added on the default REST port (8080) to check if a worker is alive
+  - A new `/health-check?name=all&type=READY` endpoint has been added on the default REST port (8080) to check if a worker is ready
+  - See the [documentation](https://github.com/WorkerFramework/worker-framework/tree/develop/worker-core#liveness-and-readiness-checks-within-the-worker-framework)
+    for more details.
 
 #### Known Issues
 - None
