@@ -222,7 +222,7 @@ public final class WorkerApplication extends Application<WorkerConfiguration>
             final TransientHealthCheck transientHealthCheck,
             final WorkerConfiguration workerConfiguration)
     {
-        // Refer to the documentation on more info on these health checks:
+        // Refer to the documentation for more info on these health checks:
         //
         // https://github.com/WorkerFramework/worker-framework/tree/develop/worker-core#health-checks-within-the-worker-framework
 
