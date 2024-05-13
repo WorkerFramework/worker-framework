@@ -222,19 +222,33 @@ public final class WorkerApplication extends Application<WorkerConfiguration>
             final TransientHealthCheck transientHealthCheck,
             final WorkerConfiguration workerConfiguration)
     {
-        // Registering health checks via environment.healthChecks().register(...) results in them being returned when calling
+        // How health checks work:
+        //
+        // 1)
+        //
+        // Registering health checks via environment.healthChecks().register(...) results in them being returned when calling:
         //
         // localhost:8081/healthcheck
         //
+        // i.e. calling localhost:8081/healthcheck results in all the registered health checks (i.e. all the liveness and readiness
+        // checks) getting run synchronously.
+        //
+        // 2)
+        //
         // Configuring those health checks via the healthFactory.setHealthCheckConfigurations(...) results in them being run on a
-        // schedule and *also* being returned when calling these endpoints:
+        // schedule and *also* being returned when calling:
         //
-        // localhost:8080/health-check?name=all&type=alive OR
-        // localhost:8080/health-check?name=all&type=ready
+        // localhost:8080/health-check?name=all&type=ALIVE OR
+        // localhost:8080/health-check?name=all&type=READY
         //
-        // Ideally, we would disable the localhost:8081/healthcheck endpoint and just use the newer localhost:8080/health-check
-        // endpoint, but disabling it is not working as of dropwizard-core:4.0.3 and metrics-jakarta.servlets:4.2.21
-        // See: https://github.com/dropwizard/dropwizard/issues/8748
+        // i.e. calling localhost:8080/health-check?name=all&type=ALIVE results in getting the last result of the scheduled liveness
+        // health checks (it can be thought of as an asynchronous call).
+        //
+        // 3)
+        //
+        // So, both localhost:8081/healthcheck and localhost:8080/health-check?name=all&type=READY will return the result of the readiness
+        // checks (which by default also include liveness checks), but be aware that localhost:8081/healthcheck is a synchronous call
+        // while localhost:8080/health-check?name=all&type=READY is an asynchronous call.
 
         final GatedHealthProvider gatedHealthProvider = new GatedHealthProvider(workerQueue, workerCore);
 

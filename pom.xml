@@ -243,12 +243,12 @@
             <dependency>
                 <groupId>com.github.cafapi.config</groupId>
                 <artifactId>config-system</artifactId>
-                <version>4.0.0-US915147-SNAPSHOT</version>
+                <version>3.1.0-US915147-SNAPSHOT</version>
             </dependency>
             <dependency>
                 <groupId>com.github.cafapi.decoder</groupId>
                 <artifactId>decoder-js</artifactId>
-                <version>4.0.0-US915147-SNAPSHOT</version>
+                <version>3.1.0-US915147-SNAPSHOT</version>
             </dependency>
             <dependency>
                 <groupId>com.github.cafapi.logging</groupId>
@@ -258,17 +258,17 @@
             <dependency>
                 <groupId>com.github.cafapi.util</groupId>
                 <artifactId>util-moduleloader</artifactId>
-                <version>4.0.0-US915147-SNAPSHOT</version>
+                <version>3.1.0-US915147-SNAPSHOT</version>
             </dependency>
             <dependency>
                 <groupId>com.github.cafapi.util</groupId>
                 <artifactId>util-naming</artifactId>
-                <version>4.0.0-US915147-SNAPSHOT</version>
+                <version>3.1.0-US915147-SNAPSHOT</version>
             </dependency>
             <dependency>
                 <groupId>com.github.cafapi.util</groupId>
                 <artifactId>util-ref</artifactId>
-                <version>4.0.0-US915147-SNAPSHOT</version>
+                <version>3.1.0-US915147-SNAPSHOT</version>
             </dependency>
             <dependency>
                 <groupId>com.github.workerframework</groupId>
