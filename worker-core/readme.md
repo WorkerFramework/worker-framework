@@ -297,21 +297,27 @@ are summarised below:
 
 **8081/healthcheck**
 - Available on default admin port (8081)
-- Calling this endpoint runs all liveness and readiness checks synchronously on-demand (deadlocks, worker-alive, queue, worker-ready, 
-  configuration, store, transient) and returns the result.
+- Calling this endpoint runs all liveness and readiness checks (deadlocks, 
+  worker-alive, queue, worker-ready, configuration, store, transient) 
+  synchronously and returns the result.
 
 **8080/health-check?name=all&type=ALIVE**
 - Available on default rest port (8080)
-- Calling this endpoint returns the result of the last scheduled run of the liveness checks (deadlocks, worker-alive, queue), i.e. calling
-  this endpoint does not actually run the checks.
+- Calling this endpoint returns the result of the last scheduled run of the 
+  liveness checks (deadlocks, worker-alive, queue), i.e. calling this 
+  endpoint does not actually run the checks.
 
 **8080/health-check?name=all&type=READY**
 - Available on default rest port (8080)
-- Calling this endpoint returns the result of the last scheduled run of the liveness and readiness checks (deadlocks, worker-alive, 
-  queue, worker-ready, configuration, store, transient), i.e. calling this endpoint does not actually run the checks.
+- Calling this endpoint returns the result of the last scheduled run of 
+  the liveness and readiness checks (deadlocks, worker-alive, queue, 
+  worker-ready, configuration, store, transient), i.e. calling this 
+  endpoint does not actually run the checks.
 
-Note, because of the above differences, although 8081/healthcheck and 8080/health-check?name=all&type=READY may appear to perform the 
-same checks, as they are performed at different times, the response may be different. 
+Note, because of the above differences, although 8081/healthcheck and 
+8080/health-check?name=all&type=READY may appear to perform the same 
+checks, as they are performed at different times, the response may be 
+different. 
 
 ### 8080/health-check endpoint
 
