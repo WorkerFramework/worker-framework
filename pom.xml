@@ -213,32 +213,32 @@
             <dependency>
                 <groupId>com.github.cafapi</groupId>
                 <artifactId>caf-api</artifactId>
-                <version>4.0.0-US915147-SNAPSHOT</version>
+                <version>3.1.0-US915147-SNAPSHOT</version>
             </dependency>
             <dependency>
                 <groupId>com.github.cafapi.cipher</groupId>
                 <artifactId>cipher-null</artifactId>
-                <version>4.0.0-US915147-SNAPSHOT</version>
+                <version>3.1.0-US915147-SNAPSHOT</version>
             </dependency>
             <dependency>
                 <groupId>com.github.cafapi.codec</groupId>
                 <artifactId>codec-json</artifactId>
-                <version>4.0.0-US915147-SNAPSHOT</version>
+                <version>3.1.0-US915147-SNAPSHOT</version>
             </dependency>
             <dependency>
                 <groupId>com.github.cafapi.config</groupId>
                 <artifactId>config-caf</artifactId>
-                <version>4.0.0-US915147-SNAPSHOT</version>
+                <version>3.1.0-US915147-SNAPSHOT</version>
             </dependency>
             <dependency>
                 <groupId>com.github.cafapi.config</groupId>
                 <artifactId>config-decoder</artifactId>
-                <version>4.0.0-US915147-SNAPSHOT</version>
+                <version>3.1.0-US915147-SNAPSHOT</version>
             </dependency>
             <dependency>
                 <groupId>com.github.cafapi.config</groupId>
                 <artifactId>config-file</artifactId>
-                <version>4.0.0-US915147-SNAPSHOT</version>
+                <version>3.1.0-US915147-SNAPSHOT</version>
             </dependency>
             <dependency>
                 <groupId>com.github.cafapi.config</groupId>
