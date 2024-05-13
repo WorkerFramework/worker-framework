@@ -607,10 +607,9 @@ table summarises the differences between the two endpoints.
  Since we already have the task data passed in for each task via the
  `getWorker(...)` method, the only other things we need is our
  configured sleep time, and also something (a `Codec`) with which to
- serialise our result to return. For the purposes of this tutorial, the 
- liveness and readiness checks will always return successful, and the invalid 
- task response will be put onto the same result queue. So the `WorkerFactory` 
- looks like this:
+ serialise our result to return. For the purposes of this tutorial, the health
+ check will always return successful, and the invalid task response will be put
+ onto the same result queue. So the `WorkerFactory` looks like this:
 
 ```
  package com.hpe.caf.test.worker;
@@ -661,16 +660,8 @@ table summarises the differences between the two endpoints.
       return resultQueue;
     }
 
-
     @Override
-    public HealthResult livenessCheck()
-    {
-      return HealthCheck.RESULT_HEALTY;
-    }
-    
-    
-    @Override
-    public HealthResult readinessCheck()
+    public HealthResult healthCheck()
     {
       return HealthCheck.RESULT_HEALTY;
     }
@@ -687,7 +678,7 @@ table summarises the differences between the two endpoints.
  `WorkerFactory` while still allowing the plug-in nature of the components with
  the worker application itself. The provider must also give some basic data
  on identifying the worker. Finally it is worth mentioning that if your Worker
- depends upon any external resources, then it may be worth adding a readiness
+ depends upon any external resources, then it may be worth adding a health
  check here so that there is some way to monitor these underlying resources
  and prompt automated systems or ops teams to take action when necessary.
 
