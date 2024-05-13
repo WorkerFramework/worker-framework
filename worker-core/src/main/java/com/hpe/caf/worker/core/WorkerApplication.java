@@ -246,9 +246,9 @@ public final class WorkerApplication extends Application<WorkerConfiguration>
         //
         // 3)
         //
-        // So, both localhost:8081/healthcheck and localhost:8080/health-check?name=all&type=READY will return the result of the readiness
-        // checks (which by default also include liveness checks), but be aware that localhost:8081/healthcheck is a synchronous call
-        // while localhost:8080/health-check?name=all&type=READY is an asynchronous call.
+        // Due to the above, although both localhost:8081/healthcheck and localhost:8080/health-check?name=all&type=READY will
+        // return the result of the readiness checks (which also include liveness checks), the response codes of these calls may
+        // be different.
 
         final GatedHealthProvider gatedHealthProvider = new GatedHealthProvider(workerQueue, workerCore);
 
