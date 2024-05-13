@@ -333,7 +333,7 @@ table summarises the differences between the two endpoints.
  check, so `WorkerQueue::livenessCheck` will get called on the configured 
  schedule (see below), but `WorkerQueue::healthCheck` will never get called. 
  On the other hand, `WorkerFactory` has been configured with both a liveness and 
- readiness check, so `WorkerFctory::livenessCheck` and 
+ readiness check, so `WorkerFactory::livenessCheck` and 
  `WorkerFactory::healthCheck` will both get called on the configured schedule. 
  Typically, a pre-made "healthy" result can be returned via 
  `HealthResult.RESULT_HEALTHY` but it  is possible to construct others. If the 
