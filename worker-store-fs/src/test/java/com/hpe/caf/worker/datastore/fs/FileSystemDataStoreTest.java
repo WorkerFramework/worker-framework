@@ -221,7 +221,7 @@ public class FileSystemDataStoreTest
     {
         FileSystemDataStoreConfiguration conf = createConfig();
         FileSystemDataStore store = new FileSystemDataStore(conf);
-        Assert.assertEquals(store.checkReady(), HealthResult.RESULT_HEALTHY, "Healthcheck status should be HEALTHY");
+        Assert.assertEquals(store.healthCheck(), HealthResult.RESULT_HEALTHY, "Healthcheck status should be HEALTHY");
     }
 
     @Test
@@ -242,7 +242,7 @@ public class FileSystemDataStoreTest
         dataStorePathField.setAccessible(true);
         dataStorePathField.set(store, nonExistingDataDir);
 
-        HealthResult healthResult = store.checkReady();
+        HealthResult healthResult = store.healthCheck();
         Assert.assertEquals(healthResult.getStatus(), HealthStatus.UNHEALTHY, "Healthcheck status should be UNHEALTHY");
         Assert.assertEquals(healthResult.getMessage(), "Exception thrown trying to access data store directory non-existing-dir",
                                                        "Healthcheck message is incorrect");
@@ -265,7 +265,7 @@ public class FileSystemDataStoreTest
             throw new RuntimeException("Should have timed out before reaching here");
         });
 
-        HealthResult healthResult = store.checkReady();
+        HealthResult healthResult = store.healthCheck();
         Assert.assertEquals(healthResult.getStatus(), HealthStatus.UNHEALTHY, "Healthcheck status should be UNHEALTHY");
         Assert.assertEquals(healthResult.getMessage(),
                             "Timeout after 2 seconds trying to access data store directory " + temp.getAbsolutePath(),

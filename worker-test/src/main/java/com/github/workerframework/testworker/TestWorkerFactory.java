@@ -30,8 +30,6 @@ import jakarta.annotation.Nonnull;
 
 final class TestWorkerFactory implements WorkerFactory
 {
-    long count = 0;
-
     private final TestWorkerConfiguration config;
 
     private final ConfigurationSource configSource;
@@ -89,14 +87,7 @@ final class TestWorkerFactory implements WorkerFactory
 
     @Nonnull
     @Override
-    public HealthResult checkAlive()
-    {
-        return HealthResult.RESULT_HEALTHY;
-    }
-
-    @Nonnull
-    @Override
-    public HealthResult checkReady()
+    public HealthResult healthCheck()
     {
         return HealthResult.RESULT_HEALTHY;
     }

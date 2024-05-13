@@ -306,7 +306,7 @@ public final class RabbitWorkerQueue implements ManagedWorkerQueue
     }
 
     @Override
-    public HealthResult checkAlive()
+    public HealthResult livenessCheck()
     {
         if (conn == null || !conn.isOpen()) {
             return new HealthResult(HealthStatus.UNHEALTHY, "Rabbit connection failed");
@@ -324,9 +324,9 @@ public final class RabbitWorkerQueue implements ManagedWorkerQueue
     }
 
     @Override
-    public HealthResult checkReady()
+    public HealthResult healthCheck()
     {
-        return checkAlive();
+        return livenessCheck();
     }
 
     private void createConnection(TaskCallback callback, WorkerConfirmListener listener)

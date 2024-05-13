@@ -660,13 +660,7 @@ public class WorkerCoreTest
         }
 
         @Override
-        public HealthResult checkAlive()
-        {
-            return HealthResult.RESULT_HEALTHY;
-        }
-
-        @Override
-        public HealthResult checkReady()
+        public HealthResult healthCheck()
         {
             return HealthResult.RESULT_HEALTHY;
         }

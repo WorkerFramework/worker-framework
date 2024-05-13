@@ -141,7 +141,7 @@ public class HttpDataStoreTest
     public void testHealthcheck() throws DataStoreException
     {
         final HttpDataStore httpDataStore = new HttpDataStore(config);
-        Assert.assertEquals(httpDataStore.checkReady(), HealthResult.RESULT_HEALTHY, "Healthcheck status should be HEALTHY");
+        Assert.assertEquals(httpDataStore.healthCheck(), HealthResult.RESULT_HEALTHY, "Healthcheck status should be HEALTHY");
     }
 
     @Test
@@ -150,7 +150,7 @@ public class HttpDataStoreTest
         final HttpDataStoreConfiguration configWithBadUrl = new HttpDataStoreConfiguration();
         configWithBadUrl.setUrl("http://idontexist:1234");
         final HttpDataStore httpDataStore = new HttpDataStore(configWithBadUrl);
-        final HealthResult healthResult = httpDataStore.checkReady();
+        final HealthResult healthResult = httpDataStore.healthCheck();
         Assert.assertEquals(healthResult.getStatus(), HealthStatus.UNHEALTHY, "Healthcheck status should be UNHEALTHY");
         Assert.assertEquals(healthResult.getMessage(),
                             "Exception thrown trying access url: http://idontexist:1234 during healthcheck",

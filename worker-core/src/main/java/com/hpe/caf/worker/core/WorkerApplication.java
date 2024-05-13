@@ -270,13 +270,13 @@ public final class WorkerApplication extends Application<WorkerConfiguration>
                 livenessSchedule.getInitialDelay(), livenessSchedule.getCheckInterval(), livenessSchedule.getDowntimeInterval(),
                 livenessSchedule.getSuccessAttempts(), livenessSchedule.getFailureAttempts());
 
-        registerHealthCheck("worker-alive", workerFactory::checkAlive, environment, gatedHealthProvider);
+        registerHealthCheck("worker-alive", workerFactory::livenessCheck, environment, gatedHealthProvider);
         healthCheckConfigurations.add(createHealthCheckConfiguration("worker-alive", HealthCheckType.ALIVE, livenessSchedule));
 
         // deadlocks is supplied by default by Dropwizard, we don't need to register it
         healthCheckConfigurations.add(createHealthCheckConfiguration("deadlocks", HealthCheckType.ALIVE, livenessSchedule));
 
-        registerHealthCheck("queue", workerCore.getWorkerQueue()::checkAlive, environment, gatedHealthProvider);
+        registerHealthCheck("queue", workerCore.getWorkerQueue()::livenessCheck, environment, gatedHealthProvider);
         healthCheckConfigurations.add(createHealthCheckConfiguration("queue", HealthCheckType.ALIVE, livenessSchedule));
 
         /////////////////////////////
@@ -295,16 +295,16 @@ public final class WorkerApplication extends Application<WorkerConfiguration>
                 readinessSchedule.getInitialDelay(), readinessSchedule.getCheckInterval(), readinessSchedule.getDowntimeInterval(),
                 readinessSchedule.getSuccessAttempts(), readinessSchedule.getFailureAttempts());
 
-        registerHealthCheck("worker-ready", workerFactory::checkReady, environment, gatedHealthProvider);
+        registerHealthCheck("worker-ready", workerFactory::healthCheck, environment, gatedHealthProvider);
         healthCheckConfigurations.add(createHealthCheckConfiguration("worker-ready", HealthCheckType.READY, readinessSchedule));
 
-        registerHealthCheck("configuration", managedConfigurationSource::checkReady, environment, gatedHealthProvider);
+        registerHealthCheck("configuration", managedConfigurationSource::healthCheck, environment, gatedHealthProvider);
         healthCheckConfigurations.add(createHealthCheckConfiguration("configuration", HealthCheckType.READY, readinessSchedule));
 
-        registerHealthCheck("store", managedDataStore::checkReady, environment, gatedHealthProvider);
+        registerHealthCheck("store", managedDataStore::healthCheck, environment, gatedHealthProvider);
         healthCheckConfigurations.add(createHealthCheckConfiguration("store", HealthCheckType.READY, readinessSchedule));
 
-        registerHealthCheck("transient", transientHealthCheck::checkReady, environment, gatedHealthProvider);
+        registerHealthCheck("transient", transientHealthCheck::healthCheck, environment, gatedHealthProvider);
         healthCheckConfigurations.add(createHealthCheckConfiguration("transient", HealthCheckType.READY, readinessSchedule));
 
         /////////////////////////////

@@ -235,13 +235,7 @@ public class FileSystemDataStore implements ManagedDataStore, FilePathProvider, 
     }
 
     @Override
-    public HealthResult checkAlive()
-    {
-        return new HealthResult(HealthStatus.HEALTHY);
-    }
-
-    @Override
-    public HealthResult checkReady()
+    public HealthResult healthCheck()
     {
         final Future<HealthResult> healthcheckFuture = healthcheckExecutor.submit(healthcheck);
         try {

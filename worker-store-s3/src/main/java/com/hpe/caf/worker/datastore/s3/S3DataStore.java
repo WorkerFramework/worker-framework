@@ -198,13 +198,7 @@ public class S3DataStore implements ManagedDataStore
     }
 
     @Override
-    public HealthResult checkAlive()
-    {
-        return HealthResult.RESULT_HEALTHY;
-    }
-
-    @Override
-    public HealthResult checkReady()
+    public HealthResult healthCheck()
     {
         try {
             LOG.debug("Received healthcheck request for S3.");

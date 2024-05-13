@@ -23,9 +23,9 @@ import java.util.Map;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.hpe.caf.api.HealthReporter;
 import com.hpe.caf.api.HealthResult;
 import com.hpe.caf.api.HealthStatus;
-import com.hpe.caf.api.HealthReporter;
 
 public class TransientHealthCheck implements HealthReporter
 {
@@ -35,12 +35,6 @@ public class TransientHealthCheck implements HealthReporter
     private final Object transientExceptionRegistryLock = new Object();
     private final long elapsedTime = 30;
 
-    @Override
-    public HealthResult checkAlive()
-    {
-        return HealthResult.RESULT_HEALTHY;
-    }
-
     /**
      * This method checks if any entry in the Transient Exception Registry is newer than the time now, minus the elapsed time interval. If
      * an entry is found within the range the health check returns Unhealthy. If the Transient Exception Registry is empty or no entries
@@ -49,7 +43,7 @@ public class TransientHealthCheck implements HealthReporter
      * @return HealthResult the result of the Transient Health Check, Healthy or Unhealthy
      */
     @Override
-    public HealthResult checkReady()
+    public HealthResult healthCheck()
     {
         LOG.debug("Transient Health Check executing");
         HealthResult healthResult = HealthResult.RESULT_HEALTHY;
