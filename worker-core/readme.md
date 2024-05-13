@@ -316,7 +316,10 @@ you are using the older `8081/healthcheck` endpoint, or the newer
 Note, because of the above differences, although 8081/healthcheck and 
 8080/health-check?name=all&type=READY may appear to perform the same 
 checks, as they are performed at different times, the response may be 
-different. 
+different. In addition, the health checks run on the background schedule 
+may be configured to only report healthy/unhealthy after some number of 
+attempts etc. which may also contribute to the two endpoints returning 
+different results.
 
 ### 8080/health-check endpoint
 
