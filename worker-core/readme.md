@@ -66,9 +66,9 @@
  words, the number of simultaneous tasks to perform) is dictated by the
  `WorkerFactory` supplied to the application.
  
- The `worker-core` application exposes metrics from itself and dependent 
- modules to the Dropwizard admin port (default 8081), and exposes liveness 
- and readiness checks on the REST port (default 8080).
+ The `worker-core` application exposes health checks and metrics from itself 
+ and dependent modules to the Dropwizard admin port (default 8081), and 
+ exposes liveness and readiness checks on the REST port (default 8080).
  
 ### Configuration
 
@@ -285,7 +285,20 @@ the current input queue. Default is True.
  - queue.errors: the number of errors encountered by the WorkerQueue.
 
 
-## Liveness and readiness checks within the worker framework
+## Health checks within the worker framework
+
+NB: There is somewhat overlapping functionality available depending on whether 
+you are using the older `healthcheck` endpoint, or the newer 
+`/health-check?name=all&type=ALIVE` and `/health-check?name=all&type=READY` 
+endpoints. This section discusses the newer endpoints, but the older
+endpoint is still operational and available to use if required. The below
+table summarises the differences between the two endpoints.
+
+| Endpoint                         | Port                      | When are the health checks run?                                  | What health checks are run?                                                   |
+|----------------------------------|---------------------------|------------------------------------------------------------------|-------------------------------------------------------------------------------|
+| healthcheck                      | Default admin port (8081) | Health checks are run synchronously on demand                    | deadlocks, worker-alive, queue, worker-ready, configuration, store, transient |
+| health-check?name=all&type=ALIVE | Default rest port (8080)  | Health checks are run asynchronously in background on a schedule | deadlocks, worker-alive, queue                                                |
+| health-check?name=all&type=READY | Default rest port (8080)  | Health checks are run asynchronously in background on a schedule | worker-ready, configuration, store, transient                                 |
 
  All Dropwizard applications have support for liveness and readiness checks and 
  the worker framework is no exception. The `caf-api` abstracts this away however 
@@ -302,33 +315,35 @@ the current input queue. Default is True.
 
  The following components have been configured with liveness checks:
 
-  - WorkerFactory (readiness check is named `worker-alive`)
-  - WorkerQueue (readiness check is named `queue`)
+  - WorkerFactory (liveness check is named `worker-alive`)
+  - WorkerQueue (liveness check is named `queue`)
 
  The following components have been configured with readiness checks:
 
-  - WorkerFactory (liveness check is named `worker-ready`)
-  - ConfigurationSource (liveness check is named `configuration`)
-  - DataStore (liveness check is named `store`)
+  - WorkerFactory (readiness check is named `worker-ready`)
+  - ConfigurationSource (readiness check is named `configuration`)
+  - DataStore (readiness check is named `store`)
+  - TransientHealthCheck (readiness check is named `transient`)
 
  Each of these classes implements the interface `HealthReporter` which enforces
- methods called `checkAlive()` and `checkReady()`, which each return a 
- `HealthResult`. Depending on whether a component has been configured with a
- liveness or readiness check, only one of these methods may get called. For
- example, `WorkerQueue` has only been configured with a liveness check, so
- `WorkerQueue::checkAlive` will get called on the configured schedule 
- (see below), but `WorkerQueue::checkReady` will never get called. On the
- other hand, `WorkerFactory` has been configured with both a liveness and 
- readiness check, so `WorkerFctory::checkAlive` and `WorkerFactory::checkReady`
- will both get called on the configured schedule. Typically, a pre-made 
- "healthy" result can be returned via `HealthResult.RESULT_HEALTHY` but it 
- is possible to construct others. If the status is unhealthy, a message 
- with additional information about the problem should be supplied. 
+ a method called `healthCheck()` and an optional `livenessCheck()` method, which 
+ each return a `HealthResult`. Depending on whether a component has been 
+ configured with a liveness or readiness check, only one of these methods may 
+ get called. For example, `WorkerQueue` has only been configured with a liveness 
+ check, so `WorkerQueue::livenessCheck` will get called on the configured 
+ schedule (see below), but `WorkerQueue::healthCheck` will never get called. 
+ On the other hand, `WorkerFactory` has been configured with both a liveness and 
+ readiness check, so `WorkerFctory::livenessCheck` and 
+ `WorkerFactory::healthCheck` will both get called on the configured schedule. 
+ Typically, a pre-made "healthy" result can be returned via 
+ `HealthResult.RESULT_HEALTHY` but it  is possible to construct others. If the 
+ status is unhealthy, a message with additional information about the problem 
+ should be supplied. 
 
  The liveness and readiness checks are run on a schedule. This schedule can be 
  configured via the environment variables described in [worker-default-configs](https://github.com/WorkerFramework/worker-framework/blob/develop/worker-default-configs/README.md).
  The result of the last scheduled run is then exposed on the 
- `/health-checks&name=all&type=alive` and `/health-checks&name=all&type=ready`
+ `/health-check?name=all&type=ALIVE` and `/health-check?name=all&type=READY`
  urls present on the Dropwizard rest port (default 8080).
 
  The HTTP response body of both these calls will include *all* liveness and 
@@ -648,14 +663,14 @@ the current input queue. Default is True.
 
 
     @Override
-    public HealthResult checkAlive()
+    public HealthResult livenessCheck()
     {
       return HealthCheck.RESULT_HEALTY;
     }
     
     
     @Override
-    public HealthResult checkReady()
+    public HealthResult readinessCheck()
     {
       return HealthCheck.RESULT_HEALTY;
     }

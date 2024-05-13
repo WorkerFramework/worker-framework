@@ -242,7 +242,7 @@ public final class WorkerApplication extends Application<WorkerConfiguration>
         // localhost:8080/health-check?name=all&type=READY
         //
         // i.e. calling localhost:8080/health-check?name=all&type=ALIVE results in getting the last result of the scheduled liveness
-        // health checks (it can be thought of as an asynchronous call).
+        // checks (it can be thought of as an asynchronous call).
         //
         // 3)
         //
