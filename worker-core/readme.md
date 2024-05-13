@@ -292,8 +292,7 @@ the current input queue. Default is True.
 There is somewhat overlapping functionality available depending on whether
 you are using the older `8081/healthcheck` endpoint, or the newer
 `8080/health-check?name=all&type=ALIVE` and 
-`8080/health-check?name=all&type=READY` endpoints. These changes
-are summarised below:
+`8080/health-check?name=all&type=READY` endpoints:
 
 **8081/healthcheck**
 - Available on default admin port (8081)
