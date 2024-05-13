@@ -222,33 +222,9 @@ public final class WorkerApplication extends Application<WorkerConfiguration>
             final TransientHealthCheck transientHealthCheck,
             final WorkerConfiguration workerConfiguration)
     {
-        // How health checks work:
+        // Refer to the documentation on more info on these health checks:
         //
-        // 1)
-        //
-        // Registering health checks via environment.healthChecks().register(...) results in them being returned when calling:
-        //
-        // localhost:8081/healthcheck
-        //
-        // i.e. calling localhost:8081/healthcheck results in all the registered health checks (i.e. all the liveness and readiness
-        // checks) getting run synchronously.
-        //
-        // 2)
-        //
-        // Configuring those health checks via the healthFactory.setHealthCheckConfigurations(...) results in them being run on a
-        // schedule and *also* being returned when calling:
-        //
-        // localhost:8080/health-check?name=all&type=ALIVE OR
-        // localhost:8080/health-check?name=all&type=READY
-        //
-        // i.e. calling localhost:8080/health-check?name=all&type=ALIVE results in getting the last result of the scheduled liveness
-        // checks (it can be thought of as an asynchronous call).
-        //
-        // 3)
-        //
-        // Due to the above, although both localhost:8081/healthcheck and localhost:8080/health-check?name=all&type=READY will
-        // return the result of the readiness checks (which also include liveness checks), the response codes of these calls may
-        // be different.
+        // https://github.com/WorkerFramework/worker-framework/tree/develop/worker-core#health-checks-within-the-worker-framework
 
         final GatedHealthProvider gatedHealthProvider = new GatedHealthProvider(workerQueue, workerCore);
 

@@ -287,18 +287,33 @@ the current input queue. Default is True.
 
 ## Health checks within the worker framework
 
-NB: There is somewhat overlapping functionality available depending on whether 
-you are using the older `healthcheck` endpoint, or the newer 
-`/health-check?name=all&type=ALIVE` and `/health-check?name=all&type=READY` 
-endpoints. This section discusses the newer endpoints, but the older
-endpoint is still operational and available to use if required. The below
-table summarises the differences between the two endpoints.
+### 8081/healthcheck endpoint vs 8080/health-check endpoint
 
-| Endpoint                         | Port                      | When are the health checks run?                                  | What health checks are run?                                                   |
-|----------------------------------|---------------------------|------------------------------------------------------------------|-------------------------------------------------------------------------------|
-| healthcheck                      | Default admin port (8081) | Health checks are run synchronously on demand                    | deadlocks, worker-alive, queue, worker-ready, configuration, store, transient |
-| health-check?name=all&type=ALIVE | Default rest port (8080)  | Health checks are run asynchronously in background on a schedule | deadlocks, worker-alive, queue                                                |
-| health-check?name=all&type=READY | Default rest port (8080)  | Health checks are run asynchronously in background on a schedule | worker-ready, configuration, store, transient                                 |
+There is somewhat overlapping functionality available depending on whether
+you are using the older `8081/healthcheck` endpoint, or the newer
+`8080/health-check?name=all&type=ALIVE` and 
+`8080/health-check?name=all&type=READY` endpoints. These changes
+are summarised below:
+
+**8081/healthcheck**
+- Available on default admin port (8081)
+- Calling this endpoint runs all liveness and readiness checks synchronously on-demand (deadlocks, worker-alive, queue, worker-ready, 
+  configuration, store, transient) and returns the result.
+
+**8080/health-check?name=all&type=ALIVE**
+- Available on default rest port (8080)
+- Calling this endpoint returns the result of the last scheduled run of the liveness checks (deadlocks, worker-alive, queue), i.e. calling
+  this endpoint does not actually run the checks.
+
+**8080/health-check?name=all&type=READY**
+- Available on default rest port (8080)
+- Calling this endpoint returns the result of the last scheduled run of the liveness and readiness checks (deadlocks, worker-alive, 
+  queue, worker-ready, configuration, store, transient), i.e. calling this endpoint does not actually run the checks.
+
+Note, because of the above differences, although 8081/healthcheck and 8080/health-check?name=all&type=READY may appear to perform the 
+same checks, as they are performed at different times, the response may be different. 
+
+### 8080/health-check endpoint
 
  All Dropwizard applications have support for liveness and readiness checks and 
  the worker framework is no exception. The `caf-api` abstracts this away however 
