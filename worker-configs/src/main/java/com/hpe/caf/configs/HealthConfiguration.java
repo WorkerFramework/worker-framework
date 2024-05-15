@@ -31,13 +31,13 @@ public class HealthConfiguration
     /**
      * The interval on which to perform a liveness check for while in a healthy state.
      */
-    @Min(60)
+    @Min(1)
     private int livenessCheckIntervalSeconds = 60;
 
     /**
      * The interval on which to perform a liveness check for while in an unhealthy state.
      */
-    @Min(60)
+    @Min(1)
     private int livenessDowntimeIntervalSeconds = 60;
 
     /**
@@ -61,13 +61,13 @@ public class HealthConfiguration
     /**
      * The interval on which to perform a readiness check for while in a healthy state.
      */
-    @Min(60)
+    @Min(1)
     private int readinessCheckIntervalSeconds = 60;
 
     /**
      * The interval on which to perform a readiness check for while in an unhealthy state.
      */
-    @Min(60)
+    @Min(1)
     private int readinessDowntimeIntervalSeconds = 60;
 
     /**
