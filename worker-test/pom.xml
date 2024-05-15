@@ -194,7 +194,7 @@
                         </image>
                         <image>
                             <alias>webdav</alias>
-                            <name>${dockerHubPublic}/cloudesire/webdav</name>
+                            <name>${projectDockerRegistry}/cloudesire/webdav</name>
                             <run>
                                 <platform>linux/amd64</platform>
                                 <ports>
@@ -254,7 +254,7 @@
                             <alias>worker-test</alias>
                             <name>${targetDockerRegistryPath}/worker-test:${project.version}</name>
                             <build>
-                                <from>${dockerHubPublic}/cafapi/opensuse-jre17:1</from>
+                                <from>${projectDockerRegistry}/cafapi/opensuse-jre17</from>
                                 <cmd>
                                     <exec>
                                         <args>/maven/worker.sh</args>
@@ -338,9 +338,9 @@
                             <run>
                                 <platform>linux/amd64</platform>
                                 <ports>
+                                    <port>${worker.testhttpport2}:8080</port>
                                     <port>${worker.testadminport2}:8081</port>
                                     <port>${worker.testdebugport2}:5005</port>
-                                    <port>8999:8080</port>
                                 </ports>
                                 <env>
                                     <CAF_WORKER_DATASTORE_PATH>/srv/common/webdav</CAF_WORKER_DATASTORE_PATH>
@@ -431,6 +431,7 @@
                 <webdav.port>9090</webdav.port>
                 <worker.adminport>8081</worker.adminport>
                 <worker.debugport>5005</worker.debugport>
+                <worker.testhttpport2>8084</worker.testhttpport2>
                 <worker.testadminport2>8082</worker.testadminport2>
                 <worker.testadminport3>8083</worker.testadminport3>
                 <worker.testhttpport3>8085</worker.testhttpport3>

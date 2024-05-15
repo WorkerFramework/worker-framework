@@ -118,7 +118,6 @@ public final class WorkerApplication extends Application<WorkerConfiguration>
         WorkerThreadPool wtp = WorkerThreadPool.create(workerFactory);
         final int nThreads = workerFactory.getWorkerThreads();
         ManagedWorkerQueue workerQueue = queueProvider.getWorkerQueue(config, nThreads);
-
         TransientHealthCheck transientHealthCheck = new TransientHealthCheck();
         WorkerCore core = new WorkerCore(codec, wtp, workerQueue, workerFactory, path, environment.healthChecks(), transientHealthCheck);
         HealthConfiguration healthConfiguration = config.getConfiguration(HealthConfiguration.class);
