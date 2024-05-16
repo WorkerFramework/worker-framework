@@ -61,6 +61,13 @@ final class GatedHealthProvider
                 final Result result = healthCheck.execute();
 
                 if (!result.isHealthy()) {
+                    // The response from the `8080/health-check` endpoint does *not* contain the `message` property explaining the
+                    // reason why a health check failed, so logging a warning here so at least the reason will be logged (Dropwizard
+                    // does also log it, but only at TRACE level).
+                    LOG.warn("Health check failing: Name={}, Message={}, Details={}, Time={}, Timestamp={}, Duration={}, Error={}",
+                            name, result.getMessage(), result.getDetails(), result.getTime(), result.getTimestamp(), result.getDuration(),
+                            result.getError() != null ? result.getError().toString() : "null");
+
                     // Add the name of the failed health check to the set of unhealthy checks
                     unhealthySet.add(name);
                 } else if (!unhealthySet.isEmpty()) {
@@ -80,7 +87,7 @@ final class GatedHealthProvider
                         workerQueue.reconnectIncoming();
                     }
                 } else {
-                    LOG.debug("Disconnecting the incoming queue due to the [{}] health check failing", name);
+                    LOG.debug("Disconnecting the incoming queue due to the {} health check(s) failing", unhealthySet);
                     workerQueue.disconnectIncoming();
                 }
 

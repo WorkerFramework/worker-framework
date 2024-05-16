@@ -16,26 +16,26 @@
 package com.hpe.caf.worker.core;
 
 import com.codahale.metrics.health.HealthCheck;
-import com.hpe.caf.api.HealthReporter;
 import com.hpe.caf.api.HealthResult;
 import com.hpe.caf.api.HealthStatus;
 
 import java.util.Objects;
+import java.util.function.Supplier;
 
 class WorkerHealthCheck extends HealthCheck
 {
-    private final HealthReporter reporter;
+    private final Supplier<HealthResult> healthResultSupplier;
 
-    public WorkerHealthCheck(final HealthReporter healthReporter)
+    public WorkerHealthCheck(final Supplier<HealthResult> healthResultSupplier)
     {
-        this.reporter = Objects.requireNonNull(healthReporter);
+        this.healthResultSupplier = Objects.requireNonNull(healthResultSupplier);
     }
 
     @Override
     protected Result check()
         throws Exception
     {
-        HealthResult result = reporter.healthCheck();
+        HealthResult result = healthResultSupplier.get();
         String message = result.getMessage();
 
         if (result.getStatus() == HealthStatus.HEALTHY) {

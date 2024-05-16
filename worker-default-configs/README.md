@@ -50,3 +50,20 @@ The default RabbitWorkerQueue configuration file checks for values as below;
 | retryQueue  |  `CAF_WORKER_RETRY_QUEUE` |   |
 | rejectedQueue  |   | worker-rejected  |
 | retryLimit  |  `CAF_WORKER_RETRY_LIMIT` | 10  |
+
+## HealthConfiguration
+
+The default Heath configuration file checks for values as below;
+
+| Property                         | Checked Environment Variables                 | Default |
+|----------------------------------|-----------------------------------------------|---------|
+| livenessInitialDelaySeconds      | `CAF_LIVENESS_INITIAL_DELAY_SECONDS`          | 15      |
+| livenessCheckIntervalSeconds     | `CAF_LIVENESS_CHECK_INTERVAL_SECONDS`         | 60      |
+| livenessDowntimeIntervalSeconds  | `CAF_LIVENESS_DOWNTIME_INTERVAL_SECONDS`      | 60      |
+| livenessSuccessAttempts          | `CAF_LIVENESS_SUCCESS_ATTEMPTS`               | 1       |
+| livenessFailureAttempts          | `CAF_LIVENESS_FAILURE_ATTEMPTS`               | 3       |
+| readinessInitialDelaySeconds     | `CAF_READINESS_INITIAL_DELAY_SECONDS`         | 15      |
+| readinessCheckIntervalSeconds    | `CAF_READINESS_CHECK_INTERVAL_SECONDS`        | 60      |
+| readinessDowntimeIntervalSeconds | `CAF_READINESS_DOWNTIME_INTERVAL_SECONDS`     | 60      |
+| readinessSuccessAttempts         | `CAF_READINESS_SUCCESS_ATTEMPTS`              | 1       |
+| readinessFailureAttempts         | `CAF_READINESS_FAILURE_ATTEMPTS`              | 3       |

@@ -27,10 +27,12 @@ import com.hpe.caf.api.ConfigurationDecoderProvider;
 import com.hpe.caf.api.ConfigurationException;
 import com.hpe.caf.api.ConfigurationSourceProvider;
 import com.hpe.caf.api.Decoder;
+import com.hpe.caf.api.HealthResult;
 import com.hpe.caf.api.ManagedConfigurationSource;
 import com.hpe.caf.api.worker.*;
 import com.hpe.caf.cipher.NullCipherProvider;
 import com.hpe.caf.config.system.SystemBootstrapConfiguration;
+import com.hpe.caf.configs.HealthConfiguration;
 import com.hpe.caf.naming.ServicePath;
 import com.hpe.caf.util.ModuleLoader;
 import com.hpe.caf.util.ModuleLoaderException;
@@ -41,14 +43,23 @@ import io.dropwizard.configuration.SubstitutingSourceProvider;
 import io.dropwizard.core.Application;
 import io.dropwizard.core.setup.Bootstrap;
 import io.dropwizard.core.setup.Environment;
+import io.dropwizard.health.DefaultHealthFactory;
+import io.dropwizard.health.HealthCheckConfiguration;
+import io.dropwizard.health.HealthCheckType;
+import io.dropwizard.health.Schedule;
 import io.dropwizard.lifecycle.Managed;
 import io.dropwizard.logging.common.LoggingUtil;
+import io.dropwizard.util.Duration;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.net.ResponseCache;
 import java.net.URL;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.concurrent.TimeUnit;
+import java.util.function.Supplier;
 
 /**
  * This is the main HP SaaS asynchronous micro-service worker entry point. On startup, it will identify implementations of necessary
@@ -109,6 +120,7 @@ public final class WorkerApplication extends Application<WorkerConfiguration>
         ManagedWorkerQueue workerQueue = queueProvider.getWorkerQueue(config, nThreads);
         TransientHealthCheck transientHealthCheck = new TransientHealthCheck();
         WorkerCore core = new WorkerCore(codec, wtp, workerQueue, workerFactory, path, environment.healthChecks(), transientHealthCheck);
+        HealthConfiguration healthConfiguration = config.getConfiguration(HealthConfiguration.class);
 
         environment.lifecycle().manage(new Managed() {
             @Override
@@ -117,14 +129,10 @@ public final class WorkerApplication extends Application<WorkerConfiguration>
 
                 initCoreMetrics(environment.metrics(), core);
                 initComponentMetrics(environment.metrics(), config, store, core);
-
-                final GatedHealthProvider gatedHealthProvider = new GatedHealthProvider(workerQueue, core);
-                environment.healthChecks().register("queue", gatedHealthProvider.new GatedHealthCheck("queue", new WorkerHealthCheck(core.getWorkerQueue())));
-                environment.healthChecks().register("configuration", gatedHealthProvider.new GatedHealthCheck("configuration", new WorkerHealthCheck(config)));
-                environment.healthChecks().register("store", gatedHealthProvider.new GatedHealthCheck("store", new WorkerHealthCheck(store)));
-                environment.healthChecks().register("worker", gatedHealthProvider.new GatedHealthCheck("worker", new WorkerHealthCheck(workerFactory)));
-                environment.healthChecks().register("transient", gatedHealthProvider.new GatedHealthCheck("transient", new WorkerHealthCheck(transientHealthCheck)));
+                initHealthChecks(workerQueue, core, healthConfiguration, config, environment, workerFactory, store,
+                        transientHealthCheck, workerConfiguration);
             }
+
             @Override
             public void stop() {
                 LOG.info("Worker stop requested, allowing in-progress tasks to complete.");
@@ -202,6 +210,91 @@ public final class WorkerApplication extends Application<WorkerConfiguration>
         }
     }
 
+    private void initHealthChecks(
+            final ManagedWorkerQueue workerQueue,
+            final WorkerCore workerCore,
+            final HealthConfiguration healthConfiguration,
+            final ManagedConfigurationSource managedConfigurationSource,
+            final Environment environment,
+            final WorkerFactory workerFactory,
+            final ManagedDataStore managedDataStore,
+            final TransientHealthCheck transientHealthCheck,
+            final WorkerConfiguration workerConfiguration)
+    {
+        // Refer to the documentation for more info on these health checks:
+        //
+        // https://github.com/WorkerFramework/worker-framework/tree/develop/worker-core#health-checks-within-the-worker-framework
+
+        final GatedHealthProvider gatedHealthProvider = new GatedHealthProvider(workerQueue, workerCore);
+
+        final List<HealthCheckConfiguration> healthCheckConfigurations = new ArrayList<>();
+
+        /////////////////////////////
+        // Liveness Checks
+        /////////////////////////////
+
+        final Schedule livenessSchedule = createSchedule(
+                healthConfiguration.getLivenessInitialDelaySeconds(),
+                healthConfiguration.getLivenessCheckIntervalSeconds(),
+                healthConfiguration.getLivenessDowntimeIntervalSeconds(),
+                healthConfiguration.getLivenessSuccessAttempts(),
+                healthConfiguration.getLivenessFailureAttempts());
+
+        LOG.debug("Liveness checks will be run on the following schedule: " +
+                        "initialDelay={}, checkInterval={}, downtimeInterval={}, successAttempts={}, failureAttempts={}",
+                livenessSchedule.getInitialDelay(), livenessSchedule.getCheckInterval(), livenessSchedule.getDowntimeInterval(),
+                livenessSchedule.getSuccessAttempts(), livenessSchedule.getFailureAttempts());
+
+        registerHealthCheck("worker-alive", workerFactory::livenessCheck, environment, gatedHealthProvider);
+        healthCheckConfigurations.add(createHealthCheckConfiguration("worker-alive", HealthCheckType.ALIVE, livenessSchedule));
+
+        // deadlocks is supplied by default by Dropwizard, we don't need to register it
+        healthCheckConfigurations.add(createHealthCheckConfiguration("deadlocks", HealthCheckType.ALIVE, livenessSchedule));
+
+        registerHealthCheck("queue", workerCore.getWorkerQueue()::livenessCheck, environment, gatedHealthProvider);
+        healthCheckConfigurations.add(createHealthCheckConfiguration("queue", HealthCheckType.ALIVE, livenessSchedule));
+
+        /////////////////////////////
+        // Readiness Checks
+        /////////////////////////////
+
+        final Schedule readinessSchedule = createSchedule(
+                healthConfiguration.getReadinessInitialDelaySeconds(),
+                healthConfiguration.getReadinessCheckIntervalSeconds(),
+                healthConfiguration.getReadinessDowntimeIntervalSeconds(),
+                healthConfiguration.getReadinessSuccessAttempts(),
+                healthConfiguration.getReadinessFailureAttempts());
+
+        LOG.debug("Readiness checks will be run on the following schedule: " +
+                        "initialDelay={}, checkInterval={}, downtimeInterval={}, successAttempts={}, failureAttempts={}",
+                readinessSchedule.getInitialDelay(), readinessSchedule.getCheckInterval(), readinessSchedule.getDowntimeInterval(),
+                readinessSchedule.getSuccessAttempts(), readinessSchedule.getFailureAttempts());
+
+        registerHealthCheck("worker-ready", workerFactory::healthCheck, environment, gatedHealthProvider);
+        healthCheckConfigurations.add(createHealthCheckConfiguration("worker-ready", HealthCheckType.READY, readinessSchedule));
+
+        registerHealthCheck("configuration", managedConfigurationSource::healthCheck, environment, gatedHealthProvider);
+        healthCheckConfigurations.add(createHealthCheckConfiguration("configuration", HealthCheckType.READY, readinessSchedule));
+
+        registerHealthCheck("store", managedDataStore::healthCheck, environment, gatedHealthProvider);
+        healthCheckConfigurations.add(createHealthCheckConfiguration("store", HealthCheckType.READY, readinessSchedule));
+
+        registerHealthCheck("transient", transientHealthCheck::healthCheck, environment, gatedHealthProvider);
+        healthCheckConfigurations.add(createHealthCheckConfiguration("transient", HealthCheckType.READY, readinessSchedule));
+
+        /////////////////////////////
+        // HealthFactory Creation
+        /////////////////////////////
+
+        final DefaultHealthFactory healthFactory = new DefaultHealthFactory();
+
+        healthFactory.setHealthCheckConfigurations(healthCheckConfigurations);
+        healthFactory.configure(environment.lifecycle(), environment.servlets(), environment.jersey(), environment.health(),
+                environment.getObjectMapper(), getName());
+
+        workerConfiguration.setHealthFactory(healthFactory);
+    }
+
     @Override
     protected void bootstrapLogging() {
         // If logback.xml is present, prevent dropwizard from overriding it
@@ -224,4 +317,49 @@ public final class WorkerApplication extends Application<WorkerConfiguration>
         return url == null;
     }
 
+    private static Schedule createSchedule(
+            final int initialDelaySeconds,
+            final int checkIntervalSeconds,
+            final int downtimeIntervalSeconds,
+            final int successAttempts,
+            final int failureAttempts) {
+        final Schedule schedule = new Schedule();
+
+        schedule.setInitialDelay(Duration.seconds(initialDelaySeconds));
+        schedule.setCheckInterval(Duration.seconds(checkIntervalSeconds));
+        schedule.setDowntimeInterval(Duration.seconds(downtimeIntervalSeconds));
+        schedule.setSuccessAttempts(successAttempts);
+        schedule.setFailureAttempts(failureAttempts);
+
+        return schedule;
+    }
+
+    private static void registerHealthCheck(
+            final String name,
+            final Supplier<HealthResult> healthResultSupplier,
+            final Environment environment,
+            final GatedHealthProvider gatedHealthProvider)
+    {
+        environment.healthChecks().register(
+                name,
+                gatedHealthProvider.new GatedHealthCheck(name, new WorkerHealthCheck(healthResultSupplier)));
+    }
+
+    private static HealthCheckConfiguration createHealthCheckConfiguration(
+            final String name,
+            final HealthCheckType healthCheckType,
+            final Schedule schedule) {
+        final HealthCheckConfiguration healthCheckConfiguration = new HealthCheckConfiguration();
+
+        healthCheckConfiguration.setName(name);
+        healthCheckConfiguration.setType(healthCheckType);
+        healthCheckConfiguration.setInitialState(false);
+        healthCheckConfiguration.setSchedule(schedule);
+
+        // Setting critical to false means that the /health-check endpoint returns HTTP 200 even if a healthcheck fails, which is
+        // not desired. Setting critical to true means that the /health-check endpoint returns HTTP 503 when a healthcheck fails.
+        healthCheckConfiguration.setCritical(true);
+
+        return healthCheckConfiguration;
+    }
 }

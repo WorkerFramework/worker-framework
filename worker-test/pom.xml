@@ -261,7 +261,7 @@
                                     </exec>
                                 </cmd>
                                 <healthCheck>
-                                    <cmd>curl -f http://localhost:8081/healthcheck || exit 1</cmd>
+                                    <cmd>curl -f http://localhost:8080/health-check?type=READY || exit 1</cmd>
                                 </healthCheck>
                                 <assembly>
                                     <mode>tar</mode>
@@ -338,6 +338,7 @@
                             <run>
                                 <platform>linux/amd64</platform>
                                 <ports>
+                                    <port>${worker.testhttpport2}:8080</port>
                                     <port>${worker.testadminport2}:8081</port>
                                     <port>${worker.testdebugport2}:5005</port>
                                 </ports>
@@ -380,6 +381,7 @@
                             <run>
                                 <platform>linux/amd64</platform>
                                 <ports>
+                                    <port>${worker.testhttpport3}:8080</port>
                                     <port>${worker.testadminport3}:8081</port>
                                     <port>${worker.testdebugport3}:5005</port>
                                 </ports>
@@ -403,11 +405,11 @@
                                 <log>
                                     <enabled>true</enabled>
                                 </log>
-                                <!--Expect healthcheck to return 500 as trying to use SSL without valid certificate-->
+                                <!--Expect healthcheck to return 503 as trying to use SSL without valid certificate-->
                                 <wait>
                                     <http>
-                                        <url>http://${docker.host.address}:${worker.testadminport3}/healthcheck</url>
-                                        <status>500</status>
+                                        <url>http://${docker.host.address}:${worker.testhttpport3}/health-check?type=READY</url>
+                                        <status>503</status>
                                     </http>
                                     <time>120000</time>
                                     <shutdown>500</shutdown>
@@ -429,8 +431,10 @@
                 <webdav.port>9090</webdav.port>
                 <worker.adminport>8081</worker.adminport>
                 <worker.debugport>5005</worker.debugport>
+                <worker.testhttpport2>8084</worker.testhttpport2>
                 <worker.testadminport2>8082</worker.testadminport2>
                 <worker.testadminport3>8083</worker.testadminport3>
+                <worker.testhttpport3>8085</worker.testhttpport3>
                 <worker.testdebugport2>5006</worker.testdebugport2>
                 <worker.testdebugport3>5007</worker.testdebugport3>
             </properties>
