@@ -912,13 +912,11 @@
                         </image>
                         <image>
                             <repository>${dockerHubPublic}/library/busybox</repository>
-                            <tag>1.36.1</tag>
-                            <digest>sha256:5eef5ed34e1e1ff0a4ae850395cbf665c4de6b4b83a32a0bc7bcb998e24e7bbb</digest>
+                            <tag>latest</tag>
                         </image>
                         <image>
                             <repository>${dockerHubPublic}/library/httpd</repository>
-                            <tag>2.4.59-bookworm</tag>
-                            <digest>sha256:43c7661a3243c04b0955c81ac994ea13a1d8a1e53c15023a7b3cd5e8bb25de3c</digest>
+                            <tag>2.4</tag>
                         </image>
                         <image>
                             <repository>${dockerHubPublic}/library/rabbitmq</repository>
