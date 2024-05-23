@@ -18,9 +18,8 @@ package com.hpe.caf.worker.core;
 import com.hpe.caf.api.worker.InvalidTaskException;
 import com.hpe.caf.api.worker.TaskRejectedException;
 import com.hpe.caf.api.worker.Worker;
-import org.junit.Assert;
 import org.testng.annotations.Test;
-
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 import org.mockito.Mockito;
@@ -42,7 +41,7 @@ public class WorkerThreadPoolTest
 
         wtp.submitWorkerTask(mockWorkerTask);
         latch.await(1, TimeUnit.SECONDS);
-        Assert.assertEquals("Latch count should be 0; indicating that the handler was invoked due to the Error thrown",
-                            0, latch.getCount());
+        assertEquals(0, latch.getCount(),
+                "Latch count should be 0; indicating that the handler was invoked due to the Error thrown");
     }
 }
