@@ -10,6 +10,7 @@ ${version-number}
                no longer result in infinite retries of a message. The message will now be correctly identified as
                poisonous and passed on to the next worker.
 #### New Features
+- US914108: Version Currency: JUnit 5 migration
 - **US915147:** Support for liveness and readiness checks added.
 -   - The `WorkerFactory` interface contains a new `livenessCheck` method, which has a default implementation that returns 
       `HealthResult.RESULT_HEALTHY`. A worker may optionally override this method to provide their own implementation of liveness.
