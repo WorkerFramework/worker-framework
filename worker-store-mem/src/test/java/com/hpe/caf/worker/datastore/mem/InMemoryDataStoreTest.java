@@ -17,7 +17,7 @@ package com.hpe.caf.worker.datastore.mem;
 
 import com.hpe.caf.api.worker.DataStoreException;
 import org.apache.commons.io.IOUtils;
-import org.junit.Assert;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 
@@ -50,7 +50,7 @@ public class InMemoryDataStoreTest
         byte[] input = testStr.getBytes(StandardCharsets.UTF_8);
         String absoluteReference = dataStore.store(input, partialReference);
         String retrievedString = IOUtils.toString(dataStore.retrieve(absoluteReference), StandardCharsets.UTF_8);
-        Assert.assertEquals("Test string should equal the retrieved string.", testStr, retrievedString);
+        assertEquals(testStr, retrievedString, "Test string should equal the retrieved string.");
     }
 
     @Test
@@ -59,7 +59,7 @@ public class InMemoryDataStoreTest
         InputStream input = new ByteArrayInputStream(testStr.getBytes(StandardCharsets.UTF_8));
         String absoluteReference = dataStore.store(input, partialReference);
         String retrievedString = IOUtils.toString(dataStore.retrieve(absoluteReference), StandardCharsets.UTF_8);
-        Assert.assertEquals("Test string should equal the retrieved string.", testStr, retrievedString);
+        assertEquals(testStr, retrievedString, "Test string should equal the retrieved string.");
     }
 
     @Test
@@ -70,7 +70,7 @@ public class InMemoryDataStoreTest
         String absoluteReference = dataStore.store(path, partialReference);
         String retrievedString = IOUtils.toString(dataStore.retrieve(absoluteReference), StandardCharsets.UTF_8);
         String actualString = new String(Files.readAllBytes(path), StandardCharsets.UTF_8);
-        Assert.assertEquals("Test string should equal the retrieved string.", actualString, retrievedString);
+        assertEquals(actualString, retrievedString, "Test string should equal the retrieved string.");
     }
 
     @Test(expectedExceptions = DataStoreException.class)
@@ -89,7 +89,7 @@ public class InMemoryDataStoreTest
         byte[] input = testStr.getBytes(StandardCharsets.UTF_8);
         String absoluteReference = dataStore.store(input, partialReference);
         long size = dataStore.size(absoluteReference);
-        Assert.assertEquals("Test string bytes length should equal the retrieved size.", testStr.getBytes().length, size);
+        assertEquals(testStr.getBytes().length, size, "Test string bytes length should equal the retrieved size.");
     }
 
     @Test(expectedExceptions = DataStoreException.class)
