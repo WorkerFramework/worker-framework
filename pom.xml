@@ -898,8 +898,8 @@
                         </image>
                         <image>
                             <repository>${dockerHubPublic}/cafapi/opensuse-jre11</repository>
-                            <tag>3.0.0</tag>
-                            <digest>sha256:8db07658c8a74c3c00747288744f57526788580402b709fe2e093ef0207cff63</digest>
+                            <tag>4.0.1</tag>
+                            <digest>sha256:6fc1394f496993ec4b693fd6ab947e610a6f1f55629b23ce97fd07399f509a38</digest>
                         </image>
                         <image>
                             <repository>${dockerHubPublic}/cafapi/opensuse-jre17</repository>
