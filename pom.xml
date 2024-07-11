@@ -80,6 +80,7 @@
         <module>worker-store-http</module>
         <module>worker-test</module>
         <module>worker-tracking-report</module>
+        <module>worker-queue-sqs</module>
     </modules>
 
     <dependencyManagement>
