@@ -15,6 +15,11 @@
  */
 package com.hpe.caf.worker.queue.sqs;
 
+import com.amazon.sqs.javamessaging.AmazonSQSMessagingClientWrapper;
+import com.amazon.sqs.javamessaging.ProviderConfiguration;
+import com.amazon.sqs.javamessaging.SQSConnection;
+import com.amazon.sqs.javamessaging.SQSConnectionFactory;
+import com.amazonaws.services.sqs.AmazonSQSClientBuilder;
 import com.hpe.caf.api.HealthResult;
 import com.hpe.caf.api.worker.ManagedWorkerQueue;
 import com.hpe.caf.api.worker.QueueException;
@@ -22,10 +27,6 @@ import com.hpe.caf.api.worker.TaskCallback;
 import com.hpe.caf.api.worker.TaskInformation;
 import com.hpe.caf.api.worker.WorkerQueueMetricsReporter;
 import com.hpe.caf.configs.SQSConfiguration;
-import software.amazon.awssdk.auth.credentials.AwsCredentials;
-import software.amazon.awssdk.regions.Region;
-import software.amazon.awssdk.services.sqs.SqsClient;
-import software.amazon.awssdk.services.sqs.model.*;
 
 import java.net.URI;
 import java.net.URISyntaxException;
@@ -43,7 +44,6 @@ public final class SQSWorkerQueue implements ManagedWorkerQueue
     private final SQSWorkerQueueConfiguration sqsQueueConfiguration;
     private final SQSConfiguration sqsConfiguration;
 
-    private SqsClient sqsClient;
     private final ConcurrentHashMap<String, String> declaredQueues = new ConcurrentHashMap<>();
 
     private static final Logger LOG = LoggerFactory.getLogger(SQSWorkerQueue.class);
@@ -55,6 +55,14 @@ public final class SQSWorkerQueue implements ManagedWorkerQueue
 
     public void start(final TaskCallback callback) throws QueueException {
         try {
+
+            SQSConnectionFactory connectionFactory = new SQSConnectionFactory(
+                    new ProviderConfiguration(),
+                    AmazonSQSClientBuilder.defaultClient()
+            );
+
+            SQSConnection connection = connectionFactory.createConnection();
+            AmazonSQSMessagingClientWrapper client = connection.getWrappedAmazonSQSClient();
             sqsClient = createSQSClient();
             createQueue(sqsQueueConfiguration.getInputQueue());
             createQueue(sqsQueueConfiguration.getRetryQueue());
