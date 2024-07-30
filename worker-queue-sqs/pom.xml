@@ -44,6 +44,10 @@
 
     <dependencies>
         <dependency>
+            <groupId>com.github.cafapi</groupId>
+            <artifactId>caf-api</artifactId>
+        </dependency>
+        <dependency>
             <groupId>com.github.workerframework</groupId>
             <artifactId>worker-api</artifactId>
         </dependency>
@@ -95,6 +99,10 @@
             <groupId>org.mockito</groupId>
             <artifactId>mockito-core</artifactId>
             <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>com.github.workerframework</groupId>
+            <artifactId>worker-configs</artifactId>
         </dependency>
     </dependencies>
 

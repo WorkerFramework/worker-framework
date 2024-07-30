@@ -15,22 +15,31 @@
  */
 package com.hpe.caf.worker.queue.sqs;
 
-import com.hpe.caf.api.worker.InvalidTaskException;
-import com.hpe.caf.api.worker.QueueException;
-import com.hpe.caf.api.worker.TaskCallback;
-import com.hpe.caf.api.worker.TaskInformation;
-import com.hpe.caf.api.worker.TaskRejectedException;
+import com.hpe.caf.api.worker.*;
+import com.hpe.caf.configs.SQSConfiguration;
 import org.testng.Assert;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;
+import software.amazon.awssdk.auth.credentials.AwsCredentials;
+import software.amazon.awssdk.awscore.exception.AwsServiceException;
+import software.amazon.awssdk.core.exception.SdkClientException;
+import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.sqs.SqsClient;
 import software.amazon.awssdk.services.sqs.model.*;
 
+import java.net.URI;
+import java.nio.charset.StandardCharsets;
 import java.util.Map;
+
+import static org.testng.AssertJUnit.fail;
 
 public class SQSWorkerQueueIT {
 
     private static TaskCallback callback;
+    private static SQSWorkerQueueConfiguration sqsWorkerQueueConfiguration;
+    private static SQSConfiguration sqsConfiguration;
+    private static SqsClient sqsClient;
+    private static SQSWorkerQueue sqsWorkerQueue;
 
     @BeforeClass
     public static void setUpBeforeClass() throws Exception {
@@ -45,39 +54,105 @@ public class SQSWorkerQueueIT {
 
             }
         };
+
+        sqsConfiguration = new SQSConfiguration();
+        sqsConfiguration.setSqsProtocol("http");
+        sqsConfiguration.setSqsHost("localhost");
+        sqsConfiguration.setSqsPort(19324);
+        sqsConfiguration.setSqsRegion("us-east-1");
+        sqsConfiguration.setSqsAccessKey("x");
+        sqsConfiguration.setSqsSecretAccessKey("x");
+
+        sqsWorkerQueueConfiguration = new SQSWorkerQueueConfiguration();
+        sqsWorkerQueueConfiguration.setSQSConfiguration(sqsConfiguration);
+        sqsWorkerQueueConfiguration.setInputQueue("worker-in");
+        sqsWorkerQueueConfiguration.setRetryQueue("retry-in");
+
+        sqsClient = SqsClient.builder()
+                    .endpointOverride(new URI(sqsConfiguration.getURIString()))
+                    .region(Region.of(sqsConfiguration.getSqsRegion()))
+                    .credentialsProvider(() -> new AwsCredentials() {
+                        @Override
+                        public String accessKeyId() {
+                            return sqsConfiguration.getSqsAccessKey();
+                        }
+
+                        @Override
+                        public String secretAccessKey() {
+                            return sqsConfiguration.getSqsSecretAccessKey();
+                        }
+                    })
+                    .build();
+
+        sqsWorkerQueue = new SQSWorkerQueue(sqsWorkerQueueConfiguration);
+        sqsWorkerQueue.start(callback);
     }
 
     @Test
-    public void testThatQueuesAreDeclaredAndReceiveMessages() throws QueueException, InterruptedException {
-        final var sqsWorkerQueue = new SQSWorkerQueue();
-        sqsWorkerQueue.start(callback);
-        final var queueUrl = sqsWorkerQueue.createQueue("worker-in");
-        System.out.println("QURL:" + queueUrl);
-        final var client = sqsWorkerQueue.getSqsClient();
-        sendMessage(client, queueUrl, "Hello-World");
-        Thread.sleep(10000);
+    public void testInputQueueIsCreated() {
+        try {
+            final GetQueueUrlRequest getQueueUrlRequest = GetQueueUrlRequest.builder()
+                    .queueName(sqsWorkerQueueConfiguration.getInputQueue())
+                    .build();
+            sqsClient.getQueueUrl(getQueueUrlRequest);
+        } catch (final Exception e) {
+            fail("The input queue was not created");
+        }
+    }
+
+    @Test
+    public void testRetryQueueIsCreated() {
+        try {
+            final GetQueueUrlRequest getQueueUrlRequest = GetQueueUrlRequest.builder()
+                    .queueName(sqsWorkerQueueConfiguration.getRetryQueue())
+                    .build();
+            sqsClient.getQueueUrl(getQueueUrlRequest);
+        } catch (final Exception e) {
+            fail("The retry queue was not created");
+        }
+    }
+
+    @Test
+    public void testPublishToAnExistingQueueDoesNotThrowException() throws Exception {
+        try {
+            sendMessage(sqsWorkerQueue, sqsWorkerQueueConfiguration.getInputQueue(), "Hello-World");
+        } catch (final Exception e) {
+            fail("No exception should have been thrown");
+        }
+    }
+
+    @Test
+    public void testPublish() throws Exception {
+        var publishQueue = "publish-queue";
+        sendMessage(sqsWorkerQueue, publishQueue, "Hello-World");
+        Thread.sleep(5000);
         final var receiveRequest = ReceiveMessageRequest.builder()
-                .queueUrl(queueUrl)
+                .queueUrl(sqsWorkerQueue.getDeclaredQueues().get(publishQueue))
                 .build();
-        final var messages = client.receiveMessage(receiveRequest).messages();
+        final var messages = sqsClient.receiveMessage(receiveRequest).messages();
         Assert.assertEquals(messages.size(), 1);
         var msg = messages.get(0).body();
-        System.out.println("MESSAGE READ:" + msg);
         Assert.assertEquals(msg, "Hello-World");
     }
 
-    public static void sendMessage(final SqsClient sqsClient, final String queueUrl, final String message) {
+    public static void sendMessage(final SQSWorkerQueue sqsWorkerQueue, final String queueUrl, final String message) {
         try {
-            final var sendMsgRequest = SendMessageRequest.builder()
-                    .queueUrl(queueUrl)
-                    .messageBody(message)
-                    .delaySeconds(5)
-                    .build();
+            var taskInfo = new TaskInformation() {
 
-            sqsClient.sendMessage(sendMsgRequest);
-        } catch (SqsException e) {
-            System.err.println(e.awsErrorDetails().errorMessage());
-            System.exit(1);
+                @Override
+                public String getInboundMessageId() {
+                    return "XXX";
+                }
+
+                @Override
+                public boolean isPoison() {
+                    return false;
+                }
+            };
+
+            sqsWorkerQueue.publish(taskInfo, message.getBytes(StandardCharsets.UTF_8), queueUrl, null);
+        } catch (final Exception e) {
+            fail(e.getMessage());
         }
     }
 }
