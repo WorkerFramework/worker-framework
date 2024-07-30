@@ -45,7 +45,11 @@ public class SQSWorkerQueueIT {
     public static void setUpBeforeClass() throws Exception {
         callback = new TaskCallback() {
             @Override
-            public void registerNewTask(TaskInformation taskInformation, byte[] taskData, Map<String, Object> headers) throws TaskRejectedException, InvalidTaskException {
+            public void registerNewTask(
+                    TaskInformation taskInformation,
+                    byte[] taskData,
+                    Map<String, Object> headers
+            ) throws TaskRejectedException, InvalidTaskException {
 
             }
 
