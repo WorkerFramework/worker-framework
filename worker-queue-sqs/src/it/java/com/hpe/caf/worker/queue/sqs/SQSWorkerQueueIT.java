@@ -15,46 +15,59 @@
  */
 package com.hpe.caf.worker.queue.sqs;
 
-import com.hpe.caf.api.worker.*;
+import com.amazon.sqs.javamessaging.SQSConnection;
+import com.hpe.caf.api.worker.InvalidTaskException;
+import com.hpe.caf.api.worker.TaskCallback;
+import com.hpe.caf.api.worker.TaskInformation;
+import com.hpe.caf.api.worker.TaskRejectedException;
 import com.hpe.caf.configs.SQSConfiguration;
 import org.testng.Assert;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;
-import software.amazon.awssdk.auth.credentials.AwsCredentials;
-import software.amazon.awssdk.awscore.exception.AwsServiceException;
-import software.amazon.awssdk.core.exception.SdkClientException;
-import software.amazon.awssdk.regions.Region;
-import software.amazon.awssdk.services.sqs.SqsClient;
-import software.amazon.awssdk.services.sqs.model.*;
 
-import java.net.URI;
+import jakarta.jms.MessageConsumer;
+
 import java.nio.charset.StandardCharsets;
 import java.util.Map;
 
+import software.amazon.awssdk.services.sqs.SqsClient;
+import software.amazon.awssdk.services.sqs.model.DeleteMessageRequest;
+import software.amazon.awssdk.services.sqs.model.GetQueueUrlRequest;
+import software.amazon.awssdk.services.sqs.model.ReceiveMessageRequest;
+
 import static org.testng.AssertJUnit.fail;
 
-public class SQSWorkerQueueIT {
+public class SQSWorkerQueueIT
+{
 
     private static TaskCallback callback;
     private static SQSWorkerQueueConfiguration sqsWorkerQueueConfiguration;
     private static SQSConfiguration sqsConfiguration;
-    private static SqsClient sqsClient;
     private static SQSWorkerQueue sqsWorkerQueue;
+    private static MessageConsumer consumer;
+    private static SQSConnection connection;
+    private static SqsClient sqsClient;
+
+    private final static int visibilityTimeout = 5;
 
     @BeforeClass
-    public static void setUpBeforeClass() throws Exception {
-        callback = new TaskCallback() {
+    public static void setUpBeforeClass() throws Exception
+    {
+        callback = new TaskCallback()
+        {
             @Override
             public void registerNewTask(
                     TaskInformation taskInformation,
                     byte[] taskData,
                     Map<String, Object> headers
-            ) throws TaskRejectedException, InvalidTaskException {
+            ) throws TaskRejectedException, InvalidTaskException
+            {
 
             }
 
             @Override
-            public void abortTasks() {
+            public void abortTasks()
+            {
 
             }
         };
@@ -71,92 +84,186 @@ public class SQSWorkerQueueIT {
         sqsWorkerQueueConfiguration.setSQSConfiguration(sqsConfiguration);
         sqsWorkerQueueConfiguration.setInputQueue("worker-in");
         sqsWorkerQueueConfiguration.setRetryQueue("retry-in");
-
-        sqsClient = SqsClient.builder()
-                    .endpointOverride(new URI(sqsConfiguration.getURIString()))
-                    .region(Region.of(sqsConfiguration.getSqsRegion()))
-                    .credentialsProvider(() -> new AwsCredentials() {
-                        @Override
-                        public String accessKeyId() {
-                            return sqsConfiguration.getSqsAccessKey();
-                        }
-
-                        @Override
-                        public String secretAccessKey() {
-                            return sqsConfiguration.getSqsSecretAccessKey();
-                        }
-                    })
-                    .build();
+        sqsWorkerQueueConfiguration.setVisibilityTimeout(visibilityTimeout);
 
         sqsWorkerQueue = new SQSWorkerQueue(sqsWorkerQueueConfiguration);
         sqsWorkerQueue.start(callback);
+
+        connection = createConnection();
+        sqsClient = connection.getAmazonSQSClient();
     }
 
     @Test
-    public void testInputQueueIsCreated() {
-        try {
-            final GetQueueUrlRequest getQueueUrlRequest = GetQueueUrlRequest.builder()
+    public void testInputQueueIsCreated()
+    {
+        try
+        {
+            final var getQueueUrlRequest = GetQueueUrlRequest.builder()
                     .queueName(sqsWorkerQueueConfiguration.getInputQueue())
                     .build();
             sqsClient.getQueueUrl(getQueueUrlRequest);
-        } catch (final Exception e) {
-            fail("The input queue was not created");
+        } catch (final Exception e)
+        {
+            fail("The input queue was not created:" + e.getMessage());
         }
     }
 
     @Test
-    public void testRetryQueueIsCreated() {
-        try {
-            final GetQueueUrlRequest getQueueUrlRequest = GetQueueUrlRequest.builder()
+    public void testRetryQueueIsCreated()
+    {
+        try
+        {
+            final var getQueueUrlRequest = GetQueueUrlRequest.builder()
                     .queueName(sqsWorkerQueueConfiguration.getRetryQueue())
                     .build();
             sqsClient.getQueueUrl(getQueueUrlRequest);
-        } catch (final Exception e) {
+        } catch (final Exception e)
+        {
             fail("The retry queue was not created");
         }
     }
 
     @Test
-    public void testPublishToAnExistingQueueDoesNotThrowException() throws Exception {
-        try {
+    public void testPublishToAnExistingQueueDoesNotThrowException()
+    {
+        try
+        {
             sendMessage(sqsWorkerQueue, sqsWorkerQueueConfiguration.getInputQueue(), "Hello-World");
-        } catch (final Exception e) {
+            final var receiveRequest = ReceiveMessageRequest.builder()
+                    .queueUrl(getQueueUrl(sqsWorkerQueueConfiguration.getInputQueue()))
+                    .build();
+            final var receiveMessageResult = sqsClient.receiveMessage(receiveRequest).messages();
+            final var msg = receiveMessageResult.get(0);
+            deleteMessage(sqsWorkerQueueConfiguration.getInputQueue(), msg.receiptHandle());
+        } catch (final Exception e)
+        {
             fail("No exception should have been thrown");
         }
     }
 
     @Test
-    public void testPublish() throws Exception {
-        var publishQueue = "publish-queue";
-        sendMessage(sqsWorkerQueue, publishQueue, "Hello-World");
+    public void testPublish() throws Exception
+    {
+        final var queueName = "Publish";
+        final var msgBody = "Hello-World";
+        sendMessage(sqsWorkerQueue, queueName, msgBody);
         Thread.sleep(5000);
         final var receiveRequest = ReceiveMessageRequest.builder()
-                .queueUrl(sqsWorkerQueue.getDeclaredQueues().get(publishQueue))
+                .queueUrl(getQueueUrl(queueName))
                 .build();
-        final var messages = sqsClient.receiveMessage(receiveRequest).messages();
-        Assert.assertEquals(messages.size(), 1);
-        var msg = messages.get(0).body();
-        Assert.assertEquals(msg, "Hello-World");
+        final var receiveMessageResult = sqsClient.receiveMessage(receiveRequest).messages();
+        Assert.assertEquals(receiveMessageResult.size(), 1, "Wrong number of receiveMessageResult");
+        final var msg = receiveMessageResult.get(0);
+        final var body = msg.body();
+        Assert.assertEquals(body, msgBody, "Message was not as expected");
+
+        deleteMessage(queueName, msg.receiptHandle());
     }
 
-    public static void sendMessage(final SQSWorkerQueue sqsWorkerQueue, final String queueUrl, final String message) {
-        try {
-            var taskInfo = new TaskInformation() {
+    @Test
+    public void testExpiredVisibilityTimeout() throws Exception
+    {
+        final var queueName = "ExpiredVisibility";
+        final var msgBody = "Redelivery";
+        sendMessage(sqsWorkerQueue, queueName, msgBody);
+        Thread.sleep(5000);
+        final var receiveRequest = ReceiveMessageRequest.builder()
+                .queueUrl(getQueueUrl(queueName))
+                .build();
+        final var receiveMessageResult = sqsClient.receiveMessage(receiveRequest).messages();
+        Assert.assertEquals(receiveMessageResult.size(), 1, "Wrong number of receiveMessageResult");
+        final var msg = receiveMessageResult.get(0);
+        final var body = msg.body();
+        Assert.assertEquals(body, msgBody, "Message was not as expected");
+
+        Thread.sleep(5000 + (visibilityTimeout * 1000));
+        final var redeliveredMessageResult = sqsClient.receiveMessage(receiveRequest).messages();
+        Assert.assertEquals(redeliveredMessageResult.size(), 1, "Wrong number of receiveMessageResult");
+        final var redeliveredMsg = redeliveredMessageResult.get(0);
+        final var redeliveredBody = redeliveredMsg.body();
+        Assert.assertEquals(redeliveredBody, msgBody, "Message was not as expected");
+
+        deleteMessage(queueName, redeliveredMsg.receiptHandle());
+    }
+
+    @Test
+    public void testUnexpiredVisibilityTimeout() throws Exception
+    {
+        final var queueName = "UnexpiredVisibility";
+        final var msgBody = "No-Redelivery";
+        sendMessage(sqsWorkerQueue, queueName, msgBody);
+        Thread.sleep(5000);
+        final var receiveRequest = ReceiveMessageRequest.builder()
+                .queueUrl(getQueueUrl(queueName))
+                .build();
+        final var receiveMessageResult = sqsClient.receiveMessage(receiveRequest).messages();
+        Assert.assertEquals(receiveMessageResult.size(), 1, "Wrong number of receiveMessageResult");
+        final var msg = receiveMessageResult.get(0);
+        final var body = msg.body();
+        Assert.assertEquals(body, msgBody, "Message was not as expected");
+
+        Thread.sleep((visibilityTimeout * 1000) - 5000);
+        final var redeliveredMessageResult = sqsClient.receiveMessage(receiveRequest).messages();
+        Assert.assertEquals(redeliveredMessageResult.size(), 0, "Wrong number of receiveMessageResult");
+
+        deleteMessage(queueName, msg.receiptHandle());
+    }
+
+    public static void sendMessage(final SQSWorkerQueue sqsWorkerQueue, final String queueUrl, final String message)
+    {
+        try
+        {
+            final var taskInfo = new TaskInformation()
+            {
 
                 @Override
-                public String getInboundMessageId() {
+                public String getInboundMessageId()
+                {
                     return "XXX";
                 }
 
                 @Override
-                public boolean isPoison() {
+                public boolean isPoison()
+                {
                     return false;
                 }
             };
 
             sqsWorkerQueue.publish(taskInfo, message.getBytes(StandardCharsets.UTF_8), queueUrl, null);
-        } catch (final Exception e) {
+        } catch (final Exception e)
+        {
             fail(e.getMessage());
         }
+    }
+
+    private static SQSConnection createConnection() throws Exception
+    {
+        final var connectionProvider = new SQSConnectionProviderImpl();
+        return connectionProvider.createConnection(sqsConfiguration);
+    }
+
+    private static void deleteMessage(final String queueName, final String receiptHandle) throws Exception
+    {
+
+        final var deleteRequest = DeleteMessageRequest.builder()
+                .queueUrl(getQueueUrl(queueName))
+                .receiptHandle(receiptHandle)
+                .build();
+        sqsClient.deleteMessage(deleteRequest);
+        Thread.sleep(visibilityTimeout * 1000);
+
+        final var receiveRequest = ReceiveMessageRequest.builder()
+                .queueUrl(getQueueUrl(queueName))
+                .build();
+        final var receiveMessageResult = sqsClient.receiveMessage(receiveRequest);
+        Assert.assertEquals(receiveMessageResult.messages().size(), 0, "Queue should be empty");
+    }
+
+    private static String getQueueUrl(final String queueName)
+    {
+        final var getQueueUrlRequest = GetQueueUrlRequest.builder()
+                .queueName(queueName)
+                .build();
+        return sqsClient.getQueueUrl(getQueueUrlRequest).queueUrl();
     }
 }

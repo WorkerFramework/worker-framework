@@ -43,6 +43,17 @@ public class SQSWorkerQueueConfiguration
     private String inputQueue;
 
     /**
+     * Immediately after a message is received, it remains in the queue. To prevent other consumers from
+     * processing the message again, Amazon SQS sets a visibility timeout, a period of time during which
+     * Amazon SQS prevents all consumers from receiving and processing the message.
+     * <p>
+     * The default visibility timeout for a message is 30 seconds. The minimum is 0 seconds. The maximum is 12 hours
+     */
+    @Min(30)
+    @Max(43200)
+    private int visibilityTimeout;
+
+    /**
      * The queue to put messages sent to a paused worker on. If this is null, messages sent to a paused worker will be processed as
      * normal (as if the worker was not paused).
      */
@@ -150,7 +161,8 @@ public class SQSWorkerQueueConfiguration
         return maxPriority;
     }
 
-    public void setMaxPriority(int maxPriority) {
+    public void setMaxPriority(int maxPriority)
+    {
         this.maxPriority = maxPriority;
     }
 
@@ -162,6 +174,26 @@ public class SQSWorkerQueueConfiguration
     public void setQueueType(String queueType)
     {
         this.queueType = queueType;
+    }
+
+    public int getVisibilityTimeout()
+    {
+        return visibilityTimeout;
+    }
+
+    public void setVisibilityTimeout(int visibilityTimeout)
+    {
+        this.visibilityTimeout = visibilityTimeout;
+    }
+
+    public SQSConfiguration getSqsConfiguration()
+    {
+        return sqsConfiguration;
+    }
+
+    public void setSqsConfiguration(SQSConfiguration sqsConfiguration)
+    {
+        this.sqsConfiguration = sqsConfiguration;
     }
 }
 

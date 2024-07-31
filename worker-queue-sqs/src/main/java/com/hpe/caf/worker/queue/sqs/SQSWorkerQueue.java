@@ -16,13 +16,7 @@
 package com.hpe.caf.worker.queue.sqs;
 
 import com.amazon.sqs.javamessaging.AmazonSQSMessagingClientWrapper;
-import com.amazon.sqs.javamessaging.ProviderConfiguration;
-import com.amazon.sqs.javamessaging.SQSConnectionFactory;
-import com.amazonaws.auth.AWSCredentials;
-import com.amazonaws.auth.AWSCredentialsProvider;
-import com.amazonaws.client.builder.AwsClientBuilder;
-import com.amazonaws.regions.Regions;
-import com.amazonaws.services.sqs.AmazonSQSClientBuilder;
+import com.amazon.sqs.javamessaging.SQSConnection;
 import com.hpe.caf.api.HealthResult;
 import com.hpe.caf.api.worker.ManagedWorkerQueue;
 import com.hpe.caf.api.worker.QueueException;
@@ -31,127 +25,116 @@ import com.hpe.caf.api.worker.TaskInformation;
 import com.hpe.caf.api.worker.WorkerQueueMetricsReporter;
 import com.hpe.caf.configs.SQSConfiguration;
 
-import java.net.URISyntaxException;
 import java.nio.charset.StandardCharsets;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
+import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.LinkedBlockingQueue;
+import java.util.concurrent.TimeUnit;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import javax.jms.JMSException;
+import jakarta.jms.JMSException;
+import jakarta.jms.Message;
+import jakarta.jms.MessageConsumer;
+import software.amazon.awssdk.services.sqs.model.CreateQueueRequest;
+import software.amazon.awssdk.services.sqs.model.QueueAttributeName;
+import software.amazon.awssdk.services.sqs.model.SendMessageRequest;
 
 public final class SQSWorkerQueue implements ManagedWorkerQueue
 {
+    private MessageConsumer consumer;
+    private SQSConnection sqsConnection;
+    private AmazonSQSMessagingClientWrapper sqsClient;
     private final SQSWorkerQueueConfiguration sqsQueueConfiguration;
     private final SQSConfiguration sqsConfiguration;
-    private AmazonSQSMessagingClientWrapper client;
-    private final ConcurrentHashMap<String, String> declaredQueues = new ConcurrentHashMap<>();
+    private final Map<String, String> declaredQueues = new ConcurrentHashMap<>();
+    private final BlockingQueue<SQSEvent<SQSQueueConsumer>> consumerQueue = new LinkedBlockingQueue<>();
 
     private static final Logger LOG = LoggerFactory.getLogger(SQSWorkerQueue.class);
 
-    public SQSWorkerQueue(final SQSWorkerQueueConfiguration sqsQueueConfiguration) {
+    public SQSWorkerQueue(final SQSWorkerQueueConfiguration sqsQueueConfiguration)
+    {
         this.sqsQueueConfiguration = Objects.requireNonNull(sqsQueueConfiguration);
         sqsConfiguration = sqsQueueConfiguration.getSQSConfiguration();
     }
 
-    public void start(final TaskCallback callback) throws QueueException {
-        try {
-            client = createSQSClient();
+    public void start(final TaskCallback callback) throws QueueException
+    {
+        try
+        {
+            sqsConnection = createConnection();
+            sqsClient = sqsConnection.getWrappedAmazonSQSClient();
             createQueue(sqsQueueConfiguration.getInputQueue());
             createQueue(sqsQueueConfiguration.getRetryQueue());
-        } catch (final Exception e) {
-            throw new QueueException("Failed to create sqs client", e);
+        } catch (final Exception e)
+        {
+            throw new QueueException("Failed to start worker queue", e);
         }
     }
 
-    private AmazonSQSMessagingClientWrapper createSQSClient() throws JMSException {
-        final var endpoint = new AwsClientBuilder.EndpointConfiguration(
-                sqsConfiguration.getURIString(), sqsConfiguration.getSqsRegion());
-
-        final var connectionFactory = new SQSConnectionFactory(
-                new ProviderConfiguration(),
-                AmazonSQSClientBuilder.standard()
-                        .withEndpointConfiguration(endpoint)
-                        .withCredentials(new AWSCredentialsProvider() {
-                            @Override
-                            public AWSCredentials getCredentials() {
-                                return new AWSCredentials() {
-                                    @Override
-                                    public String getAWSAccessKeyId() {
-                                        return sqsConfiguration.getSqsAccessKey();
-                                    }
-
-                                    @Override
-                                    public String getAWSSecretKey() {
-                                        return sqsConfiguration.getSqsSecretAccessKey();
-                                    }
-                                };
-                            }
-
-                            @Override
-                            public void refresh() {
-
-                            }
-                        })
-
-        );
-
-        final var connection = connectionFactory.createConnection();
-        return connection.getWrappedAmazonSQSClient();
+    private SQSConnection createConnection() throws Exception
+    {
+        final var connectionProvider = new SQSConnectionProviderImpl();
+        return connectionProvider.createConnection(sqsConfiguration);
     }
 
     @Override
-    public void shutdownIncoming() {
+    public void shutdownIncoming()
+    {
 
     }
 
     @Override
-    public void shutdown() {
+    public void shutdown()
+    {
 
     }
 
     @Override
-    public WorkerQueueMetricsReporter getMetrics() {
+    public WorkerQueueMetricsReporter getMetrics()
+    {
         return null;
     }
 
     @Override
-    public void disconnectIncoming() {
+    public void disconnectIncoming()
+    {
 
     }
 
     @Override
-    public void reconnectIncoming() {
+    public void reconnectIncoming()
+    {
 
     }
 
-    public String createQueue(final String queueName) throws QueueException {
-        if (!declaredQueues.containsKey(queueName)) {
-            // DDD whats required here (FIFO etc?)
-            final var attributes = new HashMap<String, String>();
-
-            try {
-                final com.amazonaws.services.sqs.model.CreateQueueRequest createRequest = new com.amazonaws.services.sqs.model.CreateQueueRequest()
-                        .withQueueName(queueName)
-                        .withAttributes(attributes);
-                if (!client.queueExists(queueName)) {
-                    var queueUrl = client.createQueue(createRequest).getQueueUrl();
-                    declaredQueues.put(queueName, queueUrl);
-                    return queueUrl;
-                }
-            } catch (final Exception e) {
-                LOG.error("Error creating queue {} {}", queueName, e.getMessage());
-                throw new QueueException("Error creating queue", e);
-            }
+    public String createQueue(final String queueName) throws JMSException
+    {
+        if (!declaredQueues.containsKey(queueName))
+        {
+            // DDD what else is required here (FIFO etc?)
+            final var attributes = new HashMap<QueueAttributeName, String>();
+            attributes.put(
+                    QueueAttributeName.VISIBILITY_TIMEOUT,
+                    String.valueOf(sqsQueueConfiguration.getVisibilityTimeout())
+            );
+            final var createQueueRequest = CreateQueueRequest.builder()
+                    .queueName(queueName)
+                    .attributes(attributes)
+                    .build();
+            final var response = sqsClient.createQueue(createQueueRequest);
+            declaredQueues.put(queueName, response.queueUrl());
         }
         return declaredQueues.get(queueName);
     }
 
     @Override
-    public HealthResult healthCheck() {
+    public HealthResult healthCheck()
+    {
         return null;
     }
 
@@ -164,14 +147,17 @@ public final class SQSWorkerQueue implements ManagedWorkerQueue
             final boolean isLastMessage // DDD unused
     ) throws QueueException
     {
-        try {
-            var queueUrl = createQueue(targetQueue);
-            final var sendMsgRequest = new com.amazonaws.services.sqs.model.SendMessageRequest()
-                    .withQueueUrl(queueUrl)
-                    .withMessageBody(new String(taskMessage, StandardCharsets.UTF_8));
+        try
+        {
+            final var queueUrl = createQueue(targetQueue);
+            final var sendMsgRequest = SendMessageRequest.builder()
+                    .queueUrl(queueUrl)
+                    .messageBody(new String(taskMessage, StandardCharsets.UTF_8))
+                    .build();
 
-            client.sendMessage(sendMsgRequest);
-        } catch (final Exception e) {
+            sqsClient.sendMessage(sendMsgRequest);
+        } catch (final Exception e)
+        {
             LOG.error("Error publishing task message {} {}", taskInformation.getInboundMessageId(), e.getMessage());
             throw new QueueException("Error publishing task message", e);
         }
@@ -188,44 +174,49 @@ public final class SQSWorkerQueue implements ManagedWorkerQueue
     }
 
     @Override
-    public void rejectTask(final TaskInformation taskInformation) {
+    public void rejectTask(final TaskInformation taskInformation)
+    {
 
     }
 
     @Override
-    public void discardTask(TaskInformation taskInformation) {
+    public void discardTask(TaskInformation taskInformation)
+    {
 
     }
 
     @Override
-    public void acknowledgeTask(TaskInformation taskInformation) {
+    public void acknowledgeTask(TaskInformation taskInformation)
+    {
 
     }
 
     @Override
-    public String getInputQueue() {
+    public String getInputQueue()
+    {
         return sqsQueueConfiguration.getInputQueue();
     }
 
     @Override
-    public String getPausedQueue() {
+    public String getPausedQueue()
+    {
         return sqsQueueConfiguration.getPausedQueue();
     }
 
-    public Map<String, String> getDeclaredQueues() {
-        return declaredQueues;
-    }
-
-    private String getQueueUrl(final String queueName) throws QueueException {
-        final var getQueueUrlRequest = new com.amazonaws.services.sqs.model.GetQueueUrlRequest()
-                .withQueueName(queueName);
-        try {
-            final var queueUrl = client.getQueueUrl(getQueueUrlRequest).getQueueUrl();
-            declaredQueues.put(queueName, queueUrl);
-            return queueUrl;
-        } catch (final Exception e) {
-            LOG.error("Unable to read queue url {} {}", queueName, e.getMessage());
-            throw new QueueException("Unable to read queue url", e);
+    // DDD redundant
+    private void receiveMessages(final MessageConsumer consumer) throws JMSException
+    {
+        while (true)
+        {
+            // Wait 1 minute for a message
+            final Message message = consumer.receive(TimeUnit.MINUTES.toMillis(2));
+            if (message != null)
+            {
+                //consumerQueue.add(message);
+            } else
+            {
+                break;
+            }
         }
     }
 }
