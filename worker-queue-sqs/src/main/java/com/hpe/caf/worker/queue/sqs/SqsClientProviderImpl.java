@@ -17,17 +17,11 @@ package com.hpe.caf.worker.queue.sqs;
 
 import com.hpe.caf.configs.SQSConfiguration;
 import software.amazon.awssdk.auth.credentials.AwsCredentials;
-import software.amazon.awssdk.auth.credentials.AwsCredentialsProvider;
-import software.amazon.awssdk.endpoints.Endpoint;
-import software.amazon.awssdk.identity.spi.AwsCredentialsIdentity;
-import software.amazon.awssdk.identity.spi.ResolveIdentityRequest;
 import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.sqs.SqsClient;
-import software.amazon.awssdk.services.sqs.endpoints.SqsEndpointProvider;
 
 import java.net.URI;
 import java.net.URISyntaxException;
-import java.util.concurrent.CompletableFuture;
 
 public class SqsClientProviderImpl implements SqsClientProvider
 {
@@ -49,47 +43,5 @@ public class SqsClientProviderImpl implements SqsClientProvider
                     }
                 })
                 .build();
-    }
-
-    private SqsEndpointProvider getEndpointProvider(final SQSConfiguration sqsConfiguration)
-    {
-        return endpointParams -> CompletableFuture.completedFuture(Endpoint.builder().url(URI.create(sqsConfiguration.getURIString())).build());
-    }
-
-    private static AwsCredentialsProvider getCredentialsProvider(final SQSConfiguration sqsConfiguration)
-    {
-        return new AwsCredentialsProvider()
-        {
-            @Override
-            public AwsCredentials resolveCredentials()
-            {
-                return new AwsCredentials()
-                {
-                    @Override
-                    public String accessKeyId()
-                    {
-                        return sqsConfiguration.getSqsAccessKey();
-                    }
-
-                    @Override
-                    public String secretAccessKey()
-                    {
-                        return sqsConfiguration.getSqsSecretAccessKey();
-                    }
-                };
-            }
-
-            @Override
-            public Class<AwsCredentialsIdentity> identityType()
-            {
-                return AwsCredentialsProvider.super.identityType();
-            }
-
-            @Override
-            public CompletableFuture<AwsCredentialsIdentity> resolveIdentity(ResolveIdentityRequest request)
-            {
-                return AwsCredentialsProvider.super.resolveIdentity(request);
-            }
-        };
     }
 }

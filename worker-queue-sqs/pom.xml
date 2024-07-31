@@ -54,17 +54,7 @@
             </dependency>
             <dependency>
                 <groupId>software.amazon.awssdk</groupId>
-                <artifactId>endpoints-spi</artifactId>
-                <version>2.21.21</version>
-            </dependency>
-            <dependency>
-                <groupId>software.amazon.awssdk</groupId>
                 <artifactId>sdk-core</artifactId>
-                <version>2.21.21</version>
-            </dependency>
-            <dependency>
-                <groupId>software.amazon.awssdk</groupId>
-                <artifactId>identity-spi</artifactId>
                 <version>2.21.21</version>
             </dependency>
             <dependency>
@@ -116,15 +106,7 @@
         </dependency>
         <dependency>
             <groupId>software.amazon.awssdk</groupId>
-            <artifactId>endpoints-spi</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>software.amazon.awssdk</groupId>
             <artifactId>sdk-core</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>software.amazon.awssdk</groupId>
-            <artifactId>identity-spi</artifactId>
         </dependency>
         <dependency>
             <groupId>jakarta.jms</groupId>
