@@ -15,8 +15,6 @@
  */
 package com.hpe.caf.worker.queue.sqs;
 
-import com.amazon.sqs.javamessaging.AmazonSQSMessagingClientWrapper;
-import com.amazon.sqs.javamessaging.SQSConnection;
 import com.hpe.caf.api.HealthResult;
 import com.hpe.caf.api.worker.ManagedWorkerQueue;
 import com.hpe.caf.api.worker.QueueException;
@@ -40,6 +38,7 @@ import org.slf4j.LoggerFactory;
 import jakarta.jms.JMSException;
 import jakarta.jms.Message;
 import jakarta.jms.MessageConsumer;
+import software.amazon.awssdk.services.sqs.SqsClient;
 import software.amazon.awssdk.services.sqs.model.CreateQueueRequest;
 import software.amazon.awssdk.services.sqs.model.QueueAttributeName;
 import software.amazon.awssdk.services.sqs.model.SendMessageRequest;
@@ -47,14 +46,14 @@ import software.amazon.awssdk.services.sqs.model.SendMessageRequest;
 public final class SQSWorkerQueue implements ManagedWorkerQueue
 {
     private MessageConsumer consumer;
-    private SQSConnection sqsConnection;
-    private AmazonSQSMessagingClientWrapper sqsClient;
+    private SqsClient sqsClient;
     private final SQSWorkerQueueConfiguration sqsQueueConfiguration;
     private final SQSConfiguration sqsConfiguration;
     private final Map<String, String> declaredQueues = new ConcurrentHashMap<>();
     private final BlockingQueue<SQSEvent<SQSQueueConsumer>> consumerQueue = new LinkedBlockingQueue<>();
 
     private static final Logger LOG = LoggerFactory.getLogger(SQSWorkerQueue.class);
+    private static final SqsClientProviderImpl connectionProvider = new SqsClientProviderImpl();
 
     public SQSWorkerQueue(final SQSWorkerQueueConfiguration sqsQueueConfiguration)
     {
@@ -66,20 +65,13 @@ public final class SQSWorkerQueue implements ManagedWorkerQueue
     {
         try
         {
-            sqsConnection = createConnection();
-            sqsClient = sqsConnection.getWrappedAmazonSQSClient();
+            sqsClient = connectionProvider.getSqsClient(sqsConfiguration);
             createQueue(sqsQueueConfiguration.getInputQueue());
             createQueue(sqsQueueConfiguration.getRetryQueue());
         } catch (final Exception e)
         {
             throw new QueueException("Failed to start worker queue", e);
         }
-    }
-
-    private SQSConnection createConnection() throws Exception
-    {
-        final var connectionProvider = new SQSConnectionProviderImpl();
-        return connectionProvider.createConnection(sqsConfiguration);
     }
 
     @Override

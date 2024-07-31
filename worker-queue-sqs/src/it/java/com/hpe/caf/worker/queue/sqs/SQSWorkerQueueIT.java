@@ -15,7 +15,6 @@
  */
 package com.hpe.caf.worker.queue.sqs;
 
-import com.amazon.sqs.javamessaging.SQSConnection;
 import com.hpe.caf.api.worker.InvalidTaskException;
 import com.hpe.caf.api.worker.TaskCallback;
 import com.hpe.caf.api.worker.TaskInformation;
@@ -45,8 +44,8 @@ public class SQSWorkerQueueIT
     private static SQSConfiguration sqsConfiguration;
     private static SQSWorkerQueue sqsWorkerQueue;
     private static MessageConsumer consumer;
-    private static SQSConnection connection;
     private static SqsClient sqsClient;
+    private static final SqsClientProviderImpl connectionProvider = new SqsClientProviderImpl();
 
     private final static int visibilityTimeout = 5;
 
@@ -89,8 +88,7 @@ public class SQSWorkerQueueIT
         sqsWorkerQueue = new SQSWorkerQueue(sqsWorkerQueueConfiguration);
         sqsWorkerQueue.start(callback);
 
-        connection = createConnection();
-        sqsClient = connection.getAmazonSQSClient();
+        sqsClient = connectionProvider.getSqsClient(sqsConfiguration);;
     }
 
     @Test
@@ -234,12 +232,6 @@ public class SQSWorkerQueueIT
         {
             fail(e.getMessage());
         }
-    }
-
-    private static SQSConnection createConnection() throws Exception
-    {
-        final var connectionProvider = new SQSConnectionProviderImpl();
-        return connectionProvider.createConnection(sqsConfiguration);
     }
 
     private static void deleteMessage(final String queueName, final String receiptHandle) throws Exception

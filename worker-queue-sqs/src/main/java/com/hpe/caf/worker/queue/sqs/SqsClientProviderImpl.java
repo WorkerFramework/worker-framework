@@ -15,11 +15,7 @@
  */
 package com.hpe.caf.worker.queue.sqs;
 
-import com.amazon.sqs.javamessaging.ProviderConfiguration;
-import com.amazon.sqs.javamessaging.SQSConnection;
-import com.amazon.sqs.javamessaging.SQSConnectionFactory;
 import com.hpe.caf.configs.SQSConfiguration;
-import jakarta.jms.JMSException;
 import software.amazon.awssdk.auth.credentials.AwsCredentials;
 import software.amazon.awssdk.auth.credentials.AwsCredentialsProvider;
 import software.amazon.awssdk.endpoints.Endpoint;
@@ -30,27 +26,34 @@ import software.amazon.awssdk.services.sqs.SqsClient;
 import software.amazon.awssdk.services.sqs.endpoints.SqsEndpointProvider;
 
 import java.net.URI;
+import java.net.URISyntaxException;
 import java.util.concurrent.CompletableFuture;
 
-public class SQSConnectionProviderImpl implements SQSConnectionProvider
+public class SqsClientProviderImpl implements SqsClientProvider
 {
-
     @Override
-    public SQSConnection createConnection(final SQSConfiguration sqsConfiguration) throws JMSException
+    public SqsClient getSqsClient(final SQSConfiguration sqsConfiguration) throws URISyntaxException
     {
-        final var connectionFactory = new SQSConnectionFactory(new ProviderConfiguration(), getSqsClient(sqsConfiguration));
+        return SqsClient.builder()
+                .endpointOverride(new URI(sqsConfiguration.getURIString()))
+                .region(Region.of(sqsConfiguration.getSqsRegion()))
+                .credentialsProvider(() -> new AwsCredentials() {
+                    @Override
+                    public String accessKeyId() {
+                        return sqsConfiguration.getSqsAccessKey();
+                    }
 
-        return connectionFactory.createConnection();
+                    @Override
+                    public String secretAccessKey() {
+                        return sqsConfiguration.getSqsSecretAccessKey();
+                    }
+                })
+                .build();
     }
 
     private SqsEndpointProvider getEndpointProvider(final SQSConfiguration sqsConfiguration)
     {
         return endpointParams -> CompletableFuture.completedFuture(Endpoint.builder().url(URI.create(sqsConfiguration.getURIString())).build());
-    }
-
-    private SqsClient getSqsClient(final SQSConfiguration sqsConfiguration)
-    {
-        return SqsClient.builder().region(Region.of(sqsConfiguration.getSqsRegion())).endpointProvider(getEndpointProvider(sqsConfiguration)).credentialsProvider(getCredentialsProvider(sqsConfiguration)).build();
     }
 
     private static AwsCredentialsProvider getCredentialsProvider(final SQSConfiguration sqsConfiguration)

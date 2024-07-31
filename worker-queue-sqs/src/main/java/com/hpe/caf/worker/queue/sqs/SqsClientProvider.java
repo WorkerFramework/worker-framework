@@ -15,11 +15,12 @@
  */
 package com.hpe.caf.worker.queue.sqs;
 
-import com.amazon.sqs.javamessaging.SQSConnection;
 import com.hpe.caf.configs.SQSConfiguration;
-import jakarta.jms.JMSException;
+import software.amazon.awssdk.services.sqs.SqsClient;
 
-public interface SQSConnectionProvider
+import java.net.*;
+
+public interface SqsClientProvider
 {
-    SQSConnection createConnection(SQSConfiguration sqsConfiguration) throws JMSException;
+    SqsClient getSqsClient(SQSConfiguration sqsConfiguration) throws URISyntaxException;
 }
