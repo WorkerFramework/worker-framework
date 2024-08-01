@@ -156,6 +156,25 @@ public class SQSWorkerQueueIT
     }
 
     @Test
+    public void testReceiveMultipleMessages() throws Exception
+    {
+        final var queueName = "PublishMultiple";
+        final var msg1 = "Message1";
+        final var msg2 = "Message2";
+        sendMessage(sqsWorkerQueue, queueName, msg1, msg2);
+        Thread.sleep(5000);
+        final var receiveRequest = ReceiveMessageRequest.builder()
+                .queueUrl(SQSUtil.getQueueUrl(sqsClient, queueName))
+                .maxNumberOfMessages(2) // Confirms one message at a time is default
+                .build();
+        final var receiveMessageResult = sqsClient.receiveMessage(receiveRequest).messages();
+        Assert.assertEquals(receiveMessageResult.size(), 2, "Wrong number of receiveMessageResult");
+        var messages = receiveMessageResult.stream().map(msg -> msg.body()).toList();
+        Assert.assertTrue(messages.contains(msg1), "Message 1 was not found");
+        Assert.assertTrue(messages.contains(msg2), "Message 2 was not found");
+    }
+
+    @Test
     public void testMessageIsRedeliveredAfterVisibilityTimeoutExpires() throws Exception
     {
         final var queueName = "ExpiredVisibilityTimeout";
@@ -225,7 +244,7 @@ public class SQSWorkerQueueIT
         deleteMessage(queueName, msg.receiptHandle());
     }
 
-    public static void sendMessage(final SQSWorkerQueue sqsWorkerQueue, final String queueUrl, final String message)
+    public static void sendMessage(final SQSWorkerQueue sqsWorkerQueue, final String queueUrl, final String... messages)
     {
         try
         {
@@ -244,8 +263,10 @@ public class SQSWorkerQueueIT
                     return false;
                 }
             };
-
-            sqsWorkerQueue.publish(taskInfo, message.getBytes(StandardCharsets.UTF_8), queueUrl, null);
+            for (final String message: messages)
+            {
+                sqsWorkerQueue.publish(taskInfo, message.getBytes(StandardCharsets.UTF_8), queueUrl, null);
+            }
         } catch (final Exception e)
         {
             fail(e.getMessage());
