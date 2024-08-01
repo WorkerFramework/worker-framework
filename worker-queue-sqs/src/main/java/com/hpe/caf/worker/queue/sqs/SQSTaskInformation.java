@@ -25,9 +25,9 @@ public class SQSTaskInformation implements TaskInformation
     private final boolean isPoison;
     private static final Logger LOG = LoggerFactory.getLogger(SQSTaskInformation.class);
 
-    public SQSTaskInformation(final String inboundMessageId, final boolean isPoison)
+    public SQSTaskInformation(final String receiptHandle, final boolean isPoison)
     {
-        this.inboundMessageId = inboundMessageId;
+        this.inboundMessageId = receiptHandle;
         this.isPoison = isPoison;
     }
 
