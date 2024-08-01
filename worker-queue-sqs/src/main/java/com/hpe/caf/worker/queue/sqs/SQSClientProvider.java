@@ -20,7 +20,7 @@ import software.amazon.awssdk.services.sqs.SqsClient;
 
 import java.net.*;
 
-public interface SqsClientProvider
+public interface SQSClientProvider
 {
     SqsClient getSqsClient(SQSConfiguration sqsConfiguration) throws URISyntaxException;
 }

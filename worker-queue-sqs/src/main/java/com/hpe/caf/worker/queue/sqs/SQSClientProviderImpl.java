@@ -23,7 +23,7 @@ import software.amazon.awssdk.services.sqs.SqsClient;
 import java.net.URI;
 import java.net.URISyntaxException;
 
-public class SqsClientProviderImpl implements SqsClientProvider
+public class SQSClientProviderImpl implements SQSClientProvider
 {
     @Override
     public SqsClient getSqsClient(final SQSConfiguration sqsConfiguration) throws URISyntaxException
@@ -31,14 +31,17 @@ public class SqsClientProviderImpl implements SqsClientProvider
         return SqsClient.builder()
                 .endpointOverride(new URI(sqsConfiguration.getURIString()))
                 .region(Region.of(sqsConfiguration.getSqsRegion()))
-                .credentialsProvider(() -> new AwsCredentials() {
+                .credentialsProvider(() -> new AwsCredentials()
+                {
                     @Override
-                    public String accessKeyId() {
+                    public String accessKeyId()
+                    {
                         return sqsConfiguration.getSqsAccessKey();
                     }
 
                     @Override
-                    public String secretAccessKey() {
+                    public String secretAccessKey()
+                    {
                         return sqsConfiguration.getSqsSecretAccessKey();
                     }
                 })

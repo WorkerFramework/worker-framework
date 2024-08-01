@@ -16,12 +16,16 @@
 package com.hpe.caf.worker.queue.sqs;
 
 
+import software.amazon.awssdk.services.sqs.model.*;
+
 public interface SQSQueueConsumer
 {
-    void processDelivery(final Object message);
+    void processMessage(final Message message);
 
     // DDD still unclear what arg is required here for SQS
     void processAck(final long tag);
+
     void processReject(final long tag);
+
     void processDrop(final long tag);
 }

@@ -18,37 +18,28 @@ package com.hpe.caf.worker.queue.sqs;
 import com.hpe.caf.api.worker.TaskCallback;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import software.amazon.awssdk.services.sqs.model.*;
 
 import java.util.concurrent.*;
 
 public class SQSWorkerQueueConsumerImpl implements SQSQueueConsumer
 {
-    public static final String REJECTED_REASON_TASKMESSAGE = "TASKMESSAGE_INVALID";
     private final TaskCallback callback;
-    private final BlockingQueue<SQSEvent<SQSQueueConsumer>> consumerEventQueue;
-    private final BlockingQueue<SQSEvent<SQSWorkerPublisher>> publisherEventQueue;
-    private final String retryQueue;
-    private final int retryLimit;
+    private final BlockingQueue<Message> consumerEventQueue;
     private static final Logger LOG = LoggerFactory.getLogger(SQSWorkerQueueConsumerImpl.class);
     // DDD how are metrics handles used?
 
 
     public SQSWorkerQueueConsumerImpl(
             final TaskCallback callback,
-            final BlockingQueue<SQSEvent<SQSQueueConsumer>> consumerEventQueue,
-            final BlockingQueue<SQSEvent<SQSWorkerPublisher>> publisherEventQueue,
-            final String retryQueue,
-            final int retryLimit)
+            final BlockingQueue<Message> consumerEventQueue)
     {
         this.callback = callback;
         this.consumerEventQueue = consumerEventQueue;
-        this.publisherEventQueue = publisherEventQueue;
-        this.retryQueue = retryQueue;
-        this.retryLimit = retryLimit;
     }
 
     @Override
-    public void processDelivery(final Object message)
+    public void processMessage(final Message message)
     {
         // DDD How are retries reported for SQS
         // DDD metrics would be updated here

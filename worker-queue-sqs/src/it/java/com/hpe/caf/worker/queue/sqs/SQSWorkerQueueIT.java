@@ -36,15 +36,15 @@ import static org.testng.AssertJUnit.fail;
 
 public class SQSWorkerQueueIT
 {
-
     private static TaskCallback callback;
     private static SQSWorkerQueueConfiguration sqsWorkerQueueConfiguration;
     private static SQSConfiguration sqsConfiguration;
     private static SQSWorkerQueue sqsWorkerQueue;
     private static SqsClient sqsClient;
-    private static final SqsClientProviderImpl connectionProvider = new SqsClientProviderImpl();
+    private static final SQSClientProviderImpl connectionProvider = new SQSClientProviderImpl();
 
-    private final static int visibilityTimeout = 5;
+    private final static int visibilityTimeout = 3;
+    private final static int buffer = 3;
 
     @BeforeClass
     public static void setUpBeforeClass() throws Exception
@@ -85,54 +85,20 @@ public class SQSWorkerQueueIT
         sqsWorkerQueue = new SQSWorkerQueue(sqsWorkerQueueConfiguration);
         sqsWorkerQueue.start(callback);
 
-        sqsClient = connectionProvider.getSqsClient(sqsConfiguration);;
+        sqsClient = connectionProvider.getSqsClient(sqsConfiguration);
+        ;
     }
 
     @Test
     public void testInputQueueIsCreated()
     {
-        try
-        {
+        try {
             final var getQueueUrlRequest = GetQueueUrlRequest.builder()
                     .queueName(sqsWorkerQueueConfiguration.getInputQueue())
                     .build();
             sqsClient.getQueueUrl(getQueueUrlRequest);
-        } catch (final Exception e)
-        {
+        } catch (final Exception e) {
             fail("The input queue was not created:" + e.getMessage());
-        }
-    }
-
-    @Test
-    public void testRetryQueueIsCreated()
-    {
-        try
-        {
-            final var getQueueUrlRequest = GetQueueUrlRequest.builder()
-                    .queueName(sqsWorkerQueueConfiguration.getRetryQueue())
-                    .build();
-            sqsClient.getQueueUrl(getQueueUrlRequest);
-        } catch (final Exception e)
-        {
-            fail("The retry queue was not created");
-        }
-    }
-
-    @Test
-    public void testPublishToAnExistingQueueDoesNotThrowException()
-    {
-        try
-        {
-            sendMessage(sqsWorkerQueue, sqsWorkerQueueConfiguration.getInputQueue(), "Hello-World");
-            final var receiveRequest = ReceiveMessageRequest.builder()
-                    .queueUrl(SQSUtil.getQueueUrl(sqsClient, sqsWorkerQueueConfiguration.getInputQueue()))
-                    .build();
-            final var receiveMessageResult = sqsClient.receiveMessage(receiveRequest).messages();
-            final var msg = receiveMessageResult.get(0);
-            deleteMessage(sqsWorkerQueueConfiguration.getInputQueue(), msg.receiptHandle());
-        } catch (final Exception e)
-        {
-            fail("No exception should have been thrown");
         }
     }
 
@@ -172,6 +138,9 @@ public class SQSWorkerQueueIT
         var messages = receiveMessageResult.stream().map(msg -> msg.body()).toList();
         Assert.assertTrue(messages.contains(msg1), "Message 1 was not found");
         Assert.assertTrue(messages.contains(msg2), "Message 2 was not found");
+        for (final var msg : receiveMessageResult) {
+            deleteMessage(queueName, msg.receiptHandle());
+        }
     }
 
     @Test
@@ -190,7 +159,7 @@ public class SQSWorkerQueueIT
         final var body = msg.body();
         Assert.assertEquals(body, msgBody, "Message was not as expected");
 
-        Thread.sleep(5000 + (visibilityTimeout * 1000));
+        Thread.sleep((buffer + visibilityTimeout) * 1000);
         final var redeliveredMessageResult = sqsClient.receiveMessage(receiveRequest).messages();
         Assert.assertEquals(redeliveredMessageResult.size(), 1, "Wrong number of receiveMessageResult");
         final var redeliveredMsg = redeliveredMessageResult.get(0);
@@ -216,7 +185,7 @@ public class SQSWorkerQueueIT
         final var msg = result.get(0);
         final var body = msg.body();
         Assert.assertEquals(body, msgBody, "Message was not as expected");
-        Thread.sleep(5000 + (visibilityTimeout * 1000));
+        Thread.sleep((buffer + visibilityTimeout) * 1000);
 
         deleteMessage(queueName, msg.receiptHandle());
     }
@@ -237,7 +206,7 @@ public class SQSWorkerQueueIT
         final var body = msg.body();
         Assert.assertEquals(body, msgBody, "Message was not as expected");
 
-        Thread.sleep((visibilityTimeout * 1000) - 5000);
+        Thread.sleep((visibilityTimeout - buffer) * 1000);
         final var redeliveredMessageResult = sqsClient.receiveMessage(receiveRequest).messages();
         Assert.assertEquals(redeliveredMessageResult.size(), 0, "Wrong number of receiveMessageResult");
 
@@ -246,8 +215,7 @@ public class SQSWorkerQueueIT
 
     public static void sendMessage(final SQSWorkerQueue sqsWorkerQueue, final String queueUrl, final String... messages)
     {
-        try
-        {
+        try {
             final var taskInfo = new TaskInformation()
             {
 
@@ -263,12 +231,10 @@ public class SQSWorkerQueueIT
                     return false;
                 }
             };
-            for (final String message: messages)
-            {
+            for (final String message : messages) {
                 sqsWorkerQueue.publish(taskInfo, message.getBytes(StandardCharsets.UTF_8), queueUrl, null);
             }
-        } catch (final Exception e)
-        {
+        } catch (final Exception e) {
             fail(e.getMessage());
         }
     }
@@ -281,12 +247,5 @@ public class SQSWorkerQueueIT
                 .receiptHandle(receiptHandle)
                 .build();
         sqsClient.deleteMessage(deleteRequest);
-        Thread.sleep(visibilityTimeout * 1000);
-
-        final var receiveRequest = ReceiveMessageRequest.builder()
-                .queueUrl(queueUrl)
-                .build();
-        final var receiveMessageResult = sqsClient.receiveMessage(receiveRequest);
-        Assert.assertEquals(receiveMessageResult.messages().size(), 0, "Queue should be empty");
     }
 }

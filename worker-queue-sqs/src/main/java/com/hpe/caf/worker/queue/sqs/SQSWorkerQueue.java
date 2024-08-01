@@ -34,8 +34,6 @@ import java.util.concurrent.LinkedBlockingQueue;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import software.amazon.awssdk.awscore.exception.*;
-import software.amazon.awssdk.core.exception.*;
 import software.amazon.awssdk.services.sqs.SqsClient;
 import software.amazon.awssdk.services.sqs.model.*;
 
@@ -45,10 +43,11 @@ public final class SQSWorkerQueue implements ManagedWorkerQueue
     private final SQSWorkerQueueConfiguration sqsQueueConfiguration;
     private final SQSConfiguration sqsConfiguration;
     private final Map<String, String> declaredQueues = new ConcurrentHashMap<>();
-    private final BlockingQueue<SQSEvent<SQSQueueConsumer>> consumerQueue = new LinkedBlockingQueue<>();
+    private final BlockingQueue<Message> consumerQueue = new LinkedBlockingQueue<>();
+    private Thread consumerThread;
 
     private static final Logger LOG = LoggerFactory.getLogger(SQSWorkerQueue.class);
-    private static final SqsClientProviderImpl connectionProvider = new SqsClientProviderImpl();
+    private static final SQSClientProviderImpl clientProvider = new SQSClientProviderImpl();
 
     public SQSWorkerQueue(final SQSWorkerQueueConfiguration sqsQueueConfiguration)
     {
@@ -58,13 +57,16 @@ public final class SQSWorkerQueue implements ManagedWorkerQueue
 
     public void start(final TaskCallback callback) throws QueueException
     {
-        try
-        {
-            sqsClient = connectionProvider.getSqsClient(sqsConfiguration);
-            createQueue(sqsQueueConfiguration.getInputQueue());
-            createQueue(sqsQueueConfiguration.getRetryQueue());
-        } catch (final Exception e)
-        {
+        if (sqsClient != null) {
+            throw new IllegalStateException("Already started");
+        }
+        try {
+            sqsClient = clientProvider.getSqsClient(sqsConfiguration);
+            var queueUrl = createQueue(sqsQueueConfiguration.getInputQueue());
+            var consumer = new SQSQueueListener(consumerQueue, sqsClient, queueUrl);
+            consumerThread = new Thread(consumer);
+            consumerThread.start();
+        } catch (final Exception e) {
             throw new QueueException("Failed to start worker queue", e);
         }
     }
@@ -100,14 +102,12 @@ public final class SQSWorkerQueue implements ManagedWorkerQueue
     }
 
     /**
-     *
      * @param queueName
      * @return
      */
     private String createQueue(final String queueName)
     {
-        if (!declaredQueues.containsKey(queueName))
-        {
+        if (!declaredQueues.containsKey(queueName)) {
             // DDD what else is required here (FIFO etc?)
             final var attributes = new HashMap<QueueAttributeName, String>();
             attributes.put(
@@ -118,12 +118,10 @@ public final class SQSWorkerQueue implements ManagedWorkerQueue
                     .queueName(queueName)
                     .attributes(attributes)
                     .build();
-            try
-            {
+            try {
                 final var response = sqsClient.createQueue(createQueueRequest);
                 declaredQueues.put(queueName, response.queueUrl());
-            } catch (final QueueNameExistsException e)
-            {
+            } catch (final QueueNameExistsException e) {
                 LOG.info("Queue already exists {} {}", queueName, e.getMessage());
                 declaredQueues.put(queueName, SQSUtil.getQueueUrl(sqsClient, queueName));
             }
@@ -146,8 +144,7 @@ public final class SQSWorkerQueue implements ManagedWorkerQueue
             final boolean isLastMessage // DDD unused ?
     ) throws QueueException
     {
-        try
-        {
+        try {
             final var queueUrl = createQueue(targetQueue);
             final var sendMsgRequest = SendMessageRequest.builder()
                     .queueUrl(queueUrl)
@@ -155,8 +152,7 @@ public final class SQSWorkerQueue implements ManagedWorkerQueue
                     .build();
 
             sqsClient.sendMessage(sendMsgRequest);
-        } catch (final Exception e)
-        {
+        } catch (final Exception e) {
             LOG.error("Error publishing task message {} {}", taskInformation.getInboundMessageId(), e.getMessage());
             throw new QueueException("Error publishing task message", e);
         }
