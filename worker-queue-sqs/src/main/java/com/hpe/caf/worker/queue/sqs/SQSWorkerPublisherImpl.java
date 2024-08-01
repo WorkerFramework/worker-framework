@@ -15,13 +15,13 @@
  */
 package com.hpe.caf.worker.queue.sqs;
 
+import com.hpe.caf.api.worker.*;
 
-public interface SQSQueueConsumer
+public class SQSWorkerPublisherImpl implements SQSWorkerPublisher
 {
-    void processDelivery(final Object message);
+    @Override
+    public void handlePublish(final byte[] data, final String queueName, final TaskInformation taskInformation)
+    {
 
-    // DDD still unclear what arg is required here for SQS
-    void processAck(final long tag);
-    void processReject(final long tag);
-    void processDrop(final long tag);
+    }
 }

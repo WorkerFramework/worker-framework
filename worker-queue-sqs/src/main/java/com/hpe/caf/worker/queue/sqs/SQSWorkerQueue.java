@@ -30,14 +30,10 @@ import java.util.Objects;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.LinkedBlockingQueue;
-import java.util.concurrent.TimeUnit;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import jakarta.jms.JMSException;
-import jakarta.jms.Message;
-import jakarta.jms.MessageConsumer;
 import software.amazon.awssdk.services.sqs.SqsClient;
 import software.amazon.awssdk.services.sqs.model.CreateQueueRequest;
 import software.amazon.awssdk.services.sqs.model.QueueAttributeName;
@@ -45,7 +41,6 @@ import software.amazon.awssdk.services.sqs.model.SendMessageRequest;
 
 public final class SQSWorkerQueue implements ManagedWorkerQueue
 {
-    private MessageConsumer consumer;
     private SqsClient sqsClient;
     private final SQSWorkerQueueConfiguration sqsQueueConfiguration;
     private final SQSConfiguration sqsConfiguration;
@@ -104,7 +99,7 @@ public final class SQSWorkerQueue implements ManagedWorkerQueue
 
     }
 
-    public String createQueue(final String queueName) throws JMSException
+    public String createQueue(final String queueName)
     {
         if (!declaredQueues.containsKey(queueName))
         {
@@ -193,22 +188,5 @@ public final class SQSWorkerQueue implements ManagedWorkerQueue
     public String getPausedQueue()
     {
         return sqsQueueConfiguration.getPausedQueue();
-    }
-
-    // DDD redundant
-    private void receiveMessages(final MessageConsumer consumer) throws JMSException
-    {
-        while (true)
-        {
-            // Wait 1 minute for a message
-            final Message message = consumer.receive(TimeUnit.MINUTES.toMillis(2));
-            if (message != null)
-            {
-                //consumerQueue.add(message);
-            } else
-            {
-                break;
-            }
-        }
     }
 }

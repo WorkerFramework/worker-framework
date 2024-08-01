@@ -57,11 +57,6 @@
                 <artifactId>sdk-core</artifactId>
                 <version>2.21.21</version>
             </dependency>
-            <dependency>
-                <groupId>jakarta.jms</groupId>
-                <artifactId>jakarta.jms-api</artifactId>
-                <version>3.1.0</version>
-            </dependency>
         </dependencies>
     </dependencyManagement>
 
@@ -107,10 +102,6 @@
         <dependency>
             <groupId>software.amazon.awssdk</groupId>
             <artifactId>sdk-core</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>jakarta.jms</groupId>
-            <artifactId>jakarta.jms-api</artifactId>
         </dependency>
         <dependency>
             <groupId>jakarta.validation</groupId>

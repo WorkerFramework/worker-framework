@@ -24,8 +24,6 @@ import org.testng.Assert;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;
 
-import jakarta.jms.MessageConsumer;
-
 import java.nio.charset.StandardCharsets;
 import java.util.Map;
 
@@ -43,7 +41,6 @@ public class SQSWorkerQueueIT
     private static SQSWorkerQueueConfiguration sqsWorkerQueueConfiguration;
     private static SQSConfiguration sqsConfiguration;
     private static SQSWorkerQueue sqsWorkerQueue;
-    private static MessageConsumer consumer;
     private static SqsClient sqsClient;
     private static final SqsClientProviderImpl connectionProvider = new SqsClientProviderImpl();
 
@@ -159,9 +156,9 @@ public class SQSWorkerQueueIT
     }
 
     @Test
-    public void testExpiredVisibilityTimeout() throws Exception
+    public void testMessageIsRedeliveredAfterVisibilityTimeoutExpires() throws Exception
     {
-        final var queueName = "ExpiredVisibility";
+        final var queueName = "ExpiredVisibilityTimeout";
         final var msgBody = "Redelivery";
         sendMessage(sqsWorkerQueue, queueName, msgBody);
         Thread.sleep(5000);
@@ -185,9 +182,30 @@ public class SQSWorkerQueueIT
     }
 
     @Test
-    public void testUnexpiredVisibilityTimeout() throws Exception
+    public void testThatVisibleMessageCanBeDeleted() throws Exception
     {
-        final var queueName = "UnexpiredVisibility";
+        final var queueName = "DeleteWhenVisible";
+        final var msgBody = "DeleteMeIfVisible";
+        sendMessage(sqsWorkerQueue, queueName, msgBody);
+        Thread.sleep(5000);
+
+        final var receiveRequest = ReceiveMessageRequest.builder()
+                .queueUrl(getQueueUrl(queueName))
+                .build();
+        final var result = sqsClient.receiveMessage(receiveRequest).messages();
+        Assert.assertEquals(result.size(), 1, "Wrong number of receiveMessageResult");
+        final var msg = result.get(0);
+        final var body = msg.body();
+        Assert.assertEquals(body, msgBody, "Message was not as expected");
+        Thread.sleep(5000 + (visibilityTimeout * 1000));
+
+        deleteMessage(queueName, msg.receiptHandle());
+    }
+
+    @Test
+    public void testMessageIsNotRedeliveredDuringVisibilityTimeout() throws Exception
+    {
+        final var queueName = "UnexpiredVisibilityTimeout";
         final var msgBody = "No-Redelivery";
         sendMessage(sqsWorkerQueue, queueName, msgBody);
         Thread.sleep(5000);
