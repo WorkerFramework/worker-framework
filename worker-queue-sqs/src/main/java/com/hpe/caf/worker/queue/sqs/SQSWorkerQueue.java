@@ -34,10 +34,10 @@ import java.util.concurrent.LinkedBlockingQueue;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import software.amazon.awssdk.awscore.exception.*;
+import software.amazon.awssdk.core.exception.*;
 import software.amazon.awssdk.services.sqs.SqsClient;
-import software.amazon.awssdk.services.sqs.model.CreateQueueRequest;
-import software.amazon.awssdk.services.sqs.model.QueueAttributeName;
-import software.amazon.awssdk.services.sqs.model.SendMessageRequest;
+import software.amazon.awssdk.services.sqs.model.*;
 
 public final class SQSWorkerQueue implements ManagedWorkerQueue
 {
@@ -99,7 +99,12 @@ public final class SQSWorkerQueue implements ManagedWorkerQueue
 
     }
 
-    public String createQueue(final String queueName)
+    /**
+     *
+     * @param queueName
+     * @return
+     */
+    private String createQueue(final String queueName)
     {
         if (!declaredQueues.containsKey(queueName))
         {
@@ -113,8 +118,15 @@ public final class SQSWorkerQueue implements ManagedWorkerQueue
                     .queueName(queueName)
                     .attributes(attributes)
                     .build();
-            final var response = sqsClient.createQueue(createQueueRequest);
-            declaredQueues.put(queueName, response.queueUrl());
+            try
+            {
+                final var response = sqsClient.createQueue(createQueueRequest);
+                declaredQueues.put(queueName, response.queueUrl());
+            } catch (final QueueNameExistsException e)
+            {
+                LOG.info("Queue already exists {} {}", queueName, e.getMessage());
+                declaredQueues.put(queueName, SQSUtil.getQueueUrl(sqsClient, queueName));
+            }
         }
         return declaredQueues.get(queueName);
     }
@@ -130,8 +142,8 @@ public final class SQSWorkerQueue implements ManagedWorkerQueue
             final TaskInformation taskInformation,
             final byte[] taskMessage,
             final String targetQueue,
-            final Map<String, Object> headers, // DDD unused
-            final boolean isLastMessage // DDD unused
+            final Map<String, Object> headers, // DDD unused ?
+            final boolean isLastMessage // DDD unused ?
     ) throws QueueException
     {
         try

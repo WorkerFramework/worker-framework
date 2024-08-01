@@ -125,7 +125,7 @@ public class SQSWorkerQueueIT
         {
             sendMessage(sqsWorkerQueue, sqsWorkerQueueConfiguration.getInputQueue(), "Hello-World");
             final var receiveRequest = ReceiveMessageRequest.builder()
-                    .queueUrl(getQueueUrl(sqsWorkerQueueConfiguration.getInputQueue()))
+                    .queueUrl(SQSUtil.getQueueUrl(sqsClient, sqsWorkerQueueConfiguration.getInputQueue()))
                     .build();
             final var receiveMessageResult = sqsClient.receiveMessage(receiveRequest).messages();
             final var msg = receiveMessageResult.get(0);
@@ -144,7 +144,7 @@ public class SQSWorkerQueueIT
         sendMessage(sqsWorkerQueue, queueName, msgBody);
         Thread.sleep(5000);
         final var receiveRequest = ReceiveMessageRequest.builder()
-                .queueUrl(getQueueUrl(queueName))
+                .queueUrl(SQSUtil.getQueueUrl(sqsClient, queueName))
                 .build();
         final var receiveMessageResult = sqsClient.receiveMessage(receiveRequest).messages();
         Assert.assertEquals(receiveMessageResult.size(), 1, "Wrong number of receiveMessageResult");
@@ -163,7 +163,7 @@ public class SQSWorkerQueueIT
         sendMessage(sqsWorkerQueue, queueName, msgBody);
         Thread.sleep(5000);
         final var receiveRequest = ReceiveMessageRequest.builder()
-                .queueUrl(getQueueUrl(queueName))
+                .queueUrl(SQSUtil.getQueueUrl(sqsClient, queueName))
                 .build();
         final var receiveMessageResult = sqsClient.receiveMessage(receiveRequest).messages();
         Assert.assertEquals(receiveMessageResult.size(), 1, "Wrong number of receiveMessageResult");
@@ -190,7 +190,7 @@ public class SQSWorkerQueueIT
         Thread.sleep(5000);
 
         final var receiveRequest = ReceiveMessageRequest.builder()
-                .queueUrl(getQueueUrl(queueName))
+                .queueUrl(SQSUtil.getQueueUrl(sqsClient, queueName))
                 .build();
         final var result = sqsClient.receiveMessage(receiveRequest).messages();
         Assert.assertEquals(result.size(), 1, "Wrong number of receiveMessageResult");
@@ -210,7 +210,7 @@ public class SQSWorkerQueueIT
         sendMessage(sqsWorkerQueue, queueName, msgBody);
         Thread.sleep(5000);
         final var receiveRequest = ReceiveMessageRequest.builder()
-                .queueUrl(getQueueUrl(queueName))
+                .queueUrl(SQSUtil.getQueueUrl(sqsClient, queueName))
                 .build();
         final var receiveMessageResult = sqsClient.receiveMessage(receiveRequest).messages();
         Assert.assertEquals(receiveMessageResult.size(), 1, "Wrong number of receiveMessageResult");
@@ -254,26 +254,18 @@ public class SQSWorkerQueueIT
 
     private static void deleteMessage(final String queueName, final String receiptHandle) throws Exception
     {
-
+        final var queueUrl = SQSUtil.getQueueUrl(sqsClient, queueName);
         final var deleteRequest = DeleteMessageRequest.builder()
-                .queueUrl(getQueueUrl(queueName))
+                .queueUrl(queueUrl)
                 .receiptHandle(receiptHandle)
                 .build();
         sqsClient.deleteMessage(deleteRequest);
         Thread.sleep(visibilityTimeout * 1000);
 
         final var receiveRequest = ReceiveMessageRequest.builder()
-                .queueUrl(getQueueUrl(queueName))
+                .queueUrl(queueUrl)
                 .build();
         final var receiveMessageResult = sqsClient.receiveMessage(receiveRequest);
         Assert.assertEquals(receiveMessageResult.messages().size(), 0, "Queue should be empty");
-    }
-
-    private static String getQueueUrl(final String queueName)
-    {
-        final var getQueueUrlRequest = GetQueueUrlRequest.builder()
-                .queueName(queueName)
-                .build();
-        return sqsClient.getQueueUrl(getQueueUrlRequest).queueUrl();
     }
 }
