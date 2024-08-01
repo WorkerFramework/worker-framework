@@ -16,11 +16,14 @@
 package com.hpe.caf.worker.queue.sqs;
 
 import com.hpe.caf.api.worker.TaskInformation;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class SQSTaskInformation implements TaskInformation
 {
     private final String inboundMessageId;
     private final boolean isPoison;
+    private static final Logger LOG = LoggerFactory.getLogger(SQSTaskInformation.class);
 
     public SQSTaskInformation(final String inboundMessageId, final boolean isPoison)
     {

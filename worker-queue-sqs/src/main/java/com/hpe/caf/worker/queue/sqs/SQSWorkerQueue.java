@@ -71,36 +71,6 @@ public final class SQSWorkerQueue implements ManagedWorkerQueue
         }
     }
 
-    @Override
-    public void shutdownIncoming()
-    {
-
-    }
-
-    @Override
-    public void shutdown()
-    {
-
-    }
-
-    @Override
-    public WorkerQueueMetricsReporter getMetrics()
-    {
-        return null;
-    }
-
-    @Override
-    public void disconnectIncoming()
-    {
-
-    }
-
-    @Override
-    public void reconnectIncoming()
-    {
-
-    }
-
     /**
      * @param queueName
      * @return
@@ -127,12 +97,6 @@ public final class SQSWorkerQueue implements ManagedWorkerQueue
             }
         }
         return declaredQueues.get(queueName);
-    }
-
-    @Override
-    public HealthResult healthCheck()
-    {
-        return null;
     }
 
     @Override
@@ -168,20 +132,9 @@ public final class SQSWorkerQueue implements ManagedWorkerQueue
         publish(taskInformation, taskMessage, targetQueue, headers, false);
     }
 
-    @Override
-    public void rejectTask(final TaskInformation taskInformation)
-    {
-
-    }
-
-    @Override
-    public void discardTask(final TaskInformation taskInformation)
-    {
-
-    }
-
     /**
      * Assumption here is that
+     *
      * @param taskInformation the queue task id that has been acknowledged
      */
     @Override
@@ -192,6 +145,54 @@ public final class SQSWorkerQueue implements ManagedWorkerQueue
                 .receiptHandle(taskInformation.getInboundMessageId())
                 .build();
         sqsClient.deleteMessage(deleteRequest);
+    }
+
+    @Override
+    public HealthResult healthCheck()
+    {
+        return null;
+    }
+
+    @Override
+    public void shutdownIncoming()
+    {
+
+    }
+
+    @Override
+    public void shutdown()
+    {
+
+    }
+
+    @Override
+    public WorkerQueueMetricsReporter getMetrics()
+    {
+        return null;
+    }
+
+    @Override
+    public void disconnectIncoming()
+    {
+
+    }
+
+    @Override
+    public void reconnectIncoming()
+    {
+
+    }
+
+    @Override
+    public void rejectTask(final TaskInformation taskInformation)
+    {
+
+    }
+
+    @Override
+    public void discardTask(final TaskInformation taskInformation)
+    {
+
     }
 
     @Override
