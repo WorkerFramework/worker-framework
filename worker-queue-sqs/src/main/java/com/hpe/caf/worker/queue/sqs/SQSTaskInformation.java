@@ -15,12 +15,28 @@
  */
 package com.hpe.caf.worker.queue.sqs;
 
-public interface SQSEvent<T>
+import com.hpe.caf.api.worker.TaskInformation;
+
+public class SQSTaskInformation implements TaskInformation
 {
-    /**
-     * Trigger the action represented by this Event.
-     *
-     * @param target the class to perform an action on
-     */
-    void handleEvent(final T target);
+    private final String inboundMessageId;
+    private final boolean isPoison;
+
+    public SQSTaskInformation(final String inboundMessageId, final boolean isPoison)
+    {
+        this.inboundMessageId = inboundMessageId;
+        this.isPoison = isPoison;
+    }
+
+    @Override
+    public String getInboundMessageId()
+    {
+        return inboundMessageId;
+    }
+
+    @Override
+    public boolean isPoison()
+    {
+        return TaskInformation.super.isPoison();
+    }
 }

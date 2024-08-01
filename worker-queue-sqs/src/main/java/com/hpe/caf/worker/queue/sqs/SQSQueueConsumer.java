@@ -15,17 +15,68 @@
  */
 package com.hpe.caf.worker.queue.sqs;
 
+import com.hpe.caf.api.worker.InvalidTaskException;
+import com.hpe.caf.api.worker.TaskCallback;
+import com.hpe.caf.api.worker.TaskRejectedException;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import software.amazon.awssdk.services.sqs.SqsClient;
+import software.amazon.awssdk.services.sqs.model.Message;
+import software.amazon.awssdk.services.sqs.model.ReceiveMessageRequest;
 
-import software.amazon.awssdk.services.sqs.model.*;
+import java.nio.charset.StandardCharsets;
 
-public interface SQSQueueConsumer
+public class SQSQueueConsumer implements Runnable
 {
-    void processMessage(final Message message);
+    private final SqsClient sqsClient;
+    private final String queueUrl;
+    private final TaskCallback callback;
+    private final SQSWorkerQueueConfiguration sqsQueueConfiguration;
 
-    // DDD still unclear what arg is required here for SQS
-    void processAck(final long tag);
+    private static final Logger LOG = LoggerFactory.getLogger(SQSQueueConsumer.class);
 
-    void processReject(final long tag);
+    public SQSQueueConsumer(
+            final SqsClient sqsClient,
+            final String queueUrl,
+            final TaskCallback callback, SQSWorkerQueueConfiguration sqsQueueConfiguration)
+    {
+        this.sqsClient = sqsClient;
+        this.queueUrl = queueUrl;
+        this.callback = callback;
+        this.sqsQueueConfiguration = sqsQueueConfiguration;
+    }
 
-    void processDrop(final long tag);
+    @Override
+    public void run()
+    {
+        receiveMessages();
+    }
+
+    public void receiveMessages()
+    {
+        while (true) {
+            final var receiveRequest = ReceiveMessageRequest.builder()
+                    .queueUrl(queueUrl)
+                    .maxNumberOfMessages(1) // DDD configurable??
+                    .waitTimeSeconds(sqsQueueConfiguration.getLongPollInterval())
+                    .build();
+            final var receiveMessageResult = sqsClient.receiveMessage(receiveRequest).messages();
+            for (final var message : receiveMessageResult) {
+                LOG.debug("Received {} on queue {} ", message.body(), queueUrl);
+                registerTask(message);
+            }
+        }
+    }
+
+    private void registerTask(final Message message)
+    {
+        var taskInfo = new SQSTaskInformation(message.receiptHandle(), false);
+        try {
+            callback.registerNewTask(taskInfo, message.body().getBytes(StandardCharsets.UTF_8), null);
+        } catch (final TaskRejectedException e) {
+            throw new RuntimeException("Task rejected", e); // DDD what here
+        } catch (final InvalidTaskException e) {
+            throw new RuntimeException("Invalid task", e); // DDD What here
+        }
+    }
 }

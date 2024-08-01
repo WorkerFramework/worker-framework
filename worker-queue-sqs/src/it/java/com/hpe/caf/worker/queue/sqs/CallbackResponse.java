@@ -15,13 +15,12 @@
  */
 package com.hpe.caf.worker.queue.sqs;
 
-import com.hpe.caf.api.worker.*;
+import com.hpe.caf.api.worker.TaskInformation;
 
-public class SQSWorkerPublisherImpl implements SQSWorkerPublisher
-{
-    @Override
-    public void handlePublish(final byte[] data, final String queueName, final TaskInformation taskInformation)
-    {
+import java.util.Map;
 
-    }
-}
+public record CallbackResponse(
+        TaskInformation taskInformation,
+        String body,
+        Map<String, Object> headers
+) {}

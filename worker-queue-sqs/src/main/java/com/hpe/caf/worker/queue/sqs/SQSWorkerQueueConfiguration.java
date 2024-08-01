@@ -43,6 +43,13 @@ public class SQSWorkerQueueConfiguration
     private String inputQueue;
 
     /**
+     * The duration (in seconds) for which the call waits for a message to arrive in the queue before returning.
+     */
+    @Min(0)
+    @Max(600)
+    private int longPollInterval;
+
+    /**
      * Immediately after a message is received, it remains in the queue. To prevent other consumers from
      * processing the message again, Amazon SQS sets a visibility timeout, a period of time during which
      * Amazon SQS prevents all consumers from receiving and processing the message.
@@ -60,46 +67,12 @@ public class SQSWorkerQueueConfiguration
     @Size(min = 1)
     private String pausedQueue;
 
-    /**
-     * The queue to put redelivered messages on. If this null, the inputQueue will be used.
-     */
-    private String retryQueue;
-
-    /**
-     * The queue to put rejected messages on.
-     */
-    @Deprecated
-    @NotNull
-    @Size(min = 1)
-    private String rejectedQueue;
-
-    /**
-     * The maximum number of times for redelivered messages to be retried before moving them to the rejectedQueue. This does not include
-     * messages explicitly rejected by the Worker at delivery time.
-     */
-    @Min(1)
-    private int retryLimit;
-
-    /**
-     * The maximum message priority supported by this worker queue. 0 to disable priority feature.
-     */
-    @Min(0)
-    @Max(255)
-    private int maxPriority;
-
-    /**
-     * The type of queues to create, can currently be either quorum or classic
-     */
-    @NotNull
-    private String queueType;
-
-
     public SQSConfiguration getSQSConfiguration()
     {
         return sqsConfiguration;
     }
 
-    public void setSQSConfiguration(SQSConfiguration sqsConfiguration)
+    public void setSQSConfiguration(final SQSConfiguration sqsConfiguration)
     {
         this.sqsConfiguration = sqsConfiguration;
     }
@@ -109,71 +82,9 @@ public class SQSWorkerQueueConfiguration
         return inputQueue;
     }
 
-    public void setInputQueue(String inputQueue)
+    public void setInputQueue(final String inputQueue)
     {
         this.inputQueue = inputQueue;
-    }
-
-    public String getPausedQueue()
-    {
-        return pausedQueue;
-    }
-
-    public void setPausedQueue(String pausedQueue)
-    {
-        this.pausedQueue = pausedQueue;
-    }
-
-    public String getRetryQueue()
-    {
-        return retryQueue == null ? inputQueue : retryQueue;
-    }
-
-    public void setRetryQueue(String retryQueue)
-    {
-        this.retryQueue = retryQueue;
-    }
-
-    @Deprecated
-    public String getRejectedQueue()
-    {
-        return rejectedQueue;
-    }
-
-    @Deprecated
-    public void setRejectedQueue(String rejectedQueue)
-    {
-        this.rejectedQueue = rejectedQueue;
-    }
-
-    public int getRetryLimit()
-    {
-        return retryLimit;
-    }
-
-    public void setRetryLimit(int retryLimit)
-    {
-        this.retryLimit = retryLimit;
-    }
-
-    public int getMaxPriority()
-    {
-        return maxPriority;
-    }
-
-    public void setMaxPriority(int maxPriority)
-    {
-        this.maxPriority = maxPriority;
-    }
-
-    public String getQueueType()
-    {
-        return queueType;
-    }
-
-    public void setQueueType(String queueType)
-    {
-        this.queueType = queueType;
     }
 
     public int getVisibilityTimeout()
@@ -181,19 +92,19 @@ public class SQSWorkerQueueConfiguration
         return visibilityTimeout;
     }
 
-    public void setVisibilityTimeout(int visibilityTimeout)
+    public void setVisibilityTimeout(final int visibilityTimeout)
     {
         this.visibilityTimeout = visibilityTimeout;
     }
 
-    public SQSConfiguration getSqsConfiguration()
+    public int getLongPollInterval()
     {
-        return sqsConfiguration;
+        return longPollInterval;
     }
 
-    public void setSqsConfiguration(SQSConfiguration sqsConfiguration)
+    public void setLongPollInterval(final int longPollInterval)
     {
-        this.sqsConfiguration = sqsConfiguration;
+        this.longPollInterval = longPollInterval;
     }
 }
 

@@ -27,9 +27,7 @@ import java.nio.charset.StandardCharsets;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
-import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.LinkedBlockingQueue;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -40,11 +38,12 @@ import software.amazon.awssdk.services.sqs.model.*;
 public final class SQSWorkerQueue implements ManagedWorkerQueue
 {
     private SqsClient sqsClient;
+    private Thread consumerThread;
+    private String inputQueueUrl;
+
     private final SQSWorkerQueueConfiguration sqsQueueConfiguration;
     private final SQSConfiguration sqsConfiguration;
     private final Map<String, String> declaredQueues = new ConcurrentHashMap<>();
-    private final BlockingQueue<Message> consumerQueue = new LinkedBlockingQueue<>();
-    private Thread consumerThread;
 
     private static final Logger LOG = LoggerFactory.getLogger(SQSWorkerQueue.class);
     private static final SQSClientProviderImpl clientProvider = new SQSClientProviderImpl();
@@ -62,8 +61,9 @@ public final class SQSWorkerQueue implements ManagedWorkerQueue
         }
         try {
             sqsClient = clientProvider.getSqsClient(sqsConfiguration);
-            var queueUrl = createQueue(sqsQueueConfiguration.getInputQueue());
-            var consumer = new SQSQueueListener(consumerQueue, sqsClient, queueUrl);
+            inputQueueUrl = createQueue(sqsQueueConfiguration.getInputQueue());
+            var consumer = new SQSQueueConsumer(sqsClient, inputQueueUrl, callback, sqsQueueConfiguration);
+
             consumerThread = new Thread(consumer);
             consumerThread.start();
         } catch (final Exception e) {
@@ -175,15 +175,23 @@ public final class SQSWorkerQueue implements ManagedWorkerQueue
     }
 
     @Override
-    public void discardTask(TaskInformation taskInformation)
+    public void discardTask(final TaskInformation taskInformation)
     {
 
     }
 
+    /**
+     * Assumption here is that
+     * @param taskInformation the queue task id that has been acknowledged
+     */
     @Override
-    public void acknowledgeTask(TaskInformation taskInformation)
+    public void acknowledgeTask(final TaskInformation taskInformation)
     {
-
+        final var deleteRequest = DeleteMessageRequest.builder()
+                .queueUrl(inputQueueUrl)
+                .receiptHandle(taskInformation.getInboundMessageId())
+                .build();
+        sqsClient.deleteMessage(deleteRequest);
     }
 
     @Override
@@ -195,6 +203,7 @@ public final class SQSWorkerQueue implements ManagedWorkerQueue
     @Override
     public String getPausedQueue()
     {
-        return sqsQueueConfiguration.getPausedQueue();
+        // DDD what here
+        return "";
     }
 }
