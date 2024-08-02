@@ -15,6 +15,7 @@
  */
 package com.hpe.caf.worker.queue.sqs;
 
+import com.hpe.caf.api.worker.TaskInformation;
 import com.hpe.caf.configs.SQSConfiguration;
 import org.testng.Assert;
 import org.testng.annotations.BeforeClass;
@@ -96,7 +97,7 @@ public class SQSWorkerQueueIT
         final var body = msg.body();
         Assert.assertEquals(body, msgBody, "Message was not as expected");
 
-        deleteMessage(msg.taskInformation().getInboundMessageId());
+        deleteMessage(getReceiptHandle(msg.taskInformation()));
     }
 
     @Test
@@ -115,7 +116,7 @@ public class SQSWorkerQueueIT
         Assert.assertTrue(messages.contains(msg1), "Message 1 was not found");
         Assert.assertTrue(messages.contains(msg2), "Message 2 was not found");
         for (final var msg : receiveMessageResult) {
-            deleteMessage(msg.taskInformation().getInboundMessageId());
+            deleteMessage(getReceiptHandle(msg.taskInformation()));
         }
     }
 
@@ -135,7 +136,7 @@ public class SQSWorkerQueueIT
         final var redeliveredBody = redeliveredMsg.body();
         Assert.assertEquals(body, redeliveredBody, "Redelivered message was not as expected");
 
-        deleteMessage(redeliveredMsg.taskInformation().getInboundMessageId());
+        deleteMessage(getReceiptHandle(redeliveredMsg.taskInformation()));
     }
 
     public static void sendMessage(final String... messages)
@@ -160,5 +161,11 @@ public class SQSWorkerQueueIT
                 .receiptHandle(receiptHandle)
                 .build();
         sqsClient.deleteMessage(deleteRequest);
+    }
+
+    private static String getReceiptHandle(final TaskInformation taskInformation)
+    {
+        var sqsTaskInformation = (SQSTaskInformation)taskInformation;
+        return sqsTaskInformation.getReceiptHandle();
     }
 }

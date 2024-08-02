@@ -133,16 +133,19 @@ public final class SQSWorkerQueue implements ManagedWorkerQueue
     }
 
     /**
-     * Assumption here is that
      *
      * @param taskInformation the queue task id that has been acknowledged
      */
     @Override
     public void acknowledgeTask(final TaskInformation taskInformation)
     {
+        var sqsTaskInformation = (SQSTaskInformation)taskInformation;
+        // DDD 2 Assumptions here:
+        //  1. The same object passed to the callback is used to ack.
+        //  2. Only acks for the defined input queue will get ack'd.
         final var deleteRequest = DeleteMessageRequest.builder()
                 .queueUrl(inputQueueUrl)
-                .receiptHandle(taskInformation.getInboundMessageId())
+                .receiptHandle(sqsTaskInformation.getReceiptHandle())
                 .build();
         sqsClient.deleteMessage(deleteRequest);
     }

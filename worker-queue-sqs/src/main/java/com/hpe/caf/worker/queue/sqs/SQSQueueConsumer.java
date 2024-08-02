@@ -70,7 +70,7 @@ public class SQSQueueConsumer implements Runnable
 
     private void registerTask(final Message message)
     {
-        final var taskInfo = new SQSTaskInformation(message.receiptHandle(), false);
+        final var taskInfo = new SQSTaskInformation(message.messageId(), message.receiptHandle(), false);
         try {
             callback.registerNewTask(taskInfo, message.body().getBytes(StandardCharsets.UTF_8), null);
         } catch (final TaskRejectedException e) {

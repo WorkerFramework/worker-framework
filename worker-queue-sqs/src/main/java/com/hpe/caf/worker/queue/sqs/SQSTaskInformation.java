@@ -22,12 +22,14 @@ import org.slf4j.LoggerFactory;
 public class SQSTaskInformation implements TaskInformation
 {
     private final String inboundMessageId;
+    private final String receiptHandle;
     private final boolean isPoison;
     private static final Logger LOG = LoggerFactory.getLogger(SQSTaskInformation.class);
 
-    public SQSTaskInformation(final String receiptHandle, final boolean isPoison)
+    public SQSTaskInformation(final String inboundMessageId, final String receiptHandle, final boolean isPoison)
     {
-        this.inboundMessageId = receiptHandle;
+        this.inboundMessageId = inboundMessageId;
+        this.receiptHandle = receiptHandle;
         this.isPoison = isPoison;
     }
 
@@ -35,6 +37,11 @@ public class SQSTaskInformation implements TaskInformation
     public String getInboundMessageId()
     {
         return inboundMessageId;
+    }
+
+    public String getReceiptHandle()
+    {
+        return receiptHandle;
     }
 
     @Override

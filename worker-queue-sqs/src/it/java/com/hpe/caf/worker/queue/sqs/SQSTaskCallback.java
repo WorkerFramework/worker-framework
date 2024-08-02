@@ -35,6 +35,15 @@ public class SQSTaskCallback implements TaskCallback
             final Map<String, Object> headers
     ) throws TaskRejectedException, InvalidTaskException
     {
+        final var body = new String(taskData);
+        if (body.equals("REJECT")) {
+            throw new TaskRejectedException("REJECTED");
+        }
+
+        if (body.equals("INVALID")) {
+            throw new InvalidTaskException("INVALID");
+        }
+
         callbackQueue.add(new CallbackResponse(taskInformation, new String(taskData), headers));
     }
 
