@@ -78,12 +78,7 @@ public final class SQSWorkerQueue implements ManagedWorkerQueue
     private String createQueue(final String queueName)
     {
         if (!declaredQueues.containsKey(queueName)) {
-            // DDD what else is required here (FIFO etc?)
-            final var attributes = new HashMap<QueueAttributeName, String>();
-            attributes.put(
-                    QueueAttributeName.VISIBILITY_TIMEOUT,
-                    String.valueOf(sqsQueueConfiguration.getVisibilityTimeout())
-            );
+            final var attributes = getAttributes();
             final var createQueueRequest = CreateQueueRequest.builder()
                     .queueName(queueName)
                     .attributes(attributes)
@@ -97,6 +92,16 @@ public final class SQSWorkerQueue implements ManagedWorkerQueue
             }
         }
         return declaredQueues.get(queueName);
+    }
+
+    private Map<QueueAttributeName, String> getAttributes()
+    {
+        final var attributes = new HashMap<QueueAttributeName, String>();
+        attributes.put(
+                QueueAttributeName.VISIBILITY_TIMEOUT,
+                String.valueOf(sqsQueueConfiguration.getVisibilityTimeout())
+        );
+        return attributes;
     }
 
     @Override

@@ -16,72 +16,31 @@
 package com.hpe.caf.worker.queue.sqs;
 
 import com.hpe.caf.api.worker.TaskInformation;
-import com.hpe.caf.configs.SQSConfiguration;
 import org.testng.Assert;
-import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;
 
-import software.amazon.awssdk.services.sqs.SqsClient;
 import software.amazon.awssdk.services.sqs.model.DeleteMessageRequest;
 import software.amazon.awssdk.services.sqs.model.GetQueueUrlRequest;
 import software.amazon.awssdk.services.sqs.model.SendMessageRequest;
 
 import java.util.ArrayList;
-import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.TimeUnit;
+import java.util.stream.Collectors;
 
 import static org.testng.AssertJUnit.fail;
 
 public class SQSWorkerQueueIT
 {
-    private static SQSTaskCallback callback;
-    private static BlockingQueue<CallbackResponse> callbackQueue;
-    private static SQSWorkerQueueConfiguration sqsWorkerQueueConfiguration;
-    private static SQSConfiguration sqsConfiguration;
-    private static SQSWorkerQueue sqsWorkerQueue;
-    private static SqsClient sqsClient;
-    private static final SQSClientProviderImpl connectionProvider = new SQSClientProviderImpl();
-
-    private final static int visibilityTimeout = 5;
-    private final static int longPollInterval = 2;
-
-    private static String inputQueueUrl;
-
-    @BeforeClass
-    public static void setUpBeforeClass() throws Exception
-    {
-        callback = new SQSTaskCallback();
-
-        sqsConfiguration = new SQSConfiguration();
-        sqsConfiguration.setSqsProtocol("http");
-        sqsConfiguration.setSqsHost("localhost");
-        sqsConfiguration.setSqsPort(19324);
-        sqsConfiguration.setSqsRegion("us-east-1");
-        sqsConfiguration.setSqsAccessKey("x");
-        sqsConfiguration.setSqsSecretAccessKey("x");
-
-        sqsWorkerQueueConfiguration = new SQSWorkerQueueConfiguration();
-        sqsWorkerQueueConfiguration.setSQSConfiguration(sqsConfiguration);
-        sqsWorkerQueueConfiguration.setInputQueue("worker-in");
-        sqsWorkerQueueConfiguration.setVisibilityTimeout(visibilityTimeout);
-        sqsWorkerQueueConfiguration.setLongPollInterval(longPollInterval);
-
-        sqsWorkerQueue = new SQSWorkerQueue(sqsWorkerQueueConfiguration);
-        sqsWorkerQueue.start(callback);
-
-        sqsClient = connectionProvider.getSqsClient(sqsConfiguration);
-        callbackQueue = callback.getCallbackQueue();
-        inputQueueUrl = SQSUtil.getQueueUrl(sqsClient, sqsWorkerQueueConfiguration.getInputQueue());
-    }
-
     @Test
     public void testInputQueueIsCreated()
     {
         try {
+            var inputQueue = "input-queue-created";
+            var workerWrapper = new SQSWorkerQueueWrapper(inputQueue);
             final var getQueueUrlRequest = GetQueueUrlRequest.builder()
-                    .queueName(sqsWorkerQueueConfiguration.getInputQueue())
+                    .queueName(workerWrapper.sqsWorkerQueueConfiguration.getInputQueue())
                     .build();
-            sqsClient.getQueueUrl(getQueueUrlRequest);
+            workerWrapper.sqsClient.getQueueUrl(getQueueUrlRequest);
         } catch (final Exception e) {
             fail("The input queue was not created:" + e.getMessage());
         }
@@ -90,77 +49,114 @@ public class SQSWorkerQueueIT
     @Test
     public void testPublish() throws Exception
     {
+        var inputQueue = "test-publish";
+        var workerWrapper = new SQSWorkerQueueWrapper(inputQueue);
         final var msgBody = "Hello-World";
-        sendMessage(msgBody);
+        sendMessage(workerWrapper, msgBody);
 
-        final var msg = callbackQueue.poll(30, TimeUnit.SECONDS);
+        final var msg = workerWrapper.callbackQueue.poll(30, TimeUnit.SECONDS);
+        deleteMessage(workerWrapper, getReceiptHandle(msg.taskInformation()));
         final var body = msg.body();
         Assert.assertEquals(body, msgBody, "Message was not as expected");
-
-        deleteMessage(getReceiptHandle(msg.taskInformation()));
     }
 
     @Test
-    public void testReceiveMultipleMessages() throws Exception
+    public void testHighVolumeOfMessagesDoesNotContainDuplicates() throws Exception
     {
-        final var msg1 = "Message1";
-        final var msg2 = "Message2";
-        sendMessage(msg1, msg2);
+        var inputQueue = "high-volume-worker-in";
+        var visibilityTimeout = 43200;
+        var longPollInterval = 10;
+        var maxNumberOfMessages = 10;
+
+        var messagesToSend = 3000;
+        var workerWrapper = new SQSWorkerQueueWrapper(inputQueue, visibilityTimeout, longPollInterval, maxNumberOfMessages);
+        for (int i = 1; i <= messagesToSend; i++) {
+            final var msg = "High Volume Message_" + i;
+            sendMessage(workerWrapper, msg);
+        }
 
         var receiveMessageResult = new ArrayList<CallbackResponse>();
-        receiveMessageResult.add(callbackQueue.poll(30, TimeUnit.SECONDS));
-        receiveMessageResult.add(callbackQueue.poll(30, TimeUnit.SECONDS));
+        CallbackResponse response;
+        do {
+            // This is polling the internal BlockingQueue created in our test callback
+            response = workerWrapper.callbackQueue.poll(10, TimeUnit.SECONDS);
+            if (response != null) {
+                receiveMessageResult.add(response);
+                deleteMessage(workerWrapper, getReceiptHandle(response.taskInformation()));
+            }
+        } while(response != null);
 
-        var messages = receiveMessageResult.stream().map(m -> m.body()).toList();
-
-        Assert.assertTrue(messages.contains(msg1), "Message 1 was not found");
-        Assert.assertTrue(messages.contains(msg2), "Message 2 was not found");
-        for (final var msg : receiveMessageResult) {
-            deleteMessage(getReceiptHandle(msg.taskInformation()));
-        }
+        var messages = receiveMessageResult.stream().map(m -> m.body()).collect(Collectors.toList());
+        var messagesSet = messages.stream().collect(Collectors.toSet());
+        Assert.assertTrue(messages.size() == messagesToSend, "Count of messages received was not as expected");
+        Assert.assertTrue(messagesSet.size() == messagesToSend, "Duplicate messages detected");
     }
 
     @Test
     public void testMessageIsRedeliveredAfterVisibilityTimeoutExpires() throws Exception
     {
+        var inputQueue = "expired-visibility";
+        var workerWrapper = new SQSWorkerQueueWrapper(inputQueue);
         final var msgBody = "Redelivery";
-        sendMessage(msgBody);
+        sendMessage(workerWrapper, msgBody);
 
-        final var msg = callbackQueue.poll(30, TimeUnit.SECONDS);
+        final var msg = workerWrapper.callbackQueue.poll(30, TimeUnit.SECONDS);
+        final var body = msg.body();
+        final var messageId = msg.taskInformation().getInboundMessageId();
+        Assert.assertEquals(body, msgBody, "Message was not as expected");
+
+        final var redeliveredMsg = workerWrapper.callbackQueue.poll(35, TimeUnit.SECONDS);
+        deleteMessage(workerWrapper, getReceiptHandle(redeliveredMsg.taskInformation()));
+        final var redeliveredBody = redeliveredMsg.body();
+        Assert.assertEquals(
+                messageId,
+                redeliveredMsg.taskInformation().getInboundMessageId(),
+                "Message isd do not match");
+        Assert.assertEquals(body, redeliveredBody, "Redelivered message was not as expected");
+    }
+
+    @Test
+    public void testMessageIsNotRedeliveredDuringVisibilityTimeout() throws Exception
+    {
+        var inputQueue = "during-visibility";
+        var workerWrapper = new SQSWorkerQueueWrapper(inputQueue);
+        final var msgBody = "No-Redelivery";
+        sendMessage(workerWrapper, msgBody);
+
+        final var msg = workerWrapper.callbackQueue.poll(30, TimeUnit.SECONDS);
         final var body = msg.body();
         Assert.assertEquals(body, msgBody, "Message was not as expected");
 
-        Thread.sleep(visibilityTimeout * 1100);
+        var redeliveredMsg = workerWrapper.callbackQueue.poll(5, TimeUnit.SECONDS);
+        Assert.assertNull(redeliveredMsg, "Message should not have been redelivered");
 
-        final var redeliveredMsg = callbackQueue.poll(30, TimeUnit.SECONDS);;
-        final var redeliveredBody = redeliveredMsg.body();
-        Assert.assertEquals(body, redeliveredBody, "Redelivered message was not as expected");
-
-        deleteMessage(getReceiptHandle(redeliveredMsg.taskInformation()));
+        //  Now get the message and delete
+        redeliveredMsg = workerWrapper.callbackQueue.poll(30, TimeUnit.SECONDS);
+        deleteMessage(workerWrapper, getReceiptHandle(redeliveredMsg.taskInformation()));
     }
 
-    public static void sendMessage(final String... messages)
+    public static void sendMessage(final SQSWorkerQueueWrapper sqsQueue, final String... messages)
     {
         try {
             for (final String message : messages) {
                 final var sendRequest = SendMessageRequest.builder()
-                        .queueUrl(inputQueueUrl)
+                        .queueUrl(sqsQueue.inputQueueUrl)
                         .messageBody(message)
                         .build();
-                sqsClient.sendMessage(sendRequest);
+                sqsQueue.sqsClient.sendMessage(sendRequest);
             }
         } catch (final Exception e) {
             fail(e.getMessage());
         }
     }
 
-    private static void deleteMessage(final String receiptHandle)
+    private static void deleteMessage(final SQSWorkerQueueWrapper sqsQueue, final String receiptHandle)
     {
         final var deleteRequest = DeleteMessageRequest.builder()
-                .queueUrl(inputQueueUrl)
+                .queueUrl(sqsQueue.inputQueueUrl)
                 .receiptHandle(receiptHandle)
                 .build();
-        sqsClient.deleteMessage(deleteRequest);
+        sqsQueue.sqsClient.deleteMessage(deleteRequest);
     }
 
     private static String getReceiptHandle(final TaskInformation taskInformation)

@@ -57,12 +57,13 @@ public class SQSQueueConsumer implements Runnable
         while (true) {
             final var receiveRequest = ReceiveMessageRequest.builder()
                     .queueUrl(queueUrl)
-                    .maxNumberOfMessages(1) // DDD configurable??
+                    .maxNumberOfMessages(sqsQueueConfiguration.getMaxNumberOfMessages())
                     .waitTimeSeconds(sqsQueueConfiguration.getLongPollInterval())
                     .build();
             final var receiveMessageResult = sqsClient.receiveMessage(receiveRequest).messages();
             for (final var message : receiveMessageResult) {
                 LOG.debug("Received {} on queue {} ", message.body(), queueUrl);
+
                 registerTask(message);
             }
         }

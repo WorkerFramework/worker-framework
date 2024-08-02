@@ -50,6 +50,14 @@ public class SQSWorkerQueueConfiguration
     private int longPollInterval;
 
     /**
+     * The maximum number of messages to return when polling. Amazon SQS never returns more messages than this value
+     * (however, fewer messages might be returned). Valid values: 1 to 10.
+     */
+    @Min(1)
+    @Max(10)
+    private int maxNumberOfMessages = 10;
+
+    /**
      * Immediately after a message is received, it remains in the queue. To prevent other consumers from
      * processing the message again, Amazon SQS sets a visibility timeout, a period of time during which
      * Amazon SQS prevents all consumers from receiving and processing the message.
@@ -58,7 +66,7 @@ public class SQSWorkerQueueConfiguration
      */
     @Min(30)
     @Max(43200)
-    private int visibilityTimeout;
+    private int visibilityTimeout = 43200;
 
     /**
      * The queue to put messages sent to a paused worker on. If this is null, messages sent to a paused worker will be processed as
@@ -105,6 +113,16 @@ public class SQSWorkerQueueConfiguration
     public void setLongPollInterval(final int longPollInterval)
     {
         this.longPollInterval = longPollInterval;
+    }
+
+    public int getMaxNumberOfMessages()
+    {
+        return maxNumberOfMessages;
+    }
+
+    public void setMaxNumberOfMessages(final int maxNumberOfMessages)
+    {
+        this.maxNumberOfMessages = maxNumberOfMessages;
     }
 }
 
