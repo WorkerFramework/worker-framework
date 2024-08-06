@@ -63,7 +63,6 @@ public class SQSQueueConsumer implements Runnable
             final var receiveMessageResult = sqsClient.receiveMessage(receiveRequest).messages();
             for (final var message : receiveMessageResult) {
                 LOG.debug("Received {} on queue {} ", message.body(), queueUrl);
-
                 registerTask(message);
             }
         }

@@ -32,29 +32,16 @@ public class SQSWorkerQueueWrapper
     final SqsClient sqsClient;
     final SQSClientProviderImpl connectionProvider = new SQSClientProviderImpl();
 
-    final int visibilityTimeout;
-    final int longPollInterval;
-    final int maxNumberOfMessages;
-
-    final String inputQueue;
     final String inputQueueUrl;
-
-    public SQSWorkerQueueWrapper(final String inputQueue) throws QueueException, URISyntaxException
-    {
-        this(inputQueue, 30, 10, 1);
-    }
 
     public SQSWorkerQueueWrapper(
             final String inputQueue,
             final int visibilityTimeout,
             final int longPollInterval,
-            final int maxNumberOfMessages) throws QueueException, URISyntaxException
+            final int maxNumberOfMessages,
+            final int maxDeliveries,
+            final int messageRetentionPeriod) throws QueueException, URISyntaxException
     {
-        this.inputQueue = inputQueue;
-        this.visibilityTimeout = visibilityTimeout;
-        this.longPollInterval = longPollInterval;
-        this.maxNumberOfMessages = maxNumberOfMessages;
-
         callback = new SQSTaskCallback();
 
         sqsConfiguration = new SQSConfiguration();
@@ -71,6 +58,8 @@ public class SQSWorkerQueueWrapper
         sqsWorkerQueueConfiguration.setVisibilityTimeout(visibilityTimeout);
         sqsWorkerQueueConfiguration.setLongPollInterval(longPollInterval);
         sqsWorkerQueueConfiguration.setMaxNumberOfMessages(maxNumberOfMessages);
+        sqsWorkerQueueConfiguration.setMessageRetentionPeriod(messageRetentionPeriod);
+        sqsWorkerQueueConfiguration.setMaxDeliveries(maxDeliveries);
 
         sqsWorkerQueue = new SQSWorkerQueue(sqsWorkerQueueConfiguration);
         sqsWorkerQueue.start(callback);

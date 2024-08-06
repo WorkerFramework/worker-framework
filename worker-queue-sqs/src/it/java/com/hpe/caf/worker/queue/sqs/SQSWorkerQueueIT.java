@@ -19,8 +19,10 @@ import com.hpe.caf.api.worker.TaskInformation;
 import org.testng.Assert;
 import org.testng.annotations.Test;
 
-import software.amazon.awssdk.services.sqs.model.DeleteMessageRequest;
+import software.amazon.awssdk.services.sqs.SqsClient;
 import software.amazon.awssdk.services.sqs.model.GetQueueUrlRequest;
+import software.amazon.awssdk.services.sqs.model.PurgeQueueRequest;
+import software.amazon.awssdk.services.sqs.model.ReceiveMessageRequest;
 import software.amazon.awssdk.services.sqs.model.SendMessageRequest;
 
 import java.util.ArrayList;
@@ -36,7 +38,18 @@ public class SQSWorkerQueueIT
     {
         try {
             var inputQueue = "input-queue-created";
-            var workerWrapper = new SQSWorkerQueueWrapper(inputQueue);
+            var visibilityTimeout = 43200;
+            var longPollInterval = 10;
+            var maxNumberOfMessages = 10;
+            var messageRetentionPeriod = 60;
+            var maxDeliveries = 1;
+            var workerWrapper = new SQSWorkerQueueWrapper(
+                    inputQueue,
+                    visibilityTimeout,
+                    longPollInterval,
+                    maxNumberOfMessages,
+                    maxDeliveries,
+                    messageRetentionPeriod);
             final var getQueueUrlRequest = GetQueueUrlRequest.builder()
                     .queueName(workerWrapper.sqsWorkerQueueConfiguration.getInputQueue())
                     .build();
@@ -46,30 +59,137 @@ public class SQSWorkerQueueIT
         }
     }
 
+    /**
+     * This test serves to test that the dead letter queue works as expected
+     * @throws Exception
+     */
+    @Test
+    public void testRedriveOfMessagesToDeadLetterQueue() throws Exception
+    {
+        // Not using the input queue so that there is no consumer looping.
+        var testQueue = "test-redrive";
+        var visibilityTimeout = 10;
+        var longPollInterval = 5;
+        var maxNumberOfMessages = 1;
+        var messageRetentionPeriod = 600;
+        var maxDeliveries = 1;
+        var workerWrapper = new SQSWorkerQueueWrapper(
+                "worker-in",
+                visibilityTimeout,
+                longPollInterval,
+                maxNumberOfMessages,
+                maxDeliveries,
+                messageRetentionPeriod);
+        workerWrapper.sqsWorkerQueue.createQueue(testQueue);
+
+        final var client = workerWrapper.sqsClient;
+
+        final var msgBody = "Hello-World";
+        var queueUrl = SQSUtil.getQueueUrl(workerWrapper.sqsClient, testQueue);
+        sendMessage(client, queueUrl, msgBody);
+
+        // Create receive request for source.
+        final var receiveRequest = ReceiveMessageRequest.builder()
+                .queueUrl(queueUrl)
+                .maxNumberOfMessages(1)
+                .waitTimeSeconds(5)
+                .build();
+
+        // Request first time
+        var receiveMessageResult = client.receiveMessage(receiveRequest).messages();
+        Assert.assertEquals(receiveMessageResult.size(), 1, "Should have found message on queue");
+
+        // Let visibility timeout expire
+        Thread.sleep(visibilityTimeout * 1000 + 1000);
+
+        // Request second time
+        receiveMessageResult = client.receiveMessage(receiveRequest).messages();
+        Assert.assertEquals(receiveMessageResult.size(), 0, "Should not have found message on queue");
+
+        final var dlqUrl = queueUrl + workerWrapper.sqsWorkerQueue.DEAD_LETTER_QUEUE_SUFFIX;
+
+        // Create receive request for dlq.
+        final var dlqReceiveRequest = ReceiveMessageRequest.builder()
+                .queueUrl(dlqUrl)
+                .maxNumberOfMessages(1)
+                .waitTimeSeconds(5)
+                .build();
+
+        var dlqMessages = client.receiveMessage(dlqReceiveRequest).messages();
+        Assert.assertEquals(dlqMessages.size(), 1, "Should have found message on dead letter queue");
+        purgeQueue(workerWrapper.sqsClient, dlqUrl);
+    }
+
     @Test
     public void testPublish() throws Exception
     {
         var inputQueue = "test-publish";
-        var workerWrapper = new SQSWorkerQueueWrapper(inputQueue);
+        var visibilityTimeout = 10;
+        var longPollInterval = 1;
+        var maxNumberOfMessages = 1;
+        var messageRetentionPeriod = 600;
+        var maxDeliveries = 1000;
+        var workerWrapper = new SQSWorkerQueueWrapper(
+                inputQueue,
+                visibilityTimeout,
+                longPollInterval,
+                maxNumberOfMessages,
+                maxDeliveries,
+                messageRetentionPeriod);
         final var msgBody = "Hello-World";
         sendMessage(workerWrapper, msgBody);
 
         final var msg = workerWrapper.callbackQueue.poll(30, TimeUnit.SECONDS);
-        deleteMessage(workerWrapper, getReceiptHandle(msg.taskInformation()));
+        purgeQueue(workerWrapper.sqsClient, workerWrapper.inputQueueUrl);
         final var body = msg.body();
-        Assert.assertEquals(body, msgBody, "Message was not as expected");
+        Assert.assertEquals(msgBody, body, "Message was not as expected");
+    }
+
+    //@Test  Not getting set in ElasticMQ
+    public void testRetentionPeriod() throws Exception
+    {
+        var inputQueue = "test-retention-period";
+        var visibilityTimeout = 10;
+        var longPollInterval = 1;
+        var maxNumberOfMessages = 1;
+        var messageRetentionPeriod = 60;
+        var maxDeliveries = 1000;
+        var workerWrapper = new SQSWorkerQueueWrapper(
+                inputQueue,
+                visibilityTimeout,
+                longPollInterval,
+                maxNumberOfMessages,
+                maxDeliveries,
+                messageRetentionPeriod);
+        final var msgBody = "Hello-World";
+        sendMessage(workerWrapper, msgBody);
+
+        // Let retention period expire
+        Thread.sleep(messageRetentionPeriod * 1000 + 1000);
+
+        final var msg = workerWrapper.callbackQueue.poll(30, TimeUnit.SECONDS);
+        //purgeQueue(workerWrapper.sqsClient, workerWrapper.inputQueueUrl);
+        Assert.assertNull(msg, "Message should not have been retained longer than messageRetentionPeriod");
     }
 
     @Test
     public void testHighVolumeOfMessagesDoesNotContainDuplicates() throws Exception
     {
         var inputQueue = "high-volume-worker-in";
-        var visibilityTimeout = 43200;
-        var longPollInterval = 10;
+        var visibilityTimeout = 600;
+        var longPollInterval = 20;
         var maxNumberOfMessages = 10;
+        var messageRetentionPeriod = 600;
+        var maxDeliveries = 1000;
 
         var messagesToSend = 3000;
-        var workerWrapper = new SQSWorkerQueueWrapper(inputQueue, visibilityTimeout, longPollInterval, maxNumberOfMessages);
+        var workerWrapper = new SQSWorkerQueueWrapper(
+                inputQueue,
+                visibilityTimeout,
+                longPollInterval,
+                maxNumberOfMessages,
+                maxDeliveries,
+                messageRetentionPeriod);
         for (int i = 1; i <= messagesToSend; i++) {
             final var msg = "High Volume Message_" + i;
             sendMessage(workerWrapper, msg);
@@ -82,9 +202,10 @@ public class SQSWorkerQueueIT
             response = workerWrapper.callbackQueue.poll(10, TimeUnit.SECONDS);
             if (response != null) {
                 receiveMessageResult.add(response);
-                deleteMessage(workerWrapper, getReceiptHandle(response.taskInformation()));
             }
         } while(response != null);
+
+        purgeQueue(workerWrapper.sqsClient, workerWrapper.inputQueueUrl);
 
         var messages = receiveMessageResult.stream().map(m -> m.body()).collect(Collectors.toList());
         var messagesSet = messages.stream().collect(Collectors.toSet());
@@ -96,67 +217,106 @@ public class SQSWorkerQueueIT
     public void testMessageIsRedeliveredAfterVisibilityTimeoutExpires() throws Exception
     {
         var inputQueue = "expired-visibility";
-        var workerWrapper = new SQSWorkerQueueWrapper(inputQueue);
+        var visibilityTimeout = 10;
+        var longPollInterval = 1;
+        var maxNumberOfMessages = 1;
+        var messageRetentionPeriod = 600;
+        var maxDeliveries = 1000;
+        var workerWrapper = new SQSWorkerQueueWrapper(
+                inputQueue,
+                visibilityTimeout,
+                longPollInterval,
+                maxNumberOfMessages,
+                maxDeliveries,
+                messageRetentionPeriod);
         final var msgBody = "Redelivery";
         sendMessage(workerWrapper, msgBody);
 
-        final var msg = workerWrapper.callbackQueue.poll(30, TimeUnit.SECONDS);
+        final var msg = workerWrapper.callbackQueue.poll(10, TimeUnit.SECONDS);
         final var body = msg.body();
         final var messageId = msg.taskInformation().getInboundMessageId();
-        Assert.assertEquals(body, msgBody, "Message was not as expected");
+        Assert.assertEquals(msgBody, body, "Message was not as expected");
 
-        final var redeliveredMsg = workerWrapper.callbackQueue.poll(35, TimeUnit.SECONDS);
-        deleteMessage(workerWrapper, getReceiptHandle(redeliveredMsg.taskInformation()));
+        // Let visibility timeout expire
+        Thread.sleep(visibilityTimeout * 1000 + 1000);
+
+        final var redeliveredMsg = workerWrapper.callbackQueue.poll(10, TimeUnit.SECONDS);
+        purgeQueue(workerWrapper.sqsClient, workerWrapper.inputQueueUrl);
         final var redeliveredBody = redeliveredMsg.body();
         Assert.assertEquals(
                 messageId,
                 redeliveredMsg.taskInformation().getInboundMessageId(),
-                "Message isd do not match");
-        Assert.assertEquals(body, redeliveredBody, "Redelivered message was not as expected");
+                "Message ids do not match");
+        Assert.assertEquals(msgBody, redeliveredBody, "Redelivered message was not as expected");
     }
 
     @Test
     public void testMessageIsNotRedeliveredDuringVisibilityTimeout() throws Exception
     {
         var inputQueue = "during-visibility";
-        var workerWrapper = new SQSWorkerQueueWrapper(inputQueue);
+        var visibilityTimeout = 10;
+        var longPollInterval = 1;
+        var maxNumberOfMessages = 1;
+        var messageRetentionPeriod = 600;
+        var maxDeliveries = 1000;
+        var workerWrapper = new SQSWorkerQueueWrapper(
+                inputQueue,
+                visibilityTimeout,
+                longPollInterval,
+                maxNumberOfMessages,
+                maxDeliveries,
+                messageRetentionPeriod);
         final var msgBody = "No-Redelivery";
         sendMessage(workerWrapper, msgBody);
 
-        final var msg = workerWrapper.callbackQueue.poll(30, TimeUnit.SECONDS);
+        final var msg = workerWrapper.callbackQueue.poll(3, TimeUnit.SECONDS);
         final var body = msg.body();
-        Assert.assertEquals(body, msgBody, "Message was not as expected");
+        Assert.assertEquals(msgBody, body,"Message was not as expected");
 
-        var redeliveredMsg = workerWrapper.callbackQueue.poll(5, TimeUnit.SECONDS);
+        var redeliveredMsg = workerWrapper.callbackQueue.poll(3, TimeUnit.SECONDS);
         Assert.assertNull(redeliveredMsg, "Message should not have been redelivered");
 
-        //  Now get the message and delete
-        redeliveredMsg = workerWrapper.callbackQueue.poll(30, TimeUnit.SECONDS);
-        deleteMessage(workerWrapper, getReceiptHandle(redeliveredMsg.taskInformation()));
+        purgeQueue(workerWrapper.sqsClient, workerWrapper.inputQueueUrl);
     }
 
-    public static void sendMessage(final SQSWorkerQueueWrapper sqsQueue, final String... messages)
+    public static void sendMessage(final SQSWorkerQueueWrapper sqsWorkerQueueWrapper, final String... messages)
     {
         try {
             for (final String message : messages) {
                 final var sendRequest = SendMessageRequest.builder()
-                        .queueUrl(sqsQueue.inputQueueUrl)
+                        .queueUrl(sqsWorkerQueueWrapper.inputQueueUrl)
                         .messageBody(message)
                         .build();
-                sqsQueue.sqsClient.sendMessage(sendRequest);
+                sqsWorkerQueueWrapper.sqsClient.sendMessage(sendRequest);
             }
         } catch (final Exception e) {
             fail(e.getMessage());
         }
     }
 
-    private static void deleteMessage(final SQSWorkerQueueWrapper sqsQueue, final String receiptHandle)
+    public static void sendMessage(final SqsClient sqsClient, final String queueUrl, final String... messages)
     {
-        final var deleteRequest = DeleteMessageRequest.builder()
-                .queueUrl(sqsQueue.inputQueueUrl)
-                .receiptHandle(receiptHandle)
+        try {
+            for (final String message : messages) {
+                final var sendRequest = SendMessageRequest.builder()
+                        .queueUrl(queueUrl)
+                        .messageBody(message)
+                        .build();
+                sqsClient.sendMessage(sendRequest);
+            }
+        } catch (final Exception e) {
+            fail(e.getMessage());
+        }
+    }
+
+    private static void purgeQueue(
+            final SqsClient sqsClient,
+            final String queueUrl)
+    {
+        final var purgeQueueRequest = PurgeQueueRequest.builder()
+                .queueUrl(queueUrl)
                 .build();
-        sqsQueue.sqsClient.deleteMessage(deleteRequest);
+        sqsClient.purgeQueue(purgeQueueRequest);
     }
 
     private static String getReceiptHandle(final TaskInformation taskInformation)

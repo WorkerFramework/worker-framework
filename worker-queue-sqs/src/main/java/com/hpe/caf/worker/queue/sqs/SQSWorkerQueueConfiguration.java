@@ -46,8 +46,8 @@ public class SQSWorkerQueueConfiguration
      * The duration (in seconds) for which the call waits for a message to arrive in the queue before returning.
      */
     @Min(0)
-    @Max(600)
-    private int longPollInterval;
+    @Max(20)
+    private int longPollInterval = 20;
 
     /**
      * The maximum number of messages to return when polling. Amazon SQS never returns more messages than this value
@@ -74,6 +74,24 @@ public class SQSWorkerQueueConfiguration
      */
     @Size(min = 1)
     private String pausedQueue;
+
+    /**
+     * The length of time, in seconds, for which Amazon SQS retains a message.
+     * Valid values: An integer representing seconds, from 60 (1 minute) to 1,209,600 (14 days).
+     *
+     * Default is 345600(4 days)
+     */
+    @Min(60)
+    @Max(1209600)
+    private int messageRetentionPeriod = 60; // DDD should be 345600??
+
+    /**
+     * The number of times a message will be delivered before being moved to the dead-letter queue.
+     *
+     * Default is 1
+     */
+    @Min(1)
+    private int maxDeliveries = 1;
 
     public SQSConfiguration getSQSConfiguration()
     {
@@ -123,6 +141,26 @@ public class SQSWorkerQueueConfiguration
     public void setMaxNumberOfMessages(final int maxNumberOfMessages)
     {
         this.maxNumberOfMessages = maxNumberOfMessages;
+    }
+
+    public int getMessageRetentionPeriod()
+    {
+        return messageRetentionPeriod;
+    }
+
+    public void setMessageRetentionPeriod(final int messageRetentionPeriod)
+    {
+        this.messageRetentionPeriod = messageRetentionPeriod;
+    }
+
+    public int getMaxDeliveries()
+    {
+        return maxDeliveries;
+    }
+
+    public void setMaxDeliveries(final int maxDeliveries)
+    {
+        this.maxDeliveries = maxDeliveries;
     }
 }
 

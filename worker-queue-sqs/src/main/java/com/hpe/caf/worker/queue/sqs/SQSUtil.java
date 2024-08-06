@@ -27,4 +27,14 @@ class SQSUtil
                 .build();
         return sqsClient.getQueueUrl(getQueueUrlRequest).queueUrl();
     }
+
+    public static String getQueueArn(final SqsClient sqsClient, final String queueUrl)
+    {
+        final var attributesResponse = sqsClient.getQueueAttributes(
+                GetQueueAttributesRequest.builder()
+                        .queueUrl(queueUrl)
+                        .attributeNames(QueueAttributeName.QUEUE_ARN)
+                        .build());
+        return attributesResponse.attributes().get(QueueAttributeName.QUEUE_ARN);
+    }
 }

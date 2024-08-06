@@ -33,17 +33,23 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import software.amazon.awssdk.services.sqs.SqsClient;
-import software.amazon.awssdk.services.sqs.model.*;
+import software.amazon.awssdk.services.sqs.model.CreateQueueRequest;
+import software.amazon.awssdk.services.sqs.model.DeleteMessageRequest;
+import software.amazon.awssdk.services.sqs.model.QueueAttributeName;
+import software.amazon.awssdk.services.sqs.model.QueueNameExistsException;
+import software.amazon.awssdk.services.sqs.model.SendMessageRequest;
+import software.amazon.awssdk.services.sqs.model.SetQueueAttributesRequest;
 
 public final class SQSWorkerQueue implements ManagedWorkerQueue
 {
+    public static final String DEAD_LETTER_QUEUE_SUFFIX = "-dlq";
     private SqsClient sqsClient;
     private Thread consumerThread;
     private String inputQueueUrl;
 
     private final SQSWorkerQueueConfiguration sqsQueueConfiguration;
     private final SQSConfiguration sqsConfiguration;
-    private final Map<String, String> declaredQueues = new ConcurrentHashMap<>();
+    private final Map<String, QueueInfo> declaredQueues = new ConcurrentHashMap<>();
 
     private static final Logger LOG = LoggerFactory.getLogger(SQSWorkerQueue.class);
     private static final SQSClientProviderImpl clientProvider = new SQSClientProviderImpl();
@@ -61,7 +67,7 @@ public final class SQSWorkerQueue implements ManagedWorkerQueue
         }
         try {
             sqsClient = clientProvider.getSqsClient(sqsConfiguration);
-            inputQueueUrl = createQueue(sqsQueueConfiguration.getInputQueue());
+            inputQueueUrl = createQueue(sqsQueueConfiguration.getInputQueue()).url();
             var consumer = new SQSQueueConsumer(sqsClient, inputQueueUrl, callback, sqsQueueConfiguration);
 
             consumerThread = new Thread(consumer);
@@ -75,23 +81,66 @@ public final class SQSWorkerQueue implements ManagedWorkerQueue
      * @param queueName
      * @return
      */
-    private String createQueue(final String queueName)
+    public QueueInfo createQueue(final String queueName)
     {
         if (!declaredQueues.containsKey(queueName)) {
-            final var attributes = getAttributes();
-            final var createQueueRequest = CreateQueueRequest.builder()
-                    .queueName(queueName)
-                    .attributes(attributes)
-                    .build();
             try {
+                final var attributes = getAttributes();
+                final var createQueueRequest = CreateQueueRequest.builder()
+                        .queueName(queueName)
+                        .attributes(attributes)
+                        .build();
+
                 final var response = sqsClient.createQueue(createQueueRequest);
-                declaredQueues.put(queueName, response.queueUrl());
+                final var url = response.queueUrl();
+                final var arn = SQSUtil.getQueueArn(sqsClient, url);
+                declaredQueues.put(queueName, new QueueInfo(url, arn));
             } catch (final QueueNameExistsException e) {
                 LOG.info("Queue already exists {} {}", queueName, e.getMessage());
-                declaredQueues.put(queueName, SQSUtil.getQueueUrl(sqsClient, queueName));
+                var url = SQSUtil.getQueueUrl(sqsClient, queueName);
+                final var arn = SQSUtil.getQueueArn(sqsClient, url);
+                declaredQueues.put(queueName, new QueueInfo(url, arn));
             }
+
+            final var dlqName = queueName + DEAD_LETTER_QUEUE_SUFFIX;
+            final var dlqArn = createDeadLetterQueue(dlqName);
+            addRedrivePolicy(declaredQueues.get(queueName).url(), dlqArn);
         }
         return declaredQueues.get(queueName);
+    }
+
+    private String createDeadLetterQueue(final String dlqName)
+    {
+        try {
+            final var dlqCreateQueueRequest = CreateQueueRequest.builder()
+                    .queueName(dlqName)
+                    .attributes(new HashMap<>())
+                    .build();
+
+            final var dlqResponse = sqsClient.createQueue(dlqCreateQueueRequest);
+            final var dlqUrl = dlqResponse.queueUrl();
+            return SQSUtil.getQueueArn(sqsClient, dlqUrl);
+        } catch (final QueueNameExistsException e) {
+            LOG.info("Dead Letter Queue already exists {} {}", dlqName, e.getMessage());
+            final var url = SQSUtil.getQueueUrl(sqsClient, dlqName);
+            return SQSUtil.getQueueArn(sqsClient, url);
+        }
+    }
+
+    private void addRedrivePolicy(final String sourceQueueUrl, final String dlqArn)
+    {
+        final var sourceAttributes = new HashMap<QueueAttributeName, String>();
+        sourceAttributes.put(
+                QueueAttributeName.REDRIVE_POLICY,
+                String.format("{\"maxReceiveCount\":\"%d\", \"deadLetterTargetArn\":\"%s\"}",
+                        sqsQueueConfiguration.getMaxDeliveries(), dlqArn)
+        );
+
+        var queueAttributesRequest = SetQueueAttributesRequest.builder()
+                .queueUrl(sourceQueueUrl)
+                .attributes(sourceAttributes)
+                .build();
+        sqsClient.setQueueAttributes(queueAttributesRequest);
     }
 
     private Map<QueueAttributeName, String> getAttributes()
@@ -100,6 +149,11 @@ public final class SQSWorkerQueue implements ManagedWorkerQueue
         attributes.put(
                 QueueAttributeName.VISIBILITY_TIMEOUT,
                 String.valueOf(sqsQueueConfiguration.getVisibilityTimeout())
+        );
+
+        attributes.put(
+                QueueAttributeName.MESSAGE_RETENTION_PERIOD,
+                String.valueOf(sqsQueueConfiguration.getMessageRetentionPeriod())
         );
         return attributes;
     }
@@ -114,7 +168,8 @@ public final class SQSWorkerQueue implements ManagedWorkerQueue
     ) throws QueueException
     {
         try {
-            final var queueUrl = createQueue(targetQueue);
+            // DDD what are we using the TaskInformation for here?
+            final var queueUrl = SQSUtil.getQueueUrl(sqsClient, targetQueue);
             final var sendMsgRequest = SendMessageRequest.builder()
                     .queueUrl(queueUrl)
                     .messageBody(new String(taskMessage, StandardCharsets.UTF_8))
