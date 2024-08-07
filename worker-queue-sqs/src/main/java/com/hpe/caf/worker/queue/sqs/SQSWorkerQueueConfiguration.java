@@ -47,7 +47,7 @@ public class SQSWorkerQueueConfiguration
      */
     @Min(0)
     @Max(20)
-    private int longPollInterval = 20;
+    private int longPollInterval;
 
     /**
      * The maximum number of messages to return when polling. Amazon SQS never returns more messages than this value
@@ -55,7 +55,7 @@ public class SQSWorkerQueueConfiguration
      */
     @Min(1)
     @Max(10)
-    private int maxNumberOfMessages = 10;
+    private int maxNumberOfMessages;
 
     /**
      * Immediately after a message is received, it remains in the queue. To prevent other consumers from
@@ -66,7 +66,7 @@ public class SQSWorkerQueueConfiguration
      */
     @Min(30)
     @Max(43200)
-    private int visibilityTimeout = 43200;
+    private int visibilityTimeout;
 
     /**
      * The queue to put messages sent to a paused worker on. If this is null, messages sent to a paused worker will be processed as
@@ -83,15 +83,14 @@ public class SQSWorkerQueueConfiguration
      */
     @Min(60)
     @Max(1209600)
-    private int messageRetentionPeriod = 60; // DDD should be 345600??
+    private int messageRetentionPeriod;
 
     /**
      * The number of times a message will be delivered before being moved to the dead-letter queue.
      *
-     * Default is 1
      */
     @Min(1)
-    private int maxDeliveries = 1;
+    private int maxDeliveries;
 
     public SQSConfiguration getSQSConfiguration()
     {

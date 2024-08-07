@@ -42,7 +42,6 @@ import software.amazon.awssdk.services.sqs.model.SetQueueAttributesRequest;
 
 public final class SQSWorkerQueue implements ManagedWorkerQueue
 {
-    public static final String DEAD_LETTER_QUEUE_SUFFIX = "-dlq";
     private SqsClient sqsClient;
     private Thread consumerThread;
     private String inputQueueUrl;
@@ -102,7 +101,7 @@ public final class SQSWorkerQueue implements ManagedWorkerQueue
                 declaredQueues.put(queueName, new QueueInfo(url, arn));
             }
 
-            final var dlqName = queueName + DEAD_LETTER_QUEUE_SUFFIX;
+            final var dlqName = queueName + SQSUtil.DEAD_LETTER_QUEUE_SUFFIX;
             final var dlqArn = createDeadLetterQueue(dlqName);
             addRedrivePolicy(declaredQueues.get(queueName).url(), dlqArn);
         }
@@ -111,10 +110,11 @@ public final class SQSWorkerQueue implements ManagedWorkerQueue
 
     private String createDeadLetterQueue(final String dlqName)
     {
+        final var dlqAttributes = new HashMap<QueueAttributeName, String>();
         try {
             final var dlqCreateQueueRequest = CreateQueueRequest.builder()
                     .queueName(dlqName)
-                    .attributes(new HashMap<>())
+                    .attributes(dlqAttributes)
                     .build();
 
             final var dlqResponse = sqsClient.createQueue(dlqCreateQueueRequest);
@@ -155,6 +155,7 @@ public final class SQSWorkerQueue implements ManagedWorkerQueue
                 QueueAttributeName.MESSAGE_RETENTION_PERIOD,
                 String.valueOf(sqsQueueConfiguration.getMessageRetentionPeriod())
         );
+
         return attributes;
     }
 

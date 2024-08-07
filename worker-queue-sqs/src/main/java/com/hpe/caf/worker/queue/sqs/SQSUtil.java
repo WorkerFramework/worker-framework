@@ -20,6 +20,10 @@ import software.amazon.awssdk.services.sqs.model.*;
 
 class SQSUtil
 {
+    static final String DEAD_LETTER_QUEUE_SUFFIX = "-dlq";
+    static final String ALL_ATTRIBUTES = "All";
+    static final String SOURCE_QUEUE = "SourceQueue";
+
     static String getQueueUrl(final SqsClient sqsClient, final String queueName)
     {
         final var getQueueUrlRequest = GetQueueUrlRequest.builder()

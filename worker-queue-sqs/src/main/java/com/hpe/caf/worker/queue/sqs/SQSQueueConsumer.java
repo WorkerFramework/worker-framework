@@ -22,9 +22,14 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import software.amazon.awssdk.services.sqs.SqsClient;
 import software.amazon.awssdk.services.sqs.model.Message;
+import software.amazon.awssdk.services.sqs.model.MessageAttributeValue;
+import software.amazon.awssdk.services.sqs.model.MessageSystemAttributeName;
 import software.amazon.awssdk.services.sqs.model.ReceiveMessageRequest;
 
 import java.nio.charset.StandardCharsets;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.function.BiConsumer;
 
 public class SQSQueueConsumer implements Runnable
 {
@@ -54,12 +59,14 @@ public class SQSQueueConsumer implements Runnable
 
     public void receiveMessages()
     {
+        final var receiveRequest = ReceiveMessageRequest.builder()
+                .queueUrl(queueUrl)
+                .maxNumberOfMessages(sqsQueueConfiguration.getMaxNumberOfMessages())
+                .waitTimeSeconds(sqsQueueConfiguration.getLongPollInterval())
+                .attributeNamesWithStrings(SQSUtil.ALL_ATTRIBUTES)
+                .messageAttributeNames(SQSUtil.ALL_ATTRIBUTES)
+                .build();
         while (true) {
-            final var receiveRequest = ReceiveMessageRequest.builder()
-                    .queueUrl(queueUrl)
-                    .maxNumberOfMessages(sqsQueueConfiguration.getMaxNumberOfMessages())
-                    .waitTimeSeconds(sqsQueueConfiguration.getLongPollInterval())
-                    .build();
             final var receiveMessageResult = sqsClient.receiveMessage(receiveRequest).messages();
             for (final var message : receiveMessageResult) {
                 LOG.debug("Received {} on queue {} ", message.body(), queueUrl);
@@ -72,7 +79,17 @@ public class SQSQueueConsumer implements Runnable
     {
         final var taskInfo = new SQSTaskInformation(message.messageId(), message.receiptHandle(), false);
         try {
-            callback.registerNewTask(taskInfo, message.body().getBytes(StandardCharsets.UTF_8), null);
+            final var headers = new HashMap<String, Object>();
+            for (final Map.Entry<MessageSystemAttributeName, String> entry: message.attributes().entrySet()) {
+                headers.put(entry.getKey().name(), entry.getValue());
+            }
+
+            for (final Map.Entry<String, MessageAttributeValue> entry: message.messageAttributes().entrySet()) {
+                if (entry.getValue().dataType().equals("String")) {
+                    headers.put(entry.getKey(), entry.getValue().stringValue());
+                }
+            }
+            callback.registerNewTask(taskInfo, message.body().getBytes(StandardCharsets.UTF_8), headers);
         } catch (final TaskRejectedException e) {
             throw new RuntimeException("Task rejected", e); // DDD what here
         } catch (final InvalidTaskException e) {
