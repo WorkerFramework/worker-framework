@@ -15,8 +15,10 @@
  */
 package com.hpe.caf.worker.queue.sqs;
 
-import software.amazon.awssdk.services.sqs.*;
-import software.amazon.awssdk.services.sqs.model.*;
+import software.amazon.awssdk.services.sqs.SqsClient;
+import software.amazon.awssdk.services.sqs.model.GetQueueAttributesRequest;
+import software.amazon.awssdk.services.sqs.model.GetQueueUrlRequest;
+import software.amazon.awssdk.services.sqs.model.QueueAttributeName;
 
 class SQSUtil
 {
@@ -32,7 +34,7 @@ class SQSUtil
         return sqsClient.getQueueUrl(getQueueUrlRequest).queueUrl();
     }
 
-    public static String getQueueArn(final SqsClient sqsClient, final String queueUrl)
+    static String getQueueArn(final SqsClient sqsClient, final String queueUrl)
     {
         final var attributesResponse = sqsClient.getQueueAttributes(
                 GetQueueAttributesRequest.builder()

@@ -47,7 +47,7 @@ public class SQSWorkerQueueConfiguration
      */
     @Min(0)
     @Max(20)
-    private int longPollInterval;
+    private Integer longPollInterval;
 
     /**
      * The maximum number of messages to return when polling. Amazon SQS never returns more messages than this value
@@ -55,7 +55,7 @@ public class SQSWorkerQueueConfiguration
      */
     @Min(1)
     @Max(10)
-    private int maxNumberOfMessages;
+    private Integer maxNumberOfMessages;
 
     /**
      * Immediately after a message is received, it remains in the queue. To prevent other consumers from
@@ -66,7 +66,7 @@ public class SQSWorkerQueueConfiguration
      */
     @Min(30)
     @Max(43200)
-    private int visibilityTimeout;
+    private Integer visibilityTimeout;
 
     /**
      * The queue to put messages sent to a paused worker on. If this is null, messages sent to a paused worker will be processed as
@@ -83,14 +83,14 @@ public class SQSWorkerQueueConfiguration
      */
     @Min(60)
     @Max(1209600)
-    private int messageRetentionPeriod;
+    private Integer messageRetentionPeriod;
 
     /**
-     * The number of times a message will be delivered before being moved to the dead-letter queue.
+     * The number of times a message will be delivered before being moved to the local dead-letter queue.
      *
      */
-    @Min(1)
-    private int maxDeliveries;
+    @Min(0)
+    private Integer maxDeliveries;
 
     public SQSConfiguration getSQSConfiguration()
     {
@@ -112,52 +112,52 @@ public class SQSWorkerQueueConfiguration
         this.inputQueue = inputQueue;
     }
 
-    public int getVisibilityTimeout()
+    public Integer getVisibilityTimeout()
     {
         return visibilityTimeout;
     }
 
-    public void setVisibilityTimeout(final int visibilityTimeout)
+    public void setVisibilityTimeout(final Integer visibilityTimeout)
     {
         this.visibilityTimeout = visibilityTimeout;
     }
 
-    public int getLongPollInterval()
+    public Integer getLongPollInterval()
     {
         return longPollInterval;
     }
 
-    public void setLongPollInterval(final int longPollInterval)
+    public void setLongPollInterval(final Integer longPollInterval)
     {
         this.longPollInterval = longPollInterval;
     }
 
-    public int getMaxNumberOfMessages()
+    public Integer getMaxNumberOfMessages()
     {
         return maxNumberOfMessages;
     }
 
-    public void setMaxNumberOfMessages(final int maxNumberOfMessages)
+    public void setMaxNumberOfMessages(final Integer maxNumberOfMessages)
     {
         this.maxNumberOfMessages = maxNumberOfMessages;
     }
 
-    public int getMessageRetentionPeriod()
+    public Integer getMessageRetentionPeriod()
     {
         return messageRetentionPeriod;
     }
 
-    public void setMessageRetentionPeriod(final int messageRetentionPeriod)
+    public void setMessageRetentionPeriod(final Integer messageRetentionPeriod)
     {
         this.messageRetentionPeriod = messageRetentionPeriod;
     }
 
-    public int getMaxDeliveries()
+    public Integer getMaxDeliveries()
     {
         return maxDeliveries;
     }
 
-    public void setMaxDeliveries(final int maxDeliveries)
+    public void setMaxDeliveries(final Integer maxDeliveries)
     {
         this.maxDeliveries = maxDeliveries;
     }

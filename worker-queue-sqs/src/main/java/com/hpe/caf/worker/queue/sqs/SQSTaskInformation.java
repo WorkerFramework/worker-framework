@@ -16,37 +16,11 @@
 package com.hpe.caf.worker.queue.sqs;
 
 import com.hpe.caf.api.worker.TaskInformation;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
-public class SQSTaskInformation implements TaskInformation
+public record SQSTaskInformation(
+        String inboundMessageId,
+        String receiptHandle,
+        boolean isPoison
+) implements TaskInformation
 {
-    private final String inboundMessageId;
-    private final String receiptHandle;
-    private final boolean isPoison;
-    private static final Logger LOG = LoggerFactory.getLogger(SQSTaskInformation.class);
-
-    public SQSTaskInformation(final String inboundMessageId, final String receiptHandle, final boolean isPoison)
-    {
-        this.inboundMessageId = inboundMessageId;
-        this.receiptHandle = receiptHandle;
-        this.isPoison = isPoison;
-    }
-
-    @Override
-    public String getInboundMessageId()
-    {
-        return inboundMessageId;
-    }
-
-    public String getReceiptHandle()
-    {
-        return receiptHandle;
-    }
-
-    @Override
-    public boolean isPoison()
-    {
-        return TaskInformation.super.isPoison();
-    }
 }

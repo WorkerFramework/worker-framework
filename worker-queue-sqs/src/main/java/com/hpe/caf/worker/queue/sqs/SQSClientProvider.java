@@ -18,7 +18,7 @@ package com.hpe.caf.worker.queue.sqs;
 import com.hpe.caf.configs.SQSConfiguration;
 import software.amazon.awssdk.services.sqs.SqsClient;
 
-import java.net.*;
+import java.net.URISyntaxException;
 
 public interface SQSClientProvider
 {
