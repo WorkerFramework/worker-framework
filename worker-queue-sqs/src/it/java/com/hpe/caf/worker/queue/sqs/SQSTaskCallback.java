@@ -27,6 +27,7 @@ import java.util.concurrent.LinkedBlockingQueue;
 public class SQSTaskCallback implements TaskCallback
 {
     private final BlockingQueue<CallbackResponse> callbackQueue = new LinkedBlockingQueue<>();
+    private final BlockingQueue<CallbackResponse> callbackDLQ = new LinkedBlockingQueue<>();
 
     @Override
     public void registerNewTask(
@@ -35,6 +36,7 @@ public class SQSTaskCallback implements TaskCallback
             final Map<String, Object> headers
     ) throws TaskRejectedException, InvalidTaskException
     {
+        var sqsTaskInformation = (SQSTaskInformation)taskInformation;
         final var body = new String(taskData);
         if (body.equals("REJECT")) {
             throw new TaskRejectedException("REJECTED");
@@ -43,8 +45,11 @@ public class SQSTaskCallback implements TaskCallback
         if (body.equals("INVALID")) {
             throw new InvalidTaskException("INVALID");
         }
-
-        callbackQueue.add(new CallbackResponse(taskInformation, new String(taskData), headers));
+        if (sqsTaskInformation.getQueueInfo().name().endsWith(SQSUtil.DEAD_LETTER_QUEUE_SUFFIX)) {
+            callbackDLQ.add(new CallbackResponse(taskInformation, new String(taskData), headers));
+        } else {
+            callbackQueue.add(new CallbackResponse(taskInformation, new String(taskData), headers));
+        }
     }
 
     @Override
@@ -56,5 +61,10 @@ public class SQSTaskCallback implements TaskCallback
     public BlockingQueue<CallbackResponse> getCallbackQueue()
     {
         return callbackQueue;
+    }
+
+    public BlockingQueue<CallbackResponse> getCallbackDLQ()
+    {
+        return callbackDLQ;
     }
 }

@@ -17,10 +17,44 @@ package com.hpe.caf.worker.queue.sqs;
 
 import com.hpe.caf.api.worker.TaskInformation;
 
-public record SQSTaskInformation(
-        String inboundMessageId,
-        String receiptHandle,
-        boolean isPoison
-) implements TaskInformation
+public class SQSTaskInformation implements TaskInformation
 {
+    private final QueueInfo queueInfo;
+    private final String inboundMessageId;
+    private final String receiptHandle;
+    private final boolean isPoison;
+
+    public SQSTaskInformation(
+            final QueueInfo queueInfo,
+            final String inboundMessageId,
+            final String receiptHandle,
+            final boolean isPoison)
+    {
+        this.queueInfo = queueInfo;
+        this.inboundMessageId = inboundMessageId;
+        this.receiptHandle = receiptHandle;
+        this.isPoison = isPoison;
+    }
+
+    public QueueInfo getQueueInfo()
+    {
+        return queueInfo;
+    }
+
+    @Override
+    public String getInboundMessageId()
+    {
+        return inboundMessageId;
+    }
+
+    public String getReceiptHandle()
+    {
+        return receiptHandle;
+    }
+
+    @Override
+    public boolean isPoison()
+    {
+        return isPoison;
+    }
 }

@@ -18,7 +18,11 @@ package com.hpe.caf.worker.queue.sqs;
 import org.testng.Assert;
 import org.testng.annotations.Test;
 import software.amazon.awssdk.services.sqs.SqsClient;
-import software.amazon.awssdk.services.sqs.model.*;
+import software.amazon.awssdk.services.sqs.model.GetQueueUrlRequest;
+import software.amazon.awssdk.services.sqs.model.MessageAttributeValue;
+import software.amazon.awssdk.services.sqs.model.PurgeQueueRequest;
+import software.amazon.awssdk.services.sqs.model.ReceiveMessageRequest;
+import software.amazon.awssdk.services.sqs.model.SendMessageRequest;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -52,6 +56,7 @@ public class SQSWorkerQueueIT
         final var msg = workerWrapper.callbackQueue.poll(30, TimeUnit.SECONDS);
         purgeQueue(workerWrapper.sqsClient, workerWrapper.inputQueueUrl);
         final var body = msg.body();
+        Assert.assertFalse(msg.taskInformation().isPoison());
         Assert.assertEquals(msgBody, body, "Message was not as expected");
     }
 
@@ -111,16 +116,15 @@ public class SQSWorkerQueueIT
         // Let visibility timeout expire
         Thread.sleep(visibilityTimeout * 1000 + 1000);
 
-        final var msg = workerWrapper.callbackQueue.poll(30, TimeUnit.SECONDS);
-
-        Assert.assertNotNull(msg, "Expected msg");
+        final var msg = workerWrapper.callbackDLQ.poll(30, TimeUnit.SECONDS);
         purgeQueue(workerWrapper.sqsClient, workerWrapper.inputQueueUrl);
+        Assert.assertTrue(msg.taskInformation().isPoison());
+        Assert.assertNotNull(msg, "Expected msg");
     }
 
     @Test
     public void testSourceQueueIsCopiedFromAttributesToHeadersOnReceipt() throws Exception
     {
-        // Not using the input queue so that there is no consumer looping.
         var inputQueue = "test-attributes";
         var visibilityTimeout = 10;
         var longPollInterval = 5;
@@ -254,7 +258,7 @@ public class SQSWorkerQueueIT
 
         final var msg = workerWrapper.callbackQueue.poll(10, TimeUnit.SECONDS);
         final var body = msg.body();
-        final var messageId = msg.taskInformation().inboundMessageId();
+        final var messageId = msg.taskInformation().getInboundMessageId();
         Assert.assertEquals(msgBody, body, "Message was not as expected");
 
         // Let visibility timeout expire
@@ -265,7 +269,7 @@ public class SQSWorkerQueueIT
         final var redeliveredBody = redeliveredMsg.body();
         Assert.assertEquals(
                 messageId,
-                redeliveredMsg.taskInformation().inboundMessageId(),
+                redeliveredMsg.taskInformation().getInboundMessageId(),
                 "Message ids do not match");
         Assert.assertEquals(msgBody, redeliveredBody, "Redelivered message was not as expected");
     }

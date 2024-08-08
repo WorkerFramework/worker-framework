@@ -26,6 +26,7 @@ public class SQSWorkerQueueWrapper
 {
     final SQSTaskCallback callback;
     final BlockingQueue<CallbackResponse> callbackQueue;
+    final BlockingQueue<CallbackResponse> callbackDLQ;
     final SQSWorkerQueueConfiguration sqsWorkerQueueConfiguration;
     final SQSConfiguration sqsConfiguration;
     final SQSWorkerQueue sqsWorkerQueue;
@@ -66,6 +67,7 @@ public class SQSWorkerQueueWrapper
 
         sqsClient = connectionProvider.getSqsClient(sqsConfiguration);
         callbackQueue = callback.getCallbackQueue();
+        callbackDLQ = callback.getCallbackDLQ();
         inputQueueUrl = SQSUtil.getQueueUrl(sqsClient, sqsWorkerQueueConfiguration.getInputQueue());
     }
 }

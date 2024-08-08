@@ -1,3 +1,18 @@
+/*
+ * Copyright 2015-2024 Open Text.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
 package com.hpe.caf.worker.queue.sqs;
 
 import com.hpe.caf.api.worker.InvalidTaskException;
@@ -17,22 +32,23 @@ import java.util.Map;
 
 public class SQSMessageConsumer implements Runnable
 {
-    protected final SqsClient sqsClient;
-    protected final String queueUrl;
-    protected final TaskCallback callback;
-    protected final SQSWorkerQueueConfiguration sqsQueueConfiguration;
+    private final SqsClient sqsClient;
+    private final QueueInfo queueInfo;
+    private final TaskCallback callback;
+    private final SQSWorkerQueueConfiguration sqsQueueConfiguration;
     private final boolean isPoisonMessageConsumer;
 
     private static final Logger LOG = LoggerFactory.getLogger(SQSMessageConsumer.class);
 
     public SQSMessageConsumer(
             final SqsClient sqsClient,
-            final String queueUrl, final TaskCallback callback,
+            final QueueInfo queueInfo,
+            final TaskCallback callback,
             final SQSWorkerQueueConfiguration sqsQueueConfiguration,
             final boolean isPoisonMessageConsumer)
     {
         this.sqsClient = sqsClient;
-        this.queueUrl = queueUrl;
+        this.queueInfo = queueInfo;
         this.callback = callback;
         this.sqsQueueConfiguration = sqsQueueConfiguration;
         this.isPoisonMessageConsumer = isPoisonMessageConsumer;
@@ -47,7 +63,7 @@ public class SQSMessageConsumer implements Runnable
     protected void receiveMessages()
     {
         final var receiveRequest = ReceiveMessageRequest.builder()
-                .queueUrl(queueUrl)
+                .queueUrl(queueInfo.url())
                 .maxNumberOfMessages(sqsQueueConfiguration.getMaxNumberOfMessages())
                 .waitTimeSeconds(sqsQueueConfiguration.getLongPollInterval())
                 .attributeNamesWithStrings(SQSUtil.ALL_ATTRIBUTES)
@@ -56,7 +72,7 @@ public class SQSMessageConsumer implements Runnable
         while (true) {
             final var receiveMessageResult = sqsClient.receiveMessage(receiveRequest).messages();
             for (final var message : receiveMessageResult) {
-                LOG.debug("Received {} on queue {} ", message.body(), queueUrl);
+                LOG.debug("Received {} on queue {} ", message.body(), queueInfo.url());
                 registerTask(message);
             }
         }
@@ -65,6 +81,7 @@ public class SQSMessageConsumer implements Runnable
     private void registerTask(final Message message)
     {
         final var taskInfo = new SQSTaskInformation(
+                queueInfo,
                 message.messageId(),
                 message.receiptHandle(),
                 isPoisonMessageConsumer
@@ -86,13 +103,13 @@ public class SQSMessageConsumer implements Runnable
     {
         try {
             final var request = DeleteMessageRequest.builder()
-                    .queueUrl(queueUrl)
+                    .queueUrl(queueInfo.url())
                     .receiptHandle(receiptHandle)
                     .build();
             sqsClient.deleteMessage(request);
         } catch (final Exception e) {
             var msg = String.format("Error deleting message from dead letter queue:%s messageId:%s",
-                    queueUrl, messageId);
+                    queueInfo.url(), messageId);
             LOG.error(msg, e);
         }
     }
