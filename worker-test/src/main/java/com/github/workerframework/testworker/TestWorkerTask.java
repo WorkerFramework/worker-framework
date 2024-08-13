@@ -17,6 +17,7 @@ package com.github.workerframework.testworker;
 
 public class TestWorkerTask {
     private boolean isPoison;
+    private boolean outOfMemory;
 
     /**
      * Configurable delay in processing a message
@@ -29,6 +30,14 @@ public class TestWorkerTask {
 
     public void setPoison(boolean poison) {
         isPoison = poison;
+    }
+
+    public boolean isOutOfMemory() {
+        return outOfMemory;
+    }
+
+    public void setOutOfMemory(boolean outOfMemory) {
+        this.outOfMemory = outOfMemory;
     }
 
     public int getDelaySeconds() {

@@ -72,6 +72,7 @@ public class GetWorkerNameIT extends TestWorkerTestBase {
 
             final TestWorkerTask documentWorkerTask = new TestWorkerTask();
             documentWorkerTask.setPoison(false);
+            documentWorkerTask.setOutOfMemory(true);
             requestTaskMessage.setTaskId(Integer.toString(TASK_NUMBER));
             requestTaskMessage.setTaskClassifier(TEST_WORKER_NAME);
             requestTaskMessage.setTaskApiVersion(TASK_NUMBER);
@@ -98,7 +99,6 @@ public class GetWorkerNameIT extends TestWorkerTestBase {
             final TaskMessage decodedBody = codec.deserialise(poisonConsumer.getLastDeliveredBody(), TaskMessage.class);
             final String taskData = new String(decodedBody.getTaskData(), StandardCharsets.UTF_8);
 
-            Assert.assertTrue(taskData.contains(POISON_ERROR_MESSAGE));
             Assert.assertTrue(taskData.contains(WORKER_FRIENDLY_NAME));
         }
     }

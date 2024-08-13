@@ -25,6 +25,8 @@ import com.hpe.caf.api.worker.WorkerResponse;
 import com.hpe.caf.api.worker.WorkerTaskData;
 import jakarta.annotation.Nonnull;
 import java.nio.charset.StandardCharsets;
+import java.util.ArrayList;
+import java.util.List;
 
 final class TestWorker implements Worker
 {
@@ -33,6 +35,8 @@ final class TestWorker implements Worker
     private final TestWorkerConfiguration config;
     private final Codec codec;
     private final WorkerTaskData workerTask;
+
+    List<byte[]> list = new ArrayList<>();
 
     public TestWorker(final TestWorkerConfiguration config, final Codec codec, final WorkerTaskData workerTask)
         throws InvalidTaskException, TaskRejectedException
@@ -53,6 +57,10 @@ final class TestWorker implements Worker
             if(testWorkerTask.isPoison()){
                 System.exit(1);
             }
+
+            if(testWorkerTask.isOutOfMemory()) {
+                throwOutOfMemoryError();
+            }
         } catch (final CodecException e) {
             throw new RuntimeException(e);
         }
@@ -71,6 +79,16 @@ final class TestWorker implements Worker
             "TestWorkerResult",
             1,
             null);
+    }
+
+    private void throwOutOfMemoryError()
+    {
+        System.out.println("JONNY --- Throwing out of memory error");
+
+        while(true) {
+            byte[] bytes = new byte[1024 * 1024];
+            list.add(bytes);
+        }
     }
 
     @Nonnull
