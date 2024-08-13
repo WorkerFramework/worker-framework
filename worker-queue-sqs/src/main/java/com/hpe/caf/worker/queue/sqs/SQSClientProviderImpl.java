@@ -23,28 +23,40 @@ import software.amazon.awssdk.services.sqs.SqsClient;
 import java.net.URI;
 import java.net.URISyntaxException;
 
-public class SQSClientProviderImpl implements SQSClientProvider
+public final class SQSClientProviderImpl implements SQSClientProvider
 {
+    private final SQSConfiguration sqsConfiguration;
+
+    public SQSClientProviderImpl(SQSConfiguration sqsConfiguration)
+    {
+        this.sqsConfiguration = sqsConfiguration;
+    }
+
     @Override
-    public SqsClient getSqsClient(final SQSConfiguration sqsConfiguration) throws URISyntaxException
+    public SqsClient getSqsClient() throws URISyntaxException
     {
         return SqsClient.builder()
                 .endpointOverride(new URI(sqsConfiguration.getURIString()))
-                .region(Region.of(sqsConfiguration.getSqsRegion()))
-                .credentialsProvider(() -> new AwsCredentials()
-                {
-                    @Override
-                    public String accessKeyId()
-                    {
-                        return sqsConfiguration.getSqsAccessKey();
-                    }
-
-                    @Override
-                    public String secretAccessKey()
-                    {
-                        return sqsConfiguration.getSqsSecretAccessKey();
-                    }
-                })
+                .region(Region.of(sqsConfiguration.getAwsRegion()))
+                .credentialsProvider(() -> getAWSCredentials())
                 .build();
+    }
+
+    public AwsCredentials getAWSCredentials()
+    {
+        return new AwsCredentials()
+        {
+            @Override
+            public String accessKeyId()
+            {
+                return sqsConfiguration.getAwsAccessKey();
+            }
+
+            @Override
+            public String secretAccessKey()
+            {
+                return sqsConfiguration.getSecretAccessKey();
+            }
+        };
     }
 }

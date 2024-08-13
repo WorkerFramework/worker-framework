@@ -25,6 +25,7 @@ import software.amazon.awssdk.services.sqs.model.DeleteMessageRequest;
 import software.amazon.awssdk.services.sqs.model.Message;
 import software.amazon.awssdk.services.sqs.model.MessageAttributeValue;
 import software.amazon.awssdk.services.sqs.model.ReceiveMessageRequest;
+import software.amazon.awssdk.services.sqs.model.SendMessageRequest;
 
 import java.nio.charset.StandardCharsets;
 import java.util.HashMap;
@@ -34,6 +35,7 @@ public class SQSMessageConsumer implements Runnable
 {
     private final SqsClient sqsClient;
     private final QueueInfo queueInfo;
+    private final QueueInfo retryQueueInfo;
     private final TaskCallback callback;
     private final SQSWorkerQueueConfiguration sqsQueueConfiguration;
     private final boolean isPoisonMessageConsumer;
@@ -43,12 +45,14 @@ public class SQSMessageConsumer implements Runnable
     public SQSMessageConsumer(
             final SqsClient sqsClient,
             final QueueInfo queueInfo,
+            final QueueInfo retryQueueInfo,
             final TaskCallback callback,
             final SQSWorkerQueueConfiguration sqsQueueConfiguration,
             final boolean isPoisonMessageConsumer)
     {
         this.sqsClient = sqsClient;
         this.queueInfo = queueInfo;
+        this.retryQueueInfo = retryQueueInfo;
         this.callback = callback;
         this.sqsQueueConfiguration = sqsQueueConfiguration;
         this.isPoisonMessageConsumer = isPoisonMessageConsumer;
@@ -71,8 +75,11 @@ public class SQSMessageConsumer implements Runnable
                 .build();
         while (true) {
             final var receiveMessageResult = sqsClient.receiveMessage(receiveRequest).messages();
+            if (receiveMessageResult.isEmpty()) {
+                LOG.debug("Nothing received from queue {} ", queueInfo.name());
+            }
             for (final var message : receiveMessageResult) {
-                LOG.debug("Received {} on queue {} ", message.body(), queueInfo.url());
+                LOG.debug("Received {} on queue {} ", message.body(), queueInfo.name());
                 registerTask(message);
             }
         }
@@ -93,9 +100,11 @@ public class SQSMessageConsumer implements Runnable
                 deleteMessage(message.receiptHandle(),message.messageId());
             }
         } catch (final TaskRejectedException e) {
-            throw new RuntimeException("Task rejected", e); // DDD what here
+            LOG.error("Cannot register new message, rejecting {}", taskInfo.getInboundMessageId(), e);
+            retryMessage(message);
         } catch (final InvalidTaskException e) {
-            throw new RuntimeException("Invalid task", e); // DDD What here
+            LOG.warn("Message {} rejected as a task at this time, will be redelivered by SQS",
+                    taskInfo.getInboundMessageId(), e);
         }
     }
 
@@ -110,6 +119,28 @@ public class SQSMessageConsumer implements Runnable
         } catch (final Exception e) {
             var msg = String.format("Error deleting message from dead letter queue:%s messageId:%s",
                     queueInfo.url(), messageId);
+            LOG.error(msg, e);
+        }
+    }
+
+    // DDD maybe just have a queue for this so we can retry if it fails
+    private void retryMessage(final Message message)
+    {
+        try {
+            final var attributes = message.messageAttributes();
+            attributes.put(SQSUtil.SQS_HEADER_CAF_WORKER_REJECTED, MessageAttributeValue.builder()
+                    .dataType("String")
+                    .stringValue(SQSUtil.REJECTED_REASON_TASKMESSAGE)
+                    .build());
+            final var request = SendMessageRequest.builder()
+                    .queueUrl(retryQueueInfo.url())
+                    .messageBody(message.body())
+                    .messageAttributes(attributes)
+                    .build();
+            sqsClient.sendMessage(request);
+        } catch (final Exception e) {
+            var msg = String.format("Error sending message to retry queue:%s messageId:%s",
+                    retryQueueInfo.name(), message.messageId());
             LOG.error(msg, e);
         }
     }

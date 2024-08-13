@@ -43,6 +43,13 @@ public class SQSWorkerQueueConfiguration
     private String inputQueue;
 
     /**
+     * The queue to re-queue messages on.
+     */
+    @NotNull
+    @Size(min = 1)
+    private String retryQueue;
+
+    /**
      * The duration (in seconds) for which the call waits for a message to arrive in the queue before returning.
      */
     @Min(0)
@@ -69,6 +76,17 @@ public class SQSWorkerQueueConfiguration
     private Integer visibilityTimeout;
 
     /**
+     * Immediately after a message is received, it remains in the dead letter queue. To prevent other consumers from
+     * processing the message again, Amazon SQS sets a visibility timeout, a period of time during which
+     * Amazon SQS prevents all consumers from receiving and processing the message.
+     * <p>
+     * The default visibility timeout for a message is 30 seconds. The minimum is 0 seconds. The maximum is 12 hours
+     */
+    @Min(30)
+    @Max(43200)
+    private Integer dlqVisibilityTimeout;
+
+    /**
      * The queue to put messages sent to a paused worker on. If this is null, messages sent to a paused worker will be processed as
      * normal (as if the worker was not paused).
      */
@@ -84,6 +102,16 @@ public class SQSWorkerQueueConfiguration
     @Min(60)
     @Max(1209600)
     private Integer messageRetentionPeriod;
+
+    /**
+     * The length of time, in seconds, for which Amazon SQS retains a message.
+     * Valid values: An integer representing seconds, from 60 (1 minute) to 1,209,600 (14 days).
+     *
+     * Default is 345600(4 days)
+     */
+    @Min(60)
+    @Max(1209600)
+    private Integer dlqMessageRetentionPeriod;
 
     /**
      * The number of times a message will be delivered before being moved to the local dead-letter queue.
@@ -160,6 +188,36 @@ public class SQSWorkerQueueConfiguration
     public void setMaxDeliveries(final Integer maxDeliveries)
     {
         this.maxDeliveries = maxDeliveries;
+    }
+
+    public Integer getDlqVisibilityTimeout()
+    {
+        return dlqVisibilityTimeout;
+    }
+
+    public void setDlqVisibilityTimeout(final Integer dlqVisibilityTimeout)
+    {
+        this.dlqVisibilityTimeout = dlqVisibilityTimeout;
+    }
+
+    public Integer getDlqMessageRetentionPeriod()
+    {
+        return dlqMessageRetentionPeriod;
+    }
+
+    public void setDlqMessageRetentionPeriod(final Integer dlqMessageRetentionPeriod)
+    {
+        this.dlqMessageRetentionPeriod = dlqMessageRetentionPeriod;
+    }
+
+    public String getRetryQueue()
+    {
+        return retryQueue;
+    }
+
+    public void setRetryQueue(final String retryQueue)
+    {
+        this.retryQueue = retryQueue;
     }
 }
 

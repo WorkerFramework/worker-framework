@@ -33,29 +33,16 @@
     <dependencyManagement>
         <dependencies>
             <dependency>
-                <groupId>software.amazon.awssdk</groupId>
-                <artifactId>sqs</artifactId>
-                <version>2.21.21</version>
+                <groupId>joda-time</groupId>
+                <artifactId>joda-time</artifactId>
+                <version>2.12.7</version>
             </dependency>
             <dependency>
                 <groupId>software.amazon.awssdk</groupId>
-                <artifactId>auth</artifactId>
+                <artifactId>bom</artifactId>
                 <version>2.21.21</version>
-            </dependency>
-            <dependency>
-                <groupId>software.amazon.awssdk</groupId>
-                <artifactId>aws-core</artifactId>
-                <version>2.21.21</version>
-            </dependency>
-            <dependency>
-                <groupId>software.amazon.awssdk</groupId>
-                <artifactId>regions</artifactId>
-                <version>2.21.21</version>
-            </dependency>
-            <dependency>
-                <groupId>software.amazon.awssdk</groupId>
-                <artifactId>sdk-core</artifactId>
-                <version>2.21.21</version>
+                <type>pom</type>
+                <scope>import</scope>
             </dependency>
         </dependencies>
     </dependencyManagement>
@@ -70,13 +57,14 @@
             <artifactId>worker-api</artifactId>
         </dependency>
         <dependency>
-            <groupId>org.slf4j</groupId>
-            <artifactId>slf4j-api</artifactId>
-        </dependency>
-        <dependency>
             <groupId>ch.qos.logback</groupId>
             <artifactId>logback-classic</artifactId>
             <scope>package</scope>
+        </dependency>
+        <dependency>
+            <groupId>jakarta.validation</groupId>
+            <artifactId>jakarta.validation-api</artifactId>
+            <scope>provided</scope>
         </dependency>
         <dependency>
             <groupId>org.slf4j</groupId>
@@ -84,8 +72,8 @@
             <scope>package</scope>
         </dependency>
         <dependency>
-            <groupId>software.amazon.awssdk</groupId>
-            <artifactId>sqs</artifactId>
+            <groupId>org.slf4j</groupId>
+            <artifactId>slf4j-api</artifactId>
         </dependency>
         <dependency>
             <groupId>software.amazon.awssdk</groupId>
@@ -104,9 +92,18 @@
             <artifactId>sdk-core</artifactId>
         </dependency>
         <dependency>
-            <groupId>jakarta.validation</groupId>
-            <artifactId>jakarta.validation-api</artifactId>
-            <scope>provided</scope>
+            <groupId>software.amazon.awssdk</groupId>
+            <artifactId>sqs</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>com.github.workerframework</groupId>
+            <artifactId>worker-configs</artifactId>
+        </dependency>
+        <!--Test Dependencies-->
+        <dependency>
+            <groupId>joda-time</groupId>
+            <artifactId>joda-time</artifactId>
+            <scope>test</scope>
         </dependency>
         <dependency>
             <groupId>org.testng</groupId>
@@ -114,13 +111,9 @@
             <scope>test</scope>
         </dependency>
         <dependency>
-            <groupId>org.mockito</groupId>
-            <artifactId>mockito-core</artifactId>
+            <groupId>software.amazon.awssdk</groupId>
+            <artifactId>cloudwatch</artifactId>
             <scope>test</scope>
-        </dependency>
-        <dependency>
-            <groupId>com.github.workerframework</groupId>
-            <artifactId>worker-configs</artifactId>
         </dependency>
     </dependencies>
 
@@ -189,28 +182,44 @@
                 <configuration>
                     <startParallel>true</startParallel>
                     <containerNamePattern>%a-%t</containerNamePattern>
-                    <images>
-                        <image>
-                            <alias>elasticmq</alias>
-                            <name>softwaremill/elasticmq</name>
-                            <run>
-                                <ports>
-                                    <port>${elasticmq.port}:9324</port>
-                                    <port>${elasticmq.ui.port}:9325</port>
-                                </ports>
-                                <env>
-                                </env>
-                                <log>
-                                    <enabled>true</enabled>
-                                </log>
-                                <wait>
-                                    <log>server.*started.*in</log>
-                                    <time>120000</time>
-                                    <shutdown>500</shutdown>
-                                </wait>
-                            </run>
-                        </image>
-                    </images>
+<!--                    <images>-->
+<!--                        <image>-->
+<!--                            <alias>elasticmq</alias>-->
+<!--                            <name>softwaremill/elasticmq</name>-->
+<!--                            <run>-->
+<!--                                <ports>-->
+<!--                                    <port>${elasticmq.port}:9324</port>-->
+<!--                                    <port>${elasticmq.ui.port}:9325</port>-->
+<!--                                </ports>-->
+<!--                                <env>-->
+<!--                                </env>-->
+<!--                                <log>-->
+<!--                                    <enabled>true</enabled>-->
+<!--                                </log>-->
+<!--                                <wait>-->
+<!--                                    <log>server.*started.*in</log>-->
+<!--                                    <time>120000</time>-->
+<!--                                    <shutdown>500</shutdown>-->
+<!--                                </wait>-->
+<!--                            </run>-->
+<!--                        </image>-->
+<!--                    </images>-->
+                        <images>
+                            <image>
+                                <alias>localstack</alias>
+                                <name>localstack/localstack</name>
+                                <run>
+                                    <ports>
+                                        <port>4566:4566</port>
+                                    </ports>
+                                    <env>
+                                    </env>
+                                    <log>
+                                        <enabled>true</enabled>
+                                    </log>
+                                </run>
+                            </image>
+                        </images>
                 </configuration>
             </plugin>
         </plugins>

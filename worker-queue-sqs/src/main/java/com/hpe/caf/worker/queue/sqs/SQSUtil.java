@@ -20,11 +20,49 @@ import software.amazon.awssdk.services.sqs.model.GetQueueAttributesRequest;
 import software.amazon.awssdk.services.sqs.model.GetQueueUrlRequest;
 import software.amazon.awssdk.services.sqs.model.QueueAttributeName;
 
+import java.util.HashMap;
+import java.util.Map;
+
 class SQSUtil
 {
+    static final String SQS_HEADER_CAF_WORKER_REJECTED = "x-caf-worker-rejected";
+    static final String REJECTED_REASON_TASKMESSAGE = "TASKMESSAGE_INVALID";
     static final String DEAD_LETTER_QUEUE_SUFFIX = "-dlq";
     static final String ALL_ATTRIBUTES = "All";
     static final String SOURCE_QUEUE = "SourceQueue";
+
+    static Map<QueueAttributeName, String> getInputQueueAttributes(final SQSWorkerQueueConfiguration sqsQueueCfg)
+    {
+        final var attributes = new HashMap<QueueAttributeName, String>();
+        attributes.put(
+                QueueAttributeName.VISIBILITY_TIMEOUT,
+                String.valueOf(sqsQueueCfg.getVisibilityTimeout())
+        );
+
+        attributes.put(
+                QueueAttributeName.MESSAGE_RETENTION_PERIOD,
+                String.valueOf(sqsQueueCfg.getMessageRetentionPeriod())
+        );
+
+        return attributes;
+    }
+
+    static Map<QueueAttributeName, String> getDeadLetterQueueAttributes(final SQSWorkerQueueConfiguration sqsQueueCfg)
+    {
+        final var attributes = new HashMap<QueueAttributeName, String>();
+
+        attributes.put(
+                QueueAttributeName.VISIBILITY_TIMEOUT,
+                String.valueOf(sqsQueueCfg.getDlqVisibilityTimeout())
+        );
+
+        attributes.put(
+                QueueAttributeName.MESSAGE_RETENTION_PERIOD,
+                String.valueOf(sqsQueueCfg.getDlqMessageRetentionPeriod())
+        );
+
+        return attributes;
+    }
 
     static String getQueueUrl(final SqsClient sqsClient, final String queueName)
     {
@@ -42,5 +80,15 @@ class SQSUtil
                         .attributeNames(QueueAttributeName.QUEUE_ARN)
                         .build());
         return attributesResponse.attributes().get(QueueAttributeName.QUEUE_ARN);
+    }
+
+    static QueueInfo getQueueInfo(
+            final SqsClient sqsClient,
+            final String queueName
+    )
+    {
+        var url = getQueueUrl(sqsClient, queueName);
+        var arn = getQueueArn(sqsClient, url);
+        return new QueueInfo(queueName,url, arn);
     }
 }

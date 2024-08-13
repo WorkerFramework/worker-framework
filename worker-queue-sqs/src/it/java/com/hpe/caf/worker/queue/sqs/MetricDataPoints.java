@@ -15,14 +15,8 @@
  */
 package com.hpe.caf.worker.queue.sqs;
 
-import software.amazon.awssdk.auth.credentials.AwsCredentials;
-import software.amazon.awssdk.services.sqs.SqsClient;
+import software.amazon.awssdk.services.cloudwatch.model.Datapoint;
 
-import java.net.URISyntaxException;
+import java.util.List;
 
-public interface SQSClientProvider
-{
-    SqsClient getSqsClient() throws URISyntaxException;
-    AwsCredentials getAWSCredentials();
-
-}
+public record MetricDataPoints(String metric, List<Datapoint> datapoints) {}
