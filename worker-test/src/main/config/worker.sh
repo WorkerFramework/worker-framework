@@ -25,6 +25,8 @@ export CAF_WORKER_DISABLE_ZERO_PROGRESS_REPORTING=true
 cd /maven
 exec java $CAF_WORKER_JAVA_OPTS \
     -Dpolyglot.engine.WarnInterpreterOnly=false \
+    -XX:+ExitOnOutOfMemoryError \
+    -XX:+HeapDumpOnOutOfMemoryError \
     -cp '*' \
     com.hpe.caf.worker.core.WorkerApplication \
     server \
