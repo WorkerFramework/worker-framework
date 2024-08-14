@@ -182,28 +182,6 @@
                 <configuration>
                     <startParallel>true</startParallel>
                     <containerNamePattern>%a-%t</containerNamePattern>
-<!--                    <images>-->
-<!--                        <image>-->
-<!--                            <alias>elasticmq</alias>-->
-<!--                            <name>softwaremill/elasticmq</name>-->
-<!--                            <run>-->
-<!--                                <ports>-->
-<!--                                    <port>${elasticmq.port}:9324</port>-->
-<!--                                    <port>${elasticmq.ui.port}:9325</port>-->
-<!--                                </ports>-->
-<!--                                <env>-->
-<!--                                </env>-->
-<!--                                <log>-->
-<!--                                    <enabled>true</enabled>-->
-<!--                                </log>-->
-<!--                                <wait>-->
-<!--                                    <log>server.*started.*in</log>-->
-<!--                                    <time>120000</time>-->
-<!--                                    <shutdown>500</shutdown>-->
-<!--                                </wait>-->
-<!--                            </run>-->
-<!--                        </image>-->
-<!--                    </images>-->
                         <images>
                             <image>
                                 <alias>localstack</alias>
@@ -213,10 +191,9 @@
                                         <port>4566:4566</port>
                                     </ports>
                                     <env>
+                                        <!--https://docs.localstack.cloud/references/logging/-->
+                                        <LS_LOG>warn</LS_LOG>
                                     </env>
-                                    <log>
-                                        <enabled>true</enabled>
-                                    </log>
                                 </run>
                             </image>
                         </images>

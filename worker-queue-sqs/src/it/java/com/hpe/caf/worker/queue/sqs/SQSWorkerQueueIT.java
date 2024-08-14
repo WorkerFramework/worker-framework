@@ -17,8 +17,10 @@ package com.hpe.caf.worker.queue.sqs;
 
 import org.testng.Assert;
 import org.testng.annotations.Test;
+import software.amazon.awssdk.services.sqs.model.GetQueueAttributesRequest;
 import software.amazon.awssdk.services.sqs.model.GetQueueUrlRequest;
 import software.amazon.awssdk.services.sqs.model.MessageAttributeValue;
+import software.amazon.awssdk.services.sqs.model.QueueAttributeName;
 import software.amazon.awssdk.services.sqs.model.ReceiveMessageRequest;
 
 import java.util.ArrayList;
@@ -135,8 +137,7 @@ public class SQSWorkerQueueIT
         purgeQueue(workerWrapper.sqsClient, queueUrl);
     }
 
-    //@Test
-    // Retention period is Not implemented in ElasticMQ
+    @Test
     public void testRetentionPeriod() throws Exception
     {
         var inputQueue = "test-retention-period";
@@ -149,6 +150,20 @@ public class SQSWorkerQueueIT
                 60);
         final var msgBody = "Hello-World";
 
+        var attributesRequest = GetQueueAttributesRequest.builder()
+                        .queueUrl(workerWrapper.inputQueueUrl)
+                        .attributeNames(QueueAttributeName.MESSAGE_RETENTION_PERIOD)
+                        .build();
+        var attributesResponse = workerWrapper.sqsClient.getQueueAttributes(attributesRequest);
+
+        Assert.assertTrue(
+                attributesResponse.attributes().containsKey(QueueAttributeName.MESSAGE_RETENTION_PERIOD),
+                "Expected attribute: " + QueueAttributeName.MESSAGE_RETENTION_PERIOD);
+        Assert.assertEquals(
+                attributesResponse.attributes().get(QueueAttributeName.MESSAGE_RETENTION_PERIOD),
+                "60",
+                "Message retention period was not as expected");
+
         sendMessages(workerWrapper, msgBody);
 
         // Let retention period expire
@@ -156,8 +171,7 @@ public class SQSWorkerQueueIT
 
         final var request = ReceiveMessageRequest.builder()
                 .queueUrl(workerWrapper.inputQueueUrl)
-                .maxNumberOfMessages(2)
-                .waitTimeSeconds(20)
+                .maxNumberOfMessages(1)
                 .messageAttributeNames(SQSUtil.ALL_ATTRIBUTES)
                 .attributeNamesWithStrings(SQSUtil.ALL_ATTRIBUTES)
                 .build();

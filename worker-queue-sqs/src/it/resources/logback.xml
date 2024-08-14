@@ -22,7 +22,6 @@
         </encoder>
     </appender>
     <logger name="org.apache.http.wire" level="OFF"/>
-    <logger name="localstack.request.aws" level="OFF"/>
     <root level="DEBUG">
         <appender-ref ref="console"/>
     </root>
