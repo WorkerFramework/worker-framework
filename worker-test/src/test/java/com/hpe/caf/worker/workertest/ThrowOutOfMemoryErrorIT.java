@@ -23,19 +23,19 @@ import com.hpe.caf.api.worker.TaskStatus;
 import com.hpe.caf.codec.JsonCodec;
 import com.hpe.caf.util.rabbitmq.QueueCreator;
 import com.hpe.caf.util.rabbitmq.RabbitHeaders;
-import com.rabbitmq.client.Connection;
-import com.rabbitmq.client.Channel;
 import com.rabbitmq.client.AMQP;
-import org.testng.annotations.Test;
+import com.rabbitmq.client.Channel;
+import com.rabbitmq.client.Connection;
 import org.testng.Assert;
+import org.testng.annotations.Test;
 
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
-import java.util.Map;
 import java.util.HashMap;
+import java.util.Map;
 import java.util.concurrent.TimeoutException;
 
-public class GetWorkerNameIT extends TestWorkerTestBase {
+public class ThrowOutOfMemoryErrorIT extends TestWorkerTestBase {
     private static final String POISON_ERROR_MESSAGE = "could not process the item.";
     private static final String WORKER_FRIENDLY_NAME = "TestWorker";
     private static final String TEST_WORKER_NAME = "testWorkerIdentifier";
@@ -45,7 +45,7 @@ public class GetWorkerNameIT extends TestWorkerTestBase {
     private static final Codec codec = new JsonCodec();
 
     @Test
-    public void getWorkerNameInPoisonMessageTest() throws IOException, TimeoutException, CodecException {
+    public void throwOutOfMemoryError_Test() throws IOException, TimeoutException, CodecException {
 
         try(final Connection connection = connectionFactory.newConnection()) {
 
@@ -72,6 +72,7 @@ public class GetWorkerNameIT extends TestWorkerTestBase {
 
             final TestWorkerTask documentWorkerTask = new TestWorkerTask();
             documentWorkerTask.setPoison(false);
+            documentWorkerTask.setOutOfMemory(true);
             requestTaskMessage.setTaskId(Integer.toString(TASK_NUMBER));
             requestTaskMessage.setTaskClassifier(TEST_WORKER_NAME);
             requestTaskMessage.setTaskApiVersion(TASK_NUMBER);
@@ -81,24 +82,6 @@ public class GetWorkerNameIT extends TestWorkerTestBase {
 
             channel.basicPublish("", WORKER_IN, properties, codec.serialise(requestTaskMessage));
 
-            try {
-                for (int i=0; i<100; i++){
-
-                    Thread.sleep(100);
-
-                    if (poisonConsumer.getLastDeliveredBody() != null){
-                        break;
-                    }
-                }
-            } catch (InterruptedException e) {
-                throw new RuntimeException(e);
-            }
-
-            Assert.assertNotNull(poisonConsumer.getLastDeliveredBody());
-            final TaskMessage decodedBody = codec.deserialise(poisonConsumer.getLastDeliveredBody(), TaskMessage.class);
-            final String taskData = new String(decodedBody.getTaskData(), StandardCharsets.UTF_8);
-
-            Assert.assertTrue(taskData.contains(WORKER_FRIENDLY_NAME));
         }
     }
 }
