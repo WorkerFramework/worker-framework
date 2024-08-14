@@ -15,31 +15,31 @@
  */
 package com.hpe.caf.worker.queue.sqs;
 
+import com.hpe.caf.worker.queue.sqs.distributor.SQSMessageDistributor;
 import org.testng.Assert;
 import org.testng.annotations.Test;
+import software.amazon.awssdk.services.sqs.SqsClient;
+import software.amazon.awssdk.services.sqs.model.CreateQueueRequest;
 import software.amazon.awssdk.services.sqs.model.GetQueueAttributesRequest;
 import software.amazon.awssdk.services.sqs.model.GetQueueUrlRequest;
 import software.amazon.awssdk.services.sqs.model.MessageAttributeValue;
 import software.amazon.awssdk.services.sqs.model.QueueAttributeName;
 import software.amazon.awssdk.services.sqs.model.ReceiveMessageRequest;
-import software.amazon.awssdk.services.sqs.model.SendMessageBatchRequestEntry;
 
 import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
 import static com.hpe.caf.worker.queue.sqs.SQSWorkerQueueWrapper.getWorkerWrapper;
 import static com.hpe.caf.worker.queue.sqs.SQSWorkerQueueWrapper.purgeQueue;
-import static com.hpe.caf.worker.queue.sqs.SQSWorkerQueueWrapper.sendMessageBatch;
+import static com.hpe.caf.worker.queue.sqs.SQSWorkerQueueWrapper.sendMessagesInBatches;
 import static com.hpe.caf.worker.queue.sqs.SQSWorkerQueueWrapper.sendMessages;
 import static org.testng.AssertJUnit.fail;
 
 public class SQSWorkerQueueIT
 {
-
     @Test
     public void testPublish() throws Exception
     {
@@ -110,7 +110,7 @@ public class SQSWorkerQueueIT
     }
 
     @Test
-    public void testSourceQueueIsCopiedFromAttributesToHeadersOnReceipt() throws Exception
+    public void testAllAttributesAreCopiedToHeadersOnReceipt() throws Exception
     {
         var inputQueue = "test-attributes";
         final var workerWrapper = getWorkerWrapper(
@@ -290,17 +290,7 @@ public class SQSWorkerQueueIT
                 1,
                 600);
         var messagesToSend = 10;
-        var messages = new ArrayList<SendMessageBatchRequestEntry>();
-        for (int i = 1; i <= messagesToSend; i++) {
-            final var msg = String.format("msg-%d", i);
-            var entry = SendMessageBatchRequestEntry.builder()
-                    .id(msg)
-                    .delaySeconds(0)
-                    .messageBody(msg)
-                    .build();
-            messages.add(entry);
-        }
-        sendMessageBatch(workerWrapper.sqsClient, workerWrapper.inputQueueUrl, messages);
+        sendMessagesInBatches(workerWrapper.sqsClient, workerWrapper.inputQueueUrl, messagesToSend);
 
         var receivedMessages = new ArrayList<CallbackResponse>();
         CallbackResponse response;
@@ -315,5 +305,103 @@ public class SQSWorkerQueueIT
         Assert.assertEquals(10, receivedMessages.size(), "Message batch was not as expected");
 
         purgeQueue(workerWrapper.sqsClient, workerWrapper.inputQueueUrl);
+    }
+
+    @Test
+    public void testRedistributeMessagesWhenNoneExistDoesNotThrowError() throws Exception
+    {
+        var destinationQueue = "test-redistribute-none-destination";
+        var sourceQueue = "test-redistribute-none-source";
+        var numberOfMessages = 0;
+        var numberOfMessagesToMove = 15;
+        var expectedNumberOfMessagesToMove = 0;
+        runRedistributionTest(
+                sourceQueue,
+                destinationQueue,
+                numberOfMessages,
+                numberOfMessagesToMove,
+                expectedNumberOfMessagesToMove
+        );
+    }
+
+    @Test
+    public void testRedistributeMessagesInSingleBatch() throws Exception
+    {
+        var destinationQueue = "test-redistribute-destination";
+        var sourceQueue = "test-redistribute-source";
+        var numberOfMessages = 100;
+        var numberOfMessagesToMove = 15;
+        var expectedNumberOfMessagesToMove = 10;
+        runRedistributionTest(
+                sourceQueue,
+                destinationQueue,
+                numberOfMessages,
+                numberOfMessagesToMove,
+                expectedNumberOfMessagesToMove
+        );
+    }
+
+    @Test
+    public void testRedistributeMessagesInMultipleBatches() throws Exception
+    {
+        var destinationQueue = "test-redistribute-multi-destination";
+        var sourceQueue = "test-redistribute-multi-source";
+        var numberOfMessages = 100;
+        var numberOfMessagesToMove = 100;
+        var expectedNumberOfMessagesToMove = 100;
+        runRedistributionTest(
+                sourceQueue,
+                destinationQueue,
+                numberOfMessages,
+                numberOfMessagesToMove,
+                expectedNumberOfMessagesToMove
+        );
+    }
+
+    private void runRedistributionTest(
+        final String sourceQueue,
+        final String destinationQueue,
+        final int numberOfMessages,
+        final int numberOfMessagesToMove,
+        final int expectedMessagesToBeMoved
+    ) throws Exception
+    {
+        final var workerWrapper = getWorkerWrapper(
+                destinationQueue,
+                60,
+                1,
+                10,
+                1,
+                600);
+
+        var createQueueRequest = CreateQueueRequest.builder()
+                .queueName(sourceQueue)
+                .build();
+        var sourceQueueUrl = workerWrapper.sqsClient.createQueue(createQueueRequest).queueUrl();
+
+        sendMessagesInBatches(workerWrapper.sqsClient, sourceQueueUrl, numberOfMessages);
+
+        var distributor = new SQSMessageDistributor(
+                new SQSClientProviderImpl(workerWrapper.sqsConfiguration),
+                sourceQueue,
+                destinationQueue
+        );
+
+        var moveMessagesResult = distributor.moveMessages(numberOfMessagesToMove);
+
+        var receivedMessages = new ArrayList<CallbackResponse>();
+        CallbackResponse response;
+        do {
+            response = workerWrapper.callbackQueue.poll(5, TimeUnit.SECONDS);
+            if (response != null) {
+                receivedMessages.add(response);
+            }
+        } while (response != null);
+
+        Assert.assertEquals(receivedMessages.size(), expectedMessagesToBeMoved, "Message batch was not as expected");
+        Assert.assertEquals(moveMessagesResult.size(), expectedMessagesToBeMoved, "Move message result was not as expected");
+
+        purgeQueue(workerWrapper.sqsClient, workerWrapper.inputQueueUrl);
+        purgeQueue(workerWrapper.sqsClient, sourceQueueUrl);
     }
 }

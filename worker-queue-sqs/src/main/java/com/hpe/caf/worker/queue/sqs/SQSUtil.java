@@ -15,6 +15,7 @@
  */
 package com.hpe.caf.worker.queue.sqs;
 
+import com.hpe.caf.worker.queue.sqs.config.SQSWorkerQueueConfiguration;
 import software.amazon.awssdk.services.sqs.SqsClient;
 import software.amazon.awssdk.services.sqs.model.GetQueueAttributesRequest;
 import software.amazon.awssdk.services.sqs.model.GetQueueUrlRequest;
@@ -23,13 +24,13 @@ import software.amazon.awssdk.services.sqs.model.QueueAttributeName;
 import java.util.HashMap;
 import java.util.Map;
 
-class SQSUtil
+public class SQSUtil
 {
-    static final String SQS_HEADER_CAF_WORKER_REJECTED = "x-caf-worker-rejected";
-    static final String REJECTED_REASON_TASKMESSAGE = "TASKMESSAGE_INVALID";
-    static final String DEAD_LETTER_QUEUE_SUFFIX = "-dlq";
-    static final String ALL_ATTRIBUTES = "All";
-    static final String SOURCE_QUEUE = "SourceQueue";
+    public static final String SQS_HEADER_CAF_WORKER_REJECTED = "x-caf-worker-rejected";
+    public static final String REJECTED_REASON_TASKMESSAGE = "TASKMESSAGE_INVALID";
+    public static final String DEAD_LETTER_QUEUE_SUFFIX = "-dlq";
+    public static final String ALL_ATTRIBUTES = "All";
+    public static final String SOURCE_QUEUE = "SourceQueue";
 
     static Map<QueueAttributeName, String> getInputQueueAttributes(final SQSWorkerQueueConfiguration sqsQueueCfg)
     {
@@ -82,7 +83,7 @@ class SQSUtil
         return attributesResponse.attributes().get(QueueAttributeName.QUEUE_ARN);
     }
 
-    static QueueInfo getQueueInfo(
+    public static QueueInfo getQueueInfo(
             final SqsClient sqsClient,
             final String queueName
     )

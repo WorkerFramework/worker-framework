@@ -22,6 +22,8 @@ import com.hpe.caf.api.worker.QueueException;
 import com.hpe.caf.api.worker.TaskCallback;
 import com.hpe.caf.api.worker.TaskInformation;
 import com.hpe.caf.api.worker.WorkerQueueMetricsReporter;
+import com.hpe.caf.worker.queue.sqs.config.SQSConfiguration;
+import com.hpe.caf.worker.queue.sqs.config.SQSWorkerQueueConfiguration;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import software.amazon.awssdk.services.sqs.SqsClient;

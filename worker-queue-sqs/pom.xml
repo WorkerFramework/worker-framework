@@ -190,6 +190,9 @@
                                         <!--https://docs.localstack.cloud/references/logging/-->
                                         <LS_LOG>warn</LS_LOG>
                                     </env>
+                                    <log>
+                                        <enabled>true</enabled>
+                                    </log>
                                 </run>
                             </image>
                         </images>

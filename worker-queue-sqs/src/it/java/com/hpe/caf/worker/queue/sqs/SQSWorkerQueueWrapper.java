@@ -16,6 +16,8 @@
 package com.hpe.caf.worker.queue.sqs;
 
 import com.hpe.caf.api.worker.QueueException;
+import com.hpe.caf.worker.queue.sqs.config.SQSConfiguration;
+import com.hpe.caf.worker.queue.sqs.config.SQSWorkerQueueConfiguration;
 import software.amazon.awssdk.auth.credentials.AwsCredentials;
 import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.cloudwatch.CloudWatchClient;
@@ -29,8 +31,8 @@ import software.amazon.awssdk.services.sqs.model.SendMessageRequest;
 
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 import java.util.concurrent.BlockingQueue;
 
@@ -159,20 +161,6 @@ public class SQSWorkerQueueWrapper
         }
     }
 
-//    public static void sendMessages(
-//            final SqsClient sqsClient,
-//            final String queueUrl,
-//            final String... messages)
-//    {
-//        try {
-//            for (final String message : messages) {
-//                sendMessage(sqsClient, queueUrl, new HashMap<>(), message);
-//            }
-//        } catch (final Exception e) {
-//            fail(e.getMessage());
-//        }
-//    }
-
     public static void sendMessages(
             final SqsClient sqsClient,
             final String queueUrl,
@@ -206,17 +194,30 @@ public class SQSWorkerQueueWrapper
         }
     }
 
-    public static void sendMessageBatch(
+    public static void sendMessagesInBatches(
             final SqsClient sqsClient,
             final String queueUrl,
-            final List<SendMessageBatchRequestEntry> entries)
+            final int numMessages)
     {
         try {
-            final var sendRequest = SendMessageBatchRequest.builder()
-                    .queueUrl(queueUrl)
-                    .entries(entries)
-                    .build();
-            sqsClient.sendMessageBatch(sendRequest);
+            for (int j = 0; j < numMessages/10; j++) {
+                var entries = new ArrayList<SendMessageBatchRequestEntry>();
+                for (int i = 1; i <= 10; i++) {
+                    final var msg = String.format("msg-%d-%d", j, i);
+                    var entry = SendMessageBatchRequestEntry.builder()
+                            .id(msg)
+                            .delaySeconds(0)
+                            .messageBody(msg)
+                            .build();
+                    entries.add(entry);
+                }
+                final var sendRequest = SendMessageBatchRequest.builder()
+                        .queueUrl(queueUrl)
+                        .entries(entries)
+                        .build();
+                sqsClient.sendMessageBatch(sendRequest);
+            }
+
         } catch (final Exception e) {
             fail(e.getMessage());
         }
@@ -240,4 +241,5 @@ public class SQSWorkerQueueWrapper
             // Ignoring this
         }
     }
+
 }

@@ -15,6 +15,7 @@
  */
 package com.hpe.caf.worker.queue.sqs;
 
+import com.hpe.caf.worker.queue.sqs.config.SQSConfiguration;
 import software.amazon.awssdk.auth.credentials.AwsCredentials;
 import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.sqs.SqsClient;

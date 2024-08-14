@@ -17,22 +17,28 @@ package com.hpe.caf.worker.queue.sqs;
 
 import com.hpe.caf.api.worker.TaskInformation;
 
+import java.time.Instant;
+import java.util.Objects;
+
 public class SQSTaskInformation implements TaskInformation
 {
     private final QueueInfo queueInfo;
     private final String inboundMessageId;
     private final String receiptHandle;
     private final boolean isPoison;
+    private Instant becomesVisible;
 
     public SQSTaskInformation(
             final QueueInfo queueInfo,
             final String inboundMessageId,
             final String receiptHandle,
+            final Instant becomesVisible,
             final boolean isPoison)
     {
         this.queueInfo = queueInfo;
         this.inboundMessageId = inboundMessageId;
         this.receiptHandle = receiptHandle;
+        this.becomesVisible = becomesVisible;
         this.isPoison = isPoison;
     }
 
@@ -52,9 +58,34 @@ public class SQSTaskInformation implements TaskInformation
         return receiptHandle;
     }
 
+    public Instant getBecomesVisible()
+    {
+        return becomesVisible;
+    }
+
+    public void setBecomesVisible(final Instant becomesVisible)
+    {
+        this.becomesVisible = becomesVisible;
+    }
+
     @Override
     public boolean isPoison()
     {
         return isPoison;
+    }
+
+    @Override
+    public boolean equals(Object o)
+    {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        final SQSTaskInformation that = (SQSTaskInformation) o;
+        return Objects.equals(receiptHandle, that.receiptHandle);
+    }
+
+    @Override
+    public int hashCode()
+    {
+        return Objects.hashCode(receiptHandle);
     }
 }

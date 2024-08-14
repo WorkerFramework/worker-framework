@@ -18,6 +18,7 @@ package com.hpe.caf.worker.queue.sqs;
 import com.hpe.caf.api.worker.InvalidTaskException;
 import com.hpe.caf.api.worker.TaskCallback;
 import com.hpe.caf.api.worker.TaskRejectedException;
+import com.hpe.caf.worker.queue.sqs.config.SQSWorkerQueueConfiguration;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import software.amazon.awssdk.services.sqs.SqsClient;
@@ -28,6 +29,7 @@ import software.amazon.awssdk.services.sqs.model.ReceiveMessageRequest;
 import software.amazon.awssdk.services.sqs.model.SendMessageRequest;
 
 import java.nio.charset.StandardCharsets;
+import java.time.Instant;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -37,7 +39,7 @@ public class SQSMessageConsumer implements Runnable
     private final QueueInfo queueInfo;
     private final QueueInfo retryQueueInfo;
     private final TaskCallback callback;
-    private final SQSWorkerQueueConfiguration sqsQueueConfiguration;
+    private final SQSWorkerQueueConfiguration queueCfg;
     private final boolean isPoisonMessageConsumer;
 
     private static final Logger LOG = LoggerFactory.getLogger(SQSMessageConsumer.class);
@@ -47,14 +49,14 @@ public class SQSMessageConsumer implements Runnable
             final QueueInfo queueInfo,
             final QueueInfo retryQueueInfo,
             final TaskCallback callback,
-            final SQSWorkerQueueConfiguration sqsQueueConfiguration,
+            final SQSWorkerQueueConfiguration queueCfg,
             final boolean isPoisonMessageConsumer)
     {
         this.sqsClient = sqsClient;
         this.queueInfo = queueInfo;
         this.retryQueueInfo = retryQueueInfo;
         this.callback = callback;
-        this.sqsQueueConfiguration = sqsQueueConfiguration;
+        this.queueCfg = queueCfg;
         this.isPoisonMessageConsumer = isPoisonMessageConsumer;
     }
 
@@ -68,8 +70,8 @@ public class SQSMessageConsumer implements Runnable
     {
         final var receiveRequest = ReceiveMessageRequest.builder()
                 .queueUrl(queueInfo.url())
-                .maxNumberOfMessages(sqsQueueConfiguration.getMaxNumberOfMessages())
-                .waitTimeSeconds(sqsQueueConfiguration.getLongPollInterval())
+                .maxNumberOfMessages(queueCfg.getMaxNumberOfMessages())
+                .waitTimeSeconds(queueCfg.getLongPollInterval())
                 .attributeNamesWithStrings(SQSUtil.ALL_ATTRIBUTES)
                 .messageAttributeNames(SQSUtil.ALL_ATTRIBUTES)
                 .build();
@@ -87,10 +89,13 @@ public class SQSMessageConsumer implements Runnable
 
     private void registerTask(final Message message)
     {
+        final var add = isPoisonMessageConsumer ? queueCfg.getDlqVisibilityTimeout() : queueCfg.getVisibilityTimeout();
+        final var becomesVisible = Instant.now().plusSeconds(add);
         final var taskInfo = new SQSTaskInformation(
                 queueInfo,
                 message.messageId(),
                 message.receiptHandle(),
+                becomesVisible,
                 isPoisonMessageConsumer
         );
         try {
