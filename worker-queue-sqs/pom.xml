@@ -95,10 +95,6 @@
             <groupId>software.amazon.awssdk</groupId>
             <artifactId>sqs</artifactId>
         </dependency>
-        <dependency>
-            <groupId>com.github.workerframework</groupId>
-            <artifactId>worker-configs</artifactId>
-        </dependency>
         <!--Test Dependencies-->
         <dependency>
             <groupId>joda-time</groupId>

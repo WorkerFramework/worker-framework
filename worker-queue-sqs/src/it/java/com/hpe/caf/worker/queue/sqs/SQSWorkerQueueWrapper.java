@@ -16,7 +16,6 @@
 package com.hpe.caf.worker.queue.sqs;
 
 import com.hpe.caf.api.worker.QueueException;
-import com.hpe.caf.configs.SQSConfiguration;
 import software.amazon.awssdk.auth.credentials.AwsCredentials;
 import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.cloudwatch.CloudWatchClient;
@@ -219,7 +218,7 @@ public class SQSWorkerQueueWrapper
                     .build();
             sqsClient.sendMessageBatch(sendRequest);
         } catch (final Exception e) {
-            fail("Failed to send a batch of messages");
+            fail(e.getMessage());
         }
     }
 

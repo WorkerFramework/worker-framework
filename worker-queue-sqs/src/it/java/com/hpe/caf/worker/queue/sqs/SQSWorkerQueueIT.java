@@ -22,15 +22,18 @@ import software.amazon.awssdk.services.sqs.model.GetQueueUrlRequest;
 import software.amazon.awssdk.services.sqs.model.MessageAttributeValue;
 import software.amazon.awssdk.services.sqs.model.QueueAttributeName;
 import software.amazon.awssdk.services.sqs.model.ReceiveMessageRequest;
+import software.amazon.awssdk.services.sqs.model.SendMessageBatchRequestEntry;
 
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
 import static com.hpe.caf.worker.queue.sqs.SQSWorkerQueueWrapper.getWorkerWrapper;
 import static com.hpe.caf.worker.queue.sqs.SQSWorkerQueueWrapper.purgeQueue;
+import static com.hpe.caf.worker.queue.sqs.SQSWorkerQueueWrapper.sendMessageBatch;
 import static com.hpe.caf.worker.queue.sqs.SQSWorkerQueueWrapper.sendMessages;
 import static org.testng.AssertJUnit.fail;
 
@@ -271,6 +274,45 @@ public class SQSWorkerQueueIT
 
         var redeliveredMsg = workerWrapper.callbackQueue.poll(3, TimeUnit.SECONDS);
         Assert.assertNull(redeliveredMsg, "Message should not have been redelivered");
+
+        purgeQueue(workerWrapper.sqsClient, workerWrapper.inputQueueUrl);
+    }
+
+    @Test
+    public void testMessageBatchesAreDelivered() throws Exception
+    {
+        var inputQueue = "test-batch";
+        final var workerWrapper = getWorkerWrapper(
+                inputQueue,
+                60,
+                1,
+                10,
+                1,
+                600);
+        var messagesToSend = 10;
+        var messages = new ArrayList<SendMessageBatchRequestEntry>();
+        for (int i = 1; i <= messagesToSend; i++) {
+            final var msg = String.format("msg-%d", i);
+            var entry = SendMessageBatchRequestEntry.builder()
+                    .id(msg)
+                    .delaySeconds(0)
+                    .messageBody(msg)
+                    .build();
+            messages.add(entry);
+        }
+        sendMessageBatch(workerWrapper.sqsClient, workerWrapper.inputQueueUrl, messages);
+
+        var receivedMessages = new ArrayList<CallbackResponse>();
+        CallbackResponse response;
+        do {
+            // This is polling the internal BlockingQueue created in our test callback
+            response = workerWrapper.callbackQueue.poll(10, TimeUnit.SECONDS);
+            if (response != null) {
+                receivedMessages.add(response);
+            }
+        } while (response != null);
+
+        Assert.assertEquals(10, receivedMessages.size(), "Message batch was not as expected");
 
         purgeQueue(workerWrapper.sqsClient, workerWrapper.inputQueueUrl);
     }

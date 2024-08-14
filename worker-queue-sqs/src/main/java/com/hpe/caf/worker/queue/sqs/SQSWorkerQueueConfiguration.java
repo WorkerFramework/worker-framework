@@ -16,7 +16,6 @@
 package com.hpe.caf.worker.queue.sqs;
 
 import com.hpe.caf.api.Configuration;
-import com.hpe.caf.configs.SQSConfiguration;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.Max;
 import jakarta.validation.constraints.Min;
