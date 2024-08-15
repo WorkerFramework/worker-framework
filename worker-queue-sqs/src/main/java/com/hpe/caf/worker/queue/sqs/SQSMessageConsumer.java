@@ -32,6 +32,7 @@ import java.nio.charset.StandardCharsets;
 import java.time.Instant;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Set;
 
 public class SQSMessageConsumer implements Runnable
 {
@@ -40,6 +41,7 @@ public class SQSMessageConsumer implements Runnable
     private final QueueInfo retryQueueInfo;
     private final TaskCallback callback;
     private final SQSWorkerQueueConfiguration queueCfg;
+    private final Set<SQSTaskInformation> timeoutSet;
     private final boolean isPoisonMessageConsumer;
 
     private static final Logger LOG = LoggerFactory.getLogger(SQSMessageConsumer.class);
@@ -50,6 +52,7 @@ public class SQSMessageConsumer implements Runnable
             final QueueInfo retryQueueInfo,
             final TaskCallback callback,
             final SQSWorkerQueueConfiguration queueCfg,
+            final Set<SQSTaskInformation> timeoutSet,
             final boolean isPoisonMessageConsumer)
     {
         this.sqsClient = sqsClient;
@@ -57,6 +60,7 @@ public class SQSMessageConsumer implements Runnable
         this.retryQueueInfo = retryQueueInfo;
         this.callback = callback;
         this.queueCfg = queueCfg;
+        this.timeoutSet = timeoutSet;
         this.isPoisonMessageConsumer = isPoisonMessageConsumer;
     }
 
@@ -89,27 +93,30 @@ public class SQSMessageConsumer implements Runnable
 
     private void registerTask(final Message message)
     {
-        final var add = isPoisonMessageConsumer ? queueCfg.getDlqVisibilityTimeout() : queueCfg.getVisibilityTimeout();
-        final var becomesVisible = Instant.now().plusSeconds(add);
-        final var taskInfo = new SQSTaskInformation(
-                queueInfo,
-                message.messageId(),
-                message.receiptHandle(),
-                becomesVisible,
-                isPoisonMessageConsumer
-        );
         try {
+            final var add = isPoisonMessageConsumer ? queueCfg.getDlqVisibilityTimeout() : queueCfg.getVisibilityTimeout();
+            final var becomesVisible = Instant.now().plusSeconds(add);
+            final var taskInfo = new SQSTaskInformation(
+                    queueInfo,
+                    message.messageId(),
+                    message.receiptHandle(),
+                    becomesVisible,
+                    isPoisonMessageConsumer
+            );
+
             final var headers = createHeadersFromMessageAttributes(message);
             callback.registerNewTask(taskInfo, message.body().getBytes(StandardCharsets.UTF_8), headers);
             if (isPoisonMessageConsumer) {
                 deleteMessage(message.receiptHandle(),message.messageId());
+            } else {
+                timeoutSet.add(taskInfo);
             }
         } catch (final TaskRejectedException e) {
-            LOG.error("Cannot register new message, rejecting {}", taskInfo.getInboundMessageId(), e);
+            LOG.error("Cannot register new message, rejecting {}", message.messageId(), e);
             retryMessage(message);
         } catch (final InvalidTaskException e) {
             LOG.warn("Message {} rejected as a task at this time, will be redelivered by SQS",
-                    taskInfo.getInboundMessageId(), e);
+                    message.messageId(), e);
         }
     }
 

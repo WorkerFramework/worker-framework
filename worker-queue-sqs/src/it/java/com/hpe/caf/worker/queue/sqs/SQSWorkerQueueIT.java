@@ -42,6 +42,13 @@ import static org.testng.AssertJUnit.fail;
 
 public class SQSWorkerQueueIT
 {
+     // DDD
+//    [ERROR] Failures:
+//        [ERROR]   SQSWorkerQueueIT.testDeleteFailsWhenReceiptHandleHasExpired:313 Should have got one message expected [0] but found [1]
+//        [ERROR]   SQSWorkerQueueIT.testRedriveOfMessagesToDeadLetterQueue:115 NullPointer Cannot invoke "com.hpe.caf.worker.queue.sqs.util.CallbackResponse.taskInformation()" because "msg" is null
+
+
+
     @Test
     public void testPublish() throws Exception
     {

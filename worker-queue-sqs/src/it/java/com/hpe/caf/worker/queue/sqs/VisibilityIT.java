@@ -1,3 +1,18 @@
+/*
+ * Copyright 2015-2024 Open Text.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
 package com.hpe.caf.worker.queue.sqs;
 
 import org.testng.Assert;
@@ -12,38 +27,6 @@ import static com.hpe.caf.worker.queue.sqs.util.SQSWorkerQueueWrapper.sendMessag
 public class VisibilityIT
 {
     @Test
-    public void testMessageIsRedeliveredWithSameMessageIdAfterVisibilityTimeoutExpires() throws Exception
-    {
-        var inputQueue = "expired-visibility";
-        final var workerWrapper = getWorkerWrapper(
-                inputQueue,
-                10,
-                1,
-                1,
-                1000,
-                600);
-        final var msgBody = "Redelivery";
-        sendMessages(workerWrapper, msgBody);
-
-        final var msg = workerWrapper.callbackQueue.poll(10, TimeUnit.SECONDS);
-        final var body = msg.body();
-        final var messageId = msg.taskInformation().getInboundMessageId();
-        Assert.assertEquals(msgBody, body, "Message was not as expected");
-
-        // Let visibility timeout expire
-        Thread.sleep(10 * 1000 + 1000);
-
-        final var redeliveredMsg = workerWrapper.callbackQueue.poll(10, TimeUnit.SECONDS);
-        purgeQueue(workerWrapper.sqsClient, workerWrapper.inputQueueUrl);
-        final var redeliveredBody = redeliveredMsg.body();
-        Assert.assertEquals(
-                messageId,
-                redeliveredMsg.taskInformation().getInboundMessageId(),
-                "Message ids do not match");
-        Assert.assertEquals(msgBody, redeliveredBody, "Redelivered message was not as expected");
-    }
-
-    @Test
     public void testMessageIsNotRedeliveredDuringVisibilityTimeout() throws Exception
     {
         var inputQueue = "during-visibility";
@@ -57,11 +40,10 @@ public class VisibilityIT
         final var msgBody = "No-Redelivery";
         sendMessages(workerWrapper, msgBody);
 
-        final var msg = workerWrapper.callbackQueue.poll(3, TimeUnit.SECONDS);
-        final var body = msg.body();
-        var redeliveredMsg = workerWrapper.callbackQueue.poll(3, TimeUnit.SECONDS);
+        final var firstDelivery = workerWrapper.callbackQueue.poll(3, TimeUnit.SECONDS);
+        var redeliveredMsg = workerWrapper.callbackQueue.poll(30, TimeUnit.SECONDS);
         try {
-            Assert.assertEquals(msgBody, body, "Message was not as expected");
+            Assert.assertNotNull(firstDelivery, "Message should have been delivered");
             Assert.assertNull(redeliveredMsg, "Message should not have been redelivered");
         } finally {
             purgeQueue(workerWrapper.sqsClient, workerWrapper.inputQueueUrl);
@@ -75,29 +57,54 @@ public class VisibilityIT
         final var workerWrapper = getWorkerWrapper(
                 inputQueue,
                 10,
-                1,
+                20,
                 1,
                 1000,
                 600);
         final var msgBody = "hello-world";
         sendMessages(workerWrapper, msgBody);
 
-        // Message will normally time out after 10 seconds
         final var msg = workerWrapper.callbackQueue.poll(3, TimeUnit.SECONDS);
 
-        final var sqsTaskInfo = (SQSTaskInformation) msg.taskInformation();
+        // Message should be redelivered
+        var redelivered = workerWrapper.callbackQueue.poll(30, TimeUnit.SECONDS);
 
-        // Extend timeout to 20 seconds
-        workerWrapper.extendTimeout(workerWrapper.inputQueueUrl, 20, sqsTaskInfo);
-
-        // Message should NOT be redelivered @18 seconds later
-        var redelivered = workerWrapper.callbackQueue.poll(18, TimeUnit.SECONDS);
-        Thread.sleep(3000);
-        // Now it should be available
-        var redeliveredAgain = workerWrapper.callbackQueue.poll(0, TimeUnit.SECONDS);
         try {
-            Assert.assertNull(redelivered, "Message should NOT be delivered @18 seconds later");
-            Assert.assertNotNull(redeliveredAgain, "Message should have been redelivered");
+            Assert.assertNotNull(msg, "Original Message should have been delivered");
+            Assert.assertNull(redelivered, "Message should not be redelivered");
+        } finally {
+            purgeQueue(workerWrapper.sqsClient, workerWrapper.inputQueueUrl);
+        }
+    }
+
+    @Test
+    public void testVisibilityTimeoutExtensionIsCancelled() throws Exception
+    {
+        var inputQueue = "stop-extend-visibility";
+        final var workerWrapper = getWorkerWrapper(
+                inputQueue,
+                10,
+                20,
+                1,
+                1000,
+                600);
+        final var msgBody = "hello-world";
+        sendMessages(workerWrapper, msgBody);
+
+        final var msg = workerWrapper.callbackQueue.poll(3, TimeUnit.SECONDS);
+
+        // Message should NOT be redelivered
+        var notRedelivered = workerWrapper.callbackQueue.poll(30, TimeUnit.SECONDS);
+
+        workerWrapper.sqsWorkerQueue.discardTask(msg.taskInformation());
+
+        // DDD Something wrong here, message should now be delivered
+        var delivered = workerWrapper.callbackQueue.poll(2, TimeUnit.MINUTES);
+
+        try {
+            Assert.assertNotNull(msg, "Original Message should have been delivered");
+            Assert.assertNull(notRedelivered, "Message should not be redelivered");
+            Assert.assertNotNull(delivered, "Should have been delivered");
         } finally {
             purgeQueue(workerWrapper.sqsClient, workerWrapper.inputQueueUrl);
         }

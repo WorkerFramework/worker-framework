@@ -42,9 +42,12 @@ import software.amazon.awssdk.services.sqs.model.SendMessageRequest;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.BlockingQueue;
 
 import static org.testng.AssertJUnit.fail;
@@ -60,7 +63,6 @@ public class SQSWorkerQueueWrapper
     public final SqsClient sqsClient;
     final SQSClientProviderImpl clientProvider;
 
-    final VisibilityTimeoutExtender visibilityTimeoutExtender;
 
     public final String inputQueueUrl;
 
@@ -126,8 +128,6 @@ public class SQSWorkerQueueWrapper
                 .region(Region.US_EAST_1)
                 .endpointOverride(new URI(sqsConfiguration.getURIString()))
                 .build();
-
-        visibilityTimeoutExtender = new VisibilityTimeoutExtender(sqsClient, sqsWorkerQueueConfiguration);
     }
 
     public CloudWatchClient getCloudwatchClient()
@@ -262,15 +262,6 @@ public class SQSWorkerQueueWrapper
         } catch (final QueueDoesNotExistException e) {
             // Ignoring this
         }
-    }
-
-    public List<BatchResultErrorEntry> extendTimeout(
-            final String queueUrl,
-            final int timeout,
-            final SQSTaskInformation taskInfo
-    )
-    {
-        return visibilityTimeoutExtender.extendTaskTimeout(queueUrl, timeout, taskInfo);
     }
 
     public static ReceiveMessageResponse receiveMessages(

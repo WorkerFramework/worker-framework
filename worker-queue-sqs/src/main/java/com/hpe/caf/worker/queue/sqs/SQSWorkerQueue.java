@@ -24,6 +24,7 @@ import com.hpe.caf.api.worker.TaskInformation;
 import com.hpe.caf.api.worker.WorkerQueueMetricsReporter;
 import com.hpe.caf.worker.queue.sqs.config.SQSConfiguration;
 import com.hpe.caf.worker.queue.sqs.config.SQSWorkerQueueConfiguration;
+import com.hpe.caf.worker.queue.sqs.visibility.VisibilityTimeoutExtender;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import software.amazon.awssdk.services.sqs.SqsClient;
@@ -38,10 +39,15 @@ import software.amazon.awssdk.services.sqs.model.SendMessageRequest;
 import software.amazon.awssdk.services.sqs.model.SetQueueAttributesRequest;
 
 import java.nio.charset.StandardCharsets;
+import java.util.Collections;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Set;
+import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.LinkedBlockingQueue;
 
 import static com.hpe.caf.worker.queue.sqs.SQSUtil.getDeadLetterQueueAttributes;
 import static com.hpe.caf.worker.queue.sqs.SQSUtil.getInputQueueAttributes;
@@ -51,10 +57,14 @@ public final class SQSWorkerQueue implements ManagedWorkerQueue
     private SqsClient sqsClient;
     private Thread inputQueueConsumerThread;
     private Thread deadLetterQueueConsumerThread;
+    private Thread visibilityTimeoutExtenderThread;
     private QueueInfo inputQueueInfo;
     private QueueInfo deadLetterQueueInfo;
     private QueueInfo retryQueueInfo;
     private TaskCallback callback;
+    private VisibilityTimeoutExtender visibilityTimeoutExtender;
+    private Set<SQSTaskInformation> timeoutSet;
+    private BlockingQueue<SQSTaskInformation> stopQueue;
 
     private final SQSWorkerQueueConfiguration sqsQueueCfg;
     private final SQSConfiguration sqsCfg;
@@ -64,7 +74,9 @@ public final class SQSWorkerQueue implements ManagedWorkerQueue
     private static final Logger LOG = LoggerFactory.getLogger(SQSWorkerQueue.class);
 
 
-    public SQSWorkerQueue(final SQSWorkerQueueConfiguration sqsQueueCfg)
+    public SQSWorkerQueue(
+            final SQSWorkerQueueConfiguration sqsQueueCfg
+    )
     {
         this.sqsQueueCfg = Objects.requireNonNull(sqsQueueCfg);
         sqsCfg = sqsQueueCfg.getSQSConfiguration();
@@ -95,12 +107,35 @@ public final class SQSWorkerQueue implements ManagedWorkerQueue
                     (q) -> createQueue(q, getInputQueueAttributes(sqsQueueCfg))
             );
 
+            // DDD is this the best option for delete/add
+            timeoutSet = Collections.synchronizedSet(new HashSet<>());
+            visibilityTimeoutExtender = new VisibilityTimeoutExtender(
+                    sqsClient,
+                    inputQueueInfo.url(),
+                    sqsQueueCfg.getVisibilityTimeout(),
+                    timeoutSet);
+
             var isPoisonMessageConsumer = true;
             var dlqConsumer = new SQSMessageConsumer(
-                    sqsClient, deadLetterQueueInfo, retryQueueInfo, callback, sqsQueueCfg, isPoisonMessageConsumer);
+                    sqsClient,
+                    deadLetterQueueInfo,
+                    retryQueueInfo,
+                    callback,
+                    sqsQueueCfg,
+                    timeoutSet,
+                    isPoisonMessageConsumer);
 
             var consumer = new SQSMessageConsumer(
-                    sqsClient, inputQueueInfo, retryQueueInfo, callback, sqsQueueCfg, !isPoisonMessageConsumer);
+                    sqsClient,
+                    inputQueueInfo,
+                    retryQueueInfo,
+                    callback,
+                    sqsQueueCfg,
+                    timeoutSet,
+                    !isPoisonMessageConsumer);
+
+            visibilityTimeoutExtenderThread = new Thread(visibilityTimeoutExtender);
+            visibilityTimeoutExtenderThread.start();
 
             inputQueueConsumerThread = new Thread(consumer);
             inputQueueConsumerThread.start();
@@ -220,6 +255,8 @@ public final class SQSWorkerQueue implements ManagedWorkerQueue
             LOG.info("Queue {} may have been deleted. {}",
                     sqsTaskInformation.getQueueInfo().name(),
                     e.getMessage());
+        } finally {
+            timeoutSet.remove(sqsTaskInformation);
         }
     }
 
@@ -274,13 +311,15 @@ public final class SQSWorkerQueue implements ManagedWorkerQueue
     @Override
     public void rejectTask(final TaskInformation taskInformation)
     {
-
+        var sqsTaskInformation = (SQSTaskInformation)taskInformation;
+        timeoutSet.remove(sqsTaskInformation);
     }
 
     @Override
     public void discardTask(final TaskInformation taskInformation)
     {
-
+        var sqsTaskInformation = (SQSTaskInformation)taskInformation;
+        timeoutSet.remove(sqsTaskInformation);
     }
 
     @Override
