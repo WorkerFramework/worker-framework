@@ -65,7 +65,7 @@ public class SQSUtil
         return attributes;
     }
 
-    static String getQueueUrl(final SqsClient sqsClient, final String queueName)
+    public static String getQueueUrl(final SqsClient sqsClient, final String queueName)
     {
         final var getQueueUrlRequest = GetQueueUrlRequest.builder()
                 .queueName(queueName)

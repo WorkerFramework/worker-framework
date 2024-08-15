@@ -13,9 +13,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.hpe.caf.worker.queue.sqs;
+package com.hpe.caf.worker.queue.sqs.util;
 
-import software.amazon.awssdk.services.cloudwatch.CloudWatchAsyncClient;
 import software.amazon.awssdk.services.cloudwatch.CloudWatchClient;
 import software.amazon.awssdk.services.cloudwatch.model.Dimension;
 import software.amazon.awssdk.services.cloudwatch.model.GetMetricStatisticsRequest;
@@ -45,7 +44,7 @@ public class DatapointCollector
     {
         final var datapoints = new HashMap<String, List<MetricDataPoints>>();
         Calendar current = Calendar.getInstance();
-        current.set(current.get(Calendar.YEAR),current.get(Calendar.MONTH),current.get(Calendar.DATE),0,0,0);
+        current.set(current.get(Calendar.YEAR), current.get(Calendar.MONTH), current.get(Calendar.DATE), 0, 0, 0);
         datapoints.put(queue, new ArrayList<>());
         for (final var metric : metrics) {
             final var statsRequest = GetMetricStatisticsRequest.builder()

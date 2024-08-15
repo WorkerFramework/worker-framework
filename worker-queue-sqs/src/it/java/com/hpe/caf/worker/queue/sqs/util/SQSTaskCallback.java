@@ -13,12 +13,14 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.hpe.caf.worker.queue.sqs;
+package com.hpe.caf.worker.queue.sqs.util;
 
 import com.hpe.caf.api.worker.InvalidTaskException;
 import com.hpe.caf.api.worker.TaskCallback;
 import com.hpe.caf.api.worker.TaskInformation;
 import com.hpe.caf.api.worker.TaskRejectedException;
+import com.hpe.caf.worker.queue.sqs.SQSTaskInformation;
+import com.hpe.caf.worker.queue.sqs.SQSUtil;
 
 import java.util.Map;
 import java.util.concurrent.BlockingQueue;
@@ -36,7 +38,7 @@ public class SQSTaskCallback implements TaskCallback
             final Map<String, Object> headers
     ) throws TaskRejectedException, InvalidTaskException
     {
-        var sqsTaskInformation = (SQSTaskInformation)taskInformation;
+        var sqsTaskInformation = (SQSTaskInformation) taskInformation;
         final var body = new String(taskData);
         if (body.equals("REJECT")) {
             throw new TaskRejectedException("REJECTED");

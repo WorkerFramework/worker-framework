@@ -15,21 +15,21 @@
  */
 package com.hpe.caf.worker.queue.sqs;
 
+import com.hpe.caf.worker.queue.sqs.util.DatapointCollector;
+import com.hpe.caf.worker.queue.sqs.util.MetricDataPoints;
+import com.hpe.caf.worker.queue.sqs.util.SQSWorkerQueueWrapper;
 import org.testng.Assert;
 import org.testng.annotations.Test;
-import software.amazon.awssdk.services.cloudwatch.CloudWatchAsyncClient;
 import software.amazon.awssdk.services.cloudwatch.CloudWatchClient;
-import software.amazon.awssdk.utils.AttributeMap;
 
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
-import java.util.stream.Collectors;
 
-import static com.hpe.caf.worker.queue.sqs.SQSWorkerQueueWrapper.getWorkerWrapper;
-import static com.hpe.caf.worker.queue.sqs.SQSWorkerQueueWrapper.sendMessages;
+import static com.hpe.caf.worker.queue.sqs.util.SQSWorkerQueueWrapper.getWorkerWrapper;
+import static com.hpe.caf.worker.queue.sqs.util.SQSWorkerQueueWrapper.sendMessages;
 
 public class MetricsIT
 {

@@ -13,18 +13,28 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.hpe.caf.worker.queue.sqs;
+package com.hpe.caf.worker.queue.sqs.util;
 
 import com.hpe.caf.api.worker.QueueException;
+import com.hpe.caf.worker.queue.sqs.SQSClientProviderImpl;
+import com.hpe.caf.worker.queue.sqs.SQSTaskInformation;
+import com.hpe.caf.worker.queue.sqs.SQSUtil;
+import com.hpe.caf.worker.queue.sqs.SQSWorkerQueue;
 import com.hpe.caf.worker.queue.sqs.config.SQSConfiguration;
 import com.hpe.caf.worker.queue.sqs.config.SQSWorkerQueueConfiguration;
+import com.hpe.caf.worker.queue.sqs.visibility.VisibilityTimeoutExtender;
 import software.amazon.awssdk.auth.credentials.AwsCredentials;
 import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.cloudwatch.CloudWatchClient;
 import software.amazon.awssdk.services.sqs.SqsClient;
+import software.amazon.awssdk.services.sqs.model.BatchResultErrorEntry;
+import software.amazon.awssdk.services.sqs.model.DeleteMessageRequest;
+import software.amazon.awssdk.services.sqs.model.DeleteMessageResponse;
 import software.amazon.awssdk.services.sqs.model.MessageAttributeValue;
 import software.amazon.awssdk.services.sqs.model.PurgeQueueRequest;
 import software.amazon.awssdk.services.sqs.model.QueueDoesNotExistException;
+import software.amazon.awssdk.services.sqs.model.ReceiveMessageRequest;
+import software.amazon.awssdk.services.sqs.model.ReceiveMessageResponse;
 import software.amazon.awssdk.services.sqs.model.SendMessageBatchRequest;
 import software.amazon.awssdk.services.sqs.model.SendMessageBatchRequestEntry;
 import software.amazon.awssdk.services.sqs.model.SendMessageRequest;
@@ -33,6 +43,7 @@ import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.concurrent.BlockingQueue;
 
@@ -41,15 +52,17 @@ import static org.testng.AssertJUnit.fail;
 public class SQSWorkerQueueWrapper
 {
     final SQSTaskCallback callback;
-    final BlockingQueue<CallbackResponse> callbackQueue;
-    final BlockingQueue<CallbackResponse> callbackDLQ;
-    final SQSWorkerQueueConfiguration sqsWorkerQueueConfiguration;
-    final SQSConfiguration sqsConfiguration;
-    final SQSWorkerQueue sqsWorkerQueue;
-    final SqsClient sqsClient;
+    public final BlockingQueue<CallbackResponse> callbackQueue;
+    public final BlockingQueue<CallbackResponse> callbackDLQ;
+    public final SQSWorkerQueueConfiguration sqsWorkerQueueConfiguration;
+    public final SQSConfiguration sqsConfiguration;
+    public final SQSWorkerQueue sqsWorkerQueue;
+    public final SqsClient sqsClient;
     final SQSClientProviderImpl clientProvider;
 
-    final String inputQueueUrl;
+    final VisibilityTimeoutExtender visibilityTimeoutExtender;
+
+    public final String inputQueueUrl;
 
 
     // Cloudwatch
@@ -95,28 +108,26 @@ public class SQSWorkerQueueWrapper
         callbackDLQ = callback.getCallbackDLQ();
         inputQueueUrl = SQSUtil.getQueueUrl(sqsClient, sqsWorkerQueueConfiguration.getInputQueue());
 
-        try {
-            cloudWatch = CloudWatchClient.builder()
-                    .credentialsProvider(() -> new AwsCredentials()
+        cloudWatch = CloudWatchClient.builder()
+                .credentialsProvider(() -> new AwsCredentials()
+                {
+                    @Override
+                    public String accessKeyId()
                     {
-                        @Override
-                        public String accessKeyId()
-                        {
-                            return sqsConfiguration.getAwsAccessKey();
-                        }
+                        return sqsConfiguration.getAwsAccessKey();
+                    }
 
-                        @Override
-                        public String secretAccessKey()
-                        {
-                            return sqsConfiguration.getSecretAccessKey();
-                        }
-                    })
-                    .region(Region.US_EAST_1)
-                    .endpointOverride(new URI(sqsConfiguration.getURIString()))
-                    .build();
-        } catch (final Exception e) {
-            throw new RuntimeException(e);
-        }
+                    @Override
+                    public String secretAccessKey()
+                    {
+                        return sqsConfiguration.getSecretAccessKey();
+                    }
+                })
+                .region(Region.US_EAST_1)
+                .endpointOverride(new URI(sqsConfiguration.getURIString()))
+                .build();
+
+        visibilityTimeoutExtender = new VisibilityTimeoutExtender(sqsClient, sqsWorkerQueueConfiguration);
     }
 
     public CloudWatchClient getCloudwatchClient()
@@ -124,7 +135,7 @@ public class SQSWorkerQueueWrapper
         return cloudWatch;
     }
 
-    static SQSWorkerQueueWrapper getWorkerWrapper(
+    public static SQSWorkerQueueWrapper getWorkerWrapper(
             final String inputQueue,
             final int visibilityTimeout,
             final int longPollInterval,
@@ -200,7 +211,7 @@ public class SQSWorkerQueueWrapper
             final int numMessages)
     {
         try {
-            for (int j = 0; j < numMessages/10; j++) {
+            for (int j = 0; j < numMessages / 10; j++) {
                 var entries = new ArrayList<SendMessageBatchRequestEntry>();
                 for (int i = 1; i <= 10; i++) {
                     final var msg = String.format("msg-%d-%d", j, i);
@@ -223,7 +234,18 @@ public class SQSWorkerQueueWrapper
         }
     }
 
-    static void purgeQueue(
+    public static DeleteMessageResponse deleteMessage(
+            final SqsClient sqsClient,
+            final SQSTaskInformation taskInfo)
+    {
+        final var sendRequest = DeleteMessageRequest.builder()
+                .queueUrl(taskInfo.getQueueInfo().url())
+                .receiptHandle(taskInfo.getReceiptHandle())
+                .build();
+        return sqsClient.deleteMessage(sendRequest);
+    }
+
+    public static void purgeQueue(
             final SqsClient sqsClient,
             final String queueUrl)
     {
@@ -242,4 +264,27 @@ public class SQSWorkerQueueWrapper
         }
     }
 
+    public List<BatchResultErrorEntry> extendTimeout(
+            final String queueUrl,
+            final int timeout,
+            final SQSTaskInformation taskInfo
+    )
+    {
+        return visibilityTimeoutExtender.extendTaskTimeout(queueUrl, timeout, taskInfo);
+    }
+
+    public static ReceiveMessageResponse receiveMessages(
+            final SqsClient sqsClient,
+            final String queueUrl,
+            final int wait)
+    {
+        final var receiveRequest = ReceiveMessageRequest.builder()
+                .queueUrl(queueUrl)
+                .maxNumberOfMessages(1)
+                .waitTimeSeconds(wait)
+                .attributeNamesWithStrings(SQSUtil.ALL_ATTRIBUTES)
+                .messageAttributeNames(SQSUtil.ALL_ATTRIBUTES)
+                .build();
+        return sqsClient.receiveMessage(receiveRequest);
+    }
 }

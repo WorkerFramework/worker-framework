@@ -15,12 +15,14 @@
  */
 package com.hpe.caf.worker.queue.sqs.distributor;
 
+import com.google.common.collect.Iterables;
 import com.hpe.caf.worker.queue.sqs.QueueInfo;
 import com.hpe.caf.worker.queue.sqs.SQSClientProvider;
 import com.hpe.caf.worker.queue.sqs.SQSUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import software.amazon.awssdk.services.sqs.SqsClient;
+import software.amazon.awssdk.services.sqs.model.BatchResultErrorEntry;
 import software.amazon.awssdk.services.sqs.model.DeleteMessageBatchRequest;
 import software.amazon.awssdk.services.sqs.model.DeleteMessageBatchRequestEntry;
 import software.amazon.awssdk.services.sqs.model.DeleteMessageBatchResponse;
@@ -34,8 +36,6 @@ import software.amazon.awssdk.services.sqs.model.SendMessageBatchResultEntry;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
-import java.util.Map;
-import java.util.Optional;
 import java.util.stream.Collectors;
 
 public final class SQSMessageDistributor
@@ -59,95 +59,89 @@ public final class SQSMessageDistributor
         this.destination = SQSUtil.getQueueInfo(sqsClient, destination);
     }
 
-    public List<SendMessageBatchResultEntry> moveMessages(final int maxMessages)
+    public List<BatchResultErrorEntry> moveMessages(final int maxMessages)
     {
-        final var movedMessages = new ArrayList<SendMessageBatchResultEntry>();
-        for (int i = 0; i < maxMessages/SQS_MAX_BATCH_SIZE; i++)
-        {
+        final var failures = new ArrayList<BatchResultErrorEntry>();
+        final var messages = receive(maxMessages);
+        if (messages.isEmpty()) {
+            LOG.info("No messages found to redistribute on queue {}", source.name());
+            return new ArrayList<>();
+        }
+        // We need to look up the original message to delete.
+        final var sourceMessageMap = messages.stream().collect(Collectors.toMap(msg -> msg.messageId(), msg -> msg));
+
+        final var sendBatches = Iterables.partition(messages, SQS_MAX_BATCH_SIZE);
+        final var successfulSends = new ArrayList<SendMessageBatchResultEntry>();
+        for (final var sendBatch : sendBatches) {
             try {
-                final var optionalStringMessageMap = receive();
-                if (optionalStringMessageMap.isEmpty()) {
-                    LOG.info("No messages found to redistribute on queue {}", source.name());
-                    break;
-                }
-                final var sourceMessageMap = optionalStringMessageMap.get();
-                final var sendMessageBatchResponse = redistribute(sourceMessageMap.values());
-                var deleteMessageBatchResponse = delete(sendMessageBatchResponse, sourceMessageMap);
-                // DDD add failed deletes here?
-                movedMessages.addAll(sendMessageBatchResponse.successful());
+                final var sendMessageBatchResponse = send(sendBatch);
+                successfulSends.addAll(sendMessageBatchResponse.successful());
+                failures.addAll(sendMessageBatchResponse.failed());
             } catch (final Exception e) {
-                LOG.error("Error redistributing a batch of messages", e);
+                LOG.error("Error sending a batch of messages", e);
             }
         }
-        return movedMessages;
+
+        final var receiptHandles = successfulSends.stream()
+                .map(ss -> sourceMessageMap.get(ss.id()).receiptHandle())
+                .collect(Collectors.toSet());
+        final var deleteBatches = Iterables.partition(receiptHandles, SQS_MAX_BATCH_SIZE);
+        for (final var deleteBatch : deleteBatches) {
+            try {
+                var deleteMessageBatchResponse = delete(deleteBatch);
+                failures.addAll(deleteMessageBatchResponse.failed());
+            } catch (final Exception e) {
+                LOG.error("Error deleting a batch of messages", e);
+            }
+        }
+        return failures;
     }
 
-    private SendMessageBatchResponse redistribute(final List<Message> messages)
+    /**
+     * The only guarantee is that we would not receive more than 10 messages per request.
+     *
+     * @return
+     */
+    private List<Message> receive(final int maxMessages)
     {
-        final var sendMessageBatchResponse = redistribute(messages);
-
-        sendMessageBatchResponse.failed()
-                .stream()
-                .forEach(msg->{
-                    LOG.error(msg.toString());
-                });
-        return sendMessageBatchResponse;
+        final List<Message> receivedMessages = new ArrayList<>();
+        for (int i = 0; i < maxMessages / SQS_MAX_BATCH_SIZE; i++) {
+            final var receiveRequest = ReceiveMessageRequest.builder()
+                    .queueUrl(source.url())
+                    .maxNumberOfMessages(SQS_MAX_BATCH_SIZE)
+                    .waitTimeSeconds(0)
+                    .attributeNamesWithStrings(SQSUtil.ALL_ATTRIBUTES)
+                    .messageAttributeNames(SQSUtil.ALL_ATTRIBUTES)
+                    .build();
+            receivedMessages.addAll(sqsClient.receiveMessage(receiveRequest).messages());
+        }
+        return receivedMessages;
     }
 
-    private Optional<Map<String, Message>> receive()
-    {
-        final var receiveRequest = ReceiveMessageRequest.builder()
-                .queueUrl(source.url())
-                .maxNumberOfMessages(SQS_MAX_BATCH_SIZE)
-                .waitTimeSeconds(0)
-                .attributeNamesWithStrings(SQSUtil.ALL_ATTRIBUTES)
-                .messageAttributeNames(SQSUtil.ALL_ATTRIBUTES)
-                .build();
-        final var result = sqsClient.receiveMessage(receiveRequest).messages();
-        final var messageMap = result.stream().collect(Collectors.toMap(msg->msg.messageId(), msg->msg));
-        return Optional.of(messageMap);
-    }
-
-    private DeleteMessageBatchResponse delete(
-            final SendMessageBatchResponse sendMessageBatchResponse,
-            Map<String, Message> sourceMessageMap
-    )
-    {
-        final var deleteMessageBatchRequestEntries = sendMessageBatchResponse.successful()
-                .stream()
-                .map(msg-> {
-                    final var originalMessage = sourceMessageMap.get(msg.id());
-                    final var entry = DeleteMessageBatchRequestEntry.builder()
-                            .id(msg.messageId())
-                            .receiptHandle(originalMessage.receiptHandle())
-                            .build();
-                    return entry;
-                })
-                .collect(Collectors.toList());
-        final var deleteMessageBatchResponse = deleteMessageBatch(deleteMessageBatchRequestEntries);
-        deleteMessageBatchResponse.failed()
-                .stream()
-                .forEach(msg->{
-                    LOG.error(msg.toString());
-                });
-        return deleteMessageBatchResponse;
-    }
-
-    private SendMessageBatchResponse redistribute(final Collection<Message> messages)
+    private SendMessageBatchResponse send(final Collection<Message> messages)
     {
         final var entries = messages
                 .stream()
-                .map(msg->{
-                    final var entry = SendMessageBatchRequestEntry.builder()
-                            .id(msg.messageId())
-                            .messageAttributes(msg.messageAttributes())
-                            .delaySeconds(0)
-                            .messageBody(msg.body())
-                            .build();
-                    return entry;
-                })
+                .map(msg -> SendMessageBatchRequestEntry.builder()
+                        .id(msg.messageId())
+                        .messageAttributes(msg.messageAttributes())
+                        .delaySeconds(0)
+                        .messageBody(msg.body())
+                        .build())
                 .collect(Collectors.toList());
         return sendMessageBatch(entries);
+    }
+
+    private DeleteMessageBatchResponse delete(final List<String> receiptHandles)
+    {
+        final var deleteMessageBatchRequestEntries = receiptHandles
+                .stream()
+                .map(receiptHandle -> DeleteMessageBatchRequestEntry.builder()
+                        .id(receiptHandle)
+                        .receiptHandle(receiptHandle)
+                        .build())
+                .collect(Collectors.toList());
+        return deleteMessageBatch(deleteMessageBatchRequestEntries);
     }
 
     private SendMessageBatchResponse sendMessageBatch(final List<SendMessageBatchRequestEntry> entries)

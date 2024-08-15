@@ -13,10 +13,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.hpe.caf.worker.queue.sqs;
+package com.hpe.caf.worker.queue.sqs.util;
 
 import software.amazon.awssdk.services.cloudwatch.model.Datapoint;
 
 import java.util.List;
 
-public record MetricDataPoints(String metric, List<Datapoint> datapoints) {}
+public record MetricDataPoints(String metric, List<Datapoint> datapoints)
+{
+}

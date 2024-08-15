@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.hpe.caf.worker.queue.sqs;
+package com.hpe.caf.worker.queue.sqs.util;
 
 import com.hpe.caf.api.worker.TaskInformation;
 
@@ -23,4 +23,6 @@ public record CallbackResponse(
         TaskInformation taskInformation,
         String body,
         Map<String, Object> headers
-) {}
+)
+{
+}
