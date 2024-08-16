@@ -22,16 +22,15 @@ import com.hpe.caf.worker.queue.sqs.SQSUtil;
 import com.hpe.caf.worker.queue.sqs.SQSWorkerQueue;
 import com.hpe.caf.worker.queue.sqs.config.SQSConfiguration;
 import com.hpe.caf.worker.queue.sqs.config.SQSWorkerQueueConfiguration;
-import com.hpe.caf.worker.queue.sqs.visibility.VisibilityTimeoutExtender;
 import software.amazon.awssdk.auth.credentials.AwsCredentials;
 import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.cloudwatch.CloudWatchClient;
 import software.amazon.awssdk.services.sqs.SqsClient;
-import software.amazon.awssdk.services.sqs.model.BatchResultErrorEntry;
 import software.amazon.awssdk.services.sqs.model.DeleteMessageRequest;
 import software.amazon.awssdk.services.sqs.model.DeleteMessageResponse;
 import software.amazon.awssdk.services.sqs.model.MessageAttributeValue;
 import software.amazon.awssdk.services.sqs.model.PurgeQueueRequest;
+import software.amazon.awssdk.services.sqs.model.QueueAttributeName;
 import software.amazon.awssdk.services.sqs.model.QueueDoesNotExistException;
 import software.amazon.awssdk.services.sqs.model.ReceiveMessageRequest;
 import software.amazon.awssdk.services.sqs.model.ReceiveMessageResponse;
@@ -42,15 +41,12 @@ import software.amazon.awssdk.services.sqs.model.SendMessageRequest;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
 import java.util.Map;
-import java.util.Set;
 import java.util.concurrent.BlockingQueue;
 
-import static org.testng.AssertJUnit.fail;
+import static org.junit.jupiter.api.Assertions.fail;
+
 
 public class SQSWorkerQueueWrapper
 {
@@ -83,7 +79,7 @@ public class SQSWorkerQueueWrapper
         sqsConfiguration = new SQSConfiguration();
         sqsConfiguration.setAwsProtocol("http");
         sqsConfiguration.setAwsHost("sqs.us-east-1.localhost.localstack.cloud");
-        sqsConfiguration.setAwsPort(4566);
+        sqsConfiguration.setAwsPort(14566);
         sqsConfiguration.setAwsRegion("us-east-1");
         sqsConfiguration.setAwsAccessKey("x");
         sqsConfiguration.setSecretAccessKey("x");
@@ -277,5 +273,24 @@ public class SQSWorkerQueueWrapper
                 .messageAttributeNames(SQSUtil.ALL_ATTRIBUTES)
                 .build();
         return sqsClient.receiveMessage(receiveRequest);
+    }
+
+    public static Map<QueueAttributeName, String> getQueueAttributes(
+            final int visibilityTimeout,
+            final int retentionPeriod
+    )
+    {
+        final var attributes = new HashMap<QueueAttributeName, String>();
+        attributes.put(
+                QueueAttributeName.VISIBILITY_TIMEOUT,
+                String.valueOf(visibilityTimeout)
+        );
+
+        attributes.put(
+                QueueAttributeName.MESSAGE_RETENTION_PERIOD,
+                String.valueOf(retentionPeriod)
+        );
+
+        return attributes;
     }
 }

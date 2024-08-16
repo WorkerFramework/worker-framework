@@ -15,21 +15,22 @@
  */
 package com.hpe.caf.worker.queue.sqs;
 
-import org.testng.Assert;
-import org.testng.annotations.Test;
+import org.junit.jupiter.api.Test;
 
 import java.util.concurrent.TimeUnit;
 
 import static com.hpe.caf.worker.queue.sqs.util.SQSWorkerQueueWrapper.getWorkerWrapper;
 import static com.hpe.caf.worker.queue.sqs.util.SQSWorkerQueueWrapper.purgeQueue;
 import static com.hpe.caf.worker.queue.sqs.util.SQSWorkerQueueWrapper.sendMessages;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNull;
 
 public class VisibilityIT
 {
     @Test
     public void testMessageIsNotRedeliveredDuringVisibilityTimeout() throws Exception
     {
-        var inputQueue = "during-visibility";
+        final var inputQueue = "during-visibility";
         final var workerWrapper = getWorkerWrapper(
                 inputQueue,
                 10,
@@ -41,10 +42,10 @@ public class VisibilityIT
         sendMessages(workerWrapper, msgBody);
 
         final var firstDelivery = workerWrapper.callbackQueue.poll(3, TimeUnit.SECONDS);
-        var redeliveredMsg = workerWrapper.callbackQueue.poll(30, TimeUnit.SECONDS);
+        final var redeliveredMsg = workerWrapper.callbackQueue.poll(30, TimeUnit.SECONDS);
         try {
-            Assert.assertNotNull(firstDelivery, "Message should have been delivered");
-            Assert.assertNull(redeliveredMsg, "Message should not have been redelivered");
+            assertNotNull(firstDelivery, "Message should have been delivered");
+            assertNull(redeliveredMsg, "Message should not have been redelivered");
         } finally {
             purgeQueue(workerWrapper.sqsClient, workerWrapper.inputQueueUrl);
         }
@@ -53,7 +54,7 @@ public class VisibilityIT
     @Test
     public void testVisibilityTimeoutGetsExtended() throws Exception
     {
-        var inputQueue = "extend-visibility";
+        final var inputQueue = "extend-visibility";
         final var workerWrapper = getWorkerWrapper(
                 inputQueue,
                 10,
@@ -67,11 +68,11 @@ public class VisibilityIT
         final var msg = workerWrapper.callbackQueue.poll(3, TimeUnit.SECONDS);
 
         // Message should be redelivered
-        var redelivered = workerWrapper.callbackQueue.poll(30, TimeUnit.SECONDS);
+        final var redelivered = workerWrapper.callbackQueue.poll(30, TimeUnit.SECONDS);
 
         try {
-            Assert.assertNotNull(msg, "Original Message should have been delivered");
-            Assert.assertNull(redelivered, "Message should not be redelivered");
+            assertNotNull(msg, "Original Message should have been delivered");
+            assertNull(redelivered, "Message should not be redelivered");
         } finally {
             purgeQueue(workerWrapper.sqsClient, workerWrapper.inputQueueUrl);
         }
@@ -80,7 +81,7 @@ public class VisibilityIT
     @Test
     public void testVisibilityTimeoutExtensionIsCancelled() throws Exception
     {
-        var inputQueue = "stop-extend-visibility";
+        final var inputQueue = "stop-extend-visibility";
         final var workerWrapper = getWorkerWrapper(
                 inputQueue,
                 10,
@@ -94,17 +95,17 @@ public class VisibilityIT
         final var msg = workerWrapper.callbackQueue.poll(3, TimeUnit.SECONDS);
 
         // Message should NOT be redelivered
-        var notRedelivered = workerWrapper.callbackQueue.poll(30, TimeUnit.SECONDS);
+        final var notRedelivered = workerWrapper.callbackQueue.poll(30, TimeUnit.SECONDS);
 
         workerWrapper.sqsWorkerQueue.discardTask(msg.taskInformation());
 
         // DDD Something wrong here, message should now be delivered
-        var delivered = workerWrapper.callbackQueue.poll(2, TimeUnit.MINUTES);
+        final var delivered = workerWrapper.callbackQueue.poll(2, TimeUnit.MINUTES);
 
         try {
-            Assert.assertNotNull(msg, "Original Message should have been delivered");
-            Assert.assertNull(notRedelivered, "Message should not be redelivered");
-            Assert.assertNotNull(delivered, "Should have been delivered");
+            assertNotNull(msg, "Original Message should have been delivered");
+            assertNull(notRedelivered, "Message should not be redelivered");
+            assertNotNull(delivered, "Should have been delivered");
         } finally {
             purgeQueue(workerWrapper.sqsClient, workerWrapper.inputQueueUrl);
         }

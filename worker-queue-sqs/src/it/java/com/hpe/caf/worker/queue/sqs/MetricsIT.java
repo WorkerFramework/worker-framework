@@ -18,8 +18,7 @@ package com.hpe.caf.worker.queue.sqs;
 import com.hpe.caf.worker.queue.sqs.util.DatapointCollector;
 import com.hpe.caf.worker.queue.sqs.util.MetricDataPoints;
 import com.hpe.caf.worker.queue.sqs.util.SQSWorkerQueueWrapper;
-import org.testng.Assert;
-import org.testng.annotations.Test;
+import org.junit.jupiter.api.Test;
 import software.amazon.awssdk.services.cloudwatch.CloudWatchClient;
 
 import java.util.HashMap;
@@ -30,13 +29,14 @@ import java.util.concurrent.TimeUnit;
 
 import static com.hpe.caf.worker.queue.sqs.util.SQSWorkerQueueWrapper.getWorkerWrapper;
 import static com.hpe.caf.worker.queue.sqs.util.SQSWorkerQueueWrapper.sendMessages;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 public class MetricsIT
 {
     @Test
     public void testMetricsShowReceivedAndDeleted() throws Exception
     {
-        var inputQueue = "test-deleted-metrics";
+        final var inputQueue = "test-deleted-metrics";
         final var workerWrapper = getWorkerWrapper(
                 inputQueue,
                 120,
@@ -59,15 +59,15 @@ public class MetricsIT
             msg = workerWrapper.callbackQueue.poll(30, TimeUnit.SECONDS);
         }
 
-        Assert.assertTrue(datapoints.containsKey(inputQueue));
+        assertTrue(datapoints.containsKey(inputQueue));
         var metricsList = datapoints.get(inputQueue);
 
-        Assert.assertTrue(containsMetric(metricsList, "NumberOfMessagesSent"));
-        Assert.assertTrue(containsMetric(metricsList, "NumberOfMessagesReceived"));
-        Assert.assertTrue(containsMetric(metricsList, "NumberOfMessagesDeleted"));
-        Assert.assertTrue(containsMetric(metricsList, "ApproximateNumberOfMessagesNotVisible"));
-        Assert.assertTrue(containsMetric(metricsList, "ApproximateNumberOfMessagesVisible"));
-        Assert.assertTrue(containsMetric(metricsList, "ApproximateAgeOfOldestMessage"));
+        assertTrue(containsMetric(metricsList, "NumberOfMessagesSent"));
+        assertTrue(containsMetric(metricsList, "NumberOfMessagesReceived"));
+        assertTrue(containsMetric(metricsList, "NumberOfMessagesDeleted"));
+        assertTrue(containsMetric(metricsList, "ApproximateNumberOfMessagesNotVisible"));
+        assertTrue(containsMetric(metricsList, "ApproximateNumberOfMessagesVisible"));
+        assertTrue(containsMetric(metricsList, "ApproximateAgeOfOldestMessage"));
     }
 
     private Map<String, List<MetricDataPoints>> getStatistics(

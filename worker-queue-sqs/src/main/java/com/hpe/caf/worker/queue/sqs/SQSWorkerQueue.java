@@ -24,6 +24,7 @@ import com.hpe.caf.api.worker.TaskInformation;
 import com.hpe.caf.api.worker.WorkerQueueMetricsReporter;
 import com.hpe.caf.worker.queue.sqs.config.SQSConfiguration;
 import com.hpe.caf.worker.queue.sqs.config.SQSWorkerQueueConfiguration;
+import com.hpe.caf.worker.queue.sqs.consumer.SQSMessageConsumer;
 import com.hpe.caf.worker.queue.sqs.visibility.VisibilityTimeoutExtender;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -47,7 +48,6 @@ import java.util.Objects;
 import java.util.Set;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.LinkedBlockingQueue;
 
 import static com.hpe.caf.worker.queue.sqs.SQSUtil.getDeadLetterQueueAttributes;
 import static com.hpe.caf.worker.queue.sqs.SQSUtil.getInputQueueAttributes;
@@ -311,6 +311,7 @@ public final class SQSWorkerQueue implements ManagedWorkerQueue
     @Override
     public void rejectTask(final TaskInformation taskInformation)
     {
+        // DDD delete/redeliver/move?
         var sqsTaskInformation = (SQSTaskInformation)taskInformation;
         timeoutSet.remove(sqsTaskInformation);
     }
@@ -318,6 +319,7 @@ public final class SQSWorkerQueue implements ManagedWorkerQueue
     @Override
     public void discardTask(final TaskInformation taskInformation)
     {
+        // DDD delete/redeliver/move?
         var sqsTaskInformation = (SQSTaskInformation)taskInformation;
         timeoutSet.remove(sqsTaskInformation);
     }

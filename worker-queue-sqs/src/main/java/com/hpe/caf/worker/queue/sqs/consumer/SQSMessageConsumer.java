@@ -13,11 +13,14 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.hpe.caf.worker.queue.sqs;
+package com.hpe.caf.worker.queue.sqs.consumer;
 
 import com.hpe.caf.api.worker.InvalidTaskException;
 import com.hpe.caf.api.worker.TaskCallback;
 import com.hpe.caf.api.worker.TaskRejectedException;
+import com.hpe.caf.worker.queue.sqs.QueueInfo;
+import com.hpe.caf.worker.queue.sqs.SQSTaskInformation;
+import com.hpe.caf.worker.queue.sqs.SQSUtil;
 import com.hpe.caf.worker.queue.sqs.config.SQSWorkerQueueConfiguration;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -76,8 +79,8 @@ public class SQSMessageConsumer implements Runnable
                 .queueUrl(queueInfo.url())
                 .maxNumberOfMessages(queueCfg.getMaxNumberOfMessages())
                 .waitTimeSeconds(queueCfg.getLongPollInterval())
-                .attributeNamesWithStrings(SQSUtil.ALL_ATTRIBUTES)
-                .messageAttributeNames(SQSUtil.ALL_ATTRIBUTES)
+                .attributeNamesWithStrings(SQSUtil.ALL_ATTRIBUTES) // DDD may not require this
+                .messageAttributeNames(SQSUtil.ALL_ATTRIBUTES) // DDD may not require this
                 .build();
         while (true) {
             final var receiveMessageResult = sqsClient.receiveMessage(receiveRequest).messages();
@@ -107,7 +110,8 @@ public class SQSMessageConsumer implements Runnable
             final var headers = createHeadersFromMessageAttributes(message);
             callback.registerNewTask(taskInfo, message.body().getBytes(StandardCharsets.UTF_8), headers);
             if (isPoisonMessageConsumer) {
-                deleteMessage(message.receiptHandle(),message.messageId());
+                // DDD do we delete this here or does the implementation of the worker do that.
+                deleteMessage(message.receiptHandle(), message.messageId());
             } else {
                 timeoutSet.add(taskInfo);
             }

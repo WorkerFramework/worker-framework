@@ -111,8 +111,8 @@
             <scope>test</scope>
         </dependency>
         <dependency>
-            <groupId>org.testng</groupId>
-            <artifactId>testng</artifactId>
+            <groupId>org.junit.jupiter</groupId>
+            <artifactId>junit-jupiter-api</artifactId>
             <scope>test</scope>
         </dependency>
         <dependency>
@@ -163,13 +163,6 @@
                 <artifactId>docker-maven-plugin</artifactId>
                 <executions>
                     <execution>
-                        <id>build-docker-image</id>
-                        <phase>package</phase>
-                        <goals>
-                            <goal>build</goal>
-                        </goals>
-                    </execution>
-                    <execution>
                         <id>start-docker-images</id>
                         <phase>pre-integration-test</phase>
                         <goals>
@@ -187,35 +180,26 @@
                 <configuration>
                     <startParallel>true</startParallel>
                     <containerNamePattern>%a-%t</containerNamePattern>
-                        <images>
-                            <image>
-                                <alias>localstack</alias>
-                                <name>localstack/localstack</name>
-                                <run>
-                                    <ports>
-                                        <port>4566:4566</port>
-                                    </ports>
-                                    <env>
-                                        <!--https://docs.localstack.cloud/references/logging/-->
-                                        <LS_LOG>warn</LS_LOG>
-                                    </env>
-                                    <log>
-                                        <enabled>true</enabled>
-                                    </log>
-                                </run>
-                            </image>
-                        </images>
+                    <images>
+                        <image>
+                            <alias>localstack</alias>
+                            <name>localstack/localstack</name>
+                            <run>
+                                <ports>
+                                    <port>14566:4566</port>
+                                </ports>
+                                <env>
+                                    <!--https://docs.localstack.cloud/references/logging/-->
+                                    <LS_LOG>warn</LS_LOG>
+                                </env>
+                                <log>
+                                    <enabled>true</enabled>
+                                </log>
+                            </run>
+                        </image>
+                    </images>
                 </configuration>
             </plugin>
         </plugins>
     </build>
-    <profiles>
-        <profile>
-            <id>use-default-fixed-ports</id>
-            <properties>
-                <elasticmq.port>19324</elasticmq.port>
-                <elasticmq.ui.port>19325</elasticmq.ui.port>
-            </properties>
-        </profile>
-    </profiles>
 </project>
