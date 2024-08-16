@@ -48,9 +48,9 @@ public class SQSTaskCallback implements TaskCallback
             throw new InvalidTaskException("INVALID");
         }
         if (sqsTaskInformation.getQueueInfo().name().endsWith(SQSUtil.DEAD_LETTER_QUEUE_SUFFIX)) {
-            callbackDLQ.add(new CallbackResponse(taskInformation, new String(taskData), headers));
+            callbackDLQ.add(new CallbackResponse(sqsTaskInformation, new String(taskData), headers));
         } else {
-            callbackQueue.add(new CallbackResponse(taskInformation, new String(taskData), headers));
+            callbackQueue.add(new CallbackResponse(sqsTaskInformation, new String(taskData), headers));
         }
     }
 

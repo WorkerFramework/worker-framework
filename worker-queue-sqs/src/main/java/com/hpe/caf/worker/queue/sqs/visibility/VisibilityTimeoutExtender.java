@@ -30,7 +30,6 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Set;
 import java.util.function.Predicate;
-import java.util.stream.Collectors;
 
 public class VisibilityTimeoutExtender implements Runnable
 {
@@ -38,7 +37,7 @@ public class VisibilityTimeoutExtender implements Runnable
     private final String queueUrl;
     private final int MAX_BATCH_SIZE = 10;
     private final int defaultTimeout;
-    public final Set<SQSTaskInformation> timeoutQueue;
+    public final Set<SQSTaskInformation> timeoutSortedSet;
 
     private static final Logger LOG = LoggerFactory.getLogger(VisibilityTimeoutExtender.class);
 
@@ -46,13 +45,13 @@ public class VisibilityTimeoutExtender implements Runnable
             final SqsClient sqsClient,
             final String queueUrl,
             final int defaultTimeout,
-            final Set<SQSTaskInformation> timeoutQueue
+            final Set<SQSTaskInformation> timeoutSortedSet
     )
     {
         this.sqsClient = sqsClient;
         this.queueUrl = queueUrl;
         this.defaultTimeout = defaultTimeout;
-        this.timeoutQueue = timeoutQueue;
+        this.timeoutSortedSet = timeoutSortedSet;
     }
 
     @Override
@@ -60,27 +59,35 @@ public class VisibilityTimeoutExtender implements Runnable
     {
         while (true) {
             try {
-                // First remove expired
-                final var expired = timeoutQueue.stream()
-                        .filter(expiredPredicate())
-                        .collect(Collectors.toSet());
+                final var expired = new ArrayList<SQSTaskInformation>();
+                final var toBeExtended = new ArrayList<SQSTaskInformation>();
 
-                if (!expired.isEmpty()) {
-                    timeoutQueue.removeAll(expired);
+                for (SQSTaskInformation ti : timeoutSortedSet) {
+                    if (ti.getBecomesVisible().isBefore(Instant.now())) {
+                        expired.add(ti);
+                    } else if (ti.getBecomesVisible().isBefore(Instant.now().plusSeconds(defaultTimeout))) {
+                        toBeExtended.add(ti);
+                    } else {
+                        // Anything past here is safe this time.
+                        break;
+                    }
                 }
 
-                // Now extend any half way to becoming visible
-                // DDD maybe this is not filtering correctly
-                final var extendTimeouts = timeoutQueue.stream()
-                        .filter(timeoutPredicate(defaultTimeout))
-                        .collect(Collectors.toSet());
+                // remove all expired and about to expire.
+                timeoutSortedSet.removeAll(expired);
+                timeoutSortedSet.removeAll(toBeExtended);
 
-                if (!extendTimeouts.isEmpty()) {
-                    extendTaskTimeout(extendTimeouts);
-                    for (var taskInfo : extendTimeouts) {
+                // Now extend any that are half way to becoming visible
+                if (!toBeExtended.isEmpty()) {
+                    extendTaskTimeout(toBeExtended);
+                    for (var taskInfo : toBeExtended) {
                         taskInfo.setBecomesVisible(taskInfo.getBecomesVisible().plusSeconds(defaultTimeout));
                     }
                 }
+
+                // Put back to the sorted set
+                timeoutSortedSet.addAll(toBeExtended);
+
                 Thread.sleep((defaultTimeout / 2) * 1000);
             } catch (final InterruptedException e) {
                 LOG.error("Extending timeouts interrupted", e);
@@ -108,9 +115,10 @@ public class VisibilityTimeoutExtender implements Runnable
     )
     {
         final var entries = new ArrayList<ChangeMessageVisibilityBatchRequestEntry>();
+        int id = 1;
         for (final SQSTaskInformation ti : taskInfo) {
             entries.add(ChangeMessageVisibilityBatchRequestEntry.builder()
-                    .id(ti.getInboundMessageId())
+                    .id(String.valueOf(id++))
                     .receiptHandle(ti.getReceiptHandle())
                     .visibilityTimeout(defaultTimeout)
                     .build());
@@ -127,7 +135,7 @@ public class VisibilityTimeoutExtender implements Runnable
     )
     {
         return (ti) -> {
-            return ti.getBecomesVisible().isBefore(Instant.now().plusSeconds(visibilityTimeout / 2));
+            return ti.getBecomesVisible().isBefore(Instant.now().plusSeconds(visibilityTimeout));
         };
     }
 

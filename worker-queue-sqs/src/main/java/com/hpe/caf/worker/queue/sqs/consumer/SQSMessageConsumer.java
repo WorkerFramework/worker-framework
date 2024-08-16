@@ -164,7 +164,7 @@ public class SQSMessageConsumer implements Runnable
     private Map<String, Object> createHeadersFromMessageAttributes(final Message message)
     {
         final var headers = new HashMap<String, Object>();
-        for (final Map.Entry<String, MessageAttributeValue> entry: message.messageAttributes().entrySet()) {
+        for (final Map.Entry<String, MessageAttributeValue> entry : message.messageAttributes().entrySet()) {
             if (entry.getValue().dataType().equals("String")) {
                 headers.put(entry.getKey(), entry.getValue().stringValue());
             }

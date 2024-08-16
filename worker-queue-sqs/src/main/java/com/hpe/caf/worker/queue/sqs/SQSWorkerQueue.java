@@ -46,6 +46,7 @@ import java.util.HashSet;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
+import java.util.TreeSet;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -96,19 +97,19 @@ public final class SQSWorkerQueue implements ManagedWorkerQueue
                     (q) -> createQueue(q, getInputQueueAttributes(sqsQueueCfg))
             );
 
-            deadLetterQueueInfo =  declaredQueues.computeIfAbsent(
+            deadLetterQueueInfo = declaredQueues.computeIfAbsent(
                     sqsQueueCfg.getInputQueue() + SQSUtil.DEAD_LETTER_QUEUE_SUFFIX,
                     (q) -> createQueue(q, getDeadLetterQueueAttributes(sqsQueueCfg))
             );
             addRedrivePolicy(inputQueueInfo.url(), deadLetterQueueInfo.arn());
 
-            retryQueueInfo =  declaredQueues.computeIfAbsent(
+            retryQueueInfo = declaredQueues.computeIfAbsent(
                     sqsQueueCfg.getRetryQueue(),
                     (q) -> createQueue(q, getInputQueueAttributes(sqsQueueCfg))
             );
 
             // DDD is this the best option for delete/add
-            timeoutSet = Collections.synchronizedSet(new HashSet<>());
+            timeoutSet = Collections.synchronizedSortedSet(new TreeSet<>());
             visibilityTimeoutExtender = new VisibilityTimeoutExtender(
                     sqsClient,
                     inputQueueInfo.url(),
@@ -233,13 +234,12 @@ public final class SQSWorkerQueue implements ManagedWorkerQueue
     }
 
     /**
-     *
      * @param taskInformation
      */
     @Override
     public void acknowledgeTask(final TaskInformation taskInformation)
     {
-        var sqsTaskInformation = (SQSTaskInformation)taskInformation;
+        var sqsTaskInformation = (SQSTaskInformation) taskInformation;
         try {
             final var deleteRequest = DeleteMessageRequest.builder()
                     .queueUrl(sqsTaskInformation.getQueueInfo().url())
@@ -312,7 +312,7 @@ public final class SQSWorkerQueue implements ManagedWorkerQueue
     public void rejectTask(final TaskInformation taskInformation)
     {
         // DDD delete/redeliver/move?
-        var sqsTaskInformation = (SQSTaskInformation)taskInformation;
+        var sqsTaskInformation = (SQSTaskInformation) taskInformation;
         timeoutSet.remove(sqsTaskInformation);
     }
 
@@ -320,7 +320,7 @@ public final class SQSWorkerQueue implements ManagedWorkerQueue
     public void discardTask(final TaskInformation taskInformation)
     {
         // DDD delete/redeliver/move?
-        var sqsTaskInformation = (SQSTaskInformation)taskInformation;
+        var sqsTaskInformation = (SQSTaskInformation) taskInformation;
         timeoutSet.remove(sqsTaskInformation);
     }
 
@@ -341,11 +341,11 @@ public final class SQSWorkerQueue implements ManagedWorkerQueue
     private Map<String, MessageAttributeValue> createAttributesFromMessageHeaders(final Map<String, Object> headers)
     {
         final var attributes = new HashMap<String, MessageAttributeValue>();
-        for (final Map.Entry<String, Object> entry: headers.entrySet()) {
+        for (final Map.Entry<String, Object> entry : headers.entrySet()) {
             attributes.put(entry.getKey(), MessageAttributeValue.builder()
-                            .dataType("String")
-                            .stringValue(entry.getValue().toString())
-                            .build());
+                    .dataType("String")
+                    .stringValue(entry.getValue().toString())
+                    .build());
         }
         return attributes;
     }

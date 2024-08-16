@@ -16,16 +16,26 @@
 package com.hpe.caf.worker.queue.sqs;
 
 import com.hpe.caf.api.worker.TaskInformation;
+import jakarta.validation.constraints.NotNull;
 
 import java.time.Instant;
 import java.util.Objects;
 
-public class SQSTaskInformation implements TaskInformation
+public class SQSTaskInformation implements TaskInformation, Comparable<SQSTaskInformation>
 {
+    @NotNull
     private final QueueInfo queueInfo;
+
+    @NotNull
     private final String inboundMessageId;
+
+    @NotNull
     private final String receiptHandle;
+
+    @NotNull
     private final boolean isPoison;
+
+    @NotNull
     private Instant becomesVisible;
 
     public SQSTaskInformation(
@@ -87,5 +97,11 @@ public class SQSTaskInformation implements TaskInformation
     public int hashCode()
     {
         return Objects.hashCode(receiptHandle);
+    }
+
+    @Override
+    public int compareTo(@NotNull final SQSTaskInformation o)
+    {
+        return becomesVisible.compareTo(o.becomesVisible);
     }
 }

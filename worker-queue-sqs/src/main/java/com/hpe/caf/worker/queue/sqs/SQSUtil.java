@@ -90,6 +90,6 @@ public class SQSUtil
     {
         var url = getQueueUrl(sqsClient, queueName);
         var arn = getQueueArn(sqsClient, url);
-        return new QueueInfo(queueName,url, arn);
+        return new QueueInfo(queueName, url, arn);
     }
 }

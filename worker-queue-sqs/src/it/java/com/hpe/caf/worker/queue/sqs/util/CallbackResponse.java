@@ -15,12 +15,12 @@
  */
 package com.hpe.caf.worker.queue.sqs.util;
 
-import com.hpe.caf.api.worker.TaskInformation;
+import com.hpe.caf.worker.queue.sqs.SQSTaskInformation;
 
 import java.util.Map;
 
 public record CallbackResponse(
-        TaskInformation taskInformation,
+        SQSTaskInformation taskInformation,
         String body,
         Map<String, Object> headers
 )

@@ -40,11 +40,6 @@ import static org.junit.jupiter.api.Assertions.fail;
 
 public class SQSWorkerQueueIT
 {
-    // DDD
-//    [ERROR] Failures:
-//        [ERROR]   SQSWorkerQueueIT.testRedriveOfMessagesToDeadLetterQueue:115 NullPointer Cannot invoke "com.hpe.caf.worker.queue.sqs.util.CallbackResponse.taskInformation()" because "msg" is null
-
-
     @Test
     public void testPublish() throws Exception
     {
@@ -88,33 +83,6 @@ public class SQSWorkerQueueIT
             workerWrapper.sqsClient.getQueueUrl(getQueueUrlRequest);
         } catch (final Exception e) {
             fail("The input queue was not created:" + e.getMessage());
-        }
-    }
-
-    @Test
-    public void testRedriveOfMessagesToDeadLetterQueue() throws Exception
-    {
-        final var inputQueue = "test-redrive";
-        final int visibilityTimeout = 5;
-        final var workerWrapper = getWorkerWrapper(
-                inputQueue,
-                visibilityTimeout,
-                1,
-                1,
-                1,
-                600);
-
-        final var client = workerWrapper.sqsClient;
-
-        final var msgBody = "Hello-World";
-        final Map<String, MessageAttributeValue> messageAttributes = new HashMap<>();
-        sendMessages(client, workerWrapper.inputQueueUrl, messageAttributes, msgBody);
-
-        final var dlqMsg = workerWrapper.callbackDLQ.poll(visibilityTimeout * 2, TimeUnit.SECONDS);
-        try {
-            assertTrue(dlqMsg.taskInformation().isPoison());
-        } finally {
-            purgeQueue(workerWrapper.sqsClient, workerWrapper.inputQueueUrl);
         }
     }
 

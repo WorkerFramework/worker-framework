@@ -164,7 +164,7 @@ public class SQSWorkerQueueWrapper
                 );
             }
         } catch (final Exception e) {
-            fail(e.getMessage());
+            fail("Failed sending messages " + e.getMessage());
         }
     }
 
@@ -179,7 +179,7 @@ public class SQSWorkerQueueWrapper
                 sendMessage(sqsClient, queueUrl, messageAttributes, message);
             }
         } catch (final Exception e) {
-            fail(e.getMessage());
+            fail("Failed sending messages " + e.getMessage());
         }
     }
 
@@ -197,7 +197,7 @@ public class SQSWorkerQueueWrapper
                     .build();
             sqsClient.sendMessage(sendRequest);
         } catch (final Exception e) {
-            fail(e.getMessage());
+            fail("Failed sending message " + e.getMessage());
         }
     }
 
@@ -226,7 +226,24 @@ public class SQSWorkerQueueWrapper
             }
 
         } catch (final Exception e) {
-            fail(e.getMessage());
+            fail("Failed sending messages " + e.getMessage());
+        }
+    }
+
+    public static void sendSingleMessagesWithDelays(
+            final SqsClient sqsClient,
+            final String queueUrl,
+            final int numMessages,
+            final int delay)
+    {
+        try {
+            for (int j = 0; j < numMessages; j++) {
+                sendMessage(sqsClient, queueUrl, new HashMap<>(), String.valueOf(j));
+                Thread.sleep(delay * 1000);
+            }
+
+        } catch (final Exception e) {
+            fail("Failed sending message " + e.getMessage());
         }
     }
 

@@ -95,7 +95,7 @@ public class SQSWorkerQueueConfiguration
     /**
      * The length of time, in seconds, for which Amazon SQS retains a message.
      * Valid values: An integer representing seconds, from 60 (1 minute) to 1,209,600 (14 days).
-     *
+     * <p>
      * Default is 345600(4 days)
      */
     @Min(60)
@@ -105,7 +105,7 @@ public class SQSWorkerQueueConfiguration
     /**
      * The length of time, in seconds, for which Amazon SQS retains a message.
      * Valid values: An integer representing seconds, from 60 (1 minute) to 1,209,600 (14 days).
-     *
+     * <p>
      * Default is 345600(4 days)
      */
     @Min(60)
@@ -114,7 +114,6 @@ public class SQSWorkerQueueConfiguration
 
     /**
      * The number of times a message will be delivered before being moved to the local dead-letter queue.
-     *
      */
     @Min(0)
     private Integer maxDeliveries;

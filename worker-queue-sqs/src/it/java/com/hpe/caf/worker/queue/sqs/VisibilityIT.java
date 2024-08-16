@@ -17,62 +17,65 @@ package com.hpe.caf.worker.queue.sqs;
 
 import org.junit.jupiter.api.Test;
 
+import java.util.HashSet;
+import java.util.Set;
 import java.util.concurrent.TimeUnit;
 
 import static com.hpe.caf.worker.queue.sqs.util.SQSWorkerQueueWrapper.getWorkerWrapper;
 import static com.hpe.caf.worker.queue.sqs.util.SQSWorkerQueueWrapper.purgeQueue;
 import static com.hpe.caf.worker.queue.sqs.util.SQSWorkerQueueWrapper.sendMessages;
+import static com.hpe.caf.worker.queue.sqs.util.SQSWorkerQueueWrapper.sendSingleMessagesWithDelays;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.fail;
 
 public class VisibilityIT
 {
+    /**
+     * Testing when we send one unique message per second for N seconds with a visibility timeout of N seconds.
+     * The visibility extender should not fall behind and only 100 unique messages should be delivered.
+     * @throws Exception
+     */
     @Test
-    public void testMessageIsNotRedeliveredDuringVisibilityTimeout() throws Exception
+    public void testExtensionDoesNotMissExpiringMessages() throws Exception
     {
-        final var inputQueue = "during-visibility";
+        final var inputQueue = "keep-extending-visibility";
         final var workerWrapper = getWorkerWrapper(
                 inputQueue,
-                10,
-                1,
-                1,
-                1000,
-                600);
-        final var msgBody = "No-Redelivery";
-        sendMessages(workerWrapper, msgBody);
-
-        final var firstDelivery = workerWrapper.callbackQueue.poll(3, TimeUnit.SECONDS);
-        final var redeliveredMsg = workerWrapper.callbackQueue.poll(30, TimeUnit.SECONDS);
-        try {
-            assertNotNull(firstDelivery, "Message should have been delivered");
-            assertNull(redeliveredMsg, "Message should not have been redelivered");
-        } finally {
-            purgeQueue(workerWrapper.sqsClient, workerWrapper.inputQueueUrl);
-        }
-    }
-
-    @Test
-    public void testVisibilityTimeoutGetsExtended() throws Exception
-    {
-        final var inputQueue = "extend-visibility";
-        final var workerWrapper = getWorkerWrapper(
-                inputQueue,
-                10,
+                100,
                 20,
                 1,
                 1000,
                 600);
-        final var msgBody = "hello-world";
-        sendMessages(workerWrapper, msgBody);
 
-        final var msg = workerWrapper.callbackQueue.poll(3, TimeUnit.SECONDS);
+        sendSingleMessagesWithDelays(workerWrapper.sqsClient, workerWrapper.inputQueueUrl, 100, 1);
 
-        // Message should be redelivered
-        final var redelivered = workerWrapper.callbackQueue.poll(30, TimeUnit.SECONDS);
+        final Set<String> msgBodies = new HashSet<>();
+        var msg = workerWrapper.callbackQueue.poll(5, TimeUnit.SECONDS);
+        msgBodies.add(msg.body());
+        while (msg != null) {
+            msg = workerWrapper.callbackQueue.poll(5, TimeUnit.SECONDS);
+            if (msg != null) {
+                msgBodies.add(msg.body());
+            }
+        }
 
         try {
-            assertNotNull(msg, "Original Message should have been delivered");
-            assertNull(redelivered, "Message should not be redelivered");
+            // Should be 100 unique messages
+            assertEquals(100, msgBodies.size());
+
+            // No further messages should be received.
+            msg = workerWrapper.callbackQueue.poll(5, TimeUnit.SECONDS);
+            int attempts = 0;
+            while (msg != null) {
+                attempts++;
+                msg = workerWrapper.callbackQueue.poll(5, TimeUnit.SECONDS);
+                if (msg != null) {
+                    fail("Should not have received anything");
+                }
+                if (attempts >= 10) break;
+            }
         } finally {
             purgeQueue(workerWrapper.sqsClient, workerWrapper.inputQueueUrl);
         }
@@ -84,7 +87,7 @@ public class VisibilityIT
         final var inputQueue = "stop-extend-visibility";
         final var workerWrapper = getWorkerWrapper(
                 inputQueue,
-                10,
+                30,
                 20,
                 1,
                 1000,
@@ -95,11 +98,10 @@ public class VisibilityIT
         final var msg = workerWrapper.callbackQueue.poll(3, TimeUnit.SECONDS);
 
         // Message should NOT be redelivered
-        final var notRedelivered = workerWrapper.callbackQueue.poll(30, TimeUnit.SECONDS);
+        final var notRedelivered = workerWrapper.callbackQueue.poll(35, TimeUnit.SECONDS);
 
         workerWrapper.sqsWorkerQueue.discardTask(msg.taskInformation());
 
-        // DDD Something wrong here, message should now be delivered
         final var delivered = workerWrapper.callbackQueue.poll(2, TimeUnit.MINUTES);
 
         try {

@@ -23,6 +23,7 @@ import java.net.URISyntaxException;
 public interface SQSClientProvider
 {
     SqsClient getSqsClient() throws URISyntaxException;
+
     AwsCredentials getAWSCredentials();
 
 }
