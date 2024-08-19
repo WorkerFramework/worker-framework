@@ -15,7 +15,7 @@
  */
 package com.hpe.caf.worker.queue.sqs;
 
-import org.junit.Assert;
+import com.hpe.caf.worker.queue.sqs.visibility.VisibilityTimeout;
 import org.junit.jupiter.api.Test;
 
 import java.time.Instant;
@@ -24,36 +24,35 @@ import java.util.SortedSet;
 import java.util.TreeSet;
 import java.util.UUID;
 
-public class SQSTaskInformationTest
+import static org.junit.jupiter.api.Assertions.assertTrue;
+
+public class VisibilityTimeoutTest
 {
 
     @Test
-    public void testSortedSetOfTaskInformation()
+    public void testSortedSetOfVisibilityTimeouts()
     {
         var startTime = Instant.now();
-        final SortedSet<SQSTaskInformation> set = Collections.synchronizedSortedSet(new TreeSet<>());
+        final SortedSet<VisibilityTimeout> set = Collections.synchronizedSortedSet(new TreeSet<>());
         for (int i = 1; i < 100; i++) {
-            var ti = getSQSTaskInformation(startTime, i);
+            var ti = getVisibilityTimeout(startTime, i);
             set.add(ti);
         }
-        SQSTaskInformation prev = null;
+        VisibilityTimeout prev = null;
 
-        for (SQSTaskInformation next: set) {
+        for (VisibilityTimeout next : set) {
             if (prev != null) {
-                Assert.assertTrue(prev.getBecomesVisible().isBefore(next.getBecomesVisible()));
+                assertTrue(prev.getBecomesVisible().isBefore(next.getBecomesVisible()));
             }
             prev = next;
         }
     }
 
-    private SQSTaskInformation getSQSTaskInformation(final Instant start, final int offset)
+    private VisibilityTimeout getVisibilityTimeout(final Instant start, final int offset)
     {
-        return new SQSTaskInformation(
-                new QueueInfo("x", "y", "z"),
-                String.valueOf(offset),
-                UUID.randomUUID().toString(),
+        return new VisibilityTimeout(
                 (offset % 2 == 0) ? start.plusSeconds(offset) : start.minusSeconds(offset),
-                false
+                UUID.randomUUID().toString()
         );
     }
 }

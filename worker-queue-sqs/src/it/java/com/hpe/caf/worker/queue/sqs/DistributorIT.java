@@ -23,9 +23,9 @@ import software.amazon.awssdk.services.sqs.model.CreateQueueRequest;
 import java.util.ArrayList;
 import java.util.concurrent.TimeUnit;
 
-import static com.hpe.caf.worker.queue.sqs.util.SQSWorkerQueueWrapper.getWorkerWrapper;
-import static com.hpe.caf.worker.queue.sqs.util.SQSWorkerQueueWrapper.purgeQueue;
-import static com.hpe.caf.worker.queue.sqs.util.SQSWorkerQueueWrapper.sendMessagesInBatches;
+import static com.hpe.caf.worker.queue.sqs.util.WorkerQueueWrapper.getWorkerWrapper;
+import static com.hpe.caf.worker.queue.sqs.util.WorkerQueueWrapper.purgeQueue;
+import static com.hpe.caf.worker.queue.sqs.util.WorkerQueueWrapper.sendMessagesInBatches;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 public class DistributorIT

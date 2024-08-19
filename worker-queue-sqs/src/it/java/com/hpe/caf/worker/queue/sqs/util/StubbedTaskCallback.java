@@ -26,7 +26,7 @@ import java.util.Map;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.LinkedBlockingQueue;
 
-public class SQSTaskCallback implements TaskCallback
+public class StubbedTaskCallback implements TaskCallback
 {
     private final BlockingQueue<CallbackResponse> callbackQueue = new LinkedBlockingQueue<>();
     private final BlockingQueue<CallbackResponse> callbackDLQ = new LinkedBlockingQueue<>();

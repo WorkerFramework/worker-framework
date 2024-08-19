@@ -48,9 +48,9 @@ import java.util.concurrent.BlockingQueue;
 import static org.junit.jupiter.api.Assertions.fail;
 
 
-public class SQSWorkerQueueWrapper
+public class WorkerQueueWrapper
 {
-    final SQSTaskCallback callback;
+    final StubbedTaskCallback callback;
     public final BlockingQueue<CallbackResponse> callbackQueue;
     public final BlockingQueue<CallbackResponse> callbackDLQ;
     public final SQSWorkerQueueConfiguration sqsWorkerQueueConfiguration;
@@ -66,7 +66,7 @@ public class SQSWorkerQueueWrapper
     // Cloudwatch
     final CloudWatchClient cloudWatch;
 
-    public SQSWorkerQueueWrapper(
+    public WorkerQueueWrapper(
             final String inputQueue,
             final int visibilityTimeout,
             final int longPollInterval,
@@ -74,7 +74,7 @@ public class SQSWorkerQueueWrapper
             final int maxDeliveries,
             final int messageRetentionPeriod) throws QueueException, URISyntaxException
     {
-        callback = new SQSTaskCallback();
+        callback = new StubbedTaskCallback();
 
         sqsConfiguration = new SQSConfiguration();
         sqsConfiguration.setAwsProtocol("http");
@@ -131,7 +131,7 @@ public class SQSWorkerQueueWrapper
         return cloudWatch;
     }
 
-    public static SQSWorkerQueueWrapper getWorkerWrapper(
+    public static WorkerQueueWrapper getWorkerWrapper(
             final String inputQueue,
             final int visibilityTimeout,
             final int longPollInterval,
@@ -140,7 +140,7 @@ public class SQSWorkerQueueWrapper
             final int messageRetentionPeriod
     ) throws Exception
     {
-        return new SQSWorkerQueueWrapper(
+        return new WorkerQueueWrapper(
                 inputQueue,
                 visibilityTimeout,
                 longPollInterval,
@@ -150,15 +150,15 @@ public class SQSWorkerQueueWrapper
     }
 
     public static void sendMessages(
-            final SQSWorkerQueueWrapper sqsWorkerQueueWrapper,
+            final WorkerQueueWrapper workerQueueWrapper,
             final String... messages
     )
     {
         try {
             for (final String message : messages) {
                 sendMessage(
-                        sqsWorkerQueueWrapper.sqsClient,
-                        sqsWorkerQueueWrapper.inputQueueUrl,
+                        workerQueueWrapper.sqsClient,
+                        workerQueueWrapper.inputQueueUrl,
                         new HashMap<>(),
                         message
                 );

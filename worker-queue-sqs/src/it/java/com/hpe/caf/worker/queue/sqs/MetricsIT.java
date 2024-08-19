@@ -17,7 +17,7 @@ package com.hpe.caf.worker.queue.sqs;
 
 import com.hpe.caf.worker.queue.sqs.util.DatapointCollector;
 import com.hpe.caf.worker.queue.sqs.util.MetricDataPoints;
-import com.hpe.caf.worker.queue.sqs.util.SQSWorkerQueueWrapper;
+import com.hpe.caf.worker.queue.sqs.util.WorkerQueueWrapper;
 import org.junit.jupiter.api.Test;
 import software.amazon.awssdk.services.cloudwatch.CloudWatchClient;
 
@@ -27,8 +27,8 @@ import java.util.Map;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 
-import static com.hpe.caf.worker.queue.sqs.util.SQSWorkerQueueWrapper.getWorkerWrapper;
-import static com.hpe.caf.worker.queue.sqs.util.SQSWorkerQueueWrapper.sendMessages;
+import static com.hpe.caf.worker.queue.sqs.util.WorkerQueueWrapper.getWorkerWrapper;
+import static com.hpe.caf.worker.queue.sqs.util.WorkerQueueWrapper.sendMessages;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 public class MetricsIT
@@ -71,7 +71,7 @@ public class MetricsIT
     }
 
     private Map<String, List<MetricDataPoints>> getStatistics(
-            final SQSWorkerQueueWrapper workerWrapper
+            final WorkerQueueWrapper workerWrapper
     ) throws ExecutionException, InterruptedException
     {
         final CloudWatchClient cloudWatch = workerWrapper.getCloudwatchClient();

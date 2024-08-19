@@ -27,44 +27,24 @@ import org.slf4j.LoggerFactory;
 import software.amazon.awssdk.services.sqs.SqsClient;
 import software.amazon.awssdk.services.sqs.model.DeleteMessageRequest;
 import software.amazon.awssdk.services.sqs.model.Message;
-import software.amazon.awssdk.services.sqs.model.MessageAttributeValue;
 import software.amazon.awssdk.services.sqs.model.ReceiveMessageRequest;
-import software.amazon.awssdk.services.sqs.model.SendMessageRequest;
 
 import java.nio.charset.StandardCharsets;
 import java.time.Instant;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Set;
 
-public class SQSMessageConsumer implements Runnable
+public class DeadLetterQueueConsumer extends QueueConsumer implements Runnable
 {
-    private final SqsClient sqsClient;
-    private final QueueInfo queueInfo;
-    private final QueueInfo retryQueueInfo;
-    private final TaskCallback callback;
-    private final SQSWorkerQueueConfiguration queueCfg;
-    private final Set<SQSTaskInformation> timeoutSet;
-    private final boolean isPoisonMessageConsumer;
 
-    private static final Logger LOG = LoggerFactory.getLogger(SQSMessageConsumer.class);
+    private static final Logger LOG = LoggerFactory.getLogger(DeadLetterQueueConsumer.class);
 
-    public SQSMessageConsumer(
+    public DeadLetterQueueConsumer(
             final SqsClient sqsClient,
             final QueueInfo queueInfo,
             final QueueInfo retryQueueInfo,
             final TaskCallback callback,
-            final SQSWorkerQueueConfiguration queueCfg,
-            final Set<SQSTaskInformation> timeoutSet,
-            final boolean isPoisonMessageConsumer)
+            final SQSWorkerQueueConfiguration queueCfg)
     {
-        this.sqsClient = sqsClient;
-        this.queueInfo = queueInfo;
-        this.retryQueueInfo = retryQueueInfo;
-        this.callback = callback;
-        this.queueCfg = queueCfg;
-        this.timeoutSet = timeoutSet;
-        this.isPoisonMessageConsumer = isPoisonMessageConsumer;
+        super(sqsClient, queueInfo, retryQueueInfo, queueCfg, callback);
     }
 
     @Override
@@ -97,24 +77,18 @@ public class SQSMessageConsumer implements Runnable
     private void registerTask(final Message message)
     {
         try {
-            final var add = isPoisonMessageConsumer ? queueCfg.getDlqVisibilityTimeout() : queueCfg.getVisibilityTimeout();
-            final var becomesVisible = Instant.now().plusSeconds(add);
+            final var becomesVisible = Instant.now().plusSeconds(queueCfg.getDlqVisibilityTimeout());
             final var taskInfo = new SQSTaskInformation(
                     queueInfo,
                     message.messageId(),
                     message.receiptHandle(),
                     becomesVisible,
-                    isPoisonMessageConsumer
+                    true
             );
 
             final var headers = createHeadersFromMessageAttributes(message);
             callback.registerNewTask(taskInfo, message.body().getBytes(StandardCharsets.UTF_8), headers);
-            if (isPoisonMessageConsumer) {
-                // DDD do we delete this here or does the implementation of the worker do that.
-                deleteMessage(message.receiptHandle(), message.messageId());
-            } else {
-                timeoutSet.add(taskInfo);
-            }
+            deleteMessage(message.receiptHandle(), message.messageId());
         } catch (final TaskRejectedException e) {
             LOG.error("Cannot register new message, rejecting {}", message.messageId(), e);
             retryMessage(message);
@@ -137,38 +111,5 @@ public class SQSMessageConsumer implements Runnable
                     queueInfo.url(), messageId);
             LOG.error(msg, e);
         }
-    }
-
-    // DDD maybe just have a queue for this so we can retry if it fails
-    private void retryMessage(final Message message)
-    {
-        try {
-            final var attributes = message.messageAttributes();
-            attributes.put(SQSUtil.SQS_HEADER_CAF_WORKER_REJECTED, MessageAttributeValue.builder()
-                    .dataType("String")
-                    .stringValue(SQSUtil.REJECTED_REASON_TASKMESSAGE)
-                    .build());
-            final var request = SendMessageRequest.builder()
-                    .queueUrl(retryQueueInfo.url())
-                    .messageBody(message.body())
-                    .messageAttributes(attributes)
-                    .build();
-            sqsClient.sendMessage(request);
-        } catch (final Exception e) {
-            var msg = String.format("Error sending message to retry queue:%s messageId:%s",
-                    retryQueueInfo.name(), message.messageId());
-            LOG.error(msg, e);
-        }
-    }
-
-    private Map<String, Object> createHeadersFromMessageAttributes(final Message message)
-    {
-        final var headers = new HashMap<String, Object>();
-        for (final Map.Entry<String, MessageAttributeValue> entry : message.messageAttributes().entrySet()) {
-            if (entry.getValue().dataType().equals("String")) {
-                headers.put(entry.getKey(), entry.getValue().stringValue());
-            }
-        }
-        return headers;
     }
 }

@@ -16,7 +16,6 @@
 package com.hpe.caf.worker.queue.sqs.config;
 
 import com.hpe.caf.api.Encrypted;
-
 import jakarta.validation.constraints.Max;
 import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotNull;
