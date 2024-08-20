@@ -28,10 +28,7 @@ import software.amazon.awssdk.services.sqs.SqsClient;
 import software.amazon.awssdk.services.sqs.model.DeleteMessageRequest;
 import software.amazon.awssdk.services.sqs.model.MessageAttributeValue;
 import software.amazon.awssdk.services.sqs.model.PurgeQueueRequest;
-import software.amazon.awssdk.services.sqs.model.QueueAttributeName;
 import software.amazon.awssdk.services.sqs.model.QueueDoesNotExistException;
-import software.amazon.awssdk.services.sqs.model.ReceiveMessageRequest;
-import software.amazon.awssdk.services.sqs.model.ReceiveMessageResponse;
 import software.amazon.awssdk.services.sqs.model.SendMessageBatchRequest;
 import software.amazon.awssdk.services.sqs.model.SendMessageBatchRequestEntry;
 import software.amazon.awssdk.services.sqs.model.SendMessageRequest;
@@ -132,22 +129,23 @@ public class WorkerQueueWrapper
         return cloudWatch;
     }
 
+    public static WorkerQueueWrapper getWorkerWrapper(final String inputQueue)
+    {
+        return getWorkerWrapper(inputQueue, new WrapperConfig());
+    }
+
     public static WorkerQueueWrapper getWorkerWrapper(
             final String inputQueue,
-            final int visibilityTimeout,
-            final int longPollInterval,
-            final int maxNumberOfMessages,
-            final int maxDeliveries,
-            final int messageRetentionPeriod
+            final WrapperConfig wrapperConfig
     )
     {
         return new WorkerQueueWrapper(
                 inputQueue,
-                visibilityTimeout,
-                longPollInterval,
-                maxNumberOfMessages,
-                maxDeliveries,
-                messageRetentionPeriod);
+                wrapperConfig.visibilityTimout(),
+                wrapperConfig.longPollInterval(),
+                wrapperConfig.maxReadMessages(),
+                wrapperConfig.maxDeliveries(),
+                wrapperConfig.retentionPeriod());
     }
 
     public static void sendMessages(
@@ -156,7 +154,7 @@ public class WorkerQueueWrapper
     )
     {
         try {
-            for (final String message : messages) {
+            for(final String message : messages) {
                 sendMessage(
                         workerQueueWrapper.sqsClient,
                         workerQueueWrapper.inputQueueUrl,
@@ -176,7 +174,7 @@ public class WorkerQueueWrapper
             final String... messages)
     {
         try {
-            for (final String message : messages) {
+            for(final String message : messages) {
                 sendMessage(sqsClient, queueUrl, messageAttributes, message);
             }
         } catch (final Exception e) {
@@ -208,9 +206,9 @@ public class WorkerQueueWrapper
             final int numMessages)
     {
         try {
-            for (int j = 0; j < numMessages / 10; j++) {
+            for(int j = 0; j < numMessages / 10; j++) {
                 var entries = new ArrayList<SendMessageBatchRequestEntry>();
-                for (int i = 1; i <= 10; i++) {
+                for(int i = 1; i <= 10; i++) {
                     final var msg = String.format("msg-%d-%d", j, i);
                     var entry = SendMessageBatchRequestEntry.builder()
                             .id(msg)
@@ -238,7 +236,7 @@ public class WorkerQueueWrapper
             final long delay)
     {
         try {
-            for (int j = 0; j < numMessages; j++) {
+            for(int j = 0; j < numMessages; j++) {
                 sendMessage(sqsClient, queueUrl, new HashMap<>(), String.valueOf(j));
                 Thread.sleep(delay * 1000);
             }
@@ -276,39 +274,5 @@ public class WorkerQueueWrapper
         } catch (final QueueDoesNotExistException e) {
             // Ignoring this
         }
-    }
-
-    public static ReceiveMessageResponse receiveMessages(
-            final SqsClient sqsClient,
-            final String queueUrl,
-            final int wait)
-    {
-        final var receiveRequest = ReceiveMessageRequest.builder()
-                .queueUrl(queueUrl)
-                .maxNumberOfMessages(1)
-                .waitTimeSeconds(wait)
-                .attributeNamesWithStrings(SQSUtil.ALL_ATTRIBUTES)
-                .messageAttributeNames(SQSUtil.ALL_ATTRIBUTES)
-                .build();
-        return sqsClient.receiveMessage(receiveRequest);
-    }
-
-    public static Map<QueueAttributeName, String> getQueueAttributes(
-            final int visibilityTimeout,
-            final int retentionPeriod
-    )
-    {
-        final var attributes = new HashMap<QueueAttributeName, String>();
-        attributes.put(
-                QueueAttributeName.VISIBILITY_TIMEOUT,
-                String.valueOf(visibilityTimeout)
-        );
-
-        attributes.put(
-                QueueAttributeName.MESSAGE_RETENTION_PERIOD,
-                String.valueOf(retentionPeriod)
-        );
-
-        return attributes;
     }
 }

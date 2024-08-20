@@ -15,11 +15,10 @@
  */
 package com.hpe.caf.worker.queue.sqs;
 
+import com.hpe.caf.worker.queue.sqs.util.WrapperConfig;
 import org.junit.jupiter.api.Test;
 import software.amazon.awssdk.services.sqs.model.ChangeMessageVisibilityBatchRequest;
 import software.amazon.awssdk.services.sqs.model.ChangeMessageVisibilityBatchRequestEntry;
-import software.amazon.awssdk.services.sqs.model.GetQueueAttributesRequest;
-import software.amazon.awssdk.services.sqs.model.QueueAttributeName;
 
 import java.util.Collections;
 import java.util.HashSet;
@@ -34,7 +33,6 @@ import static com.hpe.caf.worker.queue.sqs.util.WorkerQueueWrapper.sendSingleMes
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
-import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.junit.jupiter.api.Assertions.fail;
 
 public class VisibilityIT
@@ -51,11 +49,7 @@ public class VisibilityIT
         final var inputQueue = "keep-extending-visibility";
         final var workerWrapper = getWorkerWrapper(
                 inputQueue,
-                100,
-                20,
-                1,
-                1000,
-                600);
+                new WrapperConfig());
 
         sendSingleMessagesWithDelays(workerWrapper.sqsClient, workerWrapper.inputQueueUrl, 100, 1L);
 
@@ -93,11 +87,7 @@ public class VisibilityIT
         final var inputQueue = "stop-extend-visibility";
         final var workerWrapper = getWorkerWrapper(
                 inputQueue,
-                10,
-                10,
-                1,
-                1000,
-                600);
+                new WrapperConfig());
         final var msgBody = "hello-world";
         sendMessages(workerWrapper, msgBody);
 
@@ -122,30 +112,10 @@ public class VisibilityIT
     public void testAttemptToChangeVisibilityWithInvalidReceiptHandleDoesNotCrashProcess() throws Exception
     {
         final var inputQueue = "test-visibility-after-retention-period-expires";
-        final var workerWrapper = getWorkerWrapper(
-                inputQueue,
-                30,
-                1,
-                1,
-                1000,
-                60);
+        final var workerWrapper = getWorkerWrapper(inputQueue);;
         final var msgBody = "Hello-World";
 
-        final var attributesRequest = GetQueueAttributesRequest.builder()
-                .queueUrl(workerWrapper.inputQueueUrl)
-                .attributeNames(QueueAttributeName.MESSAGE_RETENTION_PERIOD)
-                .build();
-        final var attributesResponse = workerWrapper.sqsClient.getQueueAttributes(attributesRequest);
-
         try {
-            assertTrue(
-                    attributesResponse.attributes().containsKey(QueueAttributeName.MESSAGE_RETENTION_PERIOD),
-                    "Expected attribute: " + QueueAttributeName.MESSAGE_RETENTION_PERIOD);
-            assertEquals(
-                    attributesResponse.attributes().get(QueueAttributeName.MESSAGE_RETENTION_PERIOD),
-                    "60",
-                    "Message retention period was not as expected");
-
             sendMessages(workerWrapper, msgBody);
 
             final var msg = workerWrapper.callbackQueue.poll(20, TimeUnit.SECONDS);

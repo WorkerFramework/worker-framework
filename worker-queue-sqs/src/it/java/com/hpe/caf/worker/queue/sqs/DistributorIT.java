@@ -89,13 +89,7 @@ public class DistributorIT
             final int expectedMessagesToBeMoved
     ) throws Exception
     {
-        final var workerWrapper = getWorkerWrapper(
-                destinationQueue,
-                60,
-                1,
-                10,
-                1,
-                600);
+        final var workerWrapper = getWorkerWrapper(destinationQueue);
 
         final var createQueueRequest = CreateQueueRequest.builder()
                 .queueName(sourceQueue)

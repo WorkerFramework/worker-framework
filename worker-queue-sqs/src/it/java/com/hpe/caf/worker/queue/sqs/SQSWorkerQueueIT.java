@@ -16,6 +16,7 @@
 package com.hpe.caf.worker.queue.sqs;
 
 import com.hpe.caf.worker.queue.sqs.util.CallbackResponse;
+import com.hpe.caf.worker.queue.sqs.util.WrapperConfig;
 import org.junit.jupiter.api.Test;
 import software.amazon.awssdk.services.sqs.model.GetQueueAttributesRequest;
 import software.amazon.awssdk.services.sqs.model.GetQueueUrlRequest;
@@ -46,11 +47,7 @@ public class SQSWorkerQueueIT
         final var inputQueue = "test-publish";
         final var workerWrapper = getWorkerWrapper(
                 inputQueue,
-                10,
-                1,
-                1,
-                1000,
-                600);
+                new WrapperConfig());
         final var msgBody = "Hello-World";
         sendMessages(workerWrapper, msgBody);
         try {
@@ -70,11 +67,7 @@ public class SQSWorkerQueueIT
             final var inputQueue = "input-queue-created";
             final var workerWrapper = getWorkerWrapper(
                     inputQueue,
-                    10,
-                    1,
-                    1,
-                    1,
-                    600);
+                    new WrapperConfig());
             final var getQueueUrlRequest = GetQueueUrlRequest.builder()
                     .queueName(workerWrapper.sqsWorkerQueueConfiguration.getInputQueue())
                     .build();
@@ -88,13 +81,7 @@ public class SQSWorkerQueueIT
     public void testAllAttributesAreCopiedToHeadersOnReceipt() throws Exception
     {
         final var inputQueue = "test-attributes";
-        final var workerWrapper = getWorkerWrapper(
-                inputQueue,
-                10,
-                5,
-                1,
-                1,
-                600);
+        final var workerWrapper = getWorkerWrapper(inputQueue);
 
         final var client = workerWrapper.sqsClient;
 
@@ -124,11 +111,14 @@ public class SQSWorkerQueueIT
         final var inputQueue = "test-retention-period";
         final var workerWrapper = getWorkerWrapper(
                 inputQueue,
-                10,
-                1,
-                1,
-                1000,
-                60);
+                new WrapperConfig(
+                    10,
+                    5,
+                    1,
+                    1000,
+                    60
+                )
+        );
         final var msgBody = "Hello-World";
 
         final var attributesRequest = GetQueueAttributesRequest.builder()
@@ -142,8 +132,8 @@ public class SQSWorkerQueueIT
                     attributesResponse.attributes().containsKey(QueueAttributeName.MESSAGE_RETENTION_PERIOD),
                     "Expected attribute: " + QueueAttributeName.MESSAGE_RETENTION_PERIOD);
             assertEquals(
-                    attributesResponse.attributes().get(QueueAttributeName.MESSAGE_RETENTION_PERIOD),
                     "60",
+                    attributesResponse.attributes().get(QueueAttributeName.MESSAGE_RETENTION_PERIOD),
                     "Message retention period was not as expected");
 
             sendMessages(workerWrapper, msgBody);
@@ -171,13 +161,7 @@ public class SQSWorkerQueueIT
     {
         final var inputQueue = "high-volume-worker-in";
         final var messagesToSend = 3000;
-        final var workerWrapper = getWorkerWrapper(
-                inputQueue,
-                600,
-                20,
-                10,
-                1000,
-                600);
+        final var workerWrapper = getWorkerWrapper(inputQueue);
 
         for(int i = 1; i <= messagesToSend; i++) {
             final var msg = String.format("High Volume Message:%d", i);
@@ -208,13 +192,7 @@ public class SQSWorkerQueueIT
     public void testMessageBatchesAreDelivered() throws Exception
     {
         final var inputQueue = "test-batch";
-        final var workerWrapper = getWorkerWrapper(
-                inputQueue,
-                60,
-                1,
-                10,
-                1,
-                600);
+        final var workerWrapper = getWorkerWrapper(inputQueue);
         final var messagesToSend = 10;
         sendMessagesInBatches(workerWrapper.sqsClient, workerWrapper.inputQueueUrl, messagesToSend);
 

@@ -36,13 +36,7 @@ public class MetricsIT
     public void testMetricsShowReceivedAndDeleted() throws Exception
     {
         final var inputQueue = "test-deleted-metrics";
-        final var workerWrapper = getWorkerWrapper(
-                inputQueue,
-                120,
-                1,
-                10,
-                1000,
-                600);
+        final var workerWrapper = getWorkerWrapper(inputQueue);
 
         var messagesToSend = 10;
         for (int i = 1; i <= messagesToSend; i++) {
