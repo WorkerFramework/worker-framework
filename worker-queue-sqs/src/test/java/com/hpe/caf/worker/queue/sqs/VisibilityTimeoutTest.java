@@ -28,19 +28,18 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 public class VisibilityTimeoutTest
 {
-
     @Test
     public void testSortedSetOfVisibilityTimeouts()
     {
         var startTime = Instant.now();
         final SortedSet<VisibilityTimeout> set = Collections.synchronizedSortedSet(new TreeSet<>());
-        for (int i = 1; i < 100; i++) {
+        for(int i = 1; i < 100; i++) {
             var ti = getVisibilityTimeout(startTime, i);
             set.add(ti);
         }
         VisibilityTimeout prev = null;
 
-        for (VisibilityTimeout next : set) {
+        for(VisibilityTimeout next : set) {
             if (prev != null) {
                 assertTrue(prev.getBecomesVisible().isBefore(next.getBecomesVisible()));
             }
@@ -51,7 +50,7 @@ public class VisibilityTimeoutTest
     private VisibilityTimeout getVisibilityTimeout(final Instant start, final int offset)
     {
         return new VisibilityTimeout(
-                (offset % 2 == 0) ? start.plusSeconds(offset) : start.minusSeconds(offset),
+                (offset % 2 == 0) ? start.plusSeconds(offset): start.minusSeconds(offset),
                 UUID.randomUUID().toString()
         );
     }

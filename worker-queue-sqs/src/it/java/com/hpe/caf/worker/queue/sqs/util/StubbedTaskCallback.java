@@ -47,10 +47,11 @@ public class StubbedTaskCallback implements TaskCallback
         if (body.equals("INVALID")) {
             throw new InvalidTaskException("INVALID");
         }
+        final var response = new CallbackResponse(sqsTaskInformation, new String(taskData), headers);
         if (sqsTaskInformation.getQueueInfo().name().endsWith(SQSUtil.DEAD_LETTER_QUEUE_SUFFIX)) {
-            callbackDLQ.add(new CallbackResponse(sqsTaskInformation, new String(taskData), headers));
+            callbackDLQ.add(response);
         } else {
-            callbackQueue.add(new CallbackResponse(sqsTaskInformation, new String(taskData), headers));
+            callbackQueue.add(response);
         }
     }
 

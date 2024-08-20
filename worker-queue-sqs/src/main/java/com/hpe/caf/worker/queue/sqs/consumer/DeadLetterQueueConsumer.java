@@ -15,26 +15,17 @@
  */
 package com.hpe.caf.worker.queue.sqs.consumer;
 
-import com.hpe.caf.api.worker.InvalidTaskException;
 import com.hpe.caf.api.worker.TaskCallback;
-import com.hpe.caf.api.worker.TaskRejectedException;
 import com.hpe.caf.worker.queue.sqs.QueueInfo;
 import com.hpe.caf.worker.queue.sqs.SQSTaskInformation;
-import com.hpe.caf.worker.queue.sqs.SQSUtil;
 import com.hpe.caf.worker.queue.sqs.config.SQSWorkerQueueConfiguration;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import software.amazon.awssdk.services.sqs.SqsClient;
 import software.amazon.awssdk.services.sqs.model.DeleteMessageRequest;
-import software.amazon.awssdk.services.sqs.model.Message;
-import software.amazon.awssdk.services.sqs.model.ReceiveMessageRequest;
 
-import java.nio.charset.StandardCharsets;
-import java.time.Instant;
-
-public class DeadLetterQueueConsumer extends QueueConsumer implements Runnable
+public class DeadLetterQueueConsumer extends QueueConsumer
 {
-
     private static final Logger LOG = LoggerFactory.getLogger(DeadLetterQueueConsumer.class);
 
     public DeadLetterQueueConsumer(
@@ -48,54 +39,9 @@ public class DeadLetterQueueConsumer extends QueueConsumer implements Runnable
     }
 
     @Override
-    public void run()
+    protected void handleTaskInfo(final SQSTaskInformation taskInfo)
     {
-        receiveMessages();
-    }
-
-    protected void receiveMessages()
-    {
-        final var receiveRequest = ReceiveMessageRequest.builder()
-                .queueUrl(queueInfo.url())
-                .maxNumberOfMessages(queueCfg.getMaxNumberOfMessages())
-                .waitTimeSeconds(queueCfg.getLongPollInterval())
-                .attributeNamesWithStrings(SQSUtil.ALL_ATTRIBUTES) // DDD may not require this
-                .messageAttributeNames(SQSUtil.ALL_ATTRIBUTES) // DDD may not require this
-                .build();
-        while (true) {
-            final var receiveMessageResult = sqsClient.receiveMessage(receiveRequest).messages();
-            if (receiveMessageResult.isEmpty()) {
-                LOG.debug("Nothing received from queue {} ", queueInfo.name());
-            }
-            for (final var message : receiveMessageResult) {
-                LOG.debug("Received {} on queue {} ", message.body(), queueInfo.name());
-                registerTask(message);
-            }
-        }
-    }
-
-    private void registerTask(final Message message)
-    {
-        try {
-            final var becomesVisible = Instant.now().plusSeconds(queueCfg.getDlqVisibilityTimeout());
-            final var taskInfo = new SQSTaskInformation(
-                    queueInfo,
-                    message.messageId(),
-                    message.receiptHandle(),
-                    becomesVisible,
-                    true
-            );
-
-            final var headers = createHeadersFromMessageAttributes(message);
-            callback.registerNewTask(taskInfo, message.body().getBytes(StandardCharsets.UTF_8), headers);
-            deleteMessage(message.receiptHandle(), message.messageId());
-        } catch (final TaskRejectedException e) {
-            LOG.error("Cannot register new message, rejecting {}", message.messageId(), e);
-            retryMessage(message);
-        } catch (final InvalidTaskException e) {
-            LOG.warn("Message {} rejected as a task at this time, will be redelivered by SQS",
-                    message.messageId(), e);
-        }
+        deleteMessage(taskInfo.getReceiptHandle(), taskInfo.getInboundMessageId());
     }
 
     private void deleteMessage(final String receiptHandle, final String messageId)
@@ -111,5 +57,17 @@ public class DeadLetterQueueConsumer extends QueueConsumer implements Runnable
                     queueInfo.url(), messageId);
             LOG.error(msg, e);
         }
+    }
+
+    @Override
+    protected int getVisibilityTimeout()
+    {
+        return queueCfg.getDlqVisibilityTimeout();
+    }
+
+    @Override
+    protected boolean isPoisonMessageConsumer()
+    {
+        return true;
     }
 }

@@ -48,64 +48,62 @@ public class SQSConfiguration
     @Size(min = 1)
     private String secretAccessKey;
 
-    public @NotNull @Size(min = 1) String getAwsProtocol()
+    public String getAwsProtocol()
     {
         return awsProtocol;
     }
 
-    public void setAwsProtocol(@NotNull @Size(min = 1) String awsProtocol)
+    public void setAwsProtocol(final String awsProtocol)
     {
         this.awsProtocol = awsProtocol;
     }
 
-    public @NotNull @Size(min = 1) String getAwsHost()
+    public String getAwsHost()
     {
         return awsHost;
     }
 
-    public void setAwsHost(@NotNull @Size(min = 1) String awsHost)
+    public void setAwsHost(final String awsHost)
     {
         this.awsHost = awsHost;
     }
 
-    @Min(1024)
-    @Max(65535)
     public int getAwsPort()
     {
         return awsPort;
     }
 
-    public void setAwsPort(@Min(1024) @Max(65535) int awsPort)
+    public void setAwsPort(final int awsPort)
     {
         this.awsPort = awsPort;
     }
 
-    public @NotNull @Size(min = 1) String getAwsRegion()
+    public String getAwsRegion()
     {
         return awsRegion;
     }
 
-    public void setAwsRegion(@NotNull @Size(min = 1) String awsRegion)
+    public void setAwsRegion(final String awsRegion)
     {
         this.awsRegion = awsRegion;
     }
 
-    public @NotNull @Size(min = 1) String getAwsAccessKey()
+    public String getAwsAccessKey()
     {
         return awsAccessKey;
     }
 
-    public void setAwsAccessKey(@NotNull @Size(min = 1) String awsAccessKey)
+    public void setAwsAccessKey(final String awsAccessKey)
     {
         this.awsAccessKey = awsAccessKey;
     }
 
-    public @NotNull @Size(min = 1) String getSecretAccessKey()
+    public String getSecretAccessKey()
     {
         return secretAccessKey;
     }
 
-    public void setSecretAccessKey(@NotNull @Size(min = 1) String secretAccessKey)
+    public void setSecretAccessKey(final String secretAccessKey)
     {
         this.secretAccessKey = secretAccessKey;
     }

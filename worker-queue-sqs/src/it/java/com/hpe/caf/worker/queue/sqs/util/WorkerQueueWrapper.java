@@ -15,7 +15,6 @@
  */
 package com.hpe.caf.worker.queue.sqs.util;
 
-import com.hpe.caf.api.worker.QueueException;
 import com.hpe.caf.worker.queue.sqs.SQSClientProviderImpl;
 import com.hpe.caf.worker.queue.sqs.SQSTaskInformation;
 import com.hpe.caf.worker.queue.sqs.SQSUtil;
@@ -27,7 +26,6 @@ import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.cloudwatch.CloudWatchClient;
 import software.amazon.awssdk.services.sqs.SqsClient;
 import software.amazon.awssdk.services.sqs.model.DeleteMessageRequest;
-import software.amazon.awssdk.services.sqs.model.DeleteMessageResponse;
 import software.amazon.awssdk.services.sqs.model.MessageAttributeValue;
 import software.amazon.awssdk.services.sqs.model.PurgeQueueRequest;
 import software.amazon.awssdk.services.sqs.model.QueueAttributeName;
@@ -39,7 +37,6 @@ import software.amazon.awssdk.services.sqs.model.SendMessageBatchRequestEntry;
 import software.amazon.awssdk.services.sqs.model.SendMessageRequest;
 
 import java.net.URI;
-import java.net.URISyntaxException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
@@ -72,58 +69,62 @@ public class WorkerQueueWrapper
             final int longPollInterval,
             final int maxNumberOfMessages,
             final int maxDeliveries,
-            final int messageRetentionPeriod) throws QueueException, URISyntaxException
+            final int messageRetentionPeriod)
     {
-        callback = new StubbedTaskCallback();
+        try {
+            callback = new StubbedTaskCallback();
 
-        sqsConfiguration = new SQSConfiguration();
-        sqsConfiguration.setAwsProtocol("http");
-        sqsConfiguration.setAwsHost("sqs.us-east-1.localhost.localstack.cloud");
-        sqsConfiguration.setAwsPort(14566);
-        sqsConfiguration.setAwsRegion("us-east-1");
-        sqsConfiguration.setAwsAccessKey("x");
-        sqsConfiguration.setSecretAccessKey("x");
+            sqsConfiguration = new SQSConfiguration();
+            sqsConfiguration.setAwsProtocol("http");
+            sqsConfiguration.setAwsHost("sqs.us-east-1.localhost.localstack.cloud");
+            sqsConfiguration.setAwsPort(14566);
+            sqsConfiguration.setAwsRegion("us-east-1");
+            sqsConfiguration.setAwsAccessKey("x");
+            sqsConfiguration.setSecretAccessKey("x");
 
-        clientProvider = new SQSClientProviderImpl(sqsConfiguration);
+            clientProvider = new SQSClientProviderImpl(sqsConfiguration);
 
-        sqsWorkerQueueConfiguration = new SQSWorkerQueueConfiguration();
-        sqsWorkerQueueConfiguration.setSQSConfiguration(sqsConfiguration);
-        sqsWorkerQueueConfiguration.setInputQueue(inputQueue);
-        sqsWorkerQueueConfiguration.setRetryQueue(inputQueue);
-        sqsWorkerQueueConfiguration.setVisibilityTimeout(visibilityTimeout);
-        sqsWorkerQueueConfiguration.setDlqVisibilityTimeout(visibilityTimeout);
-        sqsWorkerQueueConfiguration.setLongPollInterval(longPollInterval);
-        sqsWorkerQueueConfiguration.setMaxNumberOfMessages(maxNumberOfMessages);
-        sqsWorkerQueueConfiguration.setMessageRetentionPeriod(messageRetentionPeriod);
-        sqsWorkerQueueConfiguration.setDlqMessageRetentionPeriod(messageRetentionPeriod);
-        sqsWorkerQueueConfiguration.setMaxDeliveries(maxDeliveries);
+            sqsWorkerQueueConfiguration = new SQSWorkerQueueConfiguration();
+            sqsWorkerQueueConfiguration.setSQSConfiguration(sqsConfiguration);
+            sqsWorkerQueueConfiguration.setInputQueue(inputQueue);
+            sqsWorkerQueueConfiguration.setRetryQueue(inputQueue);
+            sqsWorkerQueueConfiguration.setVisibilityTimeout(visibilityTimeout);
+            sqsWorkerQueueConfiguration.setDlqVisibilityTimeout(visibilityTimeout);
+            sqsWorkerQueueConfiguration.setLongPollInterval(longPollInterval);
+            sqsWorkerQueueConfiguration.setMaxNumberOfMessages(maxNumberOfMessages);
+            sqsWorkerQueueConfiguration.setMessageRetentionPeriod(messageRetentionPeriod);
+            sqsWorkerQueueConfiguration.setDlqMessageRetentionPeriod(messageRetentionPeriod);
+            sqsWorkerQueueConfiguration.setMaxDeliveries(maxDeliveries);
 
-        sqsWorkerQueue = new SQSWorkerQueue(sqsWorkerQueueConfiguration);
-        sqsWorkerQueue.start(callback);
+            sqsWorkerQueue = new SQSWorkerQueue(sqsWorkerQueueConfiguration);
+            sqsWorkerQueue.start(callback);
 
-        sqsClient = clientProvider.getSqsClient();
-        callbackQueue = callback.getCallbackQueue();
-        callbackDLQ = callback.getCallbackDLQ();
-        inputQueueUrl = SQSUtil.getQueueUrl(sqsClient, sqsWorkerQueueConfiguration.getInputQueue());
+            sqsClient = clientProvider.getSqsClient();
+            callbackQueue = callback.getCallbackQueue();
+            callbackDLQ = callback.getCallbackDLQ();
+            inputQueueUrl = SQSUtil.getQueueUrl(sqsClient, sqsWorkerQueueConfiguration.getInputQueue());
 
-        cloudWatch = CloudWatchClient.builder()
-                .credentialsProvider(() -> new AwsCredentials()
-                {
-                    @Override
-                    public String accessKeyId()
+            cloudWatch = CloudWatchClient.builder()
+                    .credentialsProvider(() -> new AwsCredentials()
                     {
-                        return sqsConfiguration.getAwsAccessKey();
-                    }
+                        @Override
+                        public String accessKeyId()
+                        {
+                            return sqsConfiguration.getAwsAccessKey();
+                        }
 
-                    @Override
-                    public String secretAccessKey()
-                    {
-                        return sqsConfiguration.getSecretAccessKey();
-                    }
-                })
-                .region(Region.US_EAST_1)
-                .endpointOverride(new URI(sqsConfiguration.getURIString()))
-                .build();
+                        @Override
+                        public String secretAccessKey()
+                        {
+                            return sqsConfiguration.getSecretAccessKey();
+                        }
+                    })
+                    .region(Region.US_EAST_1)
+                    .endpointOverride(new URI(sqsConfiguration.getURIString()))
+                    .build();
+        } catch (final Exception e) {
+            throw new RuntimeException("Error starting worker wrapper", e);
+        }
     }
 
     public CloudWatchClient getCloudwatchClient()
@@ -138,7 +139,7 @@ public class WorkerQueueWrapper
             final int maxNumberOfMessages,
             final int maxDeliveries,
             final int messageRetentionPeriod
-    ) throws Exception
+    )
     {
         return new WorkerQueueWrapper(
                 inputQueue,
@@ -234,7 +235,7 @@ public class WorkerQueueWrapper
             final SqsClient sqsClient,
             final String queueUrl,
             final int numMessages,
-            final int delay)
+            final long delay)
     {
         try {
             for (int j = 0; j < numMessages; j++) {
@@ -247,7 +248,7 @@ public class WorkerQueueWrapper
         }
     }
 
-    public static DeleteMessageResponse deleteMessage(
+    public static void deleteMessage(
             final SqsClient sqsClient,
             final SQSTaskInformation taskInfo)
     {
@@ -255,7 +256,7 @@ public class WorkerQueueWrapper
                 .queueUrl(taskInfo.getQueueInfo().url())
                 .receiptHandle(taskInfo.getReceiptHandle())
                 .build();
-        return sqsClient.deleteMessage(sendRequest);
+        sqsClient.deleteMessage(sendRequest);
     }
 
     public static void purgeQueue(

@@ -25,9 +25,9 @@ import software.amazon.awssdk.services.sqs.model.ReceiveMessageRequest;
 
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
-import java.util.stream.Collectors;
 
 import static com.hpe.caf.worker.queue.sqs.util.WorkerQueueWrapper.getWorkerWrapper;
 import static com.hpe.caf.worker.queue.sqs.util.WorkerQueueWrapper.purgeQueue;
@@ -53,11 +53,9 @@ public class SQSWorkerQueueIT
                 600);
         final var msgBody = "Hello-World";
         sendMessages(workerWrapper, msgBody);
-
-        final var msg = workerWrapper.callbackQueue.poll(30, TimeUnit.SECONDS);
-
-        final var body = msg.body();
         try {
+            final var msg = workerWrapper.callbackQueue.poll(30, TimeUnit.SECONDS);
+            final var body = msg.body();
             assertFalse(msg.taskInformation().isPoison());
             assertEquals(msgBody, body, "Message was not as expected");
         } finally {
@@ -110,8 +108,8 @@ public class SQSWorkerQueueIT
 
         sendMessages(client, queueUrl, messageAttributes, msgBody);
 
-        final var msg = workerWrapper.callbackQueue.poll(30, TimeUnit.SECONDS);
         try {
+            final var msg = workerWrapper.callbackQueue.poll(30, TimeUnit.SECONDS);
             assertTrue(msg.headers().containsKey(SQSUtil.SOURCE_QUEUE),
                     "Expected header: " + SQSUtil.SOURCE_QUEUE);
             assertEquals(msg.headers().get(SQSUtil.SOURCE_QUEUE).toString(), inputQueue, "Expected:" + inputQueue);
@@ -181,7 +179,7 @@ public class SQSWorkerQueueIT
                 1000,
                 600);
 
-        for (int i = 1; i <= messagesToSend; i++) {
+        for(int i = 1; i <= messagesToSend; i++) {
             final var msg = String.format("High Volume Message:%d", i);
             sendMessages(workerWrapper, msg);
         }
@@ -196,11 +194,11 @@ public class SQSWorkerQueueIT
             }
         } while (response != null);
 
-        final var messages = receiveMessageResult.stream().map(m -> m.body()).collect(Collectors.toList());
-        final var messagesSet = messages.stream().collect(Collectors.toSet());
+        final var messages = receiveMessageResult.stream().map(CallbackResponse::body).toList();
+        final var messagesSet = new HashSet<>(messages);
         try {
-            assertTrue(messages.size() == messagesToSend, "Count of messages received was not as expected");
-            assertTrue(messagesSet.size() == messagesToSend, "Duplicate messages detected");
+            assertEquals(messages.size(), messagesToSend, "Count of messages received was not as expected");
+            assertEquals(messagesSet.size(), messagesToSend, "Duplicate messages detected");
         } finally {
             purgeQueue(workerWrapper.sqsClient, workerWrapper.inputQueueUrl);
         }

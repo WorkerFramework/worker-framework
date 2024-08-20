@@ -21,7 +21,7 @@ import jakarta.validation.constraints.NotNull;
 import java.time.Instant;
 import java.util.Objects;
 
-public class SQSTaskInformation implements TaskInformation, Comparable<SQSTaskInformation>
+public final class SQSTaskInformation implements TaskInformation, Comparable<SQSTaskInformation>
 {
     @NotNull
     private final QueueInfo queueInfo;
@@ -36,7 +36,7 @@ public class SQSTaskInformation implements TaskInformation, Comparable<SQSTaskIn
     private final boolean isPoison;
 
     @NotNull
-    private Instant becomesVisible;
+    private final Instant becomesVisible;
 
     public SQSTaskInformation(
             final QueueInfo queueInfo,
@@ -73,11 +73,6 @@ public class SQSTaskInformation implements TaskInformation, Comparable<SQSTaskIn
         return becomesVisible;
     }
 
-    public void setBecomesVisible(final Instant becomesVisible)
-    {
-        this.becomesVisible = becomesVisible;
-    }
-
     @Override
     public boolean isPoison()
     {
@@ -103,5 +98,17 @@ public class SQSTaskInformation implements TaskInformation, Comparable<SQSTaskIn
     public int compareTo(@NotNull final SQSTaskInformation o)
     {
         return becomesVisible.compareTo(o.becomesVisible);
+    }
+
+    @Override
+    public String toString()
+    {
+        return "SQSTaskInformation{" +
+                "queueInfo=" + queueInfo +
+                ", inboundMessageId='" + inboundMessageId + '\'' +
+                ", receiptHandle='" + receiptHandle + '\'' +
+                ", isPoison=" + isPoison +
+                ", becomesVisible=" + becomesVisible +
+                '}';
     }
 }

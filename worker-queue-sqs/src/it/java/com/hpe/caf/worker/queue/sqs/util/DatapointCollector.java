@@ -26,7 +26,6 @@ import java.util.Calendar;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.concurrent.ExecutionException;
 
 public class DatapointCollector
 {
@@ -40,13 +39,13 @@ public class DatapointCollector
     public Map<String, List<MetricDataPoints>> sqsDatapoints(
             final String queue,
             final Statistic statistic,
-            final String... metrics) throws ExecutionException, InterruptedException
+            final String... metrics)
     {
         final var datapoints = new HashMap<String, List<MetricDataPoints>>();
         Calendar current = Calendar.getInstance();
         current.set(current.get(Calendar.YEAR), current.get(Calendar.MONTH), current.get(Calendar.DATE), 0, 0, 0);
         datapoints.put(queue, new ArrayList<>());
-        for (final var metric : metrics) {
+        for(final var metric : metrics) {
             final var statsRequest = GetMetricStatisticsRequest.builder()
                     .namespace("AWS/SQS")
                     .dimensions(Dimension.builder().name("QueueName").value(queue).build())

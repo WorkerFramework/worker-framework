@@ -38,7 +38,7 @@ public final class SQSClientProviderImpl implements SQSClientProvider
         return SqsClient.builder()
                 .endpointOverride(new URI(sqsConfiguration.getURIString()))
                 .region(Region.of(sqsConfiguration.getAwsRegion()))
-                .credentialsProvider(() -> getAWSCredentials())
+                .credentialsProvider(this::getAWSCredentials)
                 .build();
     }
 

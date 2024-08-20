@@ -24,7 +24,6 @@ import software.amazon.awssdk.services.cloudwatch.CloudWatchClient;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 
 import static com.hpe.caf.worker.queue.sqs.util.WorkerQueueWrapper.getWorkerWrapper;
@@ -72,7 +71,7 @@ public class MetricsIT
 
     private Map<String, List<MetricDataPoints>> getStatistics(
             final WorkerQueueWrapper workerWrapper
-    ) throws ExecutionException, InterruptedException
+    )
     {
         final CloudWatchClient cloudWatch = workerWrapper.getCloudwatchClient();
         final var datapointCollector = new DatapointCollector(cloudWatch);

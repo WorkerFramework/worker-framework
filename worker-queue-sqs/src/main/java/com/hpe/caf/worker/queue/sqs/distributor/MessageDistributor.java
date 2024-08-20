@@ -38,7 +38,7 @@ import java.util.Collection;
 import java.util.List;
 import java.util.stream.Collectors;
 
-public final class SQSMessageDistributor
+public final class MessageDistributor
 {
     private static final int SQS_MAX_BATCH_SIZE = 10;
 
@@ -46,9 +46,9 @@ public final class SQSMessageDistributor
     private final QueueInfo source;
     private final QueueInfo destination;
 
-    private static final Logger LOG = LoggerFactory.getLogger(SQSMessageDistributor.class);
+    private static final Logger LOG = LoggerFactory.getLogger(MessageDistributor.class);
 
-    public SQSMessageDistributor(
+    public MessageDistributor(
             final SQSClientProvider provider,
             final String source,
             final String destination
@@ -64,11 +64,11 @@ public final class SQSMessageDistributor
         final var failures = new ArrayList<BatchResultErrorEntry>();
         final var messages = receive(maxMessages);
         if (messages.isEmpty()) {
-            LOG.info("No messages found to redistribute on queue {}", source.name());
+            LOG.debug("No messages found to redistribute on queue {}", source.name());
             return new ArrayList<>();
         }
         // We need to look up the original message to delete.
-        final var sourceMessageMap = messages.stream().collect(Collectors.toMap(msg -> msg.messageId(), msg -> msg));
+        final var sourceMessageMap = messages.stream().collect(Collectors.toMap(Message::messageId, msg -> msg));
 
         final var sendBatches = Iterables.partition(messages, SQS_MAX_BATCH_SIZE);
         final var successfulSends = new ArrayList<SendMessageBatchResultEntry>();
@@ -98,9 +98,9 @@ public final class SQSMessageDistributor
     }
 
     /**
-     * The only guarantee is that we would not receive more than 10 messages per request.
+     * The only guarantee is that we would not receive more than SQS_MAX_BATCH_SIZE messages per request.
      *
-     * @return
+     * @return A list of messages
      */
     private List<Message> receive(final int maxMessages)
     {
@@ -134,14 +134,15 @@ public final class SQSMessageDistributor
 
     private DeleteMessageBatchResponse delete(final List<String> receiptHandles)
     {
-        final var deleteMessageBatchRequestEntries = receiptHandles
-                .stream()
-                .map(receiptHandle -> DeleteMessageBatchRequestEntry.builder()
-                        .id(receiptHandle)
-                        .receiptHandle(receiptHandle)
-                        .build())
-                .collect(Collectors.toList());
-        return deleteMessageBatch(deleteMessageBatchRequestEntries);
+        var id = 1;
+        final var entries = new ArrayList<DeleteMessageBatchRequestEntry>();
+        for(final String receiptHandle : receiptHandles) {
+            entries.add(DeleteMessageBatchRequestEntry.builder()
+                    .id(String.valueOf(id++))
+                    .receiptHandle(receiptHandle)
+                    .build());
+        }
+        return deleteMessageBatch(entries);
     }
 
     private SendMessageBatchResponse sendMessageBatch(final List<SendMessageBatchRequestEntry> entries)

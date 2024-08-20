@@ -15,7 +15,7 @@
  */
 package com.hpe.caf.worker.queue.sqs;
 
-import com.hpe.caf.worker.queue.sqs.distributor.SQSMessageDistributor;
+import com.hpe.caf.worker.queue.sqs.distributor.MessageDistributor;
 import com.hpe.caf.worker.queue.sqs.util.CallbackResponse;
 import org.junit.jupiter.api.Test;
 import software.amazon.awssdk.services.sqs.model.CreateQueueRequest;
@@ -104,7 +104,7 @@ public class DistributorIT
 
         sendMessagesInBatches(workerWrapper.sqsClient, sourceQueueUrl, numberOfMessages);
 
-        final var distributor = new SQSMessageDistributor(
+        final var distributor = new MessageDistributor(
                 new SQSClientProviderImpl(workerWrapper.sqsConfiguration),
                 sourceQueue,
                 destinationQueue

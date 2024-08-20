@@ -22,7 +22,6 @@ import com.hpe.caf.api.worker.QueueException;
 import com.hpe.caf.api.worker.TaskCallback;
 import com.hpe.caf.api.worker.TaskInformation;
 import com.hpe.caf.api.worker.WorkerQueueMetricsReporter;
-import com.hpe.caf.worker.queue.sqs.config.SQSConfiguration;
 import com.hpe.caf.worker.queue.sqs.config.SQSWorkerQueueConfiguration;
 import com.hpe.caf.worker.queue.sqs.consumer.DeadLetterQueueConsumer;
 import com.hpe.caf.worker.queue.sqs.consumer.InputQueueConsumer;
@@ -55,13 +54,9 @@ public final class SQSWorkerQueue implements ManagedWorkerQueue
     private Thread inputQueueConsumerThread;
     private Thread deadLetterQueueConsumerThread;
     private Thread visibilityMonitorThread;
-    private QueueInfo inputQueueInfo;
-    private QueueInfo deadLetterQueueInfo;
-    private QueueInfo retryQueueInfo;
     private VisibilityMonitor visibilityMonitor;
 
     private final SQSWorkerQueueConfiguration sqsQueueCfg;
-    private final SQSConfiguration sqsCfg;
     private final SQSClientProvider clientProvider;
     private final Map<String, QueueInfo> declaredQueues = new ConcurrentHashMap<>();
 
@@ -73,8 +68,7 @@ public final class SQSWorkerQueue implements ManagedWorkerQueue
     )
     {
         this.sqsQueueCfg = Objects.requireNonNull(sqsQueueCfg);
-        sqsCfg = sqsQueueCfg.getSQSConfiguration();
-        clientProvider = new SQSClientProviderImpl(sqsCfg);
+        clientProvider = new SQSClientProviderImpl(sqsQueueCfg.getSQSConfiguration());
     }
 
     public void start(final TaskCallback callback) throws QueueException
@@ -84,18 +78,18 @@ public final class SQSWorkerQueue implements ManagedWorkerQueue
         }
         try {
             sqsClient = clientProvider.getSqsClient();
-            inputQueueInfo = declaredQueues.computeIfAbsent(
+            final var inputQueueInfo = declaredQueues.computeIfAbsent(
                     sqsQueueCfg.getInputQueue(),
                     (q) -> createQueue(q, getInputQueueAttributes(sqsQueueCfg))
             );
 
-            deadLetterQueueInfo = declaredQueues.computeIfAbsent(
+            final var deadLetterQueueInfo = declaredQueues.computeIfAbsent(
                     sqsQueueCfg.getInputQueue() + SQSUtil.DEAD_LETTER_QUEUE_SUFFIX,
                     (q) -> createQueue(q, getDeadLetterQueueAttributes(sqsQueueCfg))
             );
             addRedrivePolicy(inputQueueInfo.url(), deadLetterQueueInfo.arn());
 
-            retryQueueInfo = declaredQueues.computeIfAbsent(
+            final var retryQueueInfo = declaredQueues.computeIfAbsent(
                     sqsQueueCfg.getRetryQueue(),
                     (q) -> createQueue(q, getInputQueueAttributes(sqsQueueCfg))
             );
@@ -134,8 +128,8 @@ public final class SQSWorkerQueue implements ManagedWorkerQueue
     }
 
     /**
-     * @param queueName
-     * @return
+     * @param queueName The name of the queue.
+     * @return An object containing the name,url and arn of the queue.
      */
     private QueueInfo createQueue(final String queueName, final Map<QueueAttributeName, String> attributes)
     {
@@ -219,25 +213,28 @@ public final class SQSWorkerQueue implements ManagedWorkerQueue
     }
 
     /**
-     * @param taskInformation
+     * @param taskInformation The object containing metadata about a queued message.
      */
     @Override
     public void acknowledgeTask(final TaskInformation taskInformation)
     {
         var sqsTaskInformation = (SQSTaskInformation) taskInformation;
         try {
+            // DDD or write to blocking queue so we can batch deletes
+            // and remove from visibility monitor at same time.
+            // having task extended till then has no side effect.
             final var deleteRequest = DeleteMessageRequest.builder()
                     .queueUrl(sqsTaskInformation.getQueueInfo().url())
                     .receiptHandle(sqsTaskInformation.getReceiptHandle())
                     .build();
             sqsClient.deleteMessage(deleteRequest);
         } catch (final ReceiptHandleIsInvalidException e) {
-            LOG.info("Receipt handle: {} has expired - messageId:{}. {}",
+            LOG.error("Receipt handle: {} is invalid - messageId:{}. {}",
                     sqsTaskInformation.getReceiptHandle(),
                     sqsTaskInformation.getInboundMessageId(),
                     e.getMessage());
         } catch (final QueueDoesNotExistException e) {
-            LOG.info("Queue {} may have been deleted. {}",
+            LOG.error("Queue {} may have been deleted. {}",
                     sqsTaskInformation.getQueueInfo().name(),
                     e.getMessage());
         } finally {
@@ -252,6 +249,8 @@ public final class SQSWorkerQueue implements ManagedWorkerQueue
             return new HealthResult(HealthStatus.UNHEALTHY, "SQS input queue thread not running");
         } else if (deadLetterQueueConsumerThread == null || !deadLetterQueueConsumerThread.isAlive()) {
             return new HealthResult(HealthStatus.UNHEALTHY, "SQS dead letter queue thread not running");
+        } else if (visibilityMonitorThread == null || !visibilityMonitorThread.isAlive()) {
+            return new HealthResult(HealthStatus.UNHEALTHY, "Visibility monitor thread thread not running");
         } else {
             return HealthResult.RESULT_HEALTHY;
         }
@@ -284,13 +283,13 @@ public final class SQSWorkerQueue implements ManagedWorkerQueue
     @Override
     public void disconnectIncoming()
     {
-
+        // DDD
     }
 
     @Override
     public void reconnectIncoming()
     {
-
+        // DDD
     }
 
     @Override
@@ -298,6 +297,7 @@ public final class SQSWorkerQueue implements ManagedWorkerQueue
     {
         // DDD delete/redeliver/move?
         var sqsTaskInformation = (SQSTaskInformation) taskInformation;
+        LOG.debug("About to unwatch rejected task {}", sqsTaskInformation.getReceiptHandle());
         visibilityMonitor.unwatch(sqsTaskInformation);
     }
 
@@ -306,6 +306,7 @@ public final class SQSWorkerQueue implements ManagedWorkerQueue
     {
         // DDD delete/redeliver/move?
         var sqsTaskInformation = (SQSTaskInformation) taskInformation;
+        LOG.debug("About to unwatch discarded task {}", sqsTaskInformation.getReceiptHandle());
         visibilityMonitor.unwatch(sqsTaskInformation);
     }
 
@@ -318,10 +319,9 @@ public final class SQSWorkerQueue implements ManagedWorkerQueue
     @Override
     public String getPausedQueue()
     {
-        // DDD what here
+        // DDD what here, seems to be unused/deprecated in rabbit impl
         return "";
     }
-
 
     private Map<String, MessageAttributeValue> createAttributesFromMessageHeaders(final Map<String, Object> headers)
     {

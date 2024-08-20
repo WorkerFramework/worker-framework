@@ -22,7 +22,7 @@ import java.util.Objects;
 
 public final class VisibilityTimeout implements Comparable<VisibilityTimeout>
 {
-    private Instant becomesVisible;
+    private final Instant becomesVisible;
     private final String receiptHandle;
 
     public VisibilityTimeout(final SQSTaskInformation taskInfo)
@@ -38,7 +38,7 @@ public final class VisibilityTimeout implements Comparable<VisibilityTimeout>
     }
 
     @Override
-    public int compareTo(VisibilityTimeout o)
+    public int compareTo(final VisibilityTimeout o)
     {
         return becomesVisible.compareTo(o.becomesVisible);
     }
@@ -58,12 +58,6 @@ public final class VisibilityTimeout implements Comparable<VisibilityTimeout>
         return Objects.hashCode(receiptHandle);
     }
 
-    @Override
-    public String toString()
-    {
-        return "";
-    }
-
     public Instant getBecomesVisible()
     {
         return becomesVisible;
@@ -72,5 +66,14 @@ public final class VisibilityTimeout implements Comparable<VisibilityTimeout>
     public String getReceiptHandle()
     {
         return receiptHandle;
+    }
+
+    @Override
+    public String toString()
+    {
+        return "VisibilityTimeout{" +
+                "becomesVisible=" + becomesVisible +
+                ", receiptHandle='" + receiptHandle + '\'' +
+                '}';
     }
 }
