@@ -25,7 +25,9 @@ export CAF_WORKER_DISABLE_ZERO_PROGRESS_REPORTING=true
 cd /maven
 exec java $CAF_WORKER_JAVA_OPTS \
     -XX:+CrashOnOutOfMemoryError \
-    -XX:ErrorFile=/etc/hs_err_pid%p.log \
+    -XX:+HeapDumpOnOutOfMemoryError \
+    -XX:HeapDumpPath=/etc/ \
+    -XX:ErrorFile=/etc/ \
     -Dpolyglot.engine.WarnInterpreterOnly=false \
     -cp '*' \
     com.hpe.caf.worker.core.WorkerApplication \
