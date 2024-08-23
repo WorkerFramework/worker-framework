@@ -26,7 +26,6 @@ export HOSTNAME=worker-test
 
 cd /maven
 exec java $CAF_WORKER_JAVA_OPTS \
-    -XX:+CrashOnOutOfMemoryError \
     -cp '*' \
     com.hpe.caf.worker.core.WorkerApplication \
     server \
