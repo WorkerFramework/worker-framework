@@ -22,12 +22,14 @@ export CAF_CONFIG_ENABLE_SUBSTITUTOR=false
 
 export CAF_WORKER_DISABLE_ZERO_PROGRESS_REPORTING=true
 
+export HOSTNAME=worker-test
+
 cd /maven
 exec java $CAF_WORKER_JAVA_OPTS \
     -XX:+CrashOnOutOfMemoryError \
+    -XX:ErrorFile="/etc/hs_err_${HOSTNAME}.log" \
     -XX:+HeapDumpOnOutOfMemoryError \
-    -XX:HeapDumpPath=/etc/ \
-    -XX:ErrorFile=/etc/ \
+    -XX:HeapDumpPath="/etc/heap_dump_${HOSTNAME}.hprof" \
     -Dpolyglot.engine.WarnInterpreterOnly=false \
     -cp '*' \
     com.hpe.caf.worker.core.WorkerApplication \
