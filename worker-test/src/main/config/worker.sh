@@ -34,6 +34,7 @@ fi
 
 cd /maven
 exec java $CAF_WORKER_JAVA_OPTS \
+    -Dpolyglot.engine.WarnInterpreterOnly=false \
     -cp '*' \
     com.hpe.caf.worker.core.WorkerApplication \
     server \
