@@ -304,17 +304,12 @@
                                     <CAF_WORKER_DATASTORE_PATH>/srv/common/webdav</CAF_WORKER_DATASTORE_PATH>
                                     <CAF_WORKER_JAVA_OPTS>
                                         -agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=*:5005
-                                        -XX:+CrashOnOutOfMemoryError
-                                        -XX:ErrorFile=/etc/hs_err_${HOSTNAME}.log
-                                        -XX:+HeapDumpOnOutOfMemoryError
-                                        -XX:HeapDumpPath=/etc/heap_dump_${HOSTNAME}.hprof
                                     </CAF_WORKER_JAVA_OPTS>
                                     <CAF_WORKER_RETRY_LIMIT>1</CAF_WORKER_RETRY_LIMIT>
                                     <CAF_RABBITMQ_PROTOCOL>amqps</CAF_RABBITMQ_PROTOCOL>
                                     <CAF_RABBITMQ_PORT>5671</CAF_RABBITMQ_PORT>
                                     <SSL_CA_CRT_DIR>/test-keystore</SSL_CA_CRT_DIR>
                                     <SSL_CA_CRT>ca_certificate.pem</SSL_CA_CRT>
-                                    <CAF_LOG_LEVEL>debug</CAF_LOG_LEVEL>
                                 </env>
                                 <volumes>
                                     <from>
@@ -357,7 +352,6 @@
                                     <CAF_RABBITMQ_PORT>5671</CAF_RABBITMQ_PORT>
                                     <SSL_CA_CRT_DIR>/test-keystore</SSL_CA_CRT_DIR>
                                     <SSL_CA_CRT>ca_certificate.pem</SSL_CA_CRT>
-                                    <CAF_LOG_LEVEL>debug</CAF_LOG_LEVEL>
                                 </env>
                                 <volumes>
                                     <from>
