@@ -310,6 +310,9 @@
                                     <CAF_RABBITMQ_PORT>5671</CAF_RABBITMQ_PORT>
                                     <SSL_CA_CRT_DIR>/test-keystore</SSL_CA_CRT_DIR>
                                     <SSL_CA_CRT>ca_certificate.pem</SSL_CA_CRT>
+                                    <CRASH_DUMP_ON_OUT_OF_MEMORY_ERROR>true</CRASH_DUMP_ON_OUT_OF_MEMORY_ERROR>
+                                    <HEAP_DUMP_ON_OUT_OF_MEMORY_ERROR>true</HEAP_DUMP_ON_OUT_OF_MEMORY_ERROR>
+                                    <DUMP_PATH>/etc/</DUMP_PATH>
                                 </env>
                                 <volumes>
                                     <from>
@@ -354,6 +357,7 @@
                                     <SSL_CA_CRT>ca_certificate.pem</SSL_CA_CRT>
                                     <CRASH_DUMP_ON_OUT_OF_MEMORY_ERROR>true</CRASH_DUMP_ON_OUT_OF_MEMORY_ERROR>
                                     <HEAP_DUMP_ON_OUT_OF_MEMORY_ERROR>true</HEAP_DUMP_ON_OUT_OF_MEMORY_ERROR>
+                                    <DUMP_PATH>/etc/</DUMP_PATH>
                                 </env>
                                 <volumes>
                                     <from>

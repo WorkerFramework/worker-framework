@@ -24,12 +24,12 @@ export CAF_WORKER_DISABLE_ZERO_PROGRESS_REPORTING=true
 
 if [ "$CRASH_DUMP_ON_OUT_OF_MEMORY_ERROR" == "true" ]
 then
-  CAF_WORKER_JAVA_OPTS="${CAF_WORKER_JAVA_OPTS} -XX:+CrashOnOutOfMemoryError -XX:ErrorFile=/etc/hs_err_${HOSTNAME}.log"
+  CAF_WORKER_JAVA_OPTS="${CAF_WORKER_JAVA_OPTS} -XX:+CrashOnOutOfMemoryError -XX:ErrorFile=${DUMP_PATH}hs_err_${HOSTNAME}.log"
 fi
 
 if [ "$HEAP_DUMP_ON_OUT_OF_MEMORY_ERROR" == "true" ]
 then
-  CAF_WORKER_JAVA_OPTS="${CAF_WORKER_JAVA_OPTS} -XX:+HeapDumpOnOutOfMemoryError -XX:HeapDumpPath=/etc/heap_dump_${HOSTNAME}.hprof"
+  CAF_WORKER_JAVA_OPTS="${CAF_WORKER_JAVA_OPTS} -XX:+HeapDumpOnOutOfMemoryError -XX:HeapDumpPath=${DUMP_PATH}heap_dump_${HOSTNAME}.hprof"
 fi
 
 cd /maven
