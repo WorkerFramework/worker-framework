@@ -31,7 +31,7 @@ public class VisibilityTimeoutTest
     @Test
     public void testSortedSetOfVisibilityTimeouts()
     {
-        var startTime = Instant.now();
+        var startTime = Instant.now().getEpochSecond();
         final SortedSet<VisibilityTimeout> set = Collections.synchronizedSortedSet(new TreeSet<>());
         for(int i = 1; i < 100; i++) {
             var ti = getVisibilityTimeout(startTime, i);
@@ -41,16 +41,16 @@ public class VisibilityTimeoutTest
 
         for(VisibilityTimeout next : set) {
             if (prev != null) {
-                assertTrue(prev.getBecomesVisible().isBefore(next.getBecomesVisible()));
+                assertTrue(prev.becomesVisibleEpochSecond() < next.becomesVisibleEpochSecond());
             }
             prev = next;
         }
     }
 
-    private VisibilityTimeout getVisibilityTimeout(final Instant start, final int offset)
+    private VisibilityTimeout getVisibilityTimeout(final Long start, final int offset)
     {
         return new VisibilityTimeout(
-                (offset % 2 == 0) ? start.plusSeconds(offset): start.minusSeconds(offset),
+                (offset % 2 == 0) ? start + offset: start - offset,
                 UUID.randomUUID().toString()
         );
     }

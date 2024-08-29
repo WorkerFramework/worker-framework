@@ -16,12 +16,10 @@
 package com.hpe.caf.worker.queue.sqs;
 
 import com.hpe.caf.api.worker.TaskInformation;
+import com.hpe.caf.worker.queue.sqs.visibility.VisibilityTimeout;
 import jakarta.validation.constraints.NotNull;
 
-import java.time.Instant;
-import java.util.Objects;
-
-public final class SQSTaskInformation implements TaskInformation, Comparable<SQSTaskInformation>
+public final class SQSTaskInformation implements TaskInformation
 {
     @NotNull
     private final QueueInfo queueInfo;
@@ -30,25 +28,20 @@ public final class SQSTaskInformation implements TaskInformation, Comparable<SQS
     private final String inboundMessageId;
 
     @NotNull
-    private final String receiptHandle;
-
-    @NotNull
     private final boolean isPoison;
 
     @NotNull
-    private final Instant becomesVisible;
+    private final VisibilityTimeout visibilityTimeout;
 
     public SQSTaskInformation(
             final QueueInfo queueInfo,
             final String inboundMessageId,
-            final String receiptHandle,
-            final Instant becomesVisible,
+            final VisibilityTimeout visibilityTimeout,
             final boolean isPoison)
     {
         this.queueInfo = queueInfo;
         this.inboundMessageId = inboundMessageId;
-        this.receiptHandle = receiptHandle;
-        this.becomesVisible = becomesVisible;
+        this.visibilityTimeout = visibilityTimeout;
         this.isPoison = isPoison;
     }
 
@@ -63,14 +56,9 @@ public final class SQSTaskInformation implements TaskInformation, Comparable<SQS
         return inboundMessageId;
     }
 
-    public String getReceiptHandle()
+    public VisibilityTimeout getVisibilityTimeout()
     {
-        return receiptHandle;
-    }
-
-    public Instant getBecomesVisible()
-    {
-        return becomesVisible;
+        return visibilityTimeout;
     }
 
     @Override
@@ -79,25 +67,9 @@ public final class SQSTaskInformation implements TaskInformation, Comparable<SQS
         return isPoison;
     }
 
-    @Override
-    public boolean equals(Object o)
+    public String getReceiptHandle()
     {
-        if (this == o) return true;
-        if (o == null || getClass() != o.getClass()) return false;
-        final SQSTaskInformation that = (SQSTaskInformation) o;
-        return Objects.equals(receiptHandle, that.receiptHandle);
-    }
-
-    @Override
-    public int hashCode()
-    {
-        return Objects.hashCode(receiptHandle);
-    }
-
-    @Override
-    public int compareTo(@NotNull final SQSTaskInformation o)
-    {
-        return becomesVisible.compareTo(o.becomesVisible);
+        return visibilityTimeout.receiptHandle();
     }
 
     @Override
@@ -106,9 +78,8 @@ public final class SQSTaskInformation implements TaskInformation, Comparable<SQS
         return "SQSTaskInformation{" +
                 "queueInfo=" + queueInfo +
                 ", inboundMessageId='" + inboundMessageId + '\'' +
-                ", receiptHandle='" + receiptHandle + '\'' +
                 ", isPoison=" + isPoison +
-                ", becomesVisible=" + becomesVisible +
+                ", visibilityTimeout='" + visibilityTimeout + '\'' +
                 '}';
     }
 }

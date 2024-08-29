@@ -22,6 +22,7 @@ import com.hpe.caf.worker.queue.sqs.QueueInfo;
 import com.hpe.caf.worker.queue.sqs.SQSTaskInformation;
 import com.hpe.caf.worker.queue.sqs.SQSUtil;
 import com.hpe.caf.worker.queue.sqs.config.SQSWorkerQueueConfiguration;
+import com.hpe.caf.worker.queue.sqs.visibility.VisibilityTimeout;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import software.amazon.awssdk.services.sqs.SqsClient;
@@ -124,12 +125,11 @@ public abstract class QueueConsumer implements Runnable
 
     protected void registerNewTask(final Message message)
     {
-        final var becomesVisible = Instant.now().plusSeconds(getVisibilityTimeout());
+        final var becomesVisible = Instant.now().getEpochSecond() + getVisibilityTimeout();
         final var taskInfo = new SQSTaskInformation(
                 queueInfo,
                 message.messageId(),
-                message.receiptHandle(),
-                becomesVisible,
+                new VisibilityTimeout(becomesVisible, message.receiptHandle()),
                 isPoisonMessageConsumer()
         );
 

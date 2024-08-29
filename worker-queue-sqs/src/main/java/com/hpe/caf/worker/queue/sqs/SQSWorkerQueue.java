@@ -230,7 +230,7 @@ public final class SQSWorkerQueue implements ManagedWorkerQueue
             sqsClient.deleteMessage(deleteRequest);
         } catch (final ReceiptHandleIsInvalidException e) {
             LOG.error("Receipt handle: {} is invalid - messageId:{}. {}",
-                    sqsTaskInformation.getReceiptHandle(),
+                    sqsTaskInformation.getVisibilityTimeout().receiptHandle(),
                     sqsTaskInformation.getInboundMessageId(),
                     e.getMessage());
         } catch (final QueueDoesNotExistException e) {

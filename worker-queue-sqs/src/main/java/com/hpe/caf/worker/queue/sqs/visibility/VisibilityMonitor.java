@@ -38,9 +38,9 @@ public class VisibilityMonitor implements Runnable
 {
     private final SqsClient sqsClient;
     private final String queueUrl;
-    private final int visibilityTimeout;
-    private final int visibilityBoundary;
-    private final int halfTheVisibilityTimeout;
+    private final int queueVisibilityTimeout;
+    private final int timeoutWindowLimit;
+    private final int monitoringInterval;
     private final Set<VisibilityTimeout> timeoutSet;
 
     private static final int MAX_BATCH_SIZE = 10;
@@ -56,10 +56,10 @@ public class VisibilityMonitor implements Runnable
     {
         this.sqsClient = sqsClient;
         this.queueUrl = queueUrl;
-        this.visibilityTimeout = queueVisibilityTimeout;
+        this.queueVisibilityTimeout = queueVisibilityTimeout;
         timeoutSet = Collections.synchronizedSortedSet(new TreeSet<>());
-        visibilityBoundary = queueVisibilityTimeout + SAFETY_BUFFER_SECONDS;
-        halfTheVisibilityTimeout = (visibilityTimeout / 2) * 1000;
+        timeoutWindowLimit = queueVisibilityTimeout + SAFETY_BUFFER_SECONDS;
+        monitoringInterval = (this.queueVisibilityTimeout / 2) * 1000;
     }
 
     @Override
@@ -67,17 +67,19 @@ public class VisibilityMonitor implements Runnable
     {
         while (true) {
             try {
-                final var expired = new HashSet<VisibilityTimeout>();
-                final var toBeExtended = new HashSet<VisibilityTimeout>();
+                final var expiredTimeouts = new HashSet<VisibilityTimeout>();
+                final var toBeExtendedTimeouts = new HashSet<VisibilityTimeout>();
                 final var newTimeouts = new HashSet<VisibilityTimeout>();
 
                 synchronized (timeoutSet) {
+                    var now = Instant.now().getEpochSecond();
+                    var boundary = now + timeoutWindowLimit;
                     for(final var to : timeoutSet) {
-                        if (to.getBecomesVisible().isBefore(Instant.now())) {
-                            expired.add(to);
-                        } else if (to.getBecomesVisible().isBefore(Instant.now().plusSeconds(visibilityBoundary))) {
+                        if (to.becomesVisibleEpochSecond() < now) {
+                            expiredTimeouts.add(to);
+                        } else if (to.becomesVisibleEpochSecond() < boundary) {
                             LOG.debug("Going to extend {}", to);
-                            toBeExtended.add(to);
+                            toBeExtendedTimeouts.add(to);
                         } else {
                             // Anything past here is safe on this iteration.
                             break;
@@ -85,14 +87,14 @@ public class VisibilityMonitor implements Runnable
                     }
 
                     // remove all expired and about to expire.
-                    timeoutSet.removeAll(expired);
-                    timeoutSet.removeAll(toBeExtended);
+                    timeoutSet.removeAll(expiredTimeouts);
+                    timeoutSet.removeAll(toBeExtendedTimeouts);
 
                     // Get all message receiptHandles to extend
                     // And extend the task info visibility
-                    for(final var taskInfo : toBeExtended) {
-                        final var visibility = taskInfo.getBecomesVisible().plusSeconds(visibilityTimeout);
-                        final var newTimeout = new VisibilityTimeout(visibility, taskInfo.getReceiptHandle());
+                    for(final var visibilityTimeout : toBeExtendedTimeouts) {
+                        final var visibility = visibilityTimeout.becomesVisibleEpochSecond() + queueVisibilityTimeout;
+                        final var newTimeout = new VisibilityTimeout(visibility, visibilityTimeout.receiptHandle());
                         newTimeouts.add(newTimeout);
                     }
 
@@ -106,7 +108,7 @@ public class VisibilityMonitor implements Runnable
                     timeoutSet.addAll(newTimeouts);
                 }
 
-                Thread.sleep(halfTheVisibilityTimeout);
+                Thread.sleep(monitoringInterval);
             } catch (final InterruptedException e) {
                 LOG.error("A pause in extending timeouts was interrupted", e);
             }
@@ -133,8 +135,8 @@ public class VisibilityMonitor implements Runnable
             timeoutMap.put(idStr, receiptHandle);
             entries.add(ChangeMessageVisibilityBatchRequestEntry.builder()
                     .id(idStr)
-                    .receiptHandle(receiptHandle.getReceiptHandle())
-                    .visibilityTimeout(visibilityTimeout)
+                    .receiptHandle(receiptHandle.receiptHandle())
+                    .visibilityTimeout(queueVisibilityTimeout)
                     .build());
         }
         final var request = ChangeMessageVisibilityBatchRequest.builder()
@@ -151,9 +153,8 @@ public class VisibilityMonitor implements Runnable
 
     public void watch(final SQSTaskInformation taskInfo)
     {
-        var to = new VisibilityTimeout(taskInfo);
-        LOG.debug("Watching {}", to);
-        timeoutSet.add(to);
+        LOG.debug("Watching {}", taskInfo.getVisibilityTimeout());
+        timeoutSet.add(taskInfo.getVisibilityTimeout());
     }
 
     public void unwatch(final SQSTaskInformation taskInfo)
@@ -161,7 +162,7 @@ public class VisibilityMonitor implements Runnable
         final var unwatchReceiptHandle = taskInfo.getReceiptHandle();
         synchronized (timeoutSet) {
             var unwatchOpt = timeoutSet.stream()
-                    .filter(to->to.getReceiptHandle().equals(unwatchReceiptHandle))
+                    .filter(to->to.receiptHandle().equals(unwatchReceiptHandle))
                     .findFirst();
             if (unwatchOpt.isPresent()) {
                 var removed = timeoutSet.remove(unwatchOpt.get());

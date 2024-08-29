@@ -15,32 +15,15 @@
  */
 package com.hpe.caf.worker.queue.sqs.visibility;
 
-import com.hpe.caf.worker.queue.sqs.SQSTaskInformation;
-
-import java.time.Instant;
 import java.util.Objects;
 
-public final class VisibilityTimeout implements Comparable<VisibilityTimeout>
+public record VisibilityTimeout(Long becomesVisibleEpochSecond,
+                                String receiptHandle) implements Comparable<VisibilityTimeout>
 {
-    private final Instant becomesVisible;
-    private final String receiptHandle;
-
-    public VisibilityTimeout(final SQSTaskInformation taskInfo)
-    {
-        becomesVisible = taskInfo.getBecomesVisible();
-        receiptHandle = taskInfo.getReceiptHandle();
-    }
-
-    public VisibilityTimeout(final Instant becomesVisible, final String receiptHandle)
-    {
-        this.becomesVisible = becomesVisible;
-        this.receiptHandle = receiptHandle;
-    }
-
     @Override
     public int compareTo(final VisibilityTimeout o)
     {
-        return becomesVisible.compareTo(o.becomesVisible);
+        return becomesVisibleEpochSecond.compareTo(o.becomesVisibleEpochSecond);
     }
 
     @Override
@@ -58,21 +41,11 @@ public final class VisibilityTimeout implements Comparable<VisibilityTimeout>
         return Objects.hashCode(receiptHandle);
     }
 
-    public Instant getBecomesVisible()
-    {
-        return becomesVisible;
-    }
-
-    public String getReceiptHandle()
-    {
-        return receiptHandle;
-    }
-
     @Override
     public String toString()
     {
         return "VisibilityTimeout{" +
-                "becomesVisible=" + becomesVisible +
+                "becomesVisibleEpochSecond=" + becomesVisibleEpochSecond +
                 ", receiptHandle='" + receiptHandle + '\'' +
                 '}';
     }
