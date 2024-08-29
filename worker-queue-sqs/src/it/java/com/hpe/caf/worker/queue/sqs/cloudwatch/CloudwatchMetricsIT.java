@@ -13,10 +13,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.hpe.caf.worker.queue.sqs;
+package com.hpe.caf.worker.queue.sqs.cloudwatch;
 
-import com.hpe.caf.worker.queue.sqs.util.DatapointCollector;
-import com.hpe.caf.worker.queue.sqs.util.MetricDataPoints;
 import com.hpe.caf.worker.queue.sqs.util.WorkerQueueWrapper;
 import org.junit.jupiter.api.Test;
 import software.amazon.awssdk.services.cloudwatch.CloudWatchClient;
@@ -30,7 +28,10 @@ import static com.hpe.caf.worker.queue.sqs.util.WorkerQueueWrapper.getWorkerWrap
 import static com.hpe.caf.worker.queue.sqs.util.WorkerQueueWrapper.sendMessages;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
-public class MetricsIT
+/**
+ * Testing AWS cloudwatch metrics availability, not to be confused with MetricsReporter functionality.
+ */
+public class CloudwatchMetricsIT
 {
     @Test
     public void testMetricsShowReceivedAndDeleted() throws Exception

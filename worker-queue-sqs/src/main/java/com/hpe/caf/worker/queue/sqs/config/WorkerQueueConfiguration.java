@@ -23,9 +23,9 @@ import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
 
 @Configuration
-public class SQSWorkerQueueConfiguration
+public class WorkerQueueConfiguration
 {
-    public SQSWorkerQueueConfiguration()
+    public WorkerQueueConfiguration()
     {
     }
 

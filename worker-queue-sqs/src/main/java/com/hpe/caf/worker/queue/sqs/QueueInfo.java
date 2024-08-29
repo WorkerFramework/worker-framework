@@ -16,4 +16,14 @@
 package com.hpe.caf.worker.queue.sqs;
 
 public record QueueInfo(String name, String url, String arn)
-{}
+{
+    @Override
+    public String toString()
+    {
+        return "QueueInfo{" +
+                "name='" + name + '\'' +
+                ", url='" + url + '\'' +
+                ", arn='" + arn + '\'' +
+                '}';
+    }
+}

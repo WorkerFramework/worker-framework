@@ -90,7 +90,7 @@ public class VisibilityIT
                 new WrapperConfig());
         final var msgBody = "hello-world";
         sendMessages(workerWrapper, msgBody);
-
+        final var metricsReporter = workerWrapper.metricsReporter;
         try {
             final var msg = workerWrapper.callbackQueue.poll(15, TimeUnit.SECONDS);
 
@@ -103,6 +103,16 @@ public class VisibilityIT
             assertNotNull(msg, "Original Message should have been delivered");
             assertNull(notRedelivered, "Message should not be redelivered");
             assertNotNull(delivered, "Should have been delivered");
+
+            // DDD should we be reporting two messages here?
+            assertEquals(2, metricsReporter.getMessagesReceived(),
+                    "Metrics should have reported two messages(incl one redelivery");
+            assertEquals(0, metricsReporter.getQueueErrors(),
+                    "Metrics should not have reported errors");
+            assertEquals(1, metricsReporter.getMessagesDropped(),
+                    "Metrics should have reported dropped messages");
+            assertEquals(0, metricsReporter.getMessagesRejected(),
+                    "Metrics should not have reported rejected messages");
         } finally {
             purgeQueue(workerWrapper.sqsClient, workerWrapper.inputQueueUrl);
         }
@@ -114,7 +124,7 @@ public class VisibilityIT
         final var inputQueue = "test-visibility-after-retention-period-expires";
         final var workerWrapper = getWorkerWrapper(inputQueue);;
         final var msgBody = "Hello-World";
-
+        final var metricsReporter = workerWrapper.metricsReporter;
         try {
             sendMessages(workerWrapper, msgBody);
 
@@ -140,6 +150,15 @@ public class VisibilityIT
             try {
                 final var result = workerWrapper.sqsClient.changeMessageVisibilityBatch(req);
                 assertNotNull(result, "Message should have been received.");
+
+                assertEquals(1, metricsReporter.getMessagesReceived(),
+                        "Metrics should only have reported a single message");
+                assertEquals(0, metricsReporter.getQueueErrors(),
+                        "Metrics should not have reported errors");
+                assertEquals(0, metricsReporter.getMessagesDropped(),
+                        "Metrics should not have reported dropped messages");
+                assertEquals(0, metricsReporter.getMessagesRejected(),
+                        "Metrics should not have reported rejected messages");
             } catch (final Exception e) {
                 fail("Unexpected exception when changing visibility for expired receipt handle", e);
             }

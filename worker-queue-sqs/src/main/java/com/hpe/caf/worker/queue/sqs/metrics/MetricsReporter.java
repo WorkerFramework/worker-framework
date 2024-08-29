@@ -13,13 +13,13 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.hpe.caf.worker.queue.sqs.util;
+package com.hpe.caf.worker.queue.sqs.metrics;
 
 import com.hpe.caf.api.worker.WorkerQueueMetricsReporter;
 
 import java.util.concurrent.atomic.AtomicInteger;
 
-public class SQSMetricsReporter implements WorkerQueueMetricsReporter
+public class MetricsReporter implements WorkerQueueMetricsReporter
 {
     private final AtomicInteger queueErrors = new AtomicInteger(0);
     private final AtomicInteger messagesReceived = new AtomicInteger(0);

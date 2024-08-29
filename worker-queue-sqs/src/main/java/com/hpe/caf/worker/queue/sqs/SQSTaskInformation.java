@@ -76,10 +76,10 @@ public final class SQSTaskInformation implements TaskInformation
     public String toString()
     {
         return "SQSTaskInformation{" +
-                "queueInfo=" + queueInfo +
-                ", inboundMessageId='" + inboundMessageId + '\'' +
+                "inboundMessageId='" + inboundMessageId + '\'' +
                 ", isPoison=" + isPoison +
-                ", visibilityTimeout='" + visibilityTimeout + '\'' +
+                ", queueInfo=" + queueInfo +
+                ", visibilityTimeout=" + visibilityTimeout +
                 '}';
     }
 }

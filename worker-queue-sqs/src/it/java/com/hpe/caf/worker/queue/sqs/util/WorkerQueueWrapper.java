@@ -15,11 +15,12 @@
  */
 package com.hpe.caf.worker.queue.sqs.util;
 
-import com.hpe.caf.worker.queue.sqs.SQSClientProvider;
+import com.hpe.caf.api.worker.WorkerQueueMetricsReporter;
+import com.hpe.caf.worker.queue.sqs.ClientProvider;
 import com.hpe.caf.worker.queue.sqs.SQSTaskInformation;
 import com.hpe.caf.worker.queue.sqs.SQSWorkerQueue;
 import com.hpe.caf.worker.queue.sqs.config.SQSConfiguration;
-import com.hpe.caf.worker.queue.sqs.config.SQSWorkerQueueConfiguration;
+import com.hpe.caf.worker.queue.sqs.config.WorkerQueueConfiguration;
 import software.amazon.awssdk.auth.credentials.AwsCredentials;
 import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.cloudwatch.CloudWatchClient;
@@ -46,10 +47,11 @@ public class WorkerQueueWrapper
     final StubbedTaskCallback callback;
     public final BlockingQueue<CallbackResponse> callbackQueue;
     public final BlockingQueue<CallbackResponse> callbackDLQ;
-    public final SQSWorkerQueueConfiguration sqsWorkerQueueConfiguration;
+    public final WorkerQueueConfiguration workerQueueConfiguration;
     public final SQSConfiguration sqsConfiguration;
     public final SQSWorkerQueue sqsWorkerQueue;
     public final SqsClient sqsClient;
+    public final WorkerQueueMetricsReporter metricsReporter;
 
     public final String inputQueueUrl;
 
@@ -76,25 +78,27 @@ public class WorkerQueueWrapper
             sqsConfiguration.setAwsAccessKey("x");
             sqsConfiguration.setSecretAccessKey("x");
 
-            sqsWorkerQueueConfiguration = new SQSWorkerQueueConfiguration();
-            sqsWorkerQueueConfiguration.setSQSConfiguration(sqsConfiguration);
-            sqsWorkerQueueConfiguration.setInputQueue(inputQueue);
-            sqsWorkerQueueConfiguration.setRetryQueue(inputQueue);
-            sqsWorkerQueueConfiguration.setVisibilityTimeout(visibilityTimeout);
-            sqsWorkerQueueConfiguration.setDlqVisibilityTimeout(visibilityTimeout);
-            sqsWorkerQueueConfiguration.setLongPollInterval(longPollInterval);
-            sqsWorkerQueueConfiguration.setMaxNumberOfMessages(maxNumberOfMessages);
-            sqsWorkerQueueConfiguration.setMessageRetentionPeriod(messageRetentionPeriod);
-            sqsWorkerQueueConfiguration.setDlqMessageRetentionPeriod(messageRetentionPeriod);
-            sqsWorkerQueueConfiguration.setMaxDeliveries(maxDeliveries);
+            workerQueueConfiguration = new WorkerQueueConfiguration();
+            workerQueueConfiguration.setSQSConfiguration(sqsConfiguration);
+            workerQueueConfiguration.setInputQueue(inputQueue);
+            workerQueueConfiguration.setRetryQueue(inputQueue);
+            workerQueueConfiguration.setVisibilityTimeout(visibilityTimeout);
+            workerQueueConfiguration.setDlqVisibilityTimeout(visibilityTimeout);
+            workerQueueConfiguration.setLongPollInterval(longPollInterval);
+            workerQueueConfiguration.setMaxNumberOfMessages(maxNumberOfMessages);
+            workerQueueConfiguration.setMessageRetentionPeriod(messageRetentionPeriod);
+            workerQueueConfiguration.setDlqMessageRetentionPeriod(messageRetentionPeriod);
+            workerQueueConfiguration.setMaxDeliveries(maxDeliveries);
 
-            sqsWorkerQueue = new SQSWorkerQueue(sqsWorkerQueueConfiguration);
+            sqsWorkerQueue = new SQSWorkerQueue(workerQueueConfiguration);
             sqsWorkerQueue.start(callback);
 
-            sqsClient = SQSClientProvider.getSqsClient(sqsConfiguration);
+            sqsClient = ClientProvider.getSqsClient(sqsConfiguration);
             callbackQueue = callback.getCallbackQueue();
             callbackDLQ = callback.getCallbackDLQ();
-            inputQueueUrl = SQSUtil.getQueueUrl(sqsClient, sqsWorkerQueueConfiguration.getInputQueue());
+            inputQueueUrl = SQSUtil.getQueueUrl(sqsClient, workerQueueConfiguration.getInputQueue());
+
+            metricsReporter = sqsWorkerQueue.getMetrics();
 
             cloudWatch = CloudWatchClient.builder()
                     .credentialsProvider(() -> new AwsCredentials()

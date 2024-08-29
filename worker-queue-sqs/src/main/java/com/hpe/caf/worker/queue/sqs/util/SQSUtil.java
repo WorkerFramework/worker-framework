@@ -16,7 +16,7 @@
 package com.hpe.caf.worker.queue.sqs.util;
 
 import com.hpe.caf.worker.queue.sqs.QueueInfo;
-import com.hpe.caf.worker.queue.sqs.config.SQSWorkerQueueConfiguration;
+import com.hpe.caf.worker.queue.sqs.config.WorkerQueueConfiguration;
 import software.amazon.awssdk.services.sqs.SqsClient;
 import software.amazon.awssdk.services.sqs.model.GetQueueAttributesRequest;
 import software.amazon.awssdk.services.sqs.model.GetQueueUrlRequest;
@@ -33,34 +33,34 @@ public class SQSUtil
     public static final String ALL_ATTRIBUTES = "All";
     public static final String SOURCE_QUEUE = "SourceQueue";
 
-    public static Map<QueueAttributeName, String> getInputQueueAttributes(final SQSWorkerQueueConfiguration sqsQueueCfg)
+    public static Map<QueueAttributeName, String> getInputQueueAttributes(final WorkerQueueConfiguration queueCfg)
     {
         final var attributes = new HashMap<QueueAttributeName, String>();
         attributes.put(
                 QueueAttributeName.VISIBILITY_TIMEOUT,
-                String.valueOf(sqsQueueCfg.getVisibilityTimeout())
+                String.valueOf(queueCfg.getVisibilityTimeout())
         );
 
         attributes.put(
                 QueueAttributeName.MESSAGE_RETENTION_PERIOD,
-                String.valueOf(sqsQueueCfg.getMessageRetentionPeriod())
+                String.valueOf(queueCfg.getMessageRetentionPeriod())
         );
 
         return attributes;
     }
 
-    public static Map<QueueAttributeName, String> getDeadLetterQueueAttributes(final SQSWorkerQueueConfiguration sqsQueueCfg)
+    public static Map<QueueAttributeName, String> getDeadLetterQueueAttributes(final WorkerQueueConfiguration queueCfg)
     {
         final var attributes = new HashMap<QueueAttributeName, String>();
 
         attributes.put(
                 QueueAttributeName.VISIBILITY_TIMEOUT,
-                String.valueOf(sqsQueueCfg.getDlqVisibilityTimeout())
+                String.valueOf(queueCfg.getDlqVisibilityTimeout())
         );
 
         attributes.put(
                 QueueAttributeName.MESSAGE_RETENTION_PERIOD,
-                String.valueOf(sqsQueueCfg.getDlqMessageRetentionPeriod())
+                String.valueOf(queueCfg.getDlqMessageRetentionPeriod())
         );
 
         return attributes;

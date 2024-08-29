@@ -43,12 +43,21 @@ public class SQSWorkerQueueIT
                 inputQueue,
                 new WrapperConfig());
         final var msgBody = "Hello-World";
+        final var metricsReporter = workerWrapper.metricsReporter;
         sendMessages(workerWrapper, msgBody);
         try {
             final var msg = workerWrapper.callbackQueue.poll(30, TimeUnit.SECONDS);
             final var body = msg.body();
             assertFalse(msg.taskInformation().isPoison());
             assertEquals(msgBody, body, "Message was not as expected");
+            assertEquals(1, metricsReporter.getMessagesReceived(),
+                    "Metrics should only have reported a single message");
+            assertEquals(0, metricsReporter.getQueueErrors(),
+                    "Metrics should not have reported errors");
+            assertEquals(0, metricsReporter.getMessagesDropped(),
+                    "Metrics should not have reported dropped messages");
+            assertEquals(0, metricsReporter.getMessagesRejected(),
+                    "Metrics should not have reported rejected messages");
         } finally {
             purgeQueue(workerWrapper.sqsClient, workerWrapper.inputQueueUrl);
         }
@@ -63,7 +72,7 @@ public class SQSWorkerQueueIT
                     inputQueue,
                     new WrapperConfig());
             final var getQueueUrlRequest = GetQueueUrlRequest.builder()
-                    .queueName(workerWrapper.sqsWorkerQueueConfiguration.getInputQueue())
+                    .queueName(workerWrapper.workerQueueConfiguration.getInputQueue())
                     .build();
             workerWrapper.sqsClient.getQueueUrl(getQueueUrlRequest);
         } catch (final Exception e) {

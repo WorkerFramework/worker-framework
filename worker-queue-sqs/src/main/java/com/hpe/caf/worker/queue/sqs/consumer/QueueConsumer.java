@@ -20,9 +20,9 @@ import com.hpe.caf.api.worker.TaskCallback;
 import com.hpe.caf.api.worker.TaskRejectedException;
 import com.hpe.caf.worker.queue.sqs.QueueInfo;
 import com.hpe.caf.worker.queue.sqs.SQSTaskInformation;
-import com.hpe.caf.worker.queue.sqs.util.SQSMetricsReporter;
+import com.hpe.caf.worker.queue.sqs.metrics.MetricsReporter;
 import com.hpe.caf.worker.queue.sqs.util.SQSUtil;
-import com.hpe.caf.worker.queue.sqs.config.SQSWorkerQueueConfiguration;
+import com.hpe.caf.worker.queue.sqs.config.WorkerQueueConfiguration;
 import com.hpe.caf.worker.queue.sqs.visibility.VisibilityTimeout;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -43,9 +43,9 @@ public abstract class QueueConsumer implements Runnable
     protected final SqsClient sqsClient;
     protected final QueueInfo queueInfo;
     protected final QueueInfo retryQueueInfo;
-    protected final SQSWorkerQueueConfiguration queueCfg;
+    protected final WorkerQueueConfiguration queueCfg;
     protected final TaskCallback callback;
-    protected final SQSMetricsReporter sqsMetricsReporter;
+    protected final MetricsReporter metricsReporter;
 
     private static final Logger LOG = LoggerFactory.getLogger(QueueConsumer.class);
 
@@ -53,16 +53,16 @@ public abstract class QueueConsumer implements Runnable
             final SqsClient sqsClient,
             final QueueInfo queueInfo,
             final QueueInfo retryQueueInfo,
-            final SQSWorkerQueueConfiguration queueCfg,
+            final WorkerQueueConfiguration queueCfg,
             final TaskCallback callback,
-            final SQSMetricsReporter sqsMetricsReporter)
+            final MetricsReporter metricsReporter)
     {
         this.sqsClient = sqsClient;
         this.queueInfo = queueInfo;
         this.retryQueueInfo = retryQueueInfo;
         this.queueCfg = queueCfg;
         this.callback = callback;
-        this.sqsMetricsReporter = sqsMetricsReporter;
+        this.metricsReporter = metricsReporter;
     }
 
     @Override
