@@ -21,6 +21,7 @@ import org.junit.jupiter.api.Test;
 import software.amazon.awssdk.services.sqs.model.GetQueueAttributesRequest;
 import software.amazon.awssdk.services.sqs.model.GetQueueUrlRequest;
 import software.amazon.awssdk.services.sqs.model.MessageAttributeValue;
+import software.amazon.awssdk.services.sqs.model.MessageSystemAttributeName;
 import software.amazon.awssdk.services.sqs.model.QueueAttributeName;
 import software.amazon.awssdk.services.sqs.model.ReceiveMessageRequest;
 
@@ -145,7 +146,7 @@ public class SQSWorkerQueueIT
                     .queueUrl(workerWrapper.inputQueueUrl)
                     .maxNumberOfMessages(1)
                     .messageAttributeNames(SQSUtil.ALL_ATTRIBUTES)
-                    .attributeNamesWithStrings(SQSUtil.ALL_ATTRIBUTES)
+                    .messageSystemAttributeNames(MessageSystemAttributeName.ALL)
                     .build();
             final var response = workerWrapper.sqsClient.receiveMessage(request);
 

@@ -27,6 +27,7 @@ import software.amazon.awssdk.services.sqs.model.DeleteMessageBatchRequest;
 import software.amazon.awssdk.services.sqs.model.DeleteMessageBatchRequestEntry;
 import software.amazon.awssdk.services.sqs.model.DeleteMessageBatchResponse;
 import software.amazon.awssdk.services.sqs.model.Message;
+import software.amazon.awssdk.services.sqs.model.MessageSystemAttributeName;
 import software.amazon.awssdk.services.sqs.model.ReceiveMessageRequest;
 import software.amazon.awssdk.services.sqs.model.SendMessageBatchRequest;
 import software.amazon.awssdk.services.sqs.model.SendMessageBatchRequestEntry;
@@ -110,7 +111,7 @@ public final class MessageDistributor
                     .queueUrl(source.url())
                     .maxNumberOfMessages(SQS_MAX_BATCH_SIZE)
                     .waitTimeSeconds(0)
-                    .attributeNamesWithStrings(SQSUtil.ALL_ATTRIBUTES)
+                    .messageSystemAttributeNames(MessageSystemAttributeName.ALL)
                     .messageAttributeNames(SQSUtil.ALL_ATTRIBUTES)
                     .build();
             receivedMessages.addAll(sqsClient.receiveMessage(receiveRequest).messages());

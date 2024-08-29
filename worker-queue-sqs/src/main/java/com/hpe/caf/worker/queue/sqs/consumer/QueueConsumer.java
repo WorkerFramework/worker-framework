@@ -27,6 +27,7 @@ import org.slf4j.LoggerFactory;
 import software.amazon.awssdk.services.sqs.SqsClient;
 import software.amazon.awssdk.services.sqs.model.Message;
 import software.amazon.awssdk.services.sqs.model.MessageAttributeValue;
+import software.amazon.awssdk.services.sqs.model.MessageSystemAttributeName;
 import software.amazon.awssdk.services.sqs.model.QueueAttributeName;
 import software.amazon.awssdk.services.sqs.model.ReceiveMessageRequest;
 import software.amazon.awssdk.services.sqs.model.SendMessageRequest;
@@ -73,7 +74,7 @@ public abstract class QueueConsumer implements Runnable
                 .queueUrl(queueInfo.url())
                 .maxNumberOfMessages(queueCfg.getMaxNumberOfMessages())
                 .waitTimeSeconds(queueCfg.getLongPollInterval())
-                .attributeNames(QueueAttributeName.ALL) // DDD may not be required
+                .messageSystemAttributeNames(MessageSystemAttributeName.ALL) // DDD may not be required
                 .messageAttributeNames(SQSUtil.ALL_ATTRIBUTES)
                 .build();
         while (true) {
