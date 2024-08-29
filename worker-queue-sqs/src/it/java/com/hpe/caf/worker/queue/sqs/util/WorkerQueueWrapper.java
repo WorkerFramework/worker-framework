@@ -15,9 +15,8 @@
  */
 package com.hpe.caf.worker.queue.sqs.util;
 
-import com.hpe.caf.worker.queue.sqs.SQSClientProviderImpl;
+import com.hpe.caf.worker.queue.sqs.SQSClientProvider;
 import com.hpe.caf.worker.queue.sqs.SQSTaskInformation;
-import com.hpe.caf.worker.queue.sqs.SQSUtil;
 import com.hpe.caf.worker.queue.sqs.SQSWorkerQueue;
 import com.hpe.caf.worker.queue.sqs.config.SQSConfiguration;
 import com.hpe.caf.worker.queue.sqs.config.SQSWorkerQueueConfiguration;
@@ -51,8 +50,6 @@ public class WorkerQueueWrapper
     public final SQSConfiguration sqsConfiguration;
     public final SQSWorkerQueue sqsWorkerQueue;
     public final SqsClient sqsClient;
-    final SQSClientProviderImpl clientProvider;
-
 
     public final String inputQueueUrl;
 
@@ -79,8 +76,6 @@ public class WorkerQueueWrapper
             sqsConfiguration.setAwsAccessKey("x");
             sqsConfiguration.setSecretAccessKey("x");
 
-            clientProvider = new SQSClientProviderImpl(sqsConfiguration);
-
             sqsWorkerQueueConfiguration = new SQSWorkerQueueConfiguration();
             sqsWorkerQueueConfiguration.setSQSConfiguration(sqsConfiguration);
             sqsWorkerQueueConfiguration.setInputQueue(inputQueue);
@@ -96,7 +91,7 @@ public class WorkerQueueWrapper
             sqsWorkerQueue = new SQSWorkerQueue(sqsWorkerQueueConfiguration);
             sqsWorkerQueue.start(callback);
 
-            sqsClient = clientProvider.getSqsClient();
+            sqsClient = SQSClientProvider.getSqsClient(sqsConfiguration);
             callbackQueue = callback.getCallbackQueue();
             callbackDLQ = callback.getCallbackDLQ();
             inputQueueUrl = SQSUtil.getQueueUrl(sqsClient, sqsWorkerQueueConfiguration.getInputQueue());

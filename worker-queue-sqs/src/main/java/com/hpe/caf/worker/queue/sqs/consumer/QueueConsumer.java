@@ -20,7 +20,8 @@ import com.hpe.caf.api.worker.TaskCallback;
 import com.hpe.caf.api.worker.TaskRejectedException;
 import com.hpe.caf.worker.queue.sqs.QueueInfo;
 import com.hpe.caf.worker.queue.sqs.SQSTaskInformation;
-import com.hpe.caf.worker.queue.sqs.SQSUtil;
+import com.hpe.caf.worker.queue.sqs.util.SQSMetricsReporter;
+import com.hpe.caf.worker.queue.sqs.util.SQSUtil;
 import com.hpe.caf.worker.queue.sqs.config.SQSWorkerQueueConfiguration;
 import com.hpe.caf.worker.queue.sqs.visibility.VisibilityTimeout;
 import org.slf4j.Logger;
@@ -29,7 +30,6 @@ import software.amazon.awssdk.services.sqs.SqsClient;
 import software.amazon.awssdk.services.sqs.model.Message;
 import software.amazon.awssdk.services.sqs.model.MessageAttributeValue;
 import software.amazon.awssdk.services.sqs.model.MessageSystemAttributeName;
-import software.amazon.awssdk.services.sqs.model.QueueAttributeName;
 import software.amazon.awssdk.services.sqs.model.ReceiveMessageRequest;
 import software.amazon.awssdk.services.sqs.model.SendMessageRequest;
 
@@ -45,6 +45,7 @@ public abstract class QueueConsumer implements Runnable
     protected final QueueInfo retryQueueInfo;
     protected final SQSWorkerQueueConfiguration queueCfg;
     protected final TaskCallback callback;
+    protected final SQSMetricsReporter sqsMetricsReporter;
 
     private static final Logger LOG = LoggerFactory.getLogger(QueueConsumer.class);
 
@@ -53,14 +54,15 @@ public abstract class QueueConsumer implements Runnable
             final QueueInfo queueInfo,
             final QueueInfo retryQueueInfo,
             final SQSWorkerQueueConfiguration queueCfg,
-            final TaskCallback callback
-    )
+            final TaskCallback callback,
+            final SQSMetricsReporter sqsMetricsReporter)
     {
         this.sqsClient = sqsClient;
         this.queueInfo = queueInfo;
         this.retryQueueInfo = retryQueueInfo;
         this.queueCfg = queueCfg;
         this.callback = callback;
+        this.sqsMetricsReporter = sqsMetricsReporter;
     }
 
     @Override
@@ -136,7 +138,7 @@ public abstract class QueueConsumer implements Runnable
         final var headers = createHeadersFromMessageAttributes(message);
         try {
             callback.registerNewTask(taskInfo, message.body().getBytes(StandardCharsets.UTF_8), headers);
-            handleTaskInfo(taskInfo);
+            handleRegistrationTasks(taskInfo);
         } catch (final TaskRejectedException e) {
             LOG.error("Cannot register new message, rejecting {}", message.messageId(), e);
             retryMessage(message);
@@ -146,7 +148,7 @@ public abstract class QueueConsumer implements Runnable
         }
     }
 
-    protected abstract void handleTaskInfo(final SQSTaskInformation taskInfo);
+    protected abstract void handleRegistrationTasks(final SQSTaskInformation taskInfo);
 
     protected abstract int getVisibilityTimeout();
 

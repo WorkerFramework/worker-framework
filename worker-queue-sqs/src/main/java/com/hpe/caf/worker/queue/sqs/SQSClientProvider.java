@@ -23,7 +23,7 @@ import software.amazon.awssdk.services.sqs.SqsClient;
 import java.net.URI;
 import java.net.URISyntaxException;
 
-public final class SQSClientProviderImpl
+public final class SQSClientProvider
 {
 
     public static SqsClient getSqsClient(final SQSConfiguration sqsConfiguration) throws URISyntaxException

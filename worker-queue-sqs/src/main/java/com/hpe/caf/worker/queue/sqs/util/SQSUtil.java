@@ -13,8 +13,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.hpe.caf.worker.queue.sqs;
+package com.hpe.caf.worker.queue.sqs.util;
 
+import com.hpe.caf.worker.queue.sqs.QueueInfo;
 import com.hpe.caf.worker.queue.sqs.config.SQSWorkerQueueConfiguration;
 import software.amazon.awssdk.services.sqs.SqsClient;
 import software.amazon.awssdk.services.sqs.model.GetQueueAttributesRequest;
@@ -32,7 +33,7 @@ public class SQSUtil
     public static final String ALL_ATTRIBUTES = "All";
     public static final String SOURCE_QUEUE = "SourceQueue";
 
-    static Map<QueueAttributeName, String> getInputQueueAttributes(final SQSWorkerQueueConfiguration sqsQueueCfg)
+    public static Map<QueueAttributeName, String> getInputQueueAttributes(final SQSWorkerQueueConfiguration sqsQueueCfg)
     {
         final var attributes = new HashMap<QueueAttributeName, String>();
         attributes.put(
@@ -48,7 +49,7 @@ public class SQSUtil
         return attributes;
     }
 
-    static Map<QueueAttributeName, String> getDeadLetterQueueAttributes(final SQSWorkerQueueConfiguration sqsQueueCfg)
+    public static Map<QueueAttributeName, String> getDeadLetterQueueAttributes(final SQSWorkerQueueConfiguration sqsQueueCfg)
     {
         final var attributes = new HashMap<QueueAttributeName, String>();
 
@@ -73,7 +74,7 @@ public class SQSUtil
         return sqsClient.getQueueUrl(getQueueUrlRequest).queueUrl();
     }
 
-    static String getQueueArn(final SqsClient sqsClient, final String queueUrl)
+    public static String getQueueArn(final SqsClient sqsClient, final String queueUrl)
     {
         final var attributesResponse = sqsClient.getQueueAttributes(
                 GetQueueAttributesRequest.builder()

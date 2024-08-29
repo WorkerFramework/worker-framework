@@ -20,7 +20,6 @@ import com.hpe.caf.api.worker.TaskCallback;
 import com.hpe.caf.api.worker.TaskInformation;
 import com.hpe.caf.api.worker.TaskRejectedException;
 import com.hpe.caf.worker.queue.sqs.SQSTaskInformation;
-import com.hpe.caf.worker.queue.sqs.SQSUtil;
 
 import java.util.Map;
 import java.util.concurrent.BlockingQueue;

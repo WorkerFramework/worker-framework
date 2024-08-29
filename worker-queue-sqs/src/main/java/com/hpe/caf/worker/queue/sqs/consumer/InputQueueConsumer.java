@@ -19,6 +19,7 @@ import com.hpe.caf.api.worker.TaskCallback;
 import com.hpe.caf.worker.queue.sqs.QueueInfo;
 import com.hpe.caf.worker.queue.sqs.SQSTaskInformation;
 import com.hpe.caf.worker.queue.sqs.config.SQSWorkerQueueConfiguration;
+import com.hpe.caf.worker.queue.sqs.util.SQSMetricsReporter;
 import com.hpe.caf.worker.queue.sqs.visibility.VisibilityMonitor;
 import software.amazon.awssdk.services.sqs.SqsClient;
 
@@ -33,15 +34,17 @@ public class InputQueueConsumer extends QueueConsumer
             final QueueInfo retryQueueInfo,
             final TaskCallback callback,
             final SQSWorkerQueueConfiguration queueCfg,
-            final VisibilityMonitor visibilityMonitor)
+            final VisibilityMonitor visibilityMonitor,
+            final SQSMetricsReporter sqsMetricsReporter)
     {
-        super(sqsClient, queueInfo, retryQueueInfo, queueCfg, callback);
+        super(sqsClient, queueInfo, retryQueueInfo, queueCfg, callback, sqsMetricsReporter);
         this.visibilityMonitor = visibilityMonitor;
     }
 
     @Override
-    protected void handleTaskInfo(final SQSTaskInformation taskInfo)
+    protected void handleRegistrationTasks(final SQSTaskInformation taskInfo)
     {
+        sqsMetricsReporter.incrementReceived();
         visibilityMonitor.watch(taskInfo);
     }
 

@@ -99,7 +99,7 @@ public class DistributorIT
         sendMessagesInBatches(workerWrapper.sqsClient, sourceQueueUrl, numberOfMessages);
 
         final var distributor = new MessageDistributor(
-                new SQSClientProviderImpl(workerWrapper.sqsConfiguration),
+                SQSClientProvider.getSqsClient(workerWrapper.sqsConfiguration),
                 sourceQueue,
                 destinationQueue
         );

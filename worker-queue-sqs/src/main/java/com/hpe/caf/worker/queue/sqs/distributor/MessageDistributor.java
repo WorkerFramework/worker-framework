@@ -17,8 +17,7 @@ package com.hpe.caf.worker.queue.sqs.distributor;
 
 import com.google.common.collect.Iterables;
 import com.hpe.caf.worker.queue.sqs.QueueInfo;
-import com.hpe.caf.worker.queue.sqs.SQSClientProvider;
-import com.hpe.caf.worker.queue.sqs.SQSUtil;
+import com.hpe.caf.worker.queue.sqs.util.SQSUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import software.amazon.awssdk.services.sqs.SqsClient;
@@ -50,12 +49,12 @@ public final class MessageDistributor
     private static final Logger LOG = LoggerFactory.getLogger(MessageDistributor.class);
 
     public MessageDistributor(
-            final SQSClientProvider provider,
+            final  SqsClient sqsClient,
             final String source,
             final String destination
     ) throws Exception
     {
-        this.sqsClient = provider.getSqsClient();
+        this.sqsClient = sqsClient;
         this.source = SQSUtil.getQueueInfo(sqsClient, source);
         this.destination = SQSUtil.getQueueInfo(sqsClient, destination);
     }

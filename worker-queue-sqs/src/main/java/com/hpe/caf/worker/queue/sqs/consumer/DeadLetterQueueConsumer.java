@@ -19,6 +19,7 @@ import com.hpe.caf.api.worker.TaskCallback;
 import com.hpe.caf.worker.queue.sqs.QueueInfo;
 import com.hpe.caf.worker.queue.sqs.SQSTaskInformation;
 import com.hpe.caf.worker.queue.sqs.config.SQSWorkerQueueConfiguration;
+import com.hpe.caf.worker.queue.sqs.util.SQSMetricsReporter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import software.amazon.awssdk.services.sqs.SqsClient;
@@ -33,13 +34,13 @@ public class DeadLetterQueueConsumer extends QueueConsumer
             final QueueInfo queueInfo,
             final QueueInfo retryQueueInfo,
             final TaskCallback callback,
-            final SQSWorkerQueueConfiguration queueCfg)
+            final SQSWorkerQueueConfiguration queueCfg, SQSMetricsReporter sqsMetricsReporter)
     {
-        super(sqsClient, queueInfo, retryQueueInfo, queueCfg, callback);
+        super(sqsClient, queueInfo, retryQueueInfo, queueCfg, callback, sqsMetricsReporter);
     }
 
     @Override
-    protected void handleTaskInfo(final SQSTaskInformation taskInfo)
+    protected void handleRegistrationTasks(final SQSTaskInformation taskInfo)
     {
         deleteMessage(taskInfo.getReceiptHandle(), taskInfo.getInboundMessageId());
     }
@@ -52,10 +53,12 @@ public class DeadLetterQueueConsumer extends QueueConsumer
                     .receiptHandle(receiptHandle)
                     .build();
             sqsClient.deleteMessage(request);
+            sqsMetricsReporter.incrementDropped();
         } catch (final Exception e) {
             var msg = String.format("Error deleting message from dead letter queue:%s messageId:%s",
                     queueInfo.url(), messageId);
             LOG.error(msg, e);
+            sqsMetricsReporter.incrementErrors();
         }
     }
 
