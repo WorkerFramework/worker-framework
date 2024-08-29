@@ -15,14 +15,41 @@
  */
 package com.hpe.caf.worker.queue.sqs;
 
+import com.hpe.caf.worker.queue.sqs.config.SQSConfiguration;
 import software.amazon.awssdk.auth.credentials.AwsCredentials;
+import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.sqs.SqsClient;
 
+import java.net.URI;
 import java.net.URISyntaxException;
 
-public interface SQSClientProvider
+public final class SQSClientProviderImpl
 {
-    SqsClient getSqsClient() throws URISyntaxException;
 
-    AwsCredentials getAWSCredentials();
+    public static SqsClient getSqsClient(final SQSConfiguration sqsConfiguration) throws URISyntaxException
+    {
+        return SqsClient.builder()
+                .endpointOverride(new URI(sqsConfiguration.getURIString()))
+                .region(Region.of(sqsConfiguration.getAwsRegion()))
+                .credentialsProvider(() -> getAWSCredentials(sqsConfiguration))
+                .build();
+    }
+
+    private static AwsCredentials getAWSCredentials(final SQSConfiguration sqsConfiguration)
+    {
+        return new AwsCredentials()
+        {
+            @Override
+            public String accessKeyId()
+            {
+                return sqsConfiguration.getAwsAccessKey();
+            }
+
+            @Override
+            public String secretAccessKey()
+            {
+                return sqsConfiguration.getSecretAccessKey();
+            }
+        };
+    }
 }
