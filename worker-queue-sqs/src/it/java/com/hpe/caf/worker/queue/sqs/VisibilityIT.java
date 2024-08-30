@@ -104,7 +104,8 @@ public class VisibilityIT
             assertNull(notRedelivered, "Message should not be redelivered");
             assertNotNull(delivered, "Should have been delivered");
 
-            // DDD should we be reporting two messages here?
+            // DDD should we be reporting two messages here,  1st & 2nd delivery?
+            // DDD how could we tell.
             assertEquals(2, metricsReporter.getMessagesReceived(),
                     "Metrics should have reported two messages(incl one redelivery");
             assertEquals(0, metricsReporter.getQueueErrors(),
