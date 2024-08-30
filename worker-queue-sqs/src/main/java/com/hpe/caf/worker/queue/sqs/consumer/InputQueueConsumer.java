@@ -20,8 +20,11 @@ import com.hpe.caf.worker.queue.sqs.QueueInfo;
 import com.hpe.caf.worker.queue.sqs.SQSTaskInformation;
 import com.hpe.caf.worker.queue.sqs.config.WorkerQueueConfiguration;
 import com.hpe.caf.worker.queue.sqs.metrics.MetricsReporter;
+import com.hpe.caf.worker.queue.sqs.publisher.PublishEvent;
 import com.hpe.caf.worker.queue.sqs.visibility.VisibilityMonitor;
 import software.amazon.awssdk.services.sqs.SqsClient;
+
+import java.util.concurrent.BlockingQueue;
 
 public class InputQueueConsumer extends QueueConsumer
 {
@@ -35,9 +38,10 @@ public class InputQueueConsumer extends QueueConsumer
             final TaskCallback callback,
             final WorkerQueueConfiguration queueCfg,
             final VisibilityMonitor visibilityMonitor,
-            final MetricsReporter metricsReporter)
+            final MetricsReporter metricsReporter,
+            final BlockingQueue<PublishEvent> publisherQueue)
     {
-        super(sqsClient, queueInfo, retryQueueInfo, queueCfg, callback, metricsReporter);
+        super(sqsClient, queueInfo, retryQueueInfo, queueCfg, callback, metricsReporter, publisherQueue);
         this.visibilityMonitor = visibilityMonitor;
     }
 

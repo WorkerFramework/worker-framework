@@ -33,7 +33,7 @@ public class SQSUtil
     public static final String ALL_ATTRIBUTES = "All";
     public static final String SOURCE_QUEUE = "SourceQueue";
 
-    public static Map<QueueAttributeName, String> getInputQueueAttributes(final WorkerQueueConfiguration queueCfg)
+    public static Map<QueueAttributeName, String> getQueueAttributes(final WorkerQueueConfiguration queueCfg)
     {
         final var attributes = new HashMap<QueueAttributeName, String>();
         attributes.put(
@@ -49,7 +49,7 @@ public class SQSUtil
         return attributes;
     }
 
-    public static Map<QueueAttributeName, String> getDeadLetterQueueAttributes(final WorkerQueueConfiguration queueCfg)
+    public static Map<QueueAttributeName, String> getDlQAttributes(final WorkerQueueConfiguration queueCfg)
     {
         final var attributes = new HashMap<QueueAttributeName, String>();
 
@@ -91,6 +91,17 @@ public class SQSUtil
     {
         var url = getQueueUrl(sqsClient, queueName);
         var arn = getQueueArn(sqsClient, url);
-        return new QueueInfo(queueName, url, arn);
+        return new QueueInfo(queueName, url, arn, false);
+    }
+
+    public static QueueInfo getQueueInfo(
+            final SqsClient sqsClient,
+            final String queueName,
+            final boolean isDeadLetterQueue
+    )
+    {
+        var url = getQueueUrl(sqsClient, queueName);
+        var arn = getQueueArn(sqsClient, url);
+        return new QueueInfo(queueName, url, arn, isDeadLetterQueue);
     }
 }

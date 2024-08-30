@@ -32,6 +32,11 @@ public class MetricsReporter implements WorkerQueueMetricsReporter
         queueErrors.incrementAndGet();
     }
 
+    public void incrementErrors(final int delta)
+    {
+        queueErrors.getAndAdd(delta);
+    }
+
     @Override
     public int getQueueErrors()
     {
@@ -52,6 +57,11 @@ public class MetricsReporter implements WorkerQueueMetricsReporter
     public void incrementPublished()
     {
         messagesPublished.incrementAndGet();
+    }
+
+    public void incrementPublished(final int delta)
+    {
+        messagesPublished.getAndAdd(delta);
     }
 
     @Override

@@ -15,15 +15,74 @@
  */
 package com.hpe.caf.worker.queue.sqs;
 
-public record QueueInfo(String name, String url, String arn)
+import java.util.Objects;
+
+public final class QueueInfo
 {
+    private final String name;
+    private final String url;
+    private final String arn;
+    private final boolean isDeadLetterQueue;
+
+    public QueueInfo(
+            final String name,
+            final String url,
+            final String arn,
+            final boolean isDeadLetterQueue
+    )
+    {
+        this.name = name;
+        this.url = url;
+        this.arn = arn;
+        this.isDeadLetterQueue = isDeadLetterQueue;
+    }
+
+    @Override
+    public boolean equals(Object o)
+    {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        final QueueInfo queueInfo = (QueueInfo) o;
+        return isDeadLetterQueue == queueInfo.isDeadLetterQueue &&
+                Objects.equals(url, queueInfo.url) &&
+                Objects.equals(arn, queueInfo.arn) &&
+                Objects.equals(name, queueInfo.name);
+    }
+
+    @Override
+    public int hashCode()
+    {
+        return Objects.hash(name, url, arn, isDeadLetterQueue);
+    }
+
+    public String name()
+    {
+        return name;
+    }
+
+    public String url()
+    {
+        return url;
+    }
+
+    public String arn()
+    {
+        return arn;
+    }
+
+    public boolean isDeadLetterQueue()
+    {
+        return isDeadLetterQueue;
+    }
+
     @Override
     public String toString()
     {
-        return "QueueInfo{" +
-                "name='" + name + '\'' +
-                ", url='" + url + '\'' +
-                ", arn='" + arn + '\'' +
-                '}';
+        return "QueueInfo[" +
+                "name=" + name + ", " +
+                "url=" + url + ", " +
+                "arn=" + arn + ", " +
+                "isDeadLetterQueue=" + isDeadLetterQueue + ']';
     }
+
 }

@@ -52,7 +52,7 @@ public final class MessageDistributor
             final  SqsClient sqsClient,
             final String source,
             final String destination
-    ) throws Exception
+    )
     {
         this.sqsClient = sqsClient;
         this.source = SQSUtil.getQueueInfo(sqsClient, source);

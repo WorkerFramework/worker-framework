@@ -26,6 +26,8 @@ import com.hpe.caf.worker.queue.sqs.config.WorkerQueueConfiguration;
 import com.hpe.caf.worker.queue.sqs.consumer.DeadLetterQueueConsumer;
 import com.hpe.caf.worker.queue.sqs.consumer.InputQueueConsumer;
 import com.hpe.caf.worker.queue.sqs.metrics.MetricsReporter;
+import com.hpe.caf.worker.queue.sqs.publisher.PublishEvent;
+import com.hpe.caf.worker.queue.sqs.publisher.Publisher;
 import com.hpe.caf.worker.queue.sqs.util.SQSUtil;
 import com.hpe.caf.worker.queue.sqs.visibility.VisibilityMonitor;
 import org.slf4j.Logger;
@@ -45,10 +47,12 @@ import java.nio.charset.StandardCharsets;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
+import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.LinkedBlockingQueue;
 
-import static com.hpe.caf.worker.queue.sqs.util.SQSUtil.getDeadLetterQueueAttributes;
-import static com.hpe.caf.worker.queue.sqs.util.SQSUtil.getInputQueueAttributes;
+import static com.hpe.caf.worker.queue.sqs.util.SQSUtil.getDlQAttributes;
+import static com.hpe.caf.worker.queue.sqs.util.SQSUtil.getQueueAttributes;
 
 public final class SQSWorkerQueue implements ManagedWorkerQueue
 {
@@ -56,11 +60,14 @@ public final class SQSWorkerQueue implements ManagedWorkerQueue
     private Thread inputQueueConsumerThread;
     private Thread deadLetterQueueConsumerThread;
     private Thread visibilityMonitorThread;
+    private Thread publisherThread;
     private VisibilityMonitor visibilityMonitor;
 
     private final MetricsReporter metricsReporter;
     private final WorkerQueueConfiguration queueCfg;
     private final Map<String, QueueInfo> declaredQueues = new ConcurrentHashMap<>();
+
+    private final BlockingQueue<PublishEvent> publisherQueue = new LinkedBlockingQueue<>();
 
     private static final Logger LOG = LoggerFactory.getLogger(SQSWorkerQueue.class);
 
@@ -82,19 +89,21 @@ public final class SQSWorkerQueue implements ManagedWorkerQueue
             sqsClient = ClientProvider.getSqsClient(queueCfg.getSQSConfiguration());
             final var inputQueueInfo = declaredQueues.computeIfAbsent(
                     queueCfg.getInputQueue(),
-                    (q) -> createQueue(q, getInputQueueAttributes(queueCfg))
+                    (q) -> createQueue(q, false)
             );
 
             final var deadLetterQueueInfo = declaredQueues.computeIfAbsent(
                     queueCfg.getInputQueue() + SQSUtil.DEAD_LETTER_QUEUE_SUFFIX,
-                    (q) -> createQueue(q, getDeadLetterQueueAttributes(queueCfg))
+                    (q) -> createQueue(q, true)
             );
             addRedrivePolicy(inputQueueInfo.url(), deadLetterQueueInfo.arn());
 
             final var retryQueueInfo = declaredQueues.computeIfAbsent(
                     queueCfg.getRetryQueue(),
-                    (q) -> createQueue(q, getInputQueueAttributes(queueCfg))
+                    (q) -> createQueue(q, false)
             );
+
+            final var publisher = new Publisher(sqsClient, metricsReporter, publisherQueue);
 
             visibilityMonitor = new VisibilityMonitor(
                     sqsClient,
@@ -107,7 +116,8 @@ public final class SQSWorkerQueue implements ManagedWorkerQueue
                     retryQueueInfo,
                     callback,
                     queueCfg,
-                    metricsReporter);
+                    metricsReporter,
+                    publisherQueue);
 
             var consumer = new InputQueueConsumer(
                     sqsClient,
@@ -116,7 +126,11 @@ public final class SQSWorkerQueue implements ManagedWorkerQueue
                     callback,
                     queueCfg,
                     visibilityMonitor,
-                    metricsReporter);
+                    metricsReporter,
+                    publisherQueue);
+
+            publisherThread = new Thread(publisher);
+            publisherThread.start();
 
             visibilityMonitorThread = new Thread(visibilityMonitor);
             visibilityMonitorThread.start();
@@ -135,23 +149,23 @@ public final class SQSWorkerQueue implements ManagedWorkerQueue
      * @param queueName The name of the queue.
      * @return An object containing the name,url and arn of the queue.
      */
-    private QueueInfo createQueue(final String queueName, final Map<QueueAttributeName, String> attributes)
+    private QueueInfo createQueue(
+            final String queueName,
+            final boolean isDeadLetterQueue)
     {
         try {
             final var createQueueRequest = CreateQueueRequest.builder()
                     .queueName(queueName)
-                    .attributes(attributes)
+                    .attributes(isDeadLetterQueue ? getDlQAttributes(queueCfg) : getQueueAttributes(queueCfg))
                     .build();
 
             final var response = sqsClient.createQueue(createQueueRequest);
             final var url = response.queueUrl();
             final var arn = SQSUtil.getQueueArn(sqsClient, url);
-            return new QueueInfo(queueName, url, arn);
+            return new QueueInfo(queueName, url, arn, isDeadLetterQueue);
         } catch (final QueueNameExistsException e) {
             LOG.info("Queue already exists {} {}", queueName, e.getMessage());
-            var url = SQSUtil.getQueueUrl(sqsClient, queueName);
-            final var arn = SQSUtil.getQueueArn(sqsClient, url);
-            return new QueueInfo(queueName, url, arn);
+            return SQSUtil.getQueueInfo(sqsClient, queueName, isDeadLetterQueue);
         }
     }
 
@@ -174,18 +188,15 @@ public final class SQSWorkerQueue implements ManagedWorkerQueue
     }
 
     @Override
-    // DDD this can go on publish queue so it can be retried??
-    // Then it could possibly publish in batches
     public void publish(
             final TaskInformation taskInformation,
             final byte[] taskMessage,
-            final String targetQueue,
+            final String targetQueue, // DDD Would the target queue ALWAYS be the same?
             final Map<String, Object> headers,
             final boolean isLastMessage // DDD unused ?
     ) throws QueueException
     {
         try {
-            // DDD what are we using the TaskInformation for here?
             final var queueInfo = declaredQueues.computeIfAbsent(
                     targetQueue,
                     (q) -> SQSUtil.getQueueInfo(sqsClient, targetQueue)
@@ -198,9 +209,7 @@ public final class SQSWorkerQueue implements ManagedWorkerQueue
                     .messageBody(new String(taskMessage, StandardCharsets.UTF_8))
                     .messageAttributes(attributes)
                     .build();
-
-            sqsClient.sendMessage(sendMsgRequest);
-            metricsReporter.incrementPublished();
+            publisherQueue.add(new PublishEvent(sendMsgRequest));
         } catch (final Exception e) {
             metricsReporter.incrementErrors();
             LOG.error("Error publishing task message {} {}", taskInformation.getInboundMessageId(), e.getMessage());
@@ -224,29 +233,28 @@ public final class SQSWorkerQueue implements ManagedWorkerQueue
     @Override
     public void acknowledgeTask(final TaskInformation taskInformation)
     {
-        var sqsTaskInformation = (SQSTaskInformation) taskInformation;
-        try {
-            // DDD or write to blocking queue so we can batch deletes
-            // and remove from visibility monitor at same time.
-            // having task extended till then has no side effect.
-            final var deleteRequest = DeleteMessageRequest.builder()
-                    .queueUrl(sqsTaskInformation.getQueueInfo().url())
-                    .receiptHandle(sqsTaskInformation.getReceiptHandle())
-                    .build();
-            sqsClient.deleteMessage(deleteRequest);
-        } catch (final ReceiptHandleIsInvalidException e) {
-            LOG.error("Receipt handle: {} is invalid - messageId:{}. {}",
-                    sqsTaskInformation.getVisibilityTimeout().receiptHandle(),
-                    sqsTaskInformation.getInboundMessageId(),
-                    e.getMessage());
-            metricsReporter.incrementErrors();
-        } catch (final QueueDoesNotExistException e) {
-            LOG.error("Queue {} may have been deleted. {}",
-                    sqsTaskInformation.getQueueInfo().name(),
-                    e.getMessage());
-            metricsReporter.incrementErrors();
-        } finally {
-            visibilityMonitor.unwatch(sqsTaskInformation);
+        var taskInfo = (SQSTaskInformation) taskInformation;
+        if (!taskInfo.getQueueInfo().isDeadLetterQueue()) {
+            try {
+                final var deleteRequest = DeleteMessageRequest.builder()
+                        .queueUrl(taskInfo.getQueueInfo().url())
+                        .receiptHandle(taskInfo.getReceiptHandle())
+                        .build();
+                publisherQueue.add(new PublishEvent(deleteRequest));
+            } catch (final ReceiptHandleIsInvalidException e) {
+                LOG.error("Receipt handle: {} is invalid", taskInfo, e);
+                metricsReporter.incrementErrors();
+            } catch (final QueueDoesNotExistException e) {
+                LOG.error("Queue may have been deleted {}", taskInfo, e);
+                metricsReporter.incrementErrors();
+            } catch (final Exception e) {
+                LOG.error("Error acknowledging task {}: {}",
+                        taskInfo,
+                        e);
+                metricsReporter.incrementErrors();
+            } finally {
+                visibilityMonitor.unwatch(taskInfo);
+            }
         }
     }
 
@@ -306,7 +314,7 @@ public final class SQSWorkerQueue implements ManagedWorkerQueue
         metricsReporter.incrementRejected();
         final var sqsTaskInformation = (SQSTaskInformation) taskInformation;
         LOG.debug("About to unwatch rejected task {}", sqsTaskInformation.getReceiptHandle());
-        visibilityMonitor.unwatch(sqsTaskInformation);
+        visibilityMonitor.unwatch(sqsTaskInformation); // DDD forces redelivery
     }
 
     @Override
@@ -315,7 +323,7 @@ public final class SQSWorkerQueue implements ManagedWorkerQueue
         metricsReporter.incrementDropped();
         final var sqsTaskInformation = (SQSTaskInformation) taskInformation;
         LOG.debug("About to unwatch discarded task {}", sqsTaskInformation.getReceiptHandle());
-        visibilityMonitor.unwatch(sqsTaskInformation);
+        visibilityMonitor.unwatch(sqsTaskInformation); // DDD forces redelivery
     }
 
     @Override

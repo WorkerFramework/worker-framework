@@ -21,6 +21,7 @@ import com.hpe.caf.api.worker.TaskRejectedException;
 import com.hpe.caf.worker.queue.sqs.QueueInfo;
 import com.hpe.caf.worker.queue.sqs.SQSTaskInformation;
 import com.hpe.caf.worker.queue.sqs.metrics.MetricsReporter;
+import com.hpe.caf.worker.queue.sqs.publisher.PublishEvent;
 import com.hpe.caf.worker.queue.sqs.util.SQSUtil;
 import com.hpe.caf.worker.queue.sqs.config.WorkerQueueConfiguration;
 import com.hpe.caf.worker.queue.sqs.visibility.VisibilityTimeout;
@@ -37,6 +38,7 @@ import java.nio.charset.StandardCharsets;
 import java.time.Instant;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.concurrent.BlockingQueue;
 
 public abstract class QueueConsumer implements Runnable
 {
@@ -46,6 +48,7 @@ public abstract class QueueConsumer implements Runnable
     protected final WorkerQueueConfiguration queueCfg;
     protected final TaskCallback callback;
     protected final MetricsReporter metricsReporter;
+    protected final BlockingQueue<PublishEvent> publisherQueue;
 
     private static final Logger LOG = LoggerFactory.getLogger(QueueConsumer.class);
 
@@ -55,7 +58,8 @@ public abstract class QueueConsumer implements Runnable
             final QueueInfo retryQueueInfo,
             final WorkerQueueConfiguration queueCfg,
             final TaskCallback callback,
-            final MetricsReporter metricsReporter)
+            final MetricsReporter metricsReporter,
+            final BlockingQueue<PublishEvent> publisherQueue)
     {
         this.sqsClient = sqsClient;
         this.queueInfo = queueInfo;
@@ -63,6 +67,7 @@ public abstract class QueueConsumer implements Runnable
         this.queueCfg = queueCfg;
         this.callback = callback;
         this.metricsReporter = metricsReporter;
+        this.publisherQueue = publisherQueue;
     }
 
     @Override
@@ -95,6 +100,8 @@ public abstract class QueueConsumer implements Runnable
     protected void retryMessage(final Message message)
     {
         try {
+            // DDD If the retry queue is just the input queue then nothing needs done.
+            // DDD should these also be batched up
             final var attributes = message.messageAttributes();
             attributes.put(SQSUtil.SQS_HEADER_CAF_WORKER_REJECTED, MessageAttributeValue.builder()
                     .dataType("String")
@@ -105,8 +112,9 @@ public abstract class QueueConsumer implements Runnable
                     .messageBody(message.body())
                     .messageAttributes(attributes)
                     .build();
-            sqsClient.sendMessage(request);
+            publisherQueue.add(new PublishEvent(request));
         } catch (final Exception e) {
+            metricsReporter.incrementErrors();
             var msg = String.format("Error sending message to retry queue:%s messageId:%s",
                     retryQueueInfo.name(), message.messageId());
             LOG.error(msg, e);
@@ -130,7 +138,7 @@ public abstract class QueueConsumer implements Runnable
         final var becomesVisible = Instant.now().getEpochSecond() + getVisibilityTimeout();
         final var taskInfo = new SQSTaskInformation(
                 queueInfo,
-                message.messageId(),
+                message.messageId(), // DDD does the dlq message have same id
                 new VisibilityTimeout(becomesVisible, message.receiptHandle()),
                 isPoisonMessageConsumer()
         );
@@ -141,8 +149,9 @@ public abstract class QueueConsumer implements Runnable
             handleRegistrationTasks(taskInfo);
         } catch (final TaskRejectedException e) {
             LOG.error("Cannot register new message, rejecting {}", message.messageId(), e);
-            retryMessage(message);
+            retryMessage(message); // DDD or just remove the timeout? And what if DLQ
         } catch (final InvalidTaskException e) {
+            metricsReporter.incrementRejected();
             LOG.warn("Message {} rejected as a task at this time, will be redelivered by SQS",
                     message.messageId(), e);
         }
