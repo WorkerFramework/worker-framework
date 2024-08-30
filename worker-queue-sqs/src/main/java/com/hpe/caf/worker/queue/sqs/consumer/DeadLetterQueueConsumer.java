@@ -34,7 +34,8 @@ public class DeadLetterQueueConsumer extends QueueConsumer
             final QueueInfo queueInfo,
             final QueueInfo retryQueueInfo,
             final TaskCallback callback,
-            final WorkerQueueConfiguration queueCfg, MetricsReporter metricsReporter)
+            final WorkerQueueConfiguration queueCfg,
+            final MetricsReporter metricsReporter)
     {
         super(sqsClient, queueInfo, retryQueueInfo, queueCfg, callback, metricsReporter);
     }
