@@ -21,7 +21,6 @@ import com.hpe.caf.api.worker.TaskRejectedException;
 import com.hpe.caf.worker.queue.sqs.QueueInfo;
 import com.hpe.caf.worker.queue.sqs.SQSTaskInformation;
 import com.hpe.caf.worker.queue.sqs.metrics.MetricsReporter;
-import com.hpe.caf.worker.queue.sqs.publisher.PublishEvent;
 import com.hpe.caf.worker.queue.sqs.util.SQSUtil;
 import com.hpe.caf.worker.queue.sqs.config.WorkerQueueConfiguration;
 import com.hpe.caf.worker.queue.sqs.visibility.VisibilityTimeout;
@@ -38,7 +37,6 @@ import java.nio.charset.StandardCharsets;
 import java.time.Instant;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.concurrent.BlockingQueue;
 
 public abstract class QueueConsumer implements Runnable
 {
@@ -48,7 +46,6 @@ public abstract class QueueConsumer implements Runnable
     protected final WorkerQueueConfiguration queueCfg;
     protected final TaskCallback callback;
     protected final MetricsReporter metricsReporter;
-    protected final BlockingQueue<PublishEvent> publisherQueue;
 
     private static final Logger LOG = LoggerFactory.getLogger(QueueConsumer.class);
 
@@ -58,8 +55,7 @@ public abstract class QueueConsumer implements Runnable
             final QueueInfo retryQueueInfo,
             final WorkerQueueConfiguration queueCfg,
             final TaskCallback callback,
-            final MetricsReporter metricsReporter,
-            final BlockingQueue<PublishEvent> publisherQueue)
+            final MetricsReporter metricsReporter)
     {
         this.sqsClient = sqsClient;
         this.queueInfo = queueInfo;
@@ -67,7 +63,6 @@ public abstract class QueueConsumer implements Runnable
         this.queueCfg = queueCfg;
         this.callback = callback;
         this.metricsReporter = metricsReporter;
-        this.publisherQueue = publisherQueue;
     }
 
     @Override
@@ -112,7 +107,7 @@ public abstract class QueueConsumer implements Runnable
                     .messageBody(message.body())
                     .messageAttributes(attributes)
                     .build();
-            publisherQueue.add(new PublishEvent(request));
+            sqsClient.sendMessage(request);
         } catch (final Exception e) {
             metricsReporter.incrementErrors();
             var msg = String.format("Error sending message to retry queue:%s messageId:%s",

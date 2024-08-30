@@ -20,15 +20,10 @@ import com.hpe.caf.worker.queue.sqs.QueueInfo;
 import com.hpe.caf.worker.queue.sqs.SQSTaskInformation;
 import com.hpe.caf.worker.queue.sqs.config.WorkerQueueConfiguration;
 import com.hpe.caf.worker.queue.sqs.metrics.MetricsReporter;
-import com.hpe.caf.worker.queue.sqs.publisher.PublishEvent;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import software.amazon.awssdk.services.sqs.SqsClient;
 import software.amazon.awssdk.services.sqs.model.DeleteMessageRequest;
-import software.amazon.awssdk.services.sqs.model.QueueDoesNotExistException;
-import software.amazon.awssdk.services.sqs.model.ReceiptHandleIsInvalidException;
-
-import java.util.concurrent.BlockingQueue;
 
 public class DeadLetterQueueConsumer extends QueueConsumer
 {
@@ -40,36 +35,29 @@ public class DeadLetterQueueConsumer extends QueueConsumer
             final QueueInfo retryQueueInfo,
             final TaskCallback callback,
             final WorkerQueueConfiguration queueCfg,
-            final MetricsReporter metricsReporter,
-            final BlockingQueue<PublishEvent> publisherQueue)
+            final MetricsReporter metricsReporter)
     {
-        super(sqsClient, queueInfo, retryQueueInfo, queueCfg, callback, metricsReporter, publisherQueue);
+        super(sqsClient, queueInfo, retryQueueInfo, queueCfg, callback, metricsReporter);
     }
 
     @Override
     protected void handleRegistrationTasks(final SQSTaskInformation taskInfo)
     {
-        deleteMessage(taskInfo);
+        deleteMessage(taskInfo.getReceiptHandle(), taskInfo.getInboundMessageId());
     }
 
-    private void deleteMessage(final SQSTaskInformation taskInfo)
+    private void deleteMessage(final String receiptHandle, final String messageId)
     {
         try {
             final var request = DeleteMessageRequest.builder()
                     .queueUrl(queueInfo.url())
-                    .receiptHandle(taskInfo.getReceiptHandle())
+                    .receiptHandle(receiptHandle)
                     .build();
-            publisherQueue.add(new PublishEvent(request));
+            sqsClient.deleteMessage(request);
             metricsReporter.incrementDropped();
-        } catch (final ReceiptHandleIsInvalidException e) {
-            LOG.error("Receipt handle: {} is invalid", taskInfo, e);
-            metricsReporter.incrementErrors();
-        } catch (final QueueDoesNotExistException e) {
-            LOG.error("Queue may have been deleted {}", taskInfo, e);
-            metricsReporter.incrementErrors();
         } catch (final Exception e) {
             var msg = String.format("Error deleting message from dead letter queue:%s messageId:%s",
-                    queueInfo.url(), taskInfo.getInboundMessageId());
+                    queueInfo.url(), messageId);
             LOG.error(msg, e);
             metricsReporter.incrementErrors();
         }

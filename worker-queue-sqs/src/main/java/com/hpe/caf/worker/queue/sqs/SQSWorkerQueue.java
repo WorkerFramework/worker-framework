@@ -26,8 +26,6 @@ import com.hpe.caf.worker.queue.sqs.config.WorkerQueueConfiguration;
 import com.hpe.caf.worker.queue.sqs.consumer.DeadLetterQueueConsumer;
 import com.hpe.caf.worker.queue.sqs.consumer.InputQueueConsumer;
 import com.hpe.caf.worker.queue.sqs.metrics.MetricsReporter;
-import com.hpe.caf.worker.queue.sqs.publisher.PublishEvent;
-import com.hpe.caf.worker.queue.sqs.publisher.Publisher;
 import com.hpe.caf.worker.queue.sqs.util.SQSUtil;
 import com.hpe.caf.worker.queue.sqs.visibility.VisibilityMonitor;
 import org.slf4j.Logger;
@@ -47,9 +45,7 @@ import java.nio.charset.StandardCharsets;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
-import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.LinkedBlockingQueue;
 
 import static com.hpe.caf.worker.queue.sqs.util.SQSUtil.getDlQAttributes;
 import static com.hpe.caf.worker.queue.sqs.util.SQSUtil.getQueueAttributes;
@@ -60,14 +56,11 @@ public final class SQSWorkerQueue implements ManagedWorkerQueue
     private Thread inputQueueConsumerThread;
     private Thread deadLetterQueueConsumerThread;
     private Thread visibilityMonitorThread;
-    private Thread publisherThread;
     private VisibilityMonitor visibilityMonitor;
 
     private final MetricsReporter metricsReporter;
     private final WorkerQueueConfiguration queueCfg;
     private final Map<String, QueueInfo> declaredQueues = new ConcurrentHashMap<>();
-
-    private final BlockingQueue<PublishEvent> publisherQueue = new LinkedBlockingQueue<>();
 
     private static final Logger LOG = LoggerFactory.getLogger(SQSWorkerQueue.class);
 
@@ -103,8 +96,6 @@ public final class SQSWorkerQueue implements ManagedWorkerQueue
                     (q) -> createQueue(q, false)
             );
 
-            final var publisher = new Publisher(sqsClient, metricsReporter, publisherQueue);
-
             visibilityMonitor = new VisibilityMonitor(
                     sqsClient,
                     inputQueueInfo.url(),
@@ -116,8 +107,7 @@ public final class SQSWorkerQueue implements ManagedWorkerQueue
                     retryQueueInfo,
                     callback,
                     queueCfg,
-                    metricsReporter,
-                    publisherQueue);
+                    metricsReporter);
 
             var consumer = new InputQueueConsumer(
                     sqsClient,
@@ -126,11 +116,7 @@ public final class SQSWorkerQueue implements ManagedWorkerQueue
                     callback,
                     queueCfg,
                     visibilityMonitor,
-                    metricsReporter,
-                    publisherQueue);
-
-            publisherThread = new Thread(publisher);
-            publisherThread.start();
+                    metricsReporter);
 
             visibilityMonitorThread = new Thread(visibilityMonitor);
             visibilityMonitorThread.start();
@@ -156,7 +142,7 @@ public final class SQSWorkerQueue implements ManagedWorkerQueue
         try {
             final var createQueueRequest = CreateQueueRequest.builder()
                     .queueName(queueName)
-                    .attributes(isDeadLetterQueue ? getDlQAttributes(queueCfg) : getQueueAttributes(queueCfg))
+                    .attributes(isDeadLetterQueue ? getDlQAttributes(queueCfg): getQueueAttributes(queueCfg))
                     .build();
 
             final var response = sqsClient.createQueue(createQueueRequest);
@@ -209,7 +195,7 @@ public final class SQSWorkerQueue implements ManagedWorkerQueue
                     .messageBody(new String(taskMessage, StandardCharsets.UTF_8))
                     .messageAttributes(attributes)
                     .build();
-            publisherQueue.add(new PublishEvent(sendMsgRequest));
+            sqsClient.sendMessage(sendMsgRequest);
         } catch (final Exception e) {
             metricsReporter.incrementErrors();
             LOG.error("Error publishing task message {} {}", taskInformation.getInboundMessageId(), e.getMessage());
@@ -233,28 +219,32 @@ public final class SQSWorkerQueue implements ManagedWorkerQueue
     @Override
     public void acknowledgeTask(final TaskInformation taskInformation)
     {
-        var taskInfo = (SQSTaskInformation) taskInformation;
-        if (!taskInfo.getQueueInfo().isDeadLetterQueue()) {
-            try {
-                final var deleteRequest = DeleteMessageRequest.builder()
-                        .queueUrl(taskInfo.getQueueInfo().url())
-                        .receiptHandle(taskInfo.getReceiptHandle())
-                        .build();
-                publisherQueue.add(new PublishEvent(deleteRequest));
-            } catch (final ReceiptHandleIsInvalidException e) {
-                LOG.error("Receipt handle: {} is invalid", taskInfo, e);
-                metricsReporter.incrementErrors();
-            } catch (final QueueDoesNotExistException e) {
-                LOG.error("Queue may have been deleted {}", taskInfo, e);
-                metricsReporter.incrementErrors();
-            } catch (final Exception e) {
-                LOG.error("Error acknowledging task {}: {}",
-                        taskInfo,
-                        e);
-                metricsReporter.incrementErrors();
-            } finally {
-                visibilityMonitor.unwatch(taskInfo);
-            }
+        var sqsTaskInformation = (SQSTaskInformation) taskInformation;
+        if (sqsTaskInformation.getQueueInfo().isDeadLetterQueue()) {
+            return;
+        }
+        try {
+            // DDD or write to blocking queue so we can batch deletes
+            // and remove from visibility monitor at same time.
+            // having task extended till then has no side effect.
+            final var deleteRequest = DeleteMessageRequest.builder()
+                    .queueUrl(sqsTaskInformation.getQueueInfo().url())
+                    .receiptHandle(sqsTaskInformation.getReceiptHandle())
+                    .build();
+            sqsClient.deleteMessage(deleteRequest);
+        } catch (final ReceiptHandleIsInvalidException e) {
+            LOG.error("Receipt handle: {} is invalid - messageId:{}. {}",
+                    sqsTaskInformation.getVisibilityTimeout().receiptHandle(),
+                    sqsTaskInformation.getInboundMessageId(),
+                    e.getMessage());
+            metricsReporter.incrementErrors();
+        } catch (final QueueDoesNotExistException e) {
+            LOG.error("Queue {} may have been deleted. {}",
+                    sqsTaskInformation.getQueueInfo().name(),
+                    e.getMessage());
+            metricsReporter.incrementErrors();
+        } finally {
+            visibilityMonitor.unwatch(sqsTaskInformation);
         }
     }
 
