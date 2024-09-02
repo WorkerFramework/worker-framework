@@ -18,7 +18,7 @@ package com.hpe.caf.worker.queue.sqs.consumer;
 import com.hpe.caf.api.worker.TaskCallback;
 import com.hpe.caf.worker.queue.sqs.QueueInfo;
 import com.hpe.caf.worker.queue.sqs.SQSTaskInformation;
-import com.hpe.caf.worker.queue.sqs.config.WorkerQueueConfiguration;
+import com.hpe.caf.worker.queue.sqs.config.SQSWorkerQueueConfiguration;
 import com.hpe.caf.worker.queue.sqs.metrics.MetricsReporter;
 import com.hpe.caf.worker.queue.sqs.visibility.VisibilityMonitor;
 import software.amazon.awssdk.services.sqs.SqsClient;
@@ -33,7 +33,7 @@ public class InputQueueConsumer extends QueueConsumer
             final QueueInfo queueInfo,
             final QueueInfo retryQueueInfo,
             final TaskCallback callback,
-            final WorkerQueueConfiguration queueCfg,
+            final SQSWorkerQueueConfiguration queueCfg,
             final VisibilityMonitor visibilityMonitor,
             final MetricsReporter metricsReporter,
             final AtomicBoolean receiveMessages)
@@ -45,7 +45,7 @@ public class InputQueueConsumer extends QueueConsumer
     @Override
     protected void handleConsumerSpecificActions(final SQSTaskInformation taskInfo)
     {
-        metricsReporter.incrementReceived();
+        // DDD may be redundant
     }
 
     @Override

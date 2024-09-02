@@ -22,7 +22,7 @@ import com.hpe.caf.api.worker.QueueException;
 import com.hpe.caf.api.worker.TaskCallback;
 import com.hpe.caf.api.worker.TaskInformation;
 import com.hpe.caf.api.worker.WorkerQueueMetricsReporter;
-import com.hpe.caf.worker.queue.sqs.config.WorkerQueueConfiguration;
+import com.hpe.caf.worker.queue.sqs.config.SQSWorkerQueueConfiguration;
 import com.hpe.caf.worker.queue.sqs.consumer.DeadLetterQueueConsumer;
 import com.hpe.caf.worker.queue.sqs.consumer.InputQueueConsumer;
 import com.hpe.caf.worker.queue.sqs.metrics.MetricsReporter;
@@ -62,14 +62,12 @@ public final class SQSWorkerQueue implements ManagedWorkerQueue
     private final AtomicBoolean receiveMessages;
 
     private final MetricsReporter metricsReporter;
-    private final WorkerQueueConfiguration queueCfg;
+    private final SQSWorkerQueueConfiguration queueCfg;
     private final Map<String, QueueInfo> declaredQueues = new ConcurrentHashMap<>();
-
     private static final Logger LOG = LoggerFactory.getLogger(SQSWorkerQueue.class);
 
-
     public SQSWorkerQueue(
-            final WorkerQueueConfiguration queueCfg
+            final SQSWorkerQueueConfiguration queueCfg
     )
     {
         this.queueCfg = Objects.requireNonNull(queueCfg);
@@ -321,7 +319,6 @@ public final class SQSWorkerQueue implements ManagedWorkerQueue
     @Override
     public String getPausedQueue()
     {
-        // DDD what here, seems to be unused/deprecated in rabbit impl
         return "";
     }
 

@@ -20,7 +20,7 @@ import com.hpe.caf.api.worker.TaskCallback;
 import com.hpe.caf.api.worker.TaskRejectedException;
 import com.hpe.caf.worker.queue.sqs.QueueInfo;
 import com.hpe.caf.worker.queue.sqs.SQSTaskInformation;
-import com.hpe.caf.worker.queue.sqs.config.WorkerQueueConfiguration;
+import com.hpe.caf.worker.queue.sqs.config.SQSWorkerQueueConfiguration;
 import com.hpe.caf.worker.queue.sqs.metrics.MetricsReporter;
 import com.hpe.caf.worker.queue.sqs.util.SQSUtil;
 import com.hpe.caf.worker.queue.sqs.visibility.VisibilityMonitor;
@@ -45,7 +45,7 @@ public abstract class QueueConsumer implements Runnable
     protected final SqsClient sqsClient;
     protected final QueueInfo queueInfo;
     protected final QueueInfo retryQueueInfo;
-    protected final WorkerQueueConfiguration queueCfg;
+    protected final SQSWorkerQueueConfiguration queueCfg;
     protected final TaskCallback callback;
     protected final MetricsReporter metricsReporter;
     protected final VisibilityMonitor visibilityMonitor;
@@ -57,7 +57,7 @@ public abstract class QueueConsumer implements Runnable
             final SqsClient sqsClient,
             final QueueInfo queueInfo,
             final QueueInfo retryQueueInfo,
-            final WorkerQueueConfiguration queueCfg,
+            final SQSWorkerQueueConfiguration queueCfg,
             final TaskCallback callback,
             final VisibilityMonitor visibilityMonitor,
             final MetricsReporter metricsReporter,
@@ -102,6 +102,7 @@ public abstract class QueueConsumer implements Runnable
         if (receiveMessageResult.isEmpty()) {
             LOG.debug("Nothing received from queue {} ", queueInfo.name());
         }
+
         for(final var message : receiveMessageResult) {
             LOG.debug("Received {} on queue {} ", message.body(), queueInfo.name());
             registerNewTask(message);
@@ -113,7 +114,12 @@ public abstract class QueueConsumer implements Runnable
         try {
             // DDD If the retry queue is just the input queue then nothing needs done.
             // DDD other than to remove the timeout being monitored
-            final var attributes = message.messageAttributes();
+            if (retryQueueInfo.equals(queueInfo)) {
+                return; // Do nothing no watch is in place and will be re-delivered.
+            }
+
+            // DDD if this is going to a retry queue, whats managing that?
+            final var attributes = new HashMap<>(message.messageAttributes());
             attributes.put(SQSUtil.SQS_HEADER_CAF_WORKER_REJECTED, MessageAttributeValue.builder()
                     .dataType("String")
                     .stringValue(SQSUtil.REJECTED_REASON_TASKMESSAGE)
@@ -132,7 +138,6 @@ public abstract class QueueConsumer implements Runnable
         }
     }
 
-
     protected Map<String, Object> createHeadersFromMessageAttributes(final Message message)
     {
         final var headers = new HashMap<String, Object>();
@@ -146,6 +151,7 @@ public abstract class QueueConsumer implements Runnable
 
     protected void registerNewTask(final Message message)
     {
+        metricsReporter.incrementReceived();
         final var becomesVisible = Instant.now().getEpochSecond() + queueCfg.getVisibilityTimeout();
         final var taskInfo = new SQSTaskInformation(
                 message.messageId(), // DDD does the dlq message have same id
@@ -160,11 +166,11 @@ public abstract class QueueConsumer implements Runnable
 
             // Now all actions completed, stop redeliveries by extending the visibility timeout.
             visibilityMonitor.watch(taskInfo);
-        } catch (final TaskRejectedException e) {
-            LOG.error("Cannot register new message, rejecting {}", message.messageId(), e);
-            retryMessage(message); // DDD or just remove the timeout? And what if DLQ
         } catch (final InvalidTaskException e) {
-            metricsReporter.incrementRejected();
+            LOG.error("Cannot register new message, rejecting {}", message.messageId(), e);
+            retryMessage(message); // DDD not yet watched
+        } catch (final TaskRejectedException e) {
+            metricsReporter.incrementRejected(); // DDD not yet watched
             LOG.warn("Message {} rejected as a task at this time, will be redelivered by SQS",
                     message.messageId(), e);
         }

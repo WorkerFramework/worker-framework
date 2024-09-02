@@ -16,10 +16,11 @@
 package com.hpe.caf.worker.queue.sqs;
 
 import com.hpe.caf.worker.queue.sqs.util.SQSUtil;
-import com.hpe.caf.worker.queue.sqs.util.WrapperConfig;
 import org.junit.jupiter.api.Test;
 import software.amazon.awssdk.services.sqs.model.GetQueueUrlRequest;
 import software.amazon.awssdk.services.sqs.model.MessageAttributeValue;
+import software.amazon.awssdk.services.sqs.model.MessageSystemAttributeName;
+import software.amazon.awssdk.services.sqs.model.ReceiveMessageRequest;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -41,9 +42,7 @@ public class SQSWorkerQueueIT
     public void testPublish() throws Exception
     {
         final var inputQueue = "test-publish";
-        final var workerWrapper = getWorkerWrapper(
-                inputQueue,
-                new WrapperConfig());
+        final var workerWrapper = getWorkerWrapper(inputQueue);
         final var msgBody = "Hello-World";
         final var metricsReporter = workerWrapper.metricsReporter;
         sendMessages(workerWrapper, msgBody);
@@ -71,9 +70,7 @@ public class SQSWorkerQueueIT
     {
         try {
             final var inputQueue = "input-queue-created";
-            final var workerWrapper = getWorkerWrapper(
-                    inputQueue,
-                    new WrapperConfig());
+            final var workerWrapper = getWorkerWrapper(inputQueue);
             final var getQueueUrlRequest = GetQueueUrlRequest.builder()
                     .queueName(workerWrapper.workerQueueConfiguration.getInputQueue())
                     .build();
@@ -115,10 +112,8 @@ public class SQSWorkerQueueIT
     @Test
     public void testDisconnectReconnectIncomingMessages() throws Exception
     {
-        final var inputQueue = "test-publish";
-        final var workerWrapper = getWorkerWrapper(
-                inputQueue,
-                new WrapperConfig());
+        final var inputQueue = "test-disconnect";
+        final var workerWrapper = getWorkerWrapper(inputQueue);
         final var msgBody = "Hello-World";
         final var metricsReporter = workerWrapper.metricsReporter;
         // Defaults to receive, reverse that here.
@@ -153,6 +148,77 @@ public class SQSWorkerQueueIT
                     "Metrics should not have reported rejected messages");
         } finally {
             purgeQueue(workerWrapper.sqsClient, workerWrapper.inputQueueUrl);
+        }
+    }
+
+    @Test
+    public void testInvalidTaskException() throws Exception
+    {
+        final var inputQueue = "test-invalid-task";
+        final var retryQueue = "retry-invalid-task";
+        final var workerWrapper = getWorkerWrapper(inputQueue, retryQueue);
+        final var msgBody = "INVALID";
+        final var metricsReporter = workerWrapper.metricsReporter;
+
+        final var rejectQueueUrl = SQSUtil.getQueueUrl(workerWrapper.sqsClient, retryQueue);
+
+        sendMessages(workerWrapper, msgBody);
+        try {
+            final var receiveRequest = ReceiveMessageRequest.builder()
+                    .queueUrl(rejectQueueUrl)
+                    .maxNumberOfMessages(1)
+                    .waitTimeSeconds(20)
+                    .messageSystemAttributeNames(MessageSystemAttributeName.ALL)
+                    .messageAttributeNames(SQSUtil.ALL_ATTRIBUTES)
+                    .build();
+            final var result = workerWrapper.sqsClient.receiveMessage(receiveRequest).messages();
+            assertEquals(1, result.size(), "should only have received a single message");
+            final var body = result.get(0).body();
+            assertEquals(msgBody, body, "Message was not as expected");
+            assertEquals(1, metricsReporter.getMessagesReceived(),
+                    "Metrics should only have reported a single message");
+            assertEquals(0, metricsReporter.getQueueErrors(),
+                    "Metrics should not have reported errors");
+            assertEquals(0, metricsReporter.getMessagesDropped(),
+                    "Metrics should not have reported dropped messages");
+            assertEquals(0, metricsReporter.getMessagesRejected(),
+                    "Metrics should not have reported rejected messages");
+        } finally {
+            purgeQueue(workerWrapper.sqsClient, workerWrapper.inputQueueUrl);
+            purgeQueue(workerWrapper.sqsClient, rejectQueueUrl);
+        }
+    }
+
+    @Test
+    public void testTaskRejectedException() throws Exception
+    {
+        final var inputQueue = "test-rejected-task";
+        final var retryQueue = "retry-rejected-task";
+        final var workerWrapper = getWorkerWrapper(inputQueue, retryQueue);
+        final var msgBody = "REJECTED";
+
+        final var rejectQueueUrl = SQSUtil.getQueueUrl(workerWrapper.sqsClient, retryQueue);
+        final var metricsReporter = workerWrapper.metricsReporter;
+        sendMessages(workerWrapper, msgBody);
+        try {
+            final var receiveRequest = ReceiveMessageRequest.builder()
+                    .queueUrl(rejectQueueUrl)
+                    .maxNumberOfMessages(1)
+                    .waitTimeSeconds(10)
+                    .messageSystemAttributeNames(MessageSystemAttributeName.ALL)
+                    .messageAttributeNames(SQSUtil.ALL_ATTRIBUTES)
+                    .build();
+            final var result = workerWrapper.sqsClient.receiveMessage(receiveRequest).messages();
+            assertEquals(0, result.size(), "should not have received a message on reject queue");
+
+            assertEquals(1, metricsReporter.getMessagesReceived(),
+                    "Metrics should only have reported a single message");
+
+            assertEquals(1, metricsReporter.getMessagesRejected(),
+                    "Metrics should have reported 1 rejected messages");
+        } finally {
+            purgeQueue(workerWrapper.sqsClient, workerWrapper.inputQueueUrl);
+            purgeQueue(workerWrapper.sqsClient, rejectQueueUrl);
         }
     }
 }

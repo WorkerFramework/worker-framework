@@ -18,7 +18,7 @@ package com.hpe.caf.worker.queue.sqs.consumer;
 import com.hpe.caf.api.worker.TaskCallback;
 import com.hpe.caf.worker.queue.sqs.QueueInfo;
 import com.hpe.caf.worker.queue.sqs.SQSTaskInformation;
-import com.hpe.caf.worker.queue.sqs.config.WorkerQueueConfiguration;
+import com.hpe.caf.worker.queue.sqs.config.SQSWorkerQueueConfiguration;
 import com.hpe.caf.worker.queue.sqs.metrics.MetricsReporter;
 import com.hpe.caf.worker.queue.sqs.visibility.VisibilityMonitor;
 import software.amazon.awssdk.services.sqs.SqsClient;
@@ -32,7 +32,7 @@ public class DeadLetterQueueConsumer extends QueueConsumer
             final QueueInfo queueInfo,
             final QueueInfo retryQueueInfo,
             final TaskCallback callback,
-            final WorkerQueueConfiguration queueCfg,
+            final SQSWorkerQueueConfiguration queueCfg,
             final VisibilityMonitor visibilityMonitor,
             final MetricsReporter metricsReporter,
             final AtomicBoolean receiveMessages)
@@ -45,6 +45,7 @@ public class DeadLetterQueueConsumer extends QueueConsumer
     protected void handleConsumerSpecificActions(final SQSTaskInformation taskInfo)
     {
         // DDD does the poison message get acked by the implementation, if not do so here.
+        // else remove this method.
     }
 
     @Override

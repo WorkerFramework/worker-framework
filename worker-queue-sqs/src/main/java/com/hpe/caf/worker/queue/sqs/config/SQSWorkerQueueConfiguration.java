@@ -23,9 +23,9 @@ import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
 
 @Configuration
-public class WorkerQueueConfiguration
+public class SQSWorkerQueueConfiguration
 {
-    public WorkerQueueConfiguration()
+    public SQSWorkerQueueConfiguration()
     {
     }
 
@@ -42,10 +42,8 @@ public class WorkerQueueConfiguration
     private String inputQueue;
 
     /**
-     * The queue to re-queue messages on.
+     * The queue to re-queue messages on. If this null, the inputQueue will be used.
      */
-    @NotNull
-    @Size(min = 1)
     private String retryQueue;
 
     /**
@@ -70,7 +68,7 @@ public class WorkerQueueConfiguration
      * <p>
      * The default visibility timeout for a message is 30 seconds. The minimum is 0 seconds. The maximum is 12 hours
      */
-    @Min(30)
+    @Min(300)
     @Max(43200)
     private Integer visibilityTimeout;
 
@@ -92,9 +90,9 @@ public class WorkerQueueConfiguration
     private Integer messageRetentionPeriod;
 
     /**
-     * The number of times a message will be delivered before being moved to the local dead-letter queue.
+     * The number of times a message will be delivered before being moved to the dead-letter queue.
      */
-    @Min(0)
+    @Min(1)
     private Integer maxDeliveries;
 
     public SQSConfiguration getSQSConfiguration()
@@ -169,10 +167,10 @@ public class WorkerQueueConfiguration
 
     public String getRetryQueue()
     {
-        return retryQueue;
+        return retryQueue == null ? inputQueue : retryQueue;
     }
 
-    public void setRetryQueue(final String retryQueue)
+    public void setRetryQueue(String retryQueue)
     {
         this.retryQueue = retryQueue;
     }

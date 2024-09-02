@@ -16,7 +16,7 @@
 package com.hpe.caf.worker.queue.sqs.util;
 
 import com.hpe.caf.worker.queue.sqs.QueueInfo;
-import com.hpe.caf.worker.queue.sqs.config.WorkerQueueConfiguration;
+import com.hpe.caf.worker.queue.sqs.config.SQSWorkerQueueConfiguration;
 import software.amazon.awssdk.services.sqs.SqsClient;
 import software.amazon.awssdk.services.sqs.model.GetQueueAttributesRequest;
 import software.amazon.awssdk.services.sqs.model.GetQueueUrlRequest;
@@ -33,7 +33,7 @@ public class SQSUtil
     public static final String ALL_ATTRIBUTES = "All";
     public static final String SOURCE_QUEUE = "SourceQueue";
 
-    public static Map<QueueAttributeName, String> getQueueAttributes(final WorkerQueueConfiguration queueCfg)
+    public static Map<QueueAttributeName, String> getQueueAttributes(final SQSWorkerQueueConfiguration queueCfg)
     {
         final var attributes = new HashMap<QueueAttributeName, String>();
         attributes.put(

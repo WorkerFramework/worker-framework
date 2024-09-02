@@ -48,6 +48,11 @@ public class MetricsReporter implements WorkerQueueMetricsReporter
         messagesReceived.incrementAndGet();
     }
 
+    public void incrementReceived(final int delta)
+    {
+        messagesReceived.getAndAdd(delta);
+    }
+
     @Override
     public int getMessagesReceived()
     {

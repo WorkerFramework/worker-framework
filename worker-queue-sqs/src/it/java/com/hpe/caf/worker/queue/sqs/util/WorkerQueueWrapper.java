@@ -20,7 +20,7 @@ import com.hpe.caf.worker.queue.sqs.ClientProvider;
 import com.hpe.caf.worker.queue.sqs.SQSTaskInformation;
 import com.hpe.caf.worker.queue.sqs.SQSWorkerQueue;
 import com.hpe.caf.worker.queue.sqs.config.SQSConfiguration;
-import com.hpe.caf.worker.queue.sqs.config.WorkerQueueConfiguration;
+import com.hpe.caf.worker.queue.sqs.config.SQSWorkerQueueConfiguration;
 import software.amazon.awssdk.auth.credentials.AwsCredentials;
 import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.cloudwatch.CloudWatchClient;
@@ -47,7 +47,7 @@ public class WorkerQueueWrapper
     final StubbedTaskCallback callback;
     public final BlockingQueue<CallbackResponse> callbackQueue;
     public final BlockingQueue<CallbackResponse> callbackDLQ;
-    public final WorkerQueueConfiguration workerQueueConfiguration;
+    public final SQSWorkerQueueConfiguration workerQueueConfiguration;
     public final SQSConfiguration sqsConfiguration;
     public final SQSWorkerQueue sqsWorkerQueue;
     public final SqsClient sqsClient;
@@ -59,16 +59,40 @@ public class WorkerQueueWrapper
     // Cloudwatch
     final CloudWatchClient cloudWatch;
 
+
     public WorkerQueueWrapper(
             final String inputQueue,
             final int visibilityTimeout,
             final int longPollInterval,
             final int maxNumberOfMessages,
             final int maxDeliveries,
-            final int messageRetentionPeriod)
+            final int messageRetentionPeriod,
+            final StubbedTaskCallback stubbedTaskCallback)
+    {
+        this(
+            inputQueue,
+            inputQueue,
+            visibilityTimeout,
+            longPollInterval,
+            maxNumberOfMessages,
+            maxDeliveries,
+            messageRetentionPeriod,
+            stubbedTaskCallback
+        );
+    }
+
+    public WorkerQueueWrapper(
+            final String inputQueue,
+            final String retryQueue,
+            final int visibilityTimeout,
+            final int longPollInterval,
+            final int maxNumberOfMessages,
+            final int maxDeliveries,
+            final int messageRetentionPeriod,
+            final StubbedTaskCallback stubbedTaskCallback)
     {
         try {
-            callback = new StubbedTaskCallback();
+            callback = stubbedTaskCallback;
 
             sqsConfiguration = new SQSConfiguration();
             sqsConfiguration.setAwsProtocol("http");
@@ -78,10 +102,10 @@ public class WorkerQueueWrapper
             sqsConfiguration.setAwsAccessKey("x");
             sqsConfiguration.setSecretAccessKey("x");
 
-            workerQueueConfiguration = new WorkerQueueConfiguration();
+            workerQueueConfiguration = new SQSWorkerQueueConfiguration();
             workerQueueConfiguration.setSQSConfiguration(sqsConfiguration);
             workerQueueConfiguration.setInputQueue(inputQueue);
-            workerQueueConfiguration.setRetryQueue(inputQueue);
+            workerQueueConfiguration.setRetryQueue(retryQueue);
             workerQueueConfiguration.setVisibilityTimeout(visibilityTimeout);
             workerQueueConfiguration.setLongPollInterval(longPollInterval);
             workerQueueConfiguration.setMaxNumberOfMessages(maxNumberOfMessages);
@@ -133,21 +157,29 @@ public class WorkerQueueWrapper
 
     public static WorkerQueueWrapper getWorkerWrapper(final String inputQueue)
     {
-        return getWorkerWrapper(inputQueue, new WrapperConfig());
+        return getWorkerWrapper(inputQueue, inputQueue, new WrapperConfig());
+    }
+
+    public static WorkerQueueWrapper getWorkerWrapper(final String inputQueue, final String retryQueue)
+    {
+        return getWorkerWrapper(inputQueue, retryQueue, new WrapperConfig());
     }
 
     public static WorkerQueueWrapper getWorkerWrapper(
             final String inputQueue,
+            final String retryQueue,
             final WrapperConfig wrapperConfig
     )
     {
         return new WorkerQueueWrapper(
                 inputQueue,
+                retryQueue,
                 wrapperConfig.visibilityTimout(),
                 wrapperConfig.longPollInterval(),
                 wrapperConfig.maxReadMessages(),
                 wrapperConfig.maxDeliveries(),
-                wrapperConfig.retentionPeriod());
+                wrapperConfig.retentionPeriod(),
+                new StubbedTaskCallback());
     }
 
     public static void sendMessages(

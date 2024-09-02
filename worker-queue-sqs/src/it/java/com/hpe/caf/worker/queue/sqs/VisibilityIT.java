@@ -15,7 +15,6 @@
  */
 package com.hpe.caf.worker.queue.sqs;
 
-import com.hpe.caf.worker.queue.sqs.util.WrapperConfig;
 import org.junit.jupiter.api.Test;
 import software.amazon.awssdk.services.sqs.model.ChangeMessageVisibilityBatchRequest;
 import software.amazon.awssdk.services.sqs.model.ChangeMessageVisibilityBatchRequestEntry;
@@ -47,9 +46,7 @@ public class VisibilityIT
     public void testExtensionDoesNotMissExpiringMessages() throws Exception
     {
         final var inputQueue = "keep-extending-visibility";
-        final var workerWrapper = getWorkerWrapper(
-                inputQueue,
-                new WrapperConfig());
+        final var workerWrapper = getWorkerWrapper(inputQueue);
 
         sendSingleMessagesWithDelays(workerWrapper.sqsClient, workerWrapper.inputQueueUrl, 100, 1L);
 
@@ -86,9 +83,7 @@ public class VisibilityIT
     public void testVisibilityTimeoutExtensionIsCancelled() throws Exception
     {
         final var inputQueue = "stop-extend-visibility";
-        final var workerWrapper = getWorkerWrapper(
-                inputQueue,
-                new WrapperConfig());
+        final var workerWrapper = getWorkerWrapper(inputQueue);
         final var msgBody = "hello-world";
         sendMessages(workerWrapper, msgBody);
         final var metricsReporter = workerWrapper.metricsReporter;
@@ -123,7 +118,7 @@ public class VisibilityIT
     public void testAttemptToChangeVisibilityWithInvalidReceiptHandleDoesNotCrashProcess() throws Exception
     {
         final var inputQueue = "test-visibility-after-retention-period-expires";
-        final var workerWrapper = getWorkerWrapper(inputQueue);;
+        final var workerWrapper = getWorkerWrapper(inputQueue);
         final var msgBody = "Hello-World";
         final var metricsReporter = workerWrapper.metricsReporter;
         try {

@@ -39,7 +39,7 @@ public class StubbedTaskCallback implements TaskCallback
     {
         var sqsTaskInformation = (SQSTaskInformation) taskInformation;
         final var body = new String(taskData);
-        if (body.equals("REJECT")) {
+        if (body.equals("REJECTED")) {
             throw new TaskRejectedException("REJECTED");
         }
 
