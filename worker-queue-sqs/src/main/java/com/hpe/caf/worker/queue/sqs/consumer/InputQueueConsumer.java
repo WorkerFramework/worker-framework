@@ -23,10 +23,10 @@ import com.hpe.caf.worker.queue.sqs.metrics.MetricsReporter;
 import com.hpe.caf.worker.queue.sqs.visibility.VisibilityMonitor;
 import software.amazon.awssdk.services.sqs.SqsClient;
 
+import java.util.concurrent.atomic.AtomicBoolean;
+
 public class InputQueueConsumer extends QueueConsumer
 {
-
-    private final VisibilityMonitor visibilityMonitor;
 
     public InputQueueConsumer(
             final SqsClient sqsClient,
@@ -35,23 +35,17 @@ public class InputQueueConsumer extends QueueConsumer
             final TaskCallback callback,
             final WorkerQueueConfiguration queueCfg,
             final VisibilityMonitor visibilityMonitor,
-            final MetricsReporter metricsReporter)
+            final MetricsReporter metricsReporter,
+            final AtomicBoolean receiveMessages)
     {
-        super(sqsClient, queueInfo, retryQueueInfo, queueCfg, callback, metricsReporter);
-        this.visibilityMonitor = visibilityMonitor;
+        super(sqsClient, queueInfo, retryQueueInfo, queueCfg, callback,
+                visibilityMonitor, metricsReporter, receiveMessages);
     }
 
     @Override
-    protected void handleRegistrationTasks(final SQSTaskInformation taskInfo)
+    protected void handleConsumerSpecificActions(final SQSTaskInformation taskInfo)
     {
         metricsReporter.incrementReceived();
-        visibilityMonitor.watch(taskInfo);
-    }
-
-    @Override
-    protected int getVisibilityTimeout()
-    {
-        return queueCfg.getVisibilityTimeout();
     }
 
     @Override

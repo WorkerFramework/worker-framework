@@ -56,6 +56,7 @@ public class VisibilityIT
         try {
             final Set<String> msgBodies = new HashSet<>();
             var msg = workerWrapper.callbackQueue.poll(5, TimeUnit.SECONDS);
+            assertNotNull(msg, "A Message should have been received.");
             msgBodies.add(msg.body());
             while (msg != null) {
                 msg = workerWrapper.callbackQueue.poll(5, TimeUnit.SECONDS);
@@ -96,11 +97,10 @@ public class VisibilityIT
 
             // Message should NOT be redelivered
             final var notRedelivered = workerWrapper.callbackQueue.poll(15, TimeUnit.SECONDS);
-
+            assertNotNull(msg, "Original Message should have been delivered");
             workerWrapper.sqsWorkerQueue.discardTask(msg.taskInformation());
 
             final var delivered = workerWrapper.callbackQueue.poll(30, TimeUnit.SECONDS);
-            assertNotNull(msg, "Original Message should have been delivered");
             assertNull(notRedelivered, "Message should not be redelivered");
             assertNotNull(delivered, "Should have been delivered");
 

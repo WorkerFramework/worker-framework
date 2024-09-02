@@ -50,6 +50,7 @@ public class VisibilityTimeoutTest
     private VisibilityTimeout getVisibilityTimeout(final Long start, final int offset)
     {
         return new VisibilityTimeout(
+                new QueueInfo("a", "b", "c", false),
                 (offset % 2 == 0) ? start + offset: start - offset,
                 UUID.randomUUID().toString()
         );

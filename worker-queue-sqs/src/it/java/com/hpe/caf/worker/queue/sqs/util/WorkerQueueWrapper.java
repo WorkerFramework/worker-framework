@@ -83,11 +83,9 @@ public class WorkerQueueWrapper
             workerQueueConfiguration.setInputQueue(inputQueue);
             workerQueueConfiguration.setRetryQueue(inputQueue);
             workerQueueConfiguration.setVisibilityTimeout(visibilityTimeout);
-            workerQueueConfiguration.setDlqVisibilityTimeout(visibilityTimeout);
             workerQueueConfiguration.setLongPollInterval(longPollInterval);
             workerQueueConfiguration.setMaxNumberOfMessages(maxNumberOfMessages);
             workerQueueConfiguration.setMessageRetentionPeriod(messageRetentionPeriod);
-            workerQueueConfiguration.setDlqMessageRetentionPeriod(messageRetentionPeriod);
             workerQueueConfiguration.setMaxDeliveries(maxDeliveries);
 
             sqsWorkerQueue = new SQSWorkerQueue(workerQueueConfiguration);
@@ -121,6 +119,11 @@ public class WorkerQueueWrapper
         } catch (final Exception e) {
             throw new RuntimeException("Error starting worker wrapper", e);
         }
+    }
+
+    public boolean isReceiving()
+    {
+        return sqsWorkerQueue.isReceiving();
     }
 
     public CloudWatchClient getCloudwatchClient()

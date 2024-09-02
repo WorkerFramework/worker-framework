@@ -49,23 +49,6 @@ public class SQSUtil
         return attributes;
     }
 
-    public static Map<QueueAttributeName, String> getDlQAttributes(final WorkerQueueConfiguration queueCfg)
-    {
-        final var attributes = new HashMap<QueueAttributeName, String>();
-
-        attributes.put(
-                QueueAttributeName.VISIBILITY_TIMEOUT,
-                String.valueOf(queueCfg.getDlqVisibilityTimeout())
-        );
-
-        attributes.put(
-                QueueAttributeName.MESSAGE_RETENTION_PERIOD,
-                String.valueOf(queueCfg.getDlqMessageRetentionPeriod())
-        );
-
-        return attributes;
-    }
-
     public static String getQueueUrl(final SqsClient sqsClient, final String queueName)
     {
         final var getQueueUrlRequest = GetQueueUrlRequest.builder()

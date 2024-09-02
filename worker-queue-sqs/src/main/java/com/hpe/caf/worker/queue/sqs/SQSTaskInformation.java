@@ -22,9 +22,6 @@ import jakarta.validation.constraints.NotNull;
 public final class SQSTaskInformation implements TaskInformation
 {
     @NotNull
-    private final QueueInfo queueInfo;
-
-    @NotNull
     private final String inboundMessageId;
 
     @NotNull
@@ -34,12 +31,10 @@ public final class SQSTaskInformation implements TaskInformation
     private final VisibilityTimeout visibilityTimeout;
 
     public SQSTaskInformation(
-            final QueueInfo queueInfo,
             final String inboundMessageId,
             final VisibilityTimeout visibilityTimeout,
             final boolean isPoison)
     {
-        this.queueInfo = queueInfo;
         this.inboundMessageId = inboundMessageId;
         this.visibilityTimeout = visibilityTimeout;
         this.isPoison = isPoison;
@@ -47,7 +42,7 @@ public final class SQSTaskInformation implements TaskInformation
 
     public QueueInfo getQueueInfo()
     {
-        return queueInfo;
+        return visibilityTimeout.queueInfo();
     }
 
     @Override
@@ -78,7 +73,6 @@ public final class SQSTaskInformation implements TaskInformation
         return "SQSTaskInformation{" +
                 "inboundMessageId='" + inboundMessageId + '\'' +
                 ", isPoison=" + isPoison +
-                ", queueInfo=" + queueInfo +
                 ", visibilityTimeout=" + visibilityTimeout +
                 '}';
     }

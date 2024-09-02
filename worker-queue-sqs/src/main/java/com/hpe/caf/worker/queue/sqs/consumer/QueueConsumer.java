@@ -23,6 +23,7 @@ import com.hpe.caf.worker.queue.sqs.SQSTaskInformation;
 import com.hpe.caf.worker.queue.sqs.metrics.MetricsReporter;
 import com.hpe.caf.worker.queue.sqs.util.SQSUtil;
 import com.hpe.caf.worker.queue.sqs.config.WorkerQueueConfiguration;
+import com.hpe.caf.worker.queue.sqs.visibility.VisibilityMonitor;
 import com.hpe.caf.worker.queue.sqs.visibility.VisibilityTimeout;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -37,6 +38,7 @@ import java.nio.charset.StandardCharsets;
 import java.time.Instant;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 public abstract class QueueConsumer implements Runnable
 {
@@ -46,6 +48,8 @@ public abstract class QueueConsumer implements Runnable
     protected final WorkerQueueConfiguration queueCfg;
     protected final TaskCallback callback;
     protected final MetricsReporter metricsReporter;
+    protected final VisibilityMonitor visibilityMonitor;
+    protected final AtomicBoolean receiveMessages;
 
     private static final Logger LOG = LoggerFactory.getLogger(QueueConsumer.class);
 
@@ -55,7 +59,9 @@ public abstract class QueueConsumer implements Runnable
             final QueueInfo retryQueueInfo,
             final WorkerQueueConfiguration queueCfg,
             final TaskCallback callback,
-            final MetricsReporter metricsReporter)
+            final VisibilityMonitor visibilityMonitor,
+            final MetricsReporter metricsReporter,
+            final AtomicBoolean receiveMessages)
     {
         this.sqsClient = sqsClient;
         this.queueInfo = queueInfo;
@@ -63,15 +69,12 @@ public abstract class QueueConsumer implements Runnable
         this.queueCfg = queueCfg;
         this.callback = callback;
         this.metricsReporter = metricsReporter;
+        this.visibilityMonitor = visibilityMonitor;
+        this.receiveMessages = receiveMessages;
     }
 
     @Override
     public void run()
-    {
-        receiveMessages();
-    }
-
-    protected void receiveMessages()
     {
         final var receiveRequest = ReceiveMessageRequest.builder()
                 .queueUrl(queueInfo.url())
@@ -81,14 +84,27 @@ public abstract class QueueConsumer implements Runnable
                 .messageAttributeNames(SQSUtil.ALL_ATTRIBUTES)
                 .build();
         while (true) {
-            final var receiveMessageResult = sqsClient.receiveMessage(receiveRequest).messages();
-            if (receiveMessageResult.isEmpty()) {
-                LOG.debug("Nothing received from queue {} ", queueInfo.name());
+            if (receiveMessages.get()) {
+                receiveMessages(receiveRequest);
+            } else {
+                try {
+                    Thread.sleep(queueCfg.getLongPollInterval() * 1000);
+                } catch (final InterruptedException e) {
+                    LOG.error("A pause in receiving messages was interrupted", e);
+                }
             }
-            for(final var message : receiveMessageResult) {
-                LOG.debug("Received {} on queue {} ", message.body(), queueInfo.name());
-                registerNewTask(message);
-            }
+        }
+    }
+
+    protected void receiveMessages(final ReceiveMessageRequest receiveRequest)
+    {
+        final var receiveMessageResult = sqsClient.receiveMessage(receiveRequest).messages();
+        if (receiveMessageResult.isEmpty()) {
+            LOG.debug("Nothing received from queue {} ", queueInfo.name());
+        }
+        for(final var message : receiveMessageResult) {
+            LOG.debug("Received {} on queue {} ", message.body(), queueInfo.name());
+            registerNewTask(message);
         }
     }
 
@@ -96,7 +112,7 @@ public abstract class QueueConsumer implements Runnable
     {
         try {
             // DDD If the retry queue is just the input queue then nothing needs done.
-            // DDD should these also be batched up
+            // DDD other than to remove the timeout being monitored
             final var attributes = message.messageAttributes();
             attributes.put(SQSUtil.SQS_HEADER_CAF_WORKER_REJECTED, MessageAttributeValue.builder()
                     .dataType("String")
@@ -130,18 +146,20 @@ public abstract class QueueConsumer implements Runnable
 
     protected void registerNewTask(final Message message)
     {
-        final var becomesVisible = Instant.now().getEpochSecond() + getVisibilityTimeout();
+        final var becomesVisible = Instant.now().getEpochSecond() + queueCfg.getVisibilityTimeout();
         final var taskInfo = new SQSTaskInformation(
-                queueInfo,
                 message.messageId(), // DDD does the dlq message have same id
-                new VisibilityTimeout(becomesVisible, message.receiptHandle()),
+                new VisibilityTimeout(queueInfo, becomesVisible, message.receiptHandle()),
                 isPoisonMessageConsumer()
         );
 
         final var headers = createHeadersFromMessageAttributes(message);
         try {
             callback.registerNewTask(taskInfo, message.body().getBytes(StandardCharsets.UTF_8), headers);
-            handleRegistrationTasks(taskInfo);
+            handleConsumerSpecificActions(taskInfo);
+
+            // Now all actions completed, stop redeliveries by extending the visibility timeout.
+            visibilityMonitor.watch(taskInfo);
         } catch (final TaskRejectedException e) {
             LOG.error("Cannot register new message, rejecting {}", message.messageId(), e);
             retryMessage(message); // DDD or just remove the timeout? And what if DLQ
@@ -152,9 +170,7 @@ public abstract class QueueConsumer implements Runnable
         }
     }
 
-    protected abstract void handleRegistrationTasks(final SQSTaskInformation taskInfo);
-
-    protected abstract int getVisibilityTimeout();
+    protected abstract void handleConsumerSpecificActions(final SQSTaskInformation taskInfo);
 
     protected abstract boolean isPoisonMessageConsumer();
 }

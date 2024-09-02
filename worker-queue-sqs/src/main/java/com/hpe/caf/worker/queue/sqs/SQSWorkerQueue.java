@@ -46,17 +46,20 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ThreadPoolExecutor;
+import java.util.concurrent.atomic.AtomicBoolean;
 
-import static com.hpe.caf.worker.queue.sqs.util.SQSUtil.getDlQAttributes;
 import static com.hpe.caf.worker.queue.sqs.util.SQSUtil.getQueueAttributes;
 
 public final class SQSWorkerQueue implements ManagedWorkerQueue
 {
     private SqsClient sqsClient;
-    private Thread inputQueueConsumerThread;
-    private Thread deadLetterQueueConsumerThread;
-    private Thread visibilityMonitorThread;
     private VisibilityMonitor visibilityMonitor;
+
+    private final ThreadPoolExecutor executor;
+
+    private final AtomicBoolean receiveMessages;
 
     private final MetricsReporter metricsReporter;
     private final WorkerQueueConfiguration queueCfg;
@@ -71,6 +74,8 @@ public final class SQSWorkerQueue implements ManagedWorkerQueue
     {
         this.queueCfg = Objects.requireNonNull(queueCfg);
         metricsReporter = new MetricsReporter();
+        receiveMessages = new AtomicBoolean(true);
+        executor = (ThreadPoolExecutor)Executors.newFixedThreadPool(3);
     }
 
     public void start(final TaskCallback callback) throws QueueException
@@ -98,7 +103,6 @@ public final class SQSWorkerQueue implements ManagedWorkerQueue
 
             visibilityMonitor = new VisibilityMonitor(
                     sqsClient,
-                    inputQueueInfo.url(),
                     queueCfg.getVisibilityTimeout());
 
             var dlqConsumer = new DeadLetterQueueConsumer(
@@ -107,7 +111,9 @@ public final class SQSWorkerQueue implements ManagedWorkerQueue
                     retryQueueInfo,
                     callback,
                     queueCfg,
-                    metricsReporter);
+                    visibilityMonitor,
+                    metricsReporter,
+                    receiveMessages);
 
             var consumer = new InputQueueConsumer(
                     sqsClient,
@@ -116,19 +122,20 @@ public final class SQSWorkerQueue implements ManagedWorkerQueue
                     callback,
                     queueCfg,
                     visibilityMonitor,
-                    metricsReporter);
+                    metricsReporter,
+                    receiveMessages);
 
-            visibilityMonitorThread = new Thread(visibilityMonitor);
-            visibilityMonitorThread.start();
-
-            inputQueueConsumerThread = new Thread(consumer);
-            inputQueueConsumerThread.start();
-
-            deadLetterQueueConsumerThread = new Thread(dlqConsumer);
-            deadLetterQueueConsumerThread.start();
+            executor.execute(visibilityMonitor);
+            executor.execute(consumer);
+            executor.execute(dlqConsumer);
         } catch (final Exception e) {
             throw new QueueException("Failed to start worker queue", e);
         }
+    }
+
+    public boolean isReceiving()
+    {
+        return receiveMessages.get();
     }
 
     /**
@@ -142,7 +149,7 @@ public final class SQSWorkerQueue implements ManagedWorkerQueue
         try {
             final var createQueueRequest = CreateQueueRequest.builder()
                     .queueName(queueName)
-                    .attributes(isDeadLetterQueue ? getDlQAttributes(queueCfg): getQueueAttributes(queueCfg))
+                    .attributes(getQueueAttributes(queueCfg))
                     .build();
 
             final var response = sqsClient.createQueue(createQueueRequest);
@@ -198,7 +205,7 @@ public final class SQSWorkerQueue implements ManagedWorkerQueue
             sqsClient.sendMessage(sendMsgRequest);
         } catch (final Exception e) {
             metricsReporter.incrementErrors();
-            LOG.error("Error publishing task message {} {}", taskInformation.getInboundMessageId(), e.getMessage());
+            LOG.error("Error publishing task message {} {}", taskInformation, e.getMessage());
             throw new QueueException("Error publishing task message", e);
         }
     }
@@ -220,22 +227,15 @@ public final class SQSWorkerQueue implements ManagedWorkerQueue
     public void acknowledgeTask(final TaskInformation taskInformation)
     {
         var sqsTaskInformation = (SQSTaskInformation) taskInformation;
-        if (sqsTaskInformation.getQueueInfo().isDeadLetterQueue()) {
-            return;
-        }
         try {
-            // DDD or write to blocking queue so we can batch deletes
-            // and remove from visibility monitor at same time.
-            // having task extended till then has no side effect.
             final var deleteRequest = DeleteMessageRequest.builder()
                     .queueUrl(sqsTaskInformation.getQueueInfo().url())
                     .receiptHandle(sqsTaskInformation.getReceiptHandle())
                     .build();
             sqsClient.deleteMessage(deleteRequest);
         } catch (final ReceiptHandleIsInvalidException e) {
-            LOG.error("Receipt handle: {} is invalid - messageId:{}. {}",
-                    sqsTaskInformation.getVisibilityTimeout().receiptHandle(),
-                    sqsTaskInformation.getInboundMessageId(),
+            LOG.error("TaskInformation is invalid:{}. {}",
+                    sqsTaskInformation,
                     e.getMessage());
             metricsReporter.incrementErrors();
         } catch (final QueueDoesNotExistException e) {
@@ -251,12 +251,10 @@ public final class SQSWorkerQueue implements ManagedWorkerQueue
     @Override
     public HealthResult livenessCheck()
     {
-        if (inputQueueConsumerThread == null || !inputQueueConsumerThread.isAlive()) {
-            return new HealthResult(HealthStatus.UNHEALTHY, "SQS input queue thread not running");
-        } else if (deadLetterQueueConsumerThread == null || !deadLetterQueueConsumerThread.isAlive()) {
-            return new HealthResult(HealthStatus.UNHEALTHY, "SQS dead letter queue thread not running");
-        } else if (visibilityMonitorThread == null || !visibilityMonitorThread.isAlive()) {
-            return new HealthResult(HealthStatus.UNHEALTHY, "Visibility monitor thread thread not running");
+        // DDD If we do find that the healthcheck fails and the worker restarts...
+        // DDD all messages get redelivered
+        if (executor.getActiveCount() != 3) {
+            return new HealthResult(HealthStatus.UNHEALTHY, "SQS worker is unhealthy");
         } else {
             return HealthResult.RESULT_HEALTHY;
         }
@@ -271,13 +269,13 @@ public final class SQSWorkerQueue implements ManagedWorkerQueue
     @Override
     public void shutdownIncoming()
     {
-
+        receiveMessages.set(false);
     }
 
     @Override
     public void shutdown()
     {
-
+        executor.shutdown();
     }
 
     @Override
@@ -289,13 +287,13 @@ public final class SQSWorkerQueue implements ManagedWorkerQueue
     @Override
     public void disconnectIncoming()
     {
-        // DDD
+        receiveMessages.set(false);
     }
 
     @Override
     public void reconnectIncoming()
     {
-        // DDD
+        receiveMessages.set(true);
     }
 
     @Override

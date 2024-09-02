@@ -15,12 +15,14 @@
  */
 package com.hpe.caf.worker.queue.sqs;
 
+import com.hpe.caf.worker.queue.sqs.util.CallbackResponse;
 import com.hpe.caf.worker.queue.sqs.util.SQSUtil;
 import com.hpe.caf.worker.queue.sqs.util.WrapperConfig;
 import org.junit.jupiter.api.Test;
 import software.amazon.awssdk.services.sqs.model.GetQueueUrlRequest;
 import software.amazon.awssdk.services.sqs.model.MessageAttributeValue;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
@@ -30,6 +32,8 @@ import static com.hpe.caf.worker.queue.sqs.util.WorkerQueueWrapper.purgeQueue;
 import static com.hpe.caf.worker.queue.sqs.util.WorkerQueueWrapper.sendMessages;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.junit.jupiter.api.Assertions.fail;
 
@@ -47,6 +51,7 @@ public class SQSWorkerQueueIT
         sendMessages(workerWrapper, msgBody);
         try {
             final var msg = workerWrapper.callbackQueue.poll(30, TimeUnit.SECONDS);
+            assertNotNull(msg, "A Message should have been received.");
             final var body = msg.body();
             assertFalse(msg.taskInformation().isPoison());
             assertEquals(msgBody, body, "Message was not as expected");
@@ -100,11 +105,56 @@ public class SQSWorkerQueueIT
 
         try {
             final var msg = workerWrapper.callbackQueue.poll(30, TimeUnit.SECONDS);
+            assertNotNull(msg, "A Message should have been received.");
             assertTrue(msg.headers().containsKey(SQSUtil.SOURCE_QUEUE),
                     "Expected header: " + SQSUtil.SOURCE_QUEUE);
             assertEquals(msg.headers().get(SQSUtil.SOURCE_QUEUE).toString(), inputQueue, "Expected:" + inputQueue);
         } finally {
             purgeQueue(workerWrapper.sqsClient, queueUrl);
+        }
+    }
+
+    @Test
+    public void testDisconnectReconnectIncomingMessages() throws Exception
+    {
+        final var inputQueue = "test-publish";
+        final var workerWrapper = getWorkerWrapper(
+                inputQueue,
+                new WrapperConfig());
+        final var msgBody = "Hello-World";
+        final var metricsReporter = workerWrapper.metricsReporter;
+        // Defaults to receive, reverse that here.
+        workerWrapper.sqsWorkerQueue.disconnectIncoming();
+
+        // Ensure flag is unset
+        final var msg = workerWrapper.callbackQueue.poll(10, TimeUnit.SECONDS);
+        assertNull(msg, "A Message should not have been received.");
+
+        sendMessages(workerWrapper, msgBody);
+        try {
+            assertFalse(workerWrapper.isReceiving(), "Expected not to be receiving");
+
+            final var stillNull = workerWrapper.callbackQueue.poll(10, TimeUnit.SECONDS);
+            assertNull(stillNull, "A Message should still not have been received.");
+
+            workerWrapper.sqsWorkerQueue.reconnectIncoming();
+            final var reconnectedMsg = workerWrapper.callbackQueue.poll(10, TimeUnit.SECONDS);
+            final var body = reconnectedMsg.body();
+
+            assertTrue(workerWrapper.isReceiving(), "Expected to be receiving");
+
+            assertFalse(reconnectedMsg.taskInformation().isPoison());
+            assertEquals(msgBody, body, "Message was not as expected");
+            assertEquals(1, metricsReporter.getMessagesReceived(),
+                    "Metrics should only have reported a single message");
+            assertEquals(0, metricsReporter.getQueueErrors(),
+                    "Metrics should not have reported errors");
+            assertEquals(0, metricsReporter.getMessagesDropped(),
+                    "Metrics should not have reported dropped messages");
+            assertEquals(0, metricsReporter.getMessagesRejected(),
+                    "Metrics should not have reported rejected messages");
+        } finally {
+            purgeQueue(workerWrapper.sqsClient, workerWrapper.inputQueueUrl);
         }
     }
 }

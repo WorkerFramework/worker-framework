@@ -20,53 +20,31 @@ import com.hpe.caf.worker.queue.sqs.QueueInfo;
 import com.hpe.caf.worker.queue.sqs.SQSTaskInformation;
 import com.hpe.caf.worker.queue.sqs.config.WorkerQueueConfiguration;
 import com.hpe.caf.worker.queue.sqs.metrics.MetricsReporter;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import com.hpe.caf.worker.queue.sqs.visibility.VisibilityMonitor;
 import software.amazon.awssdk.services.sqs.SqsClient;
-import software.amazon.awssdk.services.sqs.model.DeleteMessageRequest;
+
+import java.util.concurrent.atomic.AtomicBoolean;
 
 public class DeadLetterQueueConsumer extends QueueConsumer
 {
-    private static final Logger LOG = LoggerFactory.getLogger(DeadLetterQueueConsumer.class);
-
     public DeadLetterQueueConsumer(
             final SqsClient sqsClient,
             final QueueInfo queueInfo,
             final QueueInfo retryQueueInfo,
             final TaskCallback callback,
             final WorkerQueueConfiguration queueCfg,
-            final MetricsReporter metricsReporter)
+            final VisibilityMonitor visibilityMonitor,
+            final MetricsReporter metricsReporter,
+            final AtomicBoolean receiveMessages)
     {
-        super(sqsClient, queueInfo, retryQueueInfo, queueCfg, callback, metricsReporter);
+        super(sqsClient, queueInfo, retryQueueInfo, queueCfg, callback,
+                visibilityMonitor, metricsReporter, receiveMessages);
     }
 
     @Override
-    protected void handleRegistrationTasks(final SQSTaskInformation taskInfo)
+    protected void handleConsumerSpecificActions(final SQSTaskInformation taskInfo)
     {
-        deleteMessage(taskInfo.getReceiptHandle(), taskInfo.getInboundMessageId());
-    }
-
-    private void deleteMessage(final String receiptHandle, final String messageId)
-    {
-        try {
-            final var request = DeleteMessageRequest.builder()
-                    .queueUrl(queueInfo.url())
-                    .receiptHandle(receiptHandle)
-                    .build();
-            sqsClient.deleteMessage(request);
-            metricsReporter.incrementDropped();
-        } catch (final Exception e) {
-            var msg = String.format("Error deleting message from dead letter queue:%s messageId:%s",
-                    queueInfo.url(), messageId);
-            LOG.error(msg, e);
-            metricsReporter.incrementErrors();
-        }
-    }
-
-    @Override
-    protected int getVisibilityTimeout()
-    {
-        return queueCfg.getDlqVisibilityTimeout();
+        // DDD does the poison message get acked by the implementation, if not do so here.
     }
 
     @Override

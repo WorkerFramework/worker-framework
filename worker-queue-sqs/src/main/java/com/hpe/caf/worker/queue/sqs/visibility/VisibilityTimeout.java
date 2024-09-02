@@ -15,9 +15,12 @@
  */
 package com.hpe.caf.worker.queue.sqs.visibility;
 
+import com.hpe.caf.worker.queue.sqs.QueueInfo;
+
 import java.util.Objects;
 
-public record VisibilityTimeout(Long becomesVisibleEpochSecond,
+public record VisibilityTimeout(QueueInfo queueInfo,
+                                Long becomesVisibleEpochSecond,
                                 String receiptHandle) implements Comparable<VisibilityTimeout>
 {
     @Override
