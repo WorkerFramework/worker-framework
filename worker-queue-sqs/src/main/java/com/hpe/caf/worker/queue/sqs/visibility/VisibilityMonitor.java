@@ -16,7 +16,6 @@
 package com.hpe.caf.worker.queue.sqs.visibility;
 
 import com.google.common.collect.Iterables;
-import com.hpe.caf.worker.queue.sqs.QueueInfo;
 import com.hpe.caf.worker.queue.sqs.SQSTaskInformation;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

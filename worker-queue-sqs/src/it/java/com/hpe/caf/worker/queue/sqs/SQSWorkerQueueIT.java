@@ -15,14 +15,12 @@
  */
 package com.hpe.caf.worker.queue.sqs;
 
-import com.hpe.caf.worker.queue.sqs.util.CallbackResponse;
 import com.hpe.caf.worker.queue.sqs.util.SQSUtil;
 import com.hpe.caf.worker.queue.sqs.util.WrapperConfig;
 import org.junit.jupiter.api.Test;
 import software.amazon.awssdk.services.sqs.model.GetQueueUrlRequest;
 import software.amazon.awssdk.services.sqs.model.MessageAttributeValue;
 
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;

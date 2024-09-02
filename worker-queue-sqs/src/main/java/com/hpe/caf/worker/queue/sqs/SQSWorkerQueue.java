@@ -251,8 +251,6 @@ public final class SQSWorkerQueue implements ManagedWorkerQueue
     @Override
     public HealthResult livenessCheck()
     {
-        // DDD If we do find that the healthcheck fails and the worker restarts...
-        // DDD all messages get redelivered
         if (executor.getActiveCount() != 3) {
             return new HealthResult(HealthStatus.UNHEALTHY, "SQS worker is unhealthy");
         } else {
