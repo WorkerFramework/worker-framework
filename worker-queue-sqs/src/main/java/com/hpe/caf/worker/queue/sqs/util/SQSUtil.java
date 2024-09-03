@@ -28,6 +28,7 @@ import software.amazon.awssdk.services.sqs.model.GetQueueAttributesRequest;
 import software.amazon.awssdk.services.sqs.model.GetQueueUrlRequest;
 import software.amazon.awssdk.services.sqs.model.QueueAttributeName;
 import software.amazon.awssdk.services.sqs.model.QueueNameExistsException;
+import software.amazon.awssdk.services.sqs.model.SetQueueAttributesRequest;
 
 import java.net.URI;
 import java.net.URISyntaxException;
@@ -74,6 +75,30 @@ public class SQSUtil
     public static QueueInfo createQueue(
             final SqsClient sqsClient,
             final String queueName,
+            final SQSWorkerQueueConfiguration queueCfg)
+    {
+        return createQueue(sqsClient, queueName, queueCfg, false);
+    }
+
+    /**
+     * This method creates a DeadLetterQueue and associates it with a source Queue.
+     */
+    public static QueueInfo createDeadLetterQueue(
+            final SqsClient sqsClient,
+            final QueueInfo sourceQueue,
+            final SQSWorkerQueueConfiguration queueCfg)
+    {
+        final var queueName = sourceQueue.name() + DEAD_LETTER_QUEUE_SUFFIX;
+        final var response = createQueue(sqsClient, queueName, queueCfg, true);
+
+        addRedrivePolicy(sqsClient, sourceQueue.url(), response.arn(), queueCfg);
+
+        return response;
+    }
+
+    private static QueueInfo createQueue(
+            final SqsClient sqsClient,
+            final String queueName,
             final SQSWorkerQueueConfiguration queueCfg,
             final boolean isDeadLetterQueue)
     {
@@ -86,11 +111,32 @@ public class SQSUtil
             final var response = sqsClient.createQueue(createQueueRequest);
             final var url = response.queueUrl();
             final var arn = getQueueArn(sqsClient, url);
+
             return new QueueInfo(queueName, url, arn, isDeadLetterQueue);
         } catch (final QueueNameExistsException e) {
             LOG.info("Queue already exists {} {}", queueName, e.getMessage());
             return getQueueInfo(sqsClient, queueName, isDeadLetterQueue);
         }
+    }
+
+    private static void addRedrivePolicy(
+            final SqsClient sqsClient,
+            final String inputQueueUrl,
+            final String deadLetterQueueArn,
+            final SQSWorkerQueueConfiguration queueCfg)
+    {
+        final var sourceAttributes = new HashMap<QueueAttributeName, String>();
+        sourceAttributes.put(
+                QueueAttributeName.REDRIVE_POLICY,
+                String.format("{\"maxReceiveCount\":\"%d\", \"deadLetterTargetArn\":\"%s\"}",
+                        queueCfg.getMaxDeliveries(), deadLetterQueueArn)
+        );
+
+        var queueAttributesRequest = SetQueueAttributesRequest.builder()
+                .queueUrl(inputQueueUrl)
+                .attributes(sourceAttributes)
+                .build();
+        sqsClient.setQueueAttributes(queueAttributesRequest);
     }
 
     public static Map<QueueAttributeName, String> getQueueAttributes(final SQSWorkerQueueConfiguration queueCfg)

@@ -33,11 +33,9 @@ import org.slf4j.LoggerFactory;
 import software.amazon.awssdk.services.sqs.SqsClient;
 import software.amazon.awssdk.services.sqs.model.DeleteMessageRequest;
 import software.amazon.awssdk.services.sqs.model.MessageAttributeValue;
-import software.amazon.awssdk.services.sqs.model.QueueAttributeName;
 import software.amazon.awssdk.services.sqs.model.QueueDoesNotExistException;
 import software.amazon.awssdk.services.sqs.model.ReceiptHandleIsInvalidException;
 import software.amazon.awssdk.services.sqs.model.SendMessageRequest;
-import software.amazon.awssdk.services.sqs.model.SetQueueAttributesRequest;
 
 import java.nio.charset.StandardCharsets;
 import java.util.HashMap;
@@ -81,18 +79,17 @@ public final class SQSWorkerQueue implements ManagedWorkerQueue
             sqsClient = SQSUtil.getSqsClient(queueCfg.getSQSConfiguration());
             final var inputQueueInfo = declaredQueues.computeIfAbsent(
                     queueCfg.getInputQueue(),
-                    (q) -> SQSUtil.createQueue(sqsClient, q, queueCfg, false)
+                    (q) -> SQSUtil.createQueue(sqsClient, q, queueCfg)
             );
 
             final var deadLetterQueueInfo = declaredQueues.computeIfAbsent(
                     queueCfg.getInputQueue() + SQSUtil.DEAD_LETTER_QUEUE_SUFFIX,
-                    (q) -> SQSUtil.createQueue(sqsClient, q, queueCfg, true)
+                    (q) -> SQSUtil.createDeadLetterQueue(sqsClient, inputQueueInfo, queueCfg)
             );
-            addRedrivePolicy(inputQueueInfo.url(), deadLetterQueueInfo.arn());
 
             final var retryQueueInfo = declaredQueues.computeIfAbsent(
                     queueCfg.getRetryQueue(),
-                    (q) -> SQSUtil.createQueue(sqsClient, q, queueCfg, false)
+                    (q) -> SQSUtil.createQueue(sqsClient, q, queueCfg)
             );
 
             visibilityMonitor = new VisibilityMonitor(
@@ -132,24 +129,10 @@ public final class SQSWorkerQueue implements ManagedWorkerQueue
         return receiveMessages.get();
     }
 
-    private void addRedrivePolicy(
-            final String inputQueueUrl,
-            final String deadLetterQueueArn)
-    {
-        final var sourceAttributes = new HashMap<QueueAttributeName, String>();
-        sourceAttributes.put(
-                QueueAttributeName.REDRIVE_POLICY,
-                String.format("{\"maxReceiveCount\":\"%d\", \"deadLetterTargetArn\":\"%s\"}",
-                        queueCfg.getMaxDeliveries(), deadLetterQueueArn)
-        );
-
-        var queueAttributesRequest = SetQueueAttributesRequest.builder()
-                .queueUrl(inputQueueUrl)
-                .attributes(sourceAttributes)
-                .build();
-        sqsClient.setQueueAttributes(queueAttributesRequest);
-    }
-
+    // DDD who's responsibility is it to create queue structures
+    // Will worker A expect a downstream worker B to have created the downstream queue
+    // If publish is called and B's queue does not exist
+    // does worker A create it, or throw an error?
     @Override
     public void publish(
             final TaskInformation taskInformation,
