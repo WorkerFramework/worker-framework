@@ -16,12 +16,21 @@
 package com.hpe.caf.worker.queue.sqs.util;
 
 import com.hpe.caf.worker.queue.sqs.QueueInfo;
+import com.hpe.caf.worker.queue.sqs.config.SQSConfiguration;
 import com.hpe.caf.worker.queue.sqs.config.SQSWorkerQueueConfiguration;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import software.amazon.awssdk.auth.credentials.AwsCredentials;
+import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.sqs.SqsClient;
+import software.amazon.awssdk.services.sqs.model.CreateQueueRequest;
 import software.amazon.awssdk.services.sqs.model.GetQueueAttributesRequest;
 import software.amazon.awssdk.services.sqs.model.GetQueueUrlRequest;
 import software.amazon.awssdk.services.sqs.model.QueueAttributeName;
+import software.amazon.awssdk.services.sqs.model.QueueNameExistsException;
 
+import java.net.URI;
+import java.net.URISyntaxException;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -32,6 +41,57 @@ public class SQSUtil
     public static final String DEAD_LETTER_QUEUE_SUFFIX = "-dlq";
     public static final String ALL_ATTRIBUTES = "All";
     public static final String SOURCE_QUEUE = "SourceQueue";
+
+    private static final Logger LOG = LoggerFactory.getLogger(SQSUtil.class);
+
+    public static SqsClient getSqsClient(final SQSConfiguration sqsConfiguration) throws URISyntaxException
+    {
+        return SqsClient.builder()
+                .endpointOverride(new URI(sqsConfiguration.getURIString()))
+                .region(Region.of(sqsConfiguration.getAwsRegion()))
+                .credentialsProvider(() -> getAWSCredentials(sqsConfiguration))
+                .build();
+    }
+
+    private static AwsCredentials getAWSCredentials(final SQSConfiguration sqsConfiguration)
+    {
+        return new AwsCredentials()
+        {
+            @Override
+            public String accessKeyId()
+            {
+                return sqsConfiguration.getAwsAccessKey();
+            }
+
+            @Override
+            public String secretAccessKey()
+            {
+                return sqsConfiguration.getSecretAccessKey();
+            }
+        };
+    }
+
+    public static QueueInfo createQueue(
+            final SqsClient sqsClient,
+            final String queueName,
+            final SQSWorkerQueueConfiguration queueCfg,
+            final boolean isDeadLetterQueue)
+    {
+        try {
+            final var createQueueRequest = CreateQueueRequest.builder()
+                    .queueName(queueName)
+                    .attributes(getQueueAttributes(queueCfg))
+                    .build();
+
+            final var response = sqsClient.createQueue(createQueueRequest);
+            final var url = response.queueUrl();
+            final var arn = getQueueArn(sqsClient, url);
+            return new QueueInfo(queueName, url, arn, isDeadLetterQueue);
+        } catch (final QueueNameExistsException e) {
+            LOG.info("Queue already exists {} {}", queueName, e.getMessage());
+            return getQueueInfo(sqsClient, queueName, isDeadLetterQueue);
+        }
+    }
 
     public static Map<QueueAttributeName, String> getQueueAttributes(final SQSWorkerQueueConfiguration queueCfg)
     {

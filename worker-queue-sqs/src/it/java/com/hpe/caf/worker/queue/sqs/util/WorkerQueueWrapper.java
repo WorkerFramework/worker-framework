@@ -16,7 +16,6 @@
 package com.hpe.caf.worker.queue.sqs.util;
 
 import com.hpe.caf.api.worker.WorkerQueueMetricsReporter;
-import com.hpe.caf.worker.queue.sqs.ClientProvider;
 import com.hpe.caf.worker.queue.sqs.SQSTaskInformation;
 import com.hpe.caf.worker.queue.sqs.SQSWorkerQueue;
 import com.hpe.caf.worker.queue.sqs.config.SQSConfiguration;
@@ -59,28 +58,6 @@ public class WorkerQueueWrapper
     // Cloudwatch
     final CloudWatchClient cloudWatch;
 
-
-    public WorkerQueueWrapper(
-            final String inputQueue,
-            final int visibilityTimeout,
-            final int longPollInterval,
-            final int maxNumberOfMessages,
-            final int maxDeliveries,
-            final int messageRetentionPeriod,
-            final StubbedTaskCallback stubbedTaskCallback)
-    {
-        this(
-            inputQueue,
-            inputQueue,
-            visibilityTimeout,
-            longPollInterval,
-            maxNumberOfMessages,
-            maxDeliveries,
-            messageRetentionPeriod,
-            stubbedTaskCallback
-        );
-    }
-
     public WorkerQueueWrapper(
             final String inputQueue,
             final String retryQueue,
@@ -115,7 +92,7 @@ public class WorkerQueueWrapper
             sqsWorkerQueue = new SQSWorkerQueue(workerQueueConfiguration);
             sqsWorkerQueue.start(callback);
 
-            sqsClient = ClientProvider.getSqsClient(sqsConfiguration);
+            sqsClient = SQSUtil.getSqsClient(sqsConfiguration);
             callbackQueue = callback.getCallbackQueue();
             callbackDLQ = callback.getCallbackDLQ();
             inputQueueUrl = SQSUtil.getQueueUrl(sqsClient, workerQueueConfiguration.getInputQueue());
@@ -157,7 +134,7 @@ public class WorkerQueueWrapper
 
     public static WorkerQueueWrapper getWorkerWrapper(final String inputQueue)
     {
-        return getWorkerWrapper(inputQueue, inputQueue, new WrapperConfig());
+        return getWorkerWrapper(inputQueue, inputQueue);
     }
 
     public static WorkerQueueWrapper getWorkerWrapper(final String inputQueue, final String retryQueue)

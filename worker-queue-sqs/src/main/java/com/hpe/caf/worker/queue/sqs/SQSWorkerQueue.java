@@ -31,12 +31,10 @@ import com.hpe.caf.worker.queue.sqs.visibility.VisibilityMonitor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import software.amazon.awssdk.services.sqs.SqsClient;
-import software.amazon.awssdk.services.sqs.model.CreateQueueRequest;
 import software.amazon.awssdk.services.sqs.model.DeleteMessageRequest;
 import software.amazon.awssdk.services.sqs.model.MessageAttributeValue;
 import software.amazon.awssdk.services.sqs.model.QueueAttributeName;
 import software.amazon.awssdk.services.sqs.model.QueueDoesNotExistException;
-import software.amazon.awssdk.services.sqs.model.QueueNameExistsException;
 import software.amazon.awssdk.services.sqs.model.ReceiptHandleIsInvalidException;
 import software.amazon.awssdk.services.sqs.model.SendMessageRequest;
 import software.amazon.awssdk.services.sqs.model.SetQueueAttributesRequest;
@@ -49,8 +47,6 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.atomic.AtomicBoolean;
-
-import static com.hpe.caf.worker.queue.sqs.util.SQSUtil.getQueueAttributes;
 
 public final class SQSWorkerQueue implements ManagedWorkerQueue
 {
@@ -73,7 +69,7 @@ public final class SQSWorkerQueue implements ManagedWorkerQueue
         this.queueCfg = Objects.requireNonNull(queueCfg);
         metricsReporter = new MetricsReporter();
         receiveMessages = new AtomicBoolean(true);
-        executor = (ThreadPoolExecutor)Executors.newFixedThreadPool(3);
+        executor = (ThreadPoolExecutor) Executors.newFixedThreadPool(3);
     }
 
     public void start(final TaskCallback callback) throws QueueException
@@ -82,21 +78,21 @@ public final class SQSWorkerQueue implements ManagedWorkerQueue
             throw new IllegalStateException("Already started");
         }
         try {
-            sqsClient = ClientProvider.getSqsClient(queueCfg.getSQSConfiguration());
+            sqsClient = SQSUtil.getSqsClient(queueCfg.getSQSConfiguration());
             final var inputQueueInfo = declaredQueues.computeIfAbsent(
                     queueCfg.getInputQueue(),
-                    (q) -> createQueue(q, false)
+                    (q) -> SQSUtil.createQueue(sqsClient, q, queueCfg, false)
             );
 
             final var deadLetterQueueInfo = declaredQueues.computeIfAbsent(
                     queueCfg.getInputQueue() + SQSUtil.DEAD_LETTER_QUEUE_SUFFIX,
-                    (q) -> createQueue(q, true)
+                    (q) -> SQSUtil.createQueue(sqsClient, q, queueCfg, true)
             );
             addRedrivePolicy(inputQueueInfo.url(), deadLetterQueueInfo.arn());
 
             final var retryQueueInfo = declaredQueues.computeIfAbsent(
                     queueCfg.getRetryQueue(),
-                    (q) -> createQueue(q, false)
+                    (q) -> SQSUtil.createQueue(sqsClient, q, queueCfg, false)
             );
 
             visibilityMonitor = new VisibilityMonitor(
@@ -134,30 +130,6 @@ public final class SQSWorkerQueue implements ManagedWorkerQueue
     public boolean isReceiving()
     {
         return receiveMessages.get();
-    }
-
-    /**
-     * @param queueName The name of the queue.
-     * @return An object containing the name,url and arn of the queue.
-     */
-    private QueueInfo createQueue(
-            final String queueName,
-            final boolean isDeadLetterQueue)
-    {
-        try {
-            final var createQueueRequest = CreateQueueRequest.builder()
-                    .queueName(queueName)
-                    .attributes(getQueueAttributes(queueCfg))
-                    .build();
-
-            final var response = sqsClient.createQueue(createQueueRequest);
-            final var url = response.queueUrl();
-            final var arn = SQSUtil.getQueueArn(sqsClient, url);
-            return new QueueInfo(queueName, url, arn, isDeadLetterQueue);
-        } catch (final QueueNameExistsException e) {
-            LOG.info("Queue already exists {} {}", queueName, e.getMessage());
-            return SQSUtil.getQueueInfo(sqsClient, queueName, isDeadLetterQueue);
-        }
     }
 
     private void addRedrivePolicy(
