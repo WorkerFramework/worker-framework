@@ -935,6 +935,10 @@
                             <repository>${dockerHubPublic}/library/rabbitmq</repository>
                             <tag>3-management</tag>
                         </image>
+                        <image>
+                            <repository>${dockerHubPublic}/localstack/localstack</repository>
+                            <tag>latest</tag>
+                        </image>
                     </imageManagement>
                 </configuration>
             </plugin>
