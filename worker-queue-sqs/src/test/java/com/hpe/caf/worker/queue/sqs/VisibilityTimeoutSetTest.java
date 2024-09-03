@@ -16,7 +16,7 @@
 package com.hpe.caf.worker.queue.sqs;
 
 import com.hpe.caf.worker.queue.sqs.visibility.VisibilityTimeout;
-import org.junit.jupiter.api.Test;
+import org.testng.annotations.Test;
 
 import java.time.Instant;
 import java.util.Collections;
@@ -24,9 +24,9 @@ import java.util.SortedSet;
 import java.util.TreeSet;
 import java.util.UUID;
 
-import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.testng.AssertJUnit.assertTrue;
 
-public class VisibilityTimeoutTest
+public class VisibilityTimeoutSetTest
 {
     @Test
     public void testSortedSetOfVisibilityTimeouts()

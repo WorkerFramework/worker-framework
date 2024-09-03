@@ -15,7 +15,8 @@
  */
 package com.hpe.caf.worker.queue.sqs;
 
-import org.junit.jupiter.api.Test;
+import org.testng.AssertJUnit;
+import org.testng.annotations.Test;
 import software.amazon.awssdk.services.sqs.model.ChangeMessageVisibilityBatchRequest;
 import software.amazon.awssdk.services.sqs.model.ChangeMessageVisibilityBatchRequestEntry;
 
@@ -29,10 +30,10 @@ import static com.hpe.caf.worker.queue.sqs.util.WorkerQueueWrapper.getWorkerWrap
 import static com.hpe.caf.worker.queue.sqs.util.WorkerQueueWrapper.purgeQueue;
 import static com.hpe.caf.worker.queue.sqs.util.WorkerQueueWrapper.sendMessages;
 import static com.hpe.caf.worker.queue.sqs.util.WorkerQueueWrapper.sendSingleMessagesWithDelays;
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.junit.jupiter.api.Assertions.assertNull;
-import static org.junit.jupiter.api.Assertions.fail;
+import static org.testng.Assert.assertEquals;
+import static org.testng.Assert.assertNotNull;
+import static org.testng.Assert.assertNull;
+import static org.testng.Assert.fail;
 
 public class VisibilityIT
 {
@@ -62,7 +63,7 @@ public class VisibilityIT
                 }
             }
             // Should be 100 unique messages
-            assertEquals(100, msgBodies.size());
+            assertEquals(msgBodies.size(), 100);
 
             // No further messages should be received.
             msg = workerWrapper.callbackQueue.poll(5, TimeUnit.SECONDS);
@@ -101,14 +102,14 @@ public class VisibilityIT
 
             // DDD should we be reporting two messages here,  1st & 2nd delivery?
             // DDD how could we tell.
-            assertEquals(2, metricsReporter.getMessagesReceived(),
-                    "Metrics should have reported two messages(incl one redelivery");
-            assertEquals(0, metricsReporter.getQueueErrors(),
-                    "Metrics should not have reported errors");
-            assertEquals(1, metricsReporter.getMessagesDropped(),
-                    "Metrics should have reported dropped messages");
-            assertEquals(0, metricsReporter.getMessagesRejected(),
-                    "Metrics should not have reported rejected messages");
+            AssertJUnit.assertEquals("Metrics should have reported 2 messages",
+                    2, metricsReporter.getMessagesReceived());
+            AssertJUnit.assertEquals("Metrics should not have reported errors",
+                    0, metricsReporter.getQueueErrors());
+            AssertJUnit.assertEquals("Metrics should have reported 1 dropped messages",
+                    1, metricsReporter.getMessagesDropped());
+            AssertJUnit.assertEquals("Metrics should not have reported rejected messages",
+                    0, metricsReporter.getMessagesRejected());
         } finally {
             purgeQueue(workerWrapper.sqsClient, workerWrapper.inputQueueUrl);
         }
@@ -147,16 +148,16 @@ public class VisibilityIT
                 final var result = workerWrapper.sqsClient.changeMessageVisibilityBatch(req);
                 assertNotNull(result, "Message should have been received.");
 
-                assertEquals(1, metricsReporter.getMessagesReceived(),
-                        "Metrics should only have reported a single message");
-                assertEquals(0, metricsReporter.getQueueErrors(),
-                        "Metrics should not have reported errors");
-                assertEquals(0, metricsReporter.getMessagesDropped(),
-                        "Metrics should not have reported dropped messages");
-                assertEquals(0, metricsReporter.getMessagesRejected(),
-                        "Metrics should not have reported rejected messages");
+                AssertJUnit.assertEquals("Metrics should only have reported a single message",
+                        1, metricsReporter.getMessagesReceived());
+                AssertJUnit.assertEquals("Metrics should not have reported errors",
+                        0, metricsReporter.getQueueErrors());
+                AssertJUnit.assertEquals("Metrics should not have reported dropped messages",
+                        0, metricsReporter.getMessagesDropped());
+                AssertJUnit.assertEquals("Metrics should not have reported rejected messages",
+                        0, metricsReporter.getMessagesRejected());
             } catch (final Exception e) {
-                fail("Unexpected exception when changing visibility for expired receipt handle", e);
+                fail("Unexpected exception when changing visibility for expired receipt handle " + e);
             }
         } finally {
             purgeQueue(workerWrapper.sqsClient, workerWrapper.inputQueueUrl);

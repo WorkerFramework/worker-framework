@@ -15,8 +15,8 @@
  */
 package com.hpe.caf.worker.queue.sqs.util;
 
+import com.hpe.caf.configs.SQSConfiguration;
 import com.hpe.caf.worker.queue.sqs.QueueInfo;
-import com.hpe.caf.worker.queue.sqs.config.SQSConfiguration;
 import com.hpe.caf.worker.queue.sqs.config.SQSWorkerQueueConfiguration;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

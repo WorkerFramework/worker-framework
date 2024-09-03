@@ -16,7 +16,9 @@
 package com.hpe.caf.worker.queue.sqs;
 
 import com.hpe.caf.worker.queue.sqs.util.SQSUtil;
-import org.junit.jupiter.api.Test;
+
+import org.testng.Assert;
+import org.testng.annotations.Test;
 import software.amazon.awssdk.services.sqs.model.GetQueueUrlRequest;
 import software.amazon.awssdk.services.sqs.model.MessageAttributeValue;
 import software.amazon.awssdk.services.sqs.model.MessageSystemAttributeName;
@@ -29,12 +31,12 @@ import java.util.concurrent.TimeUnit;
 import static com.hpe.caf.worker.queue.sqs.util.WorkerQueueWrapper.getWorkerWrapper;
 import static com.hpe.caf.worker.queue.sqs.util.WorkerQueueWrapper.purgeQueue;
 import static com.hpe.caf.worker.queue.sqs.util.WorkerQueueWrapper.sendMessages;
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertFalse;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.junit.jupiter.api.Assertions.assertNull;
-import static org.junit.jupiter.api.Assertions.assertTrue;
-import static org.junit.jupiter.api.Assertions.fail;
+import static org.testng.Assert.assertNotNull;
+import static org.testng.Assert.assertNull;
+import static org.testng.Assert.assertTrue;
+import static org.testng.AssertJUnit.assertEquals;
+import static org.testng.AssertJUnit.assertFalse;
+
 
 public class SQSWorkerQueueIT
 {
@@ -51,15 +53,15 @@ public class SQSWorkerQueueIT
             assertNotNull(msg, "A Message should have been received.");
             final var body = msg.body();
             assertFalse(msg.taskInformation().isPoison());
-            assertEquals(msgBody, body, "Message was not as expected");
-            assertEquals(1, metricsReporter.getMessagesReceived(),
-                    "Metrics should only have reported a single message");
-            assertEquals(0, metricsReporter.getQueueErrors(),
-                    "Metrics should not have reported errors");
-            assertEquals(0, metricsReporter.getMessagesDropped(),
-                    "Metrics should not have reported dropped messages");
-            assertEquals(0, metricsReporter.getMessagesRejected(),
-                    "Metrics should not have reported rejected messages");
+            assertEquals("Message was not as expected", msgBody, body);
+            assertEquals("Metrics should only have reported a single message",
+                    1, metricsReporter.getMessagesReceived());
+            assertEquals("Metrics should not have reported errors",
+                    0, metricsReporter.getQueueErrors());
+            assertEquals("Metrics should not have reported dropped messages",
+                    0, metricsReporter.getMessagesDropped());
+            assertEquals("Metrics should not have reported rejected messages",
+                    0, metricsReporter.getMessagesRejected());
         } finally {
             purgeQueue(workerWrapper.sqsClient, workerWrapper.inputQueueUrl);
         }
@@ -76,7 +78,7 @@ public class SQSWorkerQueueIT
                     .build();
             workerWrapper.sqsClient.getQueueUrl(getQueueUrlRequest);
         } catch (final Exception e) {
-            fail("The input queue was not created:" + e.getMessage());
+            Assert.fail("The input queue was not created:" + e.getMessage());
         }
     }
 
@@ -103,7 +105,7 @@ public class SQSWorkerQueueIT
             assertNotNull(msg, "A Message should have been received.");
             assertTrue(msg.headers().containsKey(SQSUtil.SOURCE_QUEUE),
                     "Expected header: " + SQSUtil.SOURCE_QUEUE);
-            assertEquals(msg.headers().get(SQSUtil.SOURCE_QUEUE).toString(), inputQueue, "Expected:" + inputQueue);
+            assertEquals("Expected:" + inputQueue, inputQueue, msg.headers().get(SQSUtil.SOURCE_QUEUE).toString());
         } finally {
             purgeQueue(workerWrapper.sqsClient, queueUrl);
         }
@@ -125,7 +127,7 @@ public class SQSWorkerQueueIT
 
         sendMessages(workerWrapper, msgBody);
         try {
-            assertFalse(workerWrapper.isReceiving(), "Expected not to be receiving");
+            assertFalse("Expected not to be receiving", workerWrapper.isReceiving());
 
             final var stillNull = workerWrapper.callbackQueue.poll(10, TimeUnit.SECONDS);
             assertNull(stillNull, "A Message should still not have been received.");
@@ -138,14 +140,14 @@ public class SQSWorkerQueueIT
 
             assertFalse(reconnectedMsg.taskInformation().isPoison());
             assertEquals(msgBody, body, "Message was not as expected");
-            assertEquals(1, metricsReporter.getMessagesReceived(),
-                    "Metrics should only have reported a single message");
-            assertEquals(0, metricsReporter.getQueueErrors(),
-                    "Metrics should not have reported errors");
-            assertEquals(0, metricsReporter.getMessagesDropped(),
-                    "Metrics should not have reported dropped messages");
-            assertEquals(0, metricsReporter.getMessagesRejected(),
-                    "Metrics should not have reported rejected messages");
+            assertEquals("Metrics should only have reported a single message",
+                    1, metricsReporter.getMessagesReceived());
+            assertEquals("Metrics should not have reported errors",
+                    0, metricsReporter.getQueueErrors());
+            assertEquals("Metrics should not have reported dropped messages",
+                    0, metricsReporter.getMessagesDropped());
+            assertEquals("Metrics should not have reported rejected messages",
+                    0, metricsReporter.getMessagesRejected());
         } finally {
             purgeQueue(workerWrapper.sqsClient, workerWrapper.inputQueueUrl);
         }
@@ -172,17 +174,17 @@ public class SQSWorkerQueueIT
                     .messageAttributeNames(SQSUtil.ALL_ATTRIBUTES)
                     .build();
             final var result = workerWrapper.sqsClient.receiveMessage(receiveRequest).messages();
-            assertEquals(1, result.size(), "should only have received a single message");
+            assertEquals("should only have received a single message", 1, result.size());
             final var body = result.get(0).body();
             assertEquals(msgBody, body, "Message was not as expected");
-            assertEquals(1, metricsReporter.getMessagesReceived(),
-                    "Metrics should only have reported a single message");
-            assertEquals(0, metricsReporter.getQueueErrors(),
-                    "Metrics should not have reported errors");
-            assertEquals(0, metricsReporter.getMessagesDropped(),
-                    "Metrics should not have reported dropped messages");
-            assertEquals(0, metricsReporter.getMessagesRejected(),
-                    "Metrics should not have reported rejected messages");
+            assertEquals("Metrics should only have reported a single message",
+                    1, metricsReporter.getMessagesReceived());
+            assertEquals("Metrics should not have reported errors",
+                    0, metricsReporter.getQueueErrors());
+            assertEquals("Metrics should not have reported dropped messages",
+                    0, metricsReporter.getMessagesDropped());
+            assertEquals("Metrics should not have reported rejected messages",
+                    0, metricsReporter.getMessagesRejected());
         } finally {
             purgeQueue(workerWrapper.sqsClient, workerWrapper.inputQueueUrl);
             purgeQueue(workerWrapper.sqsClient, rejectQueueUrl);
@@ -209,13 +211,16 @@ public class SQSWorkerQueueIT
                     .messageAttributeNames(SQSUtil.ALL_ATTRIBUTES)
                     .build();
             final var result = workerWrapper.sqsClient.receiveMessage(receiveRequest).messages();
-            assertEquals(0, result.size(), "should not have received a message on reject queue");
+            assertEquals("should not have received a message on reject queue", 0, result.size());
 
-            assertEquals(1, metricsReporter.getMessagesReceived(),
-                    "Metrics should only have reported a single message");
-
-            assertEquals(1, metricsReporter.getMessagesRejected(),
-                    "Metrics should have reported 1 rejected messages");
+            assertEquals("Metrics should only have reported a single message",
+                    1, metricsReporter.getMessagesReceived());
+            assertEquals("Metrics should not have reported errors",
+                    0, metricsReporter.getQueueErrors());
+            assertEquals("Metrics should not have reported dropped messages",
+                    0, metricsReporter.getMessagesDropped());
+            assertEquals("Metrics should have reported 1 rejected messages",
+                    1, metricsReporter.getMessagesRejected());
         } finally {
             purgeQueue(workerWrapper.sqsClient, workerWrapper.inputQueueUrl);
             purgeQueue(workerWrapper.sqsClient, rejectQueueUrl);

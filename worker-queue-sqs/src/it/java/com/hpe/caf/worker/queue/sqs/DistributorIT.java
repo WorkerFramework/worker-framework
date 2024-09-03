@@ -18,7 +18,7 @@ package com.hpe.caf.worker.queue.sqs;
 import com.hpe.caf.worker.queue.sqs.distributor.MessageDistributor;
 import com.hpe.caf.worker.queue.sqs.util.CallbackResponse;
 import com.hpe.caf.worker.queue.sqs.util.SQSUtil;
-import org.junit.jupiter.api.Test;
+import org.testng.annotations.Test;
 import software.amazon.awssdk.services.sqs.model.CreateQueueRequest;
 
 import java.util.ArrayList;
@@ -27,7 +27,7 @@ import java.util.concurrent.TimeUnit;
 import static com.hpe.caf.worker.queue.sqs.util.WorkerQueueWrapper.getWorkerWrapper;
 import static com.hpe.caf.worker.queue.sqs.util.WorkerQueueWrapper.purgeQueue;
 import static com.hpe.caf.worker.queue.sqs.util.WorkerQueueWrapper.sendMessagesInBatches;
-import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.testng.Assert.assertEquals;
 
 public class DistributorIT
 {

@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.hpe.caf.worker.queue.sqs.config;
+package com.hpe.caf.configs;
 
 import com.hpe.caf.api.Encrypted;
 import jakarta.validation.constraints.Max;

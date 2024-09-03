@@ -51,6 +51,37 @@ The default RabbitWorkerQueue configuration file checks for values as below;
 | rejectedQueue  |   | worker-rejected  |
 | retryLimit  |  `CAF_WORKER_RETRY_LIMIT` | 10  |
 
+## SQSConfiguration
+
+The default SQS configuration file checks for values as below;
+
+| Property           | Checked Environment Variables | Default   |
+|--------------------|-------------------------------|-----------|
+| awsProtocol        | `CAF_AWS_PROTOCOL`            | http      |
+| awsHost            | `CAF_AWS_HOST`                | localhost |
+| awsPort            | `CAF_AWS_PORT`                | 5672      |
+| awsRegion          | `CAF_AWS_REGION`              | guest     |
+| awsAccessKey       | `CAF_AWS_ACCESS_KEY`          | guest     |
+| awsSecretAccessKey | `CAF_AWS_SECRET_ACCESS_KEY`   | guest     |
+
+## SQSWorkerQueueConfiguration
+
+The default SQSWorkerQueue configuration file checks for values as below;
+
+| Property               | Checked Environment Variables                                            | Default      |
+|------------------------|--------------------------------------------------------------------------|--------------|
+| inputQueue             | `CAF_WORKER_INPUT_QUEUE`                                                 | worker-in    |
+|                        | `CAF_WORKER_BASE_QUEUE_NAME` with '-in' appended to the value if present |              |
+|                        | `CAF_WORKER_NAME` with '-in' appended to the value if present            |              |
+| pausedQueue            | `CAF_WORKER_PAUSED_QUEUE`                                                | 1            |
+| retryQueue             | `CAF_WORKER_RETRY_QUEUE`                                                 | 1            |
+| rejectedQueue          | `worker-rejected`                                                        | 1            |
+| longPollInterval       | `CAF_AWS_LONG_POLL_INTERVAL`                                             | 1            |
+| maxNumberOfMessages    | `CAF_AWS_MAX_NUMER_OF_MESSAGES`                                          | 1            |
+| visibilityTimeout      | `CAF_AWS_VISIBILITY_TIMEOUT`                                             | 1            |
+| messageRetentionPeriod | `CAF_AWS_MESSAGE_RETENTION_PERIOD`                                       | 1            |
+| maxDeliveries          | `CAF_AWS_MAX_DELEIVERIES`                                                | 1            |
+
 ## HealthConfiguration
 
 The default Heath configuration file checks for values as below;

@@ -112,11 +112,12 @@ public final class WorkerApplication extends Application<WorkerConfiguration>
         Decoder decoder = decoderProvider.getDecoder(bootstrap, codec);
         ManagedConfigurationSource config = ModuleLoader.getService(ConfigurationSourceProvider.class).getConfigurationSource(bootstrap, cipher, path, decoder);
         WorkerFactoryProvider workerProvider = ModuleLoader.getService(WorkerFactoryProvider.class);
-        WorkerQueueProvider queueProvider = ModuleLoader.getService(WorkerQueueProvider.class);
+        WorkerQueueProviderFactory workerQueueProviderFactory = ModuleLoader.getService(WorkerQueueProviderFactory.class);
         ManagedDataStore store = ModuleLoader.getService(DataStoreProvider.class).getDataStore(config);
         WorkerFactory workerFactory = workerProvider.getWorkerFactory(config, store, codec);
         WorkerThreadPool wtp = WorkerThreadPool.create(workerFactory);
         final int nThreads = workerFactory.getWorkerThreads();
+        WorkerQueueProvider queueProvider = workerQueueProviderFactory.getQueueProvider();
         ManagedWorkerQueue workerQueue = queueProvider.getWorkerQueue(config, nThreads);
         TransientHealthCheck transientHealthCheck = new TransientHealthCheck();
         WorkerCore core = new WorkerCore(codec, wtp, workerQueue, workerFactory, path, environment.healthChecks(), transientHealthCheck);
