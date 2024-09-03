@@ -16,9 +16,9 @@
 package com.hpe.caf.worker.queue.sqs.util;
 
 import com.hpe.caf.api.worker.WorkerQueueMetricsReporter;
+import com.hpe.caf.configs.SQSConfiguration;
 import com.hpe.caf.worker.queue.sqs.SQSTaskInformation;
 import com.hpe.caf.worker.queue.sqs.SQSWorkerQueue;
-import com.hpe.caf.worker.queue.sqs.config.SQSConfiguration;
 import com.hpe.caf.worker.queue.sqs.config.SQSWorkerQueueConfiguration;
 import software.amazon.awssdk.auth.credentials.AwsCredentials;
 import software.amazon.awssdk.regions.Region;
@@ -38,8 +38,7 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.BlockingQueue;
 
-import static org.junit.jupiter.api.Assertions.fail;
-
+import static org.testng.Assert.fail;
 
 public class WorkerQueueWrapper
 {

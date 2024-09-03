@@ -16,7 +16,6 @@
 package com.hpe.caf.worker.queue.sqs;
 
 import com.hpe.caf.worker.queue.sqs.util.SQSUtil;
-
 import org.testng.Assert;
 import org.testng.annotations.Test;
 import software.amazon.awssdk.services.sqs.model.GetQueueUrlRequest;
@@ -134,12 +133,13 @@ public class SQSWorkerQueueIT
 
             workerWrapper.sqsWorkerQueue.reconnectIncoming();
             final var reconnectedMsg = workerWrapper.callbackQueue.poll(10, TimeUnit.SECONDS);
+            assertNotNull(reconnectedMsg, "A Message should have been received.");
             final var body = reconnectedMsg.body();
 
             assertTrue(workerWrapper.isReceiving(), "Expected to be receiving");
 
             assertFalse(reconnectedMsg.taskInformation().isPoison());
-            assertEquals(msgBody, body, "Message was not as expected");
+            assertEquals("Message was not as expected", msgBody, body);
             assertEquals("Metrics should only have reported a single message",
                     1, metricsReporter.getMessagesReceived());
             assertEquals("Metrics should not have reported errors",
@@ -154,7 +154,7 @@ public class SQSWorkerQueueIT
     }
 
     @Test
-    public void testInvalidTaskException() throws Exception
+    public void testInvalidTaskException()
     {
         final var inputQueue = "test-invalid-task";
         final var retryQueue = "retry-invalid-task";
@@ -176,7 +176,7 @@ public class SQSWorkerQueueIT
             final var result = workerWrapper.sqsClient.receiveMessage(receiveRequest).messages();
             assertEquals("should only have received a single message", 1, result.size());
             final var body = result.get(0).body();
-            assertEquals(msgBody, body, "Message was not as expected");
+            assertEquals("Message was not as expected", msgBody, body);
             assertEquals("Metrics should only have reported a single message",
                     1, metricsReporter.getMessagesReceived());
             assertEquals("Metrics should not have reported errors",
@@ -192,7 +192,7 @@ public class SQSWorkerQueueIT
     }
 
     @Test
-    public void testTaskRejectedException() throws Exception
+    public void testTaskRejectedException()
     {
         final var inputQueue = "test-rejected-task";
         final var retryQueue = "retry-rejected-task";

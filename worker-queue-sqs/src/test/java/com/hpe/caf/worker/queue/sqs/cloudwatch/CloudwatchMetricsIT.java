@@ -16,7 +16,7 @@
 package com.hpe.caf.worker.queue.sqs.cloudwatch;
 
 import com.hpe.caf.worker.queue.sqs.util.WorkerQueueWrapper;
-import org.junit.jupiter.api.Test;
+import org.testng.annotations.Test;
 import software.amazon.awssdk.services.cloudwatch.CloudWatchClient;
 
 import java.util.HashMap;
@@ -26,7 +26,7 @@ import java.util.concurrent.TimeUnit;
 
 import static com.hpe.caf.worker.queue.sqs.util.WorkerQueueWrapper.getWorkerWrapper;
 import static com.hpe.caf.worker.queue.sqs.util.WorkerQueueWrapper.sendMessages;
-import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.testng.AssertJUnit.assertTrue;
 
 /**
  * Testing AWS cloudwatch metrics availability, not to be confused with MetricsReporter functionality.
