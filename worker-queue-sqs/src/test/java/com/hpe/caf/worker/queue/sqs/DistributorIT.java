@@ -24,12 +24,11 @@ import software.amazon.awssdk.services.sqs.model.CreateQueueRequest;
 import java.util.ArrayList;
 import java.util.concurrent.TimeUnit;
 
-import static com.hpe.caf.worker.queue.sqs.util.WorkerQueueWrapper.getWorkerWrapper;
 import static com.hpe.caf.worker.queue.sqs.util.WorkerQueueWrapper.purgeQueue;
 import static com.hpe.caf.worker.queue.sqs.util.WorkerQueueWrapper.sendMessagesInBatches;
 import static org.testng.Assert.assertEquals;
 
-public class DistributorIT
+public class DistributorIT extends TestContainer
 {
     @Test
     public void testRedistributeMessagesWhenNoneExistDoesNotThrowError() throws Exception

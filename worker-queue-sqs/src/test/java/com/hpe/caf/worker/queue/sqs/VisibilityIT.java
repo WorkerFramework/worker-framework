@@ -26,7 +26,6 @@ import java.util.Set;
 import java.util.concurrent.TimeUnit;
 
 import static com.hpe.caf.worker.queue.sqs.util.WorkerQueueWrapper.deleteMessage;
-import static com.hpe.caf.worker.queue.sqs.util.WorkerQueueWrapper.getWorkerWrapper;
 import static com.hpe.caf.worker.queue.sqs.util.WorkerQueueWrapper.purgeQueue;
 import static com.hpe.caf.worker.queue.sqs.util.WorkerQueueWrapper.sendMessages;
 import static com.hpe.caf.worker.queue.sqs.util.WorkerQueueWrapper.sendSingleMessagesWithDelays;
@@ -35,7 +34,7 @@ import static org.testng.Assert.assertNotNull;
 import static org.testng.Assert.assertNull;
 import static org.testng.Assert.fail;
 
-public class VisibilityIT
+public class VisibilityIT extends TestContainer
 {
     /**
      * Testing when we send one unique message per second for N seconds with a visibility timeout of N seconds.

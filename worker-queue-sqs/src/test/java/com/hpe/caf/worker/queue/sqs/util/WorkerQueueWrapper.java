@@ -20,6 +20,7 @@ import com.hpe.caf.configs.SQSConfiguration;
 import com.hpe.caf.worker.queue.sqs.SQSTaskInformation;
 import com.hpe.caf.worker.queue.sqs.SQSWorkerQueue;
 import com.hpe.caf.worker.queue.sqs.config.SQSWorkerQueueConfiguration;
+import org.testcontainers.containers.localstack.LocalStackContainer;
 import software.amazon.awssdk.auth.credentials.AwsCredentials;
 import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.cloudwatch.CloudWatchClient;
@@ -58,6 +59,7 @@ public class WorkerQueueWrapper
     final CloudWatchClient cloudWatch;
 
     public WorkerQueueWrapper(
+            final LocalStackContainer container,
             final String inputQueue,
             final String retryQueue,
             final int visibilityTimeout,
@@ -72,11 +74,11 @@ public class WorkerQueueWrapper
 
             sqsConfiguration = new SQSConfiguration();
             sqsConfiguration.setAwsProtocol("http");
-            sqsConfiguration.setAwsHost("sqs.us-east-1.localhost.localstack.cloud");
-            sqsConfiguration.setAwsPort(14566);
-            sqsConfiguration.setAwsRegion("us-east-1");
-            sqsConfiguration.setAwsAccessKey("x");
-            sqsConfiguration.setSecretAccessKey("x");
+            sqsConfiguration.setAwsHost(container.getHost());
+            sqsConfiguration.setAwsPort(container.getFirstMappedPort());
+            sqsConfiguration.setAwsRegion(container.getRegion());
+            sqsConfiguration.setAwsAccessKey(container.getAccessKey());
+            sqsConfiguration.setSecretAccessKey(container.getSecretKey());
 
             workerQueueConfiguration = new SQSWorkerQueueConfiguration();
             workerQueueConfiguration.setSQSConfiguration(sqsConfiguration);
@@ -131,23 +133,32 @@ public class WorkerQueueWrapper
         return cloudWatch;
     }
 
-    public static WorkerQueueWrapper getWorkerWrapper(final String inputQueue)
+    public static WorkerQueueWrapper getWorkerWrapper(
+            final LocalStackContainer container,
+            final String inputQueue
+    )
     {
-        return getWorkerWrapper(inputQueue, inputQueue);
-    }
-
-    public static WorkerQueueWrapper getWorkerWrapper(final String inputQueue, final String retryQueue)
-    {
-        return getWorkerWrapper(inputQueue, retryQueue, new WrapperConfig());
+        return getWorkerWrapper(container, inputQueue, inputQueue);
     }
 
     public static WorkerQueueWrapper getWorkerWrapper(
+            final LocalStackContainer container,
+            final String inputQueue,
+            final String retryQueue
+    )
+    {
+        return getWorkerWrapper(container, inputQueue, retryQueue, new WrapperConfig());
+    }
+
+    private static WorkerQueueWrapper getWorkerWrapper(
+            final LocalStackContainer container,
             final String inputQueue,
             final String retryQueue,
             final WrapperConfig wrapperConfig
     )
     {
         return new WorkerQueueWrapper(
+                container,
                 inputQueue,
                 retryQueue,
                 wrapperConfig.visibilityTimout(),

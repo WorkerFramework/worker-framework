@@ -15,6 +15,7 @@
  */
 package com.hpe.caf.worker.queue.sqs.cloudwatch;
 
+import com.hpe.caf.worker.queue.sqs.TestContainer;
 import com.hpe.caf.worker.queue.sqs.util.WorkerQueueWrapper;
 import org.testng.annotations.Test;
 import software.amazon.awssdk.services.cloudwatch.CloudWatchClient;
@@ -24,14 +25,13 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
 
-import static com.hpe.caf.worker.queue.sqs.util.WorkerQueueWrapper.getWorkerWrapper;
 import static com.hpe.caf.worker.queue.sqs.util.WorkerQueueWrapper.sendMessages;
 import static org.testng.AssertJUnit.assertTrue;
 
 /**
  * Testing AWS cloudwatch metrics availability, not to be confused with MetricsReporter functionality.
  */
-public class CloudwatchMetricsIT
+public class CloudwatchMetricsIT extends TestContainer
 {
     @Test
     public void testMetricsShowReceivedAndDeleted() throws Exception

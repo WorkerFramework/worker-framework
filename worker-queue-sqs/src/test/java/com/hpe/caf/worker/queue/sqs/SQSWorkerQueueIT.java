@@ -27,7 +27,6 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
 
-import static com.hpe.caf.worker.queue.sqs.util.WorkerQueueWrapper.getWorkerWrapper;
 import static com.hpe.caf.worker.queue.sqs.util.WorkerQueueWrapper.purgeQueue;
 import static com.hpe.caf.worker.queue.sqs.util.WorkerQueueWrapper.sendMessages;
 import static org.testng.Assert.assertNotNull;
@@ -37,7 +36,7 @@ import static org.testng.AssertJUnit.assertEquals;
 import static org.testng.AssertJUnit.assertFalse;
 
 
-public class SQSWorkerQueueIT
+public class SQSWorkerQueueIT extends TestContainer
 {
     @Test
     public void testPublish() throws Exception
