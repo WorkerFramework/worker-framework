@@ -25,7 +25,7 @@ public final class WrapperConfig
 
     public WrapperConfig()
     {
-        this(10,
+        this(30,
              5,
              1,
              1000,
