@@ -46,7 +46,6 @@ public class VisibilityMonitor implements Runnable
     private final Map<String, Set<VisibilityTimeout>> timeoutSets;
 
     private static final int MAX_BATCH_SIZE = 10;
-    private static final int SAFETY_BUFFER_SECONDS = 10;
 
     private static final Logger LOG = LoggerFactory.getLogger(VisibilityMonitor.class);
 
@@ -58,8 +57,9 @@ public class VisibilityMonitor implements Runnable
         this.sqsClient = sqsClient;
         this.queueVisibilityTimeout = queueVisibilityTimeout;
         timeoutSets = new HashMap<>();
-        timeoutWindowLimit = queueVisibilityTimeout + SAFETY_BUFFER_SECONDS;
+        timeoutWindowLimit = (int)(queueVisibilityTimeout * 1.25);
         monitoringInterval = (this.queueVisibilityTimeout / 2) * 1000;
+
     }
 
     @Override
