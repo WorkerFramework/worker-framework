@@ -14,5 +14,5 @@
  * limitations under the License.
  */
 ({
-    implementation: getenv("CAF_MESSAGING_IMPLEMENTATION") || "rabbitmq",
+    implementation: getenv("CAF_MESSAGING_IMPLEMENTATION") || "rabbitmq"
 });
