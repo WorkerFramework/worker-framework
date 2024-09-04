@@ -167,12 +167,12 @@ public abstract class QueueConsumer implements Runnable
             // Now all actions completed, stop redeliveries by extending the visibility timeout.
             visibilityMonitor.watch(taskInfo);
         } catch (final InvalidTaskException e) {
-            LOG.error("Cannot register new message, rejecting {}", message.messageId(), e);
+            LOG.error("Cannot register new message, rejecting {}", taskInfo, e);
             retryMessage(message); // DDD not yet watched
         } catch (final TaskRejectedException e) {
             metricsReporter.incrementRejected(); // DDD not yet watched
             LOG.warn("Message {} rejected as a task at this time, will be redelivered by SQS",
-                    message.messageId(), e);
+                    taskInfo, e);
         }
     }
 
