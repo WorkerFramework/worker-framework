@@ -30,8 +30,9 @@ public class TestContainer
             container = new LocalStackContainer(
                     DockerImageName.parse(imageName)
                     .asCompatibleSubstituteFor(compatibleImageName)
-            ).withServices(LocalStackContainer.Service.SQS, LocalStackContainer.Service.CLOUDWATCH);
-            container.start();
+            );
+            container.withServices(LocalStackContainer.Service.SQS, LocalStackContainer.Service.CLOUDWATCH)
+                     .start();
         }
     }
 
