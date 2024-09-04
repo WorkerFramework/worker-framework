@@ -46,7 +46,7 @@ public class VisibilityMonitor implements Runnable
     private final Map<String, Set<VisibilityTimeout>> timeoutSets;
 
     private static final int MAX_BATCH_SIZE = 10;
-    private static final int SAFETY_BUFFER_SECONDS = 120;
+    private static final int SAFETY_BUFFER_SECONDS = 10;
 
     private static final Logger LOG = LoggerFactory.getLogger(VisibilityMonitor.class);
 
