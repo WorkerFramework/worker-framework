@@ -13,6 +13,30 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-({
-    queueImplementation: getenv("CAF_QUEUE_IMPLEMENTATION") || "RABBITMQ",
-});
+package com.hpe.caf.worker.core;
+
+import com.hpe.caf.api.Configuration;
+import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Size;
+
+@Configuration
+public class MessageSystemConfiguration
+{
+    public MessageSystemConfiguration()
+    {
+    }
+
+    @NotNull
+    @Size(min = 1)
+    private String implementation;
+
+    public String getImplementation()
+    {
+        return implementation;
+    }
+
+    public void setImplementation(final String implementation)
+    {
+        this.implementation = implementation;
+    }
+}

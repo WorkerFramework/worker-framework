@@ -51,6 +51,18 @@ The default RabbitWorkerQueue configuration file checks for values as below;
 | rejectedQueue  |   | worker-rejected  |
 | retryLimit  |  `CAF_WORKER_RETRY_LIMIT` | 10  |
 
+## MessageSystemConfiguration
+
+The default MessageSystemConfiguration configuration file checks for values as below;
+
+Currently supported messaging system implementations:
+- Rabbit MQ -> value "rabbitmq"
+- AWS SQS   -> value "sqs"
+
+| Property       | Checked Environment Variables    | Default  |
+|----------------|----------------------------------|----------|
+| implementation | `CAF_QUEUE_IMPLEMENTATION`       | rabbitmq |
+
 ## SQSConfiguration
 
 The default SQS configuration file checks for values as below;

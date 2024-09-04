@@ -61,9 +61,11 @@ public final class SQSWorkerQueue implements ManagedWorkerQueue
     private static final Logger LOG = LoggerFactory.getLogger(SQSWorkerQueue.class);
 
     public SQSWorkerQueue(
-            final SQSWorkerQueueConfiguration queueCfg
+            final SQSWorkerQueueConfiguration queueCfg,
+            int maxTasks
     )
     {
+        // DDD ignoring max tasks here??.
         this.queueCfg = Objects.requireNonNull(queueCfg);
         metricsReporter = new MetricsReporter();
         receiveMessages = new AtomicBoolean(true);

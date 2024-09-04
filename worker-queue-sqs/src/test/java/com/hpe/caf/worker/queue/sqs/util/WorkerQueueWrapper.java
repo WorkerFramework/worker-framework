@@ -90,7 +90,7 @@ public class WorkerQueueWrapper
             workerQueueConfiguration.setMessageRetentionPeriod(messageRetentionPeriod);
             workerQueueConfiguration.setMaxDeliveries(maxDeliveries);
 
-            sqsWorkerQueue = new SQSWorkerQueue(workerQueueConfiguration);
+            sqsWorkerQueue = new SQSWorkerQueue(workerQueueConfiguration, 1);
             sqsWorkerQueue.start(callback);
 
             sqsClient = SQSUtil.getSqsClient(sqsConfiguration);

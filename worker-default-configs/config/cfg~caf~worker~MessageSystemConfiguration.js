@@ -13,11 +13,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.hpe.caf.api.worker;
-
-import com.hpe.caf.api.ConfigurationSource;
-
-public interface WorkerQueueProviderFactory
-{
-    WorkerQueueProvider getQueueProvider();
-}
+({
+    implementation: getenv("CAF_QUEUE_IMPLEMENTATION") || "rabbitmq",
+});
