@@ -61,7 +61,7 @@ Currently supported messaging system implementations:
 
 | Property       | Checked Environment Variables    | Default  |
 |----------------|----------------------------------|----------|
-| implementation | `CAF_QUEUE_IMPLEMENTATION`       | rabbitmq |
+| implementation | `CAF_MESSAGING_IMPLEMENTATION`   | rabbitmq |
 
 ## SQSConfiguration
 
