@@ -15,6 +15,7 @@
  */
 package com.github.workerframework.testworker;
 
+import com.hpe.caf.api.ConfigurationException;
 import com.hpe.caf.api.ConfigurationSource;
 import com.hpe.caf.api.HealthResult;
 import com.hpe.caf.api.worker.ManagedWorkerQueue;
@@ -31,6 +32,11 @@ public class TestWorkerQueueProvider implements WorkerQueueProvider
     @Override
     public ManagedWorkerQueue getWorkerQueue(ConfigurationSource configurationSource, int maxTasks) throws QueueException
     {
+        try {
+            final var messageSystemCfg = configurationSource.getConfiguration(TestMessageSystemConfiguration.class);
+        } catch (ConfigurationException e) {
+            throw new RuntimeException(e);
+        }
         return new ManagedWorkerQueue()
         {
             @Override
