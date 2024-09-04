@@ -19,7 +19,7 @@ public class WorkerQueueProviderImpl implements WorkerQueueProvider
     {
         try {
             final var messageSystemCfg = configurationSource.getConfiguration(MessageSystemConfiguration.class);
-            if (messageSystemCfg.getImplementation().equalsIgnoreCase(AWS_SQS_MESSAGING)) {
+            if (messageSystemCfg.getImplementation().equals(AWS_SQS_MESSAGING)) {
                 return new SQSWorkerQueue(configurationSource.getConfiguration(SQSWorkerQueueConfiguration.class), maxTasks);
             }
             return new RabbitWorkerQueue(configurationSource.getConfiguration(RabbitWorkerQueueConfiguration.class), maxTasks);

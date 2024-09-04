@@ -17,7 +17,7 @@ package com.hpe.caf.worker.core;
 
 import com.hpe.caf.api.Configuration;
 import jakarta.validation.constraints.NotNull;
-import jakarta.validation.constraints.Size;
+import jakarta.validation.constraints.Pattern;
 
 @Configuration
 public class MessageSystemConfiguration
@@ -27,7 +27,7 @@ public class MessageSystemConfiguration
     }
 
     @NotNull
-    @Size(min = 1)
+    @Pattern(regexp = "sqs|rabbitmq")
     private String implementation;
 
     public String getImplementation()
