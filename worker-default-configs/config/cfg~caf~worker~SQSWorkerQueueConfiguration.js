@@ -22,5 +22,5 @@
     maxNumberOfMessages: getenv("CAF_AWS_MAX_NUMER_OF_MESSAGES") || 10,
     visibilityTimeout: getenv("CAF_AWS_VISIBILITY_TIMEOUT") || 300,
     messageRetentionPeriod: getenv("CAF_AWS_MESSAGE_RETENTION_PERIOD") || 43200,
-    maxDeliveries: getenv("CAF_AWS_MAX_DELEIVERIES") || 2,
+    maxDeliveries: getenv("CAF_AWS_MAX_DELEIVERIES") || 2
 });
