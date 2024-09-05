@@ -71,8 +71,8 @@ public class VisibilityMonitor implements Runnable
                         final var expiredTimeouts = new ArrayList<VisibilityTimeout>();
                         final var toBeExtendedTimeouts = new ArrayList<VisibilityTimeout>();
 
-                        var now = Instant.now().getEpochSecond();
-                        var boundary = now + (queueVisibilityTimeout * 2);
+                        final var now = Instant.now().getEpochSecond();
+                        final var boundary = now + (queueVisibilityTimeout * 2);
 
                         Collections.sort(visibilityTimeouts);
                         for(final var vto : visibilityTimeouts) {
@@ -140,7 +140,7 @@ public class VisibilityMonitor implements Runnable
         final var entries = new ArrayList<ChangeMessageVisibilityBatchRequestEntry>();
         int id = 1;
         for(final VisibilityTimeout to : timeouts) {
-            var idStr = String.valueOf(id++);
+            final var idStr = String.valueOf(id++);
             timeoutMap.put(idStr, to);
             final Long sqsTimeout = to.getBecomesVisibleEpochSecond() - Instant.now().getEpochSecond();
             entries.add(ChangeMessageVisibilityBatchRequestEntry.builder()
@@ -179,7 +179,7 @@ public class VisibilityMonitor implements Runnable
         final var visibilityTimeouts = timeoutCollections.get(taskInfo.getQueueInfo().url());
         if (visibilityTimeouts != null) {
             synchronized (visibilityTimeouts) {
-                var removed = visibilityTimeouts.remove(taskInfo.getVisibilityTimeout());
+                final var removed = visibilityTimeouts.remove(taskInfo.getVisibilityTimeout());
                 if (removed) {
                     LOG.debug("Unwatched {} remaining tasks {}", taskInfo.getReceiptHandle(), visibilityTimeouts.size());
                 } else {
