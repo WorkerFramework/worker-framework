@@ -150,7 +150,7 @@ public class WorkerQueueWrapper
         return getWorkerWrapper(container, inputQueue, retryQueue, new WrapperConfig());
     }
 
-    private static WorkerQueueWrapper getWorkerWrapper(
+    public static WorkerQueueWrapper getWorkerWrapper(
             final LocalStackContainer container,
             final String inputQueue,
             final String retryQueue,

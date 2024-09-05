@@ -16,14 +16,27 @@
 package com.hpe.caf.worker.queue.sqs;
 
 import com.hpe.caf.worker.queue.sqs.util.WorkerQueueWrapper;
+import com.hpe.caf.worker.queue.sqs.util.WrapperConfig;
 import org.testcontainers.containers.localstack.LocalStackContainer;
 import org.testcontainers.utility.DockerImageName;
 
 public class TestContainer
 {
     protected static LocalStackContainer container;
-    private static final String imageName = System.getenv("LOCALSTACK_IMAGE");
-    private static final String compatibleImageName = System.getenv("COMPATIBLE_LOCALSTACK_IMAGE");
+
+    // Just allows to debug in IDE
+    private static final String imageName = getEnvOrDefault(
+            "LOCALSTACK_IMAGE",
+            "worker-framework-8.2.0-SNAPSHOT.project-registries.local/localstack/localstack:latest"
+
+    );
+
+    // Just allows to debug in IDE
+    private static final String compatibleImageName = getEnvOrDefault(
+            "COMPATIBLE_LOCALSTACK_IMAGE",
+            "localstack/localstack"
+
+    );
 
     static {
         if (container == null || !container.isRunning()) {
@@ -44,5 +57,19 @@ public class TestContainer
     public static WorkerQueueWrapper getWorkerWrapper(final String inputQueue, final String retryQueue)
     {
         return WorkerQueueWrapper.getWorkerWrapper(container, inputQueue, retryQueue);
+    }
+
+    public static WorkerQueueWrapper getWorkerWrapper(
+            final String inputQueue,
+            final String retryQueue,
+            final WrapperConfig wrapperConfig)
+    {
+        return WorkerQueueWrapper.getWorkerWrapper(container, inputQueue, retryQueue, wrapperConfig);
+    }
+
+    private static String getEnvOrDefault(final String envName, final String defaultValue)
+    {
+        final var value = System.getenv(envName);
+        return value != null ? value : defaultValue;
     }
 }

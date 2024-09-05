@@ -19,29 +19,30 @@ import com.hpe.caf.worker.queue.sqs.visibility.VisibilityTimeout;
 import org.testng.annotations.Test;
 
 import java.time.Instant;
+import java.util.ArrayList;
 import java.util.Collections;
-import java.util.SortedSet;
-import java.util.TreeSet;
+import java.util.List;
 import java.util.UUID;
 
 import static org.testng.AssertJUnit.assertTrue;
 
-public class VisibilityTimeoutSetTest
+public class VisibilityTimeoutListTest
 {
     @Test
     public void testSortedSetOfVisibilityTimeouts()
     {
         var startTime = Instant.now().getEpochSecond();
-        final SortedSet<VisibilityTimeout> set = Collections.synchronizedSortedSet(new TreeSet<>());
+        final List<VisibilityTimeout> visibilityTimeouts = Collections.synchronizedList(new ArrayList<>());
         for(int i = 1; i < 100; i++) {
             var ti = getVisibilityTimeout(startTime, i);
-            set.add(ti);
+            visibilityTimeouts.add(ti);
         }
         VisibilityTimeout prev = null;
+        Collections.sort(visibilityTimeouts);
 
-        for(VisibilityTimeout next : set) {
+        for(VisibilityTimeout next : visibilityTimeouts) {
             if (prev != null) {
-                assertTrue(prev.becomesVisibleEpochSecond() < next.becomesVisibleEpochSecond());
+                assertTrue(prev.getBecomesVisibleEpochSecond() < next.getBecomesVisibleEpochSecond());
             }
             prev = next;
         }

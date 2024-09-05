@@ -39,6 +39,7 @@ import java.time.Instant;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.stream.Collectors;
 
 public abstract class QueueConsumer implements Runnable
 {
@@ -99,12 +100,14 @@ public abstract class QueueConsumer implements Runnable
     protected void receiveMessages(final ReceiveMessageRequest receiveRequest)
     {
         final var receiveMessageResult = sqsClient.receiveMessage(receiveRequest).messages();
-        if (receiveMessageResult.isEmpty()) {
-            LOG.debug("Nothing received from queue {} ", queueInfo.name());
+        if (!receiveMessageResult.isEmpty()) {
+            LOG.debug("Received {} messages from queue {} \n{}",
+                    receiveMessageResult.size(),
+                    queueInfo.name(),
+                    receiveMessageResult.stream().map(Message::receiptHandle).collect(Collectors.toSet()));
         }
 
         for(final var message : receiveMessageResult) {
-            LOG.debug("Received {} on queue {} ", message.body(), queueInfo.name());
             registerNewTask(message);
         }
     }

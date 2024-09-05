@@ -42,7 +42,7 @@ public final class SQSTaskInformation implements TaskInformation
 
     public QueueInfo getQueueInfo()
     {
-        return visibilityTimeout.queueInfo();
+        return visibilityTimeout.getQueueInfo();
     }
 
     @Override
@@ -64,7 +64,7 @@ public final class SQSTaskInformation implements TaskInformation
 
     public String getReceiptHandle()
     {
-        return visibilityTimeout.receiptHandle();
+        return visibilityTimeout.getReceiptHandle();
     }
 
     @Override

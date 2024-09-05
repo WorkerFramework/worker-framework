@@ -29,6 +29,7 @@ import software.amazon.awssdk.services.sqs.model.GetQueueUrlRequest;
 import software.amazon.awssdk.services.sqs.model.QueueAttributeName;
 import software.amazon.awssdk.services.sqs.model.QueueNameExistsException;
 import software.amazon.awssdk.services.sqs.model.SetQueueAttributesRequest;
+import software.amazon.awssdk.services.sqs.model.SetQueueAttributesResponse;
 
 import java.net.URI;
 import java.net.URISyntaxException;
@@ -119,7 +120,7 @@ public class SQSUtil
         }
     }
 
-    private static void addRedrivePolicy(
+    private static SetQueueAttributesResponse addRedrivePolicy(
             final SqsClient sqsClient,
             final String inputQueueUrl,
             final String deadLetterQueueArn,
@@ -136,7 +137,8 @@ public class SQSUtil
                 .queueUrl(inputQueueUrl)
                 .attributes(sourceAttributes)
                 .build();
-        sqsClient.setQueueAttributes(queueAttributesRequest);
+        var response = sqsClient.setQueueAttributes(queueAttributesRequest);
+        return response;
     }
 
     public static Map<QueueAttributeName, String> getQueueAttributes(final SQSWorkerQueueConfiguration queueCfg)

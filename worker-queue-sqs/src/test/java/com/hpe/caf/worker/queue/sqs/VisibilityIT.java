@@ -15,14 +15,25 @@
  */
 package com.hpe.caf.worker.queue.sqs;
 
+import com.hpe.caf.worker.queue.sqs.util.CallbackResponse;
+import com.hpe.caf.worker.queue.sqs.util.SQSUtil;
+import com.hpe.caf.worker.queue.sqs.util.WrapperConfig;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.testng.AssertJUnit;
 import org.testng.annotations.Test;
 import software.amazon.awssdk.services.sqs.model.ChangeMessageVisibilityBatchRequest;
 import software.amazon.awssdk.services.sqs.model.ChangeMessageVisibilityBatchRequestEntry;
+import software.amazon.awssdk.services.sqs.model.MessageSystemAttributeName;
+import software.amazon.awssdk.services.sqs.model.ReceiveMessageRequest;
+import software.amazon.awssdk.services.sqs.model.ReceiveMessageResponse;
 
+import java.time.Duration;
+import java.time.Instant;
+import java.util.ArrayList;
 import java.util.Collections;
-import java.util.HashSet;
-import java.util.Set;
+import java.util.HashMap;
+import java.util.List;
 import java.util.concurrent.TimeUnit;
 
 import static com.hpe.caf.worker.queue.sqs.util.WorkerQueueWrapper.deleteMessage;
@@ -32,47 +43,61 @@ import static com.hpe.caf.worker.queue.sqs.util.WorkerQueueWrapper.sendSingleMes
 import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertNotNull;
 import static org.testng.Assert.assertNull;
+import static org.testng.Assert.assertTrue;
 import static org.testng.Assert.fail;
 
 public class VisibilityIT extends TestContainer
 {
+    private static final Logger LOG = LoggerFactory.getLogger(VisibilityIT.class);
+
     /**
      * Testing when we send one unique message per second for N seconds with a visibility timeout of N seconds.
-     * The visibility extender should not fall behind and only 100 unique messages should be delivered.
+     * The visibility extender should not fall behind and only N unique messages should be delivered.
      *
      * @throws Exception error in test
      */
     @Test
-    public void testExtensionDoesNotMissExpiringMessages() throws Exception
+    public void testExtendingMultipleMessages() throws Exception
     {
         final var inputQueue = "keep-extending-visibility";
-        final var workerWrapper = getWorkerWrapper(inputQueue);
-
-        sendSingleMessagesWithDelays(workerWrapper.sqsClient, workerWrapper.inputQueueUrl, 100, 1L);
+        final int timeout;
+        final int numberOfMessages = timeout = 10;
+        final var workerWrapper = getWorkerWrapper(
+                inputQueue,
+                inputQueue,
+                new WrapperConfig(
+                        timeout,
+                        1,
+                        10,
+                        1000,
+                        1000
+                ));
+        sendSingleMessagesWithDelays(workerWrapper.sqsClient, workerWrapper.inputQueueUrl, numberOfMessages, 2L);
 
         try {
-            final Set<String> msgBodies = new HashSet<>();
+            final List<String> msgBodies = new ArrayList<>();
             var msg = workerWrapper.callbackQueue.poll(5, TimeUnit.SECONDS);
             assertNotNull(msg, "A Message should have been received.");
             msgBodies.add(msg.body());
             while (msg != null) {
-                msg = workerWrapper.callbackQueue.poll(5, TimeUnit.SECONDS);
+                msg = workerWrapper.callbackQueue.poll(2, TimeUnit.SECONDS);
                 if (msg != null) {
                     msgBodies.add(msg.body());
                 }
             }
-            // Should be 100 unique messages
-            assertEquals(msgBodies.size(), 100);
+            // Should be N unique messages
+            assertEquals(msgBodies.stream().distinct().count(), numberOfMessages);
 
+            LOG.debug("Should not get messages after this");
             // No further messages should be received.
-            msg = workerWrapper.callbackQueue.poll(5, TimeUnit.SECONDS);
+            msg = workerWrapper.callbackQueue.poll(1, TimeUnit.SECONDS);
             int attempts = 0;
-            while (msg != null) {
-                msg = workerWrapper.callbackQueue.poll(5, TimeUnit.SECONDS);
+            while (msg == null) {
+                msg = workerWrapper.callbackQueue.poll(timeout, TimeUnit.SECONDS);
                 if (msg != null) {
                     fail("Should not have received anything");
                 }
-                if (++attempts >= 10) break;
+                if (++attempts >= numberOfMessages / 2) break;
             }
         } finally {
             purgeQueue(workerWrapper.sqsClient, workerWrapper.inputQueueUrl);
@@ -83,21 +108,37 @@ public class VisibilityIT extends TestContainer
     public void testVisibilityTimeoutExtensionIsCancelled() throws Exception
     {
         final var inputQueue = "stop-extend-visibility";
-        final var workerWrapper = getWorkerWrapper(inputQueue);
+        final int timeout = 10;
+        final var workerWrapper = getWorkerWrapper(
+                inputQueue,
+                inputQueue,
+                new WrapperConfig(
+                        timeout,
+                        timeout,
+                        1,
+                        1000,
+                        1000
+                ));
         final var msgBody = "hello-world";
         sendMessages(workerWrapper, msgBody);
         final var metricsReporter = workerWrapper.metricsReporter;
         try {
-            final var msg = workerWrapper.callbackQueue.poll(15, TimeUnit.SECONDS);
+            final var msg = workerWrapper.callbackQueue.poll(timeout, TimeUnit.SECONDS);
+            assertNotNull(msg, "Original Message should have been delivered");
+            final List<CallbackResponse> remainingResponses = new ArrayList<>();
+            workerWrapper.callbackQueue.drainTo(remainingResponses);
+            assertEquals(remainingResponses.size(), 0, "Should not have received any responses");
 
             // Message should NOT be redelivered
-            final var notRedelivered = workerWrapper.callbackQueue.poll(15, TimeUnit.SECONDS);
-            assertNotNull(msg, "Original Message should have been delivered");
+            final var notRedelivered = workerWrapper.callbackQueue.poll(timeout * 4, TimeUnit.SECONDS);
+            assertNull(notRedelivered, "Message should not be redelivered");
+
             workerWrapper.sqsWorkerQueue.discardTask(msg.taskInformation());
 
-            final var delivered = workerWrapper.callbackQueue.poll(30, TimeUnit.SECONDS);
-            assertNull(notRedelivered, "Message should not be redelivered");
-            assertNotNull(delivered, "Should have been delivered");
+            final CallbackResponse redelivered = workerWrapper.callbackQueue.poll(timeout * 6, TimeUnit.SECONDS);
+            final CallbackResponse redeliveredFromDLQ = workerWrapper.callbackDLQ.poll(10, TimeUnit.SECONDS);
+            assertNull(redeliveredFromDLQ, "Should not have been redelivered from DLQ");
+            assertNotNull(redelivered, "Should have been redelivered");
 
             // DDD should we be reporting two messages here,  1st & 2nd delivery?
             // DDD how could we tell.
@@ -160,6 +201,101 @@ public class VisibilityIT extends TestContainer
             }
         } finally {
             purgeQueue(workerWrapper.sqsClient, workerWrapper.inputQueueUrl);
+        }
+    }
+
+    @Test
+    public void testExtensionForSingleMessages() throws Exception
+    {
+        final var inputQueue = "test-extending-single-message";
+        final var timeout = 10;
+        final var workerWrapper = getWorkerWrapper(
+                inputQueue,
+                inputQueue,
+                new WrapperConfig(
+                        timeout,
+                        1,
+                        1,
+                        1000,
+                        1000
+                ));
+        final int messagesToSend = 1;
+        sendSingleMessagesWithDelays(workerWrapper.sqsClient, workerWrapper.inputQueueUrl, messagesToSend, 1L);
+
+        try {
+            CallbackResponse response;
+            do {
+                response = workerWrapper.callbackQueue.poll(1, TimeUnit.SECONDS);
+            } while (response == null);
+            final var gotFirst = Instant.now();
+            int attempts = 0;
+            do {
+                response = workerWrapper.callbackQueue.poll(1, TimeUnit.SECONDS);
+                if (++attempts > (timeout * 2)) {
+                    break;
+                }
+            } while (response == null);
+            if (response != null) {
+                final var gotNext = Instant.now();
+                final Duration res = Duration.between(gotFirst, gotNext);
+                fail("Message got redelivered after " + res.getSeconds() + " seconds");
+            }
+        } finally {
+            purgeQueue(workerWrapper.sqsClient, workerWrapper.inputQueueUrl);
+        }
+    }
+
+    /**
+     * Checking container visibility timeout works outside of application.
+     *
+     * @throws Exception
+     */
+    @Test
+    public void testVisibilityTimeoutWorks() throws Exception
+    {
+        final var inputQueue = "extend-visibility";
+        final int timeout = 10;
+        final var workerWrapper = getWorkerWrapper(
+                inputQueue,
+                inputQueue,
+                new WrapperConfig(
+                        timeout,
+                        1,
+                        1,
+                        1000,
+                        1000
+                )
+        );
+
+        final var queueCfg = workerWrapper.workerQueueConfiguration;
+        final var testQueue = "check-visibility";
+        final var testQueueInfo = SQSUtil.createQueue(workerWrapper.sqsClient, testQueue, queueCfg);
+
+        sendMessages(workerWrapper.sqsClient, testQueueInfo.url(), new HashMap<>(), "Hello World");
+
+        try {
+            final var receiveRequest = ReceiveMessageRequest.builder()
+                    .queueUrl(testQueueInfo.url())
+                    .maxNumberOfMessages(1)
+                    .waitTimeSeconds(0)
+                    .messageSystemAttributeNames(MessageSystemAttributeName.ALL)
+                    .messageAttributeNames(SQSUtil.ALL_ATTRIBUTES)
+                    .build();
+            ReceiveMessageResponse receiveMessageResult;
+            do {
+                receiveMessageResult = workerWrapper.sqsClient.receiveMessage(receiveRequest);
+            } while (!receiveMessageResult.hasMessages());
+            final var gotFirst = Instant.now();
+            do {
+                receiveMessageResult = workerWrapper.sqsClient.receiveMessage(receiveRequest);
+            } while (!receiveMessageResult.hasMessages());
+            final var gotNext = Instant.now();
+            final Duration res = Duration.between(gotFirst, gotNext);
+            assertTrue(res.getSeconds() >= timeout && res.getSeconds() < timeout * 2,
+                    "Expected close to timeout, but timeout was " + res.getSeconds());
+
+        } finally {
+            purgeQueue(workerWrapper.sqsClient, testQueueInfo.url());
         }
     }
 }

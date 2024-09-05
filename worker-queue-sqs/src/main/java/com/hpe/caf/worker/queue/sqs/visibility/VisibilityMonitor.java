@@ -26,12 +26,11 @@ import software.amazon.awssdk.services.sqs.model.ChangeMessageVisibilityBatchReq
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.Date;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.TreeSet;
 import java.util.stream.Collectors;
 
 /**
@@ -41,9 +40,8 @@ public class VisibilityMonitor implements Runnable
 {
     private final SqsClient sqsClient;
     private final int queueVisibilityTimeout;
-    private final int timeoutWindowLimit;
     private final int monitoringInterval;
-    private final Map<String, Set<VisibilityTimeout>> timeoutSets;
+    private final Map<String, List<VisibilityTimeout>> timeoutCollections;
 
     private static final int MAX_BATCH_SIZE = 10;
 
@@ -56,10 +54,8 @@ public class VisibilityMonitor implements Runnable
     {
         this.sqsClient = sqsClient;
         this.queueVisibilityTimeout = queueVisibilityTimeout;
-        timeoutSets = new HashMap<>();
-        timeoutWindowLimit = (int)(queueVisibilityTimeout * 1.25);
+        timeoutCollections = new HashMap<>();
         monitoringInterval = (this.queueVisibilityTimeout / 2) * 1000;
-
     }
 
     @Override
@@ -67,51 +63,50 @@ public class VisibilityMonitor implements Runnable
     {
         while (true) {
             try {
-                final var expiredTimeouts = new HashSet<VisibilityTimeout>();
-                final var toBeExtendedTimeouts = new HashSet<VisibilityTimeout>();
-                final var newTimeouts = new HashSet<VisibilityTimeout>();
-                for (final var entry : timeoutSets.entrySet()) {
-                    final var timeoutSet = entry.getValue();
+                for(final var entry : timeoutCollections.entrySet()) {
+                    final var visibilityTimeouts = entry.getValue();
                     final var queueInfo = entry.getKey();
-                    synchronized (timeoutSet) {
+                    synchronized (visibilityTimeouts) {
+
+                        final var expiredTimeouts = new ArrayList<VisibilityTimeout>();
+                        final var toBeExtendedTimeouts = new ArrayList<VisibilityTimeout>();
+
                         var now = Instant.now().getEpochSecond();
-                        var boundary = now + timeoutWindowLimit;
-                        for(final var vto : timeoutSet) {
-                            if (vto.becomesVisibleEpochSecond() < now) {
+                        var boundary = now + (queueVisibilityTimeout * 2);
+
+                        Collections.sort(visibilityTimeouts);
+                        for(final var vto : visibilityTimeouts) {
+                            if (vto.getBecomesVisibleEpochSecond() < now) {
                                 expiredTimeouts.add(vto);
-                            } else if (vto.becomesVisibleEpochSecond() < boundary) {
-                                LOG.debug("Going to extend {}", vto);
+                            } else if (vto.getBecomesVisibleEpochSecond() < boundary) {
                                 toBeExtendedTimeouts.add(vto);
                             } else {
-                                // Anything past here is safe on this iteration.
                                 break;
                             }
                         }
 
-                        // remove all expired and about to expire.
-                        timeoutSet.removeAll(expiredTimeouts);
-                        timeoutSet.removeAll(toBeExtendedTimeouts);
+                        expiredTimeouts.forEach(to -> LOG.debug("Timeout expired at:{} for:{}",
+                                getExpiry(to), to.getReceiptHandle()));
+
+                        // remove all expired.
+                        visibilityTimeouts.removeAll(expiredTimeouts);
 
                         // Get all message receiptHandles to extend
                         // And extend the task info visibility
                         for(final var visibilityTimeout : toBeExtendedTimeouts) {
-                            final var visibility = visibilityTimeout.becomesVisibleEpochSecond() + queueVisibilityTimeout;
-                            final var newTimeout = new VisibilityTimeout(
-                                    visibilityTimeout.queueInfo(),
-                                    visibility,
-                                    visibilityTimeout.receiptHandle()
-                            );
-                            newTimeouts.add(newTimeout);
+                            // DDD this needs fine tuned
+                            final var visibility = Instant.now().getEpochSecond() + (queueVisibilityTimeout * 2);
+                            visibilityTimeout.setBecomesVisibleEpochSecond(visibility);
                         }
 
-                        final var failures = extendTaskTimeouts(queueInfo, newTimeouts);
-                        failures.forEach(msg -> LOG.debug(msg.toString()));
+                        final var failures = extendTaskTimeouts(queueInfo, toBeExtendedTimeouts);
+                        LOG.debug("Time now: {}", new Date());
+                        failures.forEach(to -> LOG.debug("Failed to extend timeout to:{} for:{}",
+                                getExpiry(to), to.getReceiptHandle()));
+                        visibilityTimeouts.removeAll(failures);
 
-                        newTimeouts.removeAll(failures);
-
-                        newTimeouts.forEach(to -> LOG.debug("Extended timout: {}", to));
-
-                        timeoutSet.addAll(newTimeouts);
+                        toBeExtendedTimeouts.forEach(to -> LOG.debug("Extended timeout to:{} for:{}",
+                                getExpiry(to), to.getReceiptHandle()));
                     }
                 }
 
@@ -122,15 +117,16 @@ public class VisibilityMonitor implements Runnable
         }
     }
 
-    private Set<VisibilityTimeout> extendTaskTimeouts(
+    private List<VisibilityTimeout> extendTaskTimeouts(
             final String queueUrl,
-            final HashSet<VisibilityTimeout> timeouts
+            final List<VisibilityTimeout> timeouts
     )
     {
-        final var failures = new HashSet<VisibilityTimeout>();
+        final var failures = new ArrayList<VisibilityTimeout>();
         final var batches = Iterables.partition(timeouts, MAX_BATCH_SIZE);
         for(final var batch : batches) {
-            failures.addAll(sendBatch(queueUrl, batch));
+            final var failed = sendBatch(queueUrl, batch);
+            failures.addAll(failed);
         }
         return failures;
     }
@@ -143,13 +139,14 @@ public class VisibilityMonitor implements Runnable
         final Map<String, VisibilityTimeout> timeoutMap = new HashMap<>();
         final var entries = new ArrayList<ChangeMessageVisibilityBatchRequestEntry>();
         int id = 1;
-        for(final VisibilityTimeout receiptHandle : timeouts) {
+        for(final VisibilityTimeout to : timeouts) {
             var idStr = String.valueOf(id++);
-            timeoutMap.put(idStr, receiptHandle);
+            timeoutMap.put(idStr, to);
+            final Long sqsTimeout = to.getBecomesVisibleEpochSecond() - Instant.now().getEpochSecond();
             entries.add(ChangeMessageVisibilityBatchRequestEntry.builder()
                     .id(idStr)
-                    .receiptHandle(receiptHandle.receiptHandle())
-                    .visibilityTimeout(queueVisibilityTimeout)
+                    .receiptHandle(to.getReceiptHandle())
+                    .visibilityTimeout(sqsTimeout.intValue())
                     .build());
         }
         final var request = ChangeMessageVisibilityBatchRequest.builder()
@@ -166,34 +163,34 @@ public class VisibilityMonitor implements Runnable
 
     public void watch(final SQSTaskInformation taskInfo)
     {
-        LOG.debug("Watching {}", taskInfo);
+        LOG.debug("Watching {}", taskInfo.getReceiptHandle());
         final var visibilityTimeout = taskInfo.getVisibilityTimeout();
-        final var queueInfo = visibilityTimeout.queueInfo();
-        final var timeoutSet = timeoutSets.computeIfAbsent(
-            queueInfo.url(),
-            (q) -> Collections.synchronizedSortedSet(new TreeSet<>())
+        final var queueInfo = visibilityTimeout.getQueueInfo();
+        final var visibilityTimeouts = timeoutCollections.computeIfAbsent(
+                queueInfo.url(),
+                (q) -> Collections.synchronizedList(new ArrayList<>())
         );
-        timeoutSet.add(visibilityTimeout);
+        visibilityTimeouts.add(visibilityTimeout);
+        LOG.debug("Watched list now has {} timeouts", visibilityTimeouts.size());
     }
 
     public void unwatch(final SQSTaskInformation taskInfo)
     {
-        final var unwatchReceiptHandle = taskInfo.getReceiptHandle();
-        final var timeoutSet = timeoutSets.get(taskInfo.getQueueInfo().url());
-        if (timeoutSet != null) {
-            synchronized (timeoutSet) {
-                var unwatchOpt = timeoutSet.stream()
-                        .filter(to -> to.receiptHandle().equals(unwatchReceiptHandle))
-                        .findFirst();
-                if (unwatchOpt.isPresent()) {
-                    var removed = timeoutSet.remove(unwatchOpt.get());
-                    if (removed) {
-                        LOG.debug("Unwatched {}", taskInfo);
-                    } else {
-                        LOG.error("Failed to unwatch {}", taskInfo);
-                    }
+        final var visibilityTimeouts = timeoutCollections.get(taskInfo.getQueueInfo().url());
+        if (visibilityTimeouts != null) {
+            synchronized (visibilityTimeouts) {
+                var removed = visibilityTimeouts.remove(taskInfo.getVisibilityTimeout());
+                if (removed) {
+                    LOG.debug("Unwatched {} remaining tasks {}", taskInfo.getReceiptHandle(), visibilityTimeouts.size());
+                } else {
+                    LOG.error("Failed to unwatch {}", taskInfo.getReceiptHandle());
                 }
             }
         }
+    }
+
+    private static Date getExpiry(final VisibilityTimeout visibilityTimeout)
+    {
+        return new Date(visibilityTimeout.getBecomesVisibleEpochSecond() * 1000);
     }
 }

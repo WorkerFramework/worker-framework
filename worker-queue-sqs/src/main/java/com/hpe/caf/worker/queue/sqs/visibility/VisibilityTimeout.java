@@ -19,10 +19,21 @@ import com.hpe.caf.worker.queue.sqs.QueueInfo;
 
 import java.util.Objects;
 
-public record VisibilityTimeout(QueueInfo queueInfo,
-                                Long becomesVisibleEpochSecond,
-                                String receiptHandle) implements Comparable<VisibilityTimeout>
+public final class VisibilityTimeout implements Comparable<VisibilityTimeout>
 {
+    private final QueueInfo queueInfo;
+    private Long becomesVisibleEpochSecond;
+    private final String receiptHandle;
+
+    public VisibilityTimeout(final QueueInfo queueInfo,
+                             final Long becomesVisibleEpochSecond,
+                             final String receiptHandle)
+    {
+        this.queueInfo = queueInfo;
+        this.becomesVisibleEpochSecond = becomesVisibleEpochSecond;
+        this.receiptHandle = receiptHandle;
+    }
+
     @Override
     public int compareTo(final VisibilityTimeout o)
     {
@@ -52,4 +63,25 @@ public record VisibilityTimeout(QueueInfo queueInfo,
                 ", receiptHandle='" + receiptHandle + '\'' +
                 '}';
     }
+
+    public QueueInfo getQueueInfo()
+    {
+        return queueInfo;
+    }
+
+    public void setBecomesVisibleEpochSecond(final Long becomesVisibleEpochSecond)
+    {
+        this.becomesVisibleEpochSecond = becomesVisibleEpochSecond;
+    }
+
+    public Long getBecomesVisibleEpochSecond()
+    {
+        return becomesVisibleEpochSecond;
+    }
+
+    public String getReceiptHandle()
+    {
+        return receiptHandle;
+    }
+
 }
