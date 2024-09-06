@@ -189,9 +189,12 @@ public class VisibilityMonitor implements Runnable
             synchronized (visibilityTimeouts) {
                 final var removed = visibilityTimeouts.remove(taskInfo.getVisibilityTimeout());
                 if (removed) {
-                    LOG.debug("Unwatched {} remaining tasks {}", taskInfo.getReceiptHandle(), visibilityTimeouts.size());
+                    LOG.debug("Unwatched {} remaining tasks in queue {} {}",
+                            taskInfo.getReceiptHandle(),
+                            taskInfo.getQueueInfo().name(),
+                            visibilityTimeouts.size());
                 } else {
-                    LOG.error("Failed to unwatch {}", taskInfo.getReceiptHandle());
+                    LOG.debug("Visibility timeout not being watched {}", taskInfo.getReceiptHandle());
                 }
             }
         }
