@@ -171,7 +171,6 @@ public class VisibilityMonitor implements Runnable
 
     public void watch(final SQSTaskInformation taskInfo)
     {
-        LOG.debug("Watching {}", taskInfo.getReceiptHandle());
         final var visibilityTimeout = taskInfo.getVisibilityTimeout();
         final var queueInfo = visibilityTimeout.getQueueInfo();
         final var visibilityTimeouts = timeoutCollections.computeIfAbsent(
@@ -179,7 +178,8 @@ public class VisibilityMonitor implements Runnable
                 (q) -> Collections.synchronizedList(new ArrayList<>())
         );
         visibilityTimeouts.add(visibilityTimeout);
-        LOG.debug("Watched list in queue {} now has {} timeouts",
+        LOG.debug("Watching {}", taskInfo.getReceiptHandle());
+        LOG.debug("queue {} now has {} tasks inflight",
                 taskInfo.getQueueInfo().name(),
                 visibilityTimeouts.size());
     }
@@ -191,12 +191,10 @@ public class VisibilityMonitor implements Runnable
             synchronized (visibilityTimeouts) {
                 final var removed = visibilityTimeouts.remove(taskInfo.getVisibilityTimeout());
                 if (removed) {
-                    LOG.debug("Unwatched {} remaining tasks in queue {} {}",
-                            taskInfo.getReceiptHandle(),
+                    LOG.debug("Unwatched {}", taskInfo.getReceiptHandle());
+                    LOG.debug("queue {} now has {} tasks inflight",
                             taskInfo.getQueueInfo().name(),
                             visibilityTimeouts.size());
-                } else {
-                    LOG.debug("Visibility timeout not being watched {}", taskInfo.getReceiptHandle());
                 }
             }
         }
