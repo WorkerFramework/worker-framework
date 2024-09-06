@@ -103,9 +103,11 @@ public class VisibilityMonitor implements Runnable
                             visibilityTimeout.setBecomesVisibleEpochSecond(visibility);
                         }
 
-                        final var failures = extendTaskTimeouts(queueInfo, toBeExtendedTimeouts);
-                        LOG.debug("Time now: {}", new Date());
-                        visibilityTimeouts.removeAll(failures);
+                        final var changeVisibilityErrors = extendTaskTimeouts(queueInfo, toBeExtendedTimeouts);
+                        final var errors = changeVisibilityErrors.stream()
+                                .map(ChangeVisibilityError::visibilityTimeout)
+                                .collect(Collectors.toList());
+                        visibilityTimeouts.removeAll(errors);
 
                         toBeExtendedTimeouts.forEach(to -> LOG.debug("Extended timeout to:{} for:{}",
                                 getExpiry(to), to.getReceiptHandle()));
@@ -119,7 +121,7 @@ public class VisibilityMonitor implements Runnable
         }
     }
 
-    private List<VisibilityTimeout> extendTaskTimeouts(
+    private List<ChangeVisibilityError> extendTaskTimeouts(
             final String queueUrl,
             final List<VisibilityTimeout> timeouts
     )
@@ -130,8 +132,8 @@ public class VisibilityMonitor implements Runnable
             final var failed = sendBatch(queueUrl, batch);
             failures.addAll(failed);
         }
-        failures.forEach(f -> LOG.debug(f.toString()));
-        return failures.stream().map(ChangeVisibilityError::visibilityTimeout).collect(Collectors.toList());
+        failures.forEach(f -> LOG.info(f.toString()));
+        return failures;
     }
 
     private List<ChangeVisibilityError> sendBatch(
