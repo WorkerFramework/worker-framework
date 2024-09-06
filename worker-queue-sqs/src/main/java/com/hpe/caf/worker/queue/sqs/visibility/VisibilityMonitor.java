@@ -179,7 +179,9 @@ public class VisibilityMonitor implements Runnable
                 (q) -> Collections.synchronizedList(new ArrayList<>())
         );
         visibilityTimeouts.add(visibilityTimeout);
-        LOG.debug("Watched list now has {} timeouts", visibilityTimeouts.size());
+        LOG.debug("Watched list in queue {} now has {} timeouts",
+                taskInfo.getQueueInfo().name(),
+                visibilityTimeouts.size());
     }
 
     public void unwatch(final SQSTaskInformation taskInfo)
