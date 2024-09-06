@@ -18,6 +18,7 @@ package com.hpe.caf.worker.queue.sqs.util;
 import com.hpe.caf.configs.SQSConfiguration;
 import com.hpe.caf.worker.queue.sqs.QueueInfo;
 import com.hpe.caf.worker.queue.sqs.config.SQSWorkerQueueConfiguration;
+import com.hpe.caf.worker.queue.sqs.visibility.VisibilityTimeout;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import software.amazon.awssdk.auth.credentials.AwsCredentials;
@@ -33,6 +34,7 @@ import software.amazon.awssdk.services.sqs.model.SetQueueAttributesResponse;
 
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -194,5 +196,10 @@ public class SQSUtil
         var url = getQueueUrl(sqsClient, queueName);
         var arn = getQueueArn(sqsClient, url);
         return new QueueInfo(queueName, url, arn, isDeadLetterQueue);
+    }
+
+    public static Date getExpiry(final VisibilityTimeout visibilityTimeout)
+    {
+        return new Date(visibilityTimeout.getBecomesVisibleEpochSecond() * 1000);
     }
 }

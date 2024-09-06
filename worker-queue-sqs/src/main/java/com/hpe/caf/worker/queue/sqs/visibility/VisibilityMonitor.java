@@ -30,8 +30,9 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 import java.util.stream.Collectors;
+
+import static com.hpe.caf.worker.queue.sqs.util.SQSUtil.getExpiry;
 
 /**
  * This class monitors visibility timeouts for queues.
@@ -78,7 +79,7 @@ public class VisibilityMonitor implements Runnable
                         // it may be quicker just to check all messages
                         Collections.sort(visibilityTimeouts);
                         for(final var vto : visibilityTimeouts) {
-                            if (vto.getBecomesVisibleEpochSecond() < now) {
+                            if (vto.getBecomesVisibleEpochSecond() <= now) {
                                 expiredTimeouts.add(vto);
                             } else if (vto.getBecomesVisibleEpochSecond() < boundary) {
                                 toBeExtendedTimeouts.add(vto);
@@ -87,6 +88,7 @@ public class VisibilityMonitor implements Runnable
                             }
                         }
 
+                        // Not yet observed any expired timeouts
                         expiredTimeouts.forEach(to -> LOG.debug("Timeout expired at:{} for:{}",
                                 getExpiry(to), to.getReceiptHandle()));
 
@@ -103,8 +105,6 @@ public class VisibilityMonitor implements Runnable
 
                         final var failures = extendTaskTimeouts(queueInfo, toBeExtendedTimeouts);
                         LOG.debug("Time now: {}", new Date());
-                        failures.forEach(to -> LOG.debug("Failed to extend timeout to:{} for:{}",
-                                getExpiry(to), to.getReceiptHandle()));
                         visibilityTimeouts.removeAll(failures);
 
                         toBeExtendedTimeouts.forEach(to -> LOG.debug("Extended timeout to:{} for:{}",
@@ -124,16 +124,17 @@ public class VisibilityMonitor implements Runnable
             final List<VisibilityTimeout> timeouts
     )
     {
-        final var failures = new ArrayList<VisibilityTimeout>();
+        final var failures = new ArrayList<ChangeVisibilityError>();
         final var batches = Iterables.partition(timeouts, MAX_BATCH_SIZE);
         for(final var batch : batches) {
             final var failed = sendBatch(queueUrl, batch);
             failures.addAll(failed);
         }
-        return failures;
+        failures.forEach(f -> LOG.debug(f.toString()));
+        return failures.stream().map(ChangeVisibilityError::visibilityTimeout).collect(Collectors.toList());
     }
 
-    private Set<VisibilityTimeout> sendBatch(
+    private List<ChangeVisibilityError> sendBatch(
             final String queueUrl,
             final List<VisibilityTimeout> timeouts
     )
@@ -156,11 +157,13 @@ public class VisibilityMonitor implements Runnable
                 .queueUrl(queueUrl)
                 .build();
 
-        return sqsClient.changeMessageVisibilityBatch(request)
+        final List<ChangeVisibilityError> visibilityErrors = sqsClient.changeMessageVisibilityBatch(request)
                 .failed()
                 .stream()
-                .map(f -> timeoutMap.get(f.id()))
-                .collect(Collectors.toSet());
+                .map(f -> new ChangeVisibilityError(f.message(), timeoutMap.get(f.id())))
+                .collect(Collectors.toList());
+
+        return visibilityErrors;
     }
 
     public void watch(final SQSTaskInformation taskInfo)
@@ -189,10 +192,5 @@ public class VisibilityMonitor implements Runnable
                 }
             }
         }
-    }
-
-    private static Date getExpiry(final VisibilityTimeout visibilityTimeout)
-    {
-        return new Date(visibilityTimeout.getBecomesVisibleEpochSecond() * 1000);
     }
 }

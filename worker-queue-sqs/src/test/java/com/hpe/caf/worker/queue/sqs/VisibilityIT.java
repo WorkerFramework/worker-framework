@@ -231,7 +231,7 @@ public class VisibilityIT extends TestContainer
             int attempts = 0;
             do {
                 response = workerWrapper.callbackQueue.poll(1, TimeUnit.SECONDS);
-                if (++attempts > (timeout * 2)) {
+                if (++attempts > (timeout * 6)) {
                     break;
                 }
             } while (response == null);

@@ -23,7 +23,7 @@
     </appender>
     <logger name="org.apache" level="ERROR"/>
     <logger name="software.amazon.awssdk" level="ERROR"/>
-    <root level="INFO">
+    <root level="DEBUG">
         <appender-ref ref="CONSOLE"/>
     </root>
 </configuration>
