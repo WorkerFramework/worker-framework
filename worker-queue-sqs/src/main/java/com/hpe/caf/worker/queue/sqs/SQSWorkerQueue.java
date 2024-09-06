@@ -139,7 +139,7 @@ public final class SQSWorkerQueue implements ManagedWorkerQueue
     public void publish(
             final TaskInformation taskInformation,
             final byte[] taskMessage,
-            final String targetQueue, // DDD Would the target queue ALWAYS be the same?
+            final String targetQueue,
             final Map<String, Object> headers,
             final boolean isLastMessage // DDD unused ?
     ) throws QueueException
@@ -273,6 +273,7 @@ public final class SQSWorkerQueue implements ManagedWorkerQueue
         return queueCfg.getInputQueue();
     }
 
+    // DDD obolete?
     @Override
     public String getPausedQueue()
     {

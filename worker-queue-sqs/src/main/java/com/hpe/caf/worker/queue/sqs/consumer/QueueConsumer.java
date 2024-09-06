@@ -81,7 +81,7 @@ public abstract class QueueConsumer implements Runnable
                 .queueUrl(queueInfo.url())
                 .maxNumberOfMessages(queueCfg.getMaxNumberOfMessages())
                 .waitTimeSeconds(queueCfg.getLongPollInterval())
-                .messageSystemAttributeNames(MessageSystemAttributeName.ALL) // DDD may not be required
+                .messageSystemAttributeNames(MessageSystemAttributeName.ALL) // DDD converting to headers??
                 .messageAttributeNames(SQSUtil.ALL_ATTRIBUTES)
                 .build();
         while (true) {
@@ -157,7 +157,7 @@ public abstract class QueueConsumer implements Runnable
         metricsReporter.incrementReceived();
         final var becomesVisible = Instant.now().getEpochSecond() + queueCfg.getVisibilityTimeout();
         final var taskInfo = new SQSTaskInformation(
-                message.messageId(), // DDD does the dlq message have same id
+                message.messageId(),
                 new VisibilityTimeout(queueInfo, becomesVisible, message.receiptHandle()),
                 isPoisonMessageConsumer()
         );
@@ -171,9 +171,9 @@ public abstract class QueueConsumer implements Runnable
             visibilityMonitor.watch(taskInfo);
         } catch (final InvalidTaskException e) {
             LOG.error("Cannot register new message, rejecting {}", taskInfo, e);
-            retryMessage(message); // DDD not yet watched
+            retryMessage(message); // DDD note not yet watched
         } catch (final TaskRejectedException e) {
-            metricsReporter.incrementRejected(); // DDD not yet watched
+            metricsReporter.incrementRejected(); // DDD note not yet watched
             LOG.warn("Message {} rejected as a task at this time, will be redelivered by SQS",
                     taskInfo, e);
         }
