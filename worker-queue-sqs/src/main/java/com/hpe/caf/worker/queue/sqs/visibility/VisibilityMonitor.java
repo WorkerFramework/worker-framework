@@ -74,6 +74,8 @@ public class VisibilityMonitor implements Runnable
                         final var now = Instant.now().getEpochSecond();
                         final var boundary = now + (queueVisibilityTimeout * 2);
 
+                        // DDD depending on number of expected inflight messages
+                        // it may be quicker just to check all messages
                         Collections.sort(visibilityTimeouts);
                         for(final var vto : visibilityTimeouts) {
                             if (vto.getBecomesVisibleEpochSecond() < now) {

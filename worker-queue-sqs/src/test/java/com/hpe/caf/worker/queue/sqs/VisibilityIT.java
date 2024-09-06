@@ -91,6 +91,7 @@ public class VisibilityIT extends TestContainer
             LOG.debug("Should not get messages after this");
             // No further messages should be received.
             msg = workerWrapper.callbackQueue.poll(1, TimeUnit.SECONDS);
+            assertNull(msg, "A Message should NOT have been received.");
             int attempts = 0;
             while (msg == null) {
                 msg = workerWrapper.callbackQueue.poll(timeout, TimeUnit.SECONDS);
