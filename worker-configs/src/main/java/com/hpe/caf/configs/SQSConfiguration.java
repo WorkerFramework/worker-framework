@@ -46,7 +46,7 @@ public class SQSConfiguration
     @Encrypted
     @NotNull
     @Size(min = 1)
-    private String secretAccessKey;
+    private String awsSecretAccessKey;
 
     public String getAwsProtocol()
     {
@@ -98,14 +98,14 @@ public class SQSConfiguration
         this.awsAccessKey = awsAccessKey;
     }
 
-    public String getSecretAccessKey()
+    public String getAwsSecretAccessKey()
     {
-        return secretAccessKey;
+        return awsSecretAccessKey;
     }
 
-    public void setSecretAccessKey(final String secretAccessKey)
+    public void setAwsSecretAccessKey(final String awsSecretAccessKey)
     {
-        this.secretAccessKey = secretAccessKey;
+        this.awsSecretAccessKey = awsSecretAccessKey;
     }
 
     public String getURIString()

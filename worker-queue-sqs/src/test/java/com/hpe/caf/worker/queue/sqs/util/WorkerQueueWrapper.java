@@ -78,7 +78,7 @@ public class WorkerQueueWrapper
             sqsConfiguration.setAwsPort(container.getFirstMappedPort());
             sqsConfiguration.setAwsRegion(container.getRegion());
             sqsConfiguration.setAwsAccessKey(container.getAccessKey());
-            sqsConfiguration.setSecretAccessKey(container.getSecretKey());
+            sqsConfiguration.setAwsSecretAccessKey(container.getSecretKey());
 
             workerQueueConfiguration = new SQSWorkerQueueConfiguration();
             workerQueueConfiguration.setSQSConfiguration(sqsConfiguration);
@@ -112,7 +112,7 @@ public class WorkerQueueWrapper
                         @Override
                         public String secretAccessKey()
                         {
-                            return sqsConfiguration.getSecretAccessKey();
+                            return sqsConfiguration.getAwsSecretAccessKey();
                         }
                     })
                     .region(Region.US_EAST_1)

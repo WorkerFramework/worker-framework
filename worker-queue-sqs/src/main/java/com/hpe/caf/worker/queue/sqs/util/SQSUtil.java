@@ -70,7 +70,7 @@ public class SQSUtil
             @Override
             public String secretAccessKey()
             {
-                return sqsConfiguration.getSecretAccessKey();
+                return sqsConfiguration.getAwsSecretAccessKey();
             }
         };
     }

@@ -273,14 +273,14 @@ public final class SQSWorkerQueue implements ManagedWorkerQueue
         return queueCfg.getInputQueue();
     }
 
-    // DDD obolete?
+    // DDD obsolete?
     @Override
     public String getPausedQueue()
     {
         return "";
     }
 
-    private Map<String, MessageAttributeValue> createAttributesFromMessageHeaders(final Map<String, Object> headers)
+    private static Map<String, MessageAttributeValue> createAttributesFromMessageHeaders(final Map<String, Object> headers)
     {
         final var attributes = new HashMap<String, MessageAttributeValue>();
         for(final Map.Entry<String, Object> entry : headers.entrySet()) {
