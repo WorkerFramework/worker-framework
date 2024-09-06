@@ -88,8 +88,8 @@ public class VisibilityMonitor implements Runnable
                             }
                         }
 
-                        // Not yet observed any expired timeouts
-                        expiredTimeouts.forEach(to -> LOG.debug("Timeout expired at:{} for:{}",
+                        // Not yet observed any expired timeouts, and should not, but we want to see them.
+                        expiredTimeouts.forEach(to -> LOG.info("Timeout expired at:{} for:{}",
                                 getExpiry(to), to.getReceiptHandle()));
 
                         // remove all expired.
@@ -132,7 +132,8 @@ public class VisibilityMonitor implements Runnable
             final var failed = sendBatch(queueUrl, batch);
             failures.addAll(failed);
         }
-        failures.forEach(f -> LOG.info(f.toString()));
+        // Not yet observed any failures, and should not, but we want to see them.
+        failures.forEach(f -> LOG.error(f.toString()));
         return failures;
     }
 
