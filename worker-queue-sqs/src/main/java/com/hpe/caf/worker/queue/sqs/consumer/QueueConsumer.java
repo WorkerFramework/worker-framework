@@ -51,6 +51,7 @@ public abstract class QueueConsumer implements Runnable
     protected final MetricsReporter metricsReporter;
     protected final VisibilityMonitor visibilityMonitor;
     protected final AtomicBoolean receiveMessages;
+    protected final AtomicBoolean running = new AtomicBoolean(true);
 
     private static final Logger LOG = LoggerFactory.getLogger(QueueConsumer.class);
 
@@ -84,15 +85,12 @@ public abstract class QueueConsumer implements Runnable
                 .messageSystemAttributeNames(MessageSystemAttributeName.ALL) // DDD converting to headers??
                 .messageAttributeNames(SQSUtil.ALL_ATTRIBUTES)
                 .build();
-        while (true) {
+        while (running.get()) {
             if (receiveMessages.get()) {
                 receiveMessages(receiveRequest);
             } else {
-                try {
-                    Thread.sleep(queueCfg.getLongPollInterval() * 1000);
-                } catch (final InterruptedException e) {
-                    LOG.error("A pause in receiving messages was interrupted", e);
-                }
+                // DDD should we be doing this
+                Thread.onSpinWait();
             }
         }
     }
@@ -174,6 +172,11 @@ public abstract class QueueConsumer implements Runnable
             LOG.warn("Message {} rejected as a task at this time, will be redelivered by SQS",
                     taskInfo, e);
         }
+    }
+
+    public void shutdown()
+    {
+        running.set(false);
     }
 
     protected abstract void handleConsumerSpecificActions(final SQSTaskInformation taskInfo);

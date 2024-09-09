@@ -26,6 +26,7 @@ import com.hpe.caf.worker.queue.sqs.config.SQSWorkerQueueConfiguration;
 import com.hpe.caf.worker.queue.sqs.consumer.DeadLetterQueueConsumer;
 import com.hpe.caf.worker.queue.sqs.consumer.InputQueueConsumer;
 import com.hpe.caf.worker.queue.sqs.metrics.MetricsReporter;
+import com.hpe.caf.worker.queue.sqs.util.QueuePair;
 import com.hpe.caf.worker.queue.sqs.util.SQSUtil;
 import com.hpe.caf.worker.queue.sqs.visibility.VisibilityMonitor;
 import org.slf4j.Logger;
@@ -42,16 +43,19 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.Executors;
-import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 public final class SQSWorkerQueue implements ManagedWorkerQueue
 {
     private SqsClient sqsClient;
-    private VisibilityMonitor visibilityMonitor;
 
-    private final ThreadPoolExecutor executor;
+    private Thread inputQueueThread;
+    private Thread deadLetterQueueThread;
+    private Thread visibilityMonitorThread;
+
+    private VisibilityMonitor visibilityMonitor;
+    private InputQueueConsumer consumer;
+    private DeadLetterQueueConsumer dlqConsumer;
 
     private final AtomicBoolean receiveMessages;
 
@@ -69,7 +73,6 @@ public final class SQSWorkerQueue implements ManagedWorkerQueue
         this.queueCfg = Objects.requireNonNull(queueCfg);
         metricsReporter = new MetricsReporter();
         receiveMessages = new AtomicBoolean(true);
-        executor = (ThreadPoolExecutor) Executors.newFixedThreadPool(3);
     }
 
     public void start(final TaskCallback callback) throws QueueException
@@ -94,7 +97,7 @@ public final class SQSWorkerQueue implements ManagedWorkerQueue
                     sqsClient,
                     queueCfg.getVisibilityTimeout());
 
-            var dlqConsumer = new DeadLetterQueueConsumer(
+            dlqConsumer = new DeadLetterQueueConsumer(
                     sqsClient,
                     deadLetterQueueInfo,
                     retryQueueInfo,
@@ -104,7 +107,7 @@ public final class SQSWorkerQueue implements ManagedWorkerQueue
                     metricsReporter,
                     receiveMessages);
 
-            var consumer = new InputQueueConsumer(
+            consumer = new InputQueueConsumer(
                     sqsClient,
                     inputQueueInfo,
                     retryQueueInfo,
@@ -114,9 +117,13 @@ public final class SQSWorkerQueue implements ManagedWorkerQueue
                     metricsReporter,
                     receiveMessages);
 
-            executor.execute(visibilityMonitor);
-            executor.execute(consumer);
-            executor.execute(dlqConsumer);
+            visibilityMonitorThread = new Thread(visibilityMonitor);
+            inputQueueThread = new Thread(consumer);
+            deadLetterQueueThread = new Thread(dlqConsumer);
+
+            visibilityMonitorThread.start();
+            inputQueueThread.start();
+            deadLetterQueueThread.start();
         } catch (final Exception e) {
             throw new QueueException("Failed to start worker queue", e);
         }
@@ -202,11 +209,14 @@ public final class SQSWorkerQueue implements ManagedWorkerQueue
     @Override
     public HealthResult livenessCheck()
     {
-        if (executor.getActiveCount() != 3) {
-            return new HealthResult(HealthStatus.UNHEALTHY, "SQS worker is unhealthy");
-        } else {
-            return HealthResult.RESULT_HEALTHY;
+        if (inputQueueThread == null || !inputQueueThread.isAlive()) {
+            return new HealthResult(HealthStatus.UNHEALTHY, "SQS input queue thread not running");
+        } else if (deadLetterQueueThread == null || !deadLetterQueueThread.isAlive()) {
+            return new HealthResult(HealthStatus.UNHEALTHY, "SQS dead letter queue thread not running");
+        } else if (visibilityMonitorThread == null || !visibilityMonitorThread.isAlive()) {
+            return new HealthResult(HealthStatus.UNHEALTHY, "SQS visibility monitor thread not running");
         }
+        return HealthResult.RESULT_HEALTHY;
     }
 
     @Override
@@ -224,13 +234,9 @@ public final class SQSWorkerQueue implements ManagedWorkerQueue
     @Override
     public void shutdown()
     {
-        executor.shutdown();
-    }
-
-    @Override
-    public WorkerQueueMetricsReporter getMetrics()
-    {
-        return metricsReporter;
+        consumer.shutdown();
+        dlqConsumer.shutdown();
+        visibilityMonitor.shutdown();
     }
 
     @Override
@@ -243,6 +249,12 @@ public final class SQSWorkerQueue implements ManagedWorkerQueue
     public void reconnectIncoming()
     {
         receiveMessages.set(true);
+    }
+
+    @Override
+    public WorkerQueueMetricsReporter getMetrics()
+    {
+        return metricsReporter;
     }
 
     @Override

@@ -30,6 +30,7 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.stream.Collectors;
 
 import static com.hpe.caf.worker.queue.sqs.util.SQSUtil.getExpiry;
@@ -43,6 +44,7 @@ public class VisibilityMonitor implements Runnable
     private final int queueVisibilityTimeout;
     private final int monitoringInterval;
     private final Map<String, List<VisibilityTimeout>> timeoutCollections;
+    protected final AtomicBoolean running = new AtomicBoolean(true);
 
     private static final int MAX_BATCH_SIZE = 10;
 
@@ -62,7 +64,7 @@ public class VisibilityMonitor implements Runnable
     @Override
     public void run()
     {
-        while (true) {
+        while (running.get()) {
             try {
                 for(final var entry : timeoutCollections.entrySet()) {
                     final var visibilityTimeouts = entry.getValue();
@@ -114,6 +116,7 @@ public class VisibilityMonitor implements Runnable
                     }
                 }
 
+                // DDD should we be doing this
                 Thread.sleep(monitoringInterval);
             } catch (final InterruptedException e) {
                 LOG.error("A pause in extending timeouts was interrupted", e);
@@ -198,5 +201,10 @@ public class VisibilityMonitor implements Runnable
                 }
             }
         }
+    }
+
+    public void shutdown()
+    {
+        running.set(false);
     }
 }

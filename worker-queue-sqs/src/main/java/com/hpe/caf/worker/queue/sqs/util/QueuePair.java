@@ -13,7 +13,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.hpe.caf.worker.queue.sqs;
+package com.hpe.caf.worker.queue.sqs.util;
+
+import com.hpe.caf.worker.queue.sqs.QueueInfo;
 
 /**
  * A QueuePair is an object containing a queue and its associated dead letter queue.
