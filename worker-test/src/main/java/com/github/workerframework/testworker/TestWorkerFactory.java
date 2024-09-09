@@ -51,6 +51,8 @@ final class TestWorkerFactory implements WorkerFactory
         throws WorkerException
     {
         try {
+            final var sqsCfg = configSource.getConfiguration(TestSQSConfiguration.class);
+            final var sqsWorkerQueueCfg = configSource.getConfiguration(TestSQSWorkerQueueConfiguration.class);
             return configSource.getConfiguration(TestWorkerConfiguration.class);
         } catch (final ConfigurationException ex) {
             throw new WorkerException("Failed to construct TestWorkerConfiguration object", ex);

@@ -45,7 +45,7 @@ public class InputQueueConsumer extends QueueConsumer
     @Override
     protected void handleConsumerSpecificActions(final SQSTaskInformation taskInfo)
     {
-        // DDD may be redundant depending on outcomes.
+        visibilityMonitor.watch(taskInfo);
     }
 
     @Override

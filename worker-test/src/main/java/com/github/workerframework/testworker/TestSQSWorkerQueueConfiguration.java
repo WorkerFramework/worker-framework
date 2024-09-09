@@ -13,10 +13,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.hpe.caf.worker.queue.sqs.config;
+package com.github.workerframework.testworker;
 
 import com.hpe.caf.api.Configuration;
-import com.hpe.caf.configs.SQSConfiguration;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.Max;
 import jakarta.validation.constraints.Min;
@@ -24,12 +23,12 @@ import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
 
 @Configuration
-public class SQSWorkerQueueConfiguration
+public class TestSQSWorkerQueueConfiguration
 {
     @NotNull
     @Valid
     @Configuration
-    private SQSConfiguration sqsConfiguration;
+    private TestSQSConfiguration sqsConfiguration;
 
     /**
      * The queue to retrieve messages from.
@@ -99,11 +98,11 @@ public class SQSWorkerQueueConfiguration
     @Min(1)
     private Integer maxDeliveries;
 
-    public SQSWorkerQueueConfiguration()
+    public TestSQSWorkerQueueConfiguration()
     {
     }
 
-    public SQSConfiguration getSqsConfiguration()
+    public TestSQSConfiguration getSqsConfiguration()
     {
         return sqsConfiguration;
     }
@@ -128,7 +127,7 @@ public class SQSWorkerQueueConfiguration
         this.pausedQueue = pausedQueue;
     }
 
-    public void setSqsConfiguration(final SQSConfiguration sqsConfiguration)
+    public void setSqsConfiguration(final TestSQSConfiguration sqsConfiguration)
     {
         this.sqsConfiguration = sqsConfiguration;
     }
@@ -203,4 +202,3 @@ public class SQSWorkerQueueConfiguration
         this.retryQueue = retryQueue;
     }
 }
-

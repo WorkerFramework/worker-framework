@@ -44,8 +44,8 @@ public class DeadLetterQueueConsumer extends QueueConsumer
     @Override
     protected void handleConsumerSpecificActions(final SQSTaskInformation taskInfo)
     {
-        // DDD does the poison message get acked by the implementation, if not do so here.
-        // else remove this method.
+        // DDD the poison message gets acked by the implementation, no need to delete here
+        // but we should watch until then..
     }
 
     @Override

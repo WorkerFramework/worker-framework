@@ -78,16 +78,12 @@ public final class SQSWorkerQueue implements ManagedWorkerQueue
             throw new IllegalStateException("Already started");
         }
         try {
-            sqsClient = SQSUtil.getSqsClient(queueCfg.getSQSConfiguration());
-            final var inputQueueInfo = declaredQueues.computeIfAbsent(
-                    queueCfg.getInputQueue(),
-                    (q) -> SQSUtil.createQueue(sqsClient, q, queueCfg)
-            );
+            sqsClient = SQSUtil.getSqsClient(queueCfg.getSqsConfiguration());
 
-            final var deadLetterQueueInfo = declaredQueues.computeIfAbsent(
-                    queueCfg.getInputQueue() + SQSUtil.DEAD_LETTER_QUEUE_SUFFIX,
-                    (q) -> SQSUtil.createDeadLetterQueue(sqsClient, inputQueueInfo, queueCfg)
-            );
+            final var queuePair = createQueuePair(queueCfg.getInputQueue());
+
+            final var inputQueueInfo = queuePair.queue();
+            final var deadLetterQueueInfo = queuePair.deadLetterQueue();
 
             final var retryQueueInfo = declaredQueues.computeIfAbsent(
                     queueCfg.getRetryQueue(),
@@ -147,7 +143,7 @@ public final class SQSWorkerQueue implements ManagedWorkerQueue
         try {
             final var queueInfo = declaredQueues.computeIfAbsent(
                     targetQueue,
-                    (q) -> SQSUtil.getQueueInfo(sqsClient, targetQueue)
+                    (q) -> createQueuePair(targetQueue).queue() // DDD create queue??
             );
 
             var attributes = createAttributesFromMessageHeaders(headers);
@@ -278,6 +274,20 @@ public final class SQSWorkerQueue implements ManagedWorkerQueue
     public String getPausedQueue()
     {
         return "";
+    }
+
+    private QueuePair createQueuePair(final String queueName)
+    {
+        final var queue = declaredQueues.computeIfAbsent(
+                queueName,
+                (q) -> SQSUtil.createQueue(sqsClient, q, queueCfg)
+        );
+
+        final var dlqueue = declaredQueues.computeIfAbsent(
+                queueName + SQSUtil.DEAD_LETTER_QUEUE_SUFFIX,
+                (q) -> SQSUtil.createDeadLetterQueue(sqsClient, queue, queueCfg)
+        );
+        return new QueuePair(queue, dlqueue);
     }
 
     private static Map<String, MessageAttributeValue> createAttributesFromMessageHeaders(final Map<String, Object> headers)

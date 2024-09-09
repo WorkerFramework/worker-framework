@@ -118,7 +118,7 @@ public abstract class QueueConsumer implements Runnable
             // DDD If the retry queue is just the input queue then nothing needs done.
             // DDD other than to remove the timeout being monitored
             if (retryQueueInfo.equals(queueInfo)) {
-                return; // Do nothing no watch is in place and will be re-delivered.
+               return; // Do nothing no watch is in place and will be re-delivered.
             }
 
             // DDD if this is going to a retry queue, whats managing that?
@@ -166,9 +166,6 @@ public abstract class QueueConsumer implements Runnable
         try {
             callback.registerNewTask(taskInfo, message.body().getBytes(StandardCharsets.UTF_8), headers);
             handleConsumerSpecificActions(taskInfo);
-
-            // Now all actions completed, stop redeliveries by extending the visibility timeout.
-            visibilityMonitor.watch(taskInfo);
         } catch (final InvalidTaskException e) {
             LOG.error("Cannot register new message, rejecting {}", taskInfo, e);
             retryMessage(message); // DDD note not yet watched

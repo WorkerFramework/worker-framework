@@ -81,7 +81,7 @@ public class WorkerQueueWrapper
             sqsConfiguration.setAwsSecretAccessKey(container.getSecretKey());
 
             workerQueueConfiguration = new SQSWorkerQueueConfiguration();
-            workerQueueConfiguration.setSQSConfiguration(sqsConfiguration);
+            workerQueueConfiguration.setSqsConfiguration(sqsConfiguration);
             workerQueueConfiguration.setInputQueue(inputQueue);
             workerQueueConfiguration.setRetryQueue(retryQueue);
             workerQueueConfiguration.setVisibilityTimeout(visibilityTimeout);
