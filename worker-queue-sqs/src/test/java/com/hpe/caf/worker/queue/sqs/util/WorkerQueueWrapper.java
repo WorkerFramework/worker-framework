@@ -84,6 +84,7 @@ public class WorkerQueueWrapper
             workerQueueConfiguration.setSqsConfiguration(sqsConfiguration);
             workerQueueConfiguration.setInputQueue(inputQueue);
             workerQueueConfiguration.setRetryQueue(retryQueue);
+            workerQueueConfiguration.setRejectedQueue("worker-rejected"); // DDD test
             workerQueueConfiguration.setVisibilityTimeout(visibilityTimeout);
             workerQueueConfiguration.setLongPollInterval(longPollInterval);
             workerQueueConfiguration.setMaxNumberOfMessages(maxNumberOfMessages);
