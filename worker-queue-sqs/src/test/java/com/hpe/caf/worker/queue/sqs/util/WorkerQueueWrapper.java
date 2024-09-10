@@ -84,6 +84,7 @@ public class WorkerQueueWrapper
             workerQueueConfiguration.setSqsConfiguration(sqsConfiguration);
             workerQueueConfiguration.setInputQueue(inputQueue);
             workerQueueConfiguration.setRetryQueue(retryQueue);
+            workerQueueConfiguration.setPausedQueue("paused-queue");
             workerQueueConfiguration.setRejectedQueue("worker-rejected"); // DDD test
             workerQueueConfiguration.setVisibilityTimeout(visibilityTimeout);
             workerQueueConfiguration.setLongPollInterval(longPollInterval);
@@ -132,14 +133,6 @@ public class WorkerQueueWrapper
     public CloudWatchClient getCloudwatchClient()
     {
         return cloudWatch;
-    }
-
-    public static WorkerQueueWrapper getWorkerWrapper(
-            final LocalStackContainer container,
-            final String inputQueue
-    )
-    {
-        return getWorkerWrapper(container, inputQueue, inputQueue);
     }
 
     public static WorkerQueueWrapper getWorkerWrapper(

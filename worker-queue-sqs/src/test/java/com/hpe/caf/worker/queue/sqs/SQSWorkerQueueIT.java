@@ -15,6 +15,8 @@
  */
 package com.hpe.caf.worker.queue.sqs;
 
+import com.hpe.caf.api.HealthResult;
+import com.hpe.caf.api.HealthStatus;
 import com.hpe.caf.worker.queue.sqs.util.SQSUtil;
 import com.hpe.caf.worker.queue.sqs.util.WrapperConfig;
 import org.testng.Assert;
@@ -170,6 +172,17 @@ public class SQSWorkerQueueIT extends TestContainer
         } catch (final Exception e) {
             Assert.fail("The input queue was not created:" + e.getMessage());
         }
+    }
+
+    @Test
+    public void testLivenessCheck()
+    {
+        final var inputQueue = "liveness-check";
+        final var workerWrapper = getWorkerWrapper(inputQueue);
+        final var result = workerWrapper.sqsWorkerQueue.livenessCheck();
+        assertEquals("Expected a healthy response",
+                HealthResult.RESULT_HEALTHY.getStatus().name(),
+                result.getStatus().name());
     }
 
     @Test

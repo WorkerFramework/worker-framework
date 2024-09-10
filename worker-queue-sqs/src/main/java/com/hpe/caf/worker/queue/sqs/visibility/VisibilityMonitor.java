@@ -72,7 +72,7 @@ public class VisibilityMonitor implements Runnable
                         final var toBeExtendedTimeouts = new ArrayList<VisibilityTimeout>();
 
                         final var now = Instant.now().getEpochSecond();
-                        final var boundary = now + (queueVisibilityTimeout * 2);
+                        final var boundary = now + (queueVisibilityTimeout * 2L);
 
                         Collections.sort(visibilityTimeouts);
                         for(final var vto : visibilityTimeouts) {
@@ -96,14 +96,14 @@ public class VisibilityMonitor implements Runnable
                         // And extend the task info visibility
                         for(final var visibilityTimeout : toBeExtendedTimeouts) {
                             // DDD this needs fine tuned
-                            final var visibility = Instant.now().getEpochSecond() + (queueVisibilityTimeout * 2);
+                            final var visibility = Instant.now().getEpochSecond() + (queueVisibilityTimeout * 2L);
                             visibilityTimeout.setBecomesVisibleEpochSecond(visibility);
                         }
 
                         final var changeVisibilityErrors = extendTaskTimeouts(queueInfo, toBeExtendedTimeouts);
                         final var errors = changeVisibilityErrors.stream()
                                 .map(ChangeVisibilityError::visibilityTimeout)
-                                .collect(Collectors.toList());
+                                .toList();
                         visibilityTimeouts.removeAll(errors);
 
                         toBeExtendedTimeouts.forEach(to -> LOG.debug("Extended timeout to:{} for:{}",
@@ -146,11 +146,11 @@ public class VisibilityMonitor implements Runnable
         for(final VisibilityTimeout to : timeouts) {
             final var idStr = String.valueOf(id++);
             timeoutMap.put(idStr, to);
-            final Long sqsTimeout = to.getBecomesVisibleEpochSecond() - Instant.now().getEpochSecond();
+            final long sqsTimeout = to.getBecomesVisibleEpochSecond() - Instant.now().getEpochSecond();
             entries.add(ChangeMessageVisibilityBatchRequestEntry.builder()
                     .id(idStr)
                     .receiptHandle(to.getReceiptHandle())
-                    .visibilityTimeout(sqsTimeout.intValue())
+                    .visibilityTimeout((int) sqsTimeout)
                     .build());
         }
         final var request = ChangeMessageVisibilityBatchRequest.builder()
@@ -158,13 +158,11 @@ public class VisibilityMonitor implements Runnable
                 .queueUrl(queueUrl)
                 .build();
 
-        final List<ChangeVisibilityError> visibilityErrors = sqsClient.changeMessageVisibilityBatch(request)
+        return sqsClient.changeMessageVisibilityBatch(request)
                 .failed()
                 .stream()
                 .map(f -> new ChangeVisibilityError(f.message(), timeoutMap.get(f.id())))
                 .collect(Collectors.toList());
-
-        return visibilityErrors;
     }
 
     public void watch(final SQSTaskInformation taskInfo)
@@ -177,14 +175,12 @@ public class VisibilityMonitor implements Runnable
         );
         visibilityTimeouts.add(visibilityTimeout);
         LOG.debug("Watching {}", taskInfo.getReceiptHandle());
-        LOG.debug("queue {} now has {} tasks inflight",
-                taskInfo.getQueueInfo().name(),
-                visibilityTimeouts.size());
+        logInflightTasks(taskInfo, visibilityTimeouts);
     }
 
     public void unwatch(final List<SQSTaskInformation> taskInfoList)
     {
-        taskInfoList.forEach(t->unwatch(t));
+        taskInfoList.forEach(this::unwatch);
     }
 
     public void unwatch(final SQSTaskInformation taskInfo)
@@ -195,12 +191,17 @@ public class VisibilityMonitor implements Runnable
                 final var removed = visibilityTimeouts.remove(taskInfo.getVisibilityTimeout());
                 if (removed) {
                     LOG.debug("Unwatched {}", taskInfo.getReceiptHandle());
-                    LOG.debug("queue {} now has {} tasks inflight",
-                            taskInfo.getQueueInfo().name(),
-                            visibilityTimeouts.size());
+                    logInflightTasks(taskInfo, visibilityTimeouts);
                 }
             }
         }
+    }
+
+    private static void logInflightTasks(final SQSTaskInformation taskInfo, final List<VisibilityTimeout> timeouts)
+    {
+        LOG.debug("queue {} now has {} tasks inflight",
+                taskInfo.getQueueInfo().name(),
+                timeouts.size());
     }
 
     public void shutdown()

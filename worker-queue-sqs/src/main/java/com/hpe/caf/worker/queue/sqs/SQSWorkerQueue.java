@@ -204,16 +204,16 @@ public final class SQSWorkerQueue implements ManagedWorkerQueue
     @Override
     public HealthResult livenessCheck()
     {
-        if (!isRunning(inputQueueThread)) {
+        if (isNotRunning(inputQueueThread)) {
             return new HealthResult(HealthStatus.UNHEALTHY, "SQS input queue thread state:" +
                     getState(inputQueueThread));
-        } else if (!isRunning(deadLetterQueueThread)) {
+        } else if (isNotRunning(deadLetterQueueThread)) {
             return new HealthResult(HealthStatus.UNHEALTHY, "SQS dead letter queue thread state:" +
                     getState(inputQueueThread));
-        } else if (!isRunning(visibilityMonitorThread))  {
+        } else if (isNotRunning(visibilityMonitorThread))  {
             return new HealthResult(HealthStatus.UNHEALTHY, "SQS visibility monitor thread state:" +
                     getState(inputQueueThread));
-        } else if (!isRunning(deleteMessageThread))  {
+        } else if (isNotRunning(deleteMessageThread))  {
             return new HealthResult(HealthStatus.UNHEALTHY, "SQS delete message thread state:" +
                     getState(deleteMessageThread));
         }
@@ -314,10 +314,9 @@ public final class SQSWorkerQueue implements ManagedWorkerQueue
         return attributes;
     }
 
-    private static boolean isRunning(final Thread t)
+    private static boolean isNotRunning(final Thread t)
     {
-        final var isNotRunning = (t == null) || t.getState() == Thread.State.NEW || t.getState() == Thread.State.TERMINATED;
-        return !isNotRunning;
+        return (t == null) || t.getState() == Thread.State.NEW || t.getState() == Thread.State.TERMINATED;
     }
 
     private static String getState(final Thread t)

@@ -58,6 +58,7 @@ public class DeletePublisher implements Runnable
         while (running.get()) {
             processTasks();
             try {
+                // Serves to allow some degree of batching + saving CPU
                 Thread.sleep(5000);
             } catch (final InterruptedException e) {
                 LOG.error("A pause in task deletion was interrupted", e);
@@ -73,7 +74,7 @@ public class DeletePublisher implements Runnable
                 final var completedTasks = tasks.stream()
                         .filter(SQSTaskInformation::processingComplete)
                         .collect(Collectors.toList());
-                tasks.removeAll(completedTasks);
+                completedTasks.forEach(tasks::remove);
                 visibilityMonitor.unwatch(completedTasks);
                 final var errors = deleteTasks(entry.getKey(), completedTasks);
 
@@ -122,17 +123,13 @@ public class DeletePublisher implements Runnable
 
         final var response = sqsClient.deleteMessageBatch(request);
 
-        response.successful().forEach(deleted-> {
-            LOG.debug("Deleted message {}", taskMap.get(deleted.id()));
-        });
+        response.successful().forEach(deleted-> LOG.debug("Deleted message {}", taskMap.get(deleted.id())));
 
-        final List<DeletionError> deletionErrors = response
+        return response
                 .failed()
                 .stream()
                 .map(f -> new DeletionError(f.message(), taskMap.get(f.id())))
                 .collect(Collectors.toList());
-
-        return deletionErrors;
     }
 
     public void watch(final SQSTaskInformation taskInfo)

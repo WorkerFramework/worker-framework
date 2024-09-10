@@ -70,11 +70,6 @@ public final class QueueInfo
         return arn;
     }
 
-    public boolean isDeadLetterQueue()
-    {
-        return isDeadLetterQueue;
-    }
-
     @Override
     public String toString()
     {
