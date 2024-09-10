@@ -166,9 +166,9 @@ public abstract class QueueConsumer implements Runnable
             handleConsumerSpecificActions(taskInfo);
         } catch (final InvalidTaskException e) {
             LOG.error("Cannot register new message, rejecting {}", taskInfo, e);
-            retryMessage(message); // DDD note not yet watched
+            retryMessage(message);
         } catch (final TaskRejectedException e) {
-            metricsReporter.incrementRejected(); // DDD note not yet watched
+            metricsReporter.incrementRejected();
             LOG.warn("Message {} rejected as a task at this time, will be redelivered by SQS",
                     taskInfo, e);
         }

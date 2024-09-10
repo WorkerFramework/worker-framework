@@ -147,7 +147,7 @@ public final class SQSWorkerQueue implements ManagedWorkerQueue
         try {
             final var queueInfo = declaredQueues.computeIfAbsent(
                     targetQueue,
-                    (q) -> createQueuePair(targetQueue).queue() // DDD create queue??
+                    (q) -> createQueuePair(targetQueue).queue()
             );
 
             var attributes = createAttributesFromMessageHeaders(headers);
@@ -260,7 +260,7 @@ public final class SQSWorkerQueue implements ManagedWorkerQueue
         metricsReporter.incrementRejected();
         final var sqsTaskInformation = (SQSTaskInformation) taskInformation;
         LOG.debug("About to unwatch rejected task {}", sqsTaskInformation.getReceiptHandle());
-        visibilityMonitor.unwatch(sqsTaskInformation); // DDD forces redelivery
+        visibilityMonitor.unwatch(sqsTaskInformation); // forces redelivery
     }
 
     @Override
@@ -269,7 +269,7 @@ public final class SQSWorkerQueue implements ManagedWorkerQueue
         metricsReporter.incrementDropped();
         final var sqsTaskInformation = (SQSTaskInformation) taskInformation;
         LOG.debug("About to unwatch discarded task {}", sqsTaskInformation.getReceiptHandle());
-        visibilityMonitor.unwatch(sqsTaskInformation); // DDD forces redelivery
+        visibilityMonitor.unwatch(sqsTaskInformation); // forces redelivery
     }
 
     @Override
@@ -278,11 +278,10 @@ public final class SQSWorkerQueue implements ManagedWorkerQueue
         return queueCfg.getInputQueue();
     }
 
-    // DDD obsolete?
     @Override
     public String getPausedQueue()
     {
-        return "";
+        return queueCfg.getPausedQueue();
     }
 
     private QueuePair createQueuePair(final String queueName)
