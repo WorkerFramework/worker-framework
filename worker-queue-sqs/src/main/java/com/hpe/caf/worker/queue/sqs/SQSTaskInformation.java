@@ -101,15 +101,11 @@ public final class SQSTaskInformation implements TaskInformation
 
     private void orLastMessageSent(final boolean isLastMessage)
     {
-        if (isLastMessage) {
-            // Only set if true
-            wasLastMessageSent.set(true);
-        }
+        wasLastMessageSent.compareAndExchange(false, isLastMessage);
     }
 
     public boolean processingComplete()
     {
-        // DDD test this in IT, requires call to publish to a different un watched queue
         return wasLastMessageSent.get() && responseCount.get() == acknowledgementCount.get();
     }
 

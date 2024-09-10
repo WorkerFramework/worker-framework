@@ -57,6 +57,11 @@ public class DeletePublisher implements Runnable
     {
         while (running.get()) {
             processTasks();
+            try {
+                Thread.sleep(5000);
+            } catch (final InterruptedException e) {
+                LOG.error("A pause in task deletion was interrupted", e);
+            }
         }
     }
 
@@ -91,7 +96,6 @@ public class DeletePublisher implements Runnable
             failures.addAll(failed);
         }
 
-        failures.forEach(f -> LOG.error(f.toString()));
         return failures;
     }
 
@@ -138,7 +142,7 @@ public class DeletePublisher implements Runnable
                 queueInfo.url(),
                 (q) -> Collections.synchronizedSet(new HashSet<>())
         );
-        deleteTasks.add(taskInfo);
+        deleteTasks.add(taskInfo); // Tasks are unique by receipt handle.
         LOG.debug("Watching {}", taskInfo.getReceiptHandle());
     }
 }

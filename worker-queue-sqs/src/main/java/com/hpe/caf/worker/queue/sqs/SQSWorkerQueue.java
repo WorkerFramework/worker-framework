@@ -157,10 +157,7 @@ public final class SQSWorkerQueue implements ManagedWorkerQueue
     {
         var sqsTaskInformation = (SQSTaskInformation) taskInformation;
         try {
-            final var queueInfo = declaredQueues.computeIfAbsent(
-                    targetQueue,
-                    (q) -> createDeadLetteredQueuePair(targetQueue).queue()
-            );
+            final var queueInfo = createDeadLetteredQueuePair(targetQueue).queue();
 
             var attributes = createAttributesFromMessageHeaders(headers);
 
@@ -194,8 +191,8 @@ public final class SQSWorkerQueue implements ManagedWorkerQueue
     @Override
     public void acknowledgeTask(final TaskInformation taskInformation)
     {
-        // DDD so this could be called multiple times
-        // so when ack  AND publish are called the same number of times
+        // This could be called multiple times
+        // so when ack AND publish are called the same number of times
         // AND
         // lastmessage was sent
         // we can delete the message from sqs

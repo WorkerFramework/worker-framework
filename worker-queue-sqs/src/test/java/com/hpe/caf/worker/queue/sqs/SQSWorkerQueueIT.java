@@ -16,6 +16,7 @@
 package com.hpe.caf.worker.queue.sqs;
 
 import com.hpe.caf.worker.queue.sqs.util.SQSUtil;
+import com.hpe.caf.worker.queue.sqs.util.WrapperConfig;
 import org.testng.Assert;
 import org.testng.annotations.Test;
 import software.amazon.awssdk.services.sqs.model.GetQueueUrlRequest;
@@ -23,6 +24,7 @@ import software.amazon.awssdk.services.sqs.model.MessageAttributeValue;
 import software.amazon.awssdk.services.sqs.model.MessageSystemAttributeName;
 import software.amazon.awssdk.services.sqs.model.ReceiveMessageRequest;
 
+import java.nio.charset.StandardCharsets;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
@@ -35,29 +37,119 @@ import static org.testng.Assert.assertTrue;
 import static org.testng.AssertJUnit.assertEquals;
 import static org.testng.AssertJUnit.assertFalse;
 
-
 public class SQSWorkerQueueIT extends TestContainer
 {
     @Test
-    public void testPublish() throws Exception
+    public void testPublishAcknowledgeDelete() throws Exception
     {
-        final var inputQueue = "test-publish";
-        final var workerWrapper = getWorkerWrapper(inputQueue);
+        final var inputQueue = "test-publish-ack-del";
+        final var timeout = 15;
+        final var workerWrapper = getWorkerWrapper(
+                inputQueue,
+                inputQueue,
+                new WrapperConfig(
+                        timeout,
+                        timeout,
+                        1,
+                        1000,
+                        1000
+                ));
         final var msgBody = "Hello-World";
         final var metricsReporter = workerWrapper.metricsReporter;
+
         sendMessages(workerWrapper, msgBody);
         try {
             final var msg = workerWrapper.callbackQueue.poll(30, TimeUnit.SECONDS);
             assertNotNull(msg, "A Message should have been received.");
-            final var body = msg.body();
             assertFalse(msg.taskInformation().isPoison());
+            final var body = msg.body();
             assertEquals("Message was not as expected", msgBody, body);
+
+            // Publish
+            final var lastMessage = true;
+            workerWrapper.sqsWorkerQueue.publish(
+                    msg.taskInformation(),
+                    msg.body().getBytes(StandardCharsets.UTF_8),
+                    "target-queue",
+                    new HashMap<>(),
+                    lastMessage
+            );
+
+            // Ack
+            workerWrapper.sqsWorkerQueue.acknowledgeTask(msg.taskInformation());
+
+            // Stop watching
+            workerWrapper.sqsWorkerQueue.discardTask(msg.taskInformation());
+
+            // Delete thread sleeps for 5 seconds between iterations.
+            final var nullMessage = workerWrapper.callbackQueue.poll(timeout * 2, TimeUnit.SECONDS);
+            assertNull(nullMessage, "A Message should not have been received.");
+
             assertEquals("Metrics should only have reported a single message",
                     1, metricsReporter.getMessagesReceived());
             assertEquals("Metrics should not have reported errors",
                     0, metricsReporter.getQueueErrors());
-            assertEquals("Metrics should not have reported dropped messages",
-                    0, metricsReporter.getMessagesDropped());
+            assertEquals("Metrics should have reported one dropped messages",
+                    1, metricsReporter.getMessagesDropped());
+            assertEquals("Metrics should not have reported rejected messages",
+                    0, metricsReporter.getMessagesRejected());
+        } finally {
+            purgeQueue(workerWrapper.sqsClient, workerWrapper.inputQueueUrl);
+        }
+    }
+
+    @Test
+    public void testAcknowledgePublishDelete() throws Exception
+    {
+        final var inputQueue = "test-ack-publish-del";
+        final var timeout = 15;
+        final var workerWrapper = getWorkerWrapper(
+                inputQueue,
+                inputQueue,
+                new WrapperConfig(
+                        timeout,
+                        timeout,
+                        1,
+                        1000,
+                        1000
+                ));
+        final var msgBody = "Hello-World";
+        final var metricsReporter = workerWrapper.metricsReporter;
+
+        sendMessages(workerWrapper, msgBody);
+        try {
+            final var msg = workerWrapper.callbackQueue.poll(30, TimeUnit.SECONDS);
+            assertNotNull(msg, "A Message should have been received.");
+            assertFalse(msg.taskInformation().isPoison());
+            final var body = msg.body();
+            assertEquals("Message was not as expected", msgBody, body);
+
+            // Ack
+            workerWrapper.sqsWorkerQueue.acknowledgeTask(msg.taskInformation());
+
+            // Publish intentionally out of order
+            final var lastMessage = true;
+            workerWrapper.sqsWorkerQueue.publish(
+                    msg.taskInformation(),
+                    msg.body().getBytes(StandardCharsets.UTF_8),
+                    "target-queue",
+                    new HashMap<>(),
+                    lastMessage
+            );
+
+            // Stop watching
+            workerWrapper.sqsWorkerQueue.discardTask(msg.taskInformation());
+
+            // Delete thread sleeps for 5 seconds between iterations.
+            final var nullMessage = workerWrapper.callbackQueue.poll(timeout * 2, TimeUnit.SECONDS);
+            assertNull(nullMessage, "A Message should not have been received.");
+
+            assertEquals("Metrics should only have reported a single message",
+                    1, metricsReporter.getMessagesReceived());
+            assertEquals("Metrics should not have reported errors",
+                    0, metricsReporter.getQueueErrors());
+            assertEquals("Metrics should have reported one dropped messages",
+                    1, metricsReporter.getMessagesDropped());
             assertEquals("Metrics should not have reported rejected messages",
                     0, metricsReporter.getMessagesRejected());
         } finally {
