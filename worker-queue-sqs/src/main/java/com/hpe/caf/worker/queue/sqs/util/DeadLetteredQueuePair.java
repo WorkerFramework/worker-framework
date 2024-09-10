@@ -22,5 +22,5 @@ import com.hpe.caf.worker.queue.sqs.QueueInfo;
  * @param queue
  * @param deadLetterQueue
  */
-public record QueuePair(QueueInfo queue, QueueInfo deadLetterQueue)
+public record DeadLetteredQueuePair(QueueInfo queue, QueueInfo deadLetterQueue)
 {}

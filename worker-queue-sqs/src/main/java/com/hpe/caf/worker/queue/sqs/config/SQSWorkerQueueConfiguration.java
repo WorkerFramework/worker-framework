@@ -39,6 +39,19 @@ public class SQSWorkerQueueConfiguration
     private String inputQueue;
 
     /**
+     * The queue to put messages sent to a paused worker on. If this is null, messages sent to a paused worker will be processed as
+     * normal (as if the worker was not paused).
+     */
+    @Size(min = 1)
+    private String pausedQueue;
+
+    /**
+     * The queue to put rejected messages on.
+     */
+    @Size(min = 1)
+    private String rejectedQueue;
+
+    /**
      * The queue to re-queue messages on. If this null, the inputQueue will be used.
      */
     private String retryQueue;
@@ -68,20 +81,6 @@ public class SQSWorkerQueueConfiguration
     @Min(300)
     @Max(43200)
     private Integer visibilityTimeout;
-
-    /**
-     * The queue to put messages sent to a paused worker on. If this is null, messages sent to a paused worker will be processed as
-     * normal (as if the worker was not paused).
-     */
-    @Size(min = 1)
-    private String pausedQueue;
-
-    /**
-     * The queue to put messages sent to a paused worker on. If this is null, messages sent to a paused worker will be processed as
-     * normal (as if the worker was not paused).
-     */
-    @Size(min = 1)
-    private String rejectedQueue;
 
     /**
      * The length of time, in seconds, for which Amazon SQS retains a message.

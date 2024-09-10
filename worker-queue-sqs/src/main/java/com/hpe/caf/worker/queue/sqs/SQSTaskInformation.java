@@ -19,6 +19,8 @@ import com.hpe.caf.api.worker.TaskInformation;
 import com.hpe.caf.worker.queue.sqs.visibility.VisibilityTimeout;
 import jakarta.validation.constraints.NotNull;
 
+import java.util.concurrent.atomic.AtomicBoolean;
+
 public final class SQSTaskInformation implements TaskInformation
 {
     @NotNull
@@ -29,6 +31,8 @@ public final class SQSTaskInformation implements TaskInformation
 
     @NotNull
     private final VisibilityTimeout visibilityTimeout;
+
+    public final AtomicBoolean wasLastMessageSent = new AtomicBoolean(false);
 
     public SQSTaskInformation(
             final String inboundMessageId,

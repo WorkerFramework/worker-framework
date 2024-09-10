@@ -26,7 +26,7 @@ import com.hpe.caf.worker.queue.sqs.config.SQSWorkerQueueConfiguration;
 import com.hpe.caf.worker.queue.sqs.consumer.DeadLetterQueueConsumer;
 import com.hpe.caf.worker.queue.sqs.consumer.InputQueueConsumer;
 import com.hpe.caf.worker.queue.sqs.metrics.MetricsReporter;
-import com.hpe.caf.worker.queue.sqs.util.QueuePair;
+import com.hpe.caf.worker.queue.sqs.util.DeadLetteredQueuePair;
 import com.hpe.caf.worker.queue.sqs.util.SQSUtil;
 import com.hpe.caf.worker.queue.sqs.visibility.VisibilityMonitor;
 import org.slf4j.Logger;
@@ -83,15 +83,20 @@ public final class SQSWorkerQueue implements ManagedWorkerQueue
         try {
             sqsClient = SQSUtil.getSqsClient(queueCfg.getSqsConfiguration());
 
-            final var queuePair = createQueuePair(queueCfg.getInputQueue());
+            final var queuePair = createDeadLetteredQueuePair(queueCfg.getInputQueue());
 
             final var inputQueueInfo = queuePair.queue();
             final var deadLetterQueueInfo = queuePair.deadLetterQueue();
 
+            // DDD not creating dlq for this
             final var retryQueueInfo = declaredQueues.computeIfAbsent(
                     queueCfg.getRetryQueue(),
                     (q) -> SQSUtil.createQueue(sqsClient, q, queueCfg)
             );
+
+            // DDD creating the reject queue here with no dlq
+            // since doing so on publish would add the dlq
+            SQSUtil.createQueue(sqsClient, queueCfg.getRejectedQueue(), queueCfg);
 
             visibilityMonitor = new VisibilityMonitor(
                     sqsClient,
@@ -100,6 +105,7 @@ public final class SQSWorkerQueue implements ManagedWorkerQueue
             dlqConsumer = new DeadLetterQueueConsumer(
                     sqsClient,
                     deadLetterQueueInfo,
+                    retryQueueInfo,
                     callback,
                     queueCfg,
                     visibilityMonitor,
@@ -144,10 +150,11 @@ public final class SQSWorkerQueue implements ManagedWorkerQueue
             final boolean isLastMessage // DDD unused ?
     ) throws QueueException
     {
+        var sqsTaskInformation = (SQSTaskInformation) taskInformation;
         try {
             final var queueInfo = declaredQueues.computeIfAbsent(
                     targetQueue,
-                    (q) -> createQueuePair(targetQueue).queue()
+                    (q) -> createDeadLetteredQueuePair(targetQueue).queue()
             );
 
             var attributes = createAttributesFromMessageHeaders(headers);
@@ -158,9 +165,10 @@ public final class SQSWorkerQueue implements ManagedWorkerQueue
                     .messageAttributes(attributes)
                     .build();
             sqsClient.sendMessage(sendMsgRequest);
+            sqsTaskInformation.wasLastMessageSent.set(isLastMessage);
         } catch (final Exception e) {
             metricsReporter.incrementErrors();
-            LOG.error("Error publishing task message {} {}", taskInformation, e.getMessage());
+            LOG.error("Error publishing task message {} {}", sqsTaskInformation, e.getMessage());
             throw new QueueException("Error publishing task message", e);
         }
     }
@@ -182,6 +190,9 @@ public final class SQSWorkerQueue implements ManagedWorkerQueue
     public void acknowledgeTask(final TaskInformation taskInformation)
     {
         var sqsTaskInformation = (SQSTaskInformation) taskInformation;
+        if (!sqsTaskInformation.wasLastMessageSent.get()) {
+            return;
+        }
         try {
             final var deleteRequest = DeleteMessageRequest.builder()
                     .queueUrl(sqsTaskInformation.getQueueInfo().url())
@@ -284,7 +295,7 @@ public final class SQSWorkerQueue implements ManagedWorkerQueue
         return queueCfg.getPausedQueue();
     }
 
-    private QueuePair createQueuePair(final String queueName)
+    private DeadLetteredQueuePair createDeadLetteredQueuePair(final String queueName)
     {
         final var queue = declaredQueues.computeIfAbsent(
                 queueName,
@@ -295,7 +306,7 @@ public final class SQSWorkerQueue implements ManagedWorkerQueue
                 queueName + SQSUtil.DEAD_LETTER_QUEUE_SUFFIX,
                 (q) -> SQSUtil.createDeadLetterQueue(sqsClient, queue, queueCfg)
         );
-        return new QueuePair(queue, dlqueue);
+        return new DeadLetteredQueuePair(queue, dlqueue);
     }
 
     private static Map<String, MessageAttributeValue> createAttributesFromMessageHeaders(final Map<String, Object> headers)
