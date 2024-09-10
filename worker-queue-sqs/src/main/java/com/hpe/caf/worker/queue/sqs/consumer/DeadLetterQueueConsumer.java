@@ -30,15 +30,15 @@ public class DeadLetterQueueConsumer extends QueueConsumer
     public DeadLetterQueueConsumer(
             final SqsClient sqsClient,
             final QueueInfo queueInfo,
-            final QueueInfo retryQueueInfo,
             final TaskCallback callback,
             final SQSWorkerQueueConfiguration queueCfg,
             final VisibilityMonitor visibilityMonitor,
             final MetricsReporter metricsReporter,
-            final AtomicBoolean receiveMessages)
+            final AtomicBoolean receiveMessages,
+            final int maxTasks)
     {
-        super(sqsClient, queueInfo, retryQueueInfo, queueCfg, callback,
-                visibilityMonitor, metricsReporter, receiveMessages);
+        super(sqsClient, queueInfo, queueInfo, queueCfg, callback,
+                visibilityMonitor, metricsReporter, receiveMessages, maxTasks);
     }
 
     @Override

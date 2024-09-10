@@ -51,6 +51,7 @@ public abstract class QueueConsumer implements Runnable
     protected final MetricsReporter metricsReporter;
     protected final VisibilityMonitor visibilityMonitor;
     protected final AtomicBoolean receiveMessages;
+    private final int maxTasks;
     protected final AtomicBoolean running = new AtomicBoolean(true);
 
     private static final Logger LOG = LoggerFactory.getLogger(QueueConsumer.class);
@@ -63,7 +64,8 @@ public abstract class QueueConsumer implements Runnable
             final TaskCallback callback,
             final VisibilityMonitor visibilityMonitor,
             final MetricsReporter metricsReporter,
-            final AtomicBoolean receiveMessages)
+            final AtomicBoolean receiveMessages,
+            final int maxTasks)
     {
         this.sqsClient = sqsClient;
         this.queueInfo = queueInfo;
@@ -73,6 +75,7 @@ public abstract class QueueConsumer implements Runnable
         this.metricsReporter = metricsReporter;
         this.visibilityMonitor = visibilityMonitor;
         this.receiveMessages = receiveMessages;
+        this.maxTasks = maxTasks;
     }
 
     @Override
@@ -80,7 +83,7 @@ public abstract class QueueConsumer implements Runnable
     {
         final var receiveRequest = ReceiveMessageRequest.builder()
                 .queueUrl(queueInfo.url())
-                .maxNumberOfMessages(queueCfg.getMaxNumberOfMessages())
+                .maxNumberOfMessages(getReceiveBatchSize())
                 .waitTimeSeconds(queueCfg.getLongPollInterval())
                 .messageSystemAttributeNames(MessageSystemAttributeName.ALL)
                 .messageAttributeNames(SQSUtil.ALL_ATTRIBUTES)
@@ -179,4 +182,17 @@ public abstract class QueueConsumer implements Runnable
     protected abstract void handleConsumerSpecificActions(final SQSTaskInformation taskInfo);
 
     protected abstract boolean isPoisonMessageConsumer();
+
+    private int getReceiveBatchSize()
+    {
+        if (maxTasks > SQSUtil.MAX_MESSAGE_BATCH_SIZE || queueCfg.getMaxNumberOfMessages() + maxTasks > SQSUtil.MAX_MESSAGE_BATCH_SIZE) {
+            return SQSUtil.MAX_MESSAGE_BATCH_SIZE;
+        }
+
+        if (queueCfg.getMaxNumberOfMessages() + maxTasks <= SQSUtil.MAX_MESSAGE_BATCH_SIZE) {
+            return queueCfg.getMaxNumberOfMessages() + maxTasks;
+        }
+
+        return Math.max(queueCfg.getMaxNumberOfMessages(), maxTasks);
+    }
 }

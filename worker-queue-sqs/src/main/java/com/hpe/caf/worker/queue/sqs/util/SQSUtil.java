@@ -45,6 +45,7 @@ public class SQSUtil
     public static final String DEAD_LETTER_QUEUE_SUFFIX = "-dlq";
     public static final String ALL_ATTRIBUTES = "All";
     public static final String SOURCE_QUEUE = "SourceQueue";
+    public static final int MAX_MESSAGE_BATCH_SIZE = 10;
 
     private static final Logger LOG = LoggerFactory.getLogger(SQSUtil.class);
 

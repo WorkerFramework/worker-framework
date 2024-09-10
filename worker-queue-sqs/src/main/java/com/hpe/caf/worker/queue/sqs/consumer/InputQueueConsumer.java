@@ -36,10 +36,11 @@ public class InputQueueConsumer extends QueueConsumer
             final SQSWorkerQueueConfiguration queueCfg,
             final VisibilityMonitor visibilityMonitor,
             final MetricsReporter metricsReporter,
-            final AtomicBoolean receiveMessages)
+            final AtomicBoolean receiveMessages,
+            final int maxTasks)
     {
         super(sqsClient, queueInfo, retryQueueInfo, queueCfg, callback,
-                visibilityMonitor, metricsReporter, receiveMessages);
+                visibilityMonitor, metricsReporter, receiveMessages, maxTasks);
     }
 
     @Override

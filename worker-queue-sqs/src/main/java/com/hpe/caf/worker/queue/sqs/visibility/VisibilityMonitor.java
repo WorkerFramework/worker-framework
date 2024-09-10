@@ -26,13 +26,13 @@ import software.amazon.awssdk.services.sqs.model.ChangeMessageVisibilityBatchReq
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.stream.Collectors;
 
+import static com.hpe.caf.worker.queue.sqs.util.SQSUtil.MAX_MESSAGE_BATCH_SIZE;
 import static com.hpe.caf.worker.queue.sqs.util.SQSUtil.getExpiry;
 
 /**
@@ -45,8 +45,6 @@ public class VisibilityMonitor implements Runnable
     private final int monitoringInterval;
     private final Map<String, List<VisibilityTimeout>> timeoutCollections;
     protected final AtomicBoolean running = new AtomicBoolean(true);
-
-    private static final int MAX_BATCH_SIZE = 10;
 
     private static final Logger LOG = LoggerFactory.getLogger(VisibilityMonitor.class);
 
@@ -127,7 +125,7 @@ public class VisibilityMonitor implements Runnable
     )
     {
         final var failures = new ArrayList<ChangeVisibilityError>();
-        final var batches = Iterables.partition(timeouts, MAX_BATCH_SIZE);
+        final var batches = Iterables.partition(timeouts, MAX_MESSAGE_BATCH_SIZE);
         for(final var batch : batches) {
             final var failed = sendBatch(queueUrl, batch);
             failures.addAll(failed);

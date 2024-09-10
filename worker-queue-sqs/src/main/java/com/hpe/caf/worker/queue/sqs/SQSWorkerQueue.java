@@ -58,7 +58,7 @@ public final class SQSWorkerQueue implements ManagedWorkerQueue
     private DeadLetterQueueConsumer dlqConsumer;
 
     private final AtomicBoolean receiveMessages;
-
+    private final int maxTasks;
     private final MetricsReporter metricsReporter;
     private final SQSWorkerQueueConfiguration queueCfg;
     private final Map<String, QueueInfo> declaredQueues = new ConcurrentHashMap<>();
@@ -69,7 +69,7 @@ public final class SQSWorkerQueue implements ManagedWorkerQueue
             int maxTasks // Add to max messages
     )
     {
-        // DDD ignoring max tasks here??.
+        this.maxTasks = maxTasks;
         this.queueCfg = Objects.requireNonNull(queueCfg);
         metricsReporter = new MetricsReporter();
         receiveMessages = new AtomicBoolean(true);
@@ -100,12 +100,12 @@ public final class SQSWorkerQueue implements ManagedWorkerQueue
             dlqConsumer = new DeadLetterQueueConsumer(
                     sqsClient,
                     deadLetterQueueInfo,
-                    retryQueueInfo,
                     callback,
                     queueCfg,
                     visibilityMonitor,
                     metricsReporter,
-                    receiveMessages);
+                    receiveMessages,
+                    maxTasks);
 
             consumer = new InputQueueConsumer(
                     sqsClient,
@@ -115,7 +115,8 @@ public final class SQSWorkerQueue implements ManagedWorkerQueue
                     queueCfg,
                     visibilityMonitor,
                     metricsReporter,
-                    receiveMessages);
+                    receiveMessages,
+                    maxTasks);
 
             visibilityMonitorThread = new Thread(visibilityMonitor);
             inputQueueThread = new Thread(consumer);
