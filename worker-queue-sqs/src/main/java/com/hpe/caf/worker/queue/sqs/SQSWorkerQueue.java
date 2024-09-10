@@ -323,8 +323,7 @@ public final class SQSWorkerQueue implements ManagedWorkerQueue
 
     private static boolean isNotRunning(final Thread t)
     {
-        final var state = t.getState();
         // If the thread was not started or is terminated
-        return t == null || state == Thread.State.NEW || state == Thread.State.TERMINATED;
+        return t == null || t.getState() == Thread.State.NEW || t.getState() == Thread.State.TERMINATED;
     }
 }
