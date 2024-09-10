@@ -18,11 +18,17 @@ package com.hpe.caf.worker.queue.sqs;
 import com.hpe.caf.api.worker.TaskInformation;
 import com.hpe.caf.worker.queue.sqs.visibility.VisibilityTimeout;
 import jakarta.validation.constraints.NotNull;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
+import java.util.Objects;
 import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.atomic.AtomicInteger;
 
 public final class SQSTaskInformation implements TaskInformation
 {
+    private static final Logger LOG = LoggerFactory.getLogger(SQSTaskInformation.class);
+
     @NotNull
     private final String inboundMessageId;
 
@@ -32,7 +38,9 @@ public final class SQSTaskInformation implements TaskInformation
     @NotNull
     private final VisibilityTimeout visibilityTimeout;
 
-    public final AtomicBoolean wasLastMessageSent = new AtomicBoolean(false);
+    private final AtomicBoolean wasLastMessageSent;
+    private final AtomicInteger responseCount;
+    private final AtomicInteger acknowledgementCount;
 
     public SQSTaskInformation(
             final String inboundMessageId,
@@ -42,6 +50,9 @@ public final class SQSTaskInformation implements TaskInformation
         this.inboundMessageId = inboundMessageId;
         this.visibilityTimeout = visibilityTimeout;
         this.isPoison = isPoison;
+        wasLastMessageSent = new AtomicBoolean(false);
+        this.responseCount = new AtomicInteger(0);
+        this.acknowledgementCount = new AtomicInteger(0);
     }
 
     public QueueInfo getQueueInfo()
@@ -71,6 +82,52 @@ public final class SQSTaskInformation implements TaskInformation
         return visibilityTimeout.getReceiptHandle();
     }
 
+    public void incrementResponseCount(final boolean isLastMessage) {
+        if (wasLastMessageSent.get()) {
+            throw new RuntimeException("Final response already set!");
+        }
+        responseCount.incrementAndGet();
+        LOG.debug("Incremented the responseCount for message:{} responseCount is: {}",
+                visibilityTimeout.getReceiptHandle(), responseCount.get());
+        orLastMessageSent(isLastMessage);
+    }
+
+    public void incrementAcknowledgementCount()
+    {
+        acknowledgementCount.incrementAndGet();
+        LOG.debug("Incremented the acknowledgementCount for message:{} acknowledgementCount is: {}",
+                visibilityTimeout.getReceiptHandle(), acknowledgementCount.get());
+    }
+
+    private void orLastMessageSent(final boolean isLastMessage)
+    {
+        if (isLastMessage) {
+            // Only set if true
+            wasLastMessageSent.set(true);
+        }
+    }
+
+    public boolean processingComplete()
+    {
+        // DDD test this in IT, requires call to publish to a different un watched queue
+        return wasLastMessageSent.get() && responseCount.get() == acknowledgementCount.get();
+    }
+
+    @Override
+    public boolean equals(Object o)
+    {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        final SQSTaskInformation that = (SQSTaskInformation) o;
+        return Objects.equals(visibilityTimeout.getReceiptHandle(), that.visibilityTimeout.getReceiptHandle());
+    }
+
+    @Override
+    public int hashCode()
+    {
+        return Objects.hashCode(visibilityTimeout.getReceiptHandle());
+    }
+
     @Override
     public String toString()
     {
@@ -78,6 +135,7 @@ public final class SQSTaskInformation implements TaskInformation
                 "inboundMessageId='" + inboundMessageId + '\'' +
                 ", isPoison=" + isPoison +
                 ", visibilityTimeout=" + visibilityTimeout +
+                ", processingComplete=" + processingComplete() +
                 '}';
     }
 }

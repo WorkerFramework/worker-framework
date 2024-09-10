@@ -182,6 +182,11 @@ public class VisibilityMonitor implements Runnable
                 visibilityTimeouts.size());
     }
 
+    public void unwatch(final List<SQSTaskInformation> taskInfoList)
+    {
+        taskInfoList.forEach(t->unwatch(t));
+    }
+
     public void unwatch(final SQSTaskInformation taskInfo)
     {
         final var visibilityTimeouts = timeoutCollections.get(taskInfo.getQueueInfo().url());

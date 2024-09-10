@@ -25,6 +25,7 @@ import com.hpe.caf.api.worker.WorkerQueueMetricsReporter;
 import com.hpe.caf.worker.queue.sqs.config.SQSWorkerQueueConfiguration;
 import com.hpe.caf.worker.queue.sqs.consumer.DeadLetterQueueConsumer;
 import com.hpe.caf.worker.queue.sqs.consumer.InputQueueConsumer;
+import com.hpe.caf.worker.queue.sqs.deletion.DeletePublisher;
 import com.hpe.caf.worker.queue.sqs.metrics.MetricsReporter;
 import com.hpe.caf.worker.queue.sqs.util.DeadLetteredQueuePair;
 import com.hpe.caf.worker.queue.sqs.util.SQSUtil;
@@ -32,10 +33,7 @@ import com.hpe.caf.worker.queue.sqs.visibility.VisibilityMonitor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import software.amazon.awssdk.services.sqs.SqsClient;
-import software.amazon.awssdk.services.sqs.model.DeleteMessageRequest;
 import software.amazon.awssdk.services.sqs.model.MessageAttributeValue;
-import software.amazon.awssdk.services.sqs.model.QueueDoesNotExistException;
-import software.amazon.awssdk.services.sqs.model.ReceiptHandleIsInvalidException;
 import software.amazon.awssdk.services.sqs.model.SendMessageRequest;
 
 import java.nio.charset.StandardCharsets;
@@ -52,10 +50,12 @@ public final class SQSWorkerQueue implements ManagedWorkerQueue
     private Thread inputQueueThread;
     private Thread deadLetterQueueThread;
     private Thread visibilityMonitorThread;
+    private Thread deleteMessageThread;
 
     private VisibilityMonitor visibilityMonitor;
     private InputQueueConsumer consumer;
     private DeadLetterQueueConsumer dlqConsumer;
+    private DeletePublisher deletePublisher;
 
     private final AtomicBoolean receiveMessages;
     private final int maxTasks;
@@ -66,7 +66,7 @@ public final class SQSWorkerQueue implements ManagedWorkerQueue
 
     public SQSWorkerQueue(
             final SQSWorkerQueueConfiguration queueCfg,
-            int maxTasks // Add to max messages
+            int maxTasks
     )
     {
         this.maxTasks = maxTasks;
@@ -124,13 +124,18 @@ public final class SQSWorkerQueue implements ManagedWorkerQueue
                     receiveMessages,
                     maxTasks);
 
+            deletePublisher = new DeletePublisher(sqsClient, visibilityMonitor);
+
+            deleteMessageThread = new Thread(deletePublisher);
             visibilityMonitorThread = new Thread(visibilityMonitor);
             inputQueueThread = new Thread(consumer);
             deadLetterQueueThread = new Thread(dlqConsumer);
 
+            deleteMessageThread.start();
             visibilityMonitorThread.start();
             inputQueueThread.start();
             deadLetterQueueThread.start();
+            LOG.debug("Started SQSWorkerQueue");
         } catch (final Exception e) {
             throw new QueueException("Failed to start worker queue", e);
         }
@@ -165,7 +170,7 @@ public final class SQSWorkerQueue implements ManagedWorkerQueue
                     .messageAttributes(attributes)
                     .build();
             sqsClient.sendMessage(sendMsgRequest);
-            sqsTaskInformation.wasLastMessageSent.set(isLastMessage);
+            sqsTaskInformation.incrementResponseCount(isLastMessage);
         } catch (final Exception e) {
             metricsReporter.incrementErrors();
             LOG.error("Error publishing task message {} {}", sqsTaskInformation, e.getMessage());
@@ -189,40 +194,31 @@ public final class SQSWorkerQueue implements ManagedWorkerQueue
     @Override
     public void acknowledgeTask(final TaskInformation taskInformation)
     {
+        // DDD so this could be called multiple times
+        // so when ack  AND publish are called the same number of times
+        // AND
+        // lastmessage was sent
+        // we can delete the message from sqs
         var sqsTaskInformation = (SQSTaskInformation) taskInformation;
-        if (!sqsTaskInformation.wasLastMessageSent.get()) {
-            return;
-        }
-        try {
-            final var deleteRequest = DeleteMessageRequest.builder()
-                    .queueUrl(sqsTaskInformation.getQueueInfo().url())
-                    .receiptHandle(sqsTaskInformation.getReceiptHandle())
-                    .build();
-            sqsClient.deleteMessage(deleteRequest);
-        } catch (final ReceiptHandleIsInvalidException e) {
-            LOG.error("TaskInformation is invalid:{}. {}",
-                    sqsTaskInformation,
-                    e.getMessage());
-            metricsReporter.incrementErrors();
-        } catch (final QueueDoesNotExistException e) {
-            LOG.error("Queue {} may have been deleted. {}",
-                    sqsTaskInformation.getQueueInfo().name(),
-                    e.getMessage());
-            metricsReporter.incrementErrors();
-        } finally {
-            visibilityMonitor.unwatch(sqsTaskInformation);
-        }
+        sqsTaskInformation.incrementAcknowledgementCount();
+        deletePublisher.watch(sqsTaskInformation);
     }
 
     @Override
     public HealthResult livenessCheck()
     {
-        if (isNotRunning(inputQueueThread)) {
-            return new HealthResult(HealthStatus.UNHEALTHY, "SQS input queue thread not running");
-        } else if (isNotRunning(deadLetterQueueThread)) {
-            return new HealthResult(HealthStatus.UNHEALTHY, "SQS dead letter queue thread not running");
-        } else if (isNotRunning(visibilityMonitorThread))  {
-            return new HealthResult(HealthStatus.UNHEALTHY, "SQS visibility monitor thread not running");
+        if (!isRunning(inputQueueThread)) {
+            return new HealthResult(HealthStatus.UNHEALTHY, "SQS input queue thread state:" +
+                    getState(inputQueueThread));
+        } else if (!isRunning(deadLetterQueueThread)) {
+            return new HealthResult(HealthStatus.UNHEALTHY, "SQS dead letter queue thread state:" +
+                    getState(inputQueueThread));
+        } else if (!isRunning(visibilityMonitorThread))  {
+            return new HealthResult(HealthStatus.UNHEALTHY, "SQS visibility monitor thread state:" +
+                    getState(inputQueueThread));
+        } else if (!isRunning(deleteMessageThread))  {
+            return new HealthResult(HealthStatus.UNHEALTHY, "SQS delete message thread state:" +
+                    getState(deleteMessageThread));
         }
         return HealthResult.RESULT_HEALTHY;
     }
@@ -321,9 +317,14 @@ public final class SQSWorkerQueue implements ManagedWorkerQueue
         return attributes;
     }
 
-    private static boolean isNotRunning(final Thread t)
+    private static boolean isRunning(final Thread t)
     {
-        // If the thread was not started or is terminated
-        return t == null || t.getState() == Thread.State.NEW || t.getState() == Thread.State.TERMINATED;
+        final var isNotRunning = (t == null) || t.getState() == Thread.State.NEW || t.getState() == Thread.State.TERMINATED;
+        return !isNotRunning;
+    }
+
+    private static String getState(final Thread t)
+    {
+        return t == null ? "NULL" : t.getState().name();
     }
 }
