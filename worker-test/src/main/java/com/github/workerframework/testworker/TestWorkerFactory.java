@@ -36,9 +36,9 @@ final class TestWorkerFactory implements WorkerFactory
     private final Codec codec;
 
     public TestWorkerFactory(
-        final ConfigurationSource configSource,
-        final DataStore dataStore,
-        final Codec codec
+            final ConfigurationSource configSource,
+            final DataStore dataStore,
+            final Codec codec
     ) throws WorkerException
     {
         this.config = getConfiguration(configSource);
@@ -48,11 +48,9 @@ final class TestWorkerFactory implements WorkerFactory
 
     @Nonnull
     private static TestWorkerConfiguration getConfiguration(final ConfigurationSource configSource)
-        throws WorkerException
+            throws WorkerException
     {
         try {
-            final var sqsCfg = configSource.getConfiguration(TestSQSConfiguration.class);
-            final var sqsWorkerQueueCfg = configSource.getConfiguration(TestSQSWorkerQueueConfiguration.class);
             return configSource.getConfiguration(TestWorkerConfiguration.class);
         } catch (final ConfigurationException ex) {
             throw new WorkerException("Failed to construct TestWorkerConfiguration object", ex);
@@ -60,7 +58,8 @@ final class TestWorkerFactory implements WorkerFactory
     }
 
     @Override
-    public TestWorkerConfiguration getWorkerConfiguration(){
+    public TestWorkerConfiguration getWorkerConfiguration()
+    {
         try {
             return getConfiguration(configSource);
         } catch (WorkerException e) {

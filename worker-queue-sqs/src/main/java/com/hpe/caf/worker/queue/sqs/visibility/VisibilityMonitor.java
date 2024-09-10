@@ -70,15 +70,12 @@ public class VisibilityMonitor implements Runnable
                     final var visibilityTimeouts = entry.getValue();
                     final var queueInfo = entry.getKey();
                     synchronized (visibilityTimeouts) {
-
                         final var expiredTimeouts = new ArrayList<VisibilityTimeout>();
                         final var toBeExtendedTimeouts = new ArrayList<VisibilityTimeout>();
 
                         final var now = Instant.now().getEpochSecond();
                         final var boundary = now + (queueVisibilityTimeout * 2);
 
-                        // DDD depending on number of expected inflight messages
-                        // it may be quicker just to check all messages
                         Collections.sort(visibilityTimeouts);
                         for(final var vto : visibilityTimeouts) {
                             if (vto.getBecomesVisibleEpochSecond() <= now) {

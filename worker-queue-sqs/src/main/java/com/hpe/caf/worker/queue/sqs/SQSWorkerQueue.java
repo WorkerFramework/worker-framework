@@ -66,7 +66,7 @@ public final class SQSWorkerQueue implements ManagedWorkerQueue
 
     public SQSWorkerQueue(
             final SQSWorkerQueueConfiguration queueCfg,
-            int maxTasks
+            int maxTasks // Add to max messages
     )
     {
         // DDD ignoring max tasks here??.
@@ -134,10 +134,6 @@ public final class SQSWorkerQueue implements ManagedWorkerQueue
         return receiveMessages.get();
     }
 
-    // DDD who's responsibility is it to create queue structures
-    // Will worker A expect a downstream worker B to have created the downstream queue
-    // If publish is called and B's queue does not exist
-    // does worker A create it, or throw an error?
     @Override
     public void publish(
             final TaskInformation taskInformation,
@@ -209,11 +205,11 @@ public final class SQSWorkerQueue implements ManagedWorkerQueue
     @Override
     public HealthResult livenessCheck()
     {
-        if (inputQueueThread == null || !inputQueueThread.isAlive()) {
+        if (isNotRunning(inputQueueThread)) {
             return new HealthResult(HealthStatus.UNHEALTHY, "SQS input queue thread not running");
-        } else if (deadLetterQueueThread == null || !deadLetterQueueThread.isAlive()) {
+        } else if (isNotRunning(deadLetterQueueThread)) {
             return new HealthResult(HealthStatus.UNHEALTHY, "SQS dead letter queue thread not running");
-        } else if (visibilityMonitorThread == null || !visibilityMonitorThread.isAlive()) {
+        } else if (isNotRunning(visibilityMonitorThread))  {
             return new HealthResult(HealthStatus.UNHEALTHY, "SQS visibility monitor thread not running");
         }
         return HealthResult.RESULT_HEALTHY;
@@ -312,5 +308,11 @@ public final class SQSWorkerQueue implements ManagedWorkerQueue
                     .build());
         }
         return attributes;
+    }
+
+    private static boolean isNotRunning(final Thread t)
+    {
+        // If the thread was not started or is terminated
+        return t == null || t.getState().equals(Thread.State.NEW) || t.getState().equals(Thread.State.TERMINATED);
     }
 }

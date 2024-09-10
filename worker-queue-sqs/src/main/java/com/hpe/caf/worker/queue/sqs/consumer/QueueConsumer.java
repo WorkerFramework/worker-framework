@@ -82,7 +82,7 @@ public abstract class QueueConsumer implements Runnable
                 .queueUrl(queueInfo.url())
                 .maxNumberOfMessages(queueCfg.getMaxNumberOfMessages())
                 .waitTimeSeconds(queueCfg.getLongPollInterval())
-                .messageSystemAttributeNames(MessageSystemAttributeName.ALL) // DDD converting to headers??
+                .messageSystemAttributeNames(MessageSystemAttributeName.ALL)
                 .messageAttributeNames(SQSUtil.ALL_ATTRIBUTES)
                 .build();
         while (running.get()) {
@@ -113,13 +113,10 @@ public abstract class QueueConsumer implements Runnable
     protected void retryMessage(final Message message)
     {
         try {
-            // DDD If the retry queue is just the input queue then nothing needs done.
-            // DDD other than to remove the timeout being monitored
             if (retryQueueInfo.equals(queueInfo)) {
-               return; // Do nothing no watch is in place and will be re-delivered.
+               return;
             }
 
-            // DDD if this is going to a retry queue, whats managing that?
             final var attributes = new HashMap<>(message.messageAttributes());
             attributes.put(SQSUtil.SQS_HEADER_CAF_WORKER_REJECTED, MessageAttributeValue.builder()
                     .dataType("String")
