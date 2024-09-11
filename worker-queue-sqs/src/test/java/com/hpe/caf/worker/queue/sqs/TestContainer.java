@@ -45,6 +45,7 @@ public class TestContainer
                     .asCompatibleSubstituteFor(compatibleImageName)
             );
             container.withServices(LocalStackContainer.Service.SQS, LocalStackContainer.Service.CLOUDWATCH)
+                    .withEnv("LS_LOG", "error")
                      .start();
         }
     }

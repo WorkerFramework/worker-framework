@@ -25,19 +25,17 @@ import com.hpe.caf.api.worker.WorkerQueueMetricsReporter;
 import com.hpe.caf.worker.queue.sqs.config.SQSWorkerQueueConfiguration;
 import com.hpe.caf.worker.queue.sqs.consumer.DeadLetterQueueConsumer;
 import com.hpe.caf.worker.queue.sqs.consumer.InputQueueConsumer;
-import com.hpe.caf.worker.queue.sqs.deletion.DeletePublisher;
 import com.hpe.caf.worker.queue.sqs.metrics.MetricsReporter;
+import com.hpe.caf.worker.queue.sqs.publisher.DeletePublisher;
+import com.hpe.caf.worker.queue.sqs.publisher.WorkerMessage;
+import com.hpe.caf.worker.queue.sqs.publisher.WorkerPublisher;
 import com.hpe.caf.worker.queue.sqs.util.DeadLetteredQueuePair;
 import com.hpe.caf.worker.queue.sqs.util.SQSUtil;
 import com.hpe.caf.worker.queue.sqs.visibility.VisibilityMonitor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import software.amazon.awssdk.services.sqs.SqsClient;
-import software.amazon.awssdk.services.sqs.model.MessageAttributeValue;
-import software.amazon.awssdk.services.sqs.model.SendMessageRequest;
 
-import java.nio.charset.StandardCharsets;
-import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
 import java.util.concurrent.ConcurrentHashMap;
@@ -51,11 +49,13 @@ public final class SQSWorkerQueue implements ManagedWorkerQueue
     private Thread deadLetterQueueThread;
     private Thread visibilityMonitorThread;
     private Thread deleteMessageThread;
+    private Thread workerPublisherThread;
 
     private VisibilityMonitor visibilityMonitor;
     private InputQueueConsumer consumer;
     private DeadLetterQueueConsumer dlqConsumer;
     private DeletePublisher deletePublisher;
+    private WorkerPublisher workerPublisher;
 
     private final AtomicBoolean receiveMessages;
     private final int maxTasks;
@@ -77,6 +77,7 @@ public final class SQSWorkerQueue implements ManagedWorkerQueue
 
     public void start(final TaskCallback callback) throws QueueException
     {
+        LOG.debug("Starting SQSWorkerQueue");
         if (sqsClient != null) {
             throw new IllegalStateException("Already started");
         }
@@ -126,11 +127,15 @@ public final class SQSWorkerQueue implements ManagedWorkerQueue
 
             deletePublisher = new DeletePublisher(sqsClient, visibilityMonitor);
 
+            workerPublisher = new WorkerPublisher(sqsClient);
+
+            workerPublisherThread = new Thread(workerPublisher);
             deleteMessageThread = new Thread(deletePublisher);
             visibilityMonitorThread = new Thread(visibilityMonitor);
             inputQueueThread = new Thread(consumer);
             deadLetterQueueThread = new Thread(dlqConsumer);
 
+            workerPublisherThread.start();
             deleteMessageThread.start();
             visibilityMonitorThread.start();
             inputQueueThread.start();
@@ -152,21 +157,14 @@ public final class SQSWorkerQueue implements ManagedWorkerQueue
             final byte[] taskMessage,
             final String targetQueue,
             final Map<String, Object> headers,
-            final boolean isLastMessage // DDD unused ?
+            final boolean isLastMessage
     ) throws QueueException
     {
         var sqsTaskInformation = (SQSTaskInformation) taskInformation;
         try {
             final var queueInfo = createDeadLetteredQueuePair(targetQueue).queue();
-
-            var attributes = createAttributesFromMessageHeaders(headers);
-
-            final var sendMsgRequest = SendMessageRequest.builder()
-                    .queueUrl(queueInfo.url())
-                    .messageBody(new String(taskMessage, StandardCharsets.UTF_8))
-                    .messageAttributes(attributes)
-                    .build();
-            sqsClient.sendMessage(sendMsgRequest);
+            workerPublisher.publishMessage(new WorkerMessage(queueInfo, taskMessage, headers));
+            LOG.debug("Queued for publishing {}", sqsTaskInformation.getReceiptHandle());
             sqsTaskInformation.incrementResponseCount(isLastMessage);
         } catch (final Exception e) {
             metricsReporter.incrementErrors();
@@ -208,6 +206,9 @@ public final class SQSWorkerQueue implements ManagedWorkerQueue
         } else if (isNotRunning(deleteMessageThread))  {
             return new HealthResult(HealthStatus.UNHEALTHY, "SQS delete message thread state:" +
                     getState(deleteMessageThread));
+        } else if (isNotRunning(workerPublisherThread))  {
+            return new HealthResult(HealthStatus.UNHEALTHY, "SQS worker publisher thread state:" +
+                    getState(workerPublisherThread));
         }
         return HealthResult.RESULT_HEALTHY;
     }
@@ -231,6 +232,7 @@ public final class SQSWorkerQueue implements ManagedWorkerQueue
         dlqConsumer.shutdown();
         visibilityMonitor.shutdown();
         deletePublisher.shutdown();
+        workerPublisher.shutdown();
     }
 
     @Override
@@ -293,18 +295,6 @@ public final class SQSWorkerQueue implements ManagedWorkerQueue
                 (q) -> SQSUtil.createDeadLetterQueue(sqsClient, queue, queueCfg)
         );
         return new DeadLetteredQueuePair(queue, dlqueue);
-    }
-
-    private static Map<String, MessageAttributeValue> createAttributesFromMessageHeaders(final Map<String, Object> headers)
-    {
-        final var attributes = new HashMap<String, MessageAttributeValue>();
-        for(final Map.Entry<String, Object> entry : headers.entrySet()) {
-            attributes.put(entry.getKey(), MessageAttributeValue.builder()
-                    .dataType("String")
-                    .stringValue(entry.getValue().toString())
-                    .build());
-        }
-        return attributes;
     }
 
     private static boolean isNotRunning(final Thread t)

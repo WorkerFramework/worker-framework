@@ -13,16 +13,14 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.hpe.caf.worker.queue.sqs.deletion;
+package com.hpe.caf.worker.queue.sqs.publisher.error;
 
-import com.hpe.caf.worker.queue.sqs.SQSTaskInformation;
-
-public record DeletionError(String error, SQSTaskInformation taskInfo)
+public record PublishError(String error, String queueName)
 {
     @Override
     public String toString()
     {
-        return String.format("Failed deleting task from queue %s.\n%s: %s",
-                taskInfo.getQueueInfo().name(), error, taskInfo.getReceiptHandle());
+        return String.format("Failed publishing message to queue %s.\n%s: %s",
+                queueName, error);
     }
 }

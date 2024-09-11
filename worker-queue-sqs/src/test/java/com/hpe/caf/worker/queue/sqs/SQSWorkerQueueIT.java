@@ -16,7 +16,6 @@
 package com.hpe.caf.worker.queue.sqs;
 
 import com.hpe.caf.api.HealthResult;
-import com.hpe.caf.api.HealthStatus;
 import com.hpe.caf.worker.queue.sqs.util.CallbackResponse;
 import com.hpe.caf.worker.queue.sqs.util.SQSUtil;
 import com.hpe.caf.worker.queue.sqs.util.WrapperConfig;
@@ -34,7 +33,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
 
-import static com.hpe.caf.worker.queue.sqs.util.WorkerQueueWrapper.purgeQueue;
+import static com.hpe.caf.worker.queue.sqs.util.WorkerQueueWrapper.deleteQueue;
 import static com.hpe.caf.worker.queue.sqs.util.WorkerQueueWrapper.sendMessages;
 import static com.hpe.caf.worker.queue.sqs.util.WorkerQueueWrapper.sendSingleMessagesWithDelays;
 import static org.testng.Assert.assertNotNull;
@@ -103,8 +102,8 @@ public class SQSWorkerQueueIT extends TestContainer
             assertEquals("Metrics should not have reported rejected messages",
                     0, metricsReporter.getMessagesRejected());
         } finally {
-            purgeQueue(workerWrapper.sqsClient, workerWrapper.inputQueueUrl);
             workerWrapper.sqsWorkerQueue.shutdown();
+            deleteQueue(workerWrapper.sqsClient, workerWrapper.inputQueueUrl);
         }
     }
 
@@ -165,8 +164,8 @@ public class SQSWorkerQueueIT extends TestContainer
             assertEquals("Metrics should not have reported rejected messages",
                     0, metricsReporter.getMessagesRejected());
         } finally {
-            purgeQueue(workerWrapper.sqsClient, workerWrapper.inputQueueUrl);
             workerWrapper.sqsWorkerQueue.shutdown();
+            deleteQueue(workerWrapper.sqsClient, workerWrapper.inputQueueUrl);
         }
     }
 
@@ -184,6 +183,7 @@ public class SQSWorkerQueueIT extends TestContainer
             Assert.fail("The input queue was not created:" + e.getMessage());
         } finally {
             workerWrapper.sqsWorkerQueue.shutdown();
+            deleteQueue(workerWrapper.sqsClient, workerWrapper.inputQueueUrl);
         }
     }
 
@@ -197,6 +197,7 @@ public class SQSWorkerQueueIT extends TestContainer
                 HealthResult.RESULT_HEALTHY.getStatus().name(),
                 result.getStatus().name());
         workerWrapper.sqsWorkerQueue.shutdown();
+        deleteQueue(workerWrapper.sqsClient, workerWrapper.inputQueueUrl);
     }
 
     @Test
@@ -224,8 +225,8 @@ public class SQSWorkerQueueIT extends TestContainer
                     "Expected header: " + SQSUtil.SOURCE_QUEUE);
             assertEquals("Expected:" + inputQueue, inputQueue, msg.headers().get(SQSUtil.SOURCE_QUEUE).toString());
         } finally {
-            purgeQueue(workerWrapper.sqsClient, queueUrl);
             workerWrapper.sqsWorkerQueue.shutdown();
+            deleteQueue(workerWrapper.sqsClient, workerWrapper.inputQueueUrl);
         }
     }
 
@@ -268,8 +269,8 @@ public class SQSWorkerQueueIT extends TestContainer
             assertEquals("Metrics should not have reported rejected messages",
                     0, metricsReporter.getMessagesRejected());
         } finally {
-            purgeQueue(workerWrapper.sqsClient, workerWrapper.inputQueueUrl);
             workerWrapper.sqsWorkerQueue.shutdown();
+            deleteQueue(workerWrapper.sqsClient, workerWrapper.inputQueueUrl);
         }
     }
 
@@ -279,7 +280,7 @@ public class SQSWorkerQueueIT extends TestContainer
         final var inputQueue = "test-invalid-task";
         final var retryQueue = "retry-invalid-task";
         final var workerWrapper = getWorkerWrapper(inputQueue, retryQueue);
-        final var msgBody = "INVALID";
+        final var msgBody = "INVALID"; // Causes exception to be thrown
         final var metricsReporter = workerWrapper.metricsReporter;
 
         final var rejectQueueUrl = SQSUtil.getQueueUrl(workerWrapper.sqsClient, retryQueue);
@@ -306,9 +307,9 @@ public class SQSWorkerQueueIT extends TestContainer
             assertEquals("Metrics should not have reported rejected messages",
                     0, metricsReporter.getMessagesRejected());
         } finally {
-            purgeQueue(workerWrapper.sqsClient, workerWrapper.inputQueueUrl);
-            purgeQueue(workerWrapper.sqsClient, rejectQueueUrl);
             workerWrapper.sqsWorkerQueue.shutdown();
+            deleteQueue(workerWrapper.sqsClient, workerWrapper.inputQueueUrl);
+            deleteQueue(workerWrapper.sqsClient, rejectQueueUrl);
         }
     }
 
@@ -318,7 +319,7 @@ public class SQSWorkerQueueIT extends TestContainer
         final var inputQueue = "test-rejected-task";
         final var retryQueue = "retry-rejected-task";
         final var workerWrapper = getWorkerWrapper(inputQueue, retryQueue);
-        final var msgBody = "REJECTED";
+        final var msgBody = "REJECTED"; // Causes exception to be thrown
 
         final var rejectQueueUrl = SQSUtil.getQueueUrl(workerWrapper.sqsClient, retryQueue);
         final var metricsReporter = workerWrapper.metricsReporter;
@@ -343,9 +344,9 @@ public class SQSWorkerQueueIT extends TestContainer
             assertEquals("Metrics should have reported 1 rejected messages",
                     1, metricsReporter.getMessagesRejected());
         } finally {
-            purgeQueue(workerWrapper.sqsClient, workerWrapper.inputQueueUrl);
-            purgeQueue(workerWrapper.sqsClient, rejectQueueUrl);
             workerWrapper.sqsWorkerQueue.shutdown();
+            deleteQueue(workerWrapper.sqsClient, workerWrapper.inputQueueUrl);
+            deleteQueue(workerWrapper.sqsClient, rejectQueueUrl);
         }
     }
 
@@ -414,8 +415,8 @@ public class SQSWorkerQueueIT extends TestContainer
             final var oneMoreMessage = workerWrapper.callbackQueue.poll(1, TimeUnit.MINUTES);
             assertNotNull(oneMoreMessage, "A Message should have been received.");
         } finally {
-            purgeQueue(workerWrapper.sqsClient, workerWrapper.inputQueueUrl);
             workerWrapper.sqsWorkerQueue.shutdown();
+            deleteQueue(workerWrapper.sqsClient, workerWrapper.inputQueueUrl);
         }
     }
 }

@@ -215,10 +215,6 @@ public class VisibilityMonitor implements Runnable
             LOG.debug("queue {} has no capacity, inflight message count: {}",
                     queueInfo.name(),
                     inflightMessages);
-        } else {
-            LOG.debug("queue {} has capacity for {} messages",
-                    queueInfo.name(),
-                    capacity);
         }
         return hasCapacity;
     }

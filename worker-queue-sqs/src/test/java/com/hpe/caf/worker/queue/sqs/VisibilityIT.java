@@ -37,7 +37,7 @@ import java.util.List;
 import java.util.concurrent.TimeUnit;
 
 import static com.hpe.caf.worker.queue.sqs.util.WorkerQueueWrapper.deleteMessage;
-import static com.hpe.caf.worker.queue.sqs.util.WorkerQueueWrapper.purgeQueue;
+import static com.hpe.caf.worker.queue.sqs.util.WorkerQueueWrapper.deleteQueue;
 import static com.hpe.caf.worker.queue.sqs.util.WorkerQueueWrapper.sendMessages;
 import static com.hpe.caf.worker.queue.sqs.util.WorkerQueueWrapper.sendSingleMessagesWithDelays;
 import static org.testng.Assert.assertEquals;
@@ -101,8 +101,8 @@ public class VisibilityIT extends TestContainer
                 if (++attempts >= numberOfMessages / 2) break;
             }
         } finally {
-            purgeQueue(workerWrapper.sqsClient, workerWrapper.inputQueueUrl);
             workerWrapper.sqsWorkerQueue.shutdown();
+            deleteQueue(workerWrapper.sqsClient, workerWrapper.inputQueueUrl);
         }
     }
 
@@ -153,8 +153,8 @@ public class VisibilityIT extends TestContainer
             AssertJUnit.assertEquals("Metrics should not have reported rejected messages",
                     0, metricsReporter.getMessagesRejected());
         } finally {
-            purgeQueue(workerWrapper.sqsClient, workerWrapper.inputQueueUrl);
             workerWrapper.sqsWorkerQueue.shutdown();
+            deleteQueue(workerWrapper.sqsClient, workerWrapper.inputQueueUrl);
         }
     }
 
@@ -203,8 +203,8 @@ public class VisibilityIT extends TestContainer
                 fail("Unexpected exception when changing visibility for expired receipt handle " + e);
             }
         } finally {
-            purgeQueue(workerWrapper.sqsClient, workerWrapper.inputQueueUrl);
             workerWrapper.sqsWorkerQueue.shutdown();
+            deleteQueue(workerWrapper.sqsClient, workerWrapper.inputQueueUrl);
         }
     }
 
@@ -246,8 +246,8 @@ public class VisibilityIT extends TestContainer
                 fail("Message got redelivered after " + res.getSeconds() + " seconds");
             }
         } finally {
-            purgeQueue(workerWrapper.sqsClient, workerWrapper.inputQueueUrl);
             workerWrapper.sqsWorkerQueue.shutdown();
+            deleteQueue(workerWrapper.sqsClient, workerWrapper.inputQueueUrl);
         }
     }
 
@@ -302,8 +302,8 @@ public class VisibilityIT extends TestContainer
                     "Expected close to timeout, but timeout was " + res.getSeconds());
 
         } finally {
-            purgeQueue(workerWrapper.sqsClient, testQueueInfo.url());
             workerWrapper.sqsWorkerQueue.shutdown();
+            deleteQueue(workerWrapper.sqsClient, workerWrapper.inputQueueUrl);
         }
     }
 }

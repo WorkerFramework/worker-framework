@@ -13,10 +13,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.hpe.caf.worker.queue.sqs.deletion;
+package com.hpe.caf.worker.queue.sqs.publisher;
 
 import com.google.common.collect.Iterables;
 import com.hpe.caf.worker.queue.sqs.SQSTaskInformation;
+import com.hpe.caf.worker.queue.sqs.publisher.error.DeletionError;
 import com.hpe.caf.worker.queue.sqs.visibility.VisibilityMonitor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

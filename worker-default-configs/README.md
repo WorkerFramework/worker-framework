@@ -80,19 +80,20 @@ The default SQS configuration file checks for values as below;
 
 The default SQSWorkerQueue configuration file checks for values as below;
 
-| Property               | Checked Environment Variables                                            | Default      |
-|------------------------|--------------------------------------------------------------------------|--------------|
-| inputQueue             | `CAF_WORKER_INPUT_QUEUE`                                                 | worker-in    |
-|                        | `CAF_WORKER_BASE_QUEUE_NAME` with '-in' appended to the value if present |              |
-|                        | `CAF_WORKER_NAME` with '-in' appended to the value if present            |              |
-| pausedQueue            | `CAF_WORKER_PAUSED_QUEUE`                                                | 1            |
-| retryQueue             | `CAF_WORKER_RETRY_QUEUE`                                                 | 1            |
-| rejectedQueue          | `worker-rejected`                                                        | 1            |
-| longPollInterval       | `CAF_AWS_LONG_POLL_INTERVAL`                                             | 1            |
-| maxNumberOfMessages    | `CAF_AWS_MAX_NUMER_OF_MESSAGES`                                          | 1            |
-| visibilityTimeout      | `CAF_AWS_VISIBILITY_TIMEOUT`                                             | 1            |
-| messageRetentionPeriod | `CAF_AWS_MESSAGE_RETENTION_PERIOD`                                       | 1            |
-| maxDeliveries          | `CAF_AWS_MAX_DELEIVERIES`                                                | 1            |
+| Property               | Checked Environment Variables                                             | Default   |
+|------------------------|---------------------------------------------------------------------------|-----------|
+| inputQueue             | `CAF_WORKER_INPUT_QUEUE`                                                  | worker-in |
+|                        | `CAF_WORKER_BASE_QUEUE_NAME` with '-in' appended to the value if present  |           |
+|                        | `CAF_WORKER_NAME` with '-in' appended to the value if present             |           |
+| pausedQueue            | `CAF_WORKER_PAUSED_QUEUE`                                                 | 1         |
+| retryQueue             | `CAF_WORKER_RETRY_QUEUE`                                                  | 1         |
+| rejectedQueue          | `worker-rejected`                                                         | 1         |
+| longPollInterval       | `CAF_AWS_LONG_POLL_INTERVAL`                                              | 1         |
+| maxNumberOfMessages    | `CAF_AWS_MAX_NUMER_OF_MESSAGES`                                           | 1         |
+| visibilityTimeout      | `CAF_AWS_VISIBILITY_TIMEOUT`                                              | 1         |
+| messageRetentionPeriod | `CAF_AWS_MESSAGE_RETENTION_PERIOD`                                        | 1         |
+| maxDeliveries          | `CAF_AWS_MAX_DELIVERIES`                                                  | 1         |
+| maxInflightMessages    | `CAF_AWS_MAX_INFLIGHT_MESSAGES`                                           | 120000    |
 
 ## HealthConfiguration
 

@@ -26,8 +26,8 @@ import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.cloudwatch.CloudWatchClient;
 import software.amazon.awssdk.services.sqs.SqsClient;
 import software.amazon.awssdk.services.sqs.model.DeleteMessageRequest;
+import software.amazon.awssdk.services.sqs.model.DeleteQueueRequest;
 import software.amazon.awssdk.services.sqs.model.MessageAttributeValue;
-import software.amazon.awssdk.services.sqs.model.PurgeQueueRequest;
 import software.amazon.awssdk.services.sqs.model.QueueDoesNotExistException;
 import software.amazon.awssdk.services.sqs.model.SendMessageBatchRequest;
 import software.amazon.awssdk.services.sqs.model.SendMessageBatchRequestEntry;
@@ -275,20 +275,21 @@ public class WorkerQueueWrapper
         sqsClient.deleteMessage(sendRequest);
     }
 
-    public static void purgeQueue(
+    public static void deleteQueue(
             final SqsClient sqsClient,
             final String queueUrl)
     {
-        final var purgeQueueRequest = PurgeQueueRequest.builder()
+
+        final var deleteQueueRequest = DeleteQueueRequest.builder()
                 .queueUrl(queueUrl)
                 .build();
-        sqsClient.purgeQueue(purgeQueueRequest);
+        sqsClient.deleteQueue(deleteQueueRequest);
 
-        final var purgeDeadLetterQueueRequest = PurgeQueueRequest.builder()
+        final var deleteDeadLetterQueueRequest = DeleteQueueRequest.builder()
                 .queueUrl(queueUrl + SQSUtil.DEAD_LETTER_QUEUE_SUFFIX)
                 .build();
         try {
-            sqsClient.purgeQueue(purgeDeadLetterQueueRequest);
+            sqsClient.deleteQueue(deleteDeadLetterQueueRequest);
         } catch (final QueueDoesNotExistException e) {
             // Ignoring this
         }

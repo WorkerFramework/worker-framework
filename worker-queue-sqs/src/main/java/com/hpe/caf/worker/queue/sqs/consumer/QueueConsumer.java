@@ -189,17 +189,22 @@ public abstract class QueueConsumer implements Runnable
 
     private int getReceiveBatchSize()
     {
-        LOG.info("Max Tasks: {}", maxTasks);
-        LOG.error("Max number of messages to read: {}", queueCfg.getMaxNumberOfMessages());
-        LOG.error("SQS Max batch size: {}", SQSUtil.MAX_MESSAGE_BATCH_SIZE);
-        if (maxTasks > SQSUtil.MAX_MESSAGE_BATCH_SIZE || queueCfg.getMaxNumberOfMessages() + maxTasks > SQSUtil.MAX_MESSAGE_BATCH_SIZE) {
+        LOG.debug("Max Tasks: {}", maxTasks);
+        LOG.debug("Configured number of messages to read: {}", queueCfg.getMaxNumberOfMessages());
+        if (maxTasks > SQSUtil.MAX_MESSAGE_BATCH_SIZE ||
+                queueCfg.getMaxNumberOfMessages() + maxTasks > SQSUtil.MAX_MESSAGE_BATCH_SIZE) {
+            LOG.debug("Calculated receive batch size: {}", SQSUtil.MAX_MESSAGE_BATCH_SIZE);
             return SQSUtil.MAX_MESSAGE_BATCH_SIZE;
         }
 
         if (queueCfg.getMaxNumberOfMessages() + maxTasks <= SQSUtil.MAX_MESSAGE_BATCH_SIZE) {
-            return queueCfg.getMaxNumberOfMessages() + maxTasks;
+            final var batchSize = queueCfg.getMaxNumberOfMessages() + maxTasks;
+            LOG.debug("Calculated receive batch size: {}", batchSize);
+            return batchSize;
         }
 
-        return Math.max(queueCfg.getMaxNumberOfMessages(), maxTasks);
+        final var batchSize = Math.max(queueCfg.getMaxNumberOfMessages(), maxTasks);
+        LOG.debug("Calculated receive batch size: {}", batchSize);
+        return batchSize;
     }
 }

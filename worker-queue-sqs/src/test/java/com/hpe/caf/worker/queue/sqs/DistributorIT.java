@@ -24,7 +24,7 @@ import software.amazon.awssdk.services.sqs.model.CreateQueueRequest;
 import java.util.ArrayList;
 import java.util.concurrent.TimeUnit;
 
-import static com.hpe.caf.worker.queue.sqs.util.WorkerQueueWrapper.purgeQueue;
+import static com.hpe.caf.worker.queue.sqs.util.WorkerQueueWrapper.deleteQueue;
 import static com.hpe.caf.worker.queue.sqs.util.WorkerQueueWrapper.sendMessagesInBatches;
 import static org.testng.Assert.assertEquals;
 
@@ -119,9 +119,9 @@ public class DistributorIT extends TestContainer
             assertEquals(receivedMessages.size(), expectedMessagesToBeMoved, "Not all messages were moved");
             assertEquals(failures.size(), 0, "Should not have had failures");
         } finally {
-            purgeQueue(workerWrapper.sqsClient, workerWrapper.inputQueueUrl);
-            purgeQueue(workerWrapper.sqsClient, sourceQueueUrl);
             workerWrapper.sqsWorkerQueue.shutdown();
+            deleteQueue(workerWrapper.sqsClient, workerWrapper.inputQueueUrl);
+            deleteQueue(workerWrapper.sqsClient, sourceQueueUrl);
         }
     }
 }

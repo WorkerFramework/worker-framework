@@ -25,6 +25,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
 
+import static com.hpe.caf.worker.queue.sqs.util.WorkerQueueWrapper.deleteQueue;
 import static com.hpe.caf.worker.queue.sqs.util.WorkerQueueWrapper.sendMessages;
 import static org.testng.AssertJUnit.assertTrue;
 
@@ -65,6 +66,7 @@ public class CloudwatchMetricsIT extends TestContainer
             assertTrue(containsMetric(metricsList, "ApproximateAgeOfOldestMessage"));
         } finally {
             workerWrapper.sqsWorkerQueue.shutdown();
+            deleteQueue(workerWrapper.sqsClient, workerWrapper.inputQueueUrl);
         }
     }
 
