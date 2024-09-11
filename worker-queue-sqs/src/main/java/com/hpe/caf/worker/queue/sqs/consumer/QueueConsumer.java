@@ -73,7 +73,7 @@ public abstract class QueueConsumer implements Runnable
         this.queueCfg = queueCfg;
         this.callback = callback;
         this.metricsReporter = metricsReporter;
-        this.visibilityMonitor = visibilityMonitor;
+        this.visibilityMonitor = visibilityMonitor; // DDD check for deadlock
         this.receiveMessages = receiveMessages;
         this.maxTasks = maxTasks;
     }

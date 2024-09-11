@@ -79,7 +79,7 @@ public class DeletePublisher implements Runnable
                         .filter(SQSTaskInformation::processingComplete)
                         .collect(Collectors.toList());
                 completedTasks.forEach(tasks::remove);
-                visibilityMonitor.unwatch(completedTasks);
+                visibilityMonitor.unwatch(completedTasks); // DDD check for deadlock here
                 final var errors = deleteTasks(entry.getKey(), completedTasks);
 
                 if (!errors.isEmpty()) {

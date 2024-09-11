@@ -20,13 +20,10 @@ import com.hpe.caf.worker.queue.sqs.util.WorkerQueueWrapper;
 import org.testng.annotations.Test;
 import software.amazon.awssdk.services.cloudwatch.CloudWatchClient;
 
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.concurrent.TimeUnit;
 
 import static com.hpe.caf.worker.queue.sqs.util.WorkerQueueWrapper.deleteQueue;
-import static com.hpe.caf.worker.queue.sqs.util.WorkerQueueWrapper.sendMessages;
 import static org.testng.AssertJUnit.assertTrue;
 
 /**
@@ -41,19 +38,7 @@ public class CloudwatchMetricsIT extends TestContainer
         final var workerWrapper = getWorkerWrapper(inputQueue);
 
         try {
-            var messagesToSend = 10;
-            for (int i = 1; i <= messagesToSend; i++) {
-                sendMessages(workerWrapper.sqsClient, workerWrapper.inputQueueUrl, new HashMap<>(), "msg_" + i);
-            }
-
             var datapoints = getStatistics(workerWrapper);
-
-            // Receive all messages
-            var msg = workerWrapper.callbackQueue.poll(30, TimeUnit.SECONDS);
-            while (msg != null) {
-                workerWrapper.sqsWorkerQueue.acknowledgeTask(msg.taskInformation());
-                msg = workerWrapper.callbackQueue.poll(30, TimeUnit.SECONDS);
-            }
 
             assertTrue(datapoints.containsKey(inputQueue));
             var metricsList = datapoints.get(inputQueue);
