@@ -89,7 +89,7 @@ public class SQSWorkerQueueConfiguration
      * Default is 345600(4 days)
      */
     @Min(60)
-    @Max(1209600) // Default to this in cfg.js
+    @Max(1209600)
     private Integer messageRetentionPeriod;
 
     /**
@@ -97,6 +97,13 @@ public class SQSWorkerQueueConfiguration
      */
     @Min(1)
     private Integer maxDeliveries;
+
+    /**
+     * The number of inflight messages that a worker can handle.
+     */
+    @Min(1)
+    @Max(120000)
+    private Integer maxInflightMessages;
 
     public SQSWorkerQueueConfiguration()
     {
@@ -200,6 +207,17 @@ public class SQSWorkerQueueConfiguration
     public void setRetryQueue(String retryQueue)
     {
         this.retryQueue = retryQueue;
+    }
+
+
+    public Integer getMaxInflightMessages()
+    {
+        return maxInflightMessages;
+    }
+
+    public void setMaxInflightMessages(Integer maxInflightMessages)
+    {
+        this.maxInflightMessages = maxInflightMessages;
     }
 }
 

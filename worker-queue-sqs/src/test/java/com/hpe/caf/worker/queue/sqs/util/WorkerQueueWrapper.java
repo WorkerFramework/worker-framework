@@ -66,6 +66,7 @@ public class WorkerQueueWrapper
             final int longPollInterval,
             final int maxNumberOfMessages,
             final int maxDeliveries,
+            final int maxInflightMessages,
             final int messageRetentionPeriod,
             final StubbedTaskCallback stubbedTaskCallback)
     {
@@ -91,8 +92,9 @@ public class WorkerQueueWrapper
             workerQueueConfiguration.setMaxNumberOfMessages(maxNumberOfMessages);
             workerQueueConfiguration.setMessageRetentionPeriod(messageRetentionPeriod);
             workerQueueConfiguration.setMaxDeliveries(maxDeliveries);
+            workerQueueConfiguration.setMaxInflightMessages(maxInflightMessages);
 
-            sqsWorkerQueue = new SQSWorkerQueue(workerQueueConfiguration, 1);
+            sqsWorkerQueue = new SQSWorkerQueue(workerQueueConfiguration, 0); // intentionally setting maxtasks to zero
             sqsWorkerQueue.start(callback);
 
             sqsClient = SQSUtil.getSqsClient(sqsConfiguration);
@@ -159,6 +161,7 @@ public class WorkerQueueWrapper
                 wrapperConfig.longPollInterval(),
                 wrapperConfig.maxReadMessages(),
                 wrapperConfig.maxDeliveries(),
+                wrapperConfig.maxInflightMessages(),
                 wrapperConfig.retentionPeriod(),
                 new StubbedTaskCallback());
     }

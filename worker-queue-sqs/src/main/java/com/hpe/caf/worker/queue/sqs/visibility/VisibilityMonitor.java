@@ -16,7 +16,9 @@
 package com.hpe.caf.worker.queue.sqs.visibility;
 
 import com.google.common.collect.Iterables;
+import com.hpe.caf.worker.queue.sqs.QueueInfo;
 import com.hpe.caf.worker.queue.sqs.SQSTaskInformation;
+import com.hpe.caf.worker.queue.sqs.config.SQSWorkerQueueConfiguration;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import software.amazon.awssdk.services.sqs.SqsClient;
@@ -36,7 +38,7 @@ import static com.hpe.caf.worker.queue.sqs.util.SQSUtil.MAX_MESSAGE_BATCH_SIZE;
 import static com.hpe.caf.worker.queue.sqs.util.SQSUtil.getExpiry;
 
 /**
- * This class monitors visibility timeouts for queues.
+ * This class monitors visibility timeouts for queues and batches up extension requests.
  */
 public class VisibilityMonitor implements Runnable
 {
@@ -67,12 +69,15 @@ public class VisibilityMonitor implements Runnable
                 for(final var entry : timeoutCollections.entrySet()) {
                     final var visibilityTimeouts = entry.getValue();
                     final var queueInfo = entry.getKey();
-                    synchronized (visibilityTimeouts) {
-                        final var expiredTimeouts = new ArrayList<VisibilityTimeout>();
-                        final var toBeExtendedTimeouts = new ArrayList<VisibilityTimeout>();
 
-                        final var now = Instant.now().getEpochSecond();
-                        final var boundary = now + (queueVisibilityTimeout * 2L);
+                    final var now = Instant.now().getEpochSecond();
+                    final var boundary = now + (queueVisibilityTimeout * 2L);
+
+                    final var expiredTimeouts = new ArrayList<VisibilityTimeout>();
+                    final var toBeExtendedTimeouts = new ArrayList<VisibilityTimeout>();
+                    final var changeVisibilityErrors = new ArrayList<ChangeVisibilityError>();
+
+                    synchronized (visibilityTimeouts) {
 
                         Collections.sort(visibilityTimeouts);
                         for(final var vto : visibilityTimeouts) {
@@ -85,10 +90,6 @@ public class VisibilityMonitor implements Runnable
                             }
                         }
 
-                        // Not yet observed any expired timeouts, and should not, but we want to see them.
-                        expiredTimeouts.forEach(to -> LOG.info("Timeout expired at:{} for:{}",
-                                getExpiry(to), to.getReceiptHandle()));
-
                         // remove all expired.
                         visibilityTimeouts.removeAll(expiredTimeouts);
 
@@ -100,18 +101,24 @@ public class VisibilityMonitor implements Runnable
                             visibilityTimeout.setBecomesVisibleEpochSecond(visibility);
                         }
 
-                        final var changeVisibilityErrors = extendTaskTimeouts(queueInfo, toBeExtendedTimeouts);
+                        changeVisibilityErrors.addAll(extendTaskTimeouts(queueInfo, toBeExtendedTimeouts));
                         final var errors = changeVisibilityErrors.stream()
                                 .map(ChangeVisibilityError::visibilityTimeout)
                                 .toList();
                         visibilityTimeouts.removeAll(errors);
-
-                        toBeExtendedTimeouts.forEach(to -> LOG.debug("Extended timeout to:{} for:{}",
-                                getExpiry(to), to.getReceiptHandle()));
                     }
+
+                    // Not yet observed any expired timeouts, and should not, but we want to see them.
+                    expiredTimeouts.forEach(to -> LOG.info("Timeout expired at:{} for:{}",
+                            getExpiry(to), to.getReceiptHandle()));
+
+                    // Not yet observed any failures, and should not, but we want to see them.
+                    changeVisibilityErrors.forEach(f -> LOG.error(f.toString()));
+
+                    toBeExtendedTimeouts.forEach(to -> LOG.debug("Extended timeout to:{} for:{}",
+                            getExpiry(to), to.getReceiptHandle()));
                 }
 
-                // DDD should we be doing this
                 Thread.sleep(monitoringInterval);
             } catch (final InterruptedException e) {
                 LOG.error("A pause in extending timeouts was interrupted", e);
@@ -130,8 +137,6 @@ public class VisibilityMonitor implements Runnable
             final var failed = sendBatch(queueUrl, batch);
             failures.addAll(failed);
         }
-        // Not yet observed any failures, and should not, but we want to see them.
-        failures.forEach(f -> LOG.error(f.toString()));
         return failures;
     }
 
@@ -195,6 +200,32 @@ public class VisibilityMonitor implements Runnable
                 }
             }
         }
+    }
+
+    public boolean hasInflightCapacity(
+            final QueueInfo queueInfo,
+            final SQSWorkerQueueConfiguration queueCfg,
+            final int batchSize
+    )
+    {
+        final var inflightMessages = inflightMessages(queueInfo).size();
+        final var capacity = (queueCfg.getMaxInflightMessages() - inflightMessages);
+        final boolean hasCapacity =  capacity >= batchSize;
+        if (!hasCapacity) {
+            LOG.debug("queue {} has no capacity, inflight message count: {}",
+                    queueInfo.name(),
+                    inflightMessages);
+        } else {
+            LOG.debug("queue {} has capacity for {} messages",
+                    queueInfo.name(),
+                    capacity);
+        }
+        return hasCapacity;
+    }
+
+    private List<VisibilityTimeout> inflightMessages(final QueueInfo queueInfo)
+    {
+        return timeoutCollections.getOrDefault(queueInfo.url(), new ArrayList<>());
     }
 
     private static void logInflightTasks(final SQSTaskInformation taskInfo, final List<VisibilityTimeout> timeouts)

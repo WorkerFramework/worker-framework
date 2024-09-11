@@ -70,6 +70,7 @@ public class VisibilityIT extends TestContainer
                         1,
                         10,
                         1000,
+                        1000,
                         1000
                 ));
         sendSingleMessagesWithDelays(workerWrapper.sqsClient, workerWrapper.inputQueueUrl, numberOfMessages, 2L);
@@ -88,7 +89,6 @@ public class VisibilityIT extends TestContainer
             // Should be N unique messages
             assertEquals(msgBodies.stream().distinct().count(), numberOfMessages);
 
-            LOG.debug("Should not get messages after this");
             // No further messages should be received.
             msg = workerWrapper.callbackQueue.poll(1, TimeUnit.SECONDS);
             assertNull(msg, "A Message should NOT have been received.");
@@ -102,6 +102,7 @@ public class VisibilityIT extends TestContainer
             }
         } finally {
             purgeQueue(workerWrapper.sqsClient, workerWrapper.inputQueueUrl);
+            workerWrapper.sqsWorkerQueue.shutdown();
         }
     }
 
@@ -117,6 +118,7 @@ public class VisibilityIT extends TestContainer
                         timeout,
                         timeout,
                         1,
+                        1000,
                         1000,
                         1000
                 ));
@@ -152,6 +154,7 @@ public class VisibilityIT extends TestContainer
                     0, metricsReporter.getMessagesRejected());
         } finally {
             purgeQueue(workerWrapper.sqsClient, workerWrapper.inputQueueUrl);
+            workerWrapper.sqsWorkerQueue.shutdown();
         }
     }
 
@@ -201,6 +204,7 @@ public class VisibilityIT extends TestContainer
             }
         } finally {
             purgeQueue(workerWrapper.sqsClient, workerWrapper.inputQueueUrl);
+            workerWrapper.sqsWorkerQueue.shutdown();
         }
     }
 
@@ -216,6 +220,7 @@ public class VisibilityIT extends TestContainer
                         timeout,
                         1,
                         1,
+                        1000,
                         1000,
                         1000
                 ));
@@ -242,6 +247,7 @@ public class VisibilityIT extends TestContainer
             }
         } finally {
             purgeQueue(workerWrapper.sqsClient, workerWrapper.inputQueueUrl);
+            workerWrapper.sqsWorkerQueue.shutdown();
         }
     }
 
@@ -262,6 +268,7 @@ public class VisibilityIT extends TestContainer
                         timeout,
                         1,
                         1,
+                        1000,
                         1000,
                         1000
                 )
@@ -296,6 +303,7 @@ public class VisibilityIT extends TestContainer
 
         } finally {
             purgeQueue(workerWrapper.sqsClient, testQueueInfo.url());
+            workerWrapper.sqsWorkerQueue.shutdown();
         }
     }
 }

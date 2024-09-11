@@ -36,6 +36,9 @@ import java.util.stream.Collectors;
 
 import static com.hpe.caf.worker.queue.sqs.util.SQSUtil.MAX_MESSAGE_BATCH_SIZE;
 
+/**
+ * This class monitors tasks and when complete deletes the associated messages in batches.
+ */
 public class DeletePublisher implements Runnable
 {
     private static final Logger LOG = LoggerFactory.getLogger(DeletePublisher.class);
@@ -59,7 +62,7 @@ public class DeletePublisher implements Runnable
             processTasks();
             try {
                 // Serves to allow some degree of batching + saving CPU
-                Thread.sleep(5000);
+                Thread.sleep(5000); // DDD long poll interval??
             } catch (final InterruptedException e) {
                 LOG.error("A pause in task deletion was interrupted", e);
             }
@@ -140,6 +143,11 @@ public class DeletePublisher implements Runnable
                 (q) -> Collections.synchronizedSet(new HashSet<>())
         );
         deleteTasks.add(taskInfo); // Tasks are unique by receipt handle.
-        LOG.debug("Watching {}", taskInfo.getReceiptHandle());
+        LOG.debug("Awaiting processing complete for {}", taskInfo.getReceiptHandle());
+    }
+
+    public void shutdown()
+    {
+        running.set(false);
     }
 }

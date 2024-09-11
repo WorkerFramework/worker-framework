@@ -81,19 +81,23 @@ public abstract class QueueConsumer implements Runnable
     @Override
     public void run()
     {
+        final var batchSize = getReceiveBatchSize();
         final var receiveRequest = ReceiveMessageRequest.builder()
                 .queueUrl(queueInfo.url())
-                .maxNumberOfMessages(getReceiveBatchSize())
+                .maxNumberOfMessages(batchSize)
                 .waitTimeSeconds(queueCfg.getLongPollInterval())
                 .messageSystemAttributeNames(MessageSystemAttributeName.ALL)
                 .messageAttributeNames(SQSUtil.ALL_ATTRIBUTES)
                 .build();
         while (running.get()) {
-            if (receiveMessages.get()) {
+            if (receiveMessages.get() && visibilityMonitor.hasInflightCapacity(queueInfo, queueCfg, batchSize)) {
                 receiveMessages(receiveRequest);
             } else {
-                // DDD should we be doing this
-                Thread.onSpinWait();
+                try {
+                    Thread.sleep(queueCfg.getLongPollInterval() * 1000);
+                } catch (final InterruptedException e) {
+                    LOG.error("A pause in task deletion was interrupted", e);
+                }
             }
         }
     }
@@ -185,6 +189,9 @@ public abstract class QueueConsumer implements Runnable
 
     private int getReceiveBatchSize()
     {
+        LOG.info("Max Tasks: {}", maxTasks);
+        LOG.error("Max number of messages to read: {}", queueCfg.getMaxNumberOfMessages());
+        LOG.error("SQS Max batch size: {}", SQSUtil.MAX_MESSAGE_BATCH_SIZE);
         if (maxTasks > SQSUtil.MAX_MESSAGE_BATCH_SIZE || queueCfg.getMaxNumberOfMessages() + maxTasks > SQSUtil.MAX_MESSAGE_BATCH_SIZE) {
             return SQSUtil.MAX_MESSAGE_BATCH_SIZE;
         }

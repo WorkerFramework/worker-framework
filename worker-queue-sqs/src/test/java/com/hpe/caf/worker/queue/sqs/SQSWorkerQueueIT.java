@@ -17,6 +17,7 @@ package com.hpe.caf.worker.queue.sqs;
 
 import com.hpe.caf.api.HealthResult;
 import com.hpe.caf.api.HealthStatus;
+import com.hpe.caf.worker.queue.sqs.util.CallbackResponse;
 import com.hpe.caf.worker.queue.sqs.util.SQSUtil;
 import com.hpe.caf.worker.queue.sqs.util.WrapperConfig;
 import org.testng.Assert;
@@ -27,15 +28,19 @@ import software.amazon.awssdk.services.sqs.model.MessageSystemAttributeName;
 import software.amazon.awssdk.services.sqs.model.ReceiveMessageRequest;
 
 import java.nio.charset.StandardCharsets;
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
 
 import static com.hpe.caf.worker.queue.sqs.util.WorkerQueueWrapper.purgeQueue;
 import static com.hpe.caf.worker.queue.sqs.util.WorkerQueueWrapper.sendMessages;
+import static com.hpe.caf.worker.queue.sqs.util.WorkerQueueWrapper.sendSingleMessagesWithDelays;
 import static org.testng.Assert.assertNotNull;
 import static org.testng.Assert.assertNull;
 import static org.testng.Assert.assertTrue;
+import static org.testng.Assert.fail;
 import static org.testng.AssertJUnit.assertEquals;
 import static org.testng.AssertJUnit.assertFalse;
 
@@ -53,6 +58,7 @@ public class SQSWorkerQueueIT extends TestContainer
                         timeout,
                         timeout,
                         1,
+                        1000,
                         1000,
                         1000
                 ));
@@ -81,6 +87,7 @@ public class SQSWorkerQueueIT extends TestContainer
             workerWrapper.sqsWorkerQueue.acknowledgeTask(msg.taskInformation());
 
             // Stop watching
+            // DDD dont think we need this
             workerWrapper.sqsWorkerQueue.discardTask(msg.taskInformation());
 
             // Delete thread sleeps for 5 seconds between iterations.
@@ -97,6 +104,7 @@ public class SQSWorkerQueueIT extends TestContainer
                     0, metricsReporter.getMessagesRejected());
         } finally {
             purgeQueue(workerWrapper.sqsClient, workerWrapper.inputQueueUrl);
+            workerWrapper.sqsWorkerQueue.shutdown();
         }
     }
 
@@ -112,6 +120,7 @@ public class SQSWorkerQueueIT extends TestContainer
                         timeout,
                         timeout,
                         1,
+                        1000,
                         1000,
                         1000
                 ));
@@ -140,6 +149,7 @@ public class SQSWorkerQueueIT extends TestContainer
             );
 
             // Stop watching
+            // DDD dont think we need this
             workerWrapper.sqsWorkerQueue.discardTask(msg.taskInformation());
 
             // Delete thread sleeps for 5 seconds between iterations.
@@ -156,21 +166,24 @@ public class SQSWorkerQueueIT extends TestContainer
                     0, metricsReporter.getMessagesRejected());
         } finally {
             purgeQueue(workerWrapper.sqsClient, workerWrapper.inputQueueUrl);
+            workerWrapper.sqsWorkerQueue.shutdown();
         }
     }
 
     @Test
     public void testInputQueueIsCreated()
     {
+        final var inputQueue = "input-queue-created";
+        final var workerWrapper = getWorkerWrapper(inputQueue);
         try {
-            final var inputQueue = "input-queue-created";
-            final var workerWrapper = getWorkerWrapper(inputQueue);
             final var getQueueUrlRequest = GetQueueUrlRequest.builder()
                     .queueName(workerWrapper.workerQueueConfiguration.getInputQueue())
                     .build();
             workerWrapper.sqsClient.getQueueUrl(getQueueUrlRequest);
         } catch (final Exception e) {
             Assert.fail("The input queue was not created:" + e.getMessage());
+        } finally {
+            workerWrapper.sqsWorkerQueue.shutdown();
         }
     }
 
@@ -183,6 +196,7 @@ public class SQSWorkerQueueIT extends TestContainer
         assertEquals("Expected a healthy response",
                 HealthResult.RESULT_HEALTHY.getStatus().name(),
                 result.getStatus().name());
+        workerWrapper.sqsWorkerQueue.shutdown();
     }
 
     @Test
@@ -211,6 +225,7 @@ public class SQSWorkerQueueIT extends TestContainer
             assertEquals("Expected:" + inputQueue, inputQueue, msg.headers().get(SQSUtil.SOURCE_QUEUE).toString());
         } finally {
             purgeQueue(workerWrapper.sqsClient, queueUrl);
+            workerWrapper.sqsWorkerQueue.shutdown();
         }
     }
 
@@ -254,6 +269,7 @@ public class SQSWorkerQueueIT extends TestContainer
                     0, metricsReporter.getMessagesRejected());
         } finally {
             purgeQueue(workerWrapper.sqsClient, workerWrapper.inputQueueUrl);
+            workerWrapper.sqsWorkerQueue.shutdown();
         }
     }
 
@@ -292,6 +308,7 @@ public class SQSWorkerQueueIT extends TestContainer
         } finally {
             purgeQueue(workerWrapper.sqsClient, workerWrapper.inputQueueUrl);
             purgeQueue(workerWrapper.sqsClient, rejectQueueUrl);
+            workerWrapper.sqsWorkerQueue.shutdown();
         }
     }
 
@@ -328,6 +345,77 @@ public class SQSWorkerQueueIT extends TestContainer
         } finally {
             purgeQueue(workerWrapper.sqsClient, workerWrapper.inputQueueUrl);
             purgeQueue(workerWrapper.sqsClient, rejectQueueUrl);
+            workerWrapper.sqsWorkerQueue.shutdown();
+        }
+    }
+
+    @Test
+    public void testMaxInflightMessagesMessages() throws Exception
+    {
+        final var inputQueue = "test-max-inflight-messages";
+        final int timeout;
+        final int maxInflightMessages = 2;
+        final int maxMessagesToRead = 1;
+        final int numberOfMessagesSent = timeout = 10;
+        final var workerWrapper = getWorkerWrapper(
+                inputQueue,
+                inputQueue,
+                new WrapperConfig(
+                        timeout,
+                        1,
+                        maxMessagesToRead,
+                        1000,
+                        1000,
+                        maxInflightMessages
+                ));
+        sendSingleMessagesWithDelays(workerWrapper.sqsClient, workerWrapper.inputQueueUrl, numberOfMessagesSent, 0L);
+
+        try {
+            final List<CallbackResponse> callbackResponses = new ArrayList<>();
+            var msg = workerWrapper.callbackQueue.poll(5, TimeUnit.SECONDS);
+            assertNotNull(msg, "A Message should have been received.");
+            callbackResponses.add(msg);
+            while (msg != null) {
+                msg = workerWrapper.callbackQueue.poll(2, TimeUnit.SECONDS);
+                if (msg != null) {
+                    callbackResponses.add(msg);
+                }
+            }
+
+            Assert.assertEquals(callbackResponses.size(), maxInflightMessages);
+
+            // No further messages should be received till an inflight message is republished and acked.
+            var nullMsg = workerWrapper.callbackQueue.poll(1, TimeUnit.SECONDS);
+            assertNull(nullMsg, "A Message should NOT have been received.");
+            int attempts = 0;
+            while (nullMsg == null) {
+                nullMsg = workerWrapper.callbackQueue.poll(timeout, TimeUnit.SECONDS);
+                if (nullMsg != null) {
+                    fail("Should not have received anything");
+                }
+                if (++attempts >= numberOfMessagesSent / 2) break;
+            }
+
+            // Publish
+            final var lastMessage = true;
+            final var lastReceivedMsg = callbackResponses.get(0);
+            workerWrapper.sqsWorkerQueue.publish(
+                    lastReceivedMsg.taskInformation(),
+                    lastReceivedMsg.body().getBytes(StandardCharsets.UTF_8),
+                    "next-queue",
+                    new HashMap<>(),
+                    lastMessage
+            );
+
+            // Ack
+            workerWrapper.sqsWorkerQueue.acknowledgeTask(lastReceivedMsg.taskInformation());
+
+            // Now we should receive one more message
+            final var oneMoreMessage = workerWrapper.callbackQueue.poll(1, TimeUnit.MINUTES);
+            assertNotNull(oneMoreMessage, "A Message should have been received.");
+        } finally {
+            purgeQueue(workerWrapper.sqsClient, workerWrapper.inputQueueUrl);
+            workerWrapper.sqsWorkerQueue.shutdown();
         }
     }
 }

@@ -185,20 +185,12 @@ public final class SQSWorkerQueue implements ManagedWorkerQueue
         publish(taskInformation, taskMessage, targetQueue, headers, false);
     }
 
-    /**
-     * @param taskInformation The object containing metadata about a queued message.
-     */
     @Override
     public void acknowledgeTask(final TaskInformation taskInformation)
     {
-        // This could be called multiple times
-        // so when ack AND publish are called the same number of times
-        // AND
-        // lastmessage was sent
-        // we can delete the message from sqs
         var sqsTaskInformation = (SQSTaskInformation) taskInformation;
         sqsTaskInformation.incrementAcknowledgementCount();
-        deletePublisher.watch(sqsTaskInformation);
+        deletePublisher.watch(sqsTaskInformation); // enables batching
     }
 
     @Override
@@ -238,6 +230,7 @@ public final class SQSWorkerQueue implements ManagedWorkerQueue
         consumer.shutdown();
         dlqConsumer.shutdown();
         visibilityMonitor.shutdown();
+        deletePublisher.shutdown();
     }
 
     @Override

@@ -22,6 +22,7 @@ public final class WrapperConfig
     private final int maxReadMessages;
     private final int maxDeliveries;
     private final int retentionPeriod;
+    private final int maxInflightMessages;
 
     public WrapperConfig()
     {
@@ -29,7 +30,8 @@ public final class WrapperConfig
              5,
              1,
              1000,
-             1000);
+             1000,
+             120000);
     }
 
     public WrapperConfig(
@@ -37,13 +39,15 @@ public final class WrapperConfig
             int longPollInterval,
             int maxReadMessages,
             int maxDeliveries,
-            int retentionPeriod)
+            int retentionPeriod,
+            int maxInflightMessages)
     {
         this.visibilityTimout = visibilityTimout;
         this.longPollInterval = longPollInterval;
         this.maxReadMessages = maxReadMessages;
         this.maxDeliveries = maxDeliveries;
         this.retentionPeriod = retentionPeriod;
+        this.maxInflightMessages = maxInflightMessages;
     }
 
     public int visibilityTimout()
@@ -70,4 +74,11 @@ public final class WrapperConfig
     {
         return retentionPeriod;
     }
+
+    public int maxInflightMessages()
+    {
+        return maxInflightMessages;
+    }
+
+
 }

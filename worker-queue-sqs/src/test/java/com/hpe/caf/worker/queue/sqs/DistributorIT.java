@@ -121,6 +121,7 @@ public class DistributorIT extends TestContainer
         } finally {
             purgeQueue(workerWrapper.sqsClient, workerWrapper.inputQueueUrl);
             purgeQueue(workerWrapper.sqsClient, sourceQueueUrl);
+            workerWrapper.sqsWorkerQueue.shutdown();
         }
     }
 }

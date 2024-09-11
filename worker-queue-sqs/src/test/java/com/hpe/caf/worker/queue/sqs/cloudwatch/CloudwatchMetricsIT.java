@@ -39,29 +39,33 @@ public class CloudwatchMetricsIT extends TestContainer
         final var inputQueue = "test-deleted-metrics";
         final var workerWrapper = getWorkerWrapper(inputQueue);
 
-        var messagesToSend = 10;
-        for (int i = 1; i <= messagesToSend; i++) {
-            sendMessages(workerWrapper.sqsClient, workerWrapper.inputQueueUrl, new HashMap<>(), "msg_" + i);
+        try {
+            var messagesToSend = 10;
+            for (int i = 1; i <= messagesToSend; i++) {
+                sendMessages(workerWrapper.sqsClient, workerWrapper.inputQueueUrl, new HashMap<>(), "msg_" + i);
+            }
+
+            var datapoints = getStatistics(workerWrapper);
+
+            // Receive all messages
+            var msg = workerWrapper.callbackQueue.poll(30, TimeUnit.SECONDS);
+            while (msg != null) {
+                workerWrapper.sqsWorkerQueue.acknowledgeTask(msg.taskInformation());
+                msg = workerWrapper.callbackQueue.poll(30, TimeUnit.SECONDS);
+            }
+
+            assertTrue(datapoints.containsKey(inputQueue));
+            var metricsList = datapoints.get(inputQueue);
+
+            assertTrue(containsMetric(metricsList, "NumberOfMessagesSent"));
+            assertTrue(containsMetric(metricsList, "NumberOfMessagesReceived"));
+            assertTrue(containsMetric(metricsList, "NumberOfMessagesDeleted"));
+            assertTrue(containsMetric(metricsList, "ApproximateNumberOfMessagesNotVisible"));
+            assertTrue(containsMetric(metricsList, "ApproximateNumberOfMessagesVisible"));
+            assertTrue(containsMetric(metricsList, "ApproximateAgeOfOldestMessage"));
+        } finally {
+            workerWrapper.sqsWorkerQueue.shutdown();
         }
-
-        var datapoints = getStatistics(workerWrapper);
-
-        // Receive all messages
-        var msg = workerWrapper.callbackQueue.poll(30, TimeUnit.SECONDS);
-        while (msg != null) {
-            workerWrapper.sqsWorkerQueue.acknowledgeTask(msg.taskInformation());
-            msg = workerWrapper.callbackQueue.poll(30, TimeUnit.SECONDS);
-        }
-
-        assertTrue(datapoints.containsKey(inputQueue));
-        var metricsList = datapoints.get(inputQueue);
-
-        assertTrue(containsMetric(metricsList, "NumberOfMessagesSent"));
-        assertTrue(containsMetric(metricsList, "NumberOfMessagesReceived"));
-        assertTrue(containsMetric(metricsList, "NumberOfMessagesDeleted"));
-        assertTrue(containsMetric(metricsList, "ApproximateNumberOfMessagesNotVisible"));
-        assertTrue(containsMetric(metricsList, "ApproximateNumberOfMessagesVisible"));
-        assertTrue(containsMetric(metricsList, "ApproximateAgeOfOldestMessage"));
     }
 
     private Map<String, List<MetricDataPoints>> getStatistics(
