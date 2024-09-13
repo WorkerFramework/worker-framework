@@ -57,7 +57,7 @@ public class SQSUtil
                 .build();
     }
 
-    private static AwsCredentials getAWSCredentials(final SQSConfiguration sqsConfiguration)
+    public static AwsCredentials getAWSCredentials(final SQSConfiguration sqsConfiguration)
     {
         return new AwsCredentials()
         {
@@ -75,14 +75,6 @@ public class SQSUtil
         };
     }
 
-    public static QueueInfo createQueue(
-            final SqsClient sqsClient,
-            final String queueName,
-            final SQSWorkerQueueConfiguration queueCfg)
-    {
-        return createQueue(sqsClient, queueName, queueCfg, false);
-    }
-
     /**
      * This method creates a DeadLetterQueue and associates it with a source Queue.
      */
@@ -92,18 +84,17 @@ public class SQSUtil
             final SQSWorkerQueueConfiguration queueCfg)
     {
         final var queueName = sourceQueue.name() + DEAD_LETTER_QUEUE_SUFFIX;
-        final var response = createQueue(sqsClient, queueName, queueCfg, true);
+        final var response = createQueue(sqsClient, queueName, queueCfg);
 
         addRedrivePolicy(sqsClient, sourceQueue.url(), response.arn(), queueCfg);
 
         return response;
     }
 
-    private static QueueInfo createQueue(
+    public static QueueInfo createQueue(
             final SqsClient sqsClient,
             final String queueName,
-            final SQSWorkerQueueConfiguration queueCfg,
-            final boolean isDeadLetterQueue)
+            final SQSWorkerQueueConfiguration queueCfg)
     {
         try {
             final var createQueueRequest = CreateQueueRequest.builder()
@@ -115,10 +106,10 @@ public class SQSUtil
             final var url = response.queueUrl();
             final var arn = getQueueArn(sqsClient, url);
 
-            return new QueueInfo(queueName, url, arn, isDeadLetterQueue);
+            return new QueueInfo(queueName, url, arn);
         } catch (final QueueNameExistsException e) {
             LOG.info("Queue already exists {} {}", queueName, e.getMessage());
-            return getQueueInfo(sqsClient, queueName, isDeadLetterQueue);
+            return getQueueInfo(sqsClient, queueName);
         }
     }
 
@@ -183,18 +174,7 @@ public class SQSUtil
     {
         var url = getQueueUrl(sqsClient, queueName);
         var arn = getQueueArn(sqsClient, url);
-        return new QueueInfo(queueName, url, arn, false);
-    }
-
-    public static QueueInfo getQueueInfo(
-            final SqsClient sqsClient,
-            final String queueName,
-            final boolean isDeadLetterQueue
-    )
-    {
-        var url = getQueueUrl(sqsClient, queueName);
-        var arn = getQueueArn(sqsClient, url);
-        return new QueueInfo(queueName, url, arn, isDeadLetterQueue);
+        return new QueueInfo(queueName, url, arn);
     }
 
     public static Date getExpiry(final VisibilityTimeout visibilityTimeout)
