@@ -15,7 +15,9 @@
  */
 package com.hpe.caf.worker.queue.sqs.publisher.error;
 
-public record PublishError(String error, String queueName)
+import com.hpe.caf.worker.queue.sqs.publisher.WorkerMessage;
+
+public record PublishError(String error, String queueName, WorkerMessage workerMessage)
 {
     @Override
     public String toString()

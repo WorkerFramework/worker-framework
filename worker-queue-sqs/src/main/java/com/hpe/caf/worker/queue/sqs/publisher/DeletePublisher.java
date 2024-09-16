@@ -109,6 +109,7 @@ public class DeletePublisher implements Runnable
             final List<SQSTaskInformation> tasks
     )
     {
+        // DDD api calls here
         final Map<String, SQSTaskInformation> taskMap = new HashMap<>();
         final var entries = new ArrayList<DeleteMessageBatchRequestEntry>();
         int id = 1;

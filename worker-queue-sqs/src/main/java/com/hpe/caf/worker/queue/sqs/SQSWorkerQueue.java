@@ -285,6 +285,7 @@ public final class SQSWorkerQueue implements ManagedWorkerQueue
 
     private DeadLetteredQueuePair createDeadLetteredQueuePair(final String queueName)
     {
+        // DDD api calls here
         final var queue = declaredQueues.computeIfAbsent(
                 queueName,
                 (q) -> SQSUtil.createQueue(sqsClient, q, queueCfg)

@@ -82,6 +82,7 @@ public abstract class QueueConsumer implements Runnable
     public void run()
     {
         final var batchSize = getReceiveBatchSize();
+        // DDD api calls here
         final var receiveRequest = ReceiveMessageRequest.builder()
                 .queueUrl(queueInfo.url())
                 .maxNumberOfMessages(batchSize)
@@ -119,6 +120,7 @@ public abstract class QueueConsumer implements Runnable
 
     protected void retryMessage(final Message message)
     {
+        // DDD api calls here
         try {
             if (retryQueueInfo.equals(queueInfo)) {
                return;
@@ -145,6 +147,7 @@ public abstract class QueueConsumer implements Runnable
 
     protected Map<String, Object> createHeadersFromMessageAttributes(final Message message)
     {
+        // DDD api calls here
         final var headers = new HashMap<String, Object>();
         for(final Map.Entry<String, MessageAttributeValue> entry : message.messageAttributes().entrySet()) {
             if (entry.getValue().dataType().equals("String")) {

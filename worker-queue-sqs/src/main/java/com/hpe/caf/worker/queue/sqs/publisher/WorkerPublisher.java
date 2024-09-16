@@ -26,10 +26,11 @@ import software.amazon.awssdk.services.sqs.model.SendMessageBatchRequestEntry;
 
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.BlockingQueue;
+import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.stream.Collectors;
 
@@ -43,7 +44,7 @@ public class WorkerPublisher implements Runnable
     private static final Logger LOG = LoggerFactory.getLogger(WorkerPublisher.class);
 
     private final SqsClient sqsClient;
-    private final Map<String, List<WorkerMessage>> publishCollections;
+    private final Map<String, BlockingQueue<WorkerMessage>> publishCollections;
     protected final AtomicBoolean running = new AtomicBoolean(true);
 
     public WorkerPublisher(final SqsClient sqsClient)
@@ -58,9 +59,8 @@ public class WorkerPublisher implements Runnable
         while (running.get()) {
             try {
                 publish();
-                Thread.sleep(5000); // DDD can we afford not to?
             } catch (final InterruptedException e) {
-                LOG.error("A pause in task deletion was interrupted", e);
+                LOG.error("A task publishing was interrupted", e);
             }
         }
     }
@@ -71,10 +71,15 @@ public class WorkerPublisher implements Runnable
             final var messages = entry.getValue();
             final var queueUrl = entry.getKey();
             synchronized (messages) {
-                final var errors = publishMessages(queueUrl, messages);
-                if (!errors.isEmpty()) {
-                    errors.forEach(error -> LOG.info(error.toString()));
+                final var publishMessages = new ArrayList<WorkerMessage>();
+                publishMessages.add(messages.take());
+                messages.drainTo(publishMessages);
+                final var publishErrors = publishMessages(queueUrl, publishMessages);
+                if (!publishErrors.isEmpty()) {
+                    publishErrors.forEach(error -> LOG.info(error.toString()));
                 }
+                // DDD should we be re-queueing failed publishes.
+                messages.addAll(publishErrors.stream().map(pe -> pe.workerMessage()).collect(Collectors.toList()));
             }
         }
     }
@@ -102,6 +107,8 @@ public class WorkerPublisher implements Runnable
             final List<WorkerMessage> messages
     )
     {
+        // DDD api calls here
+        final Map<String, WorkerMessage> workerMessageMap = new HashMap<>();
         final var entries = new ArrayList<SendMessageBatchRequestEntry>();
         int id = 1;
         for(final WorkerMessage msg : messages) {
@@ -111,6 +118,7 @@ public class WorkerPublisher implements Runnable
                     .messageAttributes(createAttributesFromMessageHeaders(msg.headers()))
                     .messageBody(new String(msg.taskMessage(), StandardCharsets.UTF_8))
                     .build());
+            workerMessageMap.put(idStr, msg);
         }
         final var request = SendMessageBatchRequest.builder()
                 .entries(entries)
@@ -124,18 +132,18 @@ public class WorkerPublisher implements Runnable
         final var failed = response.failed();
 
         return failed.stream()
-                .map(f -> new PublishError(f.message(), queueUrl))
+                .map(f -> new PublishError(f.message(), queueUrl, workerMessageMap.get(f.id())))
                 .collect(Collectors.toList());
     }
 
-    public void publishMessage(final WorkerMessage workerMessage)
+    public void publishMessage(final WorkerMessage workerMessage) throws InterruptedException
     {
         final var queueInfo = workerMessage.queueInfo();
         final var queueMessages = publishCollections.computeIfAbsent(
                 queueInfo.url(),
-                (q) -> Collections.synchronizedList(new ArrayList<>())
+                (q) -> new LinkedBlockingQueue()
         );
-        queueMessages.add(workerMessage);
+        queueMessages.put(workerMessage);
     }
 
     public void shutdown()
