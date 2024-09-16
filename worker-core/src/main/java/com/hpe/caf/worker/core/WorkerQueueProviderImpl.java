@@ -24,16 +24,20 @@ import com.hpe.caf.worker.queue.rabbit.RabbitWorkerQueue;
 import com.hpe.caf.worker.queue.rabbit.RabbitWorkerQueueConfiguration;
 import com.hpe.caf.worker.queue.sqs.SQSWorkerQueue;
 import com.hpe.caf.worker.queue.sqs.config.SQSWorkerQueueConfiguration;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class WorkerQueueProviderImpl implements WorkerQueueProvider
 {
+    private static final Logger LOG = LoggerFactory.getLogger(WorkerQueueProviderImpl.class);
     private static final String AWS_SQS_MESSAGING = "sqs";
+    private static final String RABBIT_MESSAGING = "rabbitmq";
 
     @Override
     public ManagedWorkerQueue getWorkerQueue(ConfigurationSource configurationSource, int maxTasks) throws QueueException
     {
         try {
-            final var messageSystemCfg = configurationSource.getConfiguration(MessageSystemConfiguration.class);
+            final var messageSystemCfg = getMessageSystemConfiguration(configurationSource);
             if (messageSystemCfg.getImplementation().equals(AWS_SQS_MESSAGING)) {
                 return new SQSWorkerQueue(configurationSource.getConfiguration(SQSWorkerQueueConfiguration.class), maxTasks);
             }
@@ -41,5 +45,17 @@ public class WorkerQueueProviderImpl implements WorkerQueueProvider
         } catch (ConfigurationException e) {
             throw new QueueException("Cannot create worker queue", e);
         }
+    }
+
+    private MessageSystemConfiguration getMessageSystemConfiguration(final ConfigurationSource configurationSource)
+    {
+        try {
+            return configurationSource.getConfiguration(MessageSystemConfiguration.class);
+        } catch (final ConfigurationException e) {
+            LOG.info("No message system configuration found. Using default MessageSystemConfiguration for rabbitmq");
+        }
+        final var messageSystemCfg = new MessageSystemConfiguration();
+        messageSystemCfg.setImplementation(RABBIT_MESSAGING);
+        return messageSystemCfg;
     }
 }
