@@ -99,7 +99,7 @@ public class SQSWorkerQueueConfiguration
     private Integer maxDeliveries;
 
     /**
-     * The number of inflight messages that a worker can handle.
+     * The number of inflight messages that a worker can handle for a particular queue.
      */
     @Min(1)
     @Max(120000)

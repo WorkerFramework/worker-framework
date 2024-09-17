@@ -71,6 +71,9 @@ public class WorkerPublisher implements Runnable
             final var messages = entry.getValue();
             final var queueUrl = entry.getKey();
             synchronized (messages) {
+                // optimized for speed of processing
+                // use a Wait(5000) here and test processing in test framework
+                // increases by 20x
                 final var publishMessages = new ArrayList<WorkerMessage>();
                 publishMessages.add(messages.take());
                 messages.drainTo(publishMessages);

@@ -14,5 +14,6 @@ Manifest of the components which make up the CAF Worker Framework:
 * worker-configs
 * worker-core
 * worker-queue-rabbit
+* worker-queue-sqs
 * worker-store-fs
 * worker-store-s3
