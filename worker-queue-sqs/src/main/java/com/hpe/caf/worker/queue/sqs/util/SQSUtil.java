@@ -52,7 +52,7 @@ public class SQSUtil
     {
         return SqsClient.builder()
                 .endpointOverride(new URI(sqsConfiguration.getURIString()))
-                .region(Region.of(sqsConfiguration.getAwsRegion()))
+                .region(Region.of(sqsConfiguration.getSqsRegion()))
                 .credentialsProvider(() -> getAWSCredentials(sqsConfiguration))
                 .build();
     }
@@ -64,13 +64,13 @@ public class SQSUtil
             @Override
             public String accessKeyId()
             {
-                return sqsConfiguration.getAwsAccessKey();
+                return sqsConfiguration.getSqsAccessKey();
             }
 
             @Override
             public String secretAccessKey()
             {
-                return sqsConfiguration.getAwsSecretAccessKey();
+                return sqsConfiguration.getSqsSecretAccessKey();
             }
         };
     }

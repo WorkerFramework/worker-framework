@@ -74,12 +74,12 @@ public class WorkerQueueWrapper
             callback = stubbedTaskCallback;
 
             sqsConfiguration = new SQSConfiguration();
-            sqsConfiguration.setAwsProtocol("http");
-            sqsConfiguration.setAwsHost(container.getHost());
-            sqsConfiguration.setAwsPort(container.getFirstMappedPort());
-            sqsConfiguration.setAwsRegion(container.getRegion());
-            sqsConfiguration.setAwsAccessKey(container.getAccessKey());
-            sqsConfiguration.setAwsSecretAccessKey(container.getSecretKey());
+            sqsConfiguration.setSqsProtocol("http");
+            sqsConfiguration.setSqsHost(container.getHost());
+            sqsConfiguration.setSqsPort(container.getFirstMappedPort());
+            sqsConfiguration.setSqsRegion(container.getRegion());
+            sqsConfiguration.setSqsAccessKey(container.getAccessKey());
+            sqsConfiguration.setSqsSecretAccessKey(container.getSecretKey());
 
             workerQueueConfiguration = new SQSWorkerQueueConfiguration();
             workerQueueConfiguration.setSqsConfiguration(sqsConfiguration);
@@ -110,13 +110,13 @@ public class WorkerQueueWrapper
                         @Override
                         public String accessKeyId()
                         {
-                            return sqsConfiguration.getAwsAccessKey();
+                            return sqsConfiguration.getSqsAccessKey();
                         }
 
                         @Override
                         public String secretAccessKey()
                         {
-                            return sqsConfiguration.getAwsSecretAccessKey();
+                            return sqsConfiguration.getSqsSecretAccessKey();
                         }
                     })
                     .region(Region.US_EAST_1)

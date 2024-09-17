@@ -25,91 +25,91 @@ public class SQSConfiguration
 {
     @NotNull
     @Size(min = 1)
-    private String awsProtocol;
+    private String sqsProtocol;
 
     @NotNull
     @Size(min = 1)
-    private String awsHost;
+    private String sqsHost;
 
     @Min(1024)
     @Max(65535)
-    private int awsPort;
+    private int sqsPort;
 
     @NotNull
     @Size(min = 1)
-    private String awsRegion;
+    private String sqsRegion;
 
     @NotNull
     @Size(min = 1)
-    private String awsAccessKey;
+    private String sqsAccessKey;
 
     @Encrypted
     @NotNull
     @Size(min = 1)
-    private String awsSecretAccessKey;
+    private String sqsSecretAccessKey;
 
-    public String getAwsProtocol()
+    public String getSqsProtocol()
     {
-        return awsProtocol;
+        return sqsProtocol;
     }
 
-    public void setAwsProtocol(final String awsProtocol)
+    public void setSqsProtocol(final String sqsProtocol)
     {
-        this.awsProtocol = awsProtocol;
+        this.sqsProtocol = sqsProtocol;
     }
 
-    public String getAwsHost()
+    public String getSqsHost()
     {
-        return awsHost;
+        return sqsHost;
     }
 
-    public void setAwsHost(final String awsHost)
+    public void setSqsHost(final String sqsHost)
     {
-        this.awsHost = awsHost;
+        this.sqsHost = sqsHost;
     }
 
-    public int getAwsPort()
+    public int getSqsPort()
     {
-        return awsPort;
+        return sqsPort;
     }
 
-    public void setAwsPort(final int awsPort)
+    public void setSqsPort(final int sqsPort)
     {
-        this.awsPort = awsPort;
+        this.sqsPort = sqsPort;
     }
 
-    public String getAwsRegion()
+    public String getSqsRegion()
     {
-        return awsRegion;
+        return sqsRegion;
     }
 
-    public void setAwsRegion(final String awsRegion)
+    public void setSqsRegion(final String sqsRegion)
     {
-        this.awsRegion = awsRegion;
+        this.sqsRegion = sqsRegion;
     }
 
-    public String getAwsAccessKey()
+    public String getSqsAccessKey()
     {
-        return awsAccessKey;
+        return sqsAccessKey;
     }
 
-    public void setAwsAccessKey(final String awsAccessKey)
+    public void setSqsAccessKey(final String sqsAccessKey)
     {
-        this.awsAccessKey = awsAccessKey;
+        this.sqsAccessKey = sqsAccessKey;
     }
 
-    public String getAwsSecretAccessKey()
+    public String getSqsSecretAccessKey()
     {
-        return awsSecretAccessKey;
+        return sqsSecretAccessKey;
     }
 
-    public void setAwsSecretAccessKey(final String awsSecretAccessKey)
+    public void setSqsSecretAccessKey(final String sqsSecretAccessKey)
     {
-        this.awsSecretAccessKey = awsSecretAccessKey;
+        this.sqsSecretAccessKey = sqsSecretAccessKey;
     }
 
     public String getURIString()
     {
-        return awsProtocol + "://" + awsHost + ":" + awsPort;
+        return sqsProtocol + "://" + sqsHost + ":" + sqsPort;
     }
 }
