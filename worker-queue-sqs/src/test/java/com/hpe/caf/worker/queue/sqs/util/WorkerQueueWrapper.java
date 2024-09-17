@@ -86,7 +86,7 @@ public class WorkerQueueWrapper
             workerQueueConfiguration.setInputQueue(inputQueue);
             workerQueueConfiguration.setRetryQueue(retryQueue);
             workerQueueConfiguration.setPausedQueue("paused-queue");
-            workerQueueConfiguration.setRejectedQueue("worker-rejected"); // DDD test
+            workerQueueConfiguration.setRejectedQueue("worker-rejected");
             workerQueueConfiguration.setVisibilityTimeout(visibilityTimeout);
             workerQueueConfiguration.setLongPollInterval(longPollInterval);
             workerQueueConfiguration.setMaxNumberOfMessages(maxNumberOfMessages);

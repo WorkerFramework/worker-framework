@@ -96,7 +96,6 @@ public class VisibilityMonitor implements Runnable
                         // Get all message receiptHandles to extend
                         // And extend the task info visibility
                         for(final var visibilityTimeout : toBeExtendedTimeouts) {
-                            // DDD this needs fine tuned
                             final var visibility = Instant.now().getEpochSecond() + (queueVisibilityTimeout * 2L);
                             visibilityTimeout.setBecomesVisibleEpochSecond(visibility);
                         }

@@ -82,7 +82,6 @@ public class SQSWorkerQueueIT extends TestContainer
             workerWrapper.sqsWorkerQueue.acknowledgeTask(msg.taskInformation());
 
             // Stop watching
-            // DDD dont think we need this
             workerWrapper.sqsWorkerQueue.discardTask(msg.taskInformation());
 
             // The delete thread sleeps for 5 seconds between iterations.
@@ -141,7 +140,6 @@ public class SQSWorkerQueueIT extends TestContainer
             );
 
             // Stop watching
-            // DDD dont think we need this
             workerWrapper.sqsWorkerQueue.discardTask(msg.taskInformation());
 
             // The delete thread sleeps for 5 seconds between iterations.

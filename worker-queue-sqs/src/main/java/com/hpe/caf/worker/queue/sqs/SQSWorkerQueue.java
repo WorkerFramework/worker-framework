@@ -95,7 +95,7 @@ public final class SQSWorkerQueue implements ManagedWorkerQueue
                     (q) -> SQSUtil.createQueue(sqsClient, q, queueCfg)
             );
 
-            // DDD creating the reject queue here with no dlq
+            // DDD not creating dlq for this
             // since doing so on publish would add the dlq
             SQSUtil.createQueue(sqsClient, queueCfg.getRejectedQueue(), queueCfg);
 
