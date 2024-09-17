@@ -25,5 +25,5 @@
     messageRetentionPeriod: getenv("CAF_SQS_MESSAGE_RETENTION_PERIOD") || 1209600,
     maxDeliveries: getenv("CAF_SQS_MAX_DELIVERIES") || 2,
     maxInflightMessages: getenv("CAF_SQS_MAX_INFLIGHT_MESSAGES") || 120000,
-    publisherWaitTimeout: getenv("CAF_SQS_PUBLISHER_WAIT_TIMEOUT") || 0
+    publisherWaitTimeout: getenv("CAF_SQS_PUBLISHER_WAIT_TIMEOUT") || 5
 });
