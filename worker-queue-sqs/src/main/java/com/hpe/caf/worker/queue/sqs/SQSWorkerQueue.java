@@ -127,7 +127,7 @@ public final class SQSWorkerQueue implements ManagedWorkerQueue
 
             deletePublisher = new DeletePublisher(sqsClient, visibilityMonitor);
 
-            workerPublisher = new WorkerPublisher(sqsClient);
+            workerPublisher = new WorkerPublisher(sqsClient, queueCfg);
 
             workerPublisherThread = new Thread(workerPublisher);
             deleteMessageThread = new Thread(deletePublisher);

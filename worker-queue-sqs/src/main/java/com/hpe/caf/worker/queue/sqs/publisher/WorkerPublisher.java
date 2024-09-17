@@ -16,6 +16,7 @@
 package com.hpe.caf.worker.queue.sqs.publisher;
 
 import com.google.common.collect.Iterables;
+import com.hpe.caf.worker.queue.sqs.config.SQSWorkerQueueConfiguration;
 import com.hpe.caf.worker.queue.sqs.publisher.error.PublishError;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -26,11 +27,10 @@ import software.amazon.awssdk.services.sqs.model.SendMessageBatchRequestEntry;
 
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.concurrent.BlockingQueue;
-import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.stream.Collectors;
 
@@ -44,12 +44,14 @@ public class WorkerPublisher implements Runnable
     private static final Logger LOG = LoggerFactory.getLogger(WorkerPublisher.class);
 
     private final SqsClient sqsClient;
-    private final Map<String, BlockingQueue<WorkerMessage>> publishCollections;
+    private final SQSWorkerQueueConfiguration queueCfg;
+    private final Map<String, List<WorkerMessage>> publishCollections;
     protected final AtomicBoolean running = new AtomicBoolean(true);
 
-    public WorkerPublisher(final SqsClient sqsClient)
+    public WorkerPublisher(final SqsClient sqsClient, final SQSWorkerQueueConfiguration queueCfg)
     {
         this.sqsClient = sqsClient;
+        this.queueCfg = queueCfg;
         this.publishCollections = new HashMap<>();
     }
 
@@ -59,8 +61,9 @@ public class WorkerPublisher implements Runnable
         while (running.get()) {
             try {
                 publish();
+                Thread.sleep(queueCfg.getPublisherWaitTimeout() * 1000);
             } catch (final InterruptedException e) {
-                LOG.error("A task publishing was interrupted", e);
+                LOG.error("A pause in task deletion was interrupted", e);
             }
         }
     }
@@ -71,15 +74,13 @@ public class WorkerPublisher implements Runnable
             final var messages = entry.getValue();
             final var queueUrl = entry.getKey();
             synchronized (messages) {
-                // optimized for speed of processing
-                // use a Wait(5000) here and test processing in test framework
-                // increases by 20x
-                final var publishMessages = new ArrayList<WorkerMessage>();
-                publishMessages.add(messages.take());
-                messages.drainTo(publishMessages);
-                final var publishErrors = publishMessages(queueUrl, publishMessages);
+                final var publishErrors = publishMessages(queueUrl, messages);
+                messages.clear();
                 if (!publishErrors.isEmpty()) {
-                    publishErrors.forEach(error -> LOG.info(error.toString()));
+                    publishErrors.forEach(error -> {
+                        error.workerMessage().incrementFailedPublishCount();
+                        LOG.info(error.toString());
+                    });
                 }
                 // DDD should we be re-queueing failed publishes.
                 messages.addAll(publishErrors.stream().map(pe -> pe.workerMessage()).collect(Collectors.toList()));
@@ -118,8 +119,8 @@ public class WorkerPublisher implements Runnable
             final var idStr = String.valueOf(id++);
             entries.add(SendMessageBatchRequestEntry.builder()
                     .id(idStr)
-                    .messageAttributes(createAttributesFromMessageHeaders(msg.headers()))
-                    .messageBody(new String(msg.taskMessage(), StandardCharsets.UTF_8))
+                    .messageAttributes(createAttributesFromMessageHeaders(msg.getHeaders()))
+                    .messageBody(new String(msg.getTaskMessage(), StandardCharsets.UTF_8))
                     .build());
             workerMessageMap.put(idStr, msg);
         }
@@ -141,12 +142,12 @@ public class WorkerPublisher implements Runnable
 
     public void publishMessage(final WorkerMessage workerMessage) throws InterruptedException
     {
-        final var queueInfo = workerMessage.queueInfo();
+        final var queueInfo = workerMessage.getQueueInfo();
         final var queueMessages = publishCollections.computeIfAbsent(
                 queueInfo.url(),
-                (q) -> new LinkedBlockingQueue()
+                (q) -> Collections.synchronizedList(new ArrayList<>())
         );
-        queueMessages.put(workerMessage);
+        queueMessages.add(workerMessage);
     }
 
     public void shutdown()

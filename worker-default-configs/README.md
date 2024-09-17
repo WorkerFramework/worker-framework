@@ -69,31 +69,32 @@ The default SQS configuration file checks for values as below;
 
 | Property           | Checked Environment Variables | Default   |
 |--------------------|-------------------------------|-----------|
-| awsProtocol        | `CAF_AWS_PROTOCOL`            | http      |
-| awsHost            | `CAF_AWS_HOST`                | localhost |
-| awsPort            | `CAF_AWS_PORT`                | 5672      |
-| awsRegion          | `CAF_AWS_REGION`              | guest     |
-| awsAccessKey       | `CAF_AWS_ACCESS_KEY`          | guest     |
-| awsSecretAccessKey | `CAF_AWS_SECRET_ACCESS_KEY`   | guest     |
+| awsProtocol        | `CAF_SQS_PROTOCOL`            | http      |
+| awsHost            | `CAF_SQS_HOST`                | localhost |
+| awsPort            | `CAF_SQS_PORT`                | 5672      |
+| awsRegion          | `CAF_SQS_REGION`              | guest     |
+| awsAccessKey       | `CAF_SQS_ACCESS_KEY`          | guest     |
+| awsSecretAccessKey | `CAF_SQS_SECRET_ACCESS_KEY`   | guest     |
 
 ## SQSWorkerQueueConfiguration
 
 The default SQSWorkerQueue configuration file checks for values as below;
 
-| Property               | Checked Environment Variables                                             | Default   |
-|------------------------|---------------------------------------------------------------------------|-----------|
-| inputQueue             | `CAF_WORKER_INPUT_QUEUE`                                                  | worker-in |
-|                        | `CAF_WORKER_BASE_QUEUE_NAME` with '-in' appended to the value if present  |           |
-|                        | `CAF_WORKER_NAME` with '-in' appended to the value if present             |           |
-| pausedQueue            | `CAF_WORKER_PAUSED_QUEUE`                                                 | 1         |
-| retryQueue             | `CAF_WORKER_RETRY_QUEUE`                                                  | 1         |
-| rejectedQueue          | `worker-rejected`                                                         | 1         |
-| longPollInterval       | `CAF_AWS_LONG_POLL_INTERVAL`                                              | 1         |
-| maxNumberOfMessages    | `CAF_AWS_MAX_NUMER_OF_MESSAGES`                                           | 1         |
-| visibilityTimeout      | `CAF_AWS_VISIBILITY_TIMEOUT`                                              | 1         |
-| messageRetentionPeriod | `CAF_AWS_MESSAGE_RETENTION_PERIOD`                                        | 1         |
-| maxDeliveries          | `CAF_AWS_MAX_DELIVERIES`                                                  | 1         |
-| maxInflightMessages    | `CAF_AWS_MAX_INFLIGHT_MESSAGES`                                           | 120000    |
+| Property               | Checked Environment Variables                                            | Default    |
+|------------------------|--------------------------------------------------------------------------|------------|
+| inputQueue             | `CAF_WORKER_INPUT_QUEUE`                                                 | worker-in  |
+|                        | `CAF_WORKER_BASE_QUEUE_NAME` with '-in' appended to the value if present |            |
+|                        | `CAF_WORKER_NAME` with '-in' appended to the value if present            |            |
+| pausedQueue            | `CAF_WORKER_PAUSED_QUEUE`                                                | 1          |
+| retryQueue             | `CAF_WORKER_RETRY_QUEUE`                                                 | 1          |
+| rejectedQueue          | `worker-rejected`                                                        | 1          |
+| longPollInterval       | `CAF_SQS_LONG_POLL_INTERVAL`                                             | 1          |
+| maxNumberOfMessages    | `CAF_SQS_MAX_NUMER_OF_MESSAGES`                                          | 1          |
+| visibilityTimeout      | `CAF_SQS_VISIBILITY_TIMEOUT`                                             | 1          |
+| messageRetentionPeriod | `CAF_SQS_MESSAGE_RETENTION_PERIOD`                                       | 1          |
+| maxDeliveries          | `CAF_SQS_MAX_DELIVERIES`                                                 | 1          |
+| maxInflightMessages    | `CAF_SQS_MAX_INFLIGHT_MESSAGES`                                          | 120000     |
+| publisherWaitTimeout   | `CAF_SQS_PUBLISHER_WAIT_TIMEOUT`                                         | 0          |
 
 ## HealthConfiguration
 

@@ -105,6 +105,15 @@ public class SQSWorkerQueueConfiguration
     @Max(120000)
     private Integer maxInflightMessages;
 
+    /**
+     * The time that a worker will wait before publishing messages queued for downstream.
+     * This is in an effort to minimize the number of requests made to SQS.
+     * An integer representing seconds, from 0 (no waiting) to 300 (5 minutes).
+     */
+    @Min(0)
+    @Max(300)
+    private Integer publisherWaitTimeout;
+
     public SQSWorkerQueueConfiguration()
     {
     }
@@ -204,7 +213,7 @@ public class SQSWorkerQueueConfiguration
         return retryQueue == null ? inputQueue : retryQueue;
     }
 
-    public void setRetryQueue(String retryQueue)
+    public void setRetryQueue(final String retryQueue)
     {
         this.retryQueue = retryQueue;
     }
@@ -215,9 +224,19 @@ public class SQSWorkerQueueConfiguration
         return maxInflightMessages;
     }
 
-    public void setMaxInflightMessages(Integer maxInflightMessages)
+    public void setMaxInflightMessages(final Integer maxInflightMessages)
     {
         this.maxInflightMessages = maxInflightMessages;
+    }
+
+    public Integer getPublisherWaitTimeout()
+    {
+        return publisherWaitTimeout;
+    }
+
+    public void setPublisherWaitTimeout(final Integer publisherWaitTimeout)
+    {
+        this.publisherWaitTimeout = publisherWaitTimeout;
     }
 }
 

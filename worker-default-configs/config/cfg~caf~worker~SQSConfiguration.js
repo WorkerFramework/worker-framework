@@ -14,10 +14,10 @@
  * limitations under the License.
  */
 ({
-    awsProtocol: getenv("CAF_AWS_PROTOCOL") || "http",
-    awsHost: getenv("CAF_AWS_HOST") || "localhost",
-    awsPort: getenv("CAF_AWS_PORT") || 4566,
-    awsRegion: getenv("CAF_AWS_REGION") || "us-east-1",
-    awsAccessKey: getenv("CAF_AWS_ACCESS_KEY") || "x",
-    awsSecretAccessKey: getenv("CAF_AWS_SECRET_ACCESS_KEY") || "x"
+    awsProtocol: getenv("CAF_SQS_PROTOCOL") || "http",
+    awsHost: getenv("CAF_SQS_HOST") || "localhost",
+    awsPort: getenv("CAF_SQS_PORT") || 4566,
+    awsRegion: getenv("CAF_SQS_REGION") || "us-east-1",
+    awsAccessKey: getenv("CAF_SQS_ACCESS_KEY") || "x",
+    awsSecretAccessKey: getenv("CAF_SQS_SECRET_ACCESS_KEY") || "x"
 });

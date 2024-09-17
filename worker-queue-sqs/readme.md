@@ -13,7 +13,8 @@ The following configuration options are present:
 - visibilityTimeout: a visibility timeout, a period of time during which SQS prevents all consumers from receiving and processing the same message.
 - messageRetentionPeriod: the length of time, in seconds, for which SQS retains a message. Minimum 60 (one minute), Maximum 1,209,600 (14 days).
 - maxDeliveries: the number of times a message will be delivered before being moved to the dead-letter queue.
-- maxInflightMessages: the number of inflight messages that a worker can handle for a particular queue. Minimum 1, Maximum 120,000
+- maxInflightMessages: the time that a worker will wait before publishing messages queued for downstream. Minimum 1, Maximum 120,000
+- publisherWaitTimeout: the number of inflight messages that a worker can handle for a particular queue. Minimum 0 (no wait), Maximum 300 (5 minutes).
 - inputQueue: the queue to retrieve messages from.
 - pausedQueue: the queue to use to send messages to when a job is paused, this is optional, and if not set, messages sent to a worker when a job is paused will be processed as normal (as if the job was not paused).
 - retryQueue: the queue to use for sending messages to retry to, this may be the same as the inputQueue, and will default to this if unset application.

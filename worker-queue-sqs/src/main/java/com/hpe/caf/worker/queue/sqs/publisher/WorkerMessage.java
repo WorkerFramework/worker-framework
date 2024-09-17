@@ -18,7 +18,74 @@ package com.hpe.caf.worker.queue.sqs.publisher;
 import com.hpe.caf.worker.queue.sqs.QueueInfo;
 
 import java.util.Map;
+import java.util.Objects;
 
-public record WorkerMessage(QueueInfo queueInfo, byte[] taskMessage, Map<String, Object> headers)
+public final class WorkerMessage
 {
+    private final QueueInfo queueInfo;
+    private final byte[] taskMessage;
+    private final Map<String, Object> headers;
+    private int failedPublishCount;
+
+    public WorkerMessage(QueueInfo queueInfo, byte[] taskMessage, Map<String, Object> headers)
+    {
+        this.queueInfo = queueInfo;
+        this.taskMessage = taskMessage;
+        this.headers = headers;
+        failedPublishCount = 0;
+    }
+
+
+    public QueueInfo getQueueInfo()
+    {
+        return queueInfo;
+    }
+
+    public byte[] getTaskMessage()
+    {
+        return taskMessage;
+    }
+
+    public Map<String, Object> getHeaders()
+    {
+        return headers;
+    }
+
+    public int getFailedPublishCount()
+    {
+        return failedPublishCount;
+    }
+
+    public void incrementFailedPublishCount()
+    {
+        failedPublishCount++;
+    }
+
+    @Override
+    public boolean equals(Object obj)
+    {
+        if (obj == this) return true;
+        if (obj == null || obj.getClass() != this.getClass()) return false;
+        var that = (WorkerMessage) obj;
+        return Objects.equals(this.queueInfo, that.queueInfo) &&
+                Objects.equals(this.taskMessage, that.taskMessage) &&
+                Objects.equals(this.headers, that.headers);
+    }
+
+    @Override
+    public int hashCode()
+    {
+        return Objects.hash(queueInfo, taskMessage, headers);
+    }
+
+    @Override
+    public String toString()
+    {
+        return "WorkerMessage[" +
+                "queueInfo=" + queueInfo + ", " +
+                "taskMessage=" + taskMessage + ", " +
+                "failedPublishCount=" + failedPublishCount + ", " +
+                "headers=" + headers + ']';
+    }
+
 }
