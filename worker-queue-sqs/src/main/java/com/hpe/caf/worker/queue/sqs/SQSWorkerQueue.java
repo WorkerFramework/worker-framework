@@ -172,14 +172,11 @@ public final class SQSWorkerQueue implements ManagedWorkerQueue
     public HealthResult livenessCheck()
     {
         if (isNotRunning(consumerThread)) {
-            return new HealthResult(HealthStatus.UNHEALTHY, "SQS input queue thread state:" +
+            return new HealthResult(HealthStatus.UNHEALTHY, "SQS consumer thread state:" +
                     getState(consumerThread));
-//        } else if (isNotRunning(deadLetterQueueThread)) {
-//            return new HealthResult(HealthStatus.UNHEALTHY, "SQS dead letter queue thread state:" +
-//                    getState(inputQueueThread));
         } else if (isNotRunning(visibilityMonitorThread))  {
             return new HealthResult(HealthStatus.UNHEALTHY, "SQS visibility monitor thread state:" +
-                    getState(consumerThread));
+                    getState(visibilityMonitorThread));
         } else if (isNotRunning(deleteMessageThread))  {
             return new HealthResult(HealthStatus.UNHEALTHY, "SQS delete message thread state:" +
                     getState(deleteMessageThread));
@@ -206,7 +203,6 @@ public final class SQSWorkerQueue implements ManagedWorkerQueue
     public void shutdown()
     {
         consumer.shutdown();
-        //dlqConsumer.shutdown();
         visibilityMonitor.shutdown();
         deletePublisher.shutdown();
         workerPublisher.shutdown();
