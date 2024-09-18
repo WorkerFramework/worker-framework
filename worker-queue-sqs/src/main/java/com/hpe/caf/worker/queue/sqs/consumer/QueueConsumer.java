@@ -41,7 +41,7 @@ import java.util.Map;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.stream.Collectors;
 
-public abstract class QueueConsumer implements Runnable
+public final class QueueConsumer implements Runnable
 {
     protected final SqsClient sqsClient;
     protected final QueueInfo queueInfo;
@@ -53,6 +53,7 @@ public abstract class QueueConsumer implements Runnable
     protected final AtomicBoolean receiveMessages;
     private final int maxTasks;
     protected final AtomicBoolean running = new AtomicBoolean(true);
+    private final boolean isPoisonMessageConsumer;
 
     private static final Logger LOG = LoggerFactory.getLogger(QueueConsumer.class);
 
@@ -60,12 +61,13 @@ public abstract class QueueConsumer implements Runnable
             final SqsClient sqsClient,
             final QueueInfo queueInfo,
             final QueueInfo retryQueueInfo,
-            final SQSWorkerQueueConfiguration queueCfg,
             final TaskCallback callback,
+            final SQSWorkerQueueConfiguration queueCfg,
             final VisibilityMonitor visibilityMonitor,
             final MetricsReporter metricsReporter,
             final AtomicBoolean receiveMessages,
-            final int maxTasks)
+            final int maxTasks,
+            final boolean isPoisonMessageConsumer)
     {
         this.sqsClient = sqsClient;
         this.queueInfo = queueInfo;
@@ -76,6 +78,7 @@ public abstract class QueueConsumer implements Runnable
         this.visibilityMonitor = visibilityMonitor;
         this.receiveMessages = receiveMessages;
         this.maxTasks = maxTasks;
+        this.isPoisonMessageConsumer = isPoisonMessageConsumer;
     }
 
     @Override
@@ -161,13 +164,13 @@ public abstract class QueueConsumer implements Runnable
         final var taskInfo = new SQSTaskInformation(
                 message.messageId(),
                 new VisibilityTimeout(queueInfo, becomesVisible, message.receiptHandle()),
-                isPoisonMessageConsumer()
+                isPoisonMessageConsumer
         );
 
         final var headers = createHeadersFromMessageAttributes(message);
         try {
             callback.registerNewTask(taskInfo, message.body().getBytes(StandardCharsets.UTF_8), headers);
-            handleConsumerSpecificActions(taskInfo);
+            visibilityMonitor.watch(taskInfo);
         } catch (final InvalidTaskException e) {
             LOG.error("Cannot register new message, rejecting {}", taskInfo, e);
             retryMessage(message);
@@ -182,10 +185,6 @@ public abstract class QueueConsumer implements Runnable
     {
         running.set(false);
     }
-
-    protected abstract void handleConsumerSpecificActions(final SQSTaskInformation taskInfo);
-
-    protected abstract boolean isPoisonMessageConsumer();
 
     private int getReceiveBatchSize()
     {

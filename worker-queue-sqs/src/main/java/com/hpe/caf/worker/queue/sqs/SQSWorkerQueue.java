@@ -23,8 +23,7 @@ import com.hpe.caf.api.worker.TaskCallback;
 import com.hpe.caf.api.worker.TaskInformation;
 import com.hpe.caf.api.worker.WorkerQueueMetricsReporter;
 import com.hpe.caf.worker.queue.sqs.config.SQSWorkerQueueConfiguration;
-import com.hpe.caf.worker.queue.sqs.consumer.DeadLetterQueueConsumer;
-import com.hpe.caf.worker.queue.sqs.consumer.InputQueueConsumer;
+import com.hpe.caf.worker.queue.sqs.consumer.QueueConsumer;
 import com.hpe.caf.worker.queue.sqs.metrics.MetricsReporter;
 import com.hpe.caf.worker.queue.sqs.publisher.DeletePublisher;
 import com.hpe.caf.worker.queue.sqs.publisher.WorkerPublisher;
@@ -53,8 +52,8 @@ public final class SQSWorkerQueue implements ManagedWorkerQueue
     private Thread workerPublisherThread;
 
     private VisibilityMonitor visibilityMonitor;
-    private InputQueueConsumer consumer;
-    private DeadLetterQueueConsumer dlqConsumer;
+    private QueueConsumer consumer;
+    private QueueConsumer dlqConsumer;
     private DeletePublisher deletePublisher;
     private WorkerPublisher workerPublisher;
 
@@ -96,14 +95,13 @@ public final class SQSWorkerQueue implements ManagedWorkerQueue
             );
 
             // DDD not creating dlq for this
-            // since doing so on publish would add the dlq
             SQSUtil.createQueue(sqsClient, queueCfg.getRejectedQueue(), queueCfg);
 
             visibilityMonitor = new VisibilityMonitor(
                     sqsClient,
                     queueCfg.getVisibilityTimeout());
 
-            dlqConsumer = new DeadLetterQueueConsumer(
+            dlqConsumer = new QueueConsumer(
                     sqsClient,
                     deadLetterQueueInfo,
                     retryQueueInfo,
@@ -112,9 +110,10 @@ public final class SQSWorkerQueue implements ManagedWorkerQueue
                     visibilityMonitor,
                     metricsReporter,
                     receiveMessages,
-                    maxTasks);
+                    maxTasks,
+                    true);
 
-            consumer = new InputQueueConsumer(
+            consumer = new QueueConsumer(
                     sqsClient,
                     inputQueueInfo,
                     retryQueueInfo,
@@ -123,7 +122,8 @@ public final class SQSWorkerQueue implements ManagedWorkerQueue
                     visibilityMonitor,
                     metricsReporter,
                     receiveMessages,
-                    maxTasks);
+                    maxTasks,
+                    false);
 
             deletePublisher = new DeletePublisher(sqsClient, visibilityMonitor);
 
