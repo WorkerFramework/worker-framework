@@ -16,10 +16,12 @@
 package com.hpe.caf.worker.queue.sqs.publisher;
 
 import com.google.common.collect.Iterables;
+import com.hpe.caf.worker.queue.sqs.QueueInfo;
 import com.hpe.caf.worker.queue.sqs.config.SQSWorkerQueueConfiguration;
 import com.hpe.caf.worker.queue.sqs.publisher.error.PublishError;
 import com.hpe.caf.worker.queue.sqs.publisher.message.WorkerMessage;
 import com.hpe.caf.worker.queue.sqs.publisher.response.PublishBatchResponse;
+import com.hpe.caf.worker.queue.sqs.util.SQSUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import software.amazon.awssdk.services.sqs.SqsClient;
@@ -48,13 +50,18 @@ public class WorkerPublisher implements Runnable
     private final SqsClient sqsClient;
     private final SQSWorkerQueueConfiguration queueCfg;
     private final Map<String, List<WorkerMessage>> publishCollections;
-    protected final AtomicBoolean running = new AtomicBoolean(true);
+    private final AtomicBoolean running = new AtomicBoolean(true);
+    private final QueueInfo rejectQueueInfo;
 
-    public WorkerPublisher(final SqsClient sqsClient, final SQSWorkerQueueConfiguration queueCfg)
+    public WorkerPublisher(
+            final SqsClient sqsClient,
+            final SQSWorkerQueueConfiguration queueCfg,
+            final QueueInfo rejectQueueInfo)
     {
         this.sqsClient = sqsClient;
         this.queueCfg = queueCfg;
         this.publishCollections = new HashMap<>();
+        this.rejectQueueInfo = rejectQueueInfo;
     }
 
     @Override
@@ -79,30 +86,32 @@ public class WorkerPublisher implements Runnable
         for(final var entry : publishCollections.entrySet()) {
             final var publishList = entry.getValue();
             final var queueUrl = entry.getKey();
+            List<PublishError> publishErrors = new ArrayList<>();
             synchronized (publishList) {
                 if (!publishList.isEmpty()) {
-                    int publishCount = 0;
-                    final var publishErrors = new ArrayList<PublishError>();
-                    final var batches = Iterables.partition(publishList, MAX_MESSAGE_BATCH_SIZE);
-                    for(final var batch : batches) {
-                        final var response = sendBatch(queueUrl, batch);
-                        publishErrors.addAll(response.errors());
-                        publishCount += response.successes();
-                    }
-                    LOG.info("Published {} message(s) to queue {}", publishCount, queueUrl);
+                    publishErrors.addAll(sendWorkerMessages(queueUrl, publishList));
                     publishList.clear();
-                    if (!publishErrors.isEmpty()) {
-                        publishErrors.forEach(error -> {
-                            error.workerMessage().incrementFailedPublishCount();
-                            LOG.info(error.toString());
-                        });
-                        // DDD should we be re-queueing failed publishes
-                        // whats the limit, what then.
-                        publishList.addAll(publishErrors.stream().map(pe -> pe.workerMessage()).collect(Collectors.toList()));
-                    }
                 }
             }
+            handleFailures(publishErrors);
         }
+    }
+
+    private List<PublishError> sendWorkerMessages(
+            final String queueUrl,
+            final List<WorkerMessage> publishList
+    )
+    {
+        int publishCount = 0;
+        final var publishErrors = new ArrayList<PublishError>();
+        final var batches = Iterables.partition(publishList, MAX_MESSAGE_BATCH_SIZE);
+        for(final var batch : batches) {
+            final var response = sendBatch(queueUrl, batch);
+            publishErrors.addAll(response.errors());
+            publishCount += response.successes();
+        }
+        LOG.info("Published {} message(s) to queue {}", publishCount, queueUrl);
+        return publishErrors;
     }
 
     private PublishBatchResponse sendBatch(
@@ -152,6 +161,29 @@ public class WorkerPublisher implements Runnable
     public void shutdown()
     {
         running.set(false);
+    }
+
+    private void handleFailures(final List<PublishError> publishErrors)
+    {
+        if (!publishErrors.isEmpty()) {
+            publishErrors.forEach(error -> {
+                error.workerMessage().incrementFailedPublishCount();
+                LOG.info(error.toString());
+            });
+
+            final var failedWorkerMessages = publishErrors.stream()
+                    .map(pe -> {
+                        pe.workerMessage().getHeaders().put(
+                                SQSUtil.SQS_HEADER_CAF_WORKER_REJECTED,
+                                SQSUtil.REJECTED_REASON_TASKMESSAGE
+                        );
+                        return pe.workerMessage();
+                    }).collect(Collectors.toList());
+            final var rejectErrors = sendWorkerMessages(rejectQueueInfo.url(), failedWorkerMessages);
+            rejectErrors.forEach(error -> {
+                LOG.info(error.toString());
+            });
+        }
     }
 
     private static Map<String, MessageAttributeValue> createAttributesFromMessageHeaders(final Map<String, Object> headers)

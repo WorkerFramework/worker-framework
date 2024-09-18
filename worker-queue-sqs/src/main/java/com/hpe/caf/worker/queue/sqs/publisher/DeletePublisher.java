@@ -62,7 +62,7 @@ public class DeletePublisher implements Runnable
             send();
             try {
                 // Serves to allow some degree of batching + saving CPU
-                Thread.sleep(5000); // DDD long poll interval??
+                Thread.sleep(5000);
             } catch (final InterruptedException e) {
                 LOG.error("A pause in task deletion was interrupted", e);
             }
@@ -81,7 +81,9 @@ public class DeletePublisher implements Runnable
                         .collect(Collectors.toList());
 
                 completedTasks.forEach(deleteMessages::remove);
-                visibilityMonitor.unwatch(completedTasks.stream().map(DeleteMessage::getSqsTaskInformation).toList());
+                visibilityMonitor.unwatch(completedTasks.stream()
+                        .map(DeleteMessage::getSqsTaskInformation)
+                        .toList());
 
                 final var batches = Iterables.partition(completedTasks, MAX_MESSAGE_BATCH_SIZE);
                 final var failures = new ArrayList<DeletionError>();
@@ -93,15 +95,10 @@ public class DeletePublisher implements Runnable
                 LOG.info("Deleted {} message(s) from queue {}", deletedCount, queueUrl);
 
                 if (!failures.isEmpty()) {
-                    failures.forEach(error -> {
-                        error.deleteMessage().incrementFailedDeleteCount();
-                        LOG.info(error.toString());
+                    failures.forEach(failure -> {
+                        failure.deleteMessage().incrementFailedDeleteCount();
+                        LOG.info(failure.toString());
                     });
-                    // DDD should we be re-queueing failed deletes
-                    //  whats the limit, whet then.
-                    deleteMessages.addAll(failures.stream()
-                            .map(DeletionError::deleteMessage)
-                            .collect(Collectors.toList()));
                 }
             }
         }

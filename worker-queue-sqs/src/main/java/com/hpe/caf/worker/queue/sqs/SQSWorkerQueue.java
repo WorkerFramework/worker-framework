@@ -95,7 +95,7 @@ public final class SQSWorkerQueue implements ManagedWorkerQueue
             );
 
             // DDD not creating dlq for this
-            SQSUtil.createQueue(sqsClient, queueCfg.getRejectedQueue(), queueCfg);
+            final var rejectQueueInfo = SQSUtil.createQueue(sqsClient, queueCfg.getRejectedQueue(), queueCfg);
 
             visibilityMonitor = new VisibilityMonitor(
                     sqsClient,
@@ -127,7 +127,7 @@ public final class SQSWorkerQueue implements ManagedWorkerQueue
 
             deletePublisher = new DeletePublisher(sqsClient, visibilityMonitor);
 
-            workerPublisher = new WorkerPublisher(sqsClient, queueCfg);
+            workerPublisher = new WorkerPublisher(sqsClient, queueCfg, rejectQueueInfo);
 
             workerPublisherThread = new Thread(workerPublisher);
             deleteMessageThread = new Thread(deletePublisher);
