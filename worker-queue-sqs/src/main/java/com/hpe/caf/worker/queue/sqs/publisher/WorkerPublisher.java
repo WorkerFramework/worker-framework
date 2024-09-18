@@ -16,12 +16,11 @@
 package com.hpe.caf.worker.queue.sqs.publisher;
 
 import com.google.common.collect.Iterables;
-import com.hpe.caf.worker.queue.sqs.QueueInfo;
 import com.hpe.caf.worker.queue.sqs.config.SQSWorkerQueueConfiguration;
 import com.hpe.caf.worker.queue.sqs.publisher.error.PublishError;
 import com.hpe.caf.worker.queue.sqs.publisher.message.WorkerMessage;
 import com.hpe.caf.worker.queue.sqs.publisher.response.PublishBatchResponse;
-import com.hpe.caf.worker.queue.sqs.util.SQSUtil;
+import com.hpe.caf.worker.queue.sqs.visibility.VisibilityMonitor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import software.amazon.awssdk.services.sqs.SqsClient;
@@ -49,19 +48,19 @@ public class WorkerPublisher implements Runnable
 
     private final SqsClient sqsClient;
     private final SQSWorkerQueueConfiguration queueCfg;
+    private final VisibilityMonitor visibilityMonitor;
     private final Map<String, List<WorkerMessage>> publishCollections;
     private final AtomicBoolean running = new AtomicBoolean(true);
-    private final QueueInfo rejectQueueInfo;
 
     public WorkerPublisher(
             final SqsClient sqsClient,
             final SQSWorkerQueueConfiguration queueCfg,
-            final QueueInfo rejectQueueInfo)
+            final VisibilityMonitor visibilityMonitor)
     {
         this.sqsClient = sqsClient;
         this.queueCfg = queueCfg;
+        this.visibilityMonitor = visibilityMonitor;
         this.publishCollections = new HashMap<>();
-        this.rejectQueueInfo = rejectQueueInfo;
     }
 
     @Override
@@ -86,14 +85,18 @@ public class WorkerPublisher implements Runnable
         for(final var entry : publishCollections.entrySet()) {
             final var publishList = entry.getValue();
             final var queueUrl = entry.getKey();
-            List<PublishError> publishErrors = new ArrayList<>();
             synchronized (publishList) {
                 if (!publishList.isEmpty()) {
-                    publishErrors.addAll(sendWorkerMessages(queueUrl, publishList));
+                    final var publishErrors = sendWorkerMessages(queueUrl, publishList);
                     publishList.clear();
+                    if (!publishErrors.isEmpty()) {
+                        final var taskInfos = publishErrors.stream()
+                                .map(pe -> pe.workerMessage().getSqsTaskInformation())
+                                .toList();
+                        visibilityMonitor.unwatch(taskInfos);
+                    }
                 }
             }
-            handleFailures(publishErrors);
         }
     }
 
@@ -161,29 +164,6 @@ public class WorkerPublisher implements Runnable
     public void shutdown()
     {
         running.set(false);
-    }
-
-    private void handleFailures(final List<PublishError> publishErrors)
-    {
-        if (!publishErrors.isEmpty()) {
-            publishErrors.forEach(error -> {
-                error.workerMessage().incrementFailedPublishCount();
-                LOG.info(error.toString());
-            });
-
-            final var failedWorkerMessages = publishErrors.stream()
-                    .map(pe -> {
-                        pe.workerMessage().getHeaders().put(
-                                SQSUtil.SQS_HEADER_CAF_WORKER_REJECTED,
-                                SQSUtil.REJECTED_REASON_TASKMESSAGE
-                        );
-                        return pe.workerMessage();
-                    }).collect(Collectors.toList());
-            final var rejectErrors = sendWorkerMessages(rejectQueueInfo.url(), failedWorkerMessages);
-            rejectErrors.forEach(error -> {
-                LOG.info(error.toString());
-            });
-        }
     }
 
     private static Map<String, MessageAttributeValue> createAttributesFromMessageHeaders(final Map<String, Object> headers)

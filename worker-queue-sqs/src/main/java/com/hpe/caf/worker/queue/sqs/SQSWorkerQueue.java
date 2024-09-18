@@ -47,7 +47,7 @@ public final class SQSWorkerQueue implements ManagedWorkerQueue
 
     private Thread consumerThread;
     private Thread visibilityMonitorThread;
-    private Thread deleteMessageThread;
+    private Thread deletePublisherThread;
     private Thread workerPublisherThread;
 
     private VisibilityMonitor visibilityMonitor;
@@ -87,7 +87,7 @@ public final class SQSWorkerQueue implements ManagedWorkerQueue
             final var deadLetterQueueInfo = queuePair.deadLetterQueue();
 
             final var retryQueueInfo = createDeadLetteredQueuePair(queueCfg.getRetryQueue()).queue();
-            final var rejectQueueInfo = createDeadLetteredQueuePair(queueCfg.getRejectedQueue()).queue();
+            createDeadLetteredQueuePair(queueCfg.getRejectedQueue()).queue();
 
             visibilityMonitor = new VisibilityMonitor(
                     sqsClient,
@@ -107,15 +107,15 @@ public final class SQSWorkerQueue implements ManagedWorkerQueue
 
             deletePublisher = new DeletePublisher(sqsClient, visibilityMonitor);
 
-            workerPublisher = new WorkerPublisher(sqsClient, queueCfg, rejectQueueInfo);
+            workerPublisher = new WorkerPublisher(sqsClient, queueCfg, visibilityMonitor);
 
             workerPublisherThread = new Thread(workerPublisher);
-            deleteMessageThread = new Thread(deletePublisher);
+            deletePublisherThread = new Thread(deletePublisher);
             visibilityMonitorThread = new Thread(visibilityMonitor);
             consumerThread = new Thread(consumer);
 
             workerPublisherThread.start();
-            deleteMessageThread.start();
+            deletePublisherThread.start();
             visibilityMonitorThread.start();
             consumerThread.start();
         } catch (final Exception e) {
@@ -143,6 +143,9 @@ public final class SQSWorkerQueue implements ManagedWorkerQueue
             workerPublisher.publish(new WorkerMessage(queueInfo, taskMessage, headers, sqsTaskInformation));
             LOG.debug("Queued for publishing {}", sqsTaskInformation.getReceiptHandle());
             sqsTaskInformation.incrementResponseCount(isLastMessage);
+            if (sqsTaskInformation.processingComplete()) {
+                deletePublisher.publish(new DeleteMessage(sqsTaskInformation)); // enables batching
+            }
         } catch (final Exception e) {
             metricsReporter.incrementErrors();
             LOG.error("Error publishing task message {} {}", sqsTaskInformation, e.getMessage());
@@ -165,7 +168,9 @@ public final class SQSWorkerQueue implements ManagedWorkerQueue
     {
         var sqsTaskInformation = (SQSTaskInformation) taskInformation;
         sqsTaskInformation.incrementAcknowledgementCount();
-        deletePublisher.publish(new DeleteMessage(sqsTaskInformation)); // enables batching
+        if (sqsTaskInformation.processingComplete()) {
+            deletePublisher.publish(new DeleteMessage(sqsTaskInformation)); // enables batching
+        }
     }
 
     @Override
@@ -177,9 +182,9 @@ public final class SQSWorkerQueue implements ManagedWorkerQueue
         } else if (isNotRunning(visibilityMonitorThread))  {
             return new HealthResult(HealthStatus.UNHEALTHY, "SQS visibility monitor thread state:" +
                     getState(visibilityMonitorThread));
-        } else if (isNotRunning(deleteMessageThread))  {
+        } else if (isNotRunning(deletePublisherThread))  {
             return new HealthResult(HealthStatus.UNHEALTHY, "SQS delete message thread state:" +
-                    getState(deleteMessageThread));
+                    getState(deletePublisherThread));
         } else if (isNotRunning(workerPublisherThread))  {
             return new HealthResult(HealthStatus.UNHEALTHY, "SQS worker publisher thread state:" +
                     getState(workerPublisherThread));

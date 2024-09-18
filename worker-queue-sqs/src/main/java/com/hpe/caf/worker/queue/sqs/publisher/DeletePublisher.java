@@ -76,16 +76,12 @@ public class DeletePublisher implements Runnable
             final var queueUrl = entry.getKey();
             synchronized (deleteMessages) {
                 int deletedCount = 0;
-                final var completedTasks = deleteMessages.stream()
-                        .filter(dt -> dt.getSqsTaskInformation().processingComplete())
-                        .collect(Collectors.toList());
 
-                completedTasks.forEach(deleteMessages::remove);
-                visibilityMonitor.unwatch(completedTasks.stream()
+                visibilityMonitor.unwatch(deleteMessages.stream()
                         .map(DeleteMessage::getSqsTaskInformation)
                         .toList());
 
-                final var batches = Iterables.partition(completedTasks, MAX_MESSAGE_BATCH_SIZE);
+                final var batches = Iterables.partition(deleteMessages, MAX_MESSAGE_BATCH_SIZE);
                 final var failures = new ArrayList<DeletionError>();
                 for(final var batch : batches) {
                     final var response = sendBatch(queueUrl, batch);
@@ -100,6 +96,7 @@ public class DeletePublisher implements Runnable
                         LOG.info(failure.toString());
                     });
                 }
+                deleteMessages.clear();
             }
         }
     }

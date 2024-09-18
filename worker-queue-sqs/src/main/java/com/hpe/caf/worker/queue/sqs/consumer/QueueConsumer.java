@@ -96,7 +96,7 @@ public final class QueueConsumer implements Runnable
         final var deadLetterQueueRequest = ReceiveMessageRequest.builder()
                 .queueUrl(deadLetterQueueInfo.url())
                 .maxNumberOfMessages(batchSize)
-                .waitTimeSeconds(queueCfg.getLongPollInterval())
+                .waitTimeSeconds(0) // should this have a different wait, given low expectation of messages
                 .messageSystemAttributeNames(MessageSystemAttributeName.ALL)
                 .messageAttributeNames(SQSUtil.ALL_ATTRIBUTES)
                 .build();
