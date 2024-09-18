@@ -89,7 +89,6 @@ public final class SQSWorkerQueue implements ManagedWorkerQueue
             final var deadLetterQueueInfo = queuePair.deadLetterQueue();
 
             final var retryQueueInfo = createDeadLetteredQueuePair(queueCfg.getRetryQueue()).queue();
-
             final var rejectQueueInfo = createDeadLetteredQueuePair(queueCfg.getRejectedQueue()).queue();
 
             visibilityMonitor = new VisibilityMonitor(
