@@ -38,7 +38,6 @@ import java.util.Collection;
 import java.util.List;
 import java.util.stream.Collectors;
 
-// DDD this is just a poc should this be extracted
 public final class MessageDistributor
 {
     private static final int SQS_MAX_BATCH_SIZE = 10;

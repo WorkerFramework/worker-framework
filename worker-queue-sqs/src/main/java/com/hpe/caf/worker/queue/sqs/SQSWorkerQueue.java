@@ -88,14 +88,9 @@ public final class SQSWorkerQueue implements ManagedWorkerQueue
             final var inputQueueInfo = queuePair.queue();
             final var deadLetterQueueInfo = queuePair.deadLetterQueue();
 
-            // DDD not creating dlq for this
-            final var retryQueueInfo = declaredQueues.computeIfAbsent(
-                    queueCfg.getRetryQueue(),
-                    (q) -> SQSUtil.createQueue(sqsClient, q, queueCfg)
-            );
+            final var retryQueueInfo = createDeadLetteredQueuePair(queueCfg.getRetryQueue()).queue();
 
-            // DDD not creating dlq for this
-            final var rejectQueueInfo = SQSUtil.createQueue(sqsClient, queueCfg.getRejectedQueue(), queueCfg);
+            final var rejectQueueInfo = createDeadLetteredQueuePair(queueCfg.getRejectedQueue()).queue();
 
             visibilityMonitor = new VisibilityMonitor(
                     sqsClient,
