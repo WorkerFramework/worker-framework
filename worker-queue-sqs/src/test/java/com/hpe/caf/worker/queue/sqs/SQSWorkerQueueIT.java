@@ -33,7 +33,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
 
-import static com.hpe.caf.worker.queue.sqs.util.WorkerQueueWrapper.deleteQueue;
 import static com.hpe.caf.worker.queue.sqs.util.WorkerQueueWrapper.sendMessages;
 import static com.hpe.caf.worker.queue.sqs.util.WorkerQueueWrapper.sendSingleMessagesWithDelays;
 import static org.testng.Assert.assertNotNull;
@@ -98,7 +97,6 @@ public class SQSWorkerQueueIT extends TestContainer
                     0, metricsReporter.getMessagesRejected());
         } finally {
             workerWrapper.sqsWorkerQueue.shutdown();
-            deleteQueue(workerWrapper.sqsClient, workerWrapper.inputQueueUrl);
         }
     }
 
@@ -156,7 +154,6 @@ public class SQSWorkerQueueIT extends TestContainer
                     0, metricsReporter.getMessagesRejected());
         } finally {
             workerWrapper.sqsWorkerQueue.shutdown();
-            deleteQueue(workerWrapper.sqsClient, workerWrapper.inputQueueUrl);
         }
     }
 
@@ -174,7 +171,6 @@ public class SQSWorkerQueueIT extends TestContainer
             Assert.fail("The input queue was not created:" + e.getMessage());
         } finally {
             workerWrapper.sqsWorkerQueue.shutdown();
-            deleteQueue(workerWrapper.sqsClient, workerWrapper.inputQueueUrl);
         }
     }
 
@@ -188,7 +184,6 @@ public class SQSWorkerQueueIT extends TestContainer
                 HealthResult.RESULT_HEALTHY.getStatus().name(),
                 result.getStatus().name());
         workerWrapper.sqsWorkerQueue.shutdown();
-        deleteQueue(workerWrapper.sqsClient, workerWrapper.inputQueueUrl);
     }
 
     @Test
@@ -217,7 +212,6 @@ public class SQSWorkerQueueIT extends TestContainer
             assertEquals("Expected:" + inputQueue, inputQueue, msg.headers().get(SQSUtil.SOURCE_QUEUE).toString());
         } finally {
             workerWrapper.sqsWorkerQueue.shutdown();
-            deleteQueue(workerWrapper.sqsClient, workerWrapper.inputQueueUrl);
         }
     }
 
@@ -261,7 +255,6 @@ public class SQSWorkerQueueIT extends TestContainer
                     0, metricsReporter.getMessagesRejected());
         } finally {
             workerWrapper.sqsWorkerQueue.shutdown();
-            deleteQueue(workerWrapper.sqsClient, workerWrapper.inputQueueUrl);
         }
     }
 
@@ -299,8 +292,6 @@ public class SQSWorkerQueueIT extends TestContainer
                     0, metricsReporter.getMessagesRejected());
         } finally {
             workerWrapper.sqsWorkerQueue.shutdown();
-            deleteQueue(workerWrapper.sqsClient, workerWrapper.inputQueueUrl);
-            deleteQueue(workerWrapper.sqsClient, rejectQueueUrl);
         }
     }
 
@@ -337,8 +328,6 @@ public class SQSWorkerQueueIT extends TestContainer
                     1, metricsReporter.getMessagesRejected());
         } finally {
             workerWrapper.sqsWorkerQueue.shutdown();
-            deleteQueue(workerWrapper.sqsClient, workerWrapper.inputQueueUrl);
-            deleteQueue(workerWrapper.sqsClient, rejectQueueUrl);
         }
     }
 
@@ -400,7 +389,6 @@ public class SQSWorkerQueueIT extends TestContainer
             assertNotNull(oneMoreMessage, "A Message should have been received.");
         } finally {
             workerWrapper.sqsWorkerQueue.shutdown();
-            deleteQueue(workerWrapper.sqsClient, workerWrapper.inputQueueUrl);
         }
     }
 }

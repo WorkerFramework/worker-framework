@@ -280,24 +280,4 @@ public class WorkerQueueWrapper
                 .build();
         sqsClient.deleteMessage(sendRequest);
     }
-
-    public static void deleteQueue(
-            final SqsClient sqsClient,
-            final String queueUrl)
-    {
-
-        final var deleteQueueRequest = DeleteQueueRequest.builder()
-                .queueUrl(queueUrl)
-                .build();
-        sqsClient.deleteQueue(deleteQueueRequest);
-
-        final var deleteDeadLetterQueueRequest = DeleteQueueRequest.builder()
-                .queueUrl(queueUrl + SQSUtil.DEAD_LETTER_QUEUE_SUFFIX)
-                .build();
-        try {
-            sqsClient.deleteQueue(deleteDeadLetterQueueRequest);
-        } catch (final QueueDoesNotExistException e) {
-            // Ignoring this
-        }
-    }
 }

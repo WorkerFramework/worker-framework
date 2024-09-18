@@ -91,7 +91,7 @@ public class WorkerPublisher implements Runnable
                     publishList.clear();
                     if (!publishErrors.isEmpty()) {
                         final var taskInfos = publishErrors.stream()
-                                .map(pe -> pe.workerMessage().getSqsTaskInformation())
+                                .map(pe -> pe.workerMessage().getInboundTaskInfo())
                                 .toList();
                         visibilityMonitor.unwatch(taskInfos);
                     }

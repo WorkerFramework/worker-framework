@@ -32,7 +32,6 @@ import java.util.List;
 import java.util.concurrent.TimeUnit;
 
 import static com.hpe.caf.worker.queue.sqs.util.WorkerQueueWrapper.deleteMessage;
-import static com.hpe.caf.worker.queue.sqs.util.WorkerQueueWrapper.deleteQueue;
 import static com.hpe.caf.worker.queue.sqs.util.WorkerQueueWrapper.sendMessages;
 import static com.hpe.caf.worker.queue.sqs.util.WorkerQueueWrapper.sendSingleMessagesWithDelays;
 import static org.testng.Assert.assertEquals;
@@ -87,7 +86,6 @@ public class VisibilityIT extends TestContainer
                     0, metricsReporter.getMessagesRejected());
         } finally {
             workerWrapper.sqsWorkerQueue.shutdown();
-            deleteQueue(workerWrapper.sqsClient, workerWrapper.inputQueueUrl);
         }
     }
 
@@ -137,7 +135,6 @@ public class VisibilityIT extends TestContainer
             }
         } finally {
             workerWrapper.sqsWorkerQueue.shutdown();
-            deleteQueue(workerWrapper.sqsClient, workerWrapper.inputQueueUrl);
         }
     }
 
@@ -177,7 +174,6 @@ public class VisibilityIT extends TestContainer
             }
         } finally {
             workerWrapper.sqsWorkerQueue.shutdown();
-            deleteQueue(workerWrapper.sqsClient, workerWrapper.inputQueueUrl);
         }
     }
 
@@ -227,7 +223,6 @@ public class VisibilityIT extends TestContainer
             }
         } finally {
             workerWrapper.sqsWorkerQueue.shutdown();
-            deleteQueue(workerWrapper.sqsClient, workerWrapper.inputQueueUrl);
         }
     }
 }

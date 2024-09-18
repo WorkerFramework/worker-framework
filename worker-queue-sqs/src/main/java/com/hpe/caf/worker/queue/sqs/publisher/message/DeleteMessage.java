@@ -22,27 +22,15 @@ import java.util.Objects;
 public final class DeleteMessage
 {
     private final SQSTaskInformation sqsTaskInformation;
-    private int failedDeleteCount;
 
     public DeleteMessage(final SQSTaskInformation sqsTaskInformation)
     {
         this.sqsTaskInformation = sqsTaskInformation;
-        failedDeleteCount = 0;
     }
 
     public SQSTaskInformation getSqsTaskInformation()
     {
         return sqsTaskInformation;
-    }
-
-    public int getFailedDeleteCount()
-    {
-        return failedDeleteCount;
-    }
-
-    public void incrementFailedDeleteCount()
-    {
-        failedDeleteCount++;
     }
 
     @Override
@@ -64,7 +52,6 @@ public final class DeleteMessage
     public String toString()
     {
         return "DeleteMessage[" +
-                "failedDeleteCount=" + failedDeleteCount + ", " +
                 "sqsTaskInformation=" + sqsTaskInformation + ']';
     }
 

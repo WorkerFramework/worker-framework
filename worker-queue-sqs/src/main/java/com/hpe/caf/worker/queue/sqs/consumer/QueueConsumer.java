@@ -101,20 +101,24 @@ public final class QueueConsumer implements Runnable
                 .messageAttributeNames(SQSUtil.ALL_ATTRIBUTES)
                 .build();
 
-        while (running.get()) {
-            if (receiveMessages.get() &&
-                visibilityMonitor.hasInflightCapacity(inputQueueInfo, queueCfg, batchSize) &&
-                visibilityMonitor.hasInflightCapacity(deadLetterQueueInfo, queueCfg, batchSize)
-            ) {
-                receiveMessages(inputQueueRequest, false);
-                receiveMessages(deadLetterQueueRequest, true);
-            } else {
-                try {
-                    Thread.sleep(queueCfg.getLongPollInterval() * 1000);
-                } catch (final InterruptedException e) {
-                    LOG.error("A pause in task deletion was interrupted", e);
+        try {
+            while (running.get()) {
+                if (receiveMessages.get() &&
+                    visibilityMonitor.hasInflightCapacity(inputQueueInfo, queueCfg, batchSize) &&
+                    visibilityMonitor.hasInflightCapacity(deadLetterQueueInfo, queueCfg, batchSize)
+                ) {
+                    receiveMessages(inputQueueRequest, false);
+                    receiveMessages(deadLetterQueueRequest, true);
+                } else {
+                    try {
+                        Thread.sleep(queueCfg.getLongPollInterval() * 1000);
+                    } catch (final InterruptedException e) {
+                        LOG.error("A pause in task deletion was interrupted", e);
+                    }
                 }
             }
+        } catch (final Exception e) {
+            LOG.error("A pause in task deletion was interrupted", e);
         }
     }
 

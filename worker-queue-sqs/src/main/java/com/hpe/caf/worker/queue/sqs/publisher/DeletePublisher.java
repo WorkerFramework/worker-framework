@@ -92,7 +92,6 @@ public class DeletePublisher implements Runnable
 
                 if (!failures.isEmpty()) {
                     failures.forEach(failure -> {
-                        failure.deleteMessage().incrementFailedDeleteCount();
                         LOG.info(failure.toString());
                     });
                 }

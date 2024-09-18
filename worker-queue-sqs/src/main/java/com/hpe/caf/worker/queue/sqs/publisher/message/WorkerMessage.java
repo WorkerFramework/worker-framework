@@ -26,20 +26,18 @@ public final class WorkerMessage
     private final QueueInfo queueInfo;
     private final byte[] taskMessage;
     private final Map<String, Object> headers;
-    private final SQSTaskInformation sqsTaskInformation;
-    private int failedPublishCount;
+    private final SQSTaskInformation inboundTaskInfo;
 
     public WorkerMessage(
             final QueueInfo queueInfo,
             final byte[] taskMessage,
             final Map<String, Object> headers,
-            final SQSTaskInformation sqsTaskInformation)
+            final SQSTaskInformation inboundTaskInfo)
     {
         this.queueInfo = queueInfo;
         this.taskMessage = taskMessage;
         this.headers = headers;
-        this.sqsTaskInformation = sqsTaskInformation;
-        failedPublishCount = 0;
+        this.inboundTaskInfo = inboundTaskInfo;
     }
 
 
@@ -58,19 +56,9 @@ public final class WorkerMessage
         return headers;
     }
 
-    public int getFailedPublishCount()
+    public SQSTaskInformation getInboundTaskInfo()
     {
-        return failedPublishCount;
-    }
-
-    public void incrementFailedPublishCount()
-    {
-        failedPublishCount++;
-    }
-
-    public SQSTaskInformation getSqsTaskInformation()
-    {
-        return sqsTaskInformation;
+        return inboundTaskInfo;
     }
 
     @Override
@@ -96,8 +84,7 @@ public final class WorkerMessage
         return "WorkerMessage[" +
                 "queueInfo=" + queueInfo + ", " +
                 "taskMessage=" + taskMessage + ", " +
-                "failedPublishCount=" + failedPublishCount + ", " +
-                "sqsTaskInformation=" + sqsTaskInformation + ", " +
+                "inboundTaskInfo=" + inboundTaskInfo + ", " +
                 "headers=" + headers + ']';
     }
 
