@@ -85,14 +85,15 @@ public class WorkerQueueWrapper
             workerQueueConfiguration.setSqsConfiguration(sqsConfiguration);
             workerQueueConfiguration.setInputQueue(inputQueue);
             workerQueueConfiguration.setRetryQueue(retryQueue);
-            workerQueueConfiguration.setPausedQueue("paused-queue");
-            workerQueueConfiguration.setRejectedQueue("worker-rejected");
+            workerQueueConfiguration.setPausedQueue("paused-queue-" + inputQueue);
+            workerQueueConfiguration.setRejectedQueue("worker-rejected-" + inputQueue);
             workerQueueConfiguration.setVisibilityTimeout(visibilityTimeout);
             workerQueueConfiguration.setLongPollInterval(longPollInterval);
             workerQueueConfiguration.setMaxNumberOfMessages(maxNumberOfMessages);
             workerQueueConfiguration.setMessageRetentionPeriod(messageRetentionPeriod);
             workerQueueConfiguration.setMaxDeliveries(maxDeliveries);
             workerQueueConfiguration.setMaxInflightMessages(maxInflightMessages);
+            workerQueueConfiguration.setPublisherWaitTimeout(0);
 
             sqsWorkerQueue = new SQSWorkerQueue(workerQueueConfiguration, 0); // intentionally setting maxtasks to zero
             sqsWorkerQueue.start(callback);

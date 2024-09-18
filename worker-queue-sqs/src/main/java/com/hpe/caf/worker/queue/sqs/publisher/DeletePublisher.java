@@ -16,8 +16,9 @@
 package com.hpe.caf.worker.queue.sqs.publisher;
 
 import com.google.common.collect.Iterables;
-import com.hpe.caf.worker.queue.sqs.SQSTaskInformation;
 import com.hpe.caf.worker.queue.sqs.publisher.error.DeletionError;
+import com.hpe.caf.worker.queue.sqs.publisher.message.DeleteMessage;
+import com.hpe.caf.worker.queue.sqs.publisher.response.DeleteBatchResponse;
 import com.hpe.caf.worker.queue.sqs.visibility.VisibilityMonitor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -28,10 +29,8 @@ import software.amazon.awssdk.services.sqs.model.DeleteMessageBatchRequestEntry;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.stream.Collectors;
 
@@ -45,7 +44,7 @@ public class DeletePublisher implements Runnable
     private static final Logger LOG = LoggerFactory.getLogger(DeletePublisher.class);
 
     private final SqsClient sqsClient;
-    private final Map<String, Set<SQSTaskInformation>> deleteCollections;
+    private final Map<String, List<DeleteMessage>> deleteCollections;
     protected final AtomicBoolean running = new AtomicBoolean(true);
     protected final VisibilityMonitor visibilityMonitor;
 
@@ -60,7 +59,7 @@ public class DeletePublisher implements Runnable
     public void run()
     {
         while (running.get()) {
-            processTasks();
+            send();
             try {
                 // Serves to allow some degree of batching + saving CPU
                 Thread.sleep(5000); // DDD long poll interval??
@@ -70,55 +69,59 @@ public class DeletePublisher implements Runnable
         }
     }
 
-    private void processTasks()
+    private void send()
     {
         for(final var entry : deleteCollections.entrySet()) {
-            final var tasks = entry.getValue();
-            synchronized (tasks) {
-                final var completedTasks = tasks.stream()
-                        .filter(SQSTaskInformation::processingComplete)
+            final var deleteMessages = entry.getValue();
+            final var queueUrl = entry.getKey();
+            synchronized (deleteMessages) {
+                int deletedCount = 0;
+                final var completedTasks = deleteMessages.stream()
+                        .filter(dt -> dt.getSqsTaskInformation().processingComplete())
                         .collect(Collectors.toList());
-                completedTasks.forEach(tasks::remove);
-                visibilityMonitor.unwatch(completedTasks);
-                final var errors = deleteTasks(entry.getKey(), completedTasks);
 
-                if (!errors.isEmpty()) {
-                    errors.forEach(error -> LOG.info(error.toString()));
+                completedTasks.forEach(deleteMessages::remove);
+                visibilityMonitor.unwatch(completedTasks.stream().map(DeleteMessage::getSqsTaskInformation).toList());
+
+                final var batches = Iterables.partition(completedTasks, MAX_MESSAGE_BATCH_SIZE);
+                final var failures = new ArrayList<DeletionError>();
+                for(final var batch : batches) {
+                    final var response = sendBatch(queueUrl, batch);
+                    deletedCount += response.successes();
+                    failures.addAll(response.errors());
+                }
+                LOG.info("Deleted {} message(s) from queue {}", deletedCount, queueUrl);
+
+                if (!failures.isEmpty()) {
+                    failures.forEach(error -> {
+                        error.deleteMessage().incrementFailedDeleteCount();
+                        LOG.info(error.toString());
+                    });
+                    // DDD should we be re-queueing failed deletes
+                    //  whats the limit, whet then.
+                    deleteMessages.addAll(failures.stream()
+                            .map(DeletionError::deleteMessage)
+                            .collect(Collectors.toList()));
                 }
             }
         }
     }
 
-    private List<DeletionError> deleteTasks(
+    private DeleteBatchResponse sendBatch(
             final String queueUrl,
-            final List<SQSTaskInformation> completedTasks
-    )
-    {
-        final var failures = new ArrayList<DeletionError>();
-        final var batches = Iterables.partition(completedTasks, MAX_MESSAGE_BATCH_SIZE);
-        for(final var batch : batches) {
-            final var failed = sendBatch(queueUrl, batch);
-            failures.addAll(failed);
-        }
-
-        return failures;
-    }
-
-    private List<DeletionError> sendBatch(
-            final String queueUrl,
-            final List<SQSTaskInformation> tasks
+            final List<DeleteMessage> deleteMessages
     )
     {
         // DDD api calls here
-        final Map<String, SQSTaskInformation> taskMap = new HashMap<>();
+        final Map<String, DeleteMessage> deleteMessageMap = new HashMap<>();
         final var entries = new ArrayList<DeleteMessageBatchRequestEntry>();
         int id = 1;
-        for(final SQSTaskInformation task : tasks) {
+        for(final DeleteMessage message : deleteMessages) {
             final var idStr = String.valueOf(id++);
-            taskMap.put(idStr, task);
+            deleteMessageMap.put(idStr, message);
             entries.add(DeleteMessageBatchRequestEntry.builder()
                     .id(idStr)
-                    .receiptHandle(task.getReceiptHandle())
+                    .receiptHandle(message.getSqsTaskInformation().getReceiptHandle())
                     .build());
         }
         final var request = DeleteMessageBatchRequest.builder()
@@ -127,24 +130,25 @@ public class DeletePublisher implements Runnable
                 .build();
 
         final var response = sqsClient.deleteMessageBatch(request);
+        final var succeeded = response.successful();
+        succeeded.forEach(deleted-> LOG.debug("Deleted message {}", deleteMessageMap.get(deleted.id())));
 
-        response.successful().forEach(deleted-> LOG.debug("Deleted message {}", taskMap.get(deleted.id())));
-
-        return response
-                .failed()
-                .stream()
-                .map(f -> new DeletionError(f.message(), taskMap.get(f.id())))
+        final var failed = response.failed();
+        final var errors = failed.stream()
+                .map(f -> new DeletionError(f.message(), deleteMessageMap.get(f.id())))
                 .collect(Collectors.toList());
+        return new DeleteBatchResponse(succeeded.size(), errors);
     }
 
-    public void watch(final SQSTaskInformation taskInfo)
+    public void publish(final DeleteMessage deleteMessage)
     {
+        final var taskInfo = deleteMessage.getSqsTaskInformation();
         final var queueInfo = taskInfo.getVisibilityTimeout().getQueueInfo();
         final var deleteTasks = deleteCollections.computeIfAbsent(
                 queueInfo.url(),
-                (q) -> Collections.synchronizedSet(new HashSet<>())
+                (q) -> Collections.synchronizedList(new ArrayList<>())
         );
-        deleteTasks.add(taskInfo); // Tasks are unique by receipt handle.
+        deleteTasks.add(deleteMessage); // Tasks are unique by receipt handle.
         LOG.debug("Awaiting processing complete for {}", taskInfo.getReceiptHandle());
     }
 

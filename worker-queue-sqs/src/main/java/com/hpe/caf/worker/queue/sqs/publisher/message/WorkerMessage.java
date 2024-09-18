@@ -13,9 +13,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.hpe.caf.worker.queue.sqs.publisher;
+package com.hpe.caf.worker.queue.sqs.publisher.message;
 
 import com.hpe.caf.worker.queue.sqs.QueueInfo;
+import com.hpe.caf.worker.queue.sqs.SQSTaskInformation;
 
 import java.util.Map;
 import java.util.Objects;
@@ -25,13 +26,19 @@ public final class WorkerMessage
     private final QueueInfo queueInfo;
     private final byte[] taskMessage;
     private final Map<String, Object> headers;
+    private final SQSTaskInformation sqsTaskInformation;
     private int failedPublishCount;
 
-    public WorkerMessage(QueueInfo queueInfo, byte[] taskMessage, Map<String, Object> headers)
+    public WorkerMessage(
+            final QueueInfo queueInfo,
+            final byte[] taskMessage,
+            final Map<String, Object> headers,
+            final SQSTaskInformation sqsTaskInformation)
     {
         this.queueInfo = queueInfo;
         this.taskMessage = taskMessage;
         this.headers = headers;
+        this.sqsTaskInformation = sqsTaskInformation;
         failedPublishCount = 0;
     }
 
@@ -61,6 +68,11 @@ public final class WorkerMessage
         failedPublishCount++;
     }
 
+    public SQSTaskInformation getSqsTaskInformation()
+    {
+        return sqsTaskInformation;
+    }
+
     @Override
     public boolean equals(Object obj)
     {
@@ -85,6 +97,7 @@ public final class WorkerMessage
                 "queueInfo=" + queueInfo + ", " +
                 "taskMessage=" + taskMessage + ", " +
                 "failedPublishCount=" + failedPublishCount + ", " +
+                "sqsTaskInformation=" + sqsTaskInformation + ", " +
                 "headers=" + headers + ']';
     }
 

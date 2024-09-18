@@ -27,8 +27,9 @@ import com.hpe.caf.worker.queue.sqs.consumer.DeadLetterQueueConsumer;
 import com.hpe.caf.worker.queue.sqs.consumer.InputQueueConsumer;
 import com.hpe.caf.worker.queue.sqs.metrics.MetricsReporter;
 import com.hpe.caf.worker.queue.sqs.publisher.DeletePublisher;
-import com.hpe.caf.worker.queue.sqs.publisher.WorkerMessage;
 import com.hpe.caf.worker.queue.sqs.publisher.WorkerPublisher;
+import com.hpe.caf.worker.queue.sqs.publisher.message.DeleteMessage;
+import com.hpe.caf.worker.queue.sqs.publisher.message.WorkerMessage;
 import com.hpe.caf.worker.queue.sqs.util.DeadLetteredQueuePair;
 import com.hpe.caf.worker.queue.sqs.util.SQSUtil;
 import com.hpe.caf.worker.queue.sqs.visibility.VisibilityMonitor;
@@ -163,7 +164,7 @@ public final class SQSWorkerQueue implements ManagedWorkerQueue
         var sqsTaskInformation = (SQSTaskInformation) taskInformation;
         try {
             final var queueInfo = createDeadLetteredQueuePair(targetQueue).queue();
-            workerPublisher.publishMessage(new WorkerMessage(queueInfo, taskMessage, headers));
+            workerPublisher.publish(new WorkerMessage(queueInfo, taskMessage, headers, sqsTaskInformation));
             LOG.debug("Queued for publishing {}", sqsTaskInformation.getReceiptHandle());
             sqsTaskInformation.incrementResponseCount(isLastMessage);
         } catch (final Exception e) {
@@ -188,7 +189,7 @@ public final class SQSWorkerQueue implements ManagedWorkerQueue
     {
         var sqsTaskInformation = (SQSTaskInformation) taskInformation;
         sqsTaskInformation.incrementAcknowledgementCount();
-        deletePublisher.watch(sqsTaskInformation); // enables batching
+        deletePublisher.publish(new DeleteMessage(sqsTaskInformation)); // enables batching
     }
 
     @Override

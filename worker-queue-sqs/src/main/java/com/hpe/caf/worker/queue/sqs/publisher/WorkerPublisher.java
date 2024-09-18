@@ -18,6 +18,8 @@ package com.hpe.caf.worker.queue.sqs.publisher;
 import com.google.common.collect.Iterables;
 import com.hpe.caf.worker.queue.sqs.config.SQSWorkerQueueConfiguration;
 import com.hpe.caf.worker.queue.sqs.publisher.error.PublishError;
+import com.hpe.caf.worker.queue.sqs.publisher.message.WorkerMessage;
+import com.hpe.caf.worker.queue.sqs.publisher.response.PublishBatchResponse;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import software.amazon.awssdk.services.sqs.SqsClient;
@@ -60,7 +62,7 @@ public class WorkerPublisher implements Runnable
     {
         while (running.get()) {
             try {
-                publish();
+                send();
                 Thread.sleep(queueCfg.getPublisherWaitTimeout() * 1000);
             } catch (final InterruptedException e) {
                 LOG.error("A pause in task deletion was interrupted", e);
@@ -68,45 +70,42 @@ public class WorkerPublisher implements Runnable
         }
     }
 
-    private void publish() throws InterruptedException
+    /**
+     * Publishes messages for multiple destinations
+     * @throws InterruptedException
+     */
+    private void send() throws InterruptedException
     {
         for(final var entry : publishCollections.entrySet()) {
-            final var messages = entry.getValue();
+            final var publishList = entry.getValue();
             final var queueUrl = entry.getKey();
-            synchronized (messages) {
-                final var publishErrors = publishMessages(queueUrl, messages);
-                messages.clear();
-                if (!publishErrors.isEmpty()) {
-                    publishErrors.forEach(error -> {
-                        error.workerMessage().incrementFailedPublishCount();
-                        LOG.info(error.toString());
-                    });
+            synchronized (publishList) {
+                if (!publishList.isEmpty()) {
+                    int publishCount = 0;
+                    final var publishErrors = new ArrayList<PublishError>();
+                    final var batches = Iterables.partition(publishList, MAX_MESSAGE_BATCH_SIZE);
+                    for(final var batch : batches) {
+                        final var response = sendBatch(queueUrl, batch);
+                        publishErrors.addAll(response.errors());
+                        publishCount += response.successes();
+                    }
+                    LOG.info("Published {} message(s) to queue {}", publishCount, queueUrl);
+                    publishList.clear();
+                    if (!publishErrors.isEmpty()) {
+                        publishErrors.forEach(error -> {
+                            error.workerMessage().incrementFailedPublishCount();
+                            LOG.info(error.toString());
+                        });
+                        // DDD should we be re-queueing failed publishes
+                        // whats the limit, what then.
+                        publishList.addAll(publishErrors.stream().map(pe -> pe.workerMessage()).collect(Collectors.toList()));
+                    }
                 }
-                // DDD should we be re-queueing failed publishes.
-                messages.addAll(publishErrors.stream().map(pe -> pe.workerMessage()).collect(Collectors.toList()));
             }
         }
     }
 
-    private List<PublishError> publishMessages(
-            final String queueUrl,
-            final List<WorkerMessage> publishList
-    )
-    {
-        if (publishList.isEmpty()) {
-            return new ArrayList<>();
-        }
-        final var failures = new ArrayList<PublishError>();
-        final var batches = Iterables.partition(publishList, MAX_MESSAGE_BATCH_SIZE);
-        for(final var batch : batches) {
-            final var failed = sendBatch(queueUrl, batch);
-            failures.addAll(failed);
-        }
-
-        return failures;
-    }
-
-    private List<PublishError> sendBatch(
+    private PublishBatchResponse sendBatch(
             final String queueUrl,
             final List<WorkerMessage> messages
     )
@@ -135,12 +134,13 @@ public class WorkerPublisher implements Runnable
         LOG.debug("Sent {} message(s) to queue {}", succeeded.size(), queueUrl);
         final var failed = response.failed();
 
-        return failed.stream()
+        final var publishErrors = failed.stream()
                 .map(f -> new PublishError(f.message(), queueUrl, workerMessageMap.get(f.id())))
                 .collect(Collectors.toList());
+        return new PublishBatchResponse(succeeded.size(), publishErrors);
     }
 
-    public void publishMessage(final WorkerMessage workerMessage) throws InterruptedException
+    public void publish(final WorkerMessage workerMessage)
     {
         final var queueInfo = workerMessage.getQueueInfo();
         final var queueMessages = publishCollections.computeIfAbsent(

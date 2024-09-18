@@ -15,8 +15,9 @@
  */
 package com.hpe.caf.worker.queue.sqs.publisher.error;
 
-import com.hpe.caf.worker.queue.sqs.publisher.WorkerMessage;
+import com.hpe.caf.worker.queue.sqs.publisher.message.WorkerMessage;
 
+// We store the WorkerMessage so we hava a count of failed publish attempts.
 public record PublishError(String error, String queueName, WorkerMessage workerMessage)
 {
     @Override

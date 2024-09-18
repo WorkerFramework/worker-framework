@@ -13,19 +13,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.hpe.caf.worker.queue.sqs.publisher.error;
+package com.hpe.caf.worker.queue.sqs.publisher.response;
 
-import com.hpe.caf.worker.queue.sqs.publisher.message.DeleteMessage;
+import com.hpe.caf.worker.queue.sqs.publisher.error.PublishError;
 
-public record DeletionError(String error, DeleteMessage deleteMessage)
+import java.util.List;
+
+public record PublishBatchResponse(int successes, List<PublishError> errors)
 {
-    @Override
-    public String toString()
-    {
-        final var taskInfo = deleteMessage.getSqsTaskInformation();
-        return String.format("Failed deleting task from queue %s.\n%s: %s",
-                taskInfo.getQueueInfo().name(),
-                error,
-                taskInfo.getReceiptHandle());
-    }
 }
