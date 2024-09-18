@@ -110,7 +110,6 @@ public class WorkerPublisher implements Runnable
             final List<WorkerMessage> messages
     )
     {
-        // DDD api calls here
         final Map<String, WorkerMessage> workerMessageMap = new HashMap<>();
         final var entries = new ArrayList<SendMessageBatchRequestEntry>();
         int id = 1;

@@ -144,7 +144,6 @@ public class VisibilityMonitor implements Runnable
             final List<VisibilityTimeout> timeouts
     )
     {
-        // DDD api calls here
         final Map<String, VisibilityTimeout> timeoutMap = new HashMap<>();
         final var entries = new ArrayList<ChangeMessageVisibilityBatchRequestEntry>();
         int id = 1;

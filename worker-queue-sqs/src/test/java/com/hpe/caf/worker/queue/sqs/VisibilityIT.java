@@ -77,7 +77,6 @@ public class VisibilityIT extends TestContainer
             assertNull(redeliveredFromDLQ, "Should not have been redelivered from DLQ");
             assertNotNull(redelivered, "Should have been redelivered");
 
-            // DDD 1st & 2nd delivery?
             AssertJUnit.assertEquals("Metrics should have reported 2 messages",
                     2, metricsReporter.getMessagesReceived());
             AssertJUnit.assertEquals("Metrics should not have reported errors",

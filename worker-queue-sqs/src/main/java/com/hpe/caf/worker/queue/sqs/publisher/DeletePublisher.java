@@ -112,7 +112,6 @@ public class DeletePublisher implements Runnable
             final List<DeleteMessage> deleteMessages
     )
     {
-        // DDD api calls here
         final Map<String, DeleteMessage> deleteMessageMap = new HashMap<>();
         final var entries = new ArrayList<DeleteMessageBatchRequestEntry>();
         int id = 1;

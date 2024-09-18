@@ -78,7 +78,6 @@ public final class SQSWorkerQueue implements ManagedWorkerQueue
 
     public void start(final TaskCallback callback) throws QueueException
     {
-        LOG.debug("Starting SQSWorkerQueue");
         if (sqsClient != null) {
             throw new IllegalStateException("Already started");
         }
@@ -141,7 +140,6 @@ public final class SQSWorkerQueue implements ManagedWorkerQueue
             visibilityMonitorThread.start();
             inputQueueThread.start();
             deadLetterQueueThread.start();
-            LOG.debug("Started SQSWorkerQueue");
         } catch (final Exception e) {
             throw new QueueException("Failed to start worker queue", e);
         }
@@ -286,7 +284,6 @@ public final class SQSWorkerQueue implements ManagedWorkerQueue
 
     private DeadLetteredQueuePair createDeadLetteredQueuePair(final String queueName)
     {
-        // DDD api calls here
         final var queue = declaredQueues.computeIfAbsent(
                 queueName,
                 (q) -> SQSUtil.createQueue(sqsClient, q, queueCfg)

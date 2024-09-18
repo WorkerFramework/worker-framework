@@ -82,7 +82,6 @@ public abstract class QueueConsumer implements Runnable
     public void run()
     {
         final var batchSize = getReceiveBatchSize();
-        // DDD api calls here
         final var receiveRequest = ReceiveMessageRequest.builder()
                 .queueUrl(queueInfo.url())
                 .maxNumberOfMessages(batchSize)
@@ -120,7 +119,6 @@ public abstract class QueueConsumer implements Runnable
 
     protected void retryMessage(final Message message)
     {
-        // DDD api calls here
         try {
             if (retryQueueInfo.equals(queueInfo)) {
                return;
@@ -147,7 +145,6 @@ public abstract class QueueConsumer implements Runnable
 
     protected Map<String, Object> createHeadersFromMessageAttributes(final Message message)
     {
-        // DDD api calls here
         final var headers = new HashMap<String, Object>();
         for(final Map.Entry<String, MessageAttributeValue> entry : message.messageAttributes().entrySet()) {
             if (entry.getValue().dataType().equals("String")) {
@@ -192,21 +189,17 @@ public abstract class QueueConsumer implements Runnable
 
     private int getReceiveBatchSize()
     {
-        LOG.debug("Max Tasks: {}", maxTasks);
-        LOG.debug("Configured number of messages to read: {}", queueCfg.getMaxNumberOfMessages());
         if (maxTasks > SQSUtil.MAX_MESSAGE_BATCH_SIZE ||
                 queueCfg.getMaxNumberOfMessages() + maxTasks > SQSUtil.MAX_MESSAGE_BATCH_SIZE) {
             LOG.debug("Calculated receive batch size: {}", SQSUtil.MAX_MESSAGE_BATCH_SIZE);
             return SQSUtil.MAX_MESSAGE_BATCH_SIZE;
         }
 
+        var batchSize = Math.max(queueCfg.getMaxNumberOfMessages(), maxTasks);
         if (queueCfg.getMaxNumberOfMessages() + maxTasks <= SQSUtil.MAX_MESSAGE_BATCH_SIZE) {
-            final var batchSize = queueCfg.getMaxNumberOfMessages() + maxTasks;
-            LOG.debug("Calculated receive batch size: {}", batchSize);
-            return batchSize;
+            batchSize = queueCfg.getMaxNumberOfMessages() + maxTasks;
         }
 
-        final var batchSize = Math.max(queueCfg.getMaxNumberOfMessages(), maxTasks);
         LOG.debug("Calculated receive batch size: {}", batchSize);
         return batchSize;
     }
