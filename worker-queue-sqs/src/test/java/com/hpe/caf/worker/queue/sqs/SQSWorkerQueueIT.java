@@ -367,7 +367,7 @@ public class SQSWorkerQueueIT extends TestContainer
             final List<CallbackResponse> callbackResponses = new ArrayList<>();
             CallbackResponse msg;
             do {
-                msg = workerWrapper.callbackQueue.poll(0, TimeUnit.SECONDS);
+                msg = workerWrapper.callbackQueue.poll(5, TimeUnit.SECONDS);
                 if (msg != null) {
                     callbackResponses.add(msg);
                 }

@@ -47,7 +47,6 @@ public class WorkerQueueWrapper
     public final BlockingQueue<CallbackResponse> callbackQueue;
     public final BlockingQueue<CallbackResponse> callbackDLQ;
     public final SQSWorkerQueueConfiguration workerQueueConfiguration;
-    public final SQSConfiguration sqsConfiguration;
     public final SQSWorkerQueue sqsWorkerQueue;
     public final SqsClient sqsClient;
     public final WorkerQueueMetricsReporter metricsReporter;
@@ -73,13 +72,7 @@ public class WorkerQueueWrapper
         try {
             callback = stubbedTaskCallback;
 
-            sqsConfiguration = new SQSConfiguration();
-            sqsConfiguration.setSqsProtocol("http");
-            sqsConfiguration.setSqsHost(container.getHost());
-            sqsConfiguration.setSqsPort(container.getFirstMappedPort());
-            sqsConfiguration.setSqsRegion(container.getRegion());
-            sqsConfiguration.setSqsAccessKey(container.getAccessKey());
-            sqsConfiguration.setSqsSecretAccessKey(container.getSecretKey());
+            final var sqsConfiguration = getSqsConfig(container);
 
             workerQueueConfiguration = new SQSWorkerQueueConfiguration();
             workerQueueConfiguration.setSqsConfiguration(sqsConfiguration);
@@ -126,6 +119,18 @@ public class WorkerQueueWrapper
         } catch (final Exception e) {
             throw new RuntimeException("Error starting worker wrapper", e);
         }
+    }
+
+    public static SQSConfiguration getSqsConfig(final LocalStackContainer container)
+    {
+        final var sqsConfiguration = new SQSConfiguration();
+        sqsConfiguration.setSqsProtocol("http");
+        sqsConfiguration.setSqsHost(container.getHost());
+        sqsConfiguration.setSqsPort(container.getFirstMappedPort());
+        sqsConfiguration.setSqsRegion(container.getRegion());
+        sqsConfiguration.setSqsAccessKey(container.getAccessKey());
+        sqsConfiguration.setSqsSecretAccessKey(container.getSecretKey());
+        return sqsConfiguration;
     }
 
     public boolean isReceiving()

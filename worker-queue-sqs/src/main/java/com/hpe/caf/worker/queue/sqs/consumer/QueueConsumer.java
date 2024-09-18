@@ -44,7 +44,8 @@ import java.util.stream.Collectors;
 public final class QueueConsumer implements Runnable
 {
     protected final SqsClient sqsClient;
-    protected final QueueInfo queueInfo;
+    protected final QueueInfo inputQueueInfo;
+    protected final QueueInfo deadLetterQueueInfo;
     protected final QueueInfo retryQueueInfo;
     protected final SQSWorkerQueueConfiguration queueCfg;
     protected final TaskCallback callback;
@@ -53,24 +54,24 @@ public final class QueueConsumer implements Runnable
     protected final AtomicBoolean receiveMessages;
     private final int maxTasks;
     protected final AtomicBoolean running = new AtomicBoolean(true);
-    private final boolean isPoisonMessageConsumer;
 
     private static final Logger LOG = LoggerFactory.getLogger(QueueConsumer.class);
 
     public QueueConsumer(
             final SqsClient sqsClient,
-            final QueueInfo queueInfo,
+            final QueueInfo inputQueueInfo,
+            final QueueInfo deadLetterQueueInfo,
             final QueueInfo retryQueueInfo,
             final TaskCallback callback,
             final SQSWorkerQueueConfiguration queueCfg,
             final VisibilityMonitor visibilityMonitor,
             final MetricsReporter metricsReporter,
             final AtomicBoolean receiveMessages,
-            final int maxTasks,
-            final boolean isPoisonMessageConsumer)
+            final int maxTasks)
     {
         this.sqsClient = sqsClient;
-        this.queueInfo = queueInfo;
+        this.inputQueueInfo = inputQueueInfo;
+        this.deadLetterQueueInfo = deadLetterQueueInfo;
         this.retryQueueInfo = retryQueueInfo;
         this.queueCfg = queueCfg;
         this.callback = callback;
@@ -78,23 +79,35 @@ public final class QueueConsumer implements Runnable
         this.visibilityMonitor = visibilityMonitor;
         this.receiveMessages = receiveMessages;
         this.maxTasks = maxTasks;
-        this.isPoisonMessageConsumer = isPoisonMessageConsumer;
     }
 
     @Override
     public void run()
     {
         final var batchSize = getReceiveBatchSize();
-        final var receiveRequest = ReceiveMessageRequest.builder()
-                .queueUrl(queueInfo.url())
+        final var inputQueueRequest = ReceiveMessageRequest.builder()
+                .queueUrl(inputQueueInfo.url())
                 .maxNumberOfMessages(batchSize)
                 .waitTimeSeconds(queueCfg.getLongPollInterval())
                 .messageSystemAttributeNames(MessageSystemAttributeName.ALL)
                 .messageAttributeNames(SQSUtil.ALL_ATTRIBUTES)
                 .build();
+
+        final var deadLetterQueueRequest = ReceiveMessageRequest.builder()
+                .queueUrl(deadLetterQueueInfo.url())
+                .maxNumberOfMessages(batchSize)
+                .waitTimeSeconds(queueCfg.getLongPollInterval())
+                .messageSystemAttributeNames(MessageSystemAttributeName.ALL)
+                .messageAttributeNames(SQSUtil.ALL_ATTRIBUTES)
+                .build();
+
         while (running.get()) {
-            if (receiveMessages.get() && visibilityMonitor.hasInflightCapacity(queueInfo, queueCfg, batchSize)) {
-                receiveMessages(receiveRequest);
+            if (receiveMessages.get() &&
+                visibilityMonitor.hasInflightCapacity(inputQueueInfo, queueCfg, batchSize) &&
+                visibilityMonitor.hasInflightCapacity(deadLetterQueueInfo, queueCfg, batchSize)
+            ) {
+                receiveMessages(inputQueueRequest, false);
+                receiveMessages(deadLetterQueueRequest, true);
             } else {
                 try {
                     Thread.sleep(queueCfg.getLongPollInterval() * 1000);
@@ -105,25 +118,28 @@ public final class QueueConsumer implements Runnable
         }
     }
 
-    protected void receiveMessages(final ReceiveMessageRequest receiveRequest)
+    protected void receiveMessages(
+            final ReceiveMessageRequest receiveRequest,
+            final boolean isPoisonMessageConsumer
+    )
     {
         final var receiveMessageResult = sqsClient.receiveMessage(receiveRequest).messages();
         if (!receiveMessageResult.isEmpty()) {
             LOG.debug("Received {} messages from queue {} \n{}",
                     receiveMessageResult.size(),
-                    queueInfo.name(),
+                    inputQueueInfo.name(),
                     receiveMessageResult.stream().map(Message::receiptHandle).collect(Collectors.toSet()));
         }
 
         for(final var message : receiveMessageResult) {
-            registerNewTask(message);
+            registerNewTask(message, isPoisonMessageConsumer);
         }
     }
 
     protected void retryMessage(final Message message)
     {
         try {
-            if (retryQueueInfo.equals(queueInfo)) {
+            if (retryQueueInfo.equals(inputQueueInfo)) {
                return;
             }
 
@@ -157,13 +173,13 @@ public final class QueueConsumer implements Runnable
         return headers;
     }
 
-    protected void registerNewTask(final Message message)
+    protected void registerNewTask(final Message message, final boolean isPoisonMessageConsumer)
     {
         metricsReporter.incrementReceived();
         final var becomesVisible = Instant.now().getEpochSecond() + queueCfg.getVisibilityTimeout();
         final var taskInfo = new SQSTaskInformation(
                 message.messageId(),
-                new VisibilityTimeout(queueInfo, becomesVisible, message.receiptHandle()),
+                new VisibilityTimeout(inputQueueInfo, becomesVisible, message.receiptHandle()),
                 isPoisonMessageConsumer
         );
 

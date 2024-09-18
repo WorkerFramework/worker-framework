@@ -16,13 +16,11 @@
 package com.hpe.caf.worker.queue.sqs;
 
 import com.hpe.caf.worker.queue.sqs.distributor.MessageDistributor;
-import com.hpe.caf.worker.queue.sqs.util.CallbackResponse;
 import com.hpe.caf.worker.queue.sqs.util.SQSUtil;
+import com.hpe.caf.worker.queue.sqs.util.WorkerQueueWrapper;
 import org.testng.annotations.Test;
 import software.amazon.awssdk.services.sqs.model.CreateQueueRequest;
-
-import java.util.ArrayList;
-import java.util.concurrent.TimeUnit;
+import software.amazon.awssdk.services.sqs.model.ReceiveMessageRequest;
 
 import static com.hpe.caf.worker.queue.sqs.util.WorkerQueueWrapper.deleteQueue;
 import static com.hpe.caf.worker.queue.sqs.util.WorkerQueueWrapper.sendMessagesInBatches;
@@ -89,39 +87,50 @@ public class DistributorIT extends TestContainer
             final int expectedMessagesToBeMoved
     ) throws Exception
     {
-        final var workerWrapper = getWorkerWrapper(destinationQueue);
+        final var sqsClient = SQSUtil.getSqsClient(WorkerQueueWrapper.getSqsConfig(container));
 
         final var createQueueRequest = CreateQueueRequest.builder()
                 .queueName(sourceQueue)
                 .build();
-        final var sourceQueueUrl = workerWrapper.sqsClient.createQueue(createQueueRequest).queueUrl();
+        final var sourceQueueUrl = sqsClient.createQueue(createQueueRequest).queueUrl();
 
-        sendMessagesInBatches(workerWrapper.sqsClient, sourceQueueUrl, numberOfMessages);
+        final var createDestinationQueueRequest = CreateQueueRequest.builder()
+                .queueName(destinationQueue)
+                .build();
+        final var destinationQueueUrl = sqsClient.createQueue(createDestinationQueueRequest).queueUrl();
+
+        sendMessagesInBatches(sqsClient, sourceQueueUrl, numberOfMessages);
 
         final var distributor = new MessageDistributor(
-                SQSUtil.getSqsClient(workerWrapper.sqsConfiguration),
+                sqsClient,
                 sourceQueue,
                 destinationQueue
         );
 
         final var failures = distributor.moveMessages(numberOfMessagesToMove);
 
-        final var receivedMessages = new ArrayList<CallbackResponse>();
-        CallbackResponse response;
+        final var destinationRequest = ReceiveMessageRequest.builder()
+                .queueUrl(destinationQueueUrl)
+                .maxNumberOfMessages(10)
+                .waitTimeSeconds(20)
+                .build();
+
+        int responseCount = 0;
         do {
-            response = workerWrapper.callbackQueue.poll(5, TimeUnit.SECONDS);
-            if (response != null) {
-                receivedMessages.add(response);
+            final var receiveMessageResponse = sqsClient.receiveMessage(destinationRequest).messages();
+            responseCount += receiveMessageResponse.size();
+            if (receiveMessageResponse.size() == 0) {
+                break;
             }
-        } while (response != null);
+        } while (true);
 
         try {
-            assertEquals(receivedMessages.size(), expectedMessagesToBeMoved, "Not all messages were moved");
+            failures.forEach(f -> System.out.println(f.message()));
             assertEquals(failures.size(), 0, "Should not have had failures");
+            assertEquals(responseCount, expectedMessagesToBeMoved, "Not all messages were moved");
         } finally {
-            workerWrapper.sqsWorkerQueue.shutdown();
-            deleteQueue(workerWrapper.sqsClient, workerWrapper.inputQueueUrl);
-            deleteQueue(workerWrapper.sqsClient, sourceQueueUrl);
+            deleteQueue(sqsClient, sourceQueueUrl);
+            deleteQueue(sqsClient, destinationQueueUrl);
         }
     }
 }

@@ -45,15 +45,13 @@ public final class SQSWorkerQueue implements ManagedWorkerQueue
 {
     private SqsClient sqsClient;
 
-    private Thread inputQueueThread;
-    private Thread deadLetterQueueThread;
+    private Thread consumerThread;
     private Thread visibilityMonitorThread;
     private Thread deleteMessageThread;
     private Thread workerPublisherThread;
 
     private VisibilityMonitor visibilityMonitor;
     private QueueConsumer consumer;
-    private QueueConsumer dlqConsumer;
     private DeletePublisher deletePublisher;
     private WorkerPublisher workerPublisher;
 
@@ -95,8 +93,9 @@ public final class SQSWorkerQueue implements ManagedWorkerQueue
                     sqsClient,
                     queueCfg.getVisibilityTimeout());
 
-            dlqConsumer = new QueueConsumer(
+            consumer = new QueueConsumer(
                     sqsClient,
+                    inputQueueInfo,
                     deadLetterQueueInfo,
                     retryQueueInfo,
                     callback,
@@ -104,20 +103,7 @@ public final class SQSWorkerQueue implements ManagedWorkerQueue
                     visibilityMonitor,
                     metricsReporter,
                     receiveMessages,
-                    maxTasks,
-                    true);
-
-            consumer = new QueueConsumer(
-                    sqsClient,
-                    inputQueueInfo,
-                    retryQueueInfo,
-                    callback,
-                    queueCfg,
-                    visibilityMonitor,
-                    metricsReporter,
-                    receiveMessages,
-                    maxTasks,
-                    false);
+                    maxTasks);
 
             deletePublisher = new DeletePublisher(sqsClient, visibilityMonitor);
 
@@ -126,14 +112,12 @@ public final class SQSWorkerQueue implements ManagedWorkerQueue
             workerPublisherThread = new Thread(workerPublisher);
             deleteMessageThread = new Thread(deletePublisher);
             visibilityMonitorThread = new Thread(visibilityMonitor);
-            inputQueueThread = new Thread(consumer);
-            deadLetterQueueThread = new Thread(dlqConsumer);
+            consumerThread = new Thread(consumer);
 
             workerPublisherThread.start();
             deleteMessageThread.start();
             visibilityMonitorThread.start();
-            inputQueueThread.start();
-            deadLetterQueueThread.start();
+            consumerThread.start();
         } catch (final Exception e) {
             throw new QueueException("Failed to start worker queue", e);
         }
@@ -187,15 +171,15 @@ public final class SQSWorkerQueue implements ManagedWorkerQueue
     @Override
     public HealthResult livenessCheck()
     {
-        if (isNotRunning(inputQueueThread)) {
+        if (isNotRunning(consumerThread)) {
             return new HealthResult(HealthStatus.UNHEALTHY, "SQS input queue thread state:" +
-                    getState(inputQueueThread));
-        } else if (isNotRunning(deadLetterQueueThread)) {
-            return new HealthResult(HealthStatus.UNHEALTHY, "SQS dead letter queue thread state:" +
-                    getState(inputQueueThread));
+                    getState(consumerThread));
+//        } else if (isNotRunning(deadLetterQueueThread)) {
+//            return new HealthResult(HealthStatus.UNHEALTHY, "SQS dead letter queue thread state:" +
+//                    getState(inputQueueThread));
         } else if (isNotRunning(visibilityMonitorThread))  {
             return new HealthResult(HealthStatus.UNHEALTHY, "SQS visibility monitor thread state:" +
-                    getState(inputQueueThread));
+                    getState(consumerThread));
         } else if (isNotRunning(deleteMessageThread))  {
             return new HealthResult(HealthStatus.UNHEALTHY, "SQS delete message thread state:" +
                     getState(deleteMessageThread));
@@ -222,7 +206,7 @@ public final class SQSWorkerQueue implements ManagedWorkerQueue
     public void shutdown()
     {
         consumer.shutdown();
-        dlqConsumer.shutdown();
+        //dlqConsumer.shutdown();
         visibilityMonitor.shutdown();
         deletePublisher.shutdown();
         workerPublisher.shutdown();
