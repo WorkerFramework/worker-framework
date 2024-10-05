@@ -3,9 +3,10 @@
 #### Version Number
 ${version-number}
 
-#### Breaking Changes
-- US969005: worker-default-configs updated to read RabbitMQ password from `CAF_RABBITMQ_PASSWORD_FILE` instead of `CAF_RABBITMQ_PASSWORD`
-
 #### New Features
+- US969005: RabbitMQ password config update.  
+  worker-default-configs has been updated to try to read RabbitMQ password from the file pointed to by the `CAF_RABBITMQ_PASSWORD_FILE` 
+  environment variable if the `CAF_RABBITMQ_PASSWORD` environment variable is null. If both of these environment variables are null, then
+  the default `guest` password will be used.
 
 #### Known Issues

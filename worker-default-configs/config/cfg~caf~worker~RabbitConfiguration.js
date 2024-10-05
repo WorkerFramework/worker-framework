@@ -21,5 +21,5 @@
     rabbitHost: getenv("CAF_RABBITMQ_HOST") || "rabbitmq",
     rabbitPort: getenv("CAF_RABBITMQ_PORT") || 5672,
     rabbitUser: getenv("CAF_RABBITMQ_USERNAME") || "guest",
-    rabbitPassword: getenvfile("CAF_RABBITMQ_PASSWORD_FILE") || "guest"
+    rabbitPassword: getenv("CAF_RABBITMQ_PASSWORD") || getenvfile("CAF_RABBITMQ_PASSWORD_FILE") || "guest"
 });
