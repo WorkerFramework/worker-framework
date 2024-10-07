@@ -85,6 +85,7 @@ public final class WorkerApplication extends Application<WorkerConfiguration>
         throws Exception
     {
         setSystemPropertiesFromFileEnvironmentVariables();
+        exportFileBasedSecrets();
         new WorkerApplication().run(args);
     }
 
@@ -121,6 +122,41 @@ public final class WorkerApplication extends Application<WorkerConfiguration>
                             "environment variable was not intended to be read as a file)", propertyName, envVarName, envVarValue, e);
                 }
             }
+        }
+    }
+
+    private static void exportFileBasedSecrets() {
+        Map<String, String> env = System.getenv();
+        for (Map.Entry<String, String> entry : env.entrySet()) {
+            String envVarName = entry.getKey();
+            String envVarValue = entry.getValue();
+            if (envVarName.endsWith("_FILE")) {
+                String propertyName = envVarName.substring(0, envVarName.length() - 5);
+                try {
+                    String fileContent = Files.readString(Paths.get(envVarValue)).trim();
+                    LOG.warn("Setting environment variable {}={}", propertyName, fileContent);
+                    setEnv(propertyName, fileContent);
+                } catch (IOException e) {
+                    System.err.println("Unable to read file for environment variable " + envVarName + ": " + e.getMessage());
+                }
+            }
+        }
+    }
+
+    private static void setEnv(String key, String value) {
+        try {
+            Map<String, String> env = System.getenv();
+            Class<?> processEnvironmentClass = Class.forName("java.lang.ProcessEnvironment");
+            java.lang.reflect.Field theEnvironmentField = processEnvironmentClass.getDeclaredField("theEnvironment");
+            theEnvironmentField.setAccessible(true);
+            Map<String, String> envMap = (Map<String, String>) theEnvironmentField.get(null);
+            envMap.put(key, value);
+            java.lang.reflect.Field theCaseInsensitiveEnvironmentField = processEnvironmentClass.getDeclaredField("theCaseInsensitiveEnvironment");
+            theCaseInsensitiveEnvironmentField.setAccessible(true);
+            Map<String, String> ciEnvMap = (Map<String, String>) theCaseInsensitiveEnvironmentField.get(null);
+            ciEnvMap.put(key, value);
+        } catch (Exception e) {
+            throw new RuntimeException("Failed to set environment variable", e);
         }
     }
 
