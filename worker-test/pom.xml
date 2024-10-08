@@ -284,6 +284,14 @@
                                                 <lineEnding>unix</lineEnding>
                                                 <outputDirectory>.</outputDirectory>
                                             </fileSet>
+                                            <fileSet>
+                                                <directory>src/main/config</directory>
+                                                <includes>
+                                                    <include>java-args.txt</include>
+                                                </includes>
+                                                <lineEnding>unix</lineEnding>
+                                                <outputDirectory>/maven</outputDirectory>
+                                            </fileSet>
                                         </fileSets>
                                         <dependencySets>
                                             <dependencySet>
@@ -310,6 +318,8 @@
                                     <CAF_RABBITMQ_PORT>5671</CAF_RABBITMQ_PORT>
                                     <SSL_CA_CRT_DIR>/test-keystore</SSL_CA_CRT_DIR>
                                     <SSL_CA_CRT>ca_certificate.pem</SSL_CA_CRT>
+                                    <USE_FILE_BASED_SECRETS>false</USE_FILE_BASED_SECRETS>
+                                    <WRITE_FILE_BASED_SECRETS_AS_PROPERTIES>true</WRITE_FILE_BASED_SECRETS_AS_PROPERTIES>
                                 </env>
                                 <volumes>
                                     <from>
@@ -332,90 +342,90 @@
                                 </wait>
                             </run>
                         </image>
-                        <image>
-                            <alias>worker-test-2</alias>
-                            <name>${targetDockerRegistryPath}/worker-test:${project.version}</name>
-                            <run>
-                                <platform>linux/amd64</platform>
-                                <ports>
-                                    <port>${worker.testhttpport2}:8080</port>
-                                    <port>${worker.testadminport2}:8081</port>
-                                    <port>${worker.testdebugport2}:5005</port>
-                                </ports>
-                                <env>
-                                    <CAF_WORKER_DATASTORE_PATH>/srv/common/webdav</CAF_WORKER_DATASTORE_PATH>
-                                    <CAF_WORKER_JAVA_OPTS>
-                                        -agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=*:5005
-                                    </CAF_WORKER_JAVA_OPTS>
-                                    <CAF_WORKER_RETRY_LIMIT>1</CAF_WORKER_RETRY_LIMIT>
-                                    <CAF_RABBITMQ_PROTOCOL>amqps</CAF_RABBITMQ_PROTOCOL>
-                                    <CAF_RABBITMQ_PORT>5671</CAF_RABBITMQ_PORT>
-                                    <SSL_CA_CRT_DIR>/test-keystore</SSL_CA_CRT_DIR>
-                                    <SSL_CA_CRT>ca_certificate.pem</SSL_CA_CRT>
-                                </env>
-                                <volumes>
-                                    <from>
-                                        <image>webdav</image>
-                                        <image>keystore</image>
-                                    </from>
-                                </volumes>
-                                <links>
-                                    <link>rabbitmq</link>
-                                </links>
-                                <log>
-                                    <enabled>true</enabled>
-                                </log>
-                                <wait>
-                                    <http>
-                                        <url>http://${docker.host.address}:${worker.testadminport2}</url>
-                                    </http>
-                                    <time>120000</time>
-                                    <shutdown>500</shutdown>
-                                </wait>
-                            </run>
-                        </image>
-                        <!--Worker to test SSL certificate trust manager when connecting to RabbitMQ-->
-                        <image>
-                            <alias>worker-test-no-valid-cert</alias>
-                            <name>${targetDockerRegistryPath}/worker-test:${project.version}</name>
-                            <run>
-                                <platform>linux/amd64</platform>
-                                <ports>
-                                    <port>${worker.testhttpport3}:8080</port>
-                                    <port>${worker.testadminport3}:8081</port>
-                                    <port>${worker.testdebugport3}:5005</port>
-                                </ports>
-                                <env>
-                                    <CAF_WORKER_DATASTORE_PATH>/srv/common/webdav</CAF_WORKER_DATASTORE_PATH>
-                                    <CAF_WORKER_JAVA_OPTS>
-                                        -agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=*:5005
-                                    </CAF_WORKER_JAVA_OPTS>
-                                    <CAF_WORKER_RETRY_LIMIT>1</CAF_WORKER_RETRY_LIMIT>
-                                    <CAF_RABBITMQ_PROTOCOL>amqps</CAF_RABBITMQ_PROTOCOL>
-                                    <CAF_RABBITMQ_PORT>5671</CAF_RABBITMQ_PORT>
-                                </env>
-                                <volumes>
-                                    <from>
-                                        <image>webdav</image>
-                                    </from>
-                                </volumes>
-                                <links>
-                                    <link>rabbitmq</link>
-                                </links>
-                                <log>
-                                    <enabled>true</enabled>
-                                </log>
-                                <!--Expect healthcheck to return 503 as trying to use SSL without valid certificate-->
-                                <wait>
-                                    <http>
-                                        <url>http://${docker.host.address}:${worker.testhttpport3}/health-check?type=READY</url>
-                                        <status>503</status>
-                                    </http>
-                                    <time>120000</time>
-                                    <shutdown>500</shutdown>
-                                </wait>
-                            </run>
-                        </image>
+<!--                        <image>-->
+<!--                            <alias>worker-test-2</alias>-->
+<!--                            <name>${targetDockerRegistryPath}/worker-test:${project.version}</name>-->
+<!--                            <run>-->
+<!--                                <platform>linux/amd64</platform>-->
+<!--                                <ports>-->
+<!--                                    <port>${worker.testhttpport2}:8080</port>-->
+<!--                                    <port>${worker.testadminport2}:8081</port>-->
+<!--                                    <port>${worker.testdebugport2}:5005</port>-->
+<!--                                </ports>-->
+<!--                                <env>-->
+<!--                                    <CAF_WORKER_DATASTORE_PATH>/srv/common/webdav</CAF_WORKER_DATASTORE_PATH>-->
+<!--                                    <CAF_WORKER_JAVA_OPTS>-->
+<!--                                        -agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=*:5005-->
+<!--                                    </CAF_WORKER_JAVA_OPTS>-->
+<!--                                    <CAF_WORKER_RETRY_LIMIT>1</CAF_WORKER_RETRY_LIMIT>-->
+<!--                                    <CAF_RABBITMQ_PROTOCOL>amqps</CAF_RABBITMQ_PROTOCOL>-->
+<!--                                    <CAF_RABBITMQ_PORT>5671</CAF_RABBITMQ_PORT>-->
+<!--                                    <SSL_CA_CRT_DIR>/test-keystore</SSL_CA_CRT_DIR>-->
+<!--                                    <SSL_CA_CRT>ca_certificate.pem</SSL_CA_CRT>-->
+<!--                                </env>-->
+<!--                                <volumes>-->
+<!--                                    <from>-->
+<!--                                        <image>webdav</image>-->
+<!--                                        <image>keystore</image>-->
+<!--                                    </from>-->
+<!--                                </volumes>-->
+<!--                                <links>-->
+<!--                                    <link>rabbitmq</link>-->
+<!--                                </links>-->
+<!--                                <log>-->
+<!--                                    <enabled>true</enabled>-->
+<!--                                </log>-->
+<!--                                <wait>-->
+<!--                                    <http>-->
+<!--                                        <url>http://${docker.host.address}:${worker.testadminport2}</url>-->
+<!--                                    </http>-->
+<!--                                    <time>120000</time>-->
+<!--                                    <shutdown>500</shutdown>-->
+<!--                                </wait>-->
+<!--                            </run>-->
+<!--                        </image>-->
+<!--                        &lt;!&ndash;Worker to test SSL certificate trust manager when connecting to RabbitMQ&ndash;&gt;-->
+<!--                        <image>-->
+<!--                            <alias>worker-test-no-valid-cert</alias>-->
+<!--                            <name>${targetDockerRegistryPath}/worker-test:${project.version}</name>-->
+<!--                            <run>-->
+<!--                                <platform>linux/amd64</platform>-->
+<!--                                <ports>-->
+<!--                                    <port>${worker.testhttpport3}:8080</port>-->
+<!--                                    <port>${worker.testadminport3}:8081</port>-->
+<!--                                    <port>${worker.testdebugport3}:5005</port>-->
+<!--                                </ports>-->
+<!--                                <env>-->
+<!--                                    <CAF_WORKER_DATASTORE_PATH>/srv/common/webdav</CAF_WORKER_DATASTORE_PATH>-->
+<!--                                    <CAF_WORKER_JAVA_OPTS>-->
+<!--                                        -agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=*:5005-->
+<!--                                    </CAF_WORKER_JAVA_OPTS>-->
+<!--                                    <CAF_WORKER_RETRY_LIMIT>1</CAF_WORKER_RETRY_LIMIT>-->
+<!--                                    <CAF_RABBITMQ_PROTOCOL>amqps</CAF_RABBITMQ_PROTOCOL>-->
+<!--                                    <CAF_RABBITMQ_PORT>5671</CAF_RABBITMQ_PORT>-->
+<!--                                </env>-->
+<!--                                <volumes>-->
+<!--                                    <from>-->
+<!--                                        <image>webdav</image>-->
+<!--                                    </from>-->
+<!--                                </volumes>-->
+<!--                                <links>-->
+<!--                                    <link>rabbitmq</link>-->
+<!--                                </links>-->
+<!--                                <log>-->
+<!--                                    <enabled>true</enabled>-->
+<!--                                </log>-->
+<!--                                &lt;!&ndash;Expect healthcheck to return 503 as trying to use SSL without valid certificate&ndash;&gt;-->
+<!--                                <wait>-->
+<!--                                    <http>-->
+<!--                                        <url>http://${docker.host.address}:${worker.testhttpport3}/health-check?type=READY</url>-->
+<!--                                        <status>503</status>-->
+<!--                                    </http>-->
+<!--                                    <time>120000</time>-->
+<!--                                    <shutdown>500</shutdown>-->
+<!--                                </wait>-->
+<!--                            </run>-->
+<!--                        </image>-->
                     </images>
                 </configuration>
             </plugin>

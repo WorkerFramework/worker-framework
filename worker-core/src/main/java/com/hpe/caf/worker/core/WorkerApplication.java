@@ -54,14 +54,10 @@ import io.dropwizard.util.Duration;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.IOException;
 import java.net.ResponseCache;
 import java.net.URL;
-import java.nio.file.Files;
-import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Supplier;
 
@@ -84,80 +80,7 @@ public final class WorkerApplication extends Application<WorkerConfiguration>
     public static void main(final String[] args)
         throws Exception
     {
-        setSystemPropertiesFromFileEnvironmentVariables();
-        exportFileBasedSecrets();
         new WorkerApplication().run(args);
-    }
-
-    /**
-     * Sets system properties from environment variables that end with "_FILE".
-     * The value of the environment variable is expected to be a file path, and the content of the file
-     * will be read and set as the system property.
-     *
-     * <p>Example usage:</p>
-     * <pre>
-     * {@code
-     * // Assuming the environment variable PASSWORD_FILE=/path/to/password.txt
-     * // and the content of /path/to/password.txt is "secret"
-     * // This method will set the system property "PASSWORD" to "secret".
-     * setSystemPropertiesFromFileEnvironmentVariables();
-     * }
-     * </pre>
-     */
-    private static void setSystemPropertiesFromFileEnvironmentVariables()
-    {
-        for (final Map.Entry<String, String> envEntries : System.getenv().entrySet()) {
-            final String envVarName = envEntries.getKey();
-            final String envVarValue = envEntries.getValue();
-            if (envVarName.endsWith("_FILE")) {
-                final String propertyName = envVarName.substring(0, envVarName.length() - 5);
-                try {
-                    final String fileContent = Files.readString(Paths.get(envVarValue)).trim();
-                    // TODO change log to debug and remove fileContent after testing
-                    LOG.warn("Setting system property {}={} from file environment variable {}={}",
-                            propertyName, fileContent, envVarName, envVarValue);
-                    System.setProperty(propertyName, fileContent);
-                } catch (final IOException e) {
-                    LOG.warn("Unable to set system property {} from file environment variable {}={} (this may not be an error if the " +
-                            "environment variable was not intended to be read as a file)", propertyName, envVarName, envVarValue, e);
-                }
-            }
-        }
-    }
-
-    private static void exportFileBasedSecrets() {
-        Map<String, String> env = System.getenv();
-        for (Map.Entry<String, String> entry : env.entrySet()) {
-            String envVarName = entry.getKey();
-            String envVarValue = entry.getValue();
-            if (envVarName.endsWith("_FILE")) {
-                String propertyName = envVarName.substring(0, envVarName.length() - 5);
-                try {
-                    String fileContent = Files.readString(Paths.get(envVarValue)).trim();
-                    LOG.warn("Setting environment variable {}={}", propertyName, fileContent);
-                    setEnv(propertyName, fileContent);
-                } catch (IOException e) {
-                    System.err.println("Unable to read file for environment variable " + envVarName + ": " + e.getMessage());
-                }
-            }
-        }
-    }
-
-    private static void setEnv(String key, String value) {
-        try {
-            Map<String, String> env = System.getenv();
-            Class<?> processEnvironmentClass = Class.forName("java.lang.ProcessEnvironment");
-            java.lang.reflect.Field theEnvironmentField = processEnvironmentClass.getDeclaredField("theEnvironment");
-            theEnvironmentField.setAccessible(true);
-            Map<String, String> envMap = (Map<String, String>) theEnvironmentField.get(null);
-            envMap.put(key, value);
-            java.lang.reflect.Field theCaseInsensitiveEnvironmentField = processEnvironmentClass.getDeclaredField("theCaseInsensitiveEnvironment");
-            theCaseInsensitiveEnvironmentField.setAccessible(true);
-            Map<String, String> ciEnvMap = (Map<String, String>) theCaseInsensitiveEnvironmentField.get(null);
-            ciEnvMap.put(key, value);
-        } catch (Exception e) {
-            throw new RuntimeException("Failed to set environment variable", e);
-        }
     }
 
     /**
