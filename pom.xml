@@ -213,42 +213,42 @@
             <dependency>
                 <groupId>com.github.cafapi</groupId>
                 <artifactId>caf-api</artifactId>
-                <version>3.1.0-596</version>
+                <version>3.2.0-US969005-2-SNAPSHOT</version>
             </dependency>
             <dependency>
                 <groupId>com.github.cafapi.cipher</groupId>
                 <artifactId>cipher-null</artifactId>
-                <version>3.1.0-596</version>
+                <version>3.2.0-US969005-2-SNAPSHOT</version>
             </dependency>
             <dependency>
                 <groupId>com.github.cafapi.codec</groupId>
                 <artifactId>codec-json</artifactId>
-                <version>3.1.0-596</version>
+                <version>3.2.0-US969005-2-SNAPSHOT</version>
             </dependency>
             <dependency>
                 <groupId>com.github.cafapi.config</groupId>
                 <artifactId>config-caf</artifactId>
-                <version>3.1.0-596</version>
+                <version>3.2.0-US969005-2-SNAPSHOT</version>
             </dependency>
             <dependency>
                 <groupId>com.github.cafapi.config</groupId>
                 <artifactId>config-decoder</artifactId>
-                <version>3.1.0-596</version>
+                <version>3.2.0-US969005-2-SNAPSHOT</version>
             </dependency>
             <dependency>
                 <groupId>com.github.cafapi.config</groupId>
                 <artifactId>config-file</artifactId>
-                <version>3.1.0-596</version>
+                <version>3.2.0-US969005-2-SNAPSHOT</version>
             </dependency>
             <dependency>
                 <groupId>com.github.cafapi.config</groupId>
                 <artifactId>config-system</artifactId>
-                <version>3.1.0-596</version>
+                <version>3.2.0-US969005-2-SNAPSHOT</version>
             </dependency>
             <dependency>
                 <groupId>com.github.cafapi.decoder</groupId>
                 <artifactId>decoder-js</artifactId>
-                <version>3.1.0-596</version>
+                <version>3.2.0-US969005-2-SNAPSHOT</version>
             </dependency>
             <dependency>
                 <groupId>com.github.cafapi.logging</groupId>
@@ -258,17 +258,17 @@
             <dependency>
                 <groupId>com.github.cafapi.util</groupId>
                 <artifactId>util-moduleloader</artifactId>
-                <version>3.1.0-596</version>
+                <version>3.2.0-US969005-2-SNAPSHOT</version>
             </dependency>
             <dependency>
                 <groupId>com.github.cafapi.util</groupId>
                 <artifactId>util-naming</artifactId>
-                <version>3.1.0-596</version>
+                <version>3.2.0-US969005-2-SNAPSHOT</version>
             </dependency>
             <dependency>
                 <groupId>com.github.cafapi.util</groupId>
                 <artifactId>util-ref</artifactId>
-                <version>3.1.0-596</version>
+                <version>3.2.0-US969005-2-SNAPSHOT</version>
             </dependency>
             <dependency>
                 <groupId>com.github.workerframework</groupId>
@@ -898,13 +898,11 @@
                         </image>
                         <image>
                             <repository>${dockerHubPublic}/cafapi/opensuse-jre11</repository>
-                            <tag>4.1.0</tag>
-                            <digest>sha256:986576a3d9be44555724e9766a8c097bca4eb303f1d1e3536763f14020776a5f</digest>
+                            <tag>4.2.0-SNAPSHOT</tag>
                         </image>
                         <image>
                             <repository>${dockerHubPublic}/cafapi/opensuse-jre17</repository>
-                            <tag>4.1.0</tag>
-                            <digest>sha256:ebb4816ac8b80c07f091f30104ae5710e5e624c985cfd41fafc3dbf4c631a5a9</digest>
+                            <tag>4.2.0-SNAPSHOT</tag>
                         </image>
                         <image>
                             <repository>${dockerHubPublic}/cloudesire/webdav</repository>
