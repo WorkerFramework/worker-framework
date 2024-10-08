@@ -290,7 +290,7 @@
                                                     <include>java-args.txt</include>
                                                 </includes>
                                                 <lineEnding>unix</lineEnding>
-                                                <outputDirectory>/maven</outputDirectory>
+                                                <outputDirectory>.</outputDirectory>
                                             </fileSet>
                                         </fileSets>
                                         <dependencySets>
@@ -427,6 +427,14 @@
 <!--                            </run>-->
 <!--                        </image>-->
                     </images>
+                </configuration>
+            </plugin>
+            <plugin>
+                <groupId>com.mycila</groupId>
+                <artifactId>license-maven-plugin</artifactId>
+                <version>4.3</version>
+                <configuration>
+                    <skip>true</skip>
                 </configuration>
             </plugin>
         </plugins>
