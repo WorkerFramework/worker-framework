@@ -898,12 +898,14 @@
                         </image>
                         <image>
                             <repository>${dockerHubPublic}/cafapi/opensuse-jre11</repository>
-                            <tag>4.2.0-US969005-SNAPSHOT</tag>
+                            <tag>4.1.0</tag>
+                            <digest>sha256:986576a3d9be44555724e9766a8c097bca4eb303f1d1e3536763f14020776a5f</digest>
                         </image>
                         <image>
                             <repository>${dockerHubPublic}/cafapi/opensuse-jre17</repository>
-                            <tag>4.2.0-US969005-SNAPSHOT</tag>
-                        </image>
+                            <tag>4.1.0</tag>
+                            <digest>sha256:ebb4816ac8b80c07f091f30104ae5710e5e624c985cfd41fafc3dbf4c631a5a9</digest>
+                        </image
                         <image>
                             <repository>${dockerHubPublic}/cloudesire/webdav</repository>
                             <tag>latest</tag>
