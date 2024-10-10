@@ -4,10 +4,9 @@
 ${version-number}
 
 #### New Features
-- US969005: Add support for getting secrets from various sources   
-  - The RabbitMQ password will be retrieved from various sources in a prescribed order of precedence:
-    - Environment variable named `CAF_RABBITMQ_PASSWORD`
-    - File content in path specified by environment variable named `CAF_RABBITMQ_PASSWORD_FILE`
-    - System property named `CAF.CAF_RABBITMQ_PASSWORD`
+- US969005: Add support for getting secrets from configurable sources.     
+  - The RabbitMQ password can be retrieved from:
+    - Environment variable named `CAF_RABBITMQ_PASSWORD` (enabled by default via `CAF_READ_SECRETS_FROM_ENV`, defaults to `true`)
+    - File content in path specified by environment variable named `CAF_RABBITMQ_PASSWORD_FILE` (enabled via `READ_SECRETS_FROM_FILE`, defaults to `false`)
 
 #### Known Issues
