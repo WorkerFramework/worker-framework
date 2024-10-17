@@ -83,7 +83,7 @@ the current input queue. Default is True.
  The following command-line should start the application:
  
  ```
- java -cp "*" com.hpe.caf.worker.core.WorkerApplication server [settings.yaml]
+ java -cp "*" com.opentext.caf.worker.core.WorkerApplication server [settings.yaml]
  ```
     
 ### The DataStore component
@@ -488,7 +488,7 @@ different results.
  The input message will look a bit like this:
 
 ```
- package com.hpe.caf.test.worker.shared;
+ package com.opentext.caf.test.worker.shared;
 
 
  public final class TestWorkerTask
@@ -517,7 +517,7 @@ different results.
  Equivalently, our output message will be something like:
 
 ```
- package com.hpe.caf.test.worker.shared;
+ package com.opentext.caf.test.worker.shared;
 
 
  public final class TestWorkerResult
@@ -551,9 +551,9 @@ different results.
  is also final as they are typically serialised:
 
 ```
- package com.hpe.caf.test.worker;
+ package com.opentext.caf.test.worker;
 
- import com.hpe.caf.api.Configuration;
+ import com.opentext.caf.api.Configuration;
 
  import javax.validation.constraints.NotNull;
  import javax.validation.constraints.Size;
@@ -619,8 +619,8 @@ different results.
  freshly compiled `test-worker-shared` jar, we can do this:
 
 ```
- java -cp "*" com.hpe.caf.util.GenerateConfig
-    com.hpe.caf.test.worker.shared.TestWorkerConfiguration
+ java -cp "*" com.opentext.caf.util.GenerateConfig
+    com.opentext.caf.test.worker.shared.TestWorkerConfiguration
 ```
 
 ### Creating the factory and provider
@@ -635,11 +635,11 @@ different results.
  onto the same result queue. So the `WorkerFactory` looks like this:
 
 ```
- package com.hpe.caf.test.worker;
+ package com.opentext.caf.test.worker;
 
- import com.hpe.caf.api.Codec;
- import com.hpe.caf.api.worker.WorkerException;
- import com.hpe.caf.api.worker.WorkerFactory;
+ import com.opentext.caf.api.Codec;
+ import com.opentext.caf.api.worker.WorkerException;
+ import com.opentext.caf.api.worker.WorkerFactory;
 
  import java.util.Objects;
 
@@ -707,14 +707,14 @@ different results.
  and prompt automated systems or ops teams to take action when necessary.
 
 ```
- package com.hpe.caf.test.worker;
+ package com.opentext.caf.test.worker;
 
- import com.hpe.caf.api.Codec;
- import com.hpe.caf.api.ConfigurationException;
- import com.hpe.caf.api.ConfigurationSource;
- import com.hpe.caf.api.worker.DataSource;
- import com.hpe.caf.api.worker.WorkerException;
- import com.hpe.caf.api.worker.WorkerFactoryProvider;
+ import com.opentext.caf.api.Codec;
+ import com.opentext.caf.api.ConfigurationException;
+ import com.opentext.caf.api.ConfigurationSource;
+ import com.opentext.caf.api.worker.DataSource;
+ import com.opentext.caf.api.worker.WorkerException;
+ import com.opentext.caf.api.worker.WorkerFactoryProvider;
 
  import java.util.Objects;
 
@@ -755,14 +755,14 @@ different results.
  utility methods to aid in creating these responses, as demonstrated here:
 
 ```
- package com.hpe.caf.test.worker;
+ package com.opentext.caf.test.worker;
 
- import com.hpe.caf.api.Codec;
- import com.hpe.caf.api.CodecException;
- import com.hpe.caf.api.worker.Worker;
- import com.hpe.caf.api.worker.WorkerException;
- import com.hpe.caf.test.worker.shared.TestWorkerTask;
- import com.hpe.caf.test.worker.shared.TestWorkerResult;
+ import com.opentext.caf.api.Codec;
+ import com.opentext.caf.api.CodecException;
+ import com.opentext.caf.api.worker.Worker;
+ import com.opentext.caf.api.worker.WorkerException;
+ import com.opentext.caf.test.worker.shared.TestWorkerTask;
+ import com.opentext.caf.test.worker.shared.TestWorkerResult;
 
  import java.nio.charset.StandardCharsets;
  import java.util.Objects;
@@ -849,8 +849,8 @@ different results.
  be `WorkerFactoryProvider`, and the file contents will be a single line which
  consists of the fully qualified class name of your implementation. So in this
  case, the file will be called
- `META-INF/services/com.hpe.caf.api.worker.WorkerFactoryProvider` and will
- have the line `com.hpe.caf.test.worker.TestWorkerFactoryProvider`.
+ `META-INF/services/com.opentext.caf.api.worker.WorkerFactoryProvider` and will
+ have the line `com.opentext.caf.test.worker.TestWorkerFactoryProvider`.
 
 ### Putting it all together
 

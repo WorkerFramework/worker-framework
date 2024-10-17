@@ -19,13 +19,13 @@ import com.hpe.caf.api.Codec;
 import com.hpe.caf.api.ConfigurationException;
 import com.hpe.caf.api.ConfigurationSource;
 import com.hpe.caf.api.HealthResult;
-import com.hpe.caf.api.worker.DataStore;
-import com.hpe.caf.api.worker.InvalidTaskException;
-import com.hpe.caf.api.worker.TaskRejectedException;
-import com.hpe.caf.api.worker.Worker;
-import com.hpe.caf.api.worker.WorkerException;
-import com.hpe.caf.api.worker.WorkerFactory;
-import com.hpe.caf.api.worker.WorkerTaskData;
+import com.opentext.caf.api.worker.DataStore;
+import com.opentext.caf.api.worker.InvalidTaskException;
+import com.opentext.caf.api.worker.TaskRejectedException;
+import com.opentext.caf.api.worker.Worker;
+import com.opentext.caf.api.worker.WorkerException;
+import com.opentext.caf.api.worker.WorkerFactory;
+import com.opentext.caf.api.worker.WorkerTaskData;
 import jakarta.annotation.Nonnull;
 
 final class TestWorkerFactory implements WorkerFactory

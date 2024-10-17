@@ -17,10 +17,10 @@ package com.github.workerframework.testworker;
 
 import com.hpe.caf.api.Codec;
 import com.hpe.caf.api.ConfigurationSource;
-import com.hpe.caf.api.worker.DataStore;
-import com.hpe.caf.api.worker.WorkerException;
-import com.hpe.caf.api.worker.WorkerFactory;
-import com.hpe.caf.api.worker.WorkerFactoryProvider;
+import com.opentext.caf.api.worker.DataStore;
+import com.opentext.caf.api.worker.WorkerException;
+import com.opentext.caf.api.worker.WorkerFactory;
+import com.opentext.caf.api.worker.WorkerFactoryProvider;
 import jakarta.annotation.Nonnull;
 
 /**
