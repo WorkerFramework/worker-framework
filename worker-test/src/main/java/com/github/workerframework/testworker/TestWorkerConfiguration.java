@@ -15,7 +15,7 @@
  */
 package com.github.workerframework.testworker;
 
-import com.hpe.caf.api.worker.WorkerConfiguration;
+import com.opentext.caf.api.worker.WorkerConfiguration;
 import jakarta.validation.constraints.Max;
 import jakarta.validation.constraints.Min;
 
