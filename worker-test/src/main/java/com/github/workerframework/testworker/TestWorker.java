@@ -15,8 +15,8 @@
  */
 package com.github.workerframework.testworker;
 
-import com.hpe.caf.api.Codec;
-import com.hpe.caf.api.CodecException;
+import com.github.cafapi.common.api.Codec;
+import com.github.cafapi.common.api.CodecException;
 import com.hpe.caf.api.worker.InvalidTaskException;
 import com.hpe.caf.api.worker.TaskRejectedException;
 import com.hpe.caf.api.worker.TaskStatus;

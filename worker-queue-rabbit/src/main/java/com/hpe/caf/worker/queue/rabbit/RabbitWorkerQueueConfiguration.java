@@ -15,7 +15,7 @@
  */
 package com.hpe.caf.worker.queue.rabbit;
 
-import com.hpe.caf.api.Configuration;
+import com.github.cafapi.common.api.Configuration;
 import com.hpe.caf.configs.RabbitConfiguration;
 
 import jakarta.validation.Valid;

@@ -15,8 +15,8 @@
  */
 package com.github.workerframework.testworker;
 
-import com.hpe.caf.api.Codec;
-import com.hpe.caf.api.ConfigurationSource;
+import com.github.cafapi.common.api.Codec;
+import com.github.cafapi.common.api.ConfigurationSource;
 import com.hpe.caf.api.worker.DataStore;
 import com.hpe.caf.api.worker.WorkerException;
 import com.hpe.caf.api.worker.WorkerFactory;

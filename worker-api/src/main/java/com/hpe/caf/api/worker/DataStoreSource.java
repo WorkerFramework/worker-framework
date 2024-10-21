@@ -15,12 +15,12 @@
  */
 package com.hpe.caf.api.worker;
 
-import com.hpe.caf.api.Codec;
-import com.hpe.caf.api.CodecException;
-import com.hpe.caf.api.QuietResource;
-import com.hpe.caf.util.ref.DataSource;
-import com.hpe.caf.util.ref.DataSourceException;
-import com.hpe.caf.util.ref.SourceNotFoundException;
+import com.github.cafapi.common.api.Codec;
+import com.github.cafapi.common.api.CodecException;
+import com.github.cafapi.common.api.QuietResource;
+import com.github.cafapi.common.util.ref.DataSource;
+import com.github.cafapi.common.util.ref.DataSourceException;
+import com.github.cafapi.common.util.ref.SourceNotFoundException;
 
 import java.io.InputStream;
 import java.util.Objects;

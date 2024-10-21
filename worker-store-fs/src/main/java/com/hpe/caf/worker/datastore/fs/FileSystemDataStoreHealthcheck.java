@@ -15,7 +15,7 @@
  */
 package com.hpe.caf.worker.datastore.fs;
 
-import com.hpe.caf.api.HealthResult;
+import com.github.cafapi.common.api.HealthResult;
 import java.nio.file.Files;
 import java.io.IOException;
 import java.nio.file.Path;

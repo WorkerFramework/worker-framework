@@ -15,12 +15,12 @@
  */
 package com.hpe.caf.worker.workertest;
 
+import com.github.cafapi.common.api.Codec;
+import com.github.cafapi.common.api.CodecException;
+import com.github.cafapi.common.codecs.jsonlzf.JsonCodec;
 import com.github.workerframework.testworker.TestWorkerTask;
-import com.hpe.caf.api.Codec;
-import com.hpe.caf.api.CodecException;
 import com.hpe.caf.api.worker.TaskMessage;
 import com.hpe.caf.api.worker.TaskStatus;
-import com.hpe.caf.codec.JsonCodec;
 import com.hpe.caf.util.rabbitmq.QueueCreator;
 import com.rabbitmq.client.Connection;
 import com.rabbitmq.client.Channel;

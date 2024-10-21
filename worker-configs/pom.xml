@@ -33,7 +33,7 @@
 
     <dependencies>
         <dependency>
-            <groupId>com.github.cafapi</groupId>
+            <groupId>com.github.cafapi.common.api</groupId>
             <artifactId>caf-api</artifactId>
         </dependency>
         <dependency>

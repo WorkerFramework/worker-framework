@@ -15,7 +15,7 @@
  */
 package com.hpe.caf.api.worker;
 
-import com.hpe.caf.api.HealthReporter;
+import com.github.cafapi.common.api.HealthReporter;
 
 /**
  * Instantiates a new instance of a Worker given task-specific data. Most implementations of WorkerFactory should extend

@@ -15,7 +15,7 @@
  */
 package com.hpe.caf.api.worker;
 
-import com.hpe.caf.api.ConfigurationSource;
+import com.github.cafapi.common.api.ConfigurationSource;
 
 /**
  * Boilerplate for retrieving a WorkerQueue implementation.

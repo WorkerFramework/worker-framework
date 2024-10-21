@@ -15,8 +15,8 @@
  */
 package com.hpe.caf.worker.datastore.fs;
 
-import com.hpe.caf.api.HealthResult;
-import com.hpe.caf.api.HealthStatus;
+import com.github.cafapi.common.api.HealthResult;
+import com.github.cafapi.common.api.HealthStatus;
 import com.hpe.caf.api.worker.*;
 import org.apache.commons.io.output.ProxyOutputStream;
 import org.slf4j.Logger;

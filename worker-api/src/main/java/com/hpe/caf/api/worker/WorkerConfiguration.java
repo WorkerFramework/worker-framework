@@ -15,7 +15,7 @@
  */
 package com.hpe.caf.api.worker;
 
-import com.hpe.caf.api.Configuration;
+import com.github.cafapi.common.api.Configuration;
 
 @Configuration
 public class WorkerConfiguration

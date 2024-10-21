@@ -15,7 +15,7 @@
  */
 package com.hpe.caf.worker.datastore.s3;
 
-import com.hpe.caf.api.Configuration;
+import com.github.cafapi.common.api.Configuration;
 
 import jakarta.validation.constraints.Max;
 import jakarta.validation.constraints.Min;

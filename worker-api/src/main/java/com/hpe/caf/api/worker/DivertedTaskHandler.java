@@ -15,7 +15,7 @@
  */
 package com.hpe.caf.api.worker;
 
-import com.hpe.caf.api.Codec;
+import com.github.cafapi.common.api.Codec;
 import java.util.Map;
 
 /**

@@ -15,8 +15,8 @@
  */
 package com.hpe.caf.worker.datastore.http;
 
-import com.hpe.caf.api.HealthResult;
-import com.hpe.caf.api.HealthStatus;
+import com.github.cafapi.common.api.HealthResult;
+import com.github.cafapi.common.api.HealthStatus;
 import com.hpe.caf.api.worker.DataStore;
 import com.hpe.caf.api.worker.DataStoreException;
 import com.hpe.caf.api.worker.ReferenceNotFoundException;

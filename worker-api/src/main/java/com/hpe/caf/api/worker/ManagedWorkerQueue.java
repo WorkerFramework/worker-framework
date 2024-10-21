@@ -15,7 +15,7 @@
  */
 package com.hpe.caf.api.worker;
 
-import com.hpe.caf.api.HealthReporter;
+import com.github.cafapi.common.api.HealthReporter;
 
 /**
  * A WorkerQueue for use at an application level, supporting management methods.

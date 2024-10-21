@@ -15,8 +15,8 @@
  */
 package com.hpe.caf.worker.queue.rabbit;
 
-import com.hpe.caf.api.HealthResult;
-import com.hpe.caf.api.HealthStatus;
+import com.github.cafapi.common.api.HealthResult;
+import com.github.cafapi.common.api.HealthStatus;
 import com.hpe.caf.api.worker.*;
 import com.hpe.caf.util.rabbitmq.*;
 import com.rabbitmq.client.Channel;

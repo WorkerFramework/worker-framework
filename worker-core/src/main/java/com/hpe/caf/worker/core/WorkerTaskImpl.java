@@ -15,11 +15,11 @@
  */
 package com.hpe.caf.worker.core;
 
+import com.github.cafapi.common.api.Codec;
+import com.github.cafapi.common.api.CodecException;
+import com.github.cafapi.common.util.naming.ServicePath;
 import com.google.common.base.MoreObjects;
-import com.hpe.caf.api.Codec;
-import com.hpe.caf.api.CodecException;
 import com.hpe.caf.api.worker.*;
-import com.hpe.caf.naming.ServicePath;
 import java.nio.charset.StandardCharsets;
 import java.text.MessageFormat;
 import java.util.ArrayList;

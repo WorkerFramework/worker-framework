@@ -16,14 +16,14 @@
 package com.hpe.caf.worker.core;
 
 import com.codahale.metrics.health.HealthCheckRegistry;
-import com.hpe.caf.api.Codec;
-import com.hpe.caf.api.CodecException;
-import com.hpe.caf.api.ConfigurationException;
-import com.hpe.caf.api.ConfigurationSource;
-import com.hpe.caf.api.HealthResult;
+import com.github.cafapi.common.api.Codec;
+import com.github.cafapi.common.api.CodecException;
+import com.github.cafapi.common.api.ConfigurationException;
+import com.github.cafapi.common.api.ConfigurationSource;
+import com.github.cafapi.common.api.HealthResult;
+import com.github.cafapi.common.codecs.jsonlzf.JsonCodec;
+import com.github.cafapi.common.util.naming.ServicePath;
 import com.hpe.caf.api.worker.*;
-import com.hpe.caf.codec.JsonCodec;
-import com.hpe.caf.naming.ServicePath;
 import com.hpe.caf.worker.AbstractWorker;
 import com.hpe.caf.worker.tracking.report.TrackingReportStatus;
 import com.hpe.caf.worker.tracking.report.TrackingReportTask;

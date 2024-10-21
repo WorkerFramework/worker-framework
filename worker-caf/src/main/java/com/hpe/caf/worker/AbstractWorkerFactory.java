@@ -15,11 +15,11 @@
  */
 package com.hpe.caf.worker;
 
-import com.hpe.caf.api.Codec;
-import com.hpe.caf.api.CodecException;
-import com.hpe.caf.api.ConfigurationException;
-import com.hpe.caf.api.ConfigurationSource;
-import com.hpe.caf.api.DecodeMethod;
+import com.github.cafapi.common.api.Codec;
+import com.github.cafapi.common.api.CodecException;
+import com.github.cafapi.common.api.ConfigurationException;
+import com.github.cafapi.common.api.ConfigurationSource;
+import com.github.cafapi.common.api.DecodeMethod;
 import com.hpe.caf.api.worker.*;
 
 import java.util.Objects;

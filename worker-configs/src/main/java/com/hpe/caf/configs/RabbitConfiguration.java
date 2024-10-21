@@ -15,7 +15,7 @@
  */
 package com.hpe.caf.configs;
 
-import com.hpe.caf.api.Encrypted;
+import com.github.cafapi.common.api.Encrypted;
 
 import jakarta.validation.constraints.Max;
 import jakarta.validation.constraints.Min;

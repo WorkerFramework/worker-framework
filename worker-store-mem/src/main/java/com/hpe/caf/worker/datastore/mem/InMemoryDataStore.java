@@ -15,7 +15,7 @@
  */
 package com.hpe.caf.worker.datastore.mem;
 
-import com.hpe.caf.api.HealthResult;
+import com.github.cafapi.common.api.HealthResult;
 import com.hpe.caf.api.worker.DataStoreException;
 import com.hpe.caf.api.worker.DataStoreMetricsReporter;
 import com.hpe.caf.api.worker.ManagedDataStore;

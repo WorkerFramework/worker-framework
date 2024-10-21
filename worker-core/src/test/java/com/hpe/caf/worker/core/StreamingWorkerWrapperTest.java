@@ -15,11 +15,11 @@
  */
 package com.hpe.caf.worker.core;
 
-import com.hpe.caf.api.Codec;
-import com.hpe.caf.api.CodecException;
+import com.github.cafapi.common.api.Codec;
+import com.github.cafapi.common.api.CodecException;
+import com.github.cafapi.common.codecs.jsonlzf.JsonCodec;
+import com.github.cafapi.common.util.naming.ServicePath;
 import com.hpe.caf.api.worker.*;
-import com.hpe.caf.codec.JsonCodec;
-import com.hpe.caf.naming.ServicePath;
 import com.hpe.caf.worker.AbstractWorker;
 import org.testng.Assert;
 import org.testng.annotations.Test;

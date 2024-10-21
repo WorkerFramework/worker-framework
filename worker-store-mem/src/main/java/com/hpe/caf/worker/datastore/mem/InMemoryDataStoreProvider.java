@@ -15,7 +15,7 @@
  */
 package com.hpe.caf.worker.datastore.mem;
 
-import com.hpe.caf.api.ConfigurationSource;
+import com.github.cafapi.common.api.ConfigurationSource;
 import com.hpe.caf.api.worker.DataStoreProvider;
 import com.hpe.caf.api.worker.ManagedDataStore;
 

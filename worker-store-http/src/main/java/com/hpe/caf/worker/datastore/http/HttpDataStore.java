@@ -15,10 +15,10 @@
  */
 package com.hpe.caf.worker.datastore.http;
 
+import com.github.cafapi.common.api.HealthResult;
+import com.github.cafapi.common.api.HealthStatus;
+import com.github.cafapi.common.api.QuietResource;
 import com.google.common.io.ByteStreams;
-import com.hpe.caf.api.HealthResult;
-import com.hpe.caf.api.HealthStatus;
-import com.hpe.caf.api.QuietResource;
 import com.hpe.caf.api.worker.*;
 import java.io.DataOutputStream;
 import org.slf4j.Logger;

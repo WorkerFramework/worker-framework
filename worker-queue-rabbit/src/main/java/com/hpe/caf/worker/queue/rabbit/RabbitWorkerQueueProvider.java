@@ -15,8 +15,8 @@
  */
 package com.hpe.caf.worker.queue.rabbit;
 
-import com.hpe.caf.api.ConfigurationException;
-import com.hpe.caf.api.ConfigurationSource;
+import com.github.cafapi.common.api.ConfigurationException;
+import com.github.cafapi.common.api.ConfigurationSource;
 import com.hpe.caf.api.worker.ManagedWorkerQueue;
 import com.hpe.caf.api.worker.QueueException;
 import com.hpe.caf.api.worker.WorkerQueueProvider;

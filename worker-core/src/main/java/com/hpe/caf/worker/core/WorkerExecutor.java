@@ -15,9 +15,9 @@
  */
 package com.hpe.caf.worker.core;
 
-import com.hpe.caf.api.Codec;
+import com.github.cafapi.common.api.Codec;
+import com.github.cafapi.common.util.naming.ServicePath;
 import com.hpe.caf.api.worker.*;
-import com.hpe.caf.naming.ServicePath;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

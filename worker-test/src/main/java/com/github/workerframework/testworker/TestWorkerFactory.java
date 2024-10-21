@@ -15,10 +15,10 @@
  */
 package com.github.workerframework.testworker;
 
-import com.hpe.caf.api.Codec;
-import com.hpe.caf.api.ConfigurationException;
-import com.hpe.caf.api.ConfigurationSource;
-import com.hpe.caf.api.HealthResult;
+import com.github.cafapi.common.api.Codec;
+import com.github.cafapi.common.api.ConfigurationException;
+import com.github.cafapi.common.api.ConfigurationSource;
+import com.github.cafapi.common.api.HealthResult;
 import com.hpe.caf.api.worker.DataStore;
 import com.hpe.caf.api.worker.InvalidTaskException;
 import com.hpe.caf.api.worker.TaskRejectedException;

@@ -35,7 +35,7 @@
 
     <dependencies>
         <dependency>
-            <groupId>com.github.cafapi</groupId>
+            <groupId>com.github.cafapi.common.api</groupId>
             <artifactId>caf-api</artifactId>
         </dependency>
         <dependency>
@@ -53,7 +53,7 @@
 
         <!-- Runtime dependencies -->
         <dependency>
-            <groupId>com.github.cafapi.codec</groupId>
+            <groupId>com.github.cafapi.common.codecs</groupId>
             <artifactId>codec-json</artifactId>
             <scope>runtime</scope>
         </dependency>

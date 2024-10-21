@@ -15,13 +15,13 @@
  */
 package com.hpe.caf.worker.core;
 
+import com.github.cafapi.common.api.Codec;
+import com.github.cafapi.common.api.CodecException;
+import com.github.cafapi.common.api.DecodeMethod;
+import com.github.cafapi.common.util.naming.ServicePath;
 import com.hpe.caf.api.worker.JobStatus;
 import com.codahale.metrics.health.HealthCheckRegistry;
-import com.hpe.caf.api.Codec;
-import com.hpe.caf.api.CodecException;
-import com.hpe.caf.api.DecodeMethod;
 import com.hpe.caf.api.worker.*;
-import com.hpe.caf.naming.ServicePath;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

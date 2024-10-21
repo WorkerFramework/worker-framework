@@ -33,15 +33,15 @@
 
     <dependencies>
         <dependency>
-            <groupId>com.github.cafapi.codec</groupId>
+            <groupId>com.github.cafapi.common.codecs</groupId>
             <artifactId>codec-json</artifactId>
         </dependency>
         <dependency>
-            <groupId>com.github.cafapi.config</groupId>
+            <groupId>com.github.cafapi.common.config.sources</groupId>
             <artifactId>config-file</artifactId>
         </dependency>
         <dependency>
-            <groupId>com.github.cafapi.decoder</groupId>
+            <groupId>com.github.cafapi.common.decoders</groupId>
             <artifactId>decoder-js</artifactId>
         </dependency>
         <dependency>

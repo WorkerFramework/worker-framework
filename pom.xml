@@ -211,44 +211,44 @@
                 <version>3.1.8</version>
             </dependency>
             <dependency>
-                <groupId>com.github.cafapi</groupId>
+                <groupId>com.github.cafapi.common.api</groupId>
                 <artifactId>caf-api</artifactId>
-                <version>3.2.0-SNAPSHOT</version>
+                <version>4.0.0-975260-SNAPSHOT</version>
             </dependency>
             <dependency>
-                <groupId>com.github.cafapi.cipher</groupId>
+                <groupId>com.github.cafapi.common.ciphers</groupId>
                 <artifactId>cipher-null</artifactId>
-                <version>3.2.0-SNAPSHOT</version>
+                <version>4.0.0-975260-SNAPSHOT</version>
             </dependency>
             <dependency>
-                <groupId>com.github.cafapi.codec</groupId>
+                <groupId>com.github.cafapi.common.codecs</groupId>
                 <artifactId>codec-json</artifactId>
-                <version>3.2.0-SNAPSHOT</version>
+                <version>4.0.0-975260-SNAPSHOT</version>
             </dependency>
             <dependency>
-                <groupId>com.github.cafapi.config</groupId>
-                <artifactId>config-caf</artifactId>
-                <version>3.2.0-SNAPSHOT</version>
+                <groupId>com.github.cafapi.common.config</groupId>
+                <artifactId>config-source</artifactId>
+                <version>4.0.0-975260-SNAPSHOT</version>
             </dependency>
             <dependency>
-                <groupId>com.github.cafapi.config</groupId>
+                <groupId>com.github.cafapi.common.config</groupId>
                 <artifactId>config-decoder</artifactId>
-                <version>3.2.0-SNAPSHOT</version>
+                <version>4.0.0-975260-SNAPSHOT</version>
             </dependency>
             <dependency>
-                <groupId>com.github.cafapi.config</groupId>
+                <groupId>com.github.cafapi.common.config.sources</groupId>
                 <artifactId>config-file</artifactId>
-                <version>3.2.0-SNAPSHOT</version>
+                <version>4.0.0-975260-SNAPSHOT</version>
             </dependency>
             <dependency>
-                <groupId>com.github.cafapi.config</groupId>
-                <artifactId>config-system</artifactId>
-                <version>3.2.0-SNAPSHOT</version>
+                <groupId>com.github.cafapi.common.bootstrapconfigs</groupId>
+                <artifactId>bootstrapconfig-system</artifactId>
+                <version>4.0.0-975260-SNAPSHOT</version>
             </dependency>
             <dependency>
-                <groupId>com.github.cafapi.decoder</groupId>
+                <groupId>com.github.cafapi.common.decoders</groupId>
                 <artifactId>decoder-js</artifactId>
-                <version>3.2.0-SNAPSHOT</version>
+                <version>4.0.0-975260-SNAPSHOT</version>
             </dependency>
             <dependency>
                 <groupId>com.github.cafapi.logging</groupId>
@@ -256,19 +256,19 @@
                 <version>2.0.0-238</version>
             </dependency>
             <dependency>
-                <groupId>com.github.cafapi.util</groupId>
+                <groupId>com.github.cafapi.common.util</groupId>
                 <artifactId>util-moduleloader</artifactId>
-                <version>3.2.0-SNAPSHOT</version>
+                <version>4.0.0-975260-SNAPSHOT</version>
             </dependency>
             <dependency>
-                <groupId>com.github.cafapi.util</groupId>
+                <groupId>com.github.cafapi.common.util</groupId>
                 <artifactId>util-naming</artifactId>
-                <version>3.2.0-SNAPSHOT</version>
+                <version>4.0.0-975260-SNAPSHOT</version>
             </dependency>
             <dependency>
-                <groupId>com.github.cafapi.util</groupId>
+                <groupId>com.github.cafapi.common.util</groupId>
                 <artifactId>util-ref</artifactId>
-                <version>3.2.0-SNAPSHOT</version>
+                <version>4.0.0-975260-SNAPSHOT</version>
             </dependency>
             <dependency>
                 <groupId>com.github.workerframework</groupId>

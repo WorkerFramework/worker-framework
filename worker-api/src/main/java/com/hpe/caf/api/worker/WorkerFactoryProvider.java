@@ -15,8 +15,8 @@
  */
 package com.hpe.caf.api.worker;
 
-import com.hpe.caf.api.Codec;
-import com.hpe.caf.api.ConfigurationSource;
+import com.github.cafapi.common.api.Codec;
+import com.github.cafapi.common.api.ConfigurationSource;
 
 /**
  * The responsibility of a WorkerFactory is to provide a mechanism to generate new Worker objects and specify how many simultaneous

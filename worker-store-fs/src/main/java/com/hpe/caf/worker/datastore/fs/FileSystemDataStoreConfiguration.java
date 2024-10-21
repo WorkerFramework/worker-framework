@@ -15,7 +15,7 @@
  */
 package com.hpe.caf.worker.datastore.fs;
 
-import com.hpe.caf.api.Configuration;
+import com.github.cafapi.common.api.Configuration;
 
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
