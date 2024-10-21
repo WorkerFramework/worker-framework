@@ -17,12 +17,12 @@ package com.github.workerframework.testworker;
 
 import com.hpe.caf.api.Codec;
 import com.hpe.caf.api.CodecException;
-import com.opentext.caf.api.worker.InvalidTaskException;
-import com.opentext.caf.api.worker.TaskRejectedException;
-import com.opentext.caf.api.worker.TaskStatus;
-import com.opentext.caf.api.worker.Worker;
-import com.opentext.caf.api.worker.WorkerResponse;
-import com.opentext.caf.api.worker.WorkerTaskData;
+import com.hpe.caf.api.worker.InvalidTaskException;
+import com.hpe.caf.api.worker.TaskRejectedException;
+import com.hpe.caf.api.worker.TaskStatus;
+import com.hpe.caf.api.worker.Worker;
+import com.hpe.caf.api.worker.WorkerResponse;
+import com.hpe.caf.api.worker.WorkerTaskData;
 import jakarta.annotation.Nonnull;
 import java.nio.charset.StandardCharsets;
 

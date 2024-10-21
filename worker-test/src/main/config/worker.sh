@@ -26,6 +26,6 @@ cd /maven
 exec java $CAF_WORKER_JAVA_OPTS \
     -Dpolyglot.engine.WarnInterpreterOnly=false \
     -cp '*' \
-    com.opentext.caf.worker.core.WorkerApplication \
+    com.hpe.caf.worker.core.WorkerApplication \
     server \
     /maven/worker.yaml
