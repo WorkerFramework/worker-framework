@@ -21,7 +21,7 @@
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
 
-    <groupId>com.github.workerframework</groupId>
+    <groupId>com.github.workerframework.worker</groupId>
     <artifactId>worker-core</artifactId>
     <version>8.2.0-SNAPSHOT</version>
 
@@ -45,7 +45,7 @@
             <artifactId>caf-api</artifactId>
         </dependency>
         <dependency>
-            <groupId>com.github.workerframework</groupId>
+            <groupId>com.github.workerframework.worker</groupId>
             <artifactId>worker-api</artifactId>
         </dependency>
         <dependency>
@@ -113,15 +113,15 @@
             <artifactId>dropwizard-configuration</artifactId>
         </dependency>
         <dependency>
-            <groupId>com.github.workerframework</groupId>
+            <groupId>com.github.workerframework.worker.util</groupId>
             <artifactId>util-rabbitmq</artifactId>
         </dependency>
         <dependency>
-            <groupId>com.github.workerframework</groupId>
+            <groupId>com.github.workerframework.worker</groupId>
             <artifactId>worker-configs</artifactId>
         </dependency>
         <dependency>
-            <groupId>com.github.workerframework</groupId>
+            <groupId>com.github.workerframework.worker.tracking</groupId>
             <artifactId>worker-tracking-report</artifactId>
         </dependency>
         <dependency>
@@ -163,7 +163,7 @@
             <scope>test</scope>
         </dependency>
         <dependency>
-            <groupId>com.github.workerframework</groupId>
+            <groupId>com.github.workerframework.worker</groupId>
             <artifactId>worker-caf</artifactId>
             <scope>test</scope>
         </dependency>

@@ -16,7 +16,7 @@
 #
 
 export CAF_APPNAME=caf/worker
-export CAF_RESOURCE_PATH=com/github/workerframework/testworker/config
+export CAF_RESOURCE_PATH=com/github/workerframework/worker/testworker/config
 export CAF_CONFIG_DECODER=JavascriptDecoder
 export CAF_CONFIG_ENABLE_SUBSTITUTOR=false
 
@@ -26,6 +26,6 @@ cd /maven
 exec java $CAF_WORKER_JAVA_OPTS \
     -Dpolyglot.engine.WarnInterpreterOnly=false \
     -cp '*' \
-    com.hpe.caf.worker.core.WorkerApplication \
+    com.github.workerframework.worker.core.WorkerApplication \
     server \
     /maven/worker.yaml

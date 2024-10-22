@@ -16,9 +16,9 @@
 package com.hpe.caf.worker.datastore.cs;
 
 import com.amazonaws.util.IOUtils;
-import com.hpe.caf.api.worker.DataStoreException;
-import com.hpe.caf.worker.datastore.s3.S3DataStore;
-import com.hpe.caf.worker.datastore.s3.S3DataStoreConfiguration;
+import com.github.workerframework.worker.api.DataStoreException;
+import com.github.workerframework.worker.datastores.s3.S3DataStore;
+import com.github.workerframework.worker.datastores.s3.S3DataStoreConfiguration;
 import org.testng.Assert;
 import org.testng.annotations.Test;
 

@@ -83,7 +83,7 @@ the current input queue. Default is True.
  The following command-line should start the application:
  
  ```
- java -cp "*" com.hpe.caf.worker.core.WorkerApplication server [settings.yaml]
+ java -cp "*" com.github.workerframework.worker.core.WorkerApplication server [settings.yaml]
  ```
     
 ### The DataStore component
@@ -488,7 +488,7 @@ different results.
  The input message will look a bit like this:
 
 ```
- package com.hpe.caf.test.worker.shared;
+ package com.github.test.worker.shared;
 
 
  public final class TestWorkerTask
@@ -517,7 +517,7 @@ different results.
  Equivalently, our output message will be something like:
 
 ```
- package com.hpe.caf.test.worker.shared;
+ package com.github.test.worker.shared;
 
 
  public final class TestWorkerResult
@@ -551,9 +551,9 @@ different results.
  is also final as they are typically serialised:
 
 ```
- package com.hpe.caf.test.worker;
+ package com.github.test.worker;
 
- import com.hpe.caf.api.Configuration;
+ import com.github.cafapi.common.api.Configuration;
 
  import javax.validation.constraints.NotNull;
  import javax.validation.constraints.Size;
@@ -635,9 +635,9 @@ different results.
  onto the same result queue. So the `WorkerFactory` looks like this:
 
 ```
- package com.hpe.caf.test.worker;
+ package com.github.test.worker;
 
- import com.hpe.caf.api.Codec;
+ import com.github.cafapi.common.api.Codec;
  import com.hpe.caf.api.worker.WorkerException;
  import com.hpe.caf.api.worker.WorkerFactory;
 
@@ -707,14 +707,14 @@ different results.
  and prompt automated systems or ops teams to take action when necessary.
 
 ```
- package com.hpe.caf.test.worker;
+ package com.github.test.worker;
 
  import com.hpe.caf.api.Codec;
  import com.hpe.caf.api.ConfigurationException;
  import com.hpe.caf.api.ConfigurationSource;
  import com.hpe.caf.api.worker.DataSource;
- import com.hpe.caf.api.worker.WorkerException;
- import com.hpe.caf.api.worker.WorkerFactoryProvider;
+ import WorkerException;
+ import WorkerFactoryProvider;
 
  import java.util.Objects;
 
@@ -755,14 +755,14 @@ different results.
  utility methods to aid in creating these responses, as demonstrated here:
 
 ```
- package com.hpe.caf.test.worker;
+ package com.github.test.worker;
 
- import com.hpe.caf.api.Codec;
- import com.hpe.caf.api.CodecException;
- import com.hpe.caf.api.worker.Worker;
- import com.hpe.caf.api.worker.WorkerException;
- import com.hpe.caf.test.worker.shared.TestWorkerTask;
- import com.hpe.caf.test.worker.shared.TestWorkerResult;
+ import com.github.cafapi.common.api.Codec;
+ import com.github.cafapi.common.api.CodecException;
+ import com.github.workerframework.worker.api.Worker;
+ import com.github.workerframework.worker.api.WorkerException;
+ import com.github.test.worker.shared.TestWorkerTask;
+ import com.github.test.worker.shared.TestWorkerResult;
 
  import java.nio.charset.StandardCharsets;
  import java.util.Objects;
@@ -849,8 +849,8 @@ different results.
  be `WorkerFactoryProvider`, and the file contents will be a single line which
  consists of the fully qualified class name of your implementation. So in this
  case, the file will be called
- `META-INF/services/com.hpe.caf.api.worker.WorkerFactoryProvider` and will
- have the line `com.hpe.caf.test.worker.TestWorkerFactoryProvider`.
+ `META-INF/services/com.github.workerframework.worker.api.WorkerFactoryProvider` and will
+ have the line `com.github.test.worker.TestWorkerFactoryProvider`.
 
 ### Putting it all together
 
