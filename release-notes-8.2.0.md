@@ -1,5 +1,3 @@
-!not-ready-for-release!
-
 #### Version Number
 ${version-number}
 
@@ -10,3 +8,4 @@ ${version-number}
     - File content in path specified by environment variable named `CAF_RABBITMQ_PASSWORD_FILE` (enabled via `CAF_ENABLE_FILE_SECRETS`, defaults to `false`)
 
 #### Known Issues
+- None
