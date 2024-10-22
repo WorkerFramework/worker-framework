@@ -70,7 +70,7 @@ import java.util.concurrent.TimeUnit;
 import java.util.function.Supplier;
 
 /**
- * This is the main HP SaaS asynchronous micro-service worker entry point. On startup, it will identify implementations of necessary
+ * This is the main SaaS asynchronous micro-service worker entry point. On startup, it will identify implementations of necessary
  * components (such as a queue, data store, and backend worker), and create a WorkerCore object which will handle the logic of data flow
  * between these components. The application class itself here just wrappers this and exposes health checks and metrics.
  */

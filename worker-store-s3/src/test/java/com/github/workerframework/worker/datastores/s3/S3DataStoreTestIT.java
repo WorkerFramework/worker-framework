@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.hpe.caf.worker.datastore.cs;
+package com.github.workerframework.worker.datastores.s3;
 
 import com.amazonaws.util.IOUtils;
 import com.github.workerframework.worker.api.DataStoreException;
