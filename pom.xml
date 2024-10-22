@@ -23,7 +23,7 @@
 
     <groupId>com.github.workerframework</groupId>
     <artifactId>worker-framework-aggregator</artifactId>
-    <version>8.2.0-SNAPSHOT</version>
+    <version>9.0.0-SNAPSHOT</version>
     <packaging>pom</packaging>
 
     <name>Worker Framework</name>
@@ -274,52 +274,52 @@
                 <groupId>com.github.workerframework.worker</groupId>
                 <artifactId>standard-worker-container</artifactId>
                 <type>pom</type>
-                <version>8.2.0-SNAPSHOT</version>
+                <version>9.0.0-SNAPSHOT</version>
             </dependency>
             <dependency>
                 <groupId>com.github.workerframework.worker.util</groupId>
                 <artifactId>util-rabbitmq</artifactId>
-                <version>8.2.0-SNAPSHOT</version>
+                <version>9.0.0-SNAPSHOT</version>
             </dependency>
             <dependency>
                 <groupId>com.github.workerframework.worker</groupId>
                 <artifactId>worker-api</artifactId>
-                <version>8.2.0-SNAPSHOT</version>
+                <version>9.0.0-SNAPSHOT</version>
             </dependency>
             <dependency>
                 <groupId>com.github.workerframework.worker</groupId>
                 <artifactId>worker-caf</artifactId>
-                <version>8.2.0-SNAPSHOT</version>
+                <version>9.0.0-SNAPSHOT</version>
             </dependency>
             <dependency>
                 <groupId>com.github.workerframework.worker</groupId>
                 <artifactId>worker-configs</artifactId>
-                <version>8.2.0-SNAPSHOT</version>
+                <version>9.0.0-SNAPSHOT</version>
             </dependency>
             <dependency>
                 <groupId>com.github.workerframework.worker</groupId>
                 <artifactId>worker-core</artifactId>
-                <version>8.2.0-SNAPSHOT</version>
+                <version>9.0.0-SNAPSHOT</version>
             </dependency>
             <dependency>
                 <groupId>com.github.workerframework.worker</groupId>
                 <artifactId>worker-default-configs</artifactId>
-                <version>8.2.0-SNAPSHOT</version>
+                <version>9.0.0-SNAPSHOT</version>
             </dependency>
             <dependency>
                 <groupId>com.github.workerframework.worker.queues</groupId>
                 <artifactId>worker-queue-rabbit</artifactId>
-                <version>8.2.0-SNAPSHOT</version>
+                <version>9.0.0-SNAPSHOT</version>
             </dependency>
             <dependency>
                 <groupId>com.github.workerframework.worker.datastores</groupId>
                 <artifactId>worker-store-fs</artifactId>
-                <version>8.2.0-SNAPSHOT</version>
+                <version>9.0.0-SNAPSHOT</version>
             </dependency>
             <dependency>
                 <groupId>com.github.workerframework.worker.tracking</groupId>
                 <artifactId>worker-tracking-report</artifactId>
-                <version>8.2.0-SNAPSHOT</version>
+                <version>9.0.0-SNAPSHOT</version>
             </dependency>
             <dependency>
                 <groupId>com.google.code.findbugs</groupId>
