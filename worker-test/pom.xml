@@ -24,22 +24,22 @@
     <parent>
         <groupId>com.github.workerframework</groupId>
         <artifactId>worker-framework-aggregator</artifactId>
-        <version>8.2.0-SNAPSHOT</version>
+        <version>9.0.0-SNAPSHOT</version>
     </parent>
 
     <artifactId>worker-test</artifactId>
-
+    <groupId>com.github.workerframework.worker</groupId>
     <properties>
         <targetDockerRegistryPath>devimages</targetDockerRegistryPath>
     </properties>
 
     <dependencies>
         <dependency>
-            <groupId>com.github.cafapi</groupId>
+            <groupId>com.github.cafapi.common.api</groupId>
             <artifactId>caf-api</artifactId>
         </dependency>
         <dependency>
-            <groupId>com.github.workerframework</groupId>
+            <groupId>com.github.workerframework.worker</groupId>
             <artifactId>worker-api</artifactId>
         </dependency>
         <dependency>
@@ -53,7 +53,7 @@
 
         <!-- Runtime dependencies -->
         <dependency>
-            <groupId>com.github.cafapi.codec</groupId>
+            <groupId>com.github.cafapi.common.codecs</groupId>
             <artifactId>codec-json</artifactId>
             <scope>runtime</scope>
         </dependency>
@@ -63,13 +63,13 @@
             <scope>runtime</scope>
         </dependency>
         <dependency>
-            <groupId>com.github.workerframework</groupId>
+            <groupId>com.github.workerframework.worker</groupId>
             <artifactId>standard-worker-container</artifactId>
             <type>pom</type>
             <scope>runtime</scope>
         </dependency>
         <dependency>
-            <groupId>com.github.workerframework</groupId>
+            <groupId>com.github.workerframework.worker.util</groupId>
             <artifactId>util-rabbitmq</artifactId>
             <scope>runtime</scope>
         </dependency>
@@ -103,10 +103,10 @@
                         <configuration>
                             <artifactItems>
                                 <artifactItem>
-                                    <groupId>com.github.workerframework</groupId>
+                                    <groupId>com.github.workerframework.worker</groupId>
                                     <artifactId>worker-default-configs</artifactId>
                                     <outputDirectory>
-                                        ${project.build.directory}/generated-sources/workerframework-config/com/github/workerframework/testworker/config
+                                        ${project.build.directory}/generated-sources/workerframework-config/com/github/workerframework/worker/testworker/config
                                     </outputDirectory>
                                     <excludes>META-INF/**</excludes>
                                 </artifactItem>

@@ -21,43 +21,43 @@
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
 
-    <groupId>com.github.workerframework</groupId>
+    <groupId>com.github.workerframework.worker</groupId>
     <artifactId>standard-worker-container</artifactId>
     <packaging>pom</packaging>
 
     <parent>
         <groupId>com.github.workerframework</groupId>
         <artifactId>worker-framework-aggregator</artifactId>
-        <version>8.2.0-SNAPSHOT</version>
+        <version>9.0.0-SNAPSHOT</version>
     </parent>
 
     <dependencies>
         <dependency>
-            <groupId>com.github.cafapi.codec</groupId>
+            <groupId>com.github.cafapi.common.codecs</groupId>
             <artifactId>codec-json</artifactId>
         </dependency>
         <dependency>
-            <groupId>com.github.cafapi.config</groupId>
+            <groupId>com.github.cafapi.common.config.sources</groupId>
             <artifactId>config-file</artifactId>
         </dependency>
         <dependency>
-            <groupId>com.github.cafapi.decoder</groupId>
+            <groupId>com.github.cafapi.common.decoders</groupId>
             <artifactId>decoder-js</artifactId>
         </dependency>
         <dependency>
-            <groupId>com.github.workerframework</groupId>
+            <groupId>com.github.workerframework.worker</groupId>
             <artifactId>worker-api</artifactId>
         </dependency>
         <dependency>
-            <groupId>com.github.workerframework</groupId>
+            <groupId>com.github.workerframework.worker</groupId>
             <artifactId>worker-core</artifactId>
         </dependency>
         <dependency>
-            <groupId>com.github.workerframework</groupId>
+            <groupId>com.github.workerframework.worker.queues</groupId>
             <artifactId>worker-queue-rabbit</artifactId>
         </dependency>
         <dependency>
-            <groupId>com.github.workerframework</groupId>
+            <groupId>com.github.workerframework.worker.datastores</groupId>
             <artifactId>worker-store-fs</artifactId>
         </dependency>
     </dependencies>
