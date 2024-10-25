@@ -15,7 +15,7 @@
  */
 package com.github.workerframework.util.rabbitmq;
 
-import com.github.workerframework.worker.configs.RabbitConfiguration;
+import com.github.workerframework.configs.RabbitConfiguration;
 import com.rabbitmq.client.Channel;
 import com.rabbitmq.client.Connection;
 import com.rabbitmq.client.ConnectionFactory;
