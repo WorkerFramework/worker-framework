@@ -48,7 +48,7 @@
             <artifactId>aws-java-sdk-core</artifactId>
         </dependency>
         <dependency>
-            <groupId>com.github.cafapi.common.api</groupId>
+            <groupId>com.github.cafapi.common</groupId>
             <artifactId>caf-api</artifactId>
         </dependency>
         <dependency>
