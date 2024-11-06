@@ -83,7 +83,7 @@ the current input queue. Default is True.
  The following command-line should start the application:
  
  ```
- java -cp "*" WorkerApplication server [settings.yaml]
+ java -cp "*" com.github.workerframework.core.WorkerApplication server [settings.yaml]
  ```
     
 ### The DataStore component
@@ -713,8 +713,8 @@ different results.
  import com.hpe.caf.api.ConfigurationException;
  import com.hpe.caf.api.ConfigurationSource;
  import com.hpe.caf.api.worker.DataSource;
- import WorkerException;
- import WorkerFactoryProvider;
+ import com.github.workerframework.api.WorkerException;
+ import com.github.workerframework.api.WorkerFactoryProvider;
 
  import java.util.Objects;
 
@@ -759,8 +759,8 @@ different results.
 
  import com.github.cafapi.common.api.Codec;
  import com.github.cafapi.common.api.CodecException;
- import Worker;
- import WorkerException;
+ import com.github.workerframework.api.Worker;
+ import com.github.workerframework.api.WorkerException;
  import com.github.test.worker.shared.TestWorkerTask;
  import com.github.test.worker.shared.TestWorkerResult;
 
@@ -849,7 +849,7 @@ different results.
  be `WorkerFactoryProvider`, and the file contents will be a single line which
  consists of the fully qualified class name of your implementation. So in this
  case, the file will be called
- `META-INF/services/WorkerFactoryProvider` and will
+ `META-INF/services/com.github.workerframework.api.WorkerFactoryProvider` and will
  have the line `com.github.test.worker.TestWorkerFactoryProvider`.
 
 ### Putting it all together
