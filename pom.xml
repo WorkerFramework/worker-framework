@@ -213,42 +213,42 @@
             <dependency>
                 <groupId>com.github.cafapi.common</groupId>
                 <artifactId>caf-api</artifactId>
-                <version>4.0.0-975260-1-SNAPSHOT</version>
+                <version>4.0.0-SNAPSHOT</version>
             </dependency>
             <dependency>
                 <groupId>com.github.cafapi.common</groupId>
                 <artifactId>cipher-null</artifactId>
-                <version>4.0.0-975260-1-SNAPSHOT</version>
+                <version>4.0.0-SNAPSHOT</version>
             </dependency>
             <dependency>
                 <groupId>com.github.cafapi.common</groupId>
                 <artifactId>codec-json</artifactId>
-                <version>4.0.0-975260-1-SNAPSHOT</version>
+                <version>4.0.0-SNAPSHOT</version>
             </dependency>
             <dependency>
                 <groupId>com.github.cafapi.common</groupId>
                 <artifactId>config-source</artifactId>
-                <version>4.0.0-975260-1-SNAPSHOT</version>
+                <version>4.0.0-SNAPSHOT</version>
             </dependency>
             <dependency>
                 <groupId>com.github.cafapi.common</groupId>
                 <artifactId>config-decoder</artifactId>
-                <version>4.0.0-975260-1-SNAPSHOT</version>
+                <version>4.0.0-SNAPSHOT</version>
             </dependency>
             <dependency>
                 <groupId>com.github.cafapi.common</groupId>
                 <artifactId>config-file</artifactId>
-                <version>4.0.0-975260-1-SNAPSHOT</version>
+                <version>4.0.0-SNAPSHOT</version>
             </dependency>
             <dependency>
                 <groupId>com.github.cafapi.common</groupId>
                 <artifactId>bootstrapconfig-system</artifactId>
-                <version>4.0.0-975260-1-SNAPSHOT</version>
+                <version>4.0.0-SNAPSHOT</version>
             </dependency>
             <dependency>
                 <groupId>com.github.cafapi.common</groupId>
                 <artifactId>decoder-js</artifactId>
-                <version>4.0.0-975260-1-SNAPSHOT</version>
+                <version>4.0.0-SNAPSHOT</version>
             </dependency>
             <dependency>
                 <groupId>com.github.cafapi.logging</groupId>
@@ -258,17 +258,17 @@
             <dependency>
                 <groupId>com.github.cafapi.common</groupId>
                 <artifactId>util-moduleloader</artifactId>
-                <version>4.0.0-975260-1-SNAPSHOT</version>
+                <version>4.0.0-SNAPSHOT</version>
             </dependency>
             <dependency>
                 <groupId>com.github.cafapi.common</groupId>
                 <artifactId>util-naming</artifactId>
-                <version>4.0.0-975260-1-SNAPSHOT</version>
+                <version>4.0.0-SNAPSHOT</version>
             </dependency>
             <dependency>
                 <groupId>com.github.cafapi.common</groupId>
                 <artifactId>util-ref</artifactId>
-                <version>4.0.0-975260-1-SNAPSHOT</version>
+                <version>4.0.0-SNAPSHOT</version>
             </dependency>
             <dependency>
                 <groupId>com.github.workerframework</groupId>
