@@ -15,12 +15,12 @@
  */
 package com.github.workerframework.testworker;
 
-import com.hpe.caf.api.Codec;
-import com.hpe.caf.api.ConfigurationSource;
-import com.hpe.caf.api.worker.DataStore;
-import com.hpe.caf.api.worker.WorkerException;
-import com.hpe.caf.api.worker.WorkerFactory;
-import com.hpe.caf.api.worker.WorkerFactoryProvider;
+import com.github.cafapi.common.api.Codec;
+import com.github.cafapi.common.api.ConfigurationSource;
+import com.github.workerframework.api.DataStore;
+import com.github.workerframework.api.WorkerException;
+import com.github.workerframework.api.WorkerFactory;
+import com.github.workerframework.api.WorkerFactoryProvider;
 import jakarta.annotation.Nonnull;
 
 /**

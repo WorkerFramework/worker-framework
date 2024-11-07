@@ -15,14 +15,14 @@
  */
 package com.github.workerframework.testworker;
 
-import com.hpe.caf.api.Codec;
-import com.hpe.caf.api.CodecException;
-import com.hpe.caf.api.worker.InvalidTaskException;
-import com.hpe.caf.api.worker.TaskRejectedException;
-import com.hpe.caf.api.worker.TaskStatus;
-import com.hpe.caf.api.worker.Worker;
-import com.hpe.caf.api.worker.WorkerResponse;
-import com.hpe.caf.api.worker.WorkerTaskData;
+import com.github.cafapi.common.api.Codec;
+import com.github.cafapi.common.api.CodecException;
+import com.github.workerframework.api.InvalidTaskException;
+import com.github.workerframework.api.TaskRejectedException;
+import com.github.workerframework.api.TaskStatus;
+import com.github.workerframework.api.Worker;
+import com.github.workerframework.api.WorkerResponse;
+import com.github.workerframework.api.WorkerTaskData;
 import jakarta.annotation.Nonnull;
 import java.nio.charset.StandardCharsets;
 

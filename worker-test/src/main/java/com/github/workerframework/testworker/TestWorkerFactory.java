@@ -15,17 +15,17 @@
  */
 package com.github.workerframework.testworker;
 
-import com.hpe.caf.api.Codec;
-import com.hpe.caf.api.ConfigurationException;
-import com.hpe.caf.api.ConfigurationSource;
-import com.hpe.caf.api.HealthResult;
-import com.hpe.caf.api.worker.DataStore;
-import com.hpe.caf.api.worker.InvalidTaskException;
-import com.hpe.caf.api.worker.TaskRejectedException;
-import com.hpe.caf.api.worker.Worker;
-import com.hpe.caf.api.worker.WorkerException;
-import com.hpe.caf.api.worker.WorkerFactory;
-import com.hpe.caf.api.worker.WorkerTaskData;
+import com.github.cafapi.common.api.Codec;
+import com.github.cafapi.common.api.ConfigurationException;
+import com.github.cafapi.common.api.ConfigurationSource;
+import com.github.cafapi.common.api.HealthResult;
+import com.github.workerframework.api.DataStore;
+import com.github.workerframework.api.InvalidTaskException;
+import com.github.workerframework.api.TaskRejectedException;
+import com.github.workerframework.api.Worker;
+import com.github.workerframework.api.WorkerException;
+import com.github.workerframework.api.WorkerFactory;
+import com.github.workerframework.api.WorkerTaskData;
 import jakarta.annotation.Nonnull;
 
 final class TestWorkerFactory implements WorkerFactory
