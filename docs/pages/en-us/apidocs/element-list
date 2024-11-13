@@ -1,0 +1,12 @@
+com.github.workerframework.api
+com.github.workerframework.caf
+com.github.workerframework.configs
+com.github.workerframework.core
+com.github.workerframework.datastores.fs
+com.github.workerframework.datastores.http
+com.github.workerframework.datastores.mem
+com.github.workerframework.datastores.s3
+com.github.workerframework.queues.rabbit
+com.github.workerframework.testworker
+com.github.workerframework.tracking.report
+com.github.workerframework.util.rabbitmq
