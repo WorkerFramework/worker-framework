@@ -1,6 +1,6 @@
 # worker-core
 
- This subproject contains the asynchronous microservice worker applcation
+ This subproject contains the asynchronous microservice worker application
  code and various module implementations that have been designed to work
  with it.
  
@@ -619,8 +619,8 @@ different results.
  freshly compiled `test-worker-shared` jar, we can do this:
 
 ```
- java -cp "*" com.hpe.caf.util.GenerateConfig
-    com.hpe.caf.test.worker.shared.TestWorkerConfiguration
+ java -cp "*" com.github.cafapi.common.util.tools
+    com.github.test.worker.TestWorkerConfiguration
 ```
 
 ### Creating the factory and provider
@@ -638,8 +638,8 @@ different results.
  package com.github.test.worker;
 
  import com.github.cafapi.common.api.Codec;
- import com.hpe.caf.api.worker.WorkerException;
- import com.hpe.caf.api.worker.WorkerFactory;
+ import com.github.workerframework.api.WorkerException;
+ import com.github.workerframework.api.WorkerFactory;
 
  import java.util.Objects;
 
@@ -709,10 +709,10 @@ different results.
 ```
  package com.github.test.worker;
 
- import com.hpe.caf.api.Codec;
- import com.hpe.caf.api.ConfigurationException;
- import com.hpe.caf.api.ConfigurationSource;
- import com.hpe.caf.api.worker.DataSource;
+ import com.github.cafapi.common.api.Codec;
+ import com.github.cafapi.common.api.ConfigurationException;
+ import com.github.cafapi.common.api.ConfigurationSource;
+ import com.github.workerframework.api.DataSource;
  import com.github.workerframework.api.WorkerException;
  import com.github.workerframework.api.WorkerFactoryProvider;
 
