@@ -17,7 +17,7 @@ package com.github.workerframework.workertest;
 
 import com.github.cafapi.common.api.Codec;
 import com.github.cafapi.common.api.CodecException;
-import com.github.cafapi.common.codecs.jsonlzf.JsonCodec;
+import com.github.cafapi.common.codecs.json.JsonCodec;
 import com.github.workerframework.testworker.TestWorkerTask;
 import com.github.workerframework.api.TaskMessage;
 import com.github.workerframework.api.TaskStatus;
