@@ -24,6 +24,7 @@ import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.TimeUnit;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.slf4j.MDC;
 
 final class BulkWorkerThreadPool implements WorkerThreadPool
 {
@@ -82,6 +83,8 @@ final class BulkWorkerThreadPool implements WorkerThreadPool
             throws InterruptedException
         {
             final WorkerTaskImpl task = workQueue.take();
+            LOG.error("JONNY : Setting correlation ID in BulkWorkerThreadPool::execute() to: {}", task.getCorrelationId());
+            MDC.put("correlationId", task.getCorrelationId());
             final BulkWorkerTaskProvider taskProvider
                 = new BulkWorkerTaskProvider(task, workQueue);
 
