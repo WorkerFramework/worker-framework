@@ -35,6 +35,7 @@ import com.github.workerframework.api.TrackingInfo;
 import com.github.workerframework.api.WorkerCallback;
 import com.github.workerframework.api.WorkerFactory;
 
+import com.github.workerframework.datastores.fs.FileSystemDataStoreConstants;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -171,6 +172,12 @@ final class WorkerCore
         {
             try {
                 final TaskMessage tm = codec.deserialise(taskMessage, TaskMessage.class, DecodeMethod.LENIENT);
+
+                // DDD At this point we can first get the TaskMessage::TrackingInfo::jobTaskId
+                if (tm.getTaskClassifier().equals(FileSystemDataStoreConstants.DEHYDRATED_MESSAGE_TASK_NAME)) {
+                    // load the dehydrated task message
+                    final var dehydratedTaskMessageId = tm.getDehydratedTaskMessageId();
+                }
 
                 LOG.debug("Received task {} (message id: {})", tm.getTaskId(), taskInformation.getInboundMessageId());
                 validateTaskMessage(tm);

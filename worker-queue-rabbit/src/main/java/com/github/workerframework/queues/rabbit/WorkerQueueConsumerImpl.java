@@ -74,6 +74,7 @@ public class WorkerQueueConsumerImpl implements QueueConsumer
     @Override
     public void processDelivery(Delivery delivery)
     {
+        // DDD if is a dehydrated task message, read from the store with FileSystemDataStore::retrieve with GUID
         final int retries = delivery.getHeaders().containsKey(RabbitHeaders.RABBIT_HEADER_CAF_DELIVERY_COUNT) ?
                 Integer.parseInt(String.valueOf(delivery.getHeaders()
                 .getOrDefault(RabbitHeaders.RABBIT_HEADER_CAF_DELIVERY_COUNT, "0"))) :
@@ -103,6 +104,9 @@ public class WorkerQueueConsumerImpl implements QueueConsumer
         final RabbitTaskInformation taskInformation = new RabbitTaskInformation(String.valueOf(delivery.getEnvelope().getDeliveryTag()), isPoison);
         try {
             LOG.debug("Registering new message {}", taskInformation.getInboundMessageId());
+
+            // DDD if we dont reconstruct the message till after this call
+            // the publishing in the catch blocks dont need to consider storage.
             callback.registerNewTask(taskInformation, delivery.getMessageData(), delivery.getHeaders());
         } catch (InvalidTaskException e) {
             LOG.error("Cannot register new message, rejecting {}", taskInformation.getInboundMessageId(), e);

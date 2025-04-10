@@ -65,6 +65,9 @@ public class WorkerPublisherImpl implements WorkerPublisher
     public void handlePublish(byte[] data, String routingKey, RabbitTaskInformation taskInformation, Map<String, Object> headers)
     {
         try {
+
+            // DDD store with FileSystemDataStore::store (routingKey/jobTaskId)
+
             LOG.debug("Publishing message to {} with ack id {}", routingKey, taskInformation.getInboundMessageId());
             AMQP.BasicProperties.Builder builder = new AMQP.BasicProperties().builder();
             builder.headers(headers);
@@ -74,6 +77,8 @@ public class WorkerPublisherImpl implements WorkerPublisher
             confirmListener.registerResponseSequence(channel.getNextPublishSeqNo(), taskInformation);
             channel.basicPublish("", routingKey, builder.build(), data);
             metrics.incrementPublished();
+
+            // DDD delete the original incoming here FileSystemDataStore::delete
         } catch (IOException e) {
             LOG.error("Failed to publish result of message {} to queue {}, rejecting", taskInformation.getInboundMessageId(), routingKey, e);
             metrics.incremementErrors();

@@ -48,6 +48,10 @@
             <artifactId>worker-api</artifactId>
         </dependency>
         <dependency>
+            <groupId>com.github.workerframework</groupId>
+            <artifactId>worker-store-fs</artifactId>
+        </dependency>
+        <dependency>
             <groupId>com.github.cafapi.common</groupId>
             <artifactId>cipher-null</artifactId>
         </dependency>
@@ -165,6 +169,10 @@
             <groupId>com.github.workerframework</groupId>
             <artifactId>worker-caf</artifactId>
             <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>com.github.workerframework</groupId>
+            <artifactId>worker-store-fs</artifactId>
         </dependency>
     </dependencies>
 

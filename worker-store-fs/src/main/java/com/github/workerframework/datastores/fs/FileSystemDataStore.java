@@ -98,6 +98,7 @@ public class FileSystemDataStore implements ManagedDataStore, FilePathProvider, 
      * @throws DataStoreException if the reference cannot be accessed or deleted
      */
     @Override
+    // DDD delete after publish
     public void delete(String reference)
         throws DataStoreException
     {
@@ -164,6 +165,7 @@ public class FileSystemDataStore implements ManagedDataStore, FilePathProvider, 
      * @throws InvalidPathException if the reference cannot be converted to a Path
      */
     @Override
+    // DDD store with partial reference /queue/jobid
     public String store(final InputStream dataStream, final String partialReference)
         throws DataStoreException
     {
