@@ -13,7 +13,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-/* DDD cfg for writing data out */
 ({
     dataDir: getenv("CAF_WORKER_DATASTORE_PATH") || "/mnt/caf-datastore-root",
     dataDirHealthcheckTimeoutSeconds: getenv("CAF_WORKER_DATASTORE_HEALTHCHECK_TIMEOUT_SECONDS") || undefined,
