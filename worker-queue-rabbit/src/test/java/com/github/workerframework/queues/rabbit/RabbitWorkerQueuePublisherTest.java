@@ -45,6 +45,7 @@ import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.Optional;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.LinkedBlockingQueue;
@@ -122,12 +123,11 @@ public class RabbitWorkerQueuePublisherTest
         final var storedTaskMessageData = codec.serialise(storedTaskMessage);
         final var dehydratedMessageId = dataStore.store(storedTaskMessageData, "testQueue/task1");
 
-        //  WorkerCore would set this to allow the publisher to delete.
-        taskInformation.setRehydratedMessageId(dehydratedMessageId);
+        final var rabbitTaskInformation = new RabbitTaskInformation("101", false, Optional.of(dehydratedMessageId));
 
         final var taskMessage = new TaskMessage(
             "task1",
-            WorkerPublisherImpl.DEHYDRATED_MESSAGE_TASK_NAME,
+            "DEHYDRATED_CLASSIFIER",
             1,
             dehydratedMessageId.getBytes(StandardCharsets.UTF_8),
             TaskStatus.NEW_TASK,
@@ -142,21 +142,21 @@ public class RabbitWorkerQueuePublisherTest
         dehydrationConfiguration.setThreshold(1);
         when(dehydrationEnabledCfg.getMessageDehydrationConfig()).thenReturn(dehydrationConfiguration);
 
-        BlockingQueue<Event<QueueConsumer>> consumerEvents = new LinkedBlockingQueue<>();
-        BlockingQueue<Event<WorkerPublisher>> publisherEvents = new LinkedBlockingQueue<>();
-        Channel channel = Mockito.mock(Channel.class);
-        CountDownLatch latch = new CountDownLatch(1);
-        Answer<Void> a = invocationOnMock -> {
+        final BlockingQueue<Event<QueueConsumer>> consumerEvents = new LinkedBlockingQueue<>();
+        final BlockingQueue<Event<WorkerPublisher>> publisherEvents = new LinkedBlockingQueue<>();
+        final Channel channel = Mockito.mock(Channel.class);
+        final CountDownLatch latch = new CountDownLatch(1);
+        final Answer<Void> a = invocationOnMock -> {
             latch.countDown();
             return null;
         };
         Mockito.doAnswer(a).when(channel).basicPublish(Mockito.any(), Mockito.eq(testQueue), Mockito.any(), Mockito.eq(data));
-        WorkerConfirmListener listener = Mockito.mock(WorkerConfirmListener.class);
-        WorkerPublisher impl = new WorkerPublisherImpl(channel, metrics, consumerEvents, listener, dataStore, dehydrationEnabledCfg, codec);
-        EventPoller<WorkerPublisher> publisher = new EventPoller<>(2, publisherEvents, impl);
-        Thread t = new Thread(publisher);
+        final WorkerConfirmListener listener = new WorkerConfirmListener(consumerEvents, dataStore);
+        final WorkerPublisher impl = new WorkerPublisherImpl(channel, metrics, consumerEvents, listener, dataStore, dehydrationEnabledCfg, codec);
+        final EventPoller<WorkerPublisher> publisher = new EventPoller<>(2, publisherEvents, impl);
+        final Thread t = new Thread(publisher);
         t.start();
-        publisherEvents.add(new WorkerPublishQueueEvent(taskMessageData, testQueue, taskInformation));
+        publisherEvents.add(new WorkerPublishQueueEvent(taskMessageData, testQueue, rabbitTaskInformation));
         latch.await(5000, TimeUnit.MILLISECONDS);
         publisher.shutdown();
 
@@ -168,8 +168,6 @@ public class RabbitWorkerQueuePublisherTest
 
         Assert.assertEquals(0, publisherEvents.size());
         Assert.assertEquals(0, consumerEvents.size());
-
-
     }
 
     @Test

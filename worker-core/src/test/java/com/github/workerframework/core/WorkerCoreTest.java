@@ -68,6 +68,7 @@ import java.util.concurrent.TimeUnit;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import static com.github.workerframework.util.rabbitmq.RabbitHeaders.RABBIT_HEADER_CAF_DEHYDRATION_ID;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
@@ -86,7 +87,6 @@ public class WorkerCoreTest
     private TaskInformation taskInformation;
     private File tempDataStore;
     private ManagedDataStore dataStore;
-    public static final String DEHYDRATED_MESSAGE_TASK_NAME = "DehydratedMessageTask";
 
     @BeforeMethod
     private void before() throws DataStoreException {
@@ -151,10 +151,13 @@ public class WorkerCoreTest
         final var dehydratedTaskMessageData = codec.serialise(dehydratedTaskMessage);
         final var dehydratedMessageId = dataStore.store(dehydratedTaskMessageData, "testQueue/task1");
 
+        final Map<String, Object> headers = new HashMap<>();
+        headers.put(RABBIT_HEADER_CAF_DEHYDRATION_ID, dehydratedMessageId);
+
         // send a message linking to the dehydrated message
         final var inboundTaskMessage = new TaskMessage(
             "task1",
-            DEHYDRATED_MESSAGE_TASK_NAME,
+            "DEHYDRATED_CLASSIFIER",
             1,
             dehydratedMessageId.getBytes(StandardCharsets.UTF_8),
             TaskStatus.NEW_TASK,
@@ -162,7 +165,7 @@ public class WorkerCoreTest
             "to",
             trackingInfo);
         final var inboundTaskMessageData = codec.serialise(inboundTaskMessage);
-        queue.submitTask(taskInformation, inboundTaskMessageData);
+        queue.submitTask(taskInformation, inboundTaskMessageData, headers);
 
         //  If the dehydrated message cannot be read there will be no outbound message.
         byte[] outboundTaskMessageData = q.poll(5000, TimeUnit.MILLISECONDS);
@@ -189,7 +192,7 @@ public class WorkerCoreTest
         final var trackingInfo = new TrackingInfo("task1", new Date(), 1, "hello.com", "pipe", "to");
         final var inboundTaskMessage = new TaskMessage(
             "task1",
-            DEHYDRATED_MESSAGE_TASK_NAME,
+            "DEHYDRATED_CLASSIFIER",
             1,
             "NoSuchDehydratedMessageExists".getBytes(StandardCharsets.UTF_8),
             TaskStatus.NEW_TASK,
@@ -827,6 +830,12 @@ public class WorkerCoreTest
             throws WorkerException
         {
             callback.registerNewTask(taskInformation, stuff, new HashMap<>());
+        }
+
+        public void submitTask(final TaskInformation taskInformation, final byte[] stuff, final Map<String, Object> headers)
+            throws WorkerException
+        {
+            callback.registerNewTask(taskInformation, stuff, headers);
         }
 
         @Override

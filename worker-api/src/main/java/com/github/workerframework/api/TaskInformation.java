@@ -18,7 +18,4 @@ package com.github.workerframework.api;
 public interface TaskInformation {
     String getInboundMessageId();
     default boolean isPoison() {return false;}
-    default void setRehydratedMessageId(String rehydratedMessageId) {
-        throw new UnsupportedOperationException("Not implemented yet");
-    }
 }

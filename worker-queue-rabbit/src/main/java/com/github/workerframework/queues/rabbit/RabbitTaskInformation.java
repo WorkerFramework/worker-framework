@@ -32,13 +32,17 @@ public class RabbitTaskInformation implements TaskInformation {
     private final AtomicInteger acknowledgementCount;
     private static final Logger LOG = LoggerFactory.getLogger(RabbitTaskInformation.class);
     private final boolean isPoison;
-    private String rehydratedMessageId;
+    private final Optional<String> dehydratedMessageId;
 
     public RabbitTaskInformation(final String inboundMessageId) {
         this(inboundMessageId, false);
     }
     
     public RabbitTaskInformation(final String inboundMessageId, final boolean isPoison) {
+        this(inboundMessageId, isPoison, Optional.empty());
+    }
+
+    public RabbitTaskInformation(final String inboundMessageId, final boolean isPoison, final Optional<String> dehydratedMessageId) {
         this.inboundMessageId = inboundMessageId;
         this.responseCount = new AtomicInteger(0);
         this.isResponseCountFinal = new AtomicBoolean(false);
@@ -46,7 +50,7 @@ public class RabbitTaskInformation implements TaskInformation {
         this.negativeAckEventSent = new AtomicBoolean(false);
         this.ackEventSent = new AtomicBoolean(false);
         this.isPoison = isPoison;
-        this.rehydratedMessageId = null;
+        this.dehydratedMessageId = dehydratedMessageId;
     }
 
     @Override
@@ -146,12 +150,7 @@ public class RabbitTaskInformation implements TaskInformation {
         return isPoison;
     }
 
-    @Override
-    public void setRehydratedMessageId(final String rehydratedMessageId) {
-        this.rehydratedMessageId = rehydratedMessageId;
-    }
-
-    public Optional<String> getRehydratedMessageId() {
-        return Optional.ofNullable(rehydratedMessageId);
+    public Optional<String> getDehydratedMessageId() {
+        return dehydratedMessageId;
     }
 }

@@ -16,7 +16,6 @@
 package com.github.workerframework.queues.rabbit;
 
 import com.github.cafapi.common.api.Codec;
-import com.github.cafapi.common.api.CodecException;
 import com.github.workerframework.api.DataStoreException;
 import com.github.workerframework.api.ManagedDataStore;
 import com.github.workerframework.api.QueueException;
@@ -30,10 +29,11 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
-import java.nio.charset.StandardCharsets;
 import java.util.Map;
 import java.util.Objects;
 import java.util.concurrent.BlockingQueue;
+
+import static com.github.workerframework.util.rabbitmq.RabbitHeaders.RABBIT_HEADER_CAF_DEHYDRATION_ID;
 
 /**
  * A RabbitMQ publisher that uses a ConfirmListener, sending data as plain text with headers. Messages that cannot be published at all
@@ -48,7 +48,6 @@ public class WorkerPublisherImpl implements WorkerPublisher
     private final ManagedDataStore dataStore;
     private final RabbitWorkerQueueConfiguration config;
     private final Codec codec;
-    public static final String DEHYDRATED_MESSAGE_TASK_NAME = "DehydratedMessageTask";
     private static final Logger LOG = LoggerFactory.getLogger(WorkerPublisherImpl.class);
 
     /**
@@ -92,7 +91,7 @@ public class WorkerPublisherImpl implements WorkerPublisher
             builder.contentType("text/plain");
             builder.deliveryMode(2);
             confirmListener.registerResponseSequence(channel.getNextPublishSeqNo(), taskInformation);
-            final var outboundTaskMessage = getOutboundTaskMessage(data, routingKey);
+            final var outboundTaskMessage = getOutboundTaskMessage(data, routingKey, headers);
             channel.basicPublish("", routingKey, builder.build(), outboundTaskMessage);
             metrics.incrementPublished();
             deleteStoredMessage(taskInformation);
@@ -105,7 +104,7 @@ public class WorkerPublisherImpl implements WorkerPublisher
 
     private void deleteStoredMessage(final RabbitTaskInformation taskInformation)
     {
-        final var rehydratedMessageIdOpt = taskInformation.getRehydratedMessageId();
+        final var rehydratedMessageIdOpt = taskInformation.getDehydratedMessageId();
         if (rehydratedMessageIdOpt.isEmpty()) {
             return;
         }
@@ -121,15 +120,19 @@ public class WorkerPublisherImpl implements WorkerPublisher
             taskMessageSize > config.getMessageDehydrationConfig().getThreshold();
     }
 
-    private byte[] getOutboundTaskMessage(final byte[] taskMessage, final String routingKey) throws QueueException {
+    private byte[] getOutboundTaskMessage(
+        final byte[] taskMessage,
+        final String routingKey,
+        final Map<String, Object> headers
+    ) throws QueueException {
         try {
             if (shouldStoreTaskMessage(taskMessage.length)) {
                 final TaskMessage outgoingTaskMessage = codec.deserialise(taskMessage, TaskMessage.class);
                 final var taskMessagePartialRef = String.format("%s/%s", routingKey, outgoingTaskMessage.getTracking().getJobTaskId());
                 final var dehydratedMessageId = dataStore.store(taskMessage, taskMessagePartialRef);
 
-                outgoingTaskMessage.setTaskClassifier(DEHYDRATED_MESSAGE_TASK_NAME);
-                outgoingTaskMessage.setTaskData(dehydratedMessageId.getBytes(StandardCharsets.UTF_8));
+                outgoingTaskMessage.setTaskData(new byte[0]);
+                headers.put(RABBIT_HEADER_CAF_DEHYDRATION_ID, dehydratedMessageId); // DDD what are we calling this
                 return codec.serialise(outgoingTaskMessage);
             }
         } catch (final Exception e) {

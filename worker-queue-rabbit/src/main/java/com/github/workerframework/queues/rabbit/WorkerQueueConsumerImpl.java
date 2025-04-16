@@ -34,7 +34,10 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.concurrent.BlockingQueue;
+
+import static com.github.workerframework.util.rabbitmq.RabbitHeaders.RABBIT_HEADER_CAF_DEHYDRATION_ID;
 
 /**
  * QueueConsumer implementation for a WorkerQueue. This QueueConsumer hands off messages to worker-core upon delivery assuming the message
@@ -100,7 +103,10 @@ public class WorkerQueueConsumerImpl implements QueueConsumer
             isPoison = false;
         }
 
-        final RabbitTaskInformation taskInformation = new RabbitTaskInformation(String.valueOf(delivery.getEnvelope().getDeliveryTag()), isPoison);
+        final Optional<String> dehydratedMessageId = delivery.getHeaders().containsKey(RABBIT_HEADER_CAF_DEHYDRATION_ID) ?
+            Optional.ofNullable(delivery.getHeaders().get(RABBIT_HEADER_CAF_DEHYDRATION_ID).toString()) :
+            Optional.empty();
+        final RabbitTaskInformation taskInformation = new RabbitTaskInformation(String.valueOf(delivery.getEnvelope().getDeliveryTag()), isPoison, dehydratedMessageId);
         try {
             LOG.debug("Registering new message {}", taskInformation.getInboundMessageId());
             callback.registerNewTask(taskInformation, delivery.getMessageData(), delivery.getHeaders());

@@ -27,6 +27,7 @@ public class MessageDehydrationConfiguration
      * Indicates if message dehydration is enabled.
      */
     private boolean isEnabled = false;
+
     /**
      * The threshold at which messages will be dehydrated before publishing to RabbitMQ.
      */

@@ -49,6 +49,8 @@ import java.net.URL;
 import java.net.URLConnection;
 import java.util.*;
 
+import static com.github.workerframework.util.rabbitmq.RabbitHeaders.RABBIT_HEADER_CAF_DEHYDRATION_ID;
+
 /**
  * WorkerCore represents the main logic of the microservice worker. It is responsible for accepting new tasks from a WorkerQueue, handing
  * them off to a backend Worker and executing them upon a thread pool. It will then accept a result from the Worker it executed and hand
@@ -65,7 +67,6 @@ final class WorkerCore
     private static final boolean isDivertedTaskCheckingEnabled = Boolean.parseBoolean(
            System.getenv("CAF_WORKER_ENABLE_DIVERTED_TASK_CHECKING") == null ? 
                 "True" : System.getenv("CAF_WORKER_ENABLE_DIVERTED_TASK_CHECKING"));
-    public static final String DEHYDRATED_MESSAGE_TASK_NAME = "DehydratedMessageTask";
 
     public WorkerCore(
         final Codec codec,
@@ -191,7 +192,7 @@ final class WorkerCore
             throws InvalidTaskException, TaskRejectedException
         {
             try {
-                final TaskMessage tm = deserializeTaskMessage(taskInformation, taskMessage);
+                final TaskMessage tm = deserializeTaskMessage(taskMessage, headers);
 
                 LOG.debug("Received task {} (message id: {})", tm.getTaskId(), taskInformation.getInboundMessageId());
                 validateTaskMessage(tm);
@@ -261,19 +262,18 @@ final class WorkerCore
             }
         }
 
-        private TaskMessage deserializeTaskMessage(final TaskInformation taskInformation, final byte[] taskMessage)
+        private TaskMessage deserializeTaskMessage(final byte[] taskMessage, final Map<String, Object> headers)
             throws CodecException, DataStoreException, IOException
         {
             final TaskMessage tm = codec.deserialise(taskMessage, TaskMessage.class, DecodeMethod.LENIENT);
-            if (tm.getTaskClassifier().equals(DEHYDRATED_MESSAGE_TASK_NAME)) {
-                final String dehydratedMessageId = new String(tm.getTaskData());
-                taskInformation.setRehydratedMessageId(dehydratedMessageId);
-                return codec.deserialise(getDehydratedTaskMessageByteArray(dehydratedMessageId), TaskMessage.class, DecodeMethod.LENIENT);
+            if (headers.containsKey(RABBIT_HEADER_CAF_DEHYDRATION_ID)) {
+                final var dehydratedMessageId = headers.get(RABBIT_HEADER_CAF_DEHYDRATION_ID).toString();
+                return codec.deserialise(getDehydratedByteArray(dehydratedMessageId), TaskMessage.class, DecodeMethod.LENIENT);
             }
             return tm;
         }
 
-        private byte[] getDehydratedTaskMessageByteArray(final String dehydratedMessageId)
+        private byte[] getDehydratedByteArray(final String dehydratedMessageId)
             throws IOException, DataStoreException
         {
             try (final var inputStream = dataStore.retrieve(dehydratedMessageId)) {

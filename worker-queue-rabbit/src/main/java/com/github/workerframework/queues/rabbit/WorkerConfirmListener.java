@@ -15,6 +15,8 @@
  */
 package com.github.workerframework.queues.rabbit;
 
+import com.github.workerframework.api.DataStoreException;
+import com.github.workerframework.api.ManagedDataStore;
 import com.github.workerframework.util.rabbitmq.ConsumerAckEvent;
 import com.github.workerframework.util.rabbitmq.ConsumerRejectEvent;
 import com.github.workerframework.util.rabbitmq.Event;
@@ -40,11 +42,19 @@ class WorkerConfirmListener implements ConfirmListener
 {
     private final SortedMap<Long, RabbitTaskInformation> confirmMap = Collections.synchronizedSortedMap(new TreeMap<>());
     private final BlockingQueue<Event<QueueConsumer>> consumerEvents;
+    private final ManagedDataStore dataStore;
     private static final Logger LOG = LoggerFactory.getLogger(WorkerConfirmListener.class);
 
     WorkerConfirmListener(BlockingQueue<Event<QueueConsumer>> events)
     {
         this.consumerEvents = Objects.requireNonNull(events);
+        this.dataStore = null;
+    }
+
+    WorkerConfirmListener(BlockingQueue<Event<QueueConsumer>> events, final ManagedDataStore dataStore)
+    {
+        this.consumerEvents = Objects.requireNonNull(events);
+        this.dataStore = Objects.requireNonNull(dataStore);
     }
 
     /**
@@ -82,6 +92,7 @@ class WorkerConfirmListener implements ConfirmListener
             t.incrementAcknowledgementCount();
             if(t.areAllResponsesAcknowledged() && !t.isAckEventSent()){
                 t.markAckEventAsSent();
+                deleteStoredMessage(t);
                 return new ConsumerAckEvent(Long.valueOf(t.getInboundMessageId()));
             }
             return null;
@@ -121,6 +132,22 @@ class WorkerConfirmListener implements ConfirmListener
                     consumerEvents.add(event);
                 }
             }
+        }
+    }
+
+    private void deleteStoredMessage(final RabbitTaskInformation taskInformation)
+    {
+        if (dataStore == null) {
+            return;
+        }
+        final var rehydratedMessageIdOpt = taskInformation.getDehydratedMessageId();
+        if (rehydratedMessageIdOpt.isEmpty()) {
+            return;
+        }
+        try {
+            dataStore.delete(rehydratedMessageIdOpt.get());
+        } catch (final DataStoreException e) {
+            LOG.error("Failed to delete a stored message id:{} from the datastore", rehydratedMessageIdOpt.get(), e);
         }
     }
 }
