@@ -16,6 +16,7 @@
 package com.github.workerframework.queues.rabbit;
 
 import com.github.cafapi.common.api.Configuration;
+import com.github.workerframework.configs.MessageDehydrationConfiguration;
 import com.github.workerframework.configs.RabbitConfiguration;
 
 import jakarta.validation.Valid;
@@ -86,6 +87,11 @@ public class RabbitWorkerQueueConfiguration
      */
     @NotNull
     private String queueType;
+
+    @NotNull
+    @Valid
+    @Configuration
+    private MessageDehydrationConfiguration dehydrationConfiguration;
 
     public RabbitWorkerQueueConfiguration()
     {
@@ -180,5 +186,13 @@ public class RabbitWorkerQueueConfiguration
     public void setQueueType(String queueType)
     {
         this.queueType = queueType;
+    }
+
+    public MessageDehydrationConfiguration getMessageDehydrationConfig() {
+        return dehydrationConfiguration;
+    }
+
+    public void setMessageDehydrationConfig(final MessageDehydrationConfiguration dehydrationConfiguration) {
+        this.dehydrationConfiguration = dehydrationConfiguration;
     }
 }

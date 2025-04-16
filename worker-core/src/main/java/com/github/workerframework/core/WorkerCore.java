@@ -37,7 +37,6 @@ import com.github.workerframework.api.TrackingInfo;
 import com.github.workerframework.api.WorkerCallback;
 import com.github.workerframework.api.WorkerFactory;
 
-import com.github.workerframework.datastores.fs.FileSystemDataStoreConstants;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -59,7 +58,6 @@ final class WorkerCore
 {
     private final WorkerThreadPool threadPool;
     private final ManagedWorkerQueue workerQueue;
-    private final ManagedDataStore dataStore;
     private final WorkerStats stats = new WorkerStats();
     private final TaskCallback callback;
     private static final Logger LOG = LoggerFactory.getLogger(WorkerCore.class);
@@ -79,8 +77,7 @@ final class WorkerCore
         final TransientHealthCheck transientHealthCheck,
         final ManagedDataStore dataStore)
     {
-        this.dataStore = Objects.requireNonNull(dataStore);
-        WorkerCallback taskCallback = new CoreWorkerCallback(codec, queue, stats, healthCheckRegistry, transientHealthCheck, dataStore);
+        WorkerCallback taskCallback = new CoreWorkerCallback(codec, queue, stats, healthCheckRegistry, transientHealthCheck);
         this.threadPool = Objects.requireNonNull(pool);
         this.callback = new CoreTaskCallback(codec, stats, new WorkerExecutor(path, taskCallback, factory, pool), pool, queue, dataStore);
         this.workerQueue = Objects.requireNonNull(queue);
@@ -179,37 +176,23 @@ final class WorkerCore
             throws InvalidTaskException, TaskRejectedException
         {
             Objects.requireNonNull(taskInformation);
-            try {
-                final TaskMessage tm = codec.deserialise(taskMessage, TaskMessage.class, DecodeMethod.LENIENT);
-                if (tm.getTaskClassifier().equals(FileSystemDataStoreConstants.DEHYDRATED_MESSAGE_TASK_NAME)) {
-                    final byte[] storedByteArray = loadStoredByteArray(tm.getStoredTaskMessageId());
-                    final var rehydratedTaskMessage = codec.deserialise(storedByteArray, TaskMessage.class, DecodeMethod.LENIENT);
-                    // DDD this is the id that we'll use to delete after publishing
-                    rehydratedTaskMessage.setStoredTaskMessageId(tm.getStoredTaskMessageId());
+            stats.incrementTasksReceived();
+            stats.getInputSizes().update(taskMessage.length);
 
-                    stats.getInputSizes().update(storedByteArray.length);
-                    registerNewTaskImpl(taskInformation, rehydratedTaskMessage, headers);
-                } else {
-                    stats.getInputSizes().update(taskMessage.length);
-                    registerNewTaskImpl(taskInformation, tm, headers);
-                }
-                stats.incrementTasksReceived();
-            } catch (final InvalidTaskException e) {
+            try {
+                registerNewTaskImpl(taskInformation, taskMessage, headers);
+            } catch (InvalidTaskException e) {
                 stats.incrementTasksRejected();
                 throw e;
-            } catch (final CodecException e) {
-                throw new InvalidTaskException("Queue data did not deserialise to a TaskMessage", e);
-            } catch (final DataStoreException dataStoreException) {
-                throw new InvalidTaskException("TaskMessage was not found in the Data store", dataStoreException);
-            } catch (final IOException e) {
-                throw new InvalidTaskException("Error reading task message from store", e);
             }
         }
 
-        private void registerNewTaskImpl(final TaskInformation taskInformation, TaskMessage tm, Map<String, Object> headers)
+        private void registerNewTaskImpl(final TaskInformation taskInformation, final byte[] taskMessage, Map<String, Object> headers)
             throws InvalidTaskException, TaskRejectedException
         {
             try {
+                final TaskMessage tm = deserializeTaskMessage(taskInformation, taskMessage);
+
                 LOG.debug("Received task {} (message id: {})", tm.getTaskId(), taskInformation.getInboundMessageId());
                 validateTaskMessage(tm);
                 final JobStatus jobStatus;
@@ -259,6 +242,12 @@ final class WorkerCore
                 }
             } catch (InvalidJobTaskIdException ijte) {
                 throw new InvalidTaskException("TaskMessage contains an invalid job task identifier", ijte);
+            } catch (CodecException e) {
+                throw new InvalidTaskException("Queue data did not deserialise to a TaskMessage", e);
+            } catch (DataStoreException e) {
+                throw new InvalidTaskException("TaskMessage was not found in the Data store", e);
+            } catch (IOException e) {
+                throw new InvalidTaskException("Error reading task message from store", e);
             }
         }
 
@@ -272,9 +261,22 @@ final class WorkerCore
             }
         }
 
-        private byte[] loadStoredByteArray(final String dehydratedTaskMessageId)
-            throws IOException, DataStoreException {
-            try (final var inputStream = dataStore.retrieve(dehydratedTaskMessageId)) {
+        private TaskMessage deserializeTaskMessage(final TaskInformation taskInformation, final byte[] taskMessage)
+            throws CodecException, DataStoreException, IOException
+        {
+            final TaskMessage tm = codec.deserialise(taskMessage, TaskMessage.class, DecodeMethod.LENIENT);
+            if (tm.getTaskClassifier().equals(DEHYDRATED_MESSAGE_TASK_NAME)) {
+                final String dehydratedMessageId = new String(tm.getTaskData());
+                taskInformation.setRehydratedMessageId(dehydratedMessageId);
+                return codec.deserialise(getDehydratedTaskMessageByteArray(dehydratedMessageId), TaskMessage.class, DecodeMethod.LENIENT);
+            }
+            return tm;
+        }
+
+        private byte[] getDehydratedTaskMessageByteArray(final String dehydratedMessageId)
+            throws IOException, DataStoreException
+        {
+            try (final var inputStream = dataStore.retrieve(dehydratedMessageId)) {
                 final ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
                 byte[] buffer = new byte[1024];
                 int length;
@@ -486,23 +488,14 @@ final class WorkerCore
         private final WorkerStats stats;
         private final HealthCheckRegistry healthCheckRegistry;
         private final TransientHealthCheck transientHealthCheck;
-        private final ManagedDataStore dataStore;
 
-        public CoreWorkerCallback(
-            final Codec codec,
-            final ManagedWorkerQueue workerQueue,
-            final WorkerStats stats,
-            final HealthCheckRegistry healthCheckRegistry,
-            final TransientHealthCheck transientHealthCheck,
-            final ManagedDataStore dataStore
-        )
+        public CoreWorkerCallback(final Codec codec, final ManagedWorkerQueue workerQueue, final WorkerStats stats, final HealthCheckRegistry healthCheckRegistry, final TransientHealthCheck transientHealthCheck)
         {
             this.codec = Objects.requireNonNull(codec);
             this.workerQueue = Objects.requireNonNull(workerQueue);
             this.stats = Objects.requireNonNull(stats);
             this.healthCheckRegistry = Objects.requireNonNull(healthCheckRegistry);
             this.transientHealthCheck = Objects.requireNonNull(transientHealthCheck);
-            this.dataStore = Objects.requireNonNull(dataStore);
         }
 
         @Override
@@ -515,52 +508,18 @@ final class WorkerCore
             final String queue = responseMessage.getTo();
             checkForTrackingTermination(taskInformation, queue, responseMessage);
 
+            final byte[] output;
             try {
-                // DDD Only tasks were the TaskMessage size is above a cfg'd threshold
-                // and elsewhere
-                final byte[] output = getOutboundByteArray(responseMessage, queue);
-                workerQueue.publish(taskInformation, output, queue, Collections.emptyMap());
-                deleteStoredTaskMessage(responseMessage.getStoredTaskMessageId());
-            } catch (final CodecException | QueueException | DataStoreException ex) {
+                output = codec.serialise(responseMessage);
+            } catch (final CodecException ex) {
                 throw new RuntimeException(ex);
             }
-        }
 
-        private byte[] getOutboundByteArray(final TaskMessage taskMessage, final String queue)
-            throws CodecException, DataStoreException {
-            // DDD Only tasks where the TaskMessage size is above a cfg'd threshold
-            final byte[] outbound = codec.serialise(taskMessage);
-            if (shouldStoreTaskMessage(outbound.length)) {
-                 final var taskMessagePartialRef = String.format("%s/%s", queue, taskMessage.getTracking().getJobTaskId());
-                 final var storedTaskMessageId = dataStore.store(codec.serialise(taskMessage), taskMessagePartialRef);
-
-                 taskMessage.setTaskClassifier(DEHYDRATED_MESSAGE_TASK_NAME);
-                 taskMessage.setTaskData(new byte[0]);
-                 taskMessage.setStoredTaskMessageId(storedTaskMessageId);
-                 return codec.serialise(taskMessage);
-             }
-             return outbound;
-        }
-
-        private void deleteStoredTaskMessage(final String storedTaskMessageId) {
-            if (storedTaskMessageId != null) {
-                try {
-                    dataStore.delete(storedTaskMessageId);
-                } catch (final Exception e) {
-                    LOG.error("Failed to delete stored TaskMessage Id:{}", storedTaskMessageId, e);
-                }
+            try {
+                workerQueue.publish(taskInformation, output, queue, Collections.emptyMap());
+            } catch (final QueueException ex) {
+                throw new RuntimeException(ex);
             }
-        }
-
-        private boolean isMessageDehydrationEnabled() {
-            // DDD global switch is on
-            return true;
-        }
-
-        private boolean shouldStoreTaskMessage(final int taskMessageSize) {
-            // DDD Only tasks were the TaskMessage size is above a cfg'd threshold
-            // and global switch is on
-            return isMessageDehydrationEnabled() && true;
         }
 
         /**
@@ -594,9 +553,8 @@ final class WorkerCore
                 } else {
                     // **** Normal Worker ****                    
                     // A worker with an input and output queue.
-                    final byte[] output = getOutboundByteArray(responseMessage, queue);
+                    final byte[] output = codec.serialise(responseMessage);
                     workerQueue.publish(taskInformation, output, queue, Collections.emptyMap(), true);
-                    deleteStoredTaskMessage(responseMessage.getStoredTaskMessageId());
                     stats.getOutputSizes().update(output.length);
                 }
                 stats.updatedLastTaskFinishedTime();
@@ -605,7 +563,7 @@ final class WorkerCore
                 } else {
                     stats.incrementTasksFailed();
                 }
-            } catch (CodecException | QueueException | DataStoreException e) {
+            } catch (CodecException | QueueException e) {
                 LOG.error("Cannot publish data for task {}, rejecting", responseMessage.getTaskId(), e);
                 abandon(taskInformation, e);
             }
@@ -636,14 +594,13 @@ final class WorkerCore
                     workerQueue.acknowledgeTask(taskInformation);
                 } else {
                     // Else forward the task
-                    final byte[] output = getOutboundByteArray(forwardedMessage, queue);
+                    final byte[] output = codec.serialise(forwardedMessage);
                     workerQueue.publish(taskInformation, output, queue, headers, true);
-                    deleteStoredTaskMessage(forwardedMessage.getStoredTaskMessageId());
                     stats.incrementTasksForwarded();
                     //TODO - I'm guessing this stat should not be updated for forwarded messages:
                     // stats.getOutputSizes().update(output.length);
                 }
-            } catch (CodecException | QueueException | DataStoreException e) {
+            } catch (CodecException | QueueException e) {
                 LOG.error("Cannot publish data for forwarded task {}, rejecting", forwardedMessage.getTaskId(), e);
                 abandon(taskInformation, e);
             }
@@ -659,11 +616,10 @@ final class WorkerCore
             LOG.debug("Task {} (message id: {}) being forwarded to paused queue {}",
                       taskMessage.getTaskId(), taskInformation.getInboundMessageId(), pausedQueue);
             try {
-                final byte[] taskMessageBytes = getOutboundByteArray(taskMessage, pausedQueue);
+                final byte[] taskMessageBytes = codec.serialise(taskMessage);
                 workerQueue.publish(taskInformation, taskMessageBytes, pausedQueue, headers, true);
-                deleteStoredTaskMessage(taskMessage.getStoredTaskMessageId());
                 stats.incrementTasksPaused();
-            } catch (final CodecException | QueueException | DataStoreException e) {
+            } catch (final CodecException | QueueException e) {
                 LOG.error("Cannot publish data for task: {} to paused queue: {}, rejecting", taskMessage.getTaskId(), pausedQueue, e);
                 abandon(taskInformation, e);
             }
@@ -685,11 +641,16 @@ final class WorkerCore
             Objects.requireNonNull(reportUpdateMessage);
             LOG.debug("Sending report updates to queue {})", reportUpdateMessage.getTo());
 
+            final byte[] output;
             try {
-                final byte[] output = getOutboundByteArray(reportUpdateMessage, reportUpdateMessage.getTo());
+                output = codec.serialise(reportUpdateMessage);
+            } catch (final CodecException ex) {
+                throw new RuntimeException(ex);
+            }
+
+            try {
                 workerQueue.publish(taskInformation, output, reportUpdateMessage.getTo(), Collections.emptyMap());
-                deleteStoredTaskMessage(reportUpdateMessage.getStoredTaskMessageId());
-            } catch (final CodecException | QueueException | DataStoreException ex) {
+            } catch (final QueueException ex) {
                 throw new RuntimeException(ex);
             }
         }

@@ -15,21 +15,32 @@
  */
 package com.github.workerframework.queues.rabbit;
 
+import com.github.cafapi.common.api.Codec;
 import com.github.cafapi.common.api.ConfigurationException;
 import com.github.cafapi.common.api.ConfigurationSource;
+import com.github.workerframework.api.WorkerDataStorageQueueProvider;
+import com.github.workerframework.api.ManagedDataStore;
 import com.github.workerframework.api.ManagedWorkerQueue;
 import com.github.workerframework.api.QueueException;
-import com.github.workerframework.api.WorkerQueueProvider;
 
-public class RabbitWorkerQueueProvider implements WorkerQueueProvider
+public class RabbitWorkerQueueProvider implements WorkerDataStorageQueueProvider
 {
     @Override
-    public ManagedWorkerQueue getWorkerQueue(final ConfigurationSource configurationSource, final int maxTasks)
-        throws QueueException
+    public ManagedWorkerQueue getWorkerQueue(
+        final ConfigurationSource configurationSource,
+        final int maxTasks,
+        final ManagedDataStore dataStore,
+        final Codec codec
+    ) throws QueueException
     {
         try {
-            return new RabbitWorkerQueue(configurationSource.getConfiguration(RabbitWorkerQueueConfiguration.class), maxTasks);
-        } catch (ConfigurationException e) {
+            return new RabbitWorkerQueue(
+                configurationSource.getConfiguration(RabbitWorkerQueueConfiguration.class),
+                maxTasks,
+                dataStore,
+                codec
+            );
+        } catch (final ConfigurationException e) {
             throw new QueueException("Cannot create worker queue", e);
         }
     }

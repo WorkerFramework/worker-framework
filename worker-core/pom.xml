@@ -169,6 +169,7 @@
         <dependency>
             <groupId>com.github.workerframework</groupId>
             <artifactId>worker-store-fs</artifactId>
+            <scope>test</scope>
         </dependency>
     </dependencies>
 

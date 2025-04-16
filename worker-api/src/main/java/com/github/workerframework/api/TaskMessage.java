@@ -93,8 +93,6 @@ public final class TaskMessage
      */
     private String correlationId;
 
-    private String storedTaskMessageId;
-
     public TaskMessage()
     {
     }
@@ -128,13 +126,6 @@ public final class TaskMessage
                        final TaskStatus taskStatus, final Map<String, byte[]> context, final String to, final TrackingInfo tracking,
                        final TaskSourceInfo sourceInfo, final String correlationId)
     {
-        this(taskId, taskClassifier, taskApiVersion, taskData, taskStatus, context, to, tracking, sourceInfo, correlationId, null);
-    }
-
-    public TaskMessage(final String taskId, final String taskClassifier, final int taskApiVersion, final byte[] taskData,
-                       final TaskStatus taskStatus, final Map<String, byte[]> context, final String to, final TrackingInfo tracking,
-                       final TaskSourceInfo sourceInfo, final String correlationId, final String storedTaskMessageId)
-    {
         this.taskId = Objects.requireNonNull(taskId);
         this.taskClassifier = Objects.requireNonNull(taskClassifier);
         this.taskApiVersion = Objects.requireNonNull(taskApiVersion);
@@ -145,7 +136,6 @@ public final class TaskMessage
         this.tracking = tracking;
         this.sourceInfo = sourceInfo;
         this.correlationId = correlationId;
-        this.storedTaskMessageId = storedTaskMessageId;
     }
 
     public int getVersion()
@@ -266,13 +256,5 @@ public final class TaskMessage
     public void setCorrelationId(String correlationId)
     {
         this.correlationId = correlationId;
-    }
-
-    public String getStoredTaskMessageId() {
-        return storedTaskMessageId;
-    }
-
-    public void setStoredTaskMessageId(String storedTaskMessageId) {
-        this.storedTaskMessageId = storedTaskMessageId;
     }
 }

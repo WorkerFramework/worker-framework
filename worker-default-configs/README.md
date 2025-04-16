@@ -67,3 +67,12 @@ The default Heath configuration file checks for values as below;
 | readinessDowntimeIntervalSeconds | `CAF_READINESS_DOWNTIME_INTERVAL_SECONDS`     | 60      |
 | readinessSuccessAttempts         | `CAF_READINESS_SUCCESS_ATTEMPTS`              | 1       |
 | readinessFailureAttempts         | `CAF_READINESS_FAILURE_ATTEMPTS`              | 3       |
+
+## MessageDehydrationConfiguration.js
+
+The default Message Dehydration configuration file checks for values as below;
+
+| Property         | Checked Environment Variables                     | Default   |
+|------------------|---------------------------------------------------|-----------|
+| isEnabled        | `CAF_WORKER_DATASTORE_DEHYDRATION_ENABLED`        | false     |
+| threshold        | `CAF_WORKER_DATASTORE_DEHYDRATION_THRESHOLD_SIZE_BYTES` | 16777216  |

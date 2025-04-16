@@ -16,6 +16,8 @@
 package com.github.workerframework.queues.rabbit;
 
 import com.github.workerframework.api.TaskInformation;
+
+import java.util.Optional;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 import org.slf4j.Logger;
@@ -30,6 +32,7 @@ public class RabbitTaskInformation implements TaskInformation {
     private final AtomicInteger acknowledgementCount;
     private static final Logger LOG = LoggerFactory.getLogger(RabbitTaskInformation.class);
     private final boolean isPoison;
+    private String rehydratedMessageId;
 
     public RabbitTaskInformation(final String inboundMessageId) {
         this(inboundMessageId, false);
@@ -43,6 +46,7 @@ public class RabbitTaskInformation implements TaskInformation {
         this.negativeAckEventSent = new AtomicBoolean(false);
         this.ackEventSent = new AtomicBoolean(false);
         this.isPoison = isPoison;
+        this.rehydratedMessageId = null;
     }
 
     @Override
@@ -140,5 +144,14 @@ public class RabbitTaskInformation implements TaskInformation {
      */
     public boolean isPoison() {
         return isPoison;
+    }
+
+    @Override
+    public void setRehydratedMessageId(final String rehydratedMessageId) {
+        this.rehydratedMessageId = rehydratedMessageId;
+    }
+
+    public Optional<String> getRehydratedMessageId() {
+        return Optional.ofNullable(rehydratedMessageId);
     }
 }

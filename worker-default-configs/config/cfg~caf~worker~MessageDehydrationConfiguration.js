@@ -13,12 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.github.workerframework.api;
-
-public interface TaskInformation {
-    String getInboundMessageId();
-    default boolean isPoison() {return false;}
-    default void setRehydratedMessageId(String rehydratedMessageId) {
-        throw new UnsupportedOperationException("Not implemented yet");
-    }
-}
+({
+    isEnabled: getenv("CAF_WORKER_DATASTORE_DEHYDRATION_ENABLED") || undefined,
+    threshold: getenv("CAF_WORKER_DATASTORE_DEHYDRATION_THRESHOLD_SIZE_BYTES") || 16777216
+});

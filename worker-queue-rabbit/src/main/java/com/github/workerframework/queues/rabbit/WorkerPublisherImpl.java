@@ -15,6 +15,12 @@
  */
 package com.github.workerframework.queues.rabbit;
 
+import com.github.cafapi.common.api.Codec;
+import com.github.cafapi.common.api.CodecException;
+import com.github.workerframework.api.DataStoreException;
+import com.github.workerframework.api.ManagedDataStore;
+import com.github.workerframework.api.QueueException;
+import com.github.workerframework.api.TaskMessage;
 import com.github.workerframework.util.rabbitmq.ConsumerRejectEvent;
 import com.github.workerframework.util.rabbitmq.Event;
 import com.github.workerframework.util.rabbitmq.QueueConsumer;
@@ -24,6 +30,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
+import java.nio.charset.StandardCharsets;
 import java.util.Map;
 import java.util.Objects;
 import java.util.concurrent.BlockingQueue;
@@ -38,6 +45,10 @@ public class WorkerPublisherImpl implements WorkerPublisher
     private final RabbitMetricsReporter metrics;
     private final BlockingQueue<Event<QueueConsumer>> consumerEvents;
     private final WorkerConfirmListener confirmListener;
+    private final ManagedDataStore dataStore;
+    private final RabbitWorkerQueueConfiguration config;
+    private final Codec codec;
+    public static final String DEHYDRATED_MESSAGE_TASK_NAME = "DehydratedMessageTask";
     private static final Logger LOG = LoggerFactory.getLogger(WorkerPublisherImpl.class);
 
     /**
@@ -50,13 +61,23 @@ public class WorkerPublisherImpl implements WorkerPublisher
      * @param listener the listener callback that accepts ack/nack publisher confirms from the broker
      * @throws IOException if the channel cannot have confirmations enabled
      */
-    public WorkerPublisherImpl(Channel ch, RabbitMetricsReporter metrics, BlockingQueue<Event<QueueConsumer>> events, WorkerConfirmListener listener)
-        throws IOException
+    public WorkerPublisherImpl(
+        Channel ch,
+        RabbitMetricsReporter metrics,
+        BlockingQueue<Event<QueueConsumer>> events,
+        WorkerConfirmListener listener,
+        ManagedDataStore dataStore,
+        RabbitWorkerQueueConfiguration config,
+        Codec codec
+    ) throws IOException
     {
         this.channel = Objects.requireNonNull(ch);
         this.metrics = Objects.requireNonNull(metrics);
         this.consumerEvents = Objects.requireNonNull(events);
         this.confirmListener = Objects.requireNonNull(listener);
+        this.dataStore = Objects.requireNonNull(dataStore);
+        this.config = Objects.requireNonNull(config);
+        this.codec = Objects.requireNonNull(codec);
         channel.confirmSelect();
         channel.addConfirmListener(confirmListener);
     }
@@ -70,14 +91,50 @@ public class WorkerPublisherImpl implements WorkerPublisher
             builder.headers(headers);
             builder.contentType("text/plain");
             builder.deliveryMode(2);
-
             confirmListener.registerResponseSequence(channel.getNextPublishSeqNo(), taskInformation);
-            channel.basicPublish("", routingKey, builder.build(), data);
+            final var outboundTaskMessage = getOutboundTaskMessage(data, routingKey);
+            channel.basicPublish("", routingKey, builder.build(), outboundTaskMessage);
             metrics.incrementPublished();
-        } catch (IOException e) {
+            deleteStoredMessage(taskInformation);
+        } catch (final IOException | QueueException e) {
             LOG.error("Failed to publish result of message {} to queue {}, rejecting", taskInformation.getInboundMessageId(), routingKey, e);
             metrics.incremementErrors();
             consumerEvents.add(new ConsumerRejectEvent(Long.valueOf(taskInformation.getInboundMessageId())));
         }
+    }
+
+    private void deleteStoredMessage(final RabbitTaskInformation taskInformation)
+    {
+        final var rehydratedMessageIdOpt = taskInformation.getRehydratedMessageId();
+        if (rehydratedMessageIdOpt.isEmpty()) {
+            return;
+        }
+        try {
+            dataStore.delete(rehydratedMessageIdOpt.get());
+        } catch (final DataStoreException e) {
+            LOG.error("Failed to delete a stored message id:{} from the datastore", rehydratedMessageIdOpt.get(), e);
+        }
+    }
+
+    private boolean shouldStoreTaskMessage(final int taskMessageSize) {
+        return config.getMessageDehydrationConfig().isEnabled() &&
+            taskMessageSize > config.getMessageDehydrationConfig().getThreshold();
+    }
+
+    private byte[] getOutboundTaskMessage(final byte[] taskMessage, final String routingKey) throws QueueException {
+        try {
+            if (shouldStoreTaskMessage(taskMessage.length)) {
+                final TaskMessage outgoingTaskMessage = codec.deserialise(taskMessage, TaskMessage.class);
+                final var taskMessagePartialRef = String.format("%s/%s", routingKey, outgoingTaskMessage.getTracking().getJobTaskId());
+                final var dehydratedMessageId = dataStore.store(taskMessage, taskMessagePartialRef);
+
+                outgoingTaskMessage.setTaskClassifier(DEHYDRATED_MESSAGE_TASK_NAME);
+                outgoingTaskMessage.setTaskData(dehydratedMessageId.getBytes(StandardCharsets.UTF_8));
+                return codec.serialise(outgoingTaskMessage);
+            }
+        } catch (final Exception e) {
+            throw new QueueException("Error dehydrating task message", e);
+        }
+        return taskMessage;
     }
 }

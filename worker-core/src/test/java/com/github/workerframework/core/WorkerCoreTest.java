@@ -29,16 +29,17 @@ import com.github.workerframework.api.InvalidTaskException;
 import com.github.workerframework.api.ManagedDataStore;
 import com.github.workerframework.api.ManagedWorkerQueue;
 import com.github.workerframework.api.QueueException;
+import com.github.workerframework.api.ReferenceNotFoundException;
 import com.github.workerframework.api.TaskCallback;
 import com.github.workerframework.api.TaskInformation;
 import com.github.workerframework.api.TaskMessage;
 import com.github.workerframework.api.TaskStatus;
 import com.github.workerframework.api.TrackingInfo;
 import com.github.workerframework.api.Worker;
+import com.github.workerframework.api.WorkerDataStorageQueueProvider;
 import com.github.workerframework.api.WorkerException;
 import com.github.workerframework.api.WorkerFactory;
 import com.github.workerframework.api.WorkerQueueMetricsReporter;
-import com.github.workerframework.api.WorkerQueueProvider;
 import com.github.workerframework.api.WorkerResponse;
 import com.github.workerframework.api.WorkerTaskData;
 import com.github.workerframework.caf.AbstractWorker;
@@ -49,7 +50,6 @@ import com.github.workerframework.tracking.report.TrackingReportTask;
 import com.github.workerframework.tracking.report.TrackingReportConstants;
 
 import java.io.File;
-import java.io.IOException;
 import java.net.MalformedURLException;
 import org.testng.Assert;
 import org.testng.annotations.AfterMethod;
@@ -83,16 +83,15 @@ public class WorkerCoreTest
     private static final String QUEUE_OUT = "outQueue";
     private static final String QUEUE_PAUSED = "pausedQueue";
     private static final String SERVICE_PATH = "/test/group";
-    private static final Integer HEALTHCHECK_TIMEOUT_SECONDS = 10;
     private TaskInformation taskInformation;
     private File tempDataStore;
     private ManagedDataStore dataStore;
+    public static final String DEHYDRATED_MESSAGE_TASK_NAME = "DehydratedMessageTask";
 
     @BeforeMethod
     private void before() throws DataStoreException {
         taskInformation = getMockTaskInformation("test1");
-        tempDataStore = new File("tempDataStore");
-        FileSystemDataStoreConfiguration conf = createConfig();
+        tempDataStore = new File("WorkerCoreTest");
         dataStore = new FileSystemDataStore(createConfig());
     }
 
@@ -104,9 +103,9 @@ public class WorkerCoreTest
 
     private FileSystemDataStoreConfiguration createConfig()
     {
-        FileSystemDataStoreConfiguration conf = new FileSystemDataStoreConfiguration();
+        final FileSystemDataStoreConfiguration conf = new FileSystemDataStoreConfiguration();
         conf.setDataDir(tempDataStore.getAbsolutePath());
-        conf.setDataDirHealthcheckTimeoutSeconds(HEALTHCHECK_TIMEOUT_SECONDS);
+        conf.setDataDirHealthcheckTimeoutSeconds(10);
         return conf;
     }
 
@@ -121,60 +120,88 @@ public class WorkerCoreTest
         file.delete();
     }
 
-    /**
-     * Send a message all the way through WorkerCore and verify the result output message *
-     */
     @Test
-    public void testWorkerCoreProcessesStoredMessage()
+    public void testWorkerCoreHandlesDehydratedMessage()
         throws CodecException, InterruptedException, WorkerException, QueueException, InvalidNameException, DataStoreException {
-        final BlockingQueue<byte[]> q = new LinkedBlockingQueue<>();
-        final Codec codec = new JsonCodec();
-        final WorkerThreadPool wtp = WorkerThreadPool.create(5);
-        final ConfigurationSource config = Mockito.mock(ConfigurationSource.class);
-        final ServicePath path = new ServicePath(SERVICE_PATH);
-        final TestWorkerTask task = new TestWorkerTask();
-        final TestWorkerQueue queue = new TestWorkerQueueProvider(q).getWorkerQueue(config, 50);
-        final HealthCheckRegistry healthCheckRegistry = Mockito.mock(HealthCheckRegistry.class);
-        final TransientHealthCheck transientHealthCheck = Mockito.mock(TransientHealthCheck.class);
+        BlockingQueue<byte[]> q = new LinkedBlockingQueue<>();
+        Codec codec = new JsonCodec();
+        WorkerThreadPool wtp = WorkerThreadPool.create(5);
+        ConfigurationSource config = Mockito.mock(ConfigurationSource.class);
+        ServicePath path = new ServicePath(SERVICE_PATH);
+        TestWorkerTask task = new TestWorkerTask();
+        TestWorkerQueue queue = new TestWorkerQueueProvider(q).getWorkerQueue(config, 50);
+        HealthCheckRegistry healthCheckRegistry = Mockito.mock(HealthCheckRegistry.class);
+        TransientHealthCheck transientHealthCheck = Mockito.mock(TransientHealthCheck.class);
 
-        final WorkerCore core = new WorkerCore(codec, wtp, queue, getWorkerFactory(task, codec), path, healthCheckRegistry, transientHealthCheck, dataStore);
+        WorkerCore core = new WorkerCore(codec, wtp, queue, getWorkerFactory(task, codec), path, healthCheckRegistry, transientHealthCheck, dataStore);
         core.start();
 
-        // Preload a stored message, this will have the original classifier
-        final var originalTaskMessage = getTaskMessage(task, codec, WORKER_NAME); // DDD this needs the tracking info set
-        final byte[] originalTaskMessageByteArray = codec.serialise(originalTaskMessage);
+        //  store a message to be rehydrated first
+        final var trackingInfo = new TrackingInfo("task1", new Date(), 1, "http://hello.com", "pipe", "to");
+        final var actualTaskData = "This is the actual task message that gets stored";
+        final var dehydratedTaskMessage = new TaskMessage(
+            "task1",
+            "ACTUAL_CLASSIFIER",
+            1,
+            actualTaskData.getBytes(StandardCharsets.UTF_8),
+            TaskStatus.NEW_TASK,
+            new HashMap<>(),
+            "to",
+            trackingInfo);
+        final var dehydratedTaskMessageData = codec.serialise(dehydratedTaskMessage);
+        final var dehydratedMessageId = dataStore.store(dehydratedTaskMessageData, "testQueue/task1");
 
-        // replicate an upstream worker having stored a message.
-        final var originalDehydratedTaskMessageId = dataStore.store(originalTaskMessageByteArray, "queue/jobid");
+        // send a message linking to the dehydrated message
+        final var inboundTaskMessage = new TaskMessage(
+            "task1",
+            DEHYDRATED_MESSAGE_TASK_NAME,
+            1,
+            dehydratedMessageId.getBytes(StandardCharsets.UTF_8),
+            TaskStatus.NEW_TASK,
+            new HashMap<>(),
+            "to",
+            trackingInfo);
+        final var inboundTaskMessageData = codec.serialise(inboundTaskMessage);
+        queue.submitTask(taskInformation, inboundTaskMessageData);
 
-        // replicate an upstream worker sending a dehydrated message.
-        originalTaskMessage.setTaskClassifier(WorkerCore.DEHYDRATED_MESSAGE_TASK_NAME);
-        originalTaskMessage.setTaskData(new byte[0]);
-        originalTaskMessage.setStoredTaskMessageId(originalDehydratedTaskMessageId);
-        final byte[] dehydratedTaskMessageByteArray = codec.serialise(originalTaskMessage);
-        queue.submitTask(taskInformation, dehydratedTaskMessageByteArray);
+        //  If the dehydrated message cannot be read there will be no outbound message.
+        byte[] outboundTaskMessageData = q.poll(5000, TimeUnit.MILLISECONDS);
+        Assert.assertNotNull(outboundTaskMessageData, "outbound message was not delivered");
+    }
 
-        // the worker will not receive the dehydrated message, read from the store, and
-        // re-write back to the test queue.
-        byte[] outputByteArray = q.poll(5000, TimeUnit.MILLISECONDS);
-        // if the result didn't get back to us, then result will be null
-        Assert.assertNotNull(outputByteArray);
+    @Test
+    public void testWorkerCoreHandlesMissingDehydratedMessage()
+        throws CodecException, WorkerException, QueueException, InvalidNameException {
+        BlockingQueue<byte[]> q = new LinkedBlockingQueue<>();
+        Codec codec = new JsonCodec();
+        WorkerThreadPool wtp = WorkerThreadPool.create(5);
+        ConfigurationSource config = Mockito.mock(ConfigurationSource.class);
+        ServicePath path = new ServicePath(SERVICE_PATH);
+        TestWorkerTask task = new TestWorkerTask();
+        TestWorkerQueue queue = new TestWorkerQueueProvider(q).getWorkerQueue(config, 50);
+        HealthCheckRegistry healthCheckRegistry = Mockito.mock(HealthCheckRegistry.class);
+        TransientHealthCheck transientHealthCheck = Mockito.mock(TransientHealthCheck.class);
 
-        // deserialise and verify that the result data remains a dehydrated message
-        final TaskMessage outputTaskMessage = codec.deserialise(outputByteArray, TaskMessage.class);
-        Assert.assertEquals(WorkerCore.DEHYDRATED_MESSAGE_TASK_NAME, outputTaskMessage.getTaskClassifier());
-        final var dehydratedMessageId = outputTaskMessage.getStoredTaskMessageId();
-        Assert.assertNotNull(dehydratedMessageId);
-        Assert.assertNotEquals(originalDehydratedTaskMessageId, dehydratedMessageId);
+        WorkerCore core = new WorkerCore(codec, wtp, queue, getWorkerFactory(task, codec), path, healthCheckRegistry, transientHealthCheck, dataStore);
+        core.start();
 
-        // Now check we were able to recover the original taskData from the store.
-        try (final var inputStream = dataStore.retrieve(dehydratedMessageId)) {
-            final var rehydratedTaskMessage = codec.deserialise(inputStream, TaskMessage.class, DecodeMethod.LENIENT);
-            Assert.assertEquals(WORKER_NAME, rehydratedTaskMessage.getTaskClassifier());
-            ArrayAsserts.assertArrayEquals(originalTaskMessageByteArray, rehydratedTaskMessage.getTaskData());
-        } catch (final IOException ioException) {
-            throw new InvalidTaskException("Error rehydrating TaskMessage from the Data store", ioException);
-        }
+        // send a message linking to a non-existent dehydrated message
+        final var trackingInfo = new TrackingInfo("task1", new Date(), 1, "hello.com", "pipe", "to");
+        final var inboundTaskMessage = new TaskMessage(
+            "task1",
+            DEHYDRATED_MESSAGE_TASK_NAME,
+            1,
+            "NoSuchDehydratedMessageExists".getBytes(StandardCharsets.UTF_8),
+            TaskStatus.NEW_TASK,
+            new HashMap<>(),
+            "to",
+            trackingInfo);
+        final var inboundTaskMessageData = codec.serialise(inboundTaskMessage);
+        Assert.assertThrows(
+            "Expected an InvalidTaskException.",
+            InvalidTaskException.class,
+            () -> queue.submitTask(taskInformation, inboundTaskMessageData)
+        );
     }
 
     /**
@@ -659,7 +686,7 @@ public class WorkerCoreTest
         };
     }
 
-    private class TestWorkerQueueProvider implements WorkerQueueProvider
+    private class TestWorkerQueueProvider implements WorkerDataStorageQueueProvider
     {
         private final BlockingQueue<byte[]> results;
 
@@ -668,8 +695,21 @@ public class WorkerCoreTest
             this.results = results;
         }
 
+        public final TestWorkerQueue getWorkerQueue(
+            final ConfigurationSource configurationSource,
+            final int maxTasks)
+        {
+            final ManagedDataStore dataStore = Mockito.mock(ManagedDataStore.class);
+            final Codec codec = new JsonCodec();
+            return getWorkerQueue(configurationSource, maxTasks, dataStore, codec);
+        }
+
         @Override
-        public final TestWorkerQueue getWorkerQueue(final ConfigurationSource configurationSource, final int maxTasks)
+        public final TestWorkerQueue getWorkerQueue(
+            final ConfigurationSource configurationSource,
+            final int maxTasks,
+            final ManagedDataStore dataStore,
+            final Codec codec)
         {
             return new TestWorkerQueue(this.results);
         }
@@ -800,7 +840,7 @@ public class WorkerCoreTest
         }
     }
 
-    private class TestWorkerQueueWithNullPausedQueueProvider implements WorkerQueueProvider
+    private class TestWorkerQueueWithNullPausedQueueProvider implements WorkerDataStorageQueueProvider
     {
         private final BlockingQueue<byte[]> results;
 
@@ -809,8 +849,21 @@ public class WorkerCoreTest
             this.results = results;
         }
 
+        public final TestWorkerQueueWithNullPausedQueue getWorkerQueue(
+            final ConfigurationSource configurationSource,
+            final int maxTasks)
+        {
+            final ManagedDataStore dataStore = Mockito.mock(ManagedDataStore.class);
+            final Codec codec = new JsonCodec();
+            return getWorkerQueue(configurationSource, maxTasks, dataStore, codec);
+        }
+
         @Override
-        public final TestWorkerQueueWithNullPausedQueue getWorkerQueue(final ConfigurationSource configurationSource, final int maxTasks)
+        public final TestWorkerQueueWithNullPausedQueue getWorkerQueue(
+            final ConfigurationSource configurationSource,
+            final int maxTasks,
+            final ManagedDataStore dataStore,
+            final Codec codec)
         {
             return new TestWorkerQueueWithNullPausedQueue(this.results);
         }

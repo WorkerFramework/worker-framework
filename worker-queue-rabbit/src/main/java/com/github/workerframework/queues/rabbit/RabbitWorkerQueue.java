@@ -15,8 +15,10 @@
  */
 package com.github.workerframework.queues.rabbit;
 
+import com.github.cafapi.common.api.Codec;
 import com.github.cafapi.common.api.HealthResult;
 import com.github.cafapi.common.api.HealthStatus;
+import com.github.workerframework.api.ManagedDataStore;
 import com.github.workerframework.api.ManagedWorkerQueue;
 import com.github.workerframework.api.QueueException;
 import com.github.workerframework.api.TaskCallback;
@@ -72,15 +74,23 @@ public final class RabbitWorkerQueue implements ManagedWorkerQueue
     private final RabbitMetricsReporter metrics = new RabbitMetricsReporter();
     private final RabbitWorkerQueueConfiguration config;
     private final int maxTasks;
+    private final ManagedDataStore dataStore;
+    private final Codec codec;
     private static final Logger LOG = LoggerFactory.getLogger(RabbitWorkerQueue.class);
 
     /**
      * Setup a new RabbitWorkerQueue.
      */
-    public RabbitWorkerQueue(RabbitWorkerQueueConfiguration config, int maxTasks)
+    public RabbitWorkerQueue(
+        RabbitWorkerQueueConfiguration config,
+        int maxTasks,
+        final ManagedDataStore dataStore,
+        final Codec codec)
     {
         this.config = Objects.requireNonNull(config);
         this.maxTasks = maxTasks;
+        this.dataStore = Objects.requireNonNull(dataStore);
+        this.codec = Objects.requireNonNull(codec);
         LOG.debug("Initialised");
     }
 
@@ -110,7 +120,15 @@ public final class RabbitWorkerQueue implements ManagedWorkerQueue
             WorkerQueueConsumerImpl consumerImpl = new WorkerQueueConsumerImpl(callback, metrics, consumerQueue, incomingChannel,
                                                                                publisherQueue, config.getRetryQueue(), config.getRetryLimit());
             consumer = new DefaultRabbitConsumer(consumerQueue, consumerImpl);
-            WorkerPublisherImpl publisherImpl = new WorkerPublisherImpl(outgoingChannel, metrics, consumerQueue, confirmListener);
+            WorkerPublisherImpl publisherImpl = new WorkerPublisherImpl(
+                outgoingChannel,
+                metrics,
+                consumerQueue,
+                confirmListener,
+                dataStore,
+                config,
+                codec
+            );
             publisher = new EventPoller<>(2, publisherQueue, publisherImpl);
             declareWorkerQueue(incomingChannel, config.getInputQueue());
             declareWorkerQueue(outgoingChannel, config.getRetryQueue());
