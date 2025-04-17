@@ -16,7 +16,6 @@
 package com.github.workerframework.queues.rabbit;
 
 import com.github.cafapi.common.api.Configuration;
-import com.github.workerframework.configs.MessageDehydrationConfiguration;
 import com.github.workerframework.configs.RabbitConfiguration;
 
 import jakarta.validation.Valid;
