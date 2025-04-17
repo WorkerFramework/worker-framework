@@ -241,13 +241,13 @@ final class WorkerCore
                             taskInformation.getInboundMessageId());
                         executor.discardTask(tm, taskInformation);
                 }
-            } catch (InvalidJobTaskIdException ijte) {
+            } catch (final InvalidJobTaskIdException ijte) {
                 throw new InvalidTaskException("TaskMessage contains an invalid job task identifier", ijte);
-            } catch (CodecException e) {
+            } catch (final CodecException e) {
                 throw new InvalidTaskException("Queue data did not deserialise to a TaskMessage", e);
-            } catch (DataStoreException e) {
+            } catch (final DataStoreException e) {
                 throw new InvalidTaskException("TaskMessage was not found in the Data store", e);
-            } catch (IOException e) {
+            } catch (final IOException e) {
                 throw new InvalidTaskException("Error reading task message from store", e);
             }
         }
@@ -265,26 +265,19 @@ final class WorkerCore
         private TaskMessage deserializeTaskMessage(final byte[] taskMessage, final Map<String, Object> headers)
             throws CodecException, DataStoreException, IOException
         {
-            final TaskMessage tm = codec.deserialise(taskMessage, TaskMessage.class, DecodeMethod.LENIENT);
             if (headers.containsKey(RABBIT_HEADER_CAF_DEHYDRATION_ID)) {
                 final var dehydratedMessageId = headers.get(RABBIT_HEADER_CAF_DEHYDRATION_ID).toString();
-                return codec.deserialise(getDehydratedByteArray(dehydratedMessageId), TaskMessage.class, DecodeMethod.LENIENT);
-            }
-            return tm;
-        }
-
-        private byte[] getDehydratedByteArray(final String dehydratedMessageId)
-            throws IOException, DataStoreException
-        {
-            try (final var inputStream = dataStore.retrieve(dehydratedMessageId)) {
                 final ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
-                byte[] buffer = new byte[1024];
-                int length;
-                while ((length = inputStream.read(buffer)) != -1) {
-                    outputStream.write(buffer, 0, length);
+                try (final var inputStream = dataStore.retrieve(dehydratedMessageId)) {
+                    final byte[] buffer = new byte[1024];
+                    int length;
+                    while ((length = inputStream.read(buffer)) != -1) {
+                        outputStream.write(buffer, 0, length);
+                    }
                 }
-                return outputStream.toByteArray();
+                return codec.deserialise(outputStream.toByteArray(), TaskMessage.class, DecodeMethod.LENIENT);
             }
+            return codec.deserialise(taskMessage, TaskMessage.class, DecodeMethod.LENIENT);
         }
 
         private boolean isTaskIntendedForThisWorker(final TaskMessage tm, final TaskInformation taskInformation)
