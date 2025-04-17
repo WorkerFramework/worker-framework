@@ -159,7 +159,7 @@ public class WorkerCoreTest
             "task1",
             "DEHYDRATED_CLASSIFIER",
             1,
-            dehydratedMessageId.getBytes(StandardCharsets.UTF_8),
+            new byte[0],
             TaskStatus.NEW_TASK,
             new HashMap<>(),
             "to",
@@ -189,21 +189,23 @@ public class WorkerCoreTest
         core.start();
 
         // send a message linking to a non-existent dehydrated message
-        final var trackingInfo = new TrackingInfo("task1", new Date(), 1, "hello.com", "pipe", "to");
+        final var trackingInfo = new TrackingInfo("task1", new Date(), 1, "http://hello.com", "pipe", "to");
         final var inboundTaskMessage = new TaskMessage(
             "task1",
             "DEHYDRATED_CLASSIFIER",
             1,
-            "NoSuchDehydratedMessageExists".getBytes(StandardCharsets.UTF_8),
+            new byte[0],
             TaskStatus.NEW_TASK,
             new HashMap<>(),
             "to",
             trackingInfo);
         final var inboundTaskMessageData = codec.serialise(inboundTaskMessage);
+        final Map<String, Object> headers = new HashMap<>();
+        headers.put(RABBIT_HEADER_CAF_DEHYDRATION_ID, "NoSuchDehydratedMessageExists");
         Assert.assertThrows(
             "Expected an InvalidTaskException.",
             InvalidTaskException.class,
-            () -> queue.submitTask(taskInformation, inboundTaskMessageData)
+            () -> queue.submitTask(taskInformation, inboundTaskMessageData, headers)
         );
     }
 
