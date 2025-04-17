@@ -45,6 +45,7 @@ class WorkerConfirmListener implements ConfirmListener
     private final ManagedDataStore dataStore;
     private static final Logger LOG = LoggerFactory.getLogger(WorkerConfirmListener.class);
 
+    // DDD we'll remove one of these ctors
     WorkerConfirmListener(BlockingQueue<Event<QueueConsumer>> events)
     {
         this.consumerEvents = Objects.requireNonNull(events);
@@ -92,7 +93,10 @@ class WorkerConfirmListener implements ConfirmListener
             t.incrementAcknowledgementCount();
             if(t.areAllResponsesAcknowledged() && !t.isAckEventSent()){
                 t.markAckEventAsSent();
-                deleteStoredMessage(t);
+                final var dehydratedMessageIdOpt = t.getDehydratedMessageId();
+                if (dataStore != null && dehydratedMessageIdOpt.isPresent()) {
+                    deleteStoredMessage(dehydratedMessageIdOpt.get());
+                }
                 return new ConsumerAckEvent(Long.valueOf(t.getInboundMessageId()));
             }
             return null;
@@ -135,17 +139,12 @@ class WorkerConfirmListener implements ConfirmListener
         }
     }
 
-    private void deleteStoredMessage(final RabbitTaskInformation taskInformation)
+    private void deleteStoredMessage(final String dehydratedMessageId)
     {
-        final var rehydratedMessageIdOpt = taskInformation.getDehydratedMessageId();
-        if (dataStore == null || rehydratedMessageIdOpt.isEmpty() ) {
-            return;
-        }
-
         try {
-            dataStore.delete(rehydratedMessageIdOpt.get());
+            dataStore.delete(dehydratedMessageId);
         } catch (final DataStoreException e) {
-            LOG.error("Failed to delete a stored message id:{} from the datastore", rehydratedMessageIdOpt.get(), e);
+            LOG.error("Failed to delete a dehydrated message:{} from the datastore", dehydratedMessageId, e);
         }
     }
 }
