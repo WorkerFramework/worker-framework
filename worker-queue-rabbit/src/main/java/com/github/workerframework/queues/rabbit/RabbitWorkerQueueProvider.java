@@ -18,12 +18,12 @@ package com.github.workerframework.queues.rabbit;
 import com.github.cafapi.common.api.Codec;
 import com.github.cafapi.common.api.ConfigurationException;
 import com.github.cafapi.common.api.ConfigurationSource;
-import com.github.workerframework.api.WorkerDataStorageQueueProvider;
 import com.github.workerframework.api.ManagedDataStore;
 import com.github.workerframework.api.ManagedWorkerQueue;
 import com.github.workerframework.api.QueueException;
+import com.github.workerframework.api.WorkerQueueProvider;
 
-public class RabbitWorkerQueueProvider implements WorkerDataStorageQueueProvider
+public class RabbitWorkerQueueProvider implements WorkerQueueProvider
 {
     @Override
     public ManagedWorkerQueue getWorkerQueue(

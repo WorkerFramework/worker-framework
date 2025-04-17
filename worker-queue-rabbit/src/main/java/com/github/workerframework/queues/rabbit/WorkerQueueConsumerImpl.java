@@ -15,8 +15,14 @@
  */
 package com.github.workerframework.queues.rabbit;
 
+import com.github.cafapi.common.api.Codec;
+import com.github.cafapi.common.api.CodecException;
+import com.github.cafapi.common.api.DecodeMethod;
+import com.github.workerframework.api.DataStoreException;
 import com.github.workerframework.api.InvalidTaskException;
+import com.github.workerframework.api.ManagedDataStore;
 import com.github.workerframework.api.TaskCallback;
+import com.github.workerframework.api.TaskMessage;
 import com.github.workerframework.api.TaskRejectedException;
 import com.github.workerframework.util.rabbitmq.QueueConsumer;
 import com.github.workerframework.util.rabbitmq.ConsumerAckEvent;
@@ -29,6 +35,7 @@ import com.rabbitmq.client.Channel;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.util.Collections;
 import java.util.HashMap;
@@ -54,10 +61,21 @@ public class WorkerQueueConsumerImpl implements QueueConsumer
     private final Channel channel;
     private final String retryRoutingKey;
     private final int retryLimit;
+    private final ManagedDataStore dataStore;
+    private final Codec codec;
     private static final Logger LOG = LoggerFactory.getLogger(WorkerQueueConsumerImpl.class);
 
-    public WorkerQueueConsumerImpl(TaskCallback callback, RabbitMetricsReporter metrics, BlockingQueue<Event<QueueConsumer>> queue, Channel ch,
-                                   BlockingQueue<Event<WorkerPublisher>> pubQueue, String retryKey, int retryLimit)
+    public WorkerQueueConsumerImpl(
+        final TaskCallback callback,
+        final RabbitMetricsReporter metrics,
+        final BlockingQueue<Event<QueueConsumer>> queue,
+        final Channel ch,
+        final BlockingQueue<Event<WorkerPublisher>> pubQueue,
+        final String retryKey,
+        final int retryLimit,
+        final ManagedDataStore dataStore,
+        final Codec codec
+)
     {
         this.callback = Objects.requireNonNull(callback);
         this.metrics = Objects.requireNonNull(metrics);
@@ -66,6 +84,8 @@ public class WorkerQueueConsumerImpl implements QueueConsumer
         this.publisherEventQueue = Objects.requireNonNull(pubQueue);
         this.retryRoutingKey = Objects.requireNonNull(retryKey);
         this.retryLimit = retryLimit;
+        this.dataStore = Objects.requireNonNull(dataStore);
+        this.codec = Objects.requireNonNull(codec);
     }
 
     /**
@@ -111,7 +131,8 @@ public class WorkerQueueConsumerImpl implements QueueConsumer
             new RabbitTaskInformation(String.valueOf(delivery.getEnvelope().getDeliveryTag()), isPoison, dehydratedMessageId);
         try {
             LOG.debug("Registering new message {}", taskInformation.getInboundMessageId());
-            callback.registerNewTask(taskInformation, delivery.getMessageData(), delivery.getHeaders());
+            final TaskMessage taskMessage = deserializeTaskMessage(delivery.getMessageData(), delivery.getHeaders());
+            callback.registerNewTask(taskInformation, taskMessage, delivery.getHeaders());
         } catch (InvalidTaskException e) {
             LOG.error("Cannot register new message, rejecting {}", taskInformation.getInboundMessageId(), e);
             taskInformation.incrementResponseCount(true);
@@ -122,6 +143,31 @@ public class WorkerQueueConsumerImpl implements QueueConsumer
             taskInformation.incrementResponseCount(true);
             publisherEventQueue.add(new WorkerPublishQueueEvent(delivery.getMessageData(), delivery.getEnvelope().getRoutingKey(),
                     taskInformation));
+        }
+    }
+
+    private TaskMessage deserializeTaskMessage(final byte[] taskMessage, final Map<String, Object> headers)
+        throws InvalidTaskException {
+        try {
+            if (headers.containsKey(RABBIT_HEADER_CAF_DEHYDRATION_ID)) {
+                final var dehydratedMessageId = headers.get(RABBIT_HEADER_CAF_DEHYDRATION_ID).toString();
+                final ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
+                try (final var inputStream = dataStore.retrieve(dehydratedMessageId)) {
+                    final byte[] buffer = new byte[1024];
+                    int length;
+                    while ((length = inputStream.read(buffer)) != -1) {
+                        outputStream.write(buffer, 0, length);
+                    }
+                }
+                return codec.deserialise(outputStream.toByteArray(), TaskMessage.class, DecodeMethod.LENIENT);
+            }
+            return codec.deserialise(taskMessage, TaskMessage.class, DecodeMethod.LENIENT);
+        } catch (final CodecException e) {
+            throw new InvalidTaskException("Queue data did not deserialise to a TaskMessage", e);
+        } catch (final DataStoreException e) {
+            throw new InvalidTaskException("TaskMessage was not found in the Data store", e);
+        } catch (final IOException e) {
+            throw new InvalidTaskException("Error reading task message from store", e);
         }
     }
 

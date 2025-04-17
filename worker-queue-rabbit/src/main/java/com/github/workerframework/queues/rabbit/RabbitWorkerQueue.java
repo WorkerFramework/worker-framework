@@ -117,8 +117,16 @@ public final class RabbitWorkerQueue implements ManagedWorkerQueue
             incomingChannel = conn.createChannel();
             int prefetch = Math.max(1, maxTasks + config.getPrefetchBuffer());
             incomingChannel.basicQos(prefetch);
-            WorkerQueueConsumerImpl consumerImpl = new WorkerQueueConsumerImpl(callback, metrics, consumerQueue, incomingChannel,
-                                                                               publisherQueue, config.getRetryQueue(), config.getRetryLimit());
+            WorkerQueueConsumerImpl consumerImpl = new WorkerQueueConsumerImpl(
+                callback, 
+                metrics, 
+                consumerQueue, 
+                incomingChannel,
+                publisherQueue, 
+                config.getRetryQueue(), 
+                config.getRetryLimit(),
+                dataStore,
+                codec);
             consumer = new DefaultRabbitConsumer(consumerQueue, consumerImpl);
             WorkerPublisherImpl publisherImpl = new WorkerPublisherImpl(
                 outgoingChannel,

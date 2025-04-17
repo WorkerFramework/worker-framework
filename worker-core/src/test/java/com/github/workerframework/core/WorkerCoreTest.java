@@ -20,7 +20,6 @@ import com.github.cafapi.common.api.Codec;
 import com.github.cafapi.common.api.CodecException;
 import com.github.cafapi.common.api.ConfigurationException;
 import com.github.cafapi.common.api.ConfigurationSource;
-import com.github.cafapi.common.api.DecodeMethod;
 import com.github.cafapi.common.api.HealthResult;
 import com.github.cafapi.common.codecs.json.JsonCodec;
 import com.github.cafapi.common.util.naming.ServicePath;
@@ -29,17 +28,16 @@ import com.github.workerframework.api.InvalidTaskException;
 import com.github.workerframework.api.ManagedDataStore;
 import com.github.workerframework.api.ManagedWorkerQueue;
 import com.github.workerframework.api.QueueException;
-import com.github.workerframework.api.ReferenceNotFoundException;
 import com.github.workerframework.api.TaskCallback;
 import com.github.workerframework.api.TaskInformation;
 import com.github.workerframework.api.TaskMessage;
 import com.github.workerframework.api.TaskStatus;
 import com.github.workerframework.api.TrackingInfo;
 import com.github.workerframework.api.Worker;
-import com.github.workerframework.api.WorkerDataStorageQueueProvider;
 import com.github.workerframework.api.WorkerException;
 import com.github.workerframework.api.WorkerFactory;
 import com.github.workerframework.api.WorkerQueueMetricsReporter;
+import com.github.workerframework.api.WorkerQueueProvider;
 import com.github.workerframework.api.WorkerResponse;
 import com.github.workerframework.api.WorkerTaskData;
 import com.github.workerframework.caf.AbstractWorker;
@@ -120,6 +118,7 @@ public class WorkerCoreTest
         file.delete();
     }
 
+    // DDD this test need to be converted to test the rabbit consumer
     @Test
     public void testWorkerCoreHandlesDehydratedMessage()
         throws CodecException, InterruptedException, WorkerException, QueueException, InvalidNameException, DataStoreException {
@@ -133,7 +132,7 @@ public class WorkerCoreTest
         final HealthCheckRegistry healthCheckRegistry = Mockito.mock(HealthCheckRegistry.class);
         final TransientHealthCheck transientHealthCheck = Mockito.mock(TransientHealthCheck.class);
 
-        final WorkerCore core = new WorkerCore(codec, wtp, queue, getWorkerFactory(task, codec), path, healthCheckRegistry, transientHealthCheck, dataStore);
+        final WorkerCore core = new WorkerCore(codec, wtp, queue, getWorkerFactory(task, codec), path, healthCheckRegistry, transientHealthCheck);
         core.start();
 
         //  store a message to be rehydrated first
@@ -161,52 +160,14 @@ public class WorkerCoreTest
             new HashMap<>(),
             "to",
             trackingInfo);
-        final var inboundTaskMessageData = codec.serialise(inboundTaskMessage);
 
         final Map<String, Object> headers = new HashMap<>();
         headers.put(RABBIT_HEADER_CAF_DEHYDRATION_ID, dehydratedMessageId);
-        queue.submitTask(taskInformation, inboundTaskMessageData, headers);
+        queue.submitTask(taskInformation, inboundTaskMessage, headers);
 
         //  If the dehydrated message cannot be read there will be no outbound message.
         final byte[] outboundTaskMessageData = q.poll(5000, TimeUnit.MILLISECONDS);
         Assert.assertNotNull(outboundTaskMessageData, "outbound message was not delivered");
-    }
-
-    @Test
-    public void testWorkerCoreHandlesMissingDehydratedMessage()
-        throws CodecException, WorkerException, QueueException, InvalidNameException {
-        final BlockingQueue<byte[]> q = new LinkedBlockingQueue<>();
-        final Codec codec = new JsonCodec();
-        final WorkerThreadPool wtp = WorkerThreadPool.create(5);
-        final ConfigurationSource config = Mockito.mock(ConfigurationSource.class);
-        final ServicePath path = new ServicePath(SERVICE_PATH);
-        final TestWorkerTask task = new TestWorkerTask();
-        final TestWorkerQueue queue = new TestWorkerQueueProvider(q).getWorkerQueue(config, 50);
-        final HealthCheckRegistry healthCheckRegistry = Mockito.mock(HealthCheckRegistry.class);
-        final TransientHealthCheck transientHealthCheck = Mockito.mock(TransientHealthCheck.class);
-
-        final WorkerCore core = new WorkerCore(codec, wtp, queue, getWorkerFactory(task, codec), path, healthCheckRegistry, transientHealthCheck, dataStore);
-        core.start();
-
-        // send a message linking to a non-existent dehydrated message
-        final var trackingInfo = new TrackingInfo("task1", new Date(), 1, "http://hello.com", "pipe", "to");
-        final var inboundTaskMessage = new TaskMessage(
-            "task1",
-            "DEHYDRATED_CLASSIFIER",
-            1,
-            new byte[0],
-            TaskStatus.NEW_TASK,
-            new HashMap<>(),
-            "to",
-            trackingInfo);
-        final var inboundTaskMessageData = codec.serialise(inboundTaskMessage);
-        final Map<String, Object> headers = new HashMap<>();
-        headers.put(RABBIT_HEADER_CAF_DEHYDRATION_ID, "NoSuchDehydratedMessageExists");
-        Assert.assertThrows(
-            "Expected an InvalidTaskException.",
-            InvalidTaskException.class,
-            () -> queue.submitTask(taskInformation, inboundTaskMessageData, headers)
-        );
     }
 
     /**
@@ -226,12 +187,11 @@ public class WorkerCoreTest
         HealthCheckRegistry healthCheckRegistry = Mockito.mock(HealthCheckRegistry.class);
         TransientHealthCheck transientHealthCheck = Mockito.mock(TransientHealthCheck.class);
 
-        WorkerCore core = new WorkerCore(codec, wtp, queue, getWorkerFactory(task, codec), path, healthCheckRegistry, transientHealthCheck, dataStore);
+        WorkerCore core = new WorkerCore(codec, wtp, queue, getWorkerFactory(task, codec), path, healthCheckRegistry, transientHealthCheck);
         core.start();
         // at this point, the queue should hand off the task to the app, the app should get a worker from the mocked WorkerFactory,
         // and the Worker itself is a mock wrapped in a WorkerWrapper, which should return success and the appropriate result data
-        byte[] stuff = codec.serialise(getTaskMessage(task, codec, WORKER_NAME));
-        queue.submitTask(taskInformation, stuff);
+        queue.submitTask(taskInformation, getTaskMessage(task, codec, WORKER_NAME));
         // the worker's task result should eventually be passed back to our dummy WorkerQueue and onto our blocking queue
         byte[] result = q.poll(5000, TimeUnit.MILLISECONDS);
         // if the result didn't get back to us, then result will be null
@@ -264,13 +224,12 @@ public class WorkerCoreTest
         final HealthCheckRegistry healthCheckRegistry = Mockito.mock(HealthCheckRegistry.class);
         final TransientHealthCheck transientHealthCheck = Mockito.mock(TransientHealthCheck.class);
 
-        final WorkerCore core = new WorkerCore(codec, wtp, queue, getWorkerFactory(task, codec), path, healthCheckRegistry, transientHealthCheck, dataStore);
+        final WorkerCore core = new WorkerCore(codec, wtp, queue, getWorkerFactory(task, codec), path, healthCheckRegistry, transientHealthCheck);
         core.start();
         // at this point, the queue should hand off the task to the app, the app should get a worker from the mocked WorkerFactory,
         // and the Worker itself is a mock wrapped in a WorkerWrapper, which should return success and the appropriate result data
         final TrackingInfo tracking = new TrackingInfo("J23.1.2", new Date(), 0, "http://thehost:1234/job-service/v1/jobs/23/status", "trackingQueue", "trackTo");
-        final byte[] stuff = codec.serialise(getTaskMessage(task, codec, WORKER_NAME, tracking));
-        queue.submitTask(taskInformation, stuff);
+        queue.submitTask(taskInformation, getTaskMessage(task, codec, WORKER_NAME, tracking));
 
         // Two results expected back. One for the report progress update and another for the message completion.
         //
@@ -318,10 +277,9 @@ public class WorkerCoreTest
         HealthCheckRegistry healthCheckRegistry = Mockito.mock(HealthCheckRegistry.class);
         TransientHealthCheck transientHealthCheck = Mockito.mock(TransientHealthCheck.class);
 
-        WorkerCore core = new WorkerCore(codec, wtp, queue, getWorkerFactory(task, codec), path, healthCheckRegistry, transientHealthCheck, dataStore);
+        WorkerCore core = new WorkerCore(codec, wtp, queue, getWorkerFactory(task, codec), path, healthCheckRegistry, transientHealthCheck);
         core.start();
-        byte[] stuff = codec.serialise("nonsense");
-        queue.submitTask(taskInformation, stuff);
+        queue.submitTask(taskInformation, new TaskMessage());
     }
 
     /**
@@ -341,7 +299,7 @@ public class WorkerCoreTest
         HealthCheckRegistry healthCheckRegistry = Mockito.mock(HealthCheckRegistry.class);
         TransientHealthCheck transientHealthCheck = Mockito.mock(TransientHealthCheck.class);
 
-        WorkerCore core = new WorkerCore(codec, wtp, queue, getInvalidTaskWorkerFactory(), path, healthCheckRegistry, transientHealthCheck, dataStore);
+        WorkerCore core = new WorkerCore(codec, wtp, queue, getInvalidTaskWorkerFactory(), path, healthCheckRegistry, transientHealthCheck);
         core.start();
         TaskMessage tm = getTaskMessage(task, codec, WORKER_NAME);
         tm.setTaskData(codec.serialise("invalid task data"));
@@ -350,8 +308,7 @@ public class WorkerCoreTest
         byte[] testContextData = testContext.getBytes(StandardCharsets.UTF_8);
         context.put(testContext, testContextData);
         tm.setContext(context);
-        byte[] stuff = codec.serialise(tm);
-        queue.submitTask(taskInformation, stuff);
+        queue.submitTask(taskInformation, tm);
         byte[] result = q.poll(5000, TimeUnit.MILLISECONDS);
         Assert.assertNotNull(result);
         TaskMessage taskMessage = codec.deserialise(result, TaskMessage.class);
@@ -381,7 +338,7 @@ public class WorkerCoreTest
         final HealthCheckRegistry healthCheckRegistry = Mockito.mock(HealthCheckRegistry.class);
         final TransientHealthCheck transientHealthCheck = Mockito.mock(TransientHealthCheck.class);
 
-        final WorkerCore core = new WorkerCore(codec, wtp, queue, getInvalidTaskWorkerFactory(), path, healthCheckRegistry, transientHealthCheck, dataStore);
+        final WorkerCore core = new WorkerCore(codec, wtp, queue, getInvalidTaskWorkerFactory(), path, healthCheckRegistry, transientHealthCheck);
         core.start();
 
         final TrackingInfo tracking = new TrackingInfo("J23.1.2", new Date(), 0, "http://thehost:1234/job-service/v1/jobs/23/status", "trackingQueue", "trackTo");
@@ -392,8 +349,7 @@ public class WorkerCoreTest
         final byte[] testContextData = testContext.getBytes(StandardCharsets.UTF_8);
         context.put(testContext, testContextData);
         tm.setContext(context);
-        final byte[] stuff = codec.serialise(tm);
-        queue.submitTask(taskInformation, stuff);
+        queue.submitTask(taskInformation, tm);
 
         // Two results expected back. One for the report progress update and another for the message completion.
         //
@@ -444,14 +400,11 @@ public class WorkerCoreTest
         HealthCheckRegistry healthCheckRegistry = Mockito.mock(HealthCheckRegistry.class);
         TransientHealthCheck transientHealthCheck = Mockito.mock(TransientHealthCheck.class);
 
-        WorkerCore core = new WorkerCore(codec, wtp, queue, getSlowWorkerFactory(latch, task, codec), path, healthCheckRegistry, transientHealthCheck, dataStore);
+        WorkerCore core = new WorkerCore(codec, wtp, queue, getSlowWorkerFactory(latch, task, codec), path, healthCheckRegistry, transientHealthCheck);
         core.start();
-        byte[] task1 = codec.serialise(getTaskMessage(task, codec, UUID.randomUUID().toString()));
-        byte[] task2 = codec.serialise(getTaskMessage(task, codec, UUID.randomUUID().toString()));
-        byte[] task3 = codec.serialise(getTaskMessage(task, codec, UUID.randomUUID().toString()));
-        queue.submitTask(getMockTaskInformation("task1"), task1);
-        queue.submitTask(getMockTaskInformation("task2"), task2);
-        queue.submitTask(getMockTaskInformation("task3"), task3);   // there are only 2 threads, so this task should not even start
+        queue.submitTask(getMockTaskInformation("task1"), getTaskMessage(task, codec, UUID.randomUUID().toString()));
+        queue.submitTask(getMockTaskInformation("task2"), getTaskMessage(task, codec, UUID.randomUUID().toString()));
+        queue.submitTask(getMockTaskInformation("task3"), getTaskMessage(task, codec, UUID.randomUUID().toString()));   // there are only 2 threads, so this task should not even start
         Thread.sleep(500);  // give the test a little breathing room
         queue.triggerAbort();
         latch.await(1, TimeUnit.SECONDS);
@@ -478,14 +431,13 @@ public class WorkerCoreTest
         TransientHealthCheck transientHealthCheck = Mockito.mock(TransientHealthCheck.class);
 
         WorkerCore core = new WorkerCore(codec, wtp, queue, getInterruptedExceptionWorkerFactory(task, codec),
-                                         path, healthCheckRegistry, transientHealthCheck, dataStore);
+                                         path, healthCheckRegistry, transientHealthCheck);
         core.start();
 
         final TaskMessage tm = getTaskMessage(task, codec, WORKER_NAME);
         tm.setTaskData(codec.serialise("invalid task data"));
 
-        final byte[] stuff = codec.serialise(tm);
-        queue.submitTask(taskInformation, stuff);
+        queue.submitTask(taskInformation, tm);
 
         byte[] msgCompletionTaskMessage = null;
         try {
@@ -525,14 +477,13 @@ public class WorkerCoreTest
         final TransientHealthCheck transientHealthCheck = Mockito.mock(TransientHealthCheck.class);
 
         final WorkerCore core = new WorkerCore(
-            codec, wtp, queue, getWorkerFactory(task, codec), path, healthCheckRegistry, transientHealthCheck, dataStore);
+            codec, wtp, queue, getWorkerFactory(task, codec), path, healthCheckRegistry, transientHealthCheck);
         core.start();
         // at this point, the queue should hand off the task to the app, the app should get a worker from the mocked WorkerFactory,
         // and the Worker itself is a mock wrapped in a WorkerWrapper, which should return success and the appropriate result data
         final TrackingInfo tracking = new TrackingInfo("J23.1.2", new Date(), 0,
             new File("src/test/resources/paused-status-check-url-response.json").toURI().toURL().toString(), "trackingQueue", "trackTo");
-        final byte[] stuff = codec.serialise(getTaskMessage(task, codec, WORKER_NAME, tracking));
-        queue.submitTask(taskInformation, stuff);
+        queue.submitTask(taskInformation, getTaskMessage(task, codec, WORKER_NAME, tracking));
 
         // Verify result for paused message.
         final byte[] pausedMsgResult = q.poll(5000, TimeUnit.MILLISECONDS);
@@ -568,14 +519,13 @@ public class WorkerCoreTest
         final TransientHealthCheck transientHealthCheck = Mockito.mock(TransientHealthCheck.class);
 
         final WorkerCore core = new WorkerCore(
-            codec, wtp, queue, getWorkerFactory(task, codec), path, healthCheckRegistry, transientHealthCheck, dataStore);
+            codec, wtp, queue, getWorkerFactory(task, codec), path, healthCheckRegistry, transientHealthCheck);
         core.start();
         // at this point, the queue should hand off the task to the app, the app should get a worker from the mocked WorkerFactory,
         // and the Worker itself is a mock wrapped in a WorkerWrapper, which should return success and the appropriate result data
         final TrackingInfo tracking = new TrackingInfo("J23.1.2", new Date(), 0,
             new File("src/test/resources/paused-status-check-url-response.json").toURI().toURL().toString(), "trackingQueue", "trackTo");
-        final byte[] stuff = codec.serialise(getTaskMessage(task, codec, WORKER_NAME, tracking));
-        queue.submitTask(taskInformation, stuff);
+        queue.submitTask(taskInformation, getTaskMessage(task, codec, WORKER_NAME, tracking));
 
         // Two results expected back. One for the report progress update and another for the message completion.
         //
@@ -691,7 +641,7 @@ public class WorkerCoreTest
         };
     }
 
-    private class TestWorkerQueueProvider implements WorkerDataStorageQueueProvider
+    private class TestWorkerQueueProvider implements WorkerQueueProvider
     {
         private final BlockingQueue<byte[]> results;
 
@@ -828,13 +778,13 @@ public class WorkerCoreTest
             callback.abortTasks();
         }
 
-        public void submitTask(final TaskInformation taskInformation, final byte[] stuff)
+        public void submitTask(final TaskInformation taskInformation, TaskMessage stuff)
             throws WorkerException
         {
             callback.registerNewTask(taskInformation, stuff, new HashMap<>());
         }
 
-        public void submitTask(final TaskInformation taskInformation, final byte[] stuff, final Map<String, Object> headers)
+        public void submitTask(final TaskInformation taskInformation, TaskMessage stuff, final Map<String, Object> headers)
             throws WorkerException
         {
             callback.registerNewTask(taskInformation, stuff, headers);
@@ -851,7 +801,7 @@ public class WorkerCoreTest
         }
     }
 
-    private class TestWorkerQueueWithNullPausedQueueProvider implements WorkerDataStorageQueueProvider
+    private class TestWorkerQueueWithNullPausedQueueProvider implements WorkerQueueProvider
     {
         private final BlockingQueue<byte[]> results;
 

@@ -36,13 +36,13 @@ import com.github.cafapi.common.util.moduleloader.ModuleLoaderException;
 import com.github.cafapi.common.util.naming.ServicePath;
 import com.github.workerframework.api.DataStoreException;
 import com.github.workerframework.api.DataStoreProvider;
-import com.github.workerframework.api.WorkerDataStorageQueueProvider;
 import com.github.workerframework.api.ManagedDataStore;
 import com.github.workerframework.api.ManagedWorkerQueue;
 import com.github.workerframework.api.QueueException;
 import com.github.workerframework.api.WorkerException;
 import com.github.workerframework.api.WorkerFactory;
 import com.github.workerframework.api.WorkerFactoryProvider;
+import com.github.workerframework.api.WorkerQueueProvider;
 import com.github.workerframework.configs.HealthConfiguration;
 
 import ch.qos.logback.classic.util.DefaultJoranConfigurator;
@@ -120,14 +120,14 @@ public final class WorkerApplication extends Application<WorkerConfiguration>
         Decoder decoder = decoderProvider.getDecoder(bootstrap, codec);
         ManagedConfigurationSource config = ModuleLoader.getService(ConfigurationSourceProvider.class).getConfigurationSource(bootstrap, cipher, path, decoder);
         WorkerFactoryProvider workerProvider = ModuleLoader.getService(WorkerFactoryProvider.class);
-        WorkerDataStorageQueueProvider queueProvider = ModuleLoader.getService(WorkerDataStorageQueueProvider.class);
+        WorkerQueueProvider queueProvider = ModuleLoader.getService(WorkerQueueProvider.class);
         ManagedDataStore store = ModuleLoader.getService(DataStoreProvider.class).getDataStore(config);
         WorkerFactory workerFactory = workerProvider.getWorkerFactory(config, store, codec);
         WorkerThreadPool wtp = WorkerThreadPool.create(workerFactory);
         final int nThreads = workerFactory.getWorkerThreads();
         ManagedWorkerQueue workerQueue = queueProvider.getWorkerQueue(config, nThreads, store, codec);
         TransientHealthCheck transientHealthCheck = new TransientHealthCheck();
-        WorkerCore core = new WorkerCore(codec, wtp, workerQueue, workerFactory, path, environment.healthChecks(), transientHealthCheck, store);
+        WorkerCore core = new WorkerCore(codec, wtp, workerQueue, workerFactory, path, environment.healthChecks(), transientHealthCheck);
         HealthConfiguration healthConfiguration = config.getConfiguration(HealthConfiguration.class);
 
         environment.lifecycle().manage(new Managed() {

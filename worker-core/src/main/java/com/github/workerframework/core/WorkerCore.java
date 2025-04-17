@@ -19,13 +19,11 @@ import com.github.cafapi.common.api.Codec;
 import com.github.cafapi.common.api.CodecException;
 import com.github.cafapi.common.api.DecodeMethod;
 import com.github.cafapi.common.util.naming.ServicePath;
-import com.github.workerframework.api.DataStoreException;
 import com.github.workerframework.api.InvalidJobTaskIdException;
 import com.github.workerframework.api.InvalidTaskException;
 import com.github.workerframework.api.JobNotFoundException;
 import com.github.workerframework.api.JobStatus;
 import com.codahale.metrics.health.HealthCheckRegistry;
-import com.github.workerframework.api.ManagedDataStore;
 import com.github.workerframework.api.ManagedWorkerQueue;
 import com.github.workerframework.api.QueueException;
 import com.github.workerframework.api.TaskCallback;
@@ -41,15 +39,11 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.BufferedReader;
-import java.io.ByteArrayOutputStream;
-import java.io.IOException;
 import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.net.URLConnection;
 import java.util.*;
-
-import static com.github.workerframework.util.rabbitmq.RabbitHeaders.RABBIT_HEADER_CAF_DEHYDRATION_ID;
 
 /**
  * WorkerCore represents the main logic of the microservice worker. It is responsible for accepting new tasks from a WorkerQueue, handing
@@ -68,19 +62,11 @@ final class WorkerCore
            System.getenv("CAF_WORKER_ENABLE_DIVERTED_TASK_CHECKING") == null ? 
                 "True" : System.getenv("CAF_WORKER_ENABLE_DIVERTED_TASK_CHECKING"));
 
-    public WorkerCore(
-        final Codec codec,
-        final WorkerThreadPool pool,
-        final ManagedWorkerQueue queue,
-        final WorkerFactory factory,
-        final ServicePath path,
-        final HealthCheckRegistry healthCheckRegistry,
-        final TransientHealthCheck transientHealthCheck,
-        final ManagedDataStore dataStore)
+    public WorkerCore(final Codec codec, final WorkerThreadPool pool, final ManagedWorkerQueue queue, final WorkerFactory factory, final ServicePath path, final HealthCheckRegistry healthCheckRegistry, final TransientHealthCheck transientHealthCheck)
     {
         WorkerCallback taskCallback = new CoreWorkerCallback(codec, queue, stats, healthCheckRegistry, transientHealthCheck);
         this.threadPool = Objects.requireNonNull(pool);
-        this.callback = new CoreTaskCallback(codec, stats, new WorkerExecutor(path, taskCallback, factory, pool), pool, queue, dataStore);
+        this.callback = new CoreTaskCallback(codec, stats, new WorkerExecutor(path, taskCallback, factory, pool), pool, queue);
         this.workerQueue = Objects.requireNonNull(queue);
         this.isStarted = false;
     }
@@ -149,22 +135,14 @@ final class WorkerCore
         private final WorkerExecutor executor;
         private final WorkerThreadPool threadPool;
         private final ManagedWorkerQueue workerQueue;
-        private final ManagedDataStore dataStore;
 
-        public CoreTaskCallback(
-            final Codec codec,
-            final WorkerStats stats,
-            final WorkerExecutor executor,
-            final WorkerThreadPool pool,
-            final ManagedWorkerQueue workerQueue,
-            final ManagedDataStore dataStore)
+        public CoreTaskCallback(final Codec codec, final WorkerStats stats, final WorkerExecutor executor, final WorkerThreadPool pool, final ManagedWorkerQueue workerQueue)
         {
             this.codec = Objects.requireNonNull(codec);
             this.stats = Objects.requireNonNull(stats);
             this.executor = Objects.requireNonNull(executor);
             this.threadPool = Objects.requireNonNull(pool);
             this.workerQueue = Objects.requireNonNull(workerQueue);
-            this.dataStore = Objects.requireNonNull(dataStore);
         }
 
         /**
@@ -173,12 +151,11 @@ final class WorkerCore
          * Use the factory to get a new worker to handle the task, wrap this in a handler and hand it off to the thread pool.
          */
         @Override
-        public void registerNewTask(final TaskInformation taskInformation, final byte[] taskMessage, Map<String, Object> headers)
+        public void registerNewTask(final TaskInformation taskInformation, final TaskMessage taskMessage, Map<String, Object> headers)
             throws InvalidTaskException, TaskRejectedException
         {
             Objects.requireNonNull(taskInformation);
             stats.incrementTasksReceived();
-            stats.getInputSizes().update(taskMessage.length);
 
             try {
                 registerNewTaskImpl(taskInformation, taskMessage, headers);
@@ -188,12 +165,10 @@ final class WorkerCore
             }
         }
 
-        private void registerNewTaskImpl(final TaskInformation taskInformation, final byte[] taskMessage, Map<String, Object> headers)
+        private void registerNewTaskImpl(final TaskInformation taskInformation, final TaskMessage tm, Map<String, Object> headers)
             throws InvalidTaskException, TaskRejectedException
         {
             try {
-                final TaskMessage tm = deserializeTaskMessage(taskMessage, headers);
-
                 LOG.debug("Received task {} (message id: {})", tm.getTaskId(), taskInformation.getInboundMessageId());
                 validateTaskMessage(tm);
                 final JobStatus jobStatus;
@@ -243,12 +218,6 @@ final class WorkerCore
                 }
             } catch (final InvalidJobTaskIdException ijte) {
                 throw new InvalidTaskException("TaskMessage contains an invalid job task identifier", ijte);
-            } catch (final CodecException e) {
-                throw new InvalidTaskException("Queue data did not deserialise to a TaskMessage", e);
-            } catch (final DataStoreException e) {
-                throw new InvalidTaskException("TaskMessage was not found in the Data store", e);
-            } catch (final IOException e) {
-                throw new InvalidTaskException("Error reading task message from store", e);
             }
         }
 
@@ -260,24 +229,6 @@ final class WorkerCore
             if (taskId == null) {
                 throw new InvalidTaskException("Task identifier not specified");
             }
-        }
-
-        private TaskMessage deserializeTaskMessage(final byte[] taskMessage, final Map<String, Object> headers)
-            throws CodecException, DataStoreException, IOException
-        {
-            if (headers.containsKey(RABBIT_HEADER_CAF_DEHYDRATION_ID)) {
-                final var dehydratedMessageId = headers.get(RABBIT_HEADER_CAF_DEHYDRATION_ID).toString();
-                final ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
-                try (final var inputStream = dataStore.retrieve(dehydratedMessageId)) {
-                    final byte[] buffer = new byte[1024];
-                    int length;
-                    while ((length = inputStream.read(buffer)) != -1) {
-                        outputStream.write(buffer, 0, length);
-                    }
-                }
-                return codec.deserialise(outputStream.toByteArray(), TaskMessage.class, DecodeMethod.LENIENT);
-            }
-            return codec.deserialise(taskMessage, TaskMessage.class, DecodeMethod.LENIENT);
         }
 
         private boolean isTaskIntendedForThisWorker(final TaskMessage tm, final TaskInformation taskInformation)
