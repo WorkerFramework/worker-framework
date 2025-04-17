@@ -16,7 +16,6 @@
 package com.github.workerframework.queues.rabbit;
 
 import com.github.cafapi.common.api.Codec;
-import com.github.workerframework.api.DataStoreException;
 import com.github.workerframework.api.ManagedDataStore;
 import com.github.workerframework.api.QueueException;
 import com.github.workerframework.api.TaskMessage;
@@ -91,27 +90,13 @@ public class WorkerPublisherImpl implements WorkerPublisher
             builder.contentType("text/plain");
             builder.deliveryMode(2);
             confirmListener.registerResponseSequence(channel.getNextPublishSeqNo(), taskInformation);
-            final var outboundTaskMessage = getOutboundTaskMessage(data, routingKey, headers);
-            channel.basicPublish("", routingKey, builder.build(), outboundTaskMessage);
+            final var outboundByteArray = getOutboundByteArray(data, routingKey, headers);
+            channel.basicPublish("", routingKey, builder.build(), outboundByteArray);
             metrics.incrementPublished();
-            deleteStoredMessage(taskInformation);
         } catch (final IOException | QueueException e) {
             LOG.error("Failed to publish result of message {} to queue {}, rejecting", taskInformation.getInboundMessageId(), routingKey, e);
             metrics.incremementErrors();
             consumerEvents.add(new ConsumerRejectEvent(Long.valueOf(taskInformation.getInboundMessageId())));
-        }
-    }
-
-    private void deleteStoredMessage(final RabbitTaskInformation taskInformation)
-    {
-        final var rehydratedMessageIdOpt = taskInformation.getDehydratedMessageId();
-        if (rehydratedMessageIdOpt.isEmpty()) {
-            return;
-        }
-        try {
-            dataStore.delete(rehydratedMessageIdOpt.get());
-        } catch (final DataStoreException e) {
-            LOG.error("Failed to delete a stored message id:{} from the datastore", rehydratedMessageIdOpt.get(), e);
         }
     }
 
@@ -120,7 +105,7 @@ public class WorkerPublisherImpl implements WorkerPublisher
             taskMessageSize > config.getMessageDehydrationConfig().getThreshold();
     }
 
-    private byte[] getOutboundTaskMessage(
+    private byte[] getOutboundByteArray(
         final byte[] taskMessage,
         final String routingKey,
         final Map<String, Object> headers
@@ -132,7 +117,7 @@ public class WorkerPublisherImpl implements WorkerPublisher
                 final var dehydratedMessageId = dataStore.store(taskMessage, taskMessagePartialRef);
 
                 outgoingTaskMessage.setTaskData(new byte[0]);
-                headers.put(RABBIT_HEADER_CAF_DEHYDRATION_ID, dehydratedMessageId); // DDD what are we calling this
+                headers.put(RABBIT_HEADER_CAF_DEHYDRATION_ID, dehydratedMessageId);
                 return codec.serialise(outgoingTaskMessage);
             }
         } catch (final Exception e) {
