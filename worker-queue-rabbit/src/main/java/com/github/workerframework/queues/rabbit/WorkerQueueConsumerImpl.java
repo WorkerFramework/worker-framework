@@ -83,6 +83,10 @@ public class WorkerQueueConsumerImpl implements QueueConsumer
                 Integer.parseInt(String.valueOf(delivery.getHeaders()
                 .getOrDefault(RabbitHeaders.RABBIT_HEADER_CAF_WORKER_RETRY, "0")));
 
+        final Optional<String> dehydratedMessageId = delivery.getHeaders().containsKey(RABBIT_HEADER_CAF_DEHYDRATION_ID) ?
+            Optional.ofNullable(delivery.getHeaders().get(RABBIT_HEADER_CAF_DEHYDRATION_ID).toString()) :
+            Optional.empty();
+
         metrics.incrementReceived();
         final boolean isPoison;
         if (delivery.getEnvelope().isRedeliver()) {
@@ -92,7 +96,7 @@ public class WorkerQueueConsumerImpl implements QueueConsumer
                     //Republish the delivery with a header recording the incremented number of retries.
                     //Classic queues do not record delivery count, so we republish the message with an incremented
                     //retry count. This allows us to track the number of attempts to process the message.
-                    republishClassicRedelivery(delivery, retries);
+                    republishClassicRedelivery(delivery, retries, dehydratedMessageId);
                     return;
                 }
                 isPoison = true;
@@ -103,10 +107,8 @@ public class WorkerQueueConsumerImpl implements QueueConsumer
             isPoison = false;
         }
 
-        final Optional<String> dehydratedMessageId = delivery.getHeaders().containsKey(RABBIT_HEADER_CAF_DEHYDRATION_ID) ?
-            Optional.ofNullable(delivery.getHeaders().get(RABBIT_HEADER_CAF_DEHYDRATION_ID).toString()) :
-            Optional.empty();
-        final RabbitTaskInformation taskInformation = new RabbitTaskInformation(String.valueOf(delivery.getEnvelope().getDeliveryTag()), isPoison, dehydratedMessageId);
+        final RabbitTaskInformation taskInformation =
+            new RabbitTaskInformation(String.valueOf(delivery.getEnvelope().getDeliveryTag()), isPoison, dehydratedMessageId);
         try {
             LOG.debug("Registering new message {}", taskInformation.getInboundMessageId());
             callback.registerNewTask(taskInformation, delivery.getMessageData(), delivery.getHeaders());
@@ -186,16 +188,21 @@ public class WorkerQueueConsumerImpl implements QueueConsumer
      *
      * @param delivery the redelivered message
      */
-    private void republishClassicRedelivery(final Delivery delivery, final int retries) {
+    private void republishClassicRedelivery(final Delivery delivery, final int retries, final Optional<String> dehydratedMessageId) {
 
         final RabbitTaskInformation taskInformation = 
                 new RabbitTaskInformation(String.valueOf(delivery.getEnvelope().getDeliveryTag()));
         LOG.debug("Received redelivered message with id {}, retry count {}, retry limit {}, republishing to retry queue",
                 delivery.getEnvelope().getDeliveryTag(), retryLimit, retries + 1);
+
+
         final Map<String, Object> headers = new HashMap<>();
         headers.put(RabbitHeaders.RABBIT_HEADER_CAF_WORKER_RETRY, String.valueOf(retries + 1));
+        if (dehydratedMessageId.isPresent()) {
+            headers.put(RABBIT_HEADER_CAF_DEHYDRATION_ID, dehydratedMessageId.get());
+        }
         taskInformation.incrementResponseCount(true);
-        publisherEventQueue.add(new WorkerPublishQueueEvent(delivery.getMessageData(), retryRoutingKey, 
+        publisherEventQueue.add(new WorkerPublishQueueEvent(delivery.getMessageData(), retryRoutingKey,
                 taskInformation, headers));
     }
 }

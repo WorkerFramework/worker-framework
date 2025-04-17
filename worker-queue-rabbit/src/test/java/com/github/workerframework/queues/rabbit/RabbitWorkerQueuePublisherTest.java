@@ -19,8 +19,6 @@ import com.github.cafapi.common.api.Codec;
 import com.github.cafapi.common.api.CodecException;
 import com.github.cafapi.common.codecs.json.JsonCodec;
 import com.github.workerframework.api.DataStoreException;
-import com.github.workerframework.api.ManagedDataStore;
-import com.github.workerframework.api.ReferenceNotFoundException;
 import com.github.workerframework.api.TaskMessage;
 import com.github.workerframework.api.TaskStatus;
 import com.github.workerframework.api.TrackingInfo;
@@ -40,12 +38,14 @@ import org.testng.annotations.Test;
 import org.mockito.Mockito;
 import org.mockito.stubbing.Answer;
 
+import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.IOException;
+import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
 import java.util.Date;
 import java.util.HashMap;
-import java.util.Optional;
+import java.util.Map;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.LinkedBlockingQueue;
@@ -61,7 +61,7 @@ public class RabbitWorkerQueuePublisherTest
     private RabbitMetricsReporter metrics = new RabbitMetricsReporter();
 
     private File tempDataStore;
-    private ManagedDataStore dataStore;
+    private TestFileSystemDataStore dataStore;
     private static Codec codec;
     private static RabbitWorkerQueueConfiguration config;
 
@@ -76,7 +76,7 @@ public class RabbitWorkerQueuePublisherTest
     public void beforeMethod() throws DataStoreException {
         taskInformation = new RabbitTaskInformation("101");
         tempDataStore = new File("RabbitWorkerQueuePublisherTest");
-        dataStore = new FileSystemDataStore(createConfig());
+        dataStore = new TestFileSystemDataStore(createConfig());
     }
 
     @AfterMethod
@@ -108,10 +108,10 @@ public class RabbitWorkerQueuePublisherTest
     public void testWorkerLoadsTheStoredMessageProcessesItThenDeletesItFromTheStore()
         throws InterruptedException, IOException, CodecException, DataStoreException {
 
-        final var trackingInfo = new TrackingInfo("task1", new Date(), 1, "hello.com", "pipe", "to");
+        final var trackingInfo = new TrackingInfo("task1", new Date(), 1, "http://hello.com", "pipe", "to");
 
-        final var actualTaskData = "This is the actual task message that gets stored";
-        final var storedTaskMessage = new TaskMessage(
+        final var actualTaskData = "This is the actual outbound task message that will get stored";
+        final var actualTaskMessage = new TaskMessage(
             "task1",
             "ACTUAL_CLASSIFIER",
             1,
@@ -120,21 +120,6 @@ public class RabbitWorkerQueuePublisherTest
             new HashMap<>(),
             "to",
             trackingInfo);
-        final var storedTaskMessageData = codec.serialise(storedTaskMessage);
-        final var dehydratedMessageId = dataStore.store(storedTaskMessageData, "testQueue/task1");
-
-        final var rabbitTaskInformation = new RabbitTaskInformation("101", false, Optional.of(dehydratedMessageId));
-
-        final var taskMessage = new TaskMessage(
-            "task1",
-            "DEHYDRATED_CLASSIFIER",
-            1,
-            dehydratedMessageId.getBytes(StandardCharsets.UTF_8),
-            TaskStatus.NEW_TASK,
-            new HashMap<>(),
-            "to",
-            trackingInfo);
-        final var taskMessageData = codec.serialise(taskMessage);
 
         final RabbitWorkerQueueConfiguration dehydrationEnabledCfg = Mockito.mock(RabbitWorkerQueueConfiguration.class);
         final MessageDehydrationConfiguration dehydrationConfiguration = new MessageDehydrationConfiguration();
@@ -156,18 +141,14 @@ public class RabbitWorkerQueuePublisherTest
         final EventPoller<WorkerPublisher> publisher = new EventPoller<>(2, publisherEvents, impl);
         final Thread t = new Thread(publisher);
         t.start();
-        publisherEvents.add(new WorkerPublishQueueEvent(taskMessageData, testQueue, rabbitTaskInformation));
+        final var actualTaskMessageData = codec.serialise(actualTaskMessage);
+        publisherEvents.add(new WorkerPublishQueueEvent(actualTaskMessageData, testQueue, taskInformation));
         latch.await(5000, TimeUnit.MILLISECONDS);
         publisher.shutdown();
 
-        Assert.assertThrows(
-            "The stored message should have been deleted",
-            ReferenceNotFoundException.class,
-            () -> dataStore.retrieve(dehydratedMessageId)
-        );
-
-        Assert.assertEquals(0, publisherEvents.size());
-        Assert.assertEquals(0, consumerEvents.size());
+        // loading the message the publisher should have stored.
+        final var storedByteArray = dataStore.retrieveStoredByteArray(testQueue + "/" + trackingInfo.getJobTaskId());
+        Assert.assertEquals(actualTaskMessageData, storedByteArray, "Stored message is not correct");
     }
 
     @Test
@@ -229,5 +210,33 @@ public class RabbitWorkerQueuePublisherTest
         publisher.shutdown();
         Assert.assertEquals(0, publisherEvents.size());
         Assert.assertEquals(0, consumerEvents.size());
+    }
+
+    private static class TestFileSystemDataStore extends FileSystemDataStore
+    {
+        private final Map<String, String> reverseLookupMap = new HashMap<>();
+
+        public TestFileSystemDataStore(final FileSystemDataStoreConfiguration config) throws DataStoreException {
+            super(config);
+        }
+
+        @Override
+        public String store(final byte[] dataStream, final String partialReference) throws DataStoreException {
+            final String storedId = super.store(dataStream, partialReference);
+            reverseLookupMap.put(partialReference, storedId);
+            return storedId;
+        }
+
+        public byte[] retrieveStoredByteArray(final String partialReference) throws DataStoreException, IOException {
+            final ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
+            try (final var inputStream = retrieve(reverseLookupMap.get(partialReference))) {
+                final byte[] buffer = new byte[1024];
+                int length;
+                while ((length = inputStream.read(buffer)) != -1) {
+                    outputStream.write(buffer, 0, length);
+                }
+            }
+            return outputStream.toByteArray();
+        }
     }
 }
