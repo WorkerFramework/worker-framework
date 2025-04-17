@@ -187,11 +187,11 @@ public class RabbitWorkerQueueConfiguration
         this.queueType = queueType;
     }
 
-    public MessageDehydrationConfiguration getDehydrationConfig() {
+    public MessageDehydrationConfiguration getDehydrationConfiguration() {
         return dehydrationConfiguration;
     }
 
-    public void setDehydrationConfig(final MessageDehydrationConfiguration dehydrationConfiguration) {
+    public void setDehydrationConfiguration(MessageDehydrationConfiguration dehydrationConfiguration) {
         this.dehydrationConfiguration = dehydrationConfiguration;
     }
 }
