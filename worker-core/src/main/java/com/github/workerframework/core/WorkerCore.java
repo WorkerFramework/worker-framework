@@ -641,7 +641,7 @@ final class WorkerCore
                 throw new RuntimeException(ex);
             }
 
-            try {
+            try {                
                 workerQueue.publish(taskInformation, output, reportUpdateMessage.getTo(), Collections.emptyMap());
             } catch (final QueueException ex) {
                 throw new RuntimeException(ex);
