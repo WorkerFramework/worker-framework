@@ -84,7 +84,7 @@ public class WorkerQueueConsumerImpl implements QueueConsumer
                 .getOrDefault(RabbitHeaders.RABBIT_HEADER_CAF_WORKER_RETRY, "0")));
 
         final Optional<String> dehydratedMessageId = delivery.getHeaders().containsKey(RABBIT_HEADER_CAF_DEHYDRATION_ID) ?
-            Optional.ofNullable(delivery.getHeaders().get(RABBIT_HEADER_CAF_DEHYDRATION_ID).toString()) :
+            Optional.of(delivery.getHeaders().get(RABBIT_HEADER_CAF_DEHYDRATION_ID).toString()) :
             Optional.empty();
 
         metrics.incrementReceived();
