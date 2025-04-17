@@ -14,6 +14,6 @@
  * limitations under the License.
  */
 ({
-    isEnabled: getenv("CAF_WORKER_MESSAGE_DEHYDRATION_ENABLED") || undefined,
+    isEnabled: getenv("CAF_WORKER_MESSAGE_DEHYDRATION_ENABLED") || false,
     threshold: getenv("CAF_WORKER_MESSAGE_DEHYDRATION_THRESHOLD_BYTES") || 16777216
 });
