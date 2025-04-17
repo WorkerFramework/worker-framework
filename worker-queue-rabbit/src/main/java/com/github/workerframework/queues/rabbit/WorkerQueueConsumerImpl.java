@@ -202,7 +202,7 @@ public class WorkerQueueConsumerImpl implements QueueConsumer
             headers.put(RABBIT_HEADER_CAF_DEHYDRATION_ID, dehydratedMessageId.get());
         }
         taskInformation.incrementResponseCount(true);
-        publisherEventQueue.add(new WorkerPublishQueueEvent(delivery.getMessageData(), retryRoutingKey,
+        publisherEventQueue.add(new WorkerPublishQueueEvent(delivery.getMessageData(), retryRoutingKey, 
                 taskInformation, headers));
     }
 }
