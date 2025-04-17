@@ -123,17 +123,17 @@ public class WorkerCoreTest
     @Test
     public void testWorkerCoreHandlesDehydratedMessage()
         throws CodecException, InterruptedException, WorkerException, QueueException, InvalidNameException, DataStoreException {
-        BlockingQueue<byte[]> q = new LinkedBlockingQueue<>();
-        Codec codec = new JsonCodec();
-        WorkerThreadPool wtp = WorkerThreadPool.create(5);
-        ConfigurationSource config = Mockito.mock(ConfigurationSource.class);
-        ServicePath path = new ServicePath(SERVICE_PATH);
-        TestWorkerTask task = new TestWorkerTask();
-        TestWorkerQueue queue = new TestWorkerQueueProvider(q).getWorkerQueue(config, 50);
-        HealthCheckRegistry healthCheckRegistry = Mockito.mock(HealthCheckRegistry.class);
-        TransientHealthCheck transientHealthCheck = Mockito.mock(TransientHealthCheck.class);
+        final BlockingQueue<byte[]> q = new LinkedBlockingQueue<>();
+        final Codec codec = new JsonCodec();
+        final WorkerThreadPool wtp = WorkerThreadPool.create(5);
+        final ConfigurationSource config = Mockito.mock(ConfigurationSource.class);
+        final ServicePath path = new ServicePath(SERVICE_PATH);
+        final TestWorkerTask task = new TestWorkerTask();
+        final TestWorkerQueue queue = new TestWorkerQueueProvider(q).getWorkerQueue(config, 50);
+        final HealthCheckRegistry healthCheckRegistry = Mockito.mock(HealthCheckRegistry.class);
+        final TransientHealthCheck transientHealthCheck = Mockito.mock(TransientHealthCheck.class);
 
-        WorkerCore core = new WorkerCore(codec, wtp, queue, getWorkerFactory(task, codec), path, healthCheckRegistry, transientHealthCheck, dataStore);
+        final WorkerCore core = new WorkerCore(codec, wtp, queue, getWorkerFactory(task, codec), path, healthCheckRegistry, transientHealthCheck, dataStore);
         core.start();
 
         //  store a message to be rehydrated first
@@ -151,9 +151,6 @@ public class WorkerCoreTest
         final var dehydratedTaskMessageData = codec.serialise(dehydratedTaskMessage);
         final var dehydratedMessageId = dataStore.store(dehydratedTaskMessageData, "testQueue/task1");
 
-        final Map<String, Object> headers = new HashMap<>();
-        headers.put(RABBIT_HEADER_CAF_DEHYDRATION_ID, dehydratedMessageId);
-
         // send a message linking to the dehydrated message
         final var inboundTaskMessage = new TaskMessage(
             "task1",
@@ -165,27 +162,30 @@ public class WorkerCoreTest
             "to",
             trackingInfo);
         final var inboundTaskMessageData = codec.serialise(inboundTaskMessage);
+
+        final Map<String, Object> headers = new HashMap<>();
+        headers.put(RABBIT_HEADER_CAF_DEHYDRATION_ID, dehydratedMessageId);
         queue.submitTask(taskInformation, inboundTaskMessageData, headers);
 
         //  If the dehydrated message cannot be read there will be no outbound message.
-        byte[] outboundTaskMessageData = q.poll(5000, TimeUnit.MILLISECONDS);
+        final byte[] outboundTaskMessageData = q.poll(5000, TimeUnit.MILLISECONDS);
         Assert.assertNotNull(outboundTaskMessageData, "outbound message was not delivered");
     }
 
     @Test
     public void testWorkerCoreHandlesMissingDehydratedMessage()
         throws CodecException, WorkerException, QueueException, InvalidNameException {
-        BlockingQueue<byte[]> q = new LinkedBlockingQueue<>();
-        Codec codec = new JsonCodec();
-        WorkerThreadPool wtp = WorkerThreadPool.create(5);
-        ConfigurationSource config = Mockito.mock(ConfigurationSource.class);
-        ServicePath path = new ServicePath(SERVICE_PATH);
-        TestWorkerTask task = new TestWorkerTask();
-        TestWorkerQueue queue = new TestWorkerQueueProvider(q).getWorkerQueue(config, 50);
-        HealthCheckRegistry healthCheckRegistry = Mockito.mock(HealthCheckRegistry.class);
-        TransientHealthCheck transientHealthCheck = Mockito.mock(TransientHealthCheck.class);
+        final BlockingQueue<byte[]> q = new LinkedBlockingQueue<>();
+        final Codec codec = new JsonCodec();
+        final WorkerThreadPool wtp = WorkerThreadPool.create(5);
+        final ConfigurationSource config = Mockito.mock(ConfigurationSource.class);
+        final ServicePath path = new ServicePath(SERVICE_PATH);
+        final TestWorkerTask task = new TestWorkerTask();
+        final TestWorkerQueue queue = new TestWorkerQueueProvider(q).getWorkerQueue(config, 50);
+        final HealthCheckRegistry healthCheckRegistry = Mockito.mock(HealthCheckRegistry.class);
+        final TransientHealthCheck transientHealthCheck = Mockito.mock(TransientHealthCheck.class);
 
-        WorkerCore core = new WorkerCore(codec, wtp, queue, getWorkerFactory(task, codec), path, healthCheckRegistry, transientHealthCheck, dataStore);
+        final WorkerCore core = new WorkerCore(codec, wtp, queue, getWorkerFactory(task, codec), path, healthCheckRegistry, transientHealthCheck, dataStore);
         core.start();
 
         // send a message linking to a non-existent dehydrated message
