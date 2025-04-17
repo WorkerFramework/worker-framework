@@ -67,7 +67,7 @@ public class RabbitWorkerQueuePublisherTest
     public static void beforeClass() {
         codec = new JsonCodec();
         config = Mockito.mock(RabbitWorkerQueueConfiguration.class);
-        when(config.getMessageDehydrationConfig()).thenReturn(new MessageDehydrationConfiguration());
+        when(config.getDehydrationConfiguration()).thenReturn(new MessageDehydrationConfiguration());
     }
 
     @BeforeMethod
@@ -123,7 +123,7 @@ public class RabbitWorkerQueuePublisherTest
         final MessageDehydrationConfiguration dehydrationConfiguration = new MessageDehydrationConfiguration();
         dehydrationConfiguration.setEnabled(true);
         dehydrationConfiguration.setThreshold(1);
-        when(dehydrationEnabledCfg.getMessageDehydrationConfig()).thenReturn(dehydrationConfiguration);
+        when(dehydrationEnabledCfg.getDehydrationConfiguration()).thenReturn(dehydrationConfiguration);
 
         final BlockingQueue<Event<QueueConsumer>> consumerEvents = new LinkedBlockingQueue<>();
         final BlockingQueue<Event<WorkerPublisher>> publisherEvents = new LinkedBlockingQueue<>();
