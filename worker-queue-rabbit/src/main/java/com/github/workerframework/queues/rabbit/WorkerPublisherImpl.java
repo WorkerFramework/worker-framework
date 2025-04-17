@@ -112,13 +112,13 @@ public class WorkerPublisherImpl implements WorkerPublisher
     ) throws QueueException {
         try {
             if (shouldStoreTaskMessage(taskMessage.length)) {
-                final TaskMessage outgoingTaskMessage = codec.deserialise(taskMessage, TaskMessage.class);
-                final var taskMessagePartialRef = String.format("%s/%s", routingKey, outgoingTaskMessage.getTracking().getJobTaskId());
+                final TaskMessage outboundTaskMessage = codec.deserialise(taskMessage, TaskMessage.class);
+                final var taskMessagePartialRef = String.format("%s/%s", routingKey, outboundTaskMessage.getTracking().getJobTaskId());
                 final var dehydratedMessageId = dataStore.store(taskMessage, taskMessagePartialRef);
 
-                outgoingTaskMessage.setTaskData(new byte[0]);
+                outboundTaskMessage.setTaskData(new byte[0]);
                 headers.put(RABBIT_HEADER_CAF_DEHYDRATION_ID, dehydratedMessageId);
-                return codec.serialise(outgoingTaskMessage);
+                return codec.serialise(outboundTaskMessage);
             }
         } catch (final Exception e) {
             throw new QueueException("Error dehydrating task message", e);
