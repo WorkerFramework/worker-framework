@@ -95,7 +95,7 @@ class WorkerConfirmListener implements ConfirmListener
                 t.markAckEventAsSent();
                 final var dehydratedMessageIdOpt = t.getDehydratedMessageId();
                 if (dataStore != null && dehydratedMessageIdOpt.isPresent()) {
-                    deleteStoredMessage(dehydratedMessageIdOpt.get());
+                    deleteDehydratedMessage(dehydratedMessageIdOpt.get());
                 }
                 return new ConsumerAckEvent(Long.valueOf(t.getInboundMessageId()));
             }
@@ -139,7 +139,7 @@ class WorkerConfirmListener implements ConfirmListener
         }
     }
 
-    private void deleteStoredMessage(final String dehydratedMessageId)
+    private void deleteDehydratedMessage(final String dehydratedMessageId)
     {
         try {
             dataStore.delete(dehydratedMessageId);
