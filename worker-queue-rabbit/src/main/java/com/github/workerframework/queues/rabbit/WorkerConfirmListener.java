@@ -137,13 +137,11 @@ class WorkerConfirmListener implements ConfirmListener
 
     private void deleteStoredMessage(final RabbitTaskInformation taskInformation)
     {
-        if (dataStore == null) {
-            return;
-        }
         final var rehydratedMessageIdOpt = taskInformation.getDehydratedMessageId();
-        if (rehydratedMessageIdOpt.isEmpty()) {
+        if (dataStore == null || rehydratedMessageIdOpt.isEmpty() ) {
             return;
         }
+
         try {
             dataStore.delete(rehydratedMessageIdOpt.get());
         } catch (final DataStoreException e) {
