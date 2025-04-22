@@ -191,7 +191,7 @@ public class RabbitWorkerQueueConfiguration
         return dehydrationConfiguration;
     }
 
-    public void setDehydrationConfiguration(MessageDehydrationConfiguration dehydrationConfiguration) {
+    public void setDehydrationConfiguration(final MessageDehydrationConfiguration dehydrationConfiguration) {
         this.dehydrationConfiguration = dehydrationConfiguration;
     }
 }

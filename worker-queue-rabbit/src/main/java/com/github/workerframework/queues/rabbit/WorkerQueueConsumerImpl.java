@@ -131,7 +131,7 @@ public class WorkerQueueConsumerImpl implements QueueConsumer
             new RabbitTaskInformation(String.valueOf(delivery.getEnvelope().getDeliveryTag()), isPoison, dehydratedMessageId);
         try {
             LOG.debug("Registering new message {}", taskInformation.getInboundMessageId());
-            final TaskMessage taskMessage = deserializeTaskMessage(delivery.getMessageData(), delivery.getHeaders());
+            final TaskMessage taskMessage = deserializeTaskMessage(delivery.getMessageData(), dehydratedMessageId);
             callback.registerNewTask(taskInformation, taskMessage, delivery.getHeaders());
         } catch (InvalidTaskException e) {
             LOG.error("Cannot register new message, rejecting {}", taskInformation.getInboundMessageId(), e);
@@ -146,13 +146,12 @@ public class WorkerQueueConsumerImpl implements QueueConsumer
         }
     }
 
-    private TaskMessage deserializeTaskMessage(final byte[] taskMessage, final Map<String, Object> headers)
+    private TaskMessage deserializeTaskMessage(final byte[] taskMessage, final Optional<String> dehydratedMessageId)
         throws InvalidTaskException {
         try {
-            if (headers.containsKey(RABBIT_HEADER_CAF_DEHYDRATION_ID)) {
-                final var dehydratedMessageId = headers.get(RABBIT_HEADER_CAF_DEHYDRATION_ID).toString();
+            if (dehydratedMessageId.isPresent()) {
                 final ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
-                try (final var inputStream = dataStore.retrieve(dehydratedMessageId)) {
+                try (final var inputStream = dataStore.retrieve(dehydratedMessageId.get())) {
                     final byte[] buffer = new byte[1024];
                     int length;
                     while ((length = inputStream.read(buffer)) != -1) {
