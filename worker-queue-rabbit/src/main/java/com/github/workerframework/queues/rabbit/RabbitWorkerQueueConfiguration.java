@@ -87,14 +87,16 @@ public class RabbitWorkerQueueConfiguration
     @NotNull
     private String queueType;
 
-    @NotNull
-    @Valid
-    @Configuration
-    private MessageDehydrationConfiguration dehydrationConfiguration;
+    /**
+     * Indicates if message dehydration is enabled.
+     */
+    private boolean isDehydrationEnabled = false;
 
-    public RabbitWorkerQueueConfiguration()
-    {
-    }
+    /**
+     * The threshold at which messages will be dehydrated before publishing to RabbitMQ.
+     */
+    @Min(1)
+    private int dehydrationThreshold = 16777216;
 
     public int getPrefetchBuffer()
     {
@@ -187,11 +189,19 @@ public class RabbitWorkerQueueConfiguration
         this.queueType = queueType;
     }
 
-    public MessageDehydrationConfiguration getDehydrationConfiguration() {
-        return dehydrationConfiguration;
+    public boolean getIsDehydrationEnabled() {
+        return isDehydrationEnabled;
     }
 
-    public void setDehydrationConfiguration(final MessageDehydrationConfiguration dehydrationConfiguration) {
-        this.dehydrationConfiguration = dehydrationConfiguration;
+    public void setDehydrationEnabled(boolean dehydrationEnabled) {
+        isDehydrationEnabled = dehydrationEnabled;
+    }
+
+    public int getDehydrationThreshold() {
+        return dehydrationThreshold;
+    }
+
+    public void setDehydrationThreshold(int dehydrationThreshold) {
+        this.dehydrationThreshold = dehydrationThreshold;
     }
 }

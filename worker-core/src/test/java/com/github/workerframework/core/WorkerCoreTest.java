@@ -23,7 +23,6 @@ import com.github.cafapi.common.api.ConfigurationSource;
 import com.github.cafapi.common.api.HealthResult;
 import com.github.cafapi.common.codecs.json.JsonCodec;
 import com.github.cafapi.common.util.naming.ServicePath;
-import com.github.workerframework.api.DataStoreException;
 import com.github.workerframework.api.InvalidTaskException;
 import com.github.workerframework.api.ManagedDataStore;
 import com.github.workerframework.api.ManagedWorkerQueue;
@@ -41,8 +40,6 @@ import com.github.workerframework.api.WorkerQueueProvider;
 import com.github.workerframework.api.WorkerResponse;
 import com.github.workerframework.api.WorkerTaskData;
 import com.github.workerframework.caf.AbstractWorker;
-import com.github.workerframework.datastores.fs.FileSystemDataStore;
-import com.github.workerframework.datastores.fs.FileSystemDataStoreConfiguration;
 import com.github.workerframework.tracking.report.TrackingReportStatus;
 import com.github.workerframework.tracking.report.TrackingReportTask;
 import com.github.workerframework.tracking.report.TrackingReportConstants;
@@ -50,7 +47,6 @@ import com.github.workerframework.tracking.report.TrackingReportConstants;
 import java.io.File;
 import java.net.MalformedURLException;
 import org.testng.Assert;
-import org.testng.annotations.AfterMethod;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 import org.mockito.Mockito;
@@ -66,7 +62,6 @@ import java.util.concurrent.TimeUnit;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import static com.github.workerframework.util.rabbitmq.RabbitHeaders.RABBIT_HEADER_CAF_DEHYDRATION_ID;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
@@ -83,91 +78,10 @@ public class WorkerCoreTest
     private static final String QUEUE_PAUSED = "pausedQueue";
     private static final String SERVICE_PATH = "/test/group";
     private TaskInformation taskInformation;
-    private File tempDataStore;
-    private ManagedDataStore dataStore;
 
     @BeforeMethod
-    private void before() throws DataStoreException {
+    private void before() {
         taskInformation = getMockTaskInformation("test1");
-        tempDataStore = new File("WorkerCoreTest");
-        dataStore = new FileSystemDataStore(createConfig());
-    }
-
-    @AfterMethod
-    public void tearDown()
-    {
-        deleteDir(tempDataStore);
-    }
-
-    private FileSystemDataStoreConfiguration createConfig()
-    {
-        final FileSystemDataStoreConfiguration conf = new FileSystemDataStoreConfiguration();
-        conf.setDataDir(tempDataStore.getAbsolutePath());
-        conf.setDataDirHealthcheckTimeoutSeconds(10);
-        return conf;
-    }
-
-    private void deleteDir(File file)
-    {
-        File[] contents = file.listFiles();
-        if (contents != null) {
-            for (File f : contents) {
-                deleteDir(f);
-            }
-        }
-        file.delete();
-    }
-
-    // DDD this test need to be converted to test the rabbit consumer
-    @Test
-    public void testWorkerCoreHandlesDehydratedMessage()
-        throws CodecException, InterruptedException, WorkerException, QueueException, InvalidNameException, DataStoreException {
-        final BlockingQueue<byte[]> q = new LinkedBlockingQueue<>();
-        final Codec codec = new JsonCodec();
-        final WorkerThreadPool wtp = WorkerThreadPool.create(5);
-        final ConfigurationSource config = Mockito.mock(ConfigurationSource.class);
-        final ServicePath path = new ServicePath(SERVICE_PATH);
-        final TestWorkerTask task = new TestWorkerTask();
-        final TestWorkerQueue queue = new TestWorkerQueueProvider(q).getWorkerQueue(config, 50);
-        final HealthCheckRegistry healthCheckRegistry = Mockito.mock(HealthCheckRegistry.class);
-        final TransientHealthCheck transientHealthCheck = Mockito.mock(TransientHealthCheck.class);
-
-        final WorkerCore core = new WorkerCore(codec, wtp, queue, getWorkerFactory(task, codec), path, healthCheckRegistry, transientHealthCheck);
-        core.start();
-
-        //  store a message to be rehydrated first
-        final var trackingInfo = new TrackingInfo("task1", new Date(), 1, "http://hello.com", "pipe", "to");
-        final var actualTaskData = "This is the actual task message that gets stored";
-        final var dehydratedTaskMessage = new TaskMessage(
-            "task1",
-            "ACTUAL_CLASSIFIER",
-            1,
-            actualTaskData.getBytes(StandardCharsets.UTF_8),
-            TaskStatus.NEW_TASK,
-            new HashMap<>(),
-            "to",
-            trackingInfo);
-        final var dehydratedTaskMessageData = codec.serialise(dehydratedTaskMessage);
-        final var dehydratedMessageId = dataStore.store(dehydratedTaskMessageData, "testQueue/task1");
-
-        // send a message linking to the dehydrated message
-        final var inboundTaskMessage = new TaskMessage(
-            "task1",
-            "DEHYDRATED_CLASSIFIER",
-            1,
-            new byte[0],
-            TaskStatus.NEW_TASK,
-            new HashMap<>(),
-            "to",
-            trackingInfo);
-
-        final Map<String, Object> headers = new HashMap<>();
-        headers.put(RABBIT_HEADER_CAF_DEHYDRATION_ID, dehydratedMessageId);
-        queue.submitTask(taskInformation, inboundTaskMessage, headers);
-
-        //  If the dehydrated message cannot be read there will be no outbound message.
-        final byte[] outboundTaskMessageData = q.poll(5000, TimeUnit.MILLISECONDS);
-        Assert.assertNotNull(outboundTaskMessageData, "outbound message was not delivered");
     }
 
     /**
@@ -784,12 +698,6 @@ public class WorkerCoreTest
             callback.registerNewTask(taskInformation, stuff, new HashMap<>());
         }
 
-        public void submitTask(final TaskInformation taskInformation, TaskMessage stuff, final Map<String, Object> headers)
-            throws WorkerException
-        {
-            callback.registerNewTask(taskInformation, stuff, headers);
-        }
-
         @Override
         public void disconnectIncoming()
         {
@@ -821,7 +729,7 @@ public class WorkerCoreTest
 
         @Override
         public final TestWorkerQueueWithNullPausedQueue getWorkerQueue(
-            final ConfigurationSource configurationSource,
+            final ConfigurationSource configurationSource, 
             final int maxTasks,
             final ManagedDataStore dataStore,
             final Codec codec)

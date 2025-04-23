@@ -29,6 +29,8 @@ import com.github.workerframework.util.rabbitmq.Event;
 import com.github.workerframework.util.rabbitmq.EventPoller;
 import com.github.workerframework.util.rabbitmq.QueueConsumer;
 import com.rabbitmq.client.Channel;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.testng.Assert;
 import org.testng.annotations.AfterMethod;
 import org.testng.annotations.BeforeClass;
@@ -50,9 +52,11 @@ import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.TimeUnit;
 
 import static org.mockito.Mockito.when;
+import static org.testng.Assert.fail;
 
 public class RabbitWorkerQueuePublisherTest
 {
+    private static final Logger log = LoggerFactory.getLogger(RabbitWorkerQueuePublisherTest.class);
     private String testQueue = "testQueue";
     private RabbitTaskInformation taskInformation;
     private byte[] data = "test123".getBytes(StandardCharsets.UTF_8);
@@ -67,7 +71,8 @@ public class RabbitWorkerQueuePublisherTest
     public static void beforeClass() {
         codec = new JsonCodec();
         config = Mockito.mock(RabbitWorkerQueueConfiguration.class);
-        when(config.getDehydrationConfiguration()).thenReturn(new MessageDehydrationConfiguration());
+        when(config.getIsDehydrationEnabled()).thenReturn(false);
+        when(config.getDehydrationThreshold()).thenReturn(1);
     }
 
     @BeforeMethod
@@ -103,27 +108,12 @@ public class RabbitWorkerQueuePublisherTest
     }
 
     @Test
-    public void testWorkerLoadsTheStoredMessageProcessesItThenDeletesItFromTheStore()
-        throws InterruptedException, IOException, CodecException, DataStoreException {
-
-        final var trackingInfo = new TrackingInfo("task1", new Date(), 1, "http://hello.com", "pipe", "to");
-
-        final var actualTaskData = "This is the actual outbound task message that will get stored";
-        final var actualTaskMessage = new TaskMessage(
-            "task1",
-            "ACTUAL_CLASSIFIER",
-            1,
-            actualTaskData.getBytes(StandardCharsets.UTF_8),
-            TaskStatus.NEW_TASK,
-            new HashMap<>(),
-            "to",
-            trackingInfo);
-
+    public void testPublisherDehydratesTheOutgoingMessage()
+        throws InterruptedException, IOException, CodecException, DataStoreException 
+    {
         final RabbitWorkerQueueConfiguration dehydrationEnabledCfg = Mockito.mock(RabbitWorkerQueueConfiguration.class);
-        final MessageDehydrationConfiguration dehydrationConfiguration = new MessageDehydrationConfiguration();
-        dehydrationConfiguration.setEnabled(true);
-        dehydrationConfiguration.setThreshold(1);
-        when(dehydrationEnabledCfg.getDehydrationConfiguration()).thenReturn(dehydrationConfiguration);
+        when(dehydrationEnabledCfg.getIsDehydrationEnabled()).thenReturn(true);
+        when(dehydrationEnabledCfg.getDehydrationThreshold()).thenReturn(1);
 
         final BlockingQueue<Event<QueueConsumer>> consumerEvents = new LinkedBlockingQueue<>();
         final BlockingQueue<Event<WorkerPublisher>> publisherEvents = new LinkedBlockingQueue<>();
@@ -139,14 +129,31 @@ public class RabbitWorkerQueuePublisherTest
         final EventPoller<WorkerPublisher> publisher = new EventPoller<>(2, publisherEvents, impl);
         final Thread t = new Thread(publisher);
         t.start();
-        final var actualTaskMessageData = codec.serialise(actualTaskMessage);
-        publisherEvents.add(new WorkerPublishQueueEvent(actualTaskMessageData, testQueue, taskInformation));
+
+        final var trackingInfo = new TrackingInfo("task1", new Date(), 1, "http://hello.com", "pipe", "to");
+        final var outboundTaskData = "This is the actual outbound task message that will get stored";
+        final var outboundTaskMessage = new TaskMessage(
+            "task1",
+            "ACTUAL_CLASSIFIER",
+            1,
+            outboundTaskData.getBytes(StandardCharsets.UTF_8),
+            TaskStatus.NEW_TASK,
+            new HashMap<>(),
+            "to",
+            trackingInfo);
+        
+        final var outboundByteArray = codec.serialise(outboundTaskMessage);
+        publisherEvents.add(new WorkerPublishQueueEvent(outboundByteArray, testQueue, taskInformation));
         latch.await(5000, TimeUnit.MILLISECONDS);
         publisher.shutdown();
 
-        // loading the message the publisher should have stored.
-        final var storedByteArray = dataStore.retrieveStoredByteArray(testQueue + "/" + trackingInfo.getJobTaskId());
-        Assert.assertEquals(actualTaskMessageData, storedByteArray, "Stored message is not correct");
+        // Loading the message the publisher should have stored as this is controlled by the cfg.
+        try {
+            final var rehydratedByteArray = dataStore.retrieveStoredByteArray(testQueue + "/" + trackingInfo.getJobTaskId());
+            Assert.assertEquals(outboundByteArray, rehydratedByteArray, "The dehydrated message dis not match");
+        } catch (final DataStoreException ex){
+            fail("Unable to retrieve the stored message", ex);
+        }
     }
 
     @Test

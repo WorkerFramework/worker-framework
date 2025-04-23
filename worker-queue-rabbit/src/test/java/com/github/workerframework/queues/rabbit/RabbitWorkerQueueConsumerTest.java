@@ -16,13 +16,20 @@
 package com.github.workerframework.queues.rabbit;
 
 import com.github.cafapi.common.api.Codec;
+import com.github.cafapi.common.api.CodecException;
+import com.github.cafapi.common.api.ConfigurationSource;
 import com.github.cafapi.common.codecs.json.JsonCodec;
+import com.github.cafapi.common.util.naming.ServicePath;
 import com.github.workerframework.api.DataStoreException;
 import com.github.workerframework.api.InvalidTaskException;
 import com.github.workerframework.api.ManagedDataStore;
+import com.github.workerframework.api.QueueException;
 import com.github.workerframework.api.TaskCallback;
 import com.github.workerframework.api.TaskInformation;
+import com.github.workerframework.api.TaskMessage;
 import com.github.workerframework.api.TaskRejectedException;
+import com.github.workerframework.api.TaskStatus;
+import com.github.workerframework.api.TrackingInfo;
 import com.github.workerframework.api.WorkerException;
 import com.github.workerframework.datastores.fs.FileSystemDataStore;
 import com.github.workerframework.datastores.fs.FileSystemDataStoreConfiguration;
@@ -45,10 +52,12 @@ import org.mockito.ArgumentCaptor;
 import org.mockito.Mockito;
 import org.mockito.stubbing.Answer;
 
+import javax.naming.InvalidNameException;
 import java.io.File;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.util.Collections;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.BlockingQueue;
@@ -56,13 +65,12 @@ import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.TimeUnit;
 
-import static org.mockito.Mockito.when;
+import static com.github.workerframework.util.rabbitmq.RabbitHeaders.RABBIT_HEADER_CAF_DEHYDRATION_ID;
 
 public class RabbitWorkerQueueConsumerTest
 {
     private String testQueue = "testQueue";
-    private RabbitTaskInformation taskInformation;
-    private byte[] data = "test123".getBytes(StandardCharsets.UTF_8);
+    private RabbitTaskInformation taskInformation;    
     private Envelope newEnv;
     private Envelope poisonEnv;
     private Envelope redeliveredEnv;
@@ -72,10 +80,12 @@ public class RabbitWorkerQueueConsumerTest
     private File tempDataStore;
     private ManagedDataStore dataStore;
     private static Codec codec;
+    private static byte[] data;
 
     @BeforeClass
-    public static void beforeClass() {
+    public static void beforeClass() throws CodecException {
         codec = new JsonCodec();
+        data = getNewTaskMessage();
     }
 
     @BeforeMethod
@@ -111,6 +121,72 @@ public class RabbitWorkerQueueConsumerTest
         conf.setDataDir(tempDataStore.getAbsolutePath());
         conf.setDataDirHealthcheckTimeoutSeconds(10);
         return conf;
+    }
+
+    @Test
+    public void testConsumerRehydratesTheMessageAsExpected() 
+        throws CodecException, DataStoreException, TaskRejectedException, InvalidTaskException, InterruptedException 
+    {
+        //  store a message to be rehydrated first
+        final var trackingInfo = new TrackingInfo("task1", new Date(), 1, "http://hello.com", "pipe", "to");
+        final var dehydratedTaskData = "This is the actual task message was previously stored".getBytes(StandardCharsets.UTF_8);
+        final var dehydratedTaskMessage = new TaskMessage(
+            "task1",
+            "ACTUAL_CLASSIFIER",
+            1,
+            dehydratedTaskData,
+            TaskStatus.NEW_TASK,
+            new HashMap<>(),
+            "to",
+            trackingInfo);
+        final var dehydratedTaskMessageData = codec.serialise(dehydratedTaskMessage);
+        final var dehydratedMessageId = dataStore.store(dehydratedTaskMessageData, "testQueue/task1");
+
+        final BlockingQueue<Event<QueueConsumer>> consumerEvents = new LinkedBlockingQueue<>();
+        final BlockingQueue<Event<WorkerPublisher>> publisherEvents = new LinkedBlockingQueue<>();
+        final Channel channel = Mockito.mock(Channel.class);
+        final CountDownLatch latch = new CountDownLatch(1);
+        final TaskCallback callback = Mockito.mock(TaskCallback.class);
+        Answer<Void> a = invocationOnMock -> {
+            latch.countDown();
+            return null;
+        };
+        Mockito.doAnswer(a).when(callback).registerNewTask(Mockito.any(), Mockito.any(), Mockito.anyMap());
+        final WorkerQueueConsumerImpl impl = new WorkerQueueConsumerImpl(
+            callback, metrics, consumerEvents, channel, publisherEvents, retryKey, 1, dataStore, codec);
+        final DefaultRabbitConsumer consumer = new DefaultRabbitConsumer(consumerEvents, impl);
+        final Thread t = new Thread(consumer);
+        t.start();
+        
+        // Now publish a message linked to the previously dehydrated message.
+        AMQP.BasicProperties prop = Mockito.mock(AMQP.BasicProperties.class);
+        final Map<String, Object> headers = new HashMap<>();
+        headers.put(RABBIT_HEADER_CAF_DEHYDRATION_ID, dehydratedMessageId);
+        Mockito.when(prop.getHeaders()).thenReturn(headers);
+        consumer.handleDelivery("consumer", newEnv, prop, data);
+        Assert.assertTrue(latch.await(1000, TimeUnit.MILLISECONDS));
+
+        final ArgumentCaptor<TaskInformation> taskInfoCaptor = ArgumentCaptor.forClass(TaskInformation.class);
+        final ArgumentCaptor<TaskMessage> taskMessageCaptor = ArgumentCaptor.forClass(TaskMessage.class);
+        final ArgumentCaptor<Map<String, Object>> headersCaptor = ArgumentCaptor.forClass(Map.class);
+
+        // The registered task should be the dehydrated one saved earlier.
+        Mockito.verify(callback).registerNewTask(taskInfoCaptor.capture(), taskMessageCaptor.capture(), headersCaptor.capture());
+        final TaskInformation taskInformation = taskInfoCaptor.getValue();
+        final TaskMessage taskMessage = taskMessageCaptor.getValue();
+        final Map<String, Object> taskHeaders = headersCaptor.getValue();
+        
+        Assert.assertTrue(taskHeaders.containsKey(RABBIT_HEADER_CAF_DEHYDRATION_ID), 
+            "Headers should have included 'x-dehydration-id'");
+        Assert.assertEquals(taskMessage.getTaskData(), dehydratedTaskData, 
+            "Task data did not match");
+        Assert.assertTrue(taskInformation instanceof RabbitTaskInformation, 
+            "RabbitTaskInformation expected");
+        final var rabbitTaskInfo = (RabbitTaskInformation) taskInformation;
+        Assert.assertEquals(rabbitTaskInfo.getDehydratedMessageId().get(), dehydratedMessageId, 
+            "RabbitTaskInformation should have contained the dehydrated message id");
+        Assert.assertTrue(latch.await(1000, TimeUnit.MILLISECONDS));
+        consumer.shutdown();
     }
 
     /**
@@ -361,5 +437,19 @@ public class RabbitWorkerQueueConsumerTest
     private static ArgumentCaptor<Map<String, Object>> buildStringObjectMapCaptor()
     {
         return ArgumentCaptor.forClass(Map.class);
+    }
+    
+    private static byte[] getNewTaskMessage() throws CodecException {
+        final var trackingInfo = new TrackingInfo("task1", new Date(), 1, "http://hello.com", "pipe", "to");
+        return codec.serialise(new TaskMessage(
+            "task1",
+            "ACTUAL_CLASSIFIER",
+            1,
+            "test123".getBytes(StandardCharsets.UTF_8),
+            TaskStatus.NEW_TASK,
+            new HashMap<>(),
+            "to",
+            trackingInfo
+        ));
     }
 }

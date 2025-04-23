@@ -142,7 +142,7 @@ public class WorkerQueueConsumerImpl implements QueueConsumer
             LOG.warn("Message {} rejected as a task at this time, returning to queue", taskInformation.getInboundMessageId(), e);
             taskInformation.incrementResponseCount(true);
             publisherEventQueue.add(new WorkerPublishQueueEvent(delivery.getMessageData(), delivery.getEnvelope().getRoutingKey(),
-                    taskInformation));
+                    taskInformation, delivery.getHeaders()));
         }
     }
 

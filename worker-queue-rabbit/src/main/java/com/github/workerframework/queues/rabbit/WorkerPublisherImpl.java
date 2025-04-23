@@ -101,8 +101,7 @@ public class WorkerPublisherImpl implements WorkerPublisher
     }
 
     private boolean shouldStoreTaskMessage(final int taskMessageSize) {
-        return config.getDehydrationConfiguration().isEnabled() &&
-            taskMessageSize > config.getDehydrationConfiguration().getThreshold();
+        return config.getIsDehydrationEnabled() && taskMessageSize > config.getDehydrationThreshold();
     }
 
     private byte[] getOutboundByteArray(

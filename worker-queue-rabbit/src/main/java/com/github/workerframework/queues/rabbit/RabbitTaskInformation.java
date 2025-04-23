@@ -43,12 +43,34 @@ public class RabbitTaskInformation implements TaskInformation {
     }
 
     public RabbitTaskInformation(final String inboundMessageId, final boolean isPoison, final Optional<String> dehydratedMessageId) {
+        this(
+            inboundMessageId, 
+            new AtomicInteger(0), 
+            new AtomicBoolean(false),  
+            new AtomicInteger(0), 
+            new AtomicBoolean(false), 
+            new AtomicBoolean(false), 
+            isPoison,
+            dehydratedMessageId
+        );
+    }
+
+    public RabbitTaskInformation(
+        final String inboundMessageId, 
+        final AtomicInteger responseCount,
+        final AtomicBoolean isResponseCountFinal,
+        final AtomicInteger acknowledgementCount,
+        final AtomicBoolean negativeAckEventSent,
+        final AtomicBoolean ackEventSent,
+        final boolean isPoison, 
+        final Optional<String> dehydratedMessageId
+        ) {
         this.inboundMessageId = inboundMessageId;
-        this.responseCount = new AtomicInteger(0);
-        this.isResponseCountFinal = new AtomicBoolean(false);
-        this.acknowledgementCount = new AtomicInteger(0);
-        this.negativeAckEventSent = new AtomicBoolean(false);
-        this.ackEventSent = new AtomicBoolean(false);
+        this.responseCount = responseCount;
+        this.isResponseCountFinal = isResponseCountFinal;
+        this.acknowledgementCount = acknowledgementCount;
+        this.negativeAckEventSent = negativeAckEventSent;
+        this.ackEventSent = ackEventSent;
         this.isPoison = isPoison;
         this.dehydratedMessageId = dehydratedMessageId;
     }

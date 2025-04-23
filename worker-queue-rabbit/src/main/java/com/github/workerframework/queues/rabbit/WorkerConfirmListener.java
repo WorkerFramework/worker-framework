@@ -45,13 +45,6 @@ class WorkerConfirmListener implements ConfirmListener
     private final ManagedDataStore dataStore;
     private static final Logger LOG = LoggerFactory.getLogger(WorkerConfirmListener.class);
 
-    // DDD we'll remove one of these ctors
-    WorkerConfirmListener(BlockingQueue<Event<QueueConsumer>> events)
-    {
-        this.consumerEvents = Objects.requireNonNull(events);
-        this.dataStore = null;
-    }
-
     WorkerConfirmListener(BlockingQueue<Event<QueueConsumer>> events, final ManagedDataStore dataStore)
     {
         this.consumerEvents = Objects.requireNonNull(events);
