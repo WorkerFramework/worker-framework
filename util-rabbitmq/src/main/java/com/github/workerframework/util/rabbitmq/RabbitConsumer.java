@@ -24,6 +24,7 @@ import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.BlockingQueue;
 
@@ -50,7 +51,7 @@ public abstract class RabbitConsumer<T> extends EventPoller<T> implements Consum
     @Override
     public final void handleDelivery(String consumerTag, Envelope envelope, AMQP.BasicProperties properties, byte[] body)
     {
-        getEventQueue().add(getDeliverEvent(envelope, body, properties.getHeaders() == null ? Collections.emptyMap() : properties.getHeaders()));
+        getEventQueue().add(getDeliverEvent(envelope, body, properties.getHeaders() == null ? new HashMap<>() : properties.getHeaders()));
     }
 
     @Override
