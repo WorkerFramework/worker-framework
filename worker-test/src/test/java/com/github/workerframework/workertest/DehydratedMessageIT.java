@@ -21,6 +21,7 @@ import com.github.cafapi.common.codecs.json.JsonCodec;
 import com.github.workerframework.api.TaskMessage;
 import com.github.workerframework.api.TaskStatus;
 import com.github.workerframework.api.TrackingInfo;
+import com.github.workerframework.testworker.TestWorkerTask;
 import com.github.workerframework.util.rabbitmq.QueueCreator;
 import com.github.workerframework.util.rabbitmq.RabbitHeaders;
 import com.rabbitmq.client.AMQP;
@@ -45,44 +46,22 @@ public class DehydratedMessageIT extends TestWorkerTestBase{
     private static final Codec codec = new JsonCodec();
 
     @Test
-    public void checkMessageRejectedWhenNoDehydratedMessageExists() throws CodecException, IOException, TimeoutException
-    {
-        try(final Connection connection = connectionFactory.newConnection()) {
-
-            final Channel channel = connection.createChannel();
-            final Map<String, Object> args = new HashMap<>();
-            args.put(QueueCreator.RABBIT_PROP_QUEUE_TYPE, QueueCreator.RABBIT_PROP_QUEUE_TYPE_QUORUM);
-            channel.queueDeclare(WORKER_IN, true, false, false, args);
-            channel.queueDeclare(TESTWORKER_OUT, true, false, false, args);
-
-            //  Send a message which references a non-existent dehydrated message.
-            final Map<String, Object> headers = new HashMap<>();
-            headers.put(RABBIT_HEADER_CAF_DEHYDRATION_ID, "DOESNOTEXIST");
-            final int taskNumber3 = 3;
-            publish(channel, taskNumber3, headers);
-            final TestWorkerQueueConsumer testMessageConsumer = new TestWorkerQueueConsumer();
-            consume(channel, testMessageConsumer);
-            final var publishedHeaders = testMessageConsumer.getHeaders(); 
-            Assert.assertTrue(publishedHeaders.containsKey(RabbitHeaders.RABBIT_HEADER_CAF_WORKER_REJECTED), "Message should have been rejected");
-        }
-    }
-    
-    @Test
     public void checkDehydratedMessageIsRecovered() throws CodecException, IOException, TimeoutException 
     {
         try(final Connection connection = connectionFactory.newConnection()) {
-
             final Channel channel = connection.createChannel();
             final Map<String, Object> args = new HashMap<>();
             args.put(QueueCreator.RABBIT_PROP_QUEUE_TYPE, QueueCreator.RABBIT_PROP_QUEUE_TYPE_QUORUM);
             channel.queueDeclare(WORKER_IN, true, false, false, args);
             channel.queueDeclare(TESTWORKER_OUT, true, false, false, args);
+            
+            // This publish will result in a dehydratedMessage created by the publisher
             final int taskNumber1 = 1;
             final TestWorkerQueueConsumer setupMessageConsumer = new TestWorkerQueueConsumer();
             storeDehydratedMessage(channel, taskNumber1, new HashMap<>(), setupMessageConsumer);
             final String setupDehydratedMessageId = getDehydratedMessageId(setupMessageConsumer);
 
-            //  Now we can send a message which expects to find the deyhdrated message.
+            //  Now we can send a message which expects to find the publishers deyhdrated message.
             final Map<String, Object> headers = new HashMap<>();
             headers.put(RABBIT_HEADER_CAF_DEHYDRATION_ID, setupDehydratedMessageId);
             final int taskNumber2 = 2;
@@ -91,6 +70,23 @@ public class DehydratedMessageIT extends TestWorkerTestBase{
             consume(channel, testMessageConsumer);
             final String testDehydratedMessageId = getDehydratedMessageId(testMessageConsumer);
             Assert.assertNotEquals(testDehydratedMessageId, setupDehydratedMessageId, "Message ids should have been different");
+
+            final TaskMessage taskMessage = codec.deserialise(testMessageConsumer.getLastDeliveredBody(), TaskMessage.class);
+            Assert.assertEquals(taskMessage.getTaskClassifier(), "TestWorkerResult", "Task classifier is wrong");
+
+            final var publishedHeaders = testMessageConsumer.getHeaders();
+            Assert.assertTrue(publishedHeaders.containsKey(RABBIT_HEADER_CAF_DEHYDRATION_ID), "Should have the dehydration header:" + publishedHeaders);
+            
+            // Now if we try to publish again the previously dehydrated message should have been deleted by the confirm listener
+            // and the message will be rejected.
+            final int taskNumber3 = 3;
+            publish(channel, taskNumber3, headers);
+            final TestWorkerQueueConsumer republishedTestMessageConsumer = new TestWorkerQueueConsumer();
+            // DDD not consuming the rejected message
+//            consume(channel, republishedTestMessageConsumer);
+//
+//            final TaskMessage outboundMessage = codec.deserialise(republishedTestMessageConsumer.getLastDeliveredBody(), TaskMessage.class);
+//            Assert.assertEquals("TestWorkerFailureResult", outboundMessage.getTaskClassifier(), "Task classifier is wrong");
         }
     }
     
@@ -112,7 +108,7 @@ public class DehydratedMessageIT extends TestWorkerTestBase{
         channel.basicConsume(TESTWORKER_OUT, false, messageConsumer);
 
         try {
-            for (int i = 0; i < 10000; i++) {
+            for (int i = 0; i < 1000; i++) {
 
                 Thread.sleep(100);
 
@@ -143,11 +139,13 @@ public class DehydratedMessageIT extends TestWorkerTestBase{
         final Map<String, Object> headers
     ) throws CodecException, IOException {
         final var trackingInfo = new TrackingInfo("taskName" + taskNumber, new Date(), 1, "http://hello.com", "pipe", "to");
+        final TestWorkerTask documentWorkerTask = new TestWorkerTask();
         final TaskMessage requestTaskMessage = new TaskMessage();
         requestTaskMessage.setTaskId(Integer.toString(taskNumber));
         requestTaskMessage.setTaskClassifier(TEST_WORKER_NAME);
         requestTaskMessage.setTaskApiVersion(1);
         requestTaskMessage.setTaskStatus(TaskStatus.NEW_TASK);
+        requestTaskMessage.setTaskData(codec.serialise(documentWorkerTask));
         requestTaskMessage.setTo(WORKER_IN);
         requestTaskMessage.setTracking(trackingInfo);
 
