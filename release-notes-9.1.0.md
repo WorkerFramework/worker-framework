@@ -1,5 +1,3 @@
-!not-ready-for-release!
-
 #### Version Number
 ${version-number}
 
@@ -9,3 +7,4 @@ set to "amqps" a TLS version can be specified.
     - By default, this variable is set to "TLSv1.2".    
 
 #### Known Issues
+- None
