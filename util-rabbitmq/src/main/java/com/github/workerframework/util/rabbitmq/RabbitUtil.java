@@ -115,7 +115,7 @@ public final class RabbitUtil
                 final TrustManagerFactory trustManagerFactory = TrustManagerFactory.getInstance(tmfAlgorithm);
                 trustManagerFactory.init((KeyStore) null);
 
-                final SSLContext context = SSLContext.getInstance("TLSv1.2");
+                final SSLContext context = SSLContext.getInstance(rc.getRabbitTlsProtocolVersion());
                 context.init(null, trustManagerFactory.getTrustManagers(), null);
 
                 factory.useSslProtocol(context);
