@@ -127,12 +127,22 @@ public class WorkerQueueConsumerImpl implements QueueConsumer
             isPoison = false;
         }
 
-        final RabbitTaskInformation taskInformation =
-            new RabbitTaskInformation(String.valueOf(delivery.getEnvelope().getDeliveryTag()), isPoison, dehydratedMessageId);
+
+        RabbitTaskInformation taskInformation = null;
         try {
-            LOG.debug("Registering new message {}", taskInformation.getInboundMessageId());
-            final TaskMessage taskMessage = deserializeTaskMessage(delivery.getMessageData(), dehydratedMessageId);
-            callback.registerNewTask(taskInformation, taskMessage, delivery.getHeaders());
+            final var inboundMessageId = delivery.getEnvelope().getDeliveryTag();
+            final Optional<TaskMessage> taskMessage = deserializeTaskMessage(delivery.getMessageData(), dehydratedMessageId);
+            // if the message id in the header is not valid we want to avoid trying to delete it later.
+            taskInformation = new RabbitTaskInformation(
+                    String.valueOf(inboundMessageId),
+                    isPoison,
+                    taskMessage.isPresent() ? dehydratedMessageId : Optional.empty()
+            );
+            if (taskMessage.isEmpty()) {
+                throw new InvalidTaskException("Error deserializing inbound message:" + inboundMessageId);
+            }
+            LOG.debug("Registering new message {}", inboundMessageId);
+            callback.registerNewTask(taskInformation, taskMessage.get(), delivery.getHeaders());
         } catch (InvalidTaskException e) {
             LOG.error("Cannot register new message, rejecting {}", taskInformation.getInboundMessageId(), e);
             taskInformation.incrementResponseCount(true);
@@ -146,8 +156,8 @@ public class WorkerQueueConsumerImpl implements QueueConsumer
         }
     }
 
-    private TaskMessage deserializeTaskMessage(final byte[] taskMessage, final Optional<String> dehydratedMessageId)
-        throws InvalidTaskException {
+    private Optional<TaskMessage> deserializeTaskMessage(final byte[] taskMessage, final Optional<String> dehydratedMessageId)
+    {
         try {
             if (dehydratedMessageId.isPresent()) {
                 final ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
@@ -158,15 +168,11 @@ public class WorkerQueueConsumerImpl implements QueueConsumer
                         outputStream.write(buffer, 0, length);
                     }
                 }
-                return codec.deserialise(outputStream.toByteArray(), TaskMessage.class, DecodeMethod.LENIENT);
+                return Optional.of(codec.deserialise(outputStream.toByteArray(), TaskMessage.class, DecodeMethod.LENIENT));
             }
-            return codec.deserialise(taskMessage, TaskMessage.class, DecodeMethod.LENIENT);
-        } catch (final CodecException e) {
-            throw new InvalidTaskException("Queue data did not deserialise to a TaskMessage", e);
-        } catch (final DataStoreException e) {
-            throw new InvalidTaskException("TaskMessage was not found in the Data store", e);
-        } catch (final IOException e) {
-            throw new InvalidTaskException("Error reading task message from store", e);
+            return Optional.of(codec.deserialise(taskMessage, TaskMessage.class, DecodeMethod.LENIENT));
+        } catch (final Exception e) {
+            return Optional.empty();
         }
     }
 
