@@ -1,5 +1,3 @@
-!not-ready-for-release!
-
 #### Version Number
 ${version-number}
 
@@ -14,3 +12,4 @@ set to "amqps" a TLS version can be specified.
   - WorkerQueueProvider
 
 #### Known Issues
+- None
