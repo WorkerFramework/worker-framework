@@ -28,6 +28,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
+import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
 import java.util.concurrent.BlockingQueue;
@@ -85,12 +86,13 @@ public class WorkerPublisherImpl implements WorkerPublisher
     {
         try {
             LOG.debug("Publishing message to {} with ack id {}", routingKey, taskInformation.getInboundMessageId());
+            final var publishHeaders = new HashMap<>(headers);
+            final var outboundByteArray = getOutboundByteArray(data, routingKey, publishHeaders);
             AMQP.BasicProperties.Builder builder = new AMQP.BasicProperties().builder();
-            builder.headers(headers);
+            builder.headers(publishHeaders);
             builder.contentType("text/plain");
             builder.deliveryMode(2);
             confirmListener.registerResponseSequence(channel.getNextPublishSeqNo(), taskInformation);
-            final var outboundByteArray = getOutboundByteArray(data, routingKey, headers);
             channel.basicPublish("", routingKey, builder.build(), outboundByteArray);
             metrics.incrementPublished();
         } catch (final IOException | QueueException e) {
@@ -110,6 +112,8 @@ public class WorkerPublisherImpl implements WorkerPublisher
         final Map<String, Object> headers
     ) throws QueueException {
         try {
+            // Remove any previous dehydration id
+            headers.remove(RABBIT_HEADER_CAF_DEHYDRATION_ID);
             if (shouldStoreTaskMessage(taskMessage.length)) {
                 final TaskMessage outboundTaskMessage = codec.deserialise(taskMessage, TaskMessage.class);
                 final var taskMessagePartialRef = String.format("%s/%s", routingKey, outboundTaskMessage.getTracking().getJobTaskId());

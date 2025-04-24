@@ -301,6 +301,8 @@
                                 <env>
                                     <CAF_RABBITMQ_PREFETCH_BUFFER>10</CAF_RABBITMQ_PREFETCH_BUFFER>
                                     <CAF_WORKER_DATASTORE_PATH>/srv/common/webdav</CAF_WORKER_DATASTORE_PATH>
+                                    <CAF_WORKER_MESSAGE_DEHYDRATION_ENABLED>true</CAF_WORKER_MESSAGE_DEHYDRATION_ENABLED>
+                                    <CAF_WORKER_MESSAGE_DEHYDRATION_THRESHOLD_BYTES>1</CAF_WORKER_MESSAGE_DEHYDRATION_THRESHOLD_BYTES>
                                     <CAF_WORKER_JAVA_OPTS>
                                         -agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=*:5005
                                     </CAF_WORKER_JAVA_OPTS>
@@ -343,6 +345,8 @@
                                 </ports>
                                 <env>
                                     <CAF_WORKER_DATASTORE_PATH>/srv/common/webdav</CAF_WORKER_DATASTORE_PATH>
+                                    <CAF_WORKER_MESSAGE_DEHYDRATION_ENABLED>true</CAF_WORKER_MESSAGE_DEHYDRATION_ENABLED>
+                                    <CAF_WORKER_MESSAGE_DEHYDRATION_THRESHOLD_BYTES>1</CAF_WORKER_MESSAGE_DEHYDRATION_THRESHOLD_BYTES>
                                     <CAF_WORKER_JAVA_OPTS>
                                         -agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=*:5005
                                     </CAF_WORKER_JAVA_OPTS>
@@ -386,6 +390,8 @@
                                 </ports>
                                 <env>
                                     <CAF_WORKER_DATASTORE_PATH>/srv/common/webdav</CAF_WORKER_DATASTORE_PATH>
+                                    <CAF_WORKER_MESSAGE_DEHYDRATION_ENABLED>true</CAF_WORKER_MESSAGE_DEHYDRATION_ENABLED>
+                                    <CAF_WORKER_MESSAGE_DEHYDRATION_THRESHOLD_BYTES>1</CAF_WORKER_MESSAGE_DEHYDRATION_THRESHOLD_BYTES>
                                     <CAF_WORKER_JAVA_OPTS>
                                         -agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=*:5005
                                     </CAF_WORKER_JAVA_OPTS>
