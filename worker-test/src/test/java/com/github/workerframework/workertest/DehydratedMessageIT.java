@@ -23,7 +23,6 @@ import com.github.workerframework.api.TaskStatus;
 import com.github.workerframework.api.TrackingInfo;
 import com.github.workerframework.testworker.TestWorkerTask;
 import com.github.workerframework.util.rabbitmq.QueueCreator;
-import com.github.workerframework.util.rabbitmq.RabbitHeaders;
 import com.rabbitmq.client.AMQP;
 import com.rabbitmq.client.Channel;
 import com.rabbitmq.client.Connection;
@@ -31,6 +30,8 @@ import org.testng.Assert;
 import org.testng.annotations.Test;
 
 import java.io.IOException;
+import java.net.HttpURLConnection;
+import java.net.URL;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
@@ -60,6 +61,10 @@ public class DehydratedMessageIT extends TestWorkerTestBase{
             final TestWorkerQueueConsumer setupMessageConsumer = new TestWorkerQueueConsumer();
             storeDehydratedMessage(channel, taskNumber1, new HashMap<>(), setupMessageConsumer);
             final String setupDehydratedMessageId = getDehydratedMessageId(setupMessageConsumer);
+            final String webdavPath = 
+                String.format("http://localhost:9090/webdav/%s", setupDehydratedMessageId);
+            Assert.assertTrue(dehydratedMessageExists(webdavPath), 
+                "Dehydrated message not found at " + webdavPath);
 
             //  Now we can send a message which expects to find the publishers deyhdrated message.
             final Map<String, Object> headers = new HashMap<>();
@@ -77,16 +82,9 @@ public class DehydratedMessageIT extends TestWorkerTestBase{
             final var publishedHeaders = testMessageConsumer.getHeaders();
             Assert.assertTrue(publishedHeaders.containsKey(RABBIT_HEADER_CAF_DEHYDRATION_ID), "Should have the dehydration header:" + publishedHeaders);
             
-            // Now if we try to publish again the previously dehydrated message should have been deleted by the confirm listener
-            // and the message will be rejected.
-            final int taskNumber3 = 3;
-            publish(channel, taskNumber3, headers);
-            final TestWorkerQueueConsumer republishedTestMessageConsumer = new TestWorkerQueueConsumer();
-            // DDD not consuming the rejected message
-//            consume(channel, republishedTestMessageConsumer);
-//
-//            final TaskMessage outboundMessage = codec.deserialise(republishedTestMessageConsumer.getLastDeliveredBody(), TaskMessage.class);
-//            Assert.assertEquals("TestWorkerFailureResult", outboundMessage.getTaskClassifier(), "Task classifier is wrong");
+            // The previously dehydrated message should have been deleted by the confirm listener
+            Assert.assertFalse(dehydratedMessageExists(webdavPath), 
+                "Dehydrated message should not have been found");
         }
     }
     
@@ -156,5 +154,14 @@ public class DehydratedMessageIT extends TestWorkerTestBase{
             .build();
 
         channel.basicPublish("", WORKER_IN, properties, codec.serialise(requestTaskMessage)); 
+    }
+
+    public static boolean dehydratedMessageExists(final String path) throws IOException {
+        
+        URL url = new URL(path);
+        HttpURLConnection connection = (HttpURLConnection) url.openConnection();
+        connection.setRequestMethod("GET");
+
+        return connection.getResponseCode() == HttpURLConnection.HTTP_OK;
     }
 }
