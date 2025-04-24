@@ -15,6 +15,9 @@
  */
 package com.github.workerframework.workertest;
 
+import com.github.workerframework.api.DataStoreException;
+import com.github.workerframework.datastores.fs.FileSystemDataStore;
+import com.github.workerframework.datastores.fs.FileSystemDataStoreConfiguration;
 import com.rabbitmq.client.AMQP;
 import com.rabbitmq.client.ConnectionFactory;
 import com.rabbitmq.client.Consumer;
@@ -22,6 +25,7 @@ import com.rabbitmq.client.Envelope;
 import com.rabbitmq.client.ShutdownSignalException;
 
 import java.io.IOException;
+import java.util.Map;
 import java.util.Objects;
 
 public class TestWorkerTestBase {
@@ -45,8 +49,11 @@ public class TestWorkerTestBase {
 
         return value != null && !Objects.equals(value, "") ? value : defaultValue;
     }
+
     public static class TestWorkerQueueConsumer implements Consumer {
         private byte[] lastDeliveredBody = null;
+        private Map<String, Object> headers = null;
+
         @Override
         public void handleConsumeOk(String consumerTag) {
 
@@ -76,10 +83,15 @@ public class TestWorkerTestBase {
             return lastDeliveredBody;
         }
 
+        public Map<String, Object> getHeaders() {
+            return headers;
+        }
+
         @Override
         public void handleDelivery(final String consumerTag, final Envelope envelope, final AMQP.BasicProperties properties,
                                    final byte[] body) throws IOException {
             lastDeliveredBody = body;
+            headers = properties.getHeaders();
         }
     }
 }

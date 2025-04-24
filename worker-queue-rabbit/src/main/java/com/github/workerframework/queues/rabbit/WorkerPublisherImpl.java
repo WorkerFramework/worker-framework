@@ -28,6 +28,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
+import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
 import java.util.concurrent.BlockingQueue;
@@ -85,12 +86,13 @@ public class WorkerPublisherImpl implements WorkerPublisher
     {
         try {
             LOG.debug("Publishing message to {} with ack id {}", routingKey, taskInformation.getInboundMessageId());
+            final var modifiedHeaders = new HashMap<>(headers); // DDD pending location of unmodifiable map
+            final var outboundByteArray = getOutboundByteArray(data, routingKey, modifiedHeaders);
             AMQP.BasicProperties.Builder builder = new AMQP.BasicProperties().builder();
-            builder.headers(headers);
+            builder.headers(modifiedHeaders);
             builder.contentType("text/plain");
             builder.deliveryMode(2);
             confirmListener.registerResponseSequence(channel.getNextPublishSeqNo(), taskInformation);
-            final var outboundByteArray = getOutboundByteArray(data, routingKey, headers);
             channel.basicPublish("", routingKey, builder.build(), outboundByteArray);
             metrics.incrementPublished();
         } catch (final IOException | QueueException e) {
@@ -116,6 +118,7 @@ public class WorkerPublisherImpl implements WorkerPublisher
                 final var dehydratedMessageId = dataStore.store(taskMessage, taskMessagePartialRef);
 
                 outboundTaskMessage.setTaskData(new byte[0]);
+                // DDD headers is read only at this point
                 headers.put(RABBIT_HEADER_CAF_DEHYDRATION_ID, dehydratedMessageId);
                 return codec.serialise(outboundTaskMessage);
             }
