@@ -25,16 +25,17 @@ The HttpDataStore configuration file checks for values as below;
 
 The default Rabbit configuration file checks for values as below;
 
-| Property           | Checked Environment Variables       | Default  |
-|--------------------|-------------------------------------|----------|
-| backoffInterval    | `CAF_RABBITMQ_BACKOFF_INTERVAL`     | 5        |
-| maxBackoffInterval | `CAF_RABBITMQ_MAX_BACKOFF_INTERVAL` | 15       |
-| maxAttempts        | `CAF_RABBITMQ_MAX_ATTEMPTS`         | 3        |
-| rabbitProtocol     | `CAF_RABBITMQ_PROTOCOL`             | amqp     |
-| rabbitHost         | `CAF_RABBITMQ_HOST`                 | rabbitmq |
-| rabbitPort         | `CAF_RABBITMQ_PORT`                 | 5672     |
-| rabbitUser         | `CAF_RABBITMQ_USERNAME`             | guest    |
-| rabbitPassword     | `CAF_RABBITMQ_PASSWORD`             | guest    |
+| Property                 | Checked Environment Variables       | Default  |
+|--------------------------|-------------------------------------|----------|
+| backoffInterval          | `CAF_RABBITMQ_BACKOFF_INTERVAL`     | 5        |
+| maxBackoffInterval       | `CAF_RABBITMQ_MAX_BACKOFF_INTERVAL` | 15       |
+| maxAttempts              | `CAF_RABBITMQ_MAX_ATTEMPTS`         | 3        |
+| rabbitProtocol           | `CAF_RABBITMQ_PROTOCOL`             | amqp     |
+| rabbitTlsProtocolVersion | `CAF_RABBITMQ_TLS_PROTOCOL_VERSION` | TLSv1.2  |
+| rabbitHost               | `CAF_RABBITMQ_HOST`                 | rabbitmq |
+| rabbitPort               | `CAF_RABBITMQ_PORT`                 | 5672     |
+| rabbitUser               | `CAF_RABBITMQ_USERNAME`             | guest    |
+| rabbitPassword           | `CAF_RABBITMQ_PASSWORD`             | guest    |
 
 ## RabbitWorkerQueueConfiguration
 

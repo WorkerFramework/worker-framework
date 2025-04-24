@@ -52,6 +52,12 @@ public class RabbitConfiguration
     @Size(min = 1)
     private String rabbitProtocol;
     /**
+     * The TLS protocol version, only respected if 'rabbitProtocol' is 'amqps'
+     */
+    @NotNull
+    @Size(min = 1)
+    private String rabbitTlsProtocolVersion;
+    /**
      * The host that runs RabbitMQ.
      */
     @NotNull
@@ -127,6 +133,19 @@ public class RabbitConfiguration
     public void setRabbitProtocol(final String rabbitProtocol)
     {
         this.rabbitProtocol = rabbitProtocol;
+    }
+
+    /**
+     * @return the TLS protocol version of the RabbitMQ server
+     */
+    public String getRabbitTlsProtocolVersion()
+    {
+        return rabbitTlsProtocolVersion;
+    }
+
+    public void setRabbitTlsProtocolVersion(final String rabbitTlsProtocolVersion)
+    {
+        this.rabbitTlsProtocolVersion = rabbitTlsProtocolVersion;
     }
 
     /**
