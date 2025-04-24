@@ -26,7 +26,6 @@ import com.google.common.base.MoreObjects;
 import com.google.common.base.Strings;
 
 import java.util.Collections;
-import java.util.HashMap;
 import java.util.UUID;
 
 import org.slf4j.Logger;
@@ -108,7 +107,7 @@ class StreamingWorkerWrapper implements Runnable
                 workerTask.getVersion(),
                 workerTask.getData(),
                 TaskStatus.RESULT_EXCEPTION,
-                new HashMap<>(),
+                Collections.emptyMap(),
                 workerTask.getRejectQueue(),
                 workerTask.getTrackingInfo(),
                 workerTask.getSourceInfo(),

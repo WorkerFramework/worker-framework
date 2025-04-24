@@ -460,7 +460,7 @@ final class WorkerCore
             }
 
             try {
-                workerQueue.publish(taskInformation, output, queue, new HashMap());
+                workerQueue.publish(taskInformation, output, queue, Collections.emptyMap());
             } catch (final QueueException ex) {
                 throw new RuntimeException(ex);
             }
@@ -498,7 +498,7 @@ final class WorkerCore
                     // **** Normal Worker ****                    
                     // A worker with an input and output queue.
                     final byte[] output = codec.serialise(responseMessage);
-                    workerQueue.publish(taskInformation, output, queue, new HashMap(), true);
+                    workerQueue.publish(taskInformation, output, queue, Collections.emptyMap(), true);
                     stats.getOutputSizes().update(output.length);
                 }
                 stats.updatedLastTaskFinishedTime();
@@ -593,7 +593,7 @@ final class WorkerCore
             }
 
             try {                
-                workerQueue.publish(taskInformation, output, reportUpdateMessage.getTo(), new HashMap());
+                workerQueue.publish(taskInformation, output, reportUpdateMessage.getTo(), Collections.emptyMap());
             } catch (final QueueException ex) {
                 throw new RuntimeException(ex);
             }

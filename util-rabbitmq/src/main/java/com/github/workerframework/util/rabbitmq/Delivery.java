@@ -18,7 +18,6 @@ package com.github.workerframework.util.rabbitmq;
 import com.rabbitmq.client.Envelope;
 
 import java.util.Collections;
-import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
 
@@ -53,8 +52,8 @@ public class Delivery
      */
     public Delivery(Envelope env, byte[] data)
     {
-        this(env, data, new HashMap<>()); // DDD ckeck if this change is needed
-    } 
+        this(env, data, Collections.emptyMap());
+    }
 
     /**
      * @return the envelope containing metadata about the delivery

@@ -86,10 +86,10 @@ public class WorkerPublisherImpl implements WorkerPublisher
     {
         try {
             LOG.debug("Publishing message to {} with ack id {}", routingKey, taskInformation.getInboundMessageId());
-            final var modifiedHeaders = new HashMap<>(headers); // DDD pending location of unmodifiable map
-            final var outboundByteArray = getOutboundByteArray(data, routingKey, modifiedHeaders);
+            final var publishHeaders = new HashMap<>(headers);
+            final var outboundByteArray = getOutboundByteArray(data, routingKey, publishHeaders);
             AMQP.BasicProperties.Builder builder = new AMQP.BasicProperties().builder();
-            builder.headers(modifiedHeaders);
+            builder.headers(publishHeaders);
             builder.contentType("text/plain");
             builder.deliveryMode(2);
             confirmListener.registerResponseSequence(channel.getNextPublishSeqNo(), taskInformation);
@@ -112,13 +112,14 @@ public class WorkerPublisherImpl implements WorkerPublisher
         final Map<String, Object> headers
     ) throws QueueException {
         try {
+            // Remove any previous dehydration id
+            headers.remove(RABBIT_HEADER_CAF_DEHYDRATION_ID);
             if (shouldStoreTaskMessage(taskMessage.length)) {
                 final TaskMessage outboundTaskMessage = codec.deserialise(taskMessage, TaskMessage.class);
                 final var taskMessagePartialRef = String.format("%s/%s", routingKey, outboundTaskMessage.getTracking().getJobTaskId());
                 final var dehydratedMessageId = dataStore.store(taskMessage, taskMessagePartialRef);
 
                 outboundTaskMessage.setTaskData(new byte[0]);
-                // DDD headers is read only at this point
                 headers.put(RABBIT_HEADER_CAF_DEHYDRATION_ID, dehydratedMessageId);
                 return codec.serialise(outboundTaskMessage);
             }
