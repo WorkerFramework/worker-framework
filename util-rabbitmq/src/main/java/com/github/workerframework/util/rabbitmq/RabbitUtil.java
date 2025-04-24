@@ -117,7 +117,6 @@ public final class RabbitUtil
 
                 final SSLContext context = SSLContext.getInstance(rc.getRabbitTlsProtocolVersion());
                 context.init(null, trustManagerFactory.getTrustManagers(), null);
-                LOG.error("JONNY - TEST - SSLContext initialized with protocol: {}", rc.getRabbitTlsProtocolVersion());
 
                 factory.useSslProtocol(context);
             } catch (final KeyStoreException e) {
