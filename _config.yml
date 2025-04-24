@@ -2,7 +2,7 @@ title: Worker Framework
 email: workerframework@microfocus.com
 
 description: Worker Framework Documentation
-baseurl: ""
+baseurl: "/worker-framework"
 
 navigation_image: 'assets/img/worker-framework-logo.png'
 
