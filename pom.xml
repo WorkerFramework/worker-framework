@@ -61,7 +61,6 @@
     <properties>
         <copyrightYear>2025</copyrightYear>
         <copyrightNotice>Copyright ${project.inceptionYear}-${copyrightYear} Open Text.</copyrightNotice>
-        <projectDockerRegistry>worker-framework-${project.version}.project-registries.local</projectDockerRegistry>
     </properties>
 
     <modules>
@@ -890,6 +889,7 @@
                 <artifactId>docker-versions-maven-plugin</artifactId>
                 <extensions>true</extensions>
                 <configuration>
+                    <projectDockerRegistry>worker-framework-${project.version}.project-registries.local</projectDockerRegistry>
                     <imageManagement>
                         <image>
                             <repository>${dockerHubPublic}/cafapi/doc-site-compiler</repository>
