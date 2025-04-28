@@ -22,12 +22,12 @@
     <modelVersion>4.0.0</modelVersion>
 
     <artifactId>worker-queue-rabbit</artifactId>
-    <version>9.1.1-SNAPSHOT</version>
+    <version>9.1.2-SNAPSHOT</version>
 
     <parent>
         <groupId>com.github.workerframework</groupId>
         <artifactId>worker-framework-aggregator</artifactId>
-        <version>9.1.1-SNAPSHOT</version>
+        <version>9.1.2-SNAPSHOT</version>
     </parent>
 
     <dependencies>
