@@ -54,9 +54,8 @@ public class RabbitConfiguration
     /**
      * The TLS protocol version, only respected if 'rabbitProtocol' is 'amqps'
      */
-    @NotNull
     @Size(min = 1)
-    private String rabbitTlsProtocolVersion;
+    private String rabbitTlsProtocolVersion = "TLSv1.2";
     /**
      * The host that runs RabbitMQ.
      */
