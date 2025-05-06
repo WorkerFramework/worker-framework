@@ -147,10 +147,9 @@ public class RabbitWorkerQueuePublisherTest
         latch.await(5000, TimeUnit.MILLISECONDS);
         publisher.shutdown();
 
-        // Loading the message the publisher should have stored as this is controlled by the cfg.
         try {
             final var rehydratedByteArray = dataStore.retrieveStoredByteArray(testQueue + "/" + trackingInfo.getJobTaskId());
-            Assert.assertEquals(outboundByteArray, rehydratedByteArray, "The dehydrated message dis not match");
+            Assert.assertEquals(outboundByteArray, rehydratedByteArray, "The dehydrated message did not match");
         } catch (final DataStoreException ex){
             fail("Unable to retrieve the stored message", ex);
         }
