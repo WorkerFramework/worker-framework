@@ -166,11 +166,6 @@
             <artifactId>worker-caf</artifactId>
             <scope>test</scope>
         </dependency>
-        <dependency>
-            <groupId>com.github.workerframework</groupId>
-            <artifactId>worker-store-fs</artifactId>
-            <scope>test</scope>
-        </dependency>
     </dependencies>
 
 </project>

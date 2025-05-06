@@ -131,16 +131,15 @@ public class WorkerQueueConsumerImpl implements QueueConsumer
         RabbitTaskInformation taskInformation = null;
         try {
             final var inboundMessageId = delivery.getEnvelope().getDeliveryTag();
-            final Optional<TaskMessage> taskMessage = deserializeTaskMessage(delivery.getMessageData(), dehydratedMessageId);
-            // if the message id in the header is not valid we want to avoid trying to delete it later.
-            taskInformation = new RabbitTaskInformation(
-                    String.valueOf(inboundMessageId),
-                    isPoison,
-                    taskMessage.isPresent() ? dehydratedMessageId : Optional.empty()
-            );
+            final Optional<TaskMessage> taskMessage = deserializeTaskMessage(delivery.getMessageData(), dehydratedMessageId);          
             if (taskMessage.isEmpty()) {
                 throw new InvalidTaskException("Error deserializing inbound message:" + inboundMessageId);
             }
+            taskInformation = new RabbitTaskInformation(
+                String.valueOf(inboundMessageId),
+                isPoison,
+                dehydratedMessageId
+            );
             LOG.debug("Registering new message {}", inboundMessageId);
             callback.registerNewTask(taskInformation, taskMessage.get(), delivery.getHeaders());
         } catch (InvalidTaskException e) {
@@ -171,7 +170,7 @@ public class WorkerQueueConsumerImpl implements QueueConsumer
                 return Optional.of(codec.deserialise(outputStream.toByteArray(), TaskMessage.class, DecodeMethod.LENIENT));
             }
             return Optional.of(codec.deserialise(taskMessage, TaskMessage.class, DecodeMethod.LENIENT));
-        } catch (final Exception e) {
+        } catch (final IOException | CodecException | DataStoreException e) {
             return Optional.empty();
         }
     }
