@@ -87,6 +87,8 @@ public class WorkerPublisherImpl implements WorkerPublisher
         try {
             LOG.debug("Publishing message to {} with ack id {}", routingKey, taskInformation.getInboundMessageId());
             final var publishHeaders = new HashMap<>(headers);
+            // Remove any previous dehydration id
+            publishHeaders.remove(RABBIT_HEADER_CAF_DEHYDRATION_ID);
             final var outboundByteArray = getOutboundByteArray(data, routingKey, publishHeaders);
             AMQP.BasicProperties.Builder builder = new AMQP.BasicProperties().builder();
             builder.headers(publishHeaders);
@@ -112,8 +114,6 @@ public class WorkerPublisherImpl implements WorkerPublisher
         final Map<String, Object> headers
     ) throws QueueException {
         try {
-            // Remove any previous dehydration id
-            headers.remove(RABBIT_HEADER_CAF_DEHYDRATION_ID);
             if (shouldStoreTaskMessage(taskMessage.length)) {
                 final TaskMessage outboundTaskMessage = codec.deserialise(taskMessage, TaskMessage.class);
                 final var taskMessagePartialRef = String.format("%s/%s", routingKey, outboundTaskMessage.getTracking().getJobTaskId());
