@@ -28,7 +28,7 @@ public interface WorkerQueueProvider
      *
      * @param configurationSource used for configuring the WorkerQueue
      * @param maxTasks the maximum number of tasks the worker can perform at once
-     * @param dataStore the managed data store that the worker will use to store data.
+     * @param dataStore the managed data store that the worker will use to store data that exceeds a threshold.
      * @param codec the codec used for serialization deserialization of data.
      * @return a new WorkerQueue instance
      * @throws QueueException if a WorkerQueue could not be created
