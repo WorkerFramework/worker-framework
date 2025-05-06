@@ -65,17 +65,9 @@ public class WorkerQueueConsumerImpl implements QueueConsumer
     private final Codec codec;
     private static final Logger LOG = LoggerFactory.getLogger(WorkerQueueConsumerImpl.class);
 
-    public WorkerQueueConsumerImpl(
-        final TaskCallback callback,
-        final RabbitMetricsReporter metrics,
-        final BlockingQueue<Event<QueueConsumer>> queue,
-        final Channel ch,
-        final BlockingQueue<Event<WorkerPublisher>> pubQueue,
-        final String retryKey,
-        final int retryLimit,
-        final ManagedDataStore dataStore,
-        final Codec codec
-)
+    public WorkerQueueConsumerImpl(TaskCallback callback, RabbitMetricsReporter metrics, BlockingQueue<Event<QueueConsumer>> queue, Channel ch,
+                                   BlockingQueue<Event<WorkerPublisher>> pubQueue, String retryKey, int retryLimit,
+                                   final ManagedDataStore dataStore, final Codec codec)
     {
         this.callback = Objects.requireNonNull(callback);
         this.metrics = Objects.requireNonNull(metrics);
@@ -243,8 +235,6 @@ public class WorkerQueueConsumerImpl implements QueueConsumer
                 new RabbitTaskInformation(String.valueOf(delivery.getEnvelope().getDeliveryTag()));
         LOG.debug("Received redelivered message with id {}, retry count {}, retry limit {}, republishing to retry queue",
                 delivery.getEnvelope().getDeliveryTag(), retryLimit, retries + 1);
-
-
         final Map<String, Object> headers = new HashMap<>();
         headers.put(RabbitHeaders.RABBIT_HEADER_CAF_WORKER_RETRY, String.valueOf(retries + 1));
         if (dehydratedMessageId.isPresent()) {
