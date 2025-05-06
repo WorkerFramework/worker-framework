@@ -15,7 +15,7 @@
 - retryQueue: the routing key to use for sending messages to retry to, this may be the same as the inputQueue, and will default to this if unset application, and messages that exceed the retryLimit, this must be set
 - retryLimit: the maximum number of retries before sending the messages to the rejectedQueue, must be at least 1
 
- Note this module expects valid `RabbitConfiguration` and `MessageDehydrationConfiguration` files to be present.
+ Note this module expects a valid `RabbitConfiguration` file to be present.
  See the `worker-configs` module for more details on this.
 
 
