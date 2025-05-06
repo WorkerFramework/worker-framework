@@ -18,7 +18,6 @@ package com.github.workerframework.queues.rabbit;
 import com.github.workerframework.util.rabbitmq.Event;
 
 import java.util.Collections;
-import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
 
@@ -50,7 +49,7 @@ public class WorkerPublishQueueEvent implements Event<WorkerPublisher>
 
     public WorkerPublishQueueEvent(byte[] messageData, String routingKey, RabbitTaskInformation taskInformation)
     {
-        this(messageData, routingKey, taskInformation, new HashMap<>());
+        this(messageData, routingKey, taskInformation, Collections.emptyMap());
     }
 
     @Override
