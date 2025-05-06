@@ -722,9 +722,7 @@ public class WorkerCoreTest
             final ConfigurationSource configurationSource,
             final int maxTasks)
         {
-            final ManagedDataStore dataStore = Mockito.mock(ManagedDataStore.class);
-            final Codec codec = new JsonCodec();
-            return getWorkerQueue(configurationSource, maxTasks, dataStore, codec);
+            return getWorkerQueue(configurationSource, maxTasks, Mockito.mock(ManagedDataStore.class), new JsonCodec());
         }
 
         @Override
