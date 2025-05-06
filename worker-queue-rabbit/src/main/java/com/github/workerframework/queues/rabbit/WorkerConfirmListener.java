@@ -87,7 +87,7 @@ class WorkerConfirmListener implements ConfirmListener
             if(t.areAllResponsesAcknowledged() && !t.isAckEventSent()){
                 t.markAckEventAsSent();
                 final var dehydratedMessageIdOpt = t.getDehydratedMessageId();
-                if (dataStore != null && dehydratedMessageIdOpt.isPresent()) {
+                if (dehydratedMessageIdOpt.isPresent()) {
                     deleteDehydratedMessage(dehydratedMessageIdOpt.get());
                 }
                 return new ConsumerAckEvent(Long.valueOf(t.getInboundMessageId()));
