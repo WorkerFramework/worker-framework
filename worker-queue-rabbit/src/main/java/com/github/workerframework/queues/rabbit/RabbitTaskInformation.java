@@ -16,7 +16,6 @@
 package com.github.workerframework.queues.rabbit;
 
 import com.github.workerframework.api.TaskInformation;
-
 import java.util.Optional;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
