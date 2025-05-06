@@ -94,6 +94,7 @@ public class WorkerPublisherImpl implements WorkerPublisher
             builder.headers(publishHeaders);
             builder.contentType("text/plain");
             builder.deliveryMode(2);
+            
             confirmListener.registerResponseSequence(channel.getNextPublishSeqNo(), taskInformation);
             channel.basicPublish("", routingKey, builder.build(), outboundByteArray);
             metrics.incrementPublished();
