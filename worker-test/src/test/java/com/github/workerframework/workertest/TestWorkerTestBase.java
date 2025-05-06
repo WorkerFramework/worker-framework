@@ -15,9 +15,6 @@
  */
 package com.github.workerframework.workertest;
 
-import com.github.workerframework.api.DataStoreException;
-import com.github.workerframework.datastores.fs.FileSystemDataStore;
-import com.github.workerframework.datastores.fs.FileSystemDataStoreConfiguration;
 import com.rabbitmq.client.AMQP;
 import com.rabbitmq.client.ConnectionFactory;
 import com.rabbitmq.client.Consumer;
@@ -53,7 +50,6 @@ public class TestWorkerTestBase {
     public static class TestWorkerQueueConsumer implements Consumer {
         private byte[] lastDeliveredBody = null;
         private Map<String, Object> headers = null;
-
         @Override
         public void handleConsumeOk(String consumerTag) {
 
