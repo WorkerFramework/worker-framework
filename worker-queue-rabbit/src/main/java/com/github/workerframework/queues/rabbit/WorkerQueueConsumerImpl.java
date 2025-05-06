@@ -94,10 +94,10 @@ public class WorkerQueueConsumerImpl implements QueueConsumer
                 .getOrDefault(RabbitHeaders.RABBIT_HEADER_CAF_DELIVERY_COUNT, "0"))) :
                 Integer.parseInt(String.valueOf(delivery.getHeaders()
                 .getOrDefault(RabbitHeaders.RABBIT_HEADER_CAF_WORKER_RETRY, "0")));
-
-        final Optional<String> dehydratedMessageId = delivery.getHeaders().containsKey(RABBIT_HEADER_CAF_DEHYDRATION_ID) ?
-            Optional.of(delivery.getHeaders().get(RABBIT_HEADER_CAF_DEHYDRATION_ID).toString()) :
-            Optional.empty();
+        
+        final Optional<String> dehydratedMessageId = Optional.ofNullable(
+            delivery.getHeaders().get(RABBIT_HEADER_CAF_DEHYDRATION_ID)
+        ).map(Object::toString);        
 
         metrics.incrementReceived();
         final boolean isPoison;
@@ -119,16 +119,14 @@ public class WorkerQueueConsumerImpl implements QueueConsumer
             isPoison = false;
         }
 
-
-        RabbitTaskInformation taskInformation = null;
-        try {
-            final var inboundMessageId = delivery.getEnvelope().getDeliveryTag();
+        final var inboundMessageId = delivery.getEnvelope().getDeliveryTag();
+        final RabbitTaskInformation taskInformation = new RabbitTaskInformation(
+            String.valueOf(inboundMessageId),
+            isPoison,
+            dehydratedMessageId
+        );
+        try {            
             final Optional<TaskMessage> taskMessage = deserializeTaskMessage(inboundMessageId, delivery.getMessageData(), dehydratedMessageId);          
-            taskInformation = new RabbitTaskInformation(
-                String.valueOf(inboundMessageId),
-                isPoison,
-                dehydratedMessageId
-            );
             LOG.debug("Registering new message {}", inboundMessageId);
             callback.registerNewTask(taskInformation, taskMessage.get(), delivery.getHeaders());
         } catch (InvalidTaskException e) {
