@@ -131,10 +131,7 @@ public class WorkerQueueConsumerImpl implements QueueConsumer
         RabbitTaskInformation taskInformation = null;
         try {
             final var inboundMessageId = delivery.getEnvelope().getDeliveryTag();
-            final Optional<TaskMessage> taskMessage = deserializeTaskMessage(delivery.getMessageData(), dehydratedMessageId);          
-            if (taskMessage.isEmpty()) {
-                throw new InvalidTaskException("Error deserializing inbound message:" + inboundMessageId);
-            }
+            final Optional<TaskMessage> taskMessage = deserializeTaskMessage(inboundMessageId, delivery.getMessageData(), dehydratedMessageId);          
             taskInformation = new RabbitTaskInformation(
                 String.valueOf(inboundMessageId),
                 isPoison,
@@ -155,8 +152,10 @@ public class WorkerQueueConsumerImpl implements QueueConsumer
         }
     }
 
-    private Optional<TaskMessage> deserializeTaskMessage(final byte[] taskMessage, final Optional<String> dehydratedMessageId)
-    {
+    private Optional<TaskMessage> deserializeTaskMessage(
+        final long inboundMessageId,
+        final byte[] taskMessage, 
+        final Optional<String> dehydratedMessageId) throws InvalidTaskException {
         try {
             if (dehydratedMessageId.isPresent()) {
                 final ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
@@ -171,7 +170,7 @@ public class WorkerQueueConsumerImpl implements QueueConsumer
             }
             return Optional.of(codec.deserialise(taskMessage, TaskMessage.class, DecodeMethod.LENIENT));
         } catch (final IOException | CodecException | DataStoreException e) {
-            return Optional.empty();
+            throw new InvalidTaskException("Error deserializing inbound message:" + inboundMessageId, e);
         }
     }
 
