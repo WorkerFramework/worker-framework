@@ -97,6 +97,10 @@ public class RabbitWorkerQueueConfiguration
      */
     @Min(1)
     private int dehydrationThreshold = 16777216;
+    
+    public RabbitWorkerQueueConfiguration()
+    {
+    }
 
     public int getPrefetchBuffer()
     {
