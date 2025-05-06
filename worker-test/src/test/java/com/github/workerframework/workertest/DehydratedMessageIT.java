@@ -50,29 +50,28 @@ public class DehydratedMessageIT extends TestWorkerTestBase{
     public void checkDehydratedMessageIsRecovered() throws CodecException, IOException, TimeoutException 
     {
         try(final Connection connection = connectionFactory.newConnection()) {
-            final Channel channel = connection.createChannel();
-            final Map<String, Object> args = new HashMap<>();
-            args.put(QueueCreator.RABBIT_PROP_QUEUE_TYPE, QueueCreator.RABBIT_PROP_QUEUE_TYPE_QUORUM);
-            channel.queueDeclare(WORKER_IN, true, false, false, args);
-            channel.queueDeclare(TESTWORKER_OUT, true, false, false, args);
+            final Channel channel = prepareChannel(connection);
             
             // This publish will result in a dehydratedMessage created by the publisher
             final int taskNumber1 = 1;
             final TestWorkerQueueConsumer setupMessageConsumer = new TestWorkerQueueConsumer();
-            storeDehydratedMessage(channel, taskNumber1, new HashMap<>(), setupMessageConsumer);
+            publish(channel, taskNumber1, new HashMap<>());
+            consume(channel, setupMessageConsumer);
+            channel.close();
             final String setupDehydratedMessageId = getDehydratedMessageId(setupMessageConsumer);
-            final String webdavPath = 
-                String.format("http://localhost:9090/webdav/%s", setupDehydratedMessageId);
-            Assert.assertTrue(dehydratedMessageExists(webdavPath), 
-                "Dehydrated message not found at " + webdavPath);
+            final String webdav_url = System.getProperty("webdav_url");
+            final String webdavPath = String.format("%s/%s", webdav_url, setupDehydratedMessageId);
+
+            Assert.assertTrue(dehydratedMessageExists(webdavPath), "Dehydrated message not found at " + webdavPath);
 
             //  Now we can send a message which expects to find the publishers deyhdrated message.
+            final Channel channel2 = prepareChannel(connection);
             final Map<String, Object> headers = new HashMap<>();
             headers.put(RABBIT_HEADER_CAF_DEHYDRATION_ID, setupDehydratedMessageId);
             final int taskNumber2 = 2;
-            publish(channel, taskNumber2, headers);
+            publish(channel2, taskNumber2, headers);
             final TestWorkerQueueConsumer testMessageConsumer = new TestWorkerQueueConsumer();
-            consume(channel, testMessageConsumer);
+            consume(channel2, testMessageConsumer);
             final String testDehydratedMessageId = getDehydratedMessageId(testMessageConsumer);
             Assert.assertNotEquals(testDehydratedMessageId, setupDehydratedMessageId, "Message ids should have been different");
 
@@ -82,29 +81,16 @@ public class DehydratedMessageIT extends TestWorkerTestBase{
             final var publishedHeaders = testMessageConsumer.getHeaders();
             Assert.assertTrue(publishedHeaders.containsKey(RABBIT_HEADER_CAF_DEHYDRATION_ID), "Should have the dehydration header:" + publishedHeaders);
             
-            // The previously dehydrated message should have been deleted by the confirm listener
-            Assert.assertFalse(dehydratedMessageExists(webdavPath), 
-                "Dehydrated message should not have been found");
+            // The previously dehydrated message should now have been deleted by the confirm listener
+            Assert.assertFalse(dehydratedMessageExists(webdavPath), "Dehydrated message should not have been found");
         }
     }
     
-    public void storeDehydratedMessage(
-        final Channel channel,
-        final int taskNumber,
-        final Map<String, Object> headers,
-        final TestWorkerQueueConsumer messageConsumer
-    ) throws IOException, CodecException
-    {
-        publish(channel, taskNumber, headers);      
-        consume(channel, messageConsumer);            
-    }
-
     public void consume(
         final Channel channel,
         final TestWorkerQueueConsumer messageConsumer
-    ) throws IOException {
+    ) throws IOException, TimeoutException {
         channel.basicConsume(TESTWORKER_OUT, false, messageConsumer);
-
         try {
             for (int i = 0; i < 1000; i++) {
 
@@ -156,12 +142,22 @@ public class DehydratedMessageIT extends TestWorkerTestBase{
         channel.basicPublish("", WORKER_IN, properties, codec.serialise(requestTaskMessage)); 
     }
 
-    public static boolean dehydratedMessageExists(final String path) throws IOException {
+    public static boolean dehydratedMessageExists(final String path) throws IOException 
+    {
         
         URL url = new URL(path);
         HttpURLConnection connection = (HttpURLConnection) url.openConnection();
         connection.setRequestMethod("GET");
 
         return connection.getResponseCode() == HttpURLConnection.HTTP_OK;
+    }
+    
+    private Channel prepareChannel(final Connection connection) throws IOException {
+        final Channel channel = connection.createChannel();
+        final Map<String, Object> args = new HashMap<>();
+        args.put(QueueCreator.RABBIT_PROP_QUEUE_TYPE, QueueCreator.RABBIT_PROP_QUEUE_TYPE_QUORUM);
+        channel.queueDeclare(WORKER_IN, true, false, false, args);
+        channel.queueDeclare(TESTWORKER_OUT, true, false, false, args); 
+        return channel;
     }
 }

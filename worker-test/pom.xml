@@ -88,6 +88,25 @@
 
     <build>
         <plugins>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-failsafe-plugin</artifactId>
+                <executions>
+                    <execution>
+                        <id>integration-test</id>
+                        <phase>integration-test</phase>
+                        <goals>
+                            <goal>integration-test</goal>
+                        </goals>
+                        <configuration>
+                            <systemPropertyVariables>
+                                <webdav_url>http://${docker.host.address}:${webdav.port}/webdav</webdav_url>
+                            </systemPropertyVariables>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+            
             <!-- Unpack the base worker configuration files -->
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
@@ -390,8 +409,6 @@
                                 </ports>
                                 <env>
                                     <CAF_WORKER_DATASTORE_PATH>/srv/common/webdav</CAF_WORKER_DATASTORE_PATH>
-                                    <CAF_WORKER_MESSAGE_DEHYDRATION_ENABLED>true</CAF_WORKER_MESSAGE_DEHYDRATION_ENABLED>
-                                    <CAF_WORKER_MESSAGE_DEHYDRATION_THRESHOLD_BYTES>1</CAF_WORKER_MESSAGE_DEHYDRATION_THRESHOLD_BYTES>
                                     <CAF_WORKER_JAVA_OPTS>
                                         -agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=*:5005
                                     </CAF_WORKER_JAVA_OPTS>
