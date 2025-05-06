@@ -17,13 +17,10 @@ package com.github.workerframework.queues.rabbit;
 
 import com.github.cafapi.common.api.Codec;
 import com.github.cafapi.common.api.CodecException;
-import com.github.cafapi.common.api.ConfigurationSource;
 import com.github.cafapi.common.codecs.json.JsonCodec;
-import com.github.cafapi.common.util.naming.ServicePath;
 import com.github.workerframework.api.DataStoreException;
 import com.github.workerframework.api.InvalidTaskException;
 import com.github.workerframework.api.ManagedDataStore;
-import com.github.workerframework.api.QueueException;
 import com.github.workerframework.api.TaskCallback;
 import com.github.workerframework.api.TaskInformation;
 import com.github.workerframework.api.TaskMessage;
@@ -52,7 +49,6 @@ import org.mockito.ArgumentCaptor;
 import org.mockito.Mockito;
 import org.mockito.stubbing.Answer;
 
-import javax.naming.InvalidNameException;
 import java.io.File;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
