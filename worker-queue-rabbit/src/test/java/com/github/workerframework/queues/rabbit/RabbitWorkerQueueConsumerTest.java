@@ -173,7 +173,7 @@ public class RabbitWorkerQueueConsumerTest
         final Map<String, Object> taskHeaders = headersCaptor.getValue();
         
         Assert.assertTrue(taskHeaders.containsKey(RABBIT_HEADER_CAF_DEHYDRATION_ID), 
-            "Headers should have included 'x-dehydration-id'");
+            "Headers should have included " + RABBIT_HEADER_CAF_DEHYDRATION_ID);
         Assert.assertEquals(taskMessage.getTaskData(), dehydratedTaskData, 
             "Task data did not match");
         Assert.assertTrue(taskInformation instanceof RabbitTaskInformation, 
