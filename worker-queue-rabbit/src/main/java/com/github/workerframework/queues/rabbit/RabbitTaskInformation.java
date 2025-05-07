@@ -32,16 +32,22 @@ public class RabbitTaskInformation implements TaskInformation {
     private static final Logger LOG = LoggerFactory.getLogger(RabbitTaskInformation.class);
     private final boolean isPoison;
     private final Optional<String> dehydratedTaskMessageStorageRef;
+    private final Optional<String> taskMessagePartialRef;
 
     public RabbitTaskInformation(final String inboundMessageId) {
         this(inboundMessageId, false);
     }
     
     public RabbitTaskInformation(final String inboundMessageId, final boolean isPoison) {
-        this(inboundMessageId, isPoison, Optional.empty());
+        this(inboundMessageId, isPoison, Optional.empty(), Optional.empty());
     }
 
-    public RabbitTaskInformation(final String inboundMessageId, final boolean isPoison, final Optional<String> dehydratedTaskMessageStorageRef) {
+    public RabbitTaskInformation(
+        final String inboundMessageId, 
+        final boolean isPoison, 
+        final Optional<String> dehydratedTaskMessageStorageRef,
+        final Optional<String> taskMessagePartialRef
+    ) {
         this(
             inboundMessageId, 
             new AtomicInteger(0), 
@@ -50,7 +56,8 @@ public class RabbitTaskInformation implements TaskInformation {
             new AtomicBoolean(false), 
             new AtomicBoolean(false), 
             isPoison,
-            dehydratedTaskMessageStorageRef
+            dehydratedTaskMessageStorageRef,
+            taskMessagePartialRef
         );
     }
 
@@ -62,7 +69,8 @@ public class RabbitTaskInformation implements TaskInformation {
         final AtomicBoolean negativeAckEventSent,
         final AtomicBoolean ackEventSent,
         final boolean isPoison, 
-        final Optional<String> dehydratedTaskMessageStorageRef
+        final Optional<String> dehydratedTaskMessageStorageRef,
+        final Optional<String> taskMessagePartialRef
         ) {
         this.inboundMessageId = inboundMessageId;
         this.responseCount = responseCount;
@@ -72,6 +80,7 @@ public class RabbitTaskInformation implements TaskInformation {
         this.ackEventSent = ackEventSent;
         this.isPoison = isPoison;
         this.dehydratedTaskMessageStorageRef = dehydratedTaskMessageStorageRef;
+        this.taskMessagePartialRef = taskMessagePartialRef;
     }
 
     @Override
@@ -173,5 +182,9 @@ public class RabbitTaskInformation implements TaskInformation {
 
     public Optional<String> getDehydratedTaskMessageStorageRef() {
         return dehydratedTaskMessageStorageRef;
+    }
+
+    public Optional<String> getTaskMessagePartialRef() {
+        return taskMessagePartialRef;
     }
 }

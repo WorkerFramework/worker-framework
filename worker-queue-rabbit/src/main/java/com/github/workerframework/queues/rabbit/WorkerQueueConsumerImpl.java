@@ -97,7 +97,7 @@ public class WorkerQueueConsumerImpl implements QueueConsumer
         
         final Optional<String> taskMessageStorageRef = Optional.ofNullable(
             delivery.getHeaders().get(RABBIT_HEADER_CAF_DEHYDRATION_ID)
-        ).map(Object::toString);        
+        ).map(Object::toString);
 
         metrics.incrementReceived();
         final boolean isPoison;
@@ -120,21 +120,38 @@ public class WorkerQueueConsumerImpl implements QueueConsumer
         }
 
         final var inboundMessageId = delivery.getEnvelope().getDeliveryTag();
-        final RabbitTaskInformation taskInformation = new RabbitTaskInformation(
-            String.valueOf(inboundMessageId),
-            isPoison,
-            taskMessageStorageRef
-        );
-        try {            
-            final Optional<TaskMessage> taskMessage = deserializeTaskMessage(inboundMessageId, delivery.getMessageData(), taskMessageStorageRef);          
+        try {
+            final Optional<TaskMessage> taskMessage = deserializeTaskMessage(inboundMessageId, delivery.getMessageData(), taskMessageStorageRef);
+            final var taskMessagePartialRef = String.format("%s/%s", delivery.getEnvelope().getRoutingKey(), taskMessage.get().getTracking().getJobTaskId());
+            final RabbitTaskInformation taskInformation = new RabbitTaskInformation(
+                String.valueOf(inboundMessageId),
+                isPoison,
+                taskMessageStorageRef,
+                Optional.of(taskMessagePartialRef)
+            );
+                      
             LOG.debug("Registering new message {}", inboundMessageId);
             callback.registerNewTask(taskInformation, taskMessage.get(), delivery.getHeaders());
         } catch (InvalidTaskException e) {
+            final RabbitTaskInformation taskInformation = new RabbitTaskInformation(
+                String.valueOf(inboundMessageId),
+                isPoison,
+                Optional.empty(),
+                Optional.empty()
+            );
             LOG.error("Cannot register new message, rejecting {}", taskInformation.getInboundMessageId(), e);
             taskInformation.incrementResponseCount(true);
-            publisherEventQueue.add(new WorkerPublishQueueEvent(delivery.getMessageData(), retryRoutingKey, taskInformation,
-                    Collections.singletonMap(RabbitHeaders.RABBIT_HEADER_CAF_WORKER_REJECTED, REJECTED_REASON_TASKMESSAGE)));
+            final var publishHeaders = new HashMap<String, Object>();
+            publishHeaders.put(RabbitHeaders.RABBIT_HEADER_CAF_WORKER_REJECTED, REJECTED_REASON_TASKMESSAGE);
+            publishHeaders.put(RABBIT_HEADER_CAF_DEHYDRATION_ID, taskMessageStorageRef);
+            publisherEventQueue.add(new WorkerPublishQueueEvent(delivery.getMessageData(), retryRoutingKey, taskInformation, publishHeaders));
         } catch (TaskRejectedException e) {
+            final RabbitTaskInformation taskInformation = new RabbitTaskInformation(
+                String.valueOf(inboundMessageId),
+                isPoison,
+                Optional.empty(),
+                Optional.empty()
+            );
             LOG.warn("Message {} rejected as a task at this time, returning to queue", taskInformation.getInboundMessageId(), e);
             taskInformation.incrementResponseCount(true);
             publisherEventQueue.add(new WorkerPublishQueueEvent(delivery.getMessageData(), delivery.getEnvelope().getRoutingKey(),
@@ -145,7 +162,8 @@ public class WorkerQueueConsumerImpl implements QueueConsumer
     private Optional<TaskMessage> deserializeTaskMessage(
         final long inboundMessageId,
         final byte[] taskMessage, 
-        final Optional<String> taskMessageStorageRef) throws InvalidTaskException {
+        final Optional<String> taskMessageStorageRef
+    ) throws InvalidTaskException {
         try {
             if (taskMessageStorageRef.isPresent()) {
                 final ByteArrayOutputStream outputStream = new ByteArrayOutputStream();

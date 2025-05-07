@@ -31,6 +31,7 @@ import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.concurrent.BlockingQueue;
 
 import static com.github.workerframework.util.rabbitmq.RabbitHeaders.RABBIT_HEADER_CAF_DEHYDRATION_ID;
@@ -88,8 +89,16 @@ public class WorkerPublisherImpl implements WorkerPublisher
             LOG.debug("Publishing message to {} with ack id {}", routingKey, taskInformation.getInboundMessageId());
             final var publishHeaders = new HashMap<>(headers);
             // Remove any previous dehydration id
-            publishHeaders.remove(RABBIT_HEADER_CAF_DEHYDRATION_ID);
-            final var outboundByteArray = getOutboundByteArray(data, routingKey, publishHeaders);
+            final Optional<String> inboundTaskMessageStorageRef = Optional.ofNullable(
+                publishHeaders.get(RABBIT_HEADER_CAF_DEHYDRATION_ID)
+            ).map(Object::toString);
+
+            if (inboundTaskMessageStorageRef.isPresent() && taskInformation.getDehydratedTaskMessageStorageRef().isPresent()) {
+                // We have sucessfully rehydrated this message and the dehydrated message id is no longer needed.
+                // The stored message will be deleted in the confirm listener
+                publishHeaders.remove(RABBIT_HEADER_CAF_DEHYDRATION_ID);
+            }
+            final var outboundByteArray = getOutboundByteArray(data, taskInformation.getTaskMessagePartialRef(), publishHeaders);
             AMQP.BasicProperties.Builder builder = new AMQP.BasicProperties().builder();
             builder.headers(publishHeaders);
             builder.contentType("text/plain");
@@ -111,18 +120,15 @@ public class WorkerPublisherImpl implements WorkerPublisher
 
     private byte[] getOutboundByteArray(
         final byte[] taskMessage,
-        final String routingKey,
+        final Optional<String> taskMessagePartialRef,
         final Map<String, Object> headers
     ) throws QueueException {
         try {
-            if (shouldStoreTaskMessage(taskMessage.length)) {
-                final TaskMessage outboundTaskMessage = codec.deserialise(taskMessage, TaskMessage.class);
-                final var taskMessagePartialRef = String.format("%s/%s", routingKey, outboundTaskMessage.getTracking().getJobTaskId());
-                final var taskMessageStorageRef = dataStore.store(taskMessage, taskMessagePartialRef);
-
-                outboundTaskMessage.setTaskData(new byte[0]);
+            if (shouldStoreTaskMessage(taskMessage.length)) {                
+                final var taskMessageStorageRef = dataStore.store(taskMessage, taskMessagePartialRef.get());
                 headers.put(RABBIT_HEADER_CAF_DEHYDRATION_ID, taskMessageStorageRef);
-                return codec.serialise(outboundTaskMessage);
+                //  if the header is set, the consumer will ignore the incoming byte[] and use the dehydrated message.
+                return new byte[0];
             }
         } catch (final Exception e) {
             throw new QueueException("Error dehydrating task message", e);
