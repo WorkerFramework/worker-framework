@@ -17,7 +17,6 @@ package com.github.workerframework.core;
 
 import com.github.cafapi.common.api.Codec;
 import com.github.cafapi.common.api.CodecException;
-import com.github.cafapi.common.api.DecodeMethod;
 import com.github.cafapi.common.util.naming.ServicePath;
 import com.github.workerframework.api.InvalidJobTaskIdException;
 import com.github.workerframework.api.InvalidTaskException;
