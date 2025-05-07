@@ -34,7 +34,6 @@ class WorkerStats
     private final AtomicLong tasksPaused = new AtomicLong(0);
     private final AtomicLong tasksDiscarded = new AtomicLong(0);
     private final AtomicLong lastTaskFinished = new AtomicLong(System.currentTimeMillis());
-    private final Histogram inputSizes = new Histogram(new ExponentiallyDecayingReservoir());
     private final Histogram outputSizes = new Histogram(new ExponentiallyDecayingReservoir());
 
     /**
@@ -157,11 +156,6 @@ class WorkerStats
     public void updatedLastTaskFinishedTime()
     {
         lastTaskFinished.set(System.currentTimeMillis());
-    }
-
-    public Histogram getInputSizes()
-    {
-        return inputSizes;
     }
 
     public Histogram getOutputSizes()
