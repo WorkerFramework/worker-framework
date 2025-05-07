@@ -51,8 +51,8 @@ The default RabbitWorkerQueue configuration file checks for values as below;
 | retryQueue  |  `CAF_WORKER_RETRY_QUEUE` |   |
 | rejectedQueue  |   | worker-rejected  |
 | retryLimit  |  `CAF_WORKER_RETRY_LIMIT` | 10  |
-| isEnabled        | `CAF_WORKER_MESSAGE_DEHYDRATION_ENABLED`          | false     |
-| threshold        | `CAF_WORKER_MESSAGE_DEHYDRATION_THRESHOLD_BYTES`  | 16777216  |
+| isDehydrationEnabled        | `CAF_WORKER_MESSAGE_DEHYDRATION_ENABLED`          | false     |
+| dehydrationThreshold        | `CAF_WORKER_MESSAGE_DEHYDRATION_THRESHOLD_BYTES`  | 16777216  |
 
 ## HealthConfiguration
 
