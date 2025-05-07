@@ -136,7 +136,7 @@ public class RabbitWorkerQueueConsumerTest
             "to",
             trackingInfo);
         final var dehydratedTaskMessageData = codec.serialise(dehydratedTaskMessage);
-        final var dehydratedMessageId = dataStore.store(dehydratedTaskMessageData, "testQueue/task1");
+        final var taskMessageStorageRef = dataStore.store(dehydratedTaskMessageData, "testQueue/task1");
 
         final BlockingQueue<Event<QueueConsumer>> consumerEvents = new LinkedBlockingQueue<>();
         final BlockingQueue<Event<WorkerPublisher>> publisherEvents = new LinkedBlockingQueue<>();
@@ -157,7 +157,7 @@ public class RabbitWorkerQueueConsumerTest
         // Now publish a message linked to the previously dehydrated message.
         AMQP.BasicProperties prop = Mockito.mock(AMQP.BasicProperties.class);
         final Map<String, Object> headers = new HashMap<>();
-        headers.put(RABBIT_HEADER_CAF_DEHYDRATION_ID, dehydratedMessageId);
+        headers.put(RABBIT_HEADER_CAF_DEHYDRATION_ID, taskMessageStorageRef);
         Mockito.when(prop.getHeaders()).thenReturn(headers);
         consumer.handleDelivery("consumer", newEnv, prop, data);
         Assert.assertTrue(latch.await(1000, TimeUnit.MILLISECONDS));
@@ -179,7 +179,7 @@ public class RabbitWorkerQueueConsumerTest
         Assert.assertTrue(taskInformation instanceof RabbitTaskInformation, 
             "RabbitTaskInformation expected");
         final var rabbitTaskInfo = (RabbitTaskInformation) taskInformation;
-        Assert.assertEquals(rabbitTaskInfo.getDehydratedMessageId().get(), dehydratedMessageId, 
+        Assert.assertEquals(rabbitTaskInfo.getDehydratedTaskMessageStorageRef().get(), taskMessageStorageRef, 
             "RabbitTaskInformation should have contained the dehydrated message id");
         Assert.assertTrue(latch.await(1000, TimeUnit.MILLISECONDS));
         consumer.shutdown();

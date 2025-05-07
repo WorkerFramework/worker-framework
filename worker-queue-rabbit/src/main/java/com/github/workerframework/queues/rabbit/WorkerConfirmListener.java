@@ -86,9 +86,9 @@ class WorkerConfirmListener implements ConfirmListener
             t.incrementAcknowledgementCount();
             if(t.areAllResponsesAcknowledged() && !t.isAckEventSent()){
                 t.markAckEventAsSent();
-                final var dehydratedMessageIdOpt = t.getDehydratedMessageId();
-                if (dehydratedMessageIdOpt.isPresent()) {
-                    deleteDehydratedMessage(dehydratedMessageIdOpt.get());
+                final var taskMessageStorageRef = t.getDehydratedTaskMessageStorageRef();
+                if (taskMessageStorageRef.isPresent()) {
+                    deleteDehydratedMessage(taskMessageStorageRef.get());
                 }
                 return new ConsumerAckEvent(Long.valueOf(t.getInboundMessageId()));
             }
@@ -132,12 +132,12 @@ class WorkerConfirmListener implements ConfirmListener
         }
     }
 
-    private void deleteDehydratedMessage(final String dehydratedMessageId)
+    private void deleteDehydratedMessage(final String taskMessageStorageRef)
     {
         try {
-            dataStore.delete(dehydratedMessageId);
+            dataStore.delete(taskMessageStorageRef);
         } catch (final DataStoreException e) {
-            LOG.error("Failed to delete a dehydrated message:{} from the datastore", dehydratedMessageId, e);
+            LOG.error("Failed to delete a dehydrated message:{} from the datastore", taskMessageStorageRef, e);
         }
     }
 }

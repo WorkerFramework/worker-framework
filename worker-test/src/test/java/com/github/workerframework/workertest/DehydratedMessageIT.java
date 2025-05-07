@@ -58,22 +58,22 @@ public class DehydratedMessageIT extends TestWorkerTestBase{
             publish(channel, taskNumber1, new HashMap<>());
             consume(channel, setupMessageConsumer);
             channel.close();
-            final String setupDehydratedMessageId = getDehydratedMessageId(setupMessageConsumer);
+            final String taskMessageStorageRef = getTaskMessageStorageRef(setupMessageConsumer);
             final String webdav_url = System.getProperty("webdav_url");
-            final String webdavPath = String.format("%s/%s", webdav_url, setupDehydratedMessageId);
+            final String webdavPath = String.format("%s/%s", webdav_url, taskMessageStorageRef);
 
             Assert.assertTrue(dehydratedMessageExists(webdavPath), "Dehydrated message not found at " + webdavPath);
 
             //  Now we can send a message which expects to find the publishers deyhdrated message.
             final Channel channel2 = prepareChannel(connection);
             final Map<String, Object> headers = new HashMap<>();
-            headers.put(RABBIT_HEADER_CAF_DEHYDRATION_ID, setupDehydratedMessageId);
+            headers.put(RABBIT_HEADER_CAF_DEHYDRATION_ID, taskMessageStorageRef);
             final int taskNumber2 = 2;
             publish(channel2, taskNumber2, headers);
             final TestWorkerQueueConsumer testMessageConsumer = new TestWorkerQueueConsumer();
             consume(channel2, testMessageConsumer);
-            final String testDehydratedMessageId = getDehydratedMessageId(testMessageConsumer);
-            Assert.assertNotEquals(testDehydratedMessageId, setupDehydratedMessageId, "Message ids should have been different");
+            final String testTaskMessageStorageRef = getTaskMessageStorageRef(testMessageConsumer);
+            Assert.assertNotEquals(testTaskMessageStorageRef, taskMessageStorageRef, "Storage refs should have been different");
 
             final TaskMessage taskMessage = codec.deserialise(testMessageConsumer.getLastDeliveredBody(), TaskMessage.class);
             Assert.assertEquals(taskMessage.getTaskClassifier(), "TestWorkerResult", "Task classifier is wrong");
@@ -105,16 +105,16 @@ public class DehydratedMessageIT extends TestWorkerTestBase{
         }
     }
 
-    public String getDehydratedMessageId(
+    public String getTaskMessageStorageRef(
         final TestWorkerQueueConsumer messageConsumer
     )
     {
         final Map<String, Object> outgoingHeaders = messageConsumer.getHeaders();
-        final Optional<String> outgoingDehydratedMessageId = outgoingHeaders.containsKey(RABBIT_HEADER_CAF_DEHYDRATION_ID) ?
+        final Optional<String> outgoingTaskMessageStorageRef = outgoingHeaders.containsKey(RABBIT_HEADER_CAF_DEHYDRATION_ID) ?
             Optional.of(outgoingHeaders.get(RABBIT_HEADER_CAF_DEHYDRATION_ID).toString()) :
             Optional.empty();
-        Assert.assertTrue(outgoingDehydratedMessageId.isPresent(), "The dehydration header was missing");
-        return outgoingDehydratedMessageId.get();
+        Assert.assertTrue(outgoingTaskMessageStorageRef.isPresent(), "The dehydration header was missing");
+        return outgoingTaskMessageStorageRef.get();
     }
     
     private void publish(
