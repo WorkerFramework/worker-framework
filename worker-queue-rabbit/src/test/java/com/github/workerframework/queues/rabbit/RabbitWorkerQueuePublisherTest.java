@@ -46,6 +46,7 @@ import java.nio.charset.StandardCharsets;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Optional;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.LinkedBlockingQueue;
@@ -109,8 +110,15 @@ public class RabbitWorkerQueuePublisherTest
 
     @Test
     public void testPublisherDehydratesTheOutgoingMessage()
-        throws InterruptedException, IOException, CodecException, DataStoreException 
+        throws InterruptedException, IOException, CodecException
     {
+        final var trackingInfo = new TrackingInfo("task1", new Date(), 1, "http://hello.com", "pipe", "to");
+        final var partialRef = testQueue + "/" + trackingInfo.getJobTaskId();
+        
+        final RabbitTaskInformation taskInformation = Mockito.mock(RabbitTaskInformation.class);
+        when(taskInformation.getInboundMessageId()).thenReturn("task1");
+        when(taskInformation.getTaskMessagePartialRef()).thenReturn(Optional.of(partialRef));
+        
         final RabbitWorkerQueueConfiguration dehydrationEnabledCfg = Mockito.mock(RabbitWorkerQueueConfiguration.class);
         when(dehydrationEnabledCfg.getIsDehydrationEnabled()).thenReturn(true);
         when(dehydrationEnabledCfg.getDehydrationThreshold()).thenReturn(1);
@@ -130,7 +138,6 @@ public class RabbitWorkerQueuePublisherTest
         final Thread t = new Thread(publisher);
         t.start();
 
-        final var trackingInfo = new TrackingInfo("task1", new Date(), 1, "http://hello.com", "pipe", "to");
         final var outboundTaskData = "This is the actual outbound task message that will get stored";
         final var outboundTaskMessage = new TaskMessage(
             "task1",
@@ -148,7 +155,7 @@ public class RabbitWorkerQueuePublisherTest
         publisher.shutdown();
 
         try {
-            final var rehydratedByteArray = dataStore.retrieveStoredByteArray(testQueue + "/" + trackingInfo.getJobTaskId());
+            final var rehydratedByteArray = dataStore.retrieveStoredByteArray(partialRef);
             Assert.assertEquals(outboundByteArray, rehydratedByteArray, "The dehydrated message did not match");
         } catch (final DataStoreException ex){
             fail("Unable to retrieve the stored message", ex);

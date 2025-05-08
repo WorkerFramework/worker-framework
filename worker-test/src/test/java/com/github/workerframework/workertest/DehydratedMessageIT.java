@@ -45,44 +45,36 @@ public class DehydratedMessageIT extends TestWorkerTestBase{
     private static final String WORKER_IN = "worker-in";
     private static final String TESTWORKER_OUT = "testworker-out";
     private static final Codec codec = new JsonCodec();
+    private static final String webdav_url = System.getProperty("webdav_url");
 
     @Test
-    public void checkDehydratedMessageIsRecovered() throws CodecException, IOException, TimeoutException 
+    public void checkDehydratedMessageIsConsumedAndDeletedOnAck() throws CodecException, IOException, TimeoutException 
     {
+        final String setupDehydratedMessageStorageRef = setupDehydratedMessage(1);        
         try(final Connection connection = connectionFactory.newConnection()) {
             final Channel channel = prepareChannel(connection);
-            
-            // This publish will result in a dehydratedMessage created by the publisher
-            final int taskNumber1 = 1;
-            final TestWorkerQueueConsumer setupMessageConsumer = new TestWorkerQueueConsumer();
-            publish(channel, taskNumber1, new HashMap<>());
-            consume(channel, setupMessageConsumer);
-            channel.close();
-            final String taskMessageStorageRef = getTaskMessageStorageRef(setupMessageConsumer);
-            final String webdav_url = System.getProperty("webdav_url");
-            final String webdavPath = String.format("%s/%s", webdav_url, taskMessageStorageRef);
-
-            Assert.assertTrue(dehydratedMessageExists(webdavPath), "Dehydrated message not found at " + webdavPath);
-
-            //  Now we can send a message which expects to find the publishers deyhdrated message.
-            final Channel channel2 = prepareChannel(connection);
+            //  Now we can send a message which expects to find the taskMessageStorageRef.
             final Map<String, Object> headers = new HashMap<>();
-            headers.put(RABBIT_HEADER_CAF_DEHYDRATION_ID, taskMessageStorageRef);
-            final int taskNumber2 = 2;
-            publish(channel2, taskNumber2, headers);
-            final TestWorkerQueueConsumer testMessageConsumer = new TestWorkerQueueConsumer();
-            consume(channel2, testMessageConsumer);
-            final String testTaskMessageStorageRef = getTaskMessageStorageRef(testMessageConsumer);
-            Assert.assertNotEquals(testTaskMessageStorageRef, taskMessageStorageRef, "Storage refs should have been different");
+            headers.put(RABBIT_HEADER_CAF_DEHYDRATION_ID, setupDehydratedMessageStorageRef);
+            // this publish will result in a dehydratedMessage being recovered by the consumer.
+            // the body will be ignored as the dehydrated message will be used.
+            publish(channel, new byte[0], headers);
+            
+            final TestWorkerQueueConsumer consumer = new TestWorkerQueueConsumer();
+            consume(channel, consumer);
+            final String consumedTaskMessageStorageRef = getTaskMessageStorageRef(consumer);
+            Assert.assertNotEquals(consumedTaskMessageStorageRef, setupDehydratedMessageStorageRef, "Storage refs should have been different");
 
-            final TaskMessage taskMessage = codec.deserialise(testMessageConsumer.getLastDeliveredBody(), TaskMessage.class);
-            Assert.assertEquals(taskMessage.getTaskClassifier(), "TestWorkerResult", "Task classifier is wrong");
-
-            final var publishedHeaders = testMessageConsumer.getHeaders();
+            final var publishedHeaders = consumer.getHeaders();
             Assert.assertTrue(publishedHeaders.containsKey(RABBIT_HEADER_CAF_DEHYDRATION_ID), "Should have the dehydration header:" + publishedHeaders);
             
             // The previously dehydrated message should now have been deleted by the confirm listener
-            Assert.assertFalse(dehydratedMessageExists(webdavPath), "Dehydrated message should not have been found");
+            final String deletedPath = String.format("%s/%s", webdav_url, setupDehydratedMessageStorageRef);
+            Assert.assertFalse(dehydratedMessageExists(deletedPath), "setup message should not have been found");
+
+            // The previously published message should be present in the datastore
+            final String dehydratedPath = String.format("%s/%s", webdav_url, consumedTaskMessageStorageRef);
+            Assert.assertTrue(dehydratedMessageExists(dehydratedPath), "Dehydrated message should have been found");
         }
     }
     
@@ -104,10 +96,54 @@ public class DehydratedMessageIT extends TestWorkerTestBase{
             throw new RuntimeException(e);
         }
     }
+    
+    private void publish(
+        final Channel channel,
+        final byte[] taskMessage, 
+        final Map<String, Object> headers
+    ) throws CodecException, IOException {
+        final AMQP.BasicProperties properties = new AMQP.BasicProperties.Builder()
+            .contentType("application/json")
+            .deliveryMode(2)
+            .headers(headers)
+            .build();
 
-    public String getTaskMessageStorageRef(
-        final TestWorkerQueueConsumer messageConsumer
-    )
+        channel.basicPublish("", WORKER_IN, properties, taskMessage); 
+    }
+
+    /**
+     * This method will send a message to the worker-in queue and return the storage ref of the dehydrated message stored 
+     * in the datastore on publish to the worker-out queue.
+     * @param taskNumber
+     * @return
+     * @throws IOException
+     * @throws TimeoutException
+     * @throws CodecException
+     */
+    private String setupDehydratedMessage(final int taskNumber) throws IOException, TimeoutException, CodecException {
+        try(final Connection connection = connectionFactory.newConnection()) {
+            final Channel channel = prepareChannel(connection);
+            publish(channel, buildTaskMessageByteArray(taskNumber), new HashMap<>());
+            
+            final TestWorkerQueueConsumer consumer = new TestWorkerQueueConsumer();
+            consume(channel, consumer);
+            
+            channel.close();
+            
+            final String taskMessageStorageRef = getTaskMessageStorageRef(consumer);
+            final String webdavPath = String.format("%s/%s", webdav_url, taskMessageStorageRef);
+            Assert.assertTrue(dehydratedMessageExists(webdavPath), "Dehydrated message not found at " + webdavPath);
+            return taskMessageStorageRef;
+        }
+    }
+
+    /**
+     * This method will return the storage ref of the dehydrated message stored in the datastore on publish to the 
+     * worker-out queue.
+     * @param messageConsumer
+     * @return
+     */
+    private String getTaskMessageStorageRef(final TestWorkerQueueConsumer messageConsumer)
     {
         final Map<String, Object> outgoingHeaders = messageConsumer.getHeaders();
         final Optional<String> outgoingTaskMessageStorageRef = outgoingHeaders.containsKey(RABBIT_HEADER_CAF_DEHYDRATION_ID) ?
@@ -117,11 +153,7 @@ public class DehydratedMessageIT extends TestWorkerTestBase{
         return outgoingTaskMessageStorageRef.get();
     }
     
-    private void publish(
-        final Channel channel, 
-        final int taskNumber, 
-        final Map<String, Object> headers
-    ) throws CodecException, IOException {
+    private static byte[] buildTaskMessageByteArray(final int taskNumber) throws CodecException {
         final var trackingInfo = new TrackingInfo("taskName" + taskNumber, new Date(), 1, "http://hello.com", "pipe", "to");
         final TestWorkerTask documentWorkerTask = new TestWorkerTask();
         final TaskMessage requestTaskMessage = new TaskMessage();
@@ -132,17 +164,16 @@ public class DehydratedMessageIT extends TestWorkerTestBase{
         requestTaskMessage.setTaskData(codec.serialise(documentWorkerTask));
         requestTaskMessage.setTo(WORKER_IN);
         requestTaskMessage.setTracking(trackingInfo);
-
-        final AMQP.BasicProperties properties = new AMQP.BasicProperties.Builder()
-            .contentType("application/json")
-            .deliveryMode(2)
-            .headers(headers)
-            .build();
-
-        channel.basicPublish("", WORKER_IN, properties, codec.serialise(requestTaskMessage)); 
+        return codec.serialise(requestTaskMessage);
     }
 
-    public static boolean dehydratedMessageExists(final String path) throws IOException 
+    /**
+     * 
+     * @param path
+     * @return
+     * @throws IOException
+     */
+    private static boolean dehydratedMessageExists(final String path) throws IOException 
     {
         
         URL url = new URL(path);
