@@ -408,7 +408,7 @@
                                     <port>${worker.testdebugport3}:5005</port>
                                 </ports>
                                 <env>
-                                    <CAF_WORKER_DATASTORE_PATH>/srv/common/webdav</CAF_WORKER_JAVA_OPTS>
+                                    <CAF_WORKER_DATASTORE_PATH>/srv/common/webdav</CAF_WORKER_DATASTORE_PATH>
                                     <CAF_WORKER_JAVA_OPTS>
                                         -agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=*:5005
                                     </CAF_WORKER_JAVA_OPTS>
