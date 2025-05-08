@@ -63,7 +63,7 @@ public class MinimizedMessageIT extends TestWorkerTestBase {
             final var publishedHeaders = consumer.getHeaders();
             Assert.assertTrue(publishedHeaders.containsKey(RABBIT_HEADER_CAF_MINIMIZATION_ID), "Should have the minimization header:" + publishedHeaders);
 
-            // The previously dehydrated message should now have been deleted by the confirm listener
+            // The previously minimized message should now have been deleted by the confirm listener
             final var storedSetupByteArrayOpt = readFileFromWebDAV(setupMinimizedMessageStorageRef);
             Assert.assertFalse(storedSetupByteArrayOpt.isEmpty(), "setup message should not have been found");
 

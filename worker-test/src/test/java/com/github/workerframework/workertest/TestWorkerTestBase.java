@@ -59,7 +59,7 @@ public class TestWorkerTestBase {
     }
 
     /**
-     * This method will return the storage ref of the dehydrated message stored in the datastore on publish to the 
+     * This method will return the storage ref of the minimized message stored in the datastore on publish to the 
      * worker-out queue.
      * @param messageConsumer
      * @return
@@ -69,7 +69,7 @@ public class TestWorkerTestBase {
         final Optional<String> outgoingTaskMessageStorageRef = outgoingHeaders.containsKey(RABBIT_HEADER_CAF_MINIMIZATION_ID) ?
             Optional.of(outgoingHeaders.get(RABBIT_HEADER_CAF_MINIMIZATION_ID).toString()) :
             Optional.empty();
-        Assert.assertTrue(outgoingTaskMessageStorageRef.isPresent(), "The dehydration header was missing");
+        Assert.assertTrue(outgoingTaskMessageStorageRef.isPresent(), "The minimization header was missing");
         return outgoingTaskMessageStorageRef.get();
     }
     
