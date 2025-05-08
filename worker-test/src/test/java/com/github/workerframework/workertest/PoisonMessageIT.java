@@ -55,7 +55,7 @@ public class PoisonMessageIT  extends TestWorkerTestBase{
 
             final TaskMessage requestTaskMessage = new TaskMessage();
 
-            final var trackingInfo = new TrackingInfo("taskName" + TASK_NUMBER, new Date(), 1, "http://hello.com", "pipe", WORKER_IN);
+            final var trackingInfo = new TrackingInfo("taskName" + TASK_NUMBER, new Date(), 1, null, "pipe", WORKER_IN);
             final TestWorkerTask documentWorkerTask = new TestWorkerTask();
             documentWorkerTask.setPoison(true);
             requestTaskMessage.setTaskId(Integer.toString(TASK_NUMBER));
