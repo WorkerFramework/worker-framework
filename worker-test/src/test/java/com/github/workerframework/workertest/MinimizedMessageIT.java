@@ -30,12 +30,9 @@ import org.testng.Assert;
 import org.testng.annotations.Test;
 
 import java.io.IOException;
-import java.net.HttpURLConnection;
-import java.net.URL;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.Optional;
 import java.util.concurrent.TimeoutException;
 
 import static com.github.workerframework.util.rabbitmq.RabbitHeaders.RABBIT_HEADER_CAF_MINIMIZATION_ID;
@@ -44,12 +41,10 @@ public class MinimizedMessageIT extends TestWorkerTestBase {
     private static final String TEST_WORKER_NAME = "testWorkerIdentifier";
     private static final String WORKER_IN = "worker-in";
     private static final String TESTWORKER_OUT = "testworker-out";
-    private static final Codec codec = new JsonCodec();
-    private static final String webdav_url = System.getProperty("webdav_url");
+    private static final Codec codec = new JsonCodec();    
 
     @Test
-    public void checkMinimizedMessageIsConsumedAndDeletedOnAck() throws CodecException, IOException, TimeoutException 
-    {
+    public void checkMinimizedMessageIsConsumedAndDeletedOnAck() throws Exception {
         final String setupMinimizedMessageStorageRef = setupMinimizedMessage(1);        
         try(final Connection connection = connectionFactory.newConnection()) {
             final Channel channel = prepareChannel(connection);
@@ -68,20 +63,20 @@ public class MinimizedMessageIT extends TestWorkerTestBase {
             final var publishedHeaders = consumer.getHeaders();
             Assert.assertTrue(publishedHeaders.containsKey(RABBIT_HEADER_CAF_MINIMIZATION_ID), "Should have the minimization header:" + publishedHeaders);
             
-            // The previously minimized message should now have been deleted by the confirm listener
-            final String deletedPath = String.format("%s/%s", webdav_url, setupMinimizedMessageStorageRef);
-            Assert.assertFalse(minimizedMessageExists(deletedPath), "setup message should not have been found");
+            // The previously dehydrated message should now have been deleted by the confirm listener
+            final var storedSetupByteArrayOpt = readFileFromWebDAV(setupMinimizedMessageStorageRef);
+            Assert.assertFalse(storedSetupByteArrayOpt.isEmpty(), "setup message should not have been found");
 
             // The previously published message should be present in the datastore
-            final String minimizedPath = String.format("%s/%s", webdav_url, consumedTaskMessageStorageRef);
-            Assert.assertTrue(minimizedMessageExists(minimizedPath), "Minimized message should have been found");
+            final var consumedByteArrayOpt = readFileFromWebDAV(consumedTaskMessageStorageRef);
+            Assert.assertTrue(consumedByteArrayOpt.isPresent(), "Minimized message should have been found");
         }
     }
     
     public void consume(
         final Channel channel,
         final TestWorkerQueueConsumer messageConsumer
-    ) throws IOException, TimeoutException {
+    ) throws IOException {
         channel.basicConsume(TESTWORKER_OUT, false, messageConsumer);
         try {
             for (int i = 0; i < 1000; i++) {
@@ -101,7 +96,7 @@ public class MinimizedMessageIT extends TestWorkerTestBase {
         final Channel channel,
         final byte[] taskMessage, 
         final Map<String, Object> headers
-    ) throws CodecException, IOException {
+    ) throws IOException {
         final AMQP.BasicProperties properties = new AMQP.BasicProperties.Builder()
             .contentType("application/json")
             .deliveryMode(2)
@@ -120,7 +115,7 @@ public class MinimizedMessageIT extends TestWorkerTestBase {
      * @throws TimeoutException
      * @throws CodecException
      */
-    private String setupMinimizedMessage(final int taskNumber) throws IOException, TimeoutException, CodecException {
+    private String setupMinimizedMessage(final int taskNumber) throws Exception {
         try(final Connection connection = connectionFactory.newConnection()) {
             final Channel channel = prepareChannel(connection);
             publish(channel, buildTaskMessageByteArray(taskNumber), new HashMap<>());
@@ -131,28 +126,12 @@ public class MinimizedMessageIT extends TestWorkerTestBase {
             channel.close();
             
             final String taskMessageStorageRef = getTaskMessageStorageRef(consumer);
-            final String webdavPath = String.format("%s/%s", webdav_url, taskMessageStorageRef);
-            Assert.assertTrue(minimizedMessageExists(webdavPath), "Minimized message not found at " + webdavPath);
+            final var storedByteArrayOpt = readFileFromWebDAV(taskMessageStorageRef);
+            Assert.assertTrue(storedByteArrayOpt.isPresent(), "Minimized message not found at " + taskMessageStorageRef);
             return taskMessageStorageRef;
         }
     }
-
-    /**
-     * This method will return the storage ref of the minimized message stored in the datastore on publish to the 
-     * worker-out queue.
-     * @param messageConsumer
-     * @return
-     */
-    private String getTaskMessageStorageRef(final TestWorkerQueueConsumer messageConsumer)
-    {
-        final Map<String, Object> outgoingHeaders = messageConsumer.getHeaders();
-        final Optional<String> outgoingTaskMessageStorageRef = outgoingHeaders.containsKey(RABBIT_HEADER_CAF_MINIMIZATION_ID) ?
-            Optional.of(outgoingHeaders.get(RABBIT_HEADER_CAF_MINIMIZATION_ID).toString()) :
-            Optional.empty();
-        Assert.assertTrue(outgoingTaskMessageStorageRef.isPresent(), "The minimization header was missing");
-        return outgoingTaskMessageStorageRef.get();
-    }
-    
+  
     private static byte[] buildTaskMessageByteArray(final int taskNumber) throws CodecException {
         final var trackingInfo = new TrackingInfo("taskName" + taskNumber, new Date(), 1, "http://hello.com", "pipe", "to");
         final TestWorkerTask documentWorkerTask = new TestWorkerTask();
@@ -166,23 +145,7 @@ public class MinimizedMessageIT extends TestWorkerTestBase {
         requestTaskMessage.setTracking(trackingInfo);
         return codec.serialise(requestTaskMessage);
     }
-
-    /**
-     * 
-     * @param path
-     * @return
-     * @throws IOException
-     */
-    private static boolean minimizedMessageExists(final String path) throws IOException 
-    {
-        
-        URL url = new URL(path);
-        HttpURLConnection connection = (HttpURLConnection) url.openConnection();
-        connection.setRequestMethod("GET");
-
-        return connection.getResponseCode() == HttpURLConnection.HTTP_OK;
-    }
-    
+   
     private Channel prepareChannel(final Connection connection) throws IOException {
         final Channel channel = connection.createChannel();
         final Map<String, Object> args = new HashMap<>();

@@ -134,8 +134,7 @@ public final class RabbitWorkerQueue implements ManagedWorkerQueue
                 consumerQueue,
                 confirmListener,
                 dataStore,
-                config,
-                codec
+                config
             );
             publisher = new EventPoller<>(2, publisherQueue, publisherImpl);
             declareWorkerQueue(incomingChannel, config.getInputQueue());

@@ -15,10 +15,8 @@
  */
 package com.github.workerframework.queues.rabbit;
 
-import com.github.cafapi.common.api.Codec;
 import com.github.workerframework.api.ManagedDataStore;
 import com.github.workerframework.api.QueueException;
-import com.github.workerframework.api.TaskMessage;
 import com.github.workerframework.util.rabbitmq.ConsumerRejectEvent;
 import com.github.workerframework.util.rabbitmq.Event;
 import com.github.workerframework.util.rabbitmq.QueueConsumer;
@@ -48,7 +46,6 @@ public class WorkerPublisherImpl implements WorkerPublisher
     private final WorkerConfirmListener confirmListener;
     private final ManagedDataStore dataStore;
     private final RabbitWorkerQueueConfiguration config;
-    private final Codec codec;
     private static final Logger LOG = LoggerFactory.getLogger(WorkerPublisherImpl.class);
 
     /**
@@ -67,8 +64,7 @@ public class WorkerPublisherImpl implements WorkerPublisher
         BlockingQueue<Event<QueueConsumer>> events,
         WorkerConfirmListener listener,
         ManagedDataStore dataStore,
-        RabbitWorkerQueueConfiguration config,
-        Codec codec
+        RabbitWorkerQueueConfiguration config
     ) throws IOException
     {
         this.channel = Objects.requireNonNull(ch);
@@ -77,7 +73,6 @@ public class WorkerPublisherImpl implements WorkerPublisher
         this.confirmListener = Objects.requireNonNull(listener);
         this.dataStore = Objects.requireNonNull(dataStore);
         this.config = Objects.requireNonNull(config);
-        this.codec = Objects.requireNonNull(codec);
         channel.confirmSelect();
         channel.addConfirmListener(confirmListener);
     }
@@ -130,9 +125,9 @@ public class WorkerPublisherImpl implements WorkerPublisher
                 //  if the header is set, the consumer will ignore the incoming byte[] and use the minimized message.
                 return new byte[0];
             }
+            return taskMessage;
         } catch (final Exception e) {
             throw new QueueException("Error minimizing task message", e);
         }
-        return taskMessage;
     }
 }

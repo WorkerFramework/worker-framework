@@ -37,7 +37,6 @@ import org.slf4j.LoggerFactory;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
@@ -123,8 +122,8 @@ public class WorkerQueueConsumerImpl implements QueueConsumer
         final var routingKey = delivery.getEnvelope().getRoutingKey();
         final var inboundByteArray = delivery.getMessageData();
         try {
-            final Optional<TaskMessage> taskMessage = deserializeTaskMessage(inboundMessageId, inboundByteArray, taskMessageStorageRefOpt);
-            final var taskMessagePartialRef = String.format("%s/%s", routingKey, taskMessage.get().getTracking().getJobTaskId());
+            final TaskMessage taskMessage = deserializeTaskMessage(inboundMessageId, inboundByteArray, taskMessageStorageRefOpt);
+            final var taskMessagePartialRef = String.format("%s/%s", routingKey, taskMessage.getTracking().getJobTaskId());
             final RabbitTaskInformation taskInformation = new RabbitTaskInformation(
                 String.valueOf(inboundMessageId),
                 isPoison,
@@ -132,7 +131,7 @@ public class WorkerQueueConsumerImpl implements QueueConsumer
                 Optional.of(taskMessagePartialRef)
             );                      
             LOG.debug("Registering new message {}", inboundMessageId);
-            callback.registerNewTask(taskInformation, taskMessage.get(), delivery.getHeaders());
+            callback.registerNewTask(taskInformation, taskMessage, delivery.getHeaders());
         } catch (InvalidTaskException e) {
             final RabbitTaskInformation taskInformation = new RabbitTaskInformation(
                 String.valueOf(inboundMessageId), 
@@ -142,9 +141,13 @@ public class WorkerQueueConsumerImpl implements QueueConsumer
             taskInformation.incrementResponseCount(true);
             final var publishHeaders = new HashMap<String, Object>();
             publishHeaders.put(RabbitHeaders.RABBIT_HEADER_CAF_WORKER_REJECTED, REJECTED_REASON_TASKMESSAGE);
+<<<<<<< HEAD
             if (taskMessageStorageRefOpt.isPresent()) {
                 publishHeaders.put(RABBIT_HEADER_CAF_MINIMIZATION_ID, taskMessageStorageRefOpt.get());
             }
+=======
+            taskMessageStorageRefOpt.ifPresent(s -> publishHeaders.put(RABBIT_HEADER_CAF_MINIMIZATION_ID, s));
+>>>>>>> origin/US1009117
             publisherEventQueue.add(new WorkerPublishQueueEvent(inboundByteArray, retryRoutingKey, taskInformation, publishHeaders));
         } catch (TaskRejectedException e) {
             final RabbitTaskInformation taskInformation = new RabbitTaskInformation(
@@ -166,7 +169,7 @@ public class WorkerQueueConsumerImpl implements QueueConsumer
      * @return
      * @throws InvalidTaskException
      */
-    private Optional<TaskMessage> deserializeTaskMessage(
+    private TaskMessage deserializeTaskMessage(
         final long inboundMessageId,
         final byte[] deliveryMessageData, 
         final Optional<String> taskMessageStorageRefOpt
@@ -181,9 +184,9 @@ public class WorkerQueueConsumerImpl implements QueueConsumer
                         outputStream.write(buffer, 0, length);
                     }
                 }
-                return Optional.of(codec.deserialise(outputStream.toByteArray(), TaskMessage.class, DecodeMethod.LENIENT));
+                return codec.deserialise(outputStream.toByteArray(), TaskMessage.class, DecodeMethod.LENIENT);
             }
-            return Optional.of(codec.deserialise(deliveryMessageData, TaskMessage.class, DecodeMethod.LENIENT));
+           return codec.deserialise(deliveryMessageData, TaskMessage.class, DecodeMethod.LENIENT);
         } catch (final IOException | CodecException | DataStoreException e) {
             throw new InvalidTaskException("Error deserializing inbound message:" + inboundMessageId, e);
         }
@@ -262,9 +265,13 @@ public class WorkerQueueConsumerImpl implements QueueConsumer
                 delivery.getEnvelope().getDeliveryTag(), retryLimit, retries + 1);
         final Map<String, Object> headers = new HashMap<>();
         headers.put(RabbitHeaders.RABBIT_HEADER_CAF_WORKER_RETRY, String.valueOf(retries + 1));
+<<<<<<< HEAD
         if (taskMessageStorageRefOpt.isPresent()) {
             headers.put(RABBIT_HEADER_CAF_MINIMIZATION_ID, taskMessageStorageRefOpt.get());
         }
+=======
+        taskMessageStorageRefOpt.ifPresent(s -> headers.put(RABBIT_HEADER_CAF_MINIMIZATION_ID, s));
+>>>>>>> origin/US1009117
         taskInformation.incrementResponseCount(true);
         publisherEventQueue.add(new WorkerPublishQueueEvent(delivery.getMessageData(), retryRoutingKey, 
                 taskInformation, headers));
