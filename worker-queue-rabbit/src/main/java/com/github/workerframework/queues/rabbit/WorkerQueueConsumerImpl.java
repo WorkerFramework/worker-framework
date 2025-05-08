@@ -270,4 +270,3 @@ public class WorkerQueueConsumerImpl implements QueueConsumer
                 taskInformation, headers));
     }
 }
-

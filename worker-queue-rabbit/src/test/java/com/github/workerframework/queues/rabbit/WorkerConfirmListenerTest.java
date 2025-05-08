@@ -376,4 +376,3 @@ public class WorkerConfirmListenerTest
         conf.handleNack(2, false);
     }
 }
-
