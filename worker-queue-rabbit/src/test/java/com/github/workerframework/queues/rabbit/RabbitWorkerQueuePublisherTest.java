@@ -133,11 +133,7 @@ public class RabbitWorkerQueuePublisherTest
         };
         Mockito.doAnswer(a).when(channel).basicPublish(Mockito.any(), Mockito.eq(testQueue), Mockito.any(), Mockito.eq(data));
         final WorkerConfirmListener listener = new WorkerConfirmListener(consumerEvents, dataStore);
-<<<<<<< HEAD
-        final WorkerPublisher impl = new WorkerPublisherImpl(channel, metrics, consumerEvents, listener, dataStore, minimizationEnabledCfg, codec);
-=======
-        final WorkerPublisher impl = new WorkerPublisherImpl(channel, metrics, consumerEvents, listener, dataStore, dehydrationEnabledCfg);
->>>>>>> origin/US1009117
+        final WorkerPublisher impl = new WorkerPublisherImpl(channel, metrics, consumerEvents, listener, dataStore, minimizationEnabledCfg);
         final EventPoller<WorkerPublisher> publisher = new EventPoller<>(2, publisherEvents, impl);
         final Thread t = new Thread(publisher);
         t.start();

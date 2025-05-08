@@ -141,13 +141,7 @@ public class WorkerQueueConsumerImpl implements QueueConsumer
             taskInformation.incrementResponseCount(true);
             final var publishHeaders = new HashMap<String, Object>();
             publishHeaders.put(RabbitHeaders.RABBIT_HEADER_CAF_WORKER_REJECTED, REJECTED_REASON_TASKMESSAGE);
-<<<<<<< HEAD
-            if (taskMessageStorageRefOpt.isPresent()) {
-                publishHeaders.put(RABBIT_HEADER_CAF_MINIMIZATION_ID, taskMessageStorageRefOpt.get());
-            }
-=======
             taskMessageStorageRefOpt.ifPresent(s -> publishHeaders.put(RABBIT_HEADER_CAF_MINIMIZATION_ID, s));
->>>>>>> origin/US1009117
             publisherEventQueue.add(new WorkerPublishQueueEvent(inboundByteArray, retryRoutingKey, taskInformation, publishHeaders));
         } catch (TaskRejectedException e) {
             final RabbitTaskInformation taskInformation = new RabbitTaskInformation(
@@ -265,13 +259,7 @@ public class WorkerQueueConsumerImpl implements QueueConsumer
                 delivery.getEnvelope().getDeliveryTag(), retryLimit, retries + 1);
         final Map<String, Object> headers = new HashMap<>();
         headers.put(RabbitHeaders.RABBIT_HEADER_CAF_WORKER_RETRY, String.valueOf(retries + 1));
-<<<<<<< HEAD
-        if (taskMessageStorageRefOpt.isPresent()) {
-            headers.put(RABBIT_HEADER_CAF_MINIMIZATION_ID, taskMessageStorageRefOpt.get());
-        }
-=======
         taskMessageStorageRefOpt.ifPresent(s -> headers.put(RABBIT_HEADER_CAF_MINIMIZATION_ID, s));
->>>>>>> origin/US1009117
         taskInformation.incrementResponseCount(true);
         publisherEventQueue.add(new WorkerPublishQueueEvent(delivery.getMessageData(), retryRoutingKey, 
                 taskInformation, headers));
