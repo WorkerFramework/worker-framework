@@ -121,9 +121,9 @@ public class WorkerQueueConsumerImpl implements QueueConsumer
 
         final var inboundMessageId = delivery.getEnvelope().getDeliveryTag();
         final var routingKey = delivery.getEnvelope().getRoutingKey();
-        final var deliveryMessageData = delivery.getMessageData();
+        final var inboundByteArray = delivery.getMessageData();
         try {
-            final Optional<TaskMessage> taskMessage = deserializeTaskMessage(inboundMessageId, deliveryMessageData, taskMessageStorageRefOpt);
+            final Optional<TaskMessage> taskMessage = deserializeTaskMessage(inboundMessageId, inboundByteArray, taskMessageStorageRefOpt);
             final var taskMessagePartialRef = String.format("%s/%s", routingKey, taskMessage.get().getTracking().getJobTaskId());
             final RabbitTaskInformation taskInformation = new RabbitTaskInformation(
                 String.valueOf(inboundMessageId),
@@ -143,12 +143,12 @@ public class WorkerQueueConsumerImpl implements QueueConsumer
             if (taskMessageStorageRefOpt.isPresent()) {
                 publishHeaders.put(RABBIT_HEADER_CAF_DEHYDRATION_ID, taskMessageStorageRefOpt.get());
             }
-            publisherEventQueue.add(new WorkerPublishQueueEvent(deliveryMessageData, retryRoutingKey, taskInformation, publishHeaders));
+            publisherEventQueue.add(new WorkerPublishQueueEvent(inboundByteArray, retryRoutingKey, taskInformation, publishHeaders));
         } catch (TaskRejectedException e) {
             final RabbitTaskInformation taskInformation = new RabbitTaskInformation(String.valueOf(inboundMessageId), isPoison);
             LOG.warn("Message {} rejected as a task at this time, returning to queue", taskInformation.getInboundMessageId(), e);
             taskInformation.incrementResponseCount(true);
-            publisherEventQueue.add(new WorkerPublishQueueEvent(deliveryMessageData, routingKey,
+            publisherEventQueue.add(new WorkerPublishQueueEvent(inboundByteArray, routingKey,
                     taskInformation, delivery.getHeaders()));
         }
     }
