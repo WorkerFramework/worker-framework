@@ -15,15 +15,25 @@
  */
 package com.github.workerframework.workertest;
 
+import com.github.workerframework.api.TaskMessage;
+
 import com.rabbitmq.client.AMQP;
 import com.rabbitmq.client.ConnectionFactory;
 import com.rabbitmq.client.Consumer;
 import com.rabbitmq.client.Envelope;
 import com.rabbitmq.client.ShutdownSignalException;
+import org.testng.Assert;
 
+import java.io.ByteArrayOutputStream;
 import java.io.IOException;
+import java.io.InputStream;
+import java.net.HttpURLConnection;
+import java.net.URL;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Optional;
+
+import static com.github.workerframework.util.rabbitmq.RabbitHeaders.RABBIT_HEADER_CAF_DEHYDRATION_ID;
 
 public class TestWorkerTestBase {
     final protected ConnectionFactory connectionFactory;
@@ -31,6 +41,7 @@ public class TestWorkerTestBase {
     private static final String CAF_RABBITMQ_PORT = "CAF_RABBITMQ_PORT";
     private static final String CAF_RABBITMQ_USERNAME = "CAF_RABBITMQ_USERNAME";
     private static final String CAF_RABBITMQ_PASSWORD = "CAF_RABBITMQ_PASSWORD";
+    public static final String webdav_url = System.getProperty("webdav_url");
 
     public TestWorkerTestBase() {
         connectionFactory = new ConnectionFactory();
@@ -45,6 +56,42 @@ public class TestWorkerTestBase {
         final String value = System.getenv(name);
 
         return value != null && !Objects.equals(value, "") ? value : defaultValue;
+    }
+
+    /**
+     * This method will return the storage ref of the dehydrated message stored in the datastore on publish to the 
+     * worker-out queue.
+     * @param messageConsumer
+     * @return
+     */
+    public static String getTaskMessageStorageRef(final TestWorkerQueueConsumer messageConsumer) {
+        final Map<String, Object> outgoingHeaders = messageConsumer.getHeaders();
+        final Optional<String> outgoingTaskMessageStorageRef = outgoingHeaders.containsKey(RABBIT_HEADER_CAF_DEHYDRATION_ID) ?
+            Optional.of(outgoingHeaders.get(RABBIT_HEADER_CAF_DEHYDRATION_ID).toString()) :
+            Optional.empty();
+        Assert.assertTrue(outgoingTaskMessageStorageRef.isPresent(), "The dehydration header was missing");
+        return outgoingTaskMessageStorageRef.get();
+    }
+    
+    public static Optional<byte[]> readFileFromWebDAV(final String messageStorageRef) throws Exception {
+        final String fileUrl = String.format("%s/%s", webdav_url, messageStorageRef);
+        URL url = new URL(fileUrl);
+        HttpURLConnection conn = (HttpURLConnection) url.openConnection();
+        conn.setRequestMethod("GET");
+        
+        if (conn.getResponseCode() != HttpURLConnection.HTTP_OK) {
+            return Optional.empty();
+        }
+        
+        try (InputStream in = conn.getInputStream();
+             ByteArrayOutputStream out = new ByteArrayOutputStream()) {
+            byte[] buffer = new byte[4096];
+            int n;
+            while ((n = in.read(buffer)) != -1) {
+                out.write(buffer, 0, n);
+            }
+            return Optional.of(out.toByteArray());
+        }
     }
 
     public static class TestWorkerQueueConsumer implements Consumer {

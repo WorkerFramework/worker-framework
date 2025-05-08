@@ -30,12 +30,10 @@ import com.rabbitmq.client.AMQP;
 import org.testng.annotations.Test;
 import org.testng.Assert;
 
-import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.util.Date;
 import java.util.Map;
 import java.util.HashMap;
-import java.util.concurrent.TimeoutException;
 
 public class GetWorkerNameIT extends TestWorkerTestBase {
     private static final String POISON_ERROR_MESSAGE = "could not process the item.";
@@ -47,7 +45,7 @@ public class GetWorkerNameIT extends TestWorkerTestBase {
     private static final Codec codec = new JsonCodec();
 
     @Test
-    public void getWorkerNameInPoisonMessageTest() throws IOException, TimeoutException, CodecException {
+    public void getWorkerNameInPoisonMessageTest() throws Exception {
 
         try(final Connection connection = connectionFactory.newConnection()) {
 
@@ -99,7 +97,11 @@ public class GetWorkerNameIT extends TestWorkerTestBase {
             }
 
             Assert.assertNotNull(poisonConsumer.getLastDeliveredBody());
-            final TaskMessage decodedBody = codec.deserialise(poisonConsumer.getLastDeliveredBody(), TaskMessage.class);
+
+            final String poisonMessageStorageRef = getTaskMessageStorageRef(poisonConsumer);
+            final var poisonMessageByteArrayOpt = readFileFromWebDAV(poisonMessageStorageRef);
+            
+            final TaskMessage decodedBody = codec.deserialise(poisonMessageByteArrayOpt.get(), TaskMessage.class);
             final String taskData = new String(decodedBody.getTaskData(), StandardCharsets.UTF_8);
 
             Assert.assertTrue(taskData.contains(POISON_ERROR_MESSAGE));

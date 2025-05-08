@@ -16,7 +16,6 @@
 package com.github.workerframework.workertest;
 
 import com.github.cafapi.common.api.Codec;
-import com.github.cafapi.common.api.CodecException;
 import com.github.cafapi.common.codecs.json.JsonCodec;
 import com.github.workerframework.api.TrackingInfo;
 import com.github.workerframework.testworker.TestWorkerTask;
@@ -29,12 +28,10 @@ import com.rabbitmq.client.AMQP;
 import org.testng.Assert;
 import org.testng.annotations.Test;
 
-import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.concurrent.TimeoutException;
 
 public class PoisonMessageIT  extends TestWorkerTestBase{
     private static final String POISON_ERROR_MESSAGE = "could not process the item.";
@@ -46,7 +43,7 @@ public class PoisonMessageIT  extends TestWorkerTestBase{
     private static final Codec codec = new JsonCodec();
 
     @Test
-    public void getWorkerNameInPoisonMessageTest() throws IOException, TimeoutException, CodecException {
+    public void getWorkerNameInPoisonMessageTest() throws Exception {
 
         try(final Connection connection = connectionFactory.newConnection()) {
 
@@ -95,7 +92,11 @@ public class PoisonMessageIT  extends TestWorkerTestBase{
             }
 
             Assert.assertNotNull(poisonConsumer.getLastDeliveredBody());
-            final TaskMessage decodedBody = codec.deserialise(poisonConsumer.getLastDeliveredBody(), TaskMessage.class);
+
+            final String poisonMessageStorageRef = getTaskMessageStorageRef(poisonConsumer);
+            final var poisonMessageByteArrayOpt = readFileFromWebDAV(poisonMessageStorageRef);
+            
+            final TaskMessage decodedBody = codec.deserialise(poisonMessageByteArrayOpt.get(), TaskMessage.class);
             final String taskData = new String(decodedBody.getTaskData(), StandardCharsets.UTF_8);
 
             Assert.assertTrue(taskData.contains(POISON_ERROR_MESSAGE));
