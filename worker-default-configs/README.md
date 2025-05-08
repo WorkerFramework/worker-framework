@@ -25,34 +25,34 @@ The HttpDataStore configuration file checks for values as below;
 
 The default Rabbit configuration file checks for values as below;
 
-| Property                 | Checked Environment Variables                     | Default  |
-|--------------------------|---------------------------------------------------|----------|
-| backoffInterval          | `CAF_RABBITMQ_BACKOFF_INTERVAL`                   | 5        |
-| maxBackoffInterval       | `CAF_RABBITMQ_MAX_BACKOFF_INTERVAL`               | 15       |
-| maxAttempts              | `CAF_RABBITMQ_MAX_ATTEMPTS`                       | 3        |
-| rabbitProtocol           | `CAF_RABBITMQ_PROTOCOL`                           | amqp     |
-| rabbitTlsProtocolVersion | `CAF_RABBITMQ_TLS_PROTOCOL_VERSION`               | TLSv1.2  |
-| rabbitHost               | `CAF_RABBITMQ_HOST`                               | rabbitmq |
-| rabbitPort               | `CAF_RABBITMQ_PORT`                               | 5672     |
-| rabbitUser               | `CAF_RABBITMQ_USERNAME`                           | guest    |
-| rabbitPassword           | `CAF_RABBITMQ_PASSWORD`                           | guest    |
-| isMinimizationEnabled    | `CAF_WORKER_MESSAGE_MINIMIZATION_ENABLED`         | false     |
-| minimizationThreshold    | `CAF_WORKER_MESSAGE_MINIMIZATION_THRESHOLD_BYTES` | 16777216  |
+| Property                 | Checked Environment Variables       | Default  |
+|--------------------------|-------------------------------------|----------|
+| backoffInterval          | `CAF_RABBITMQ_BACKOFF_INTERVAL`     | 5        |
+| maxBackoffInterval       | `CAF_RABBITMQ_MAX_BACKOFF_INTERVAL` | 15       |
+| maxAttempts              | `CAF_RABBITMQ_MAX_ATTEMPTS`         | 3        |
+| rabbitProtocol           | `CAF_RABBITMQ_PROTOCOL`             | amqp     |
+| rabbitTlsProtocolVersion | `CAF_RABBITMQ_TLS_PROTOCOL_VERSION` | TLSv1.2  |
+| rabbitHost               | `CAF_RABBITMQ_HOST`                 | rabbitmq |
+| rabbitPort               | `CAF_RABBITMQ_PORT`                 | 5672     |
+| rabbitUser               | `CAF_RABBITMQ_USERNAME`             | guest    |
+| rabbitPassword           | `CAF_RABBITMQ_PASSWORD`             | guest    |
 
 ## RabbitWorkerQueueConfiguration
 
 The default RabbitWorkerQueue configuration file checks for values as below;
 
-| Property | Checked Environment Variables | Default               |
-|----------|-------------------------------|-----------------------|
-| prefetchBuffer  |  `CAF_RABBITMQ_PREFETCH_BUFFER` | 1  |
-| inputQueue  |  `CAF_WORKER_INPUT_QUEUE` | worker-in  |
-|             |  `CAF_WORKER_BASE_QUEUE_NAME` with '-in' appended to the value if present    |    |
-|             |  `CAF_WORKER_NAME` with '-in' appended to the value if present        |    |
-| pausedQueue  |  `CAF_WORKER_PAUSED_QUEUE` |   |
-| retryQueue  |  `CAF_WORKER_RETRY_QUEUE` |   |
-| rejectedQueue  |   | worker-rejected  |
-| retryLimit  |  `CAF_WORKER_RETRY_LIMIT` | 10  |
+| Property              | Checked Environment Variables                                            | Default         |
+|-----------------------|--------------------------------------------------------------------------|-----------------|
+| prefetchBuffer        | `CAF_RABBITMQ_PREFETCH_BUFFER`                                           | 1               |
+| inputQueue            | `CAF_WORKER_INPUT_QUEUE`                                                 | worker-in       |
+|                       | `CAF_WORKER_BASE_QUEUE_NAME` with '-in' appended to the value if present |                 |
+|                       | `CAF_WORKER_NAME` with '-in' appended to the value if present            |                 |
+| pausedQueue           | `CAF_WORKER_PAUSED_QUEUE`                                                |                 |
+| retryQueue            | `CAF_WORKER_RETRY_QUEUE`                                                 |                 |
+| rejectedQueue         |                                                                          | worker-rejected |
+| retryLimit            | `CAF_WORKER_RETRY_LIMIT`                                                 | 10              |
+| isMinimizationEnabled | `CAF_WORKER_MESSAGE_MINIMIZATION_ENABLED`                                | false           |
+| minimizationThreshold | `CAF_WORKER_MESSAGE_MINIMIZATION_THRESHOLD_BYTES`                        | 16777216        |
 
 ## HealthConfiguration
 
