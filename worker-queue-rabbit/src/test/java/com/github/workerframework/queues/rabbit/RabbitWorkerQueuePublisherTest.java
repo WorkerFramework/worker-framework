@@ -133,7 +133,7 @@ public class RabbitWorkerQueuePublisherTest
         };
         Mockito.doAnswer(a).when(channel).basicPublish(Mockito.any(), Mockito.eq(testQueue), Mockito.any(), Mockito.eq(data));
         final WorkerConfirmListener listener = new WorkerConfirmListener(consumerEvents, dataStore);
-        final WorkerPublisher impl = new WorkerPublisherImpl(channel, metrics, consumerEvents, listener, dataStore, dehydrationEnabledCfg, codec);
+        final WorkerPublisher impl = new WorkerPublisherImpl(channel, metrics, consumerEvents, listener, dataStore, dehydrationEnabledCfg);
         final EventPoller<WorkerPublisher> publisher = new EventPoller<>(2, publisherEvents, impl);
         final Thread t = new Thread(publisher);
         t.start();
@@ -169,7 +169,7 @@ public class RabbitWorkerQueuePublisherTest
         BlockingQueue<Event<QueueConsumer>> consumerEvents = new LinkedBlockingQueue<>();
         Channel channel = Mockito.mock(Channel.class);
         WorkerConfirmListener listener = Mockito.mock(WorkerConfirmListener.class);
-        WorkerPublisher impl = new WorkerPublisherImpl(channel, metrics, consumerEvents, listener, dataStore, config, codec);
+        WorkerPublisher impl = new WorkerPublisherImpl(channel, metrics, consumerEvents, listener, dataStore, config);
         Mockito.verify(channel, Mockito.times(1)).confirmSelect();
         Mockito.verify(channel, Mockito.times(1)).addConfirmListener(listener);
     }
@@ -188,7 +188,7 @@ public class RabbitWorkerQueuePublisherTest
         };
         Mockito.doAnswer(a).when(channel).basicPublish(Mockito.any(), Mockito.eq(testQueue), Mockito.any(), Mockito.eq(data));
         WorkerConfirmListener listener = Mockito.mock(WorkerConfirmListener.class);
-        WorkerPublisher impl = new WorkerPublisherImpl(channel, metrics, consumerEvents, listener, dataStore, config, codec);
+        WorkerPublisher impl = new WorkerPublisherImpl(channel, metrics, consumerEvents, listener, dataStore, config);
         EventPoller<WorkerPublisher> publisher = new EventPoller<>(2, publisherEvents, impl);
         Thread t = new Thread(publisher);
         t.start();
@@ -208,7 +208,7 @@ public class RabbitWorkerQueuePublisherTest
         Channel channel = Mockito.mock(Channel.class);
         WorkerConfirmListener listener = Mockito.mock(WorkerConfirmListener.class);
         Mockito.doThrow(IOException.class).when(channel).basicPublish(Mockito.any(), Mockito.eq(testQueue), Mockito.any(), Mockito.eq(data));
-        WorkerPublisher impl = new WorkerPublisherImpl(channel, metrics, consumerEvents, listener, dataStore, config, codec);
+        WorkerPublisher impl = new WorkerPublisherImpl(channel, metrics, consumerEvents, listener, dataStore, config);
         EventPoller<WorkerPublisher> publisher = new EventPoller<>(2, publisherEvents, impl);
         Thread t = new Thread(publisher);
         t.start();
