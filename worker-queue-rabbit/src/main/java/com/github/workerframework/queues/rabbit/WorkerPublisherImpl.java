@@ -94,7 +94,7 @@ public class WorkerPublisherImpl implements WorkerPublisher
             ).map(Object::toString);
 
             if (inboundTaskMessageStorageRef.isPresent() && taskInformation.getDehydratedTaskMessageStorageRef().isPresent()) {
-                // We have sucessfully rehydrated this message and the dehydrated message id is no longer needed.
+                // We have successfully rehydrated this message and the dehydrated message id is redundant.
                 // The stored message will be deleted in the confirm listener
                 publishHeaders.remove(RABBIT_HEADER_CAF_DEHYDRATION_ID);
             }
@@ -124,7 +124,7 @@ public class WorkerPublisherImpl implements WorkerPublisher
         final Map<String, Object> headers
     ) throws QueueException {
         try {
-            if (shouldStoreTaskMessage(taskMessage.length)) {                
+            if (taskMessagePartialRef.isPresent() && shouldStoreTaskMessage(taskMessage.length)) {                
                 final var taskMessageStorageRef = dataStore.store(taskMessage, taskMessagePartialRef.get());
                 headers.put(RABBIT_HEADER_CAF_DEHYDRATION_ID, taskMessageStorageRef);
                 //  if the header is set, the consumer will ignore the incoming byte[] and use the dehydrated message.

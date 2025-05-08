@@ -95,7 +95,7 @@ public class WorkerQueueConsumerImpl implements QueueConsumer
                 Integer.parseInt(String.valueOf(delivery.getHeaders()
                 .getOrDefault(RabbitHeaders.RABBIT_HEADER_CAF_WORKER_RETRY, "0")));
         
-        final Optional<String> taskMessageStorageRef = Optional.ofNullable(
+        final Optional<String> taskMessageStorageRefOpt = Optional.ofNullable(
             delivery.getHeaders().get(RABBIT_HEADER_CAF_DEHYDRATION_ID)
         ).map(Object::toString);
 
@@ -108,7 +108,7 @@ public class WorkerQueueConsumerImpl implements QueueConsumer
                     //Republish the delivery with a header recording the incremented number of retries.
                     //Classic queues do not record delivery count, so we republish the message with an incremented
                     //retry count. This allows us to track the number of attempts to process the message.
-                    republishClassicRedelivery(delivery, retries, taskMessageStorageRef);
+                    republishClassicRedelivery(delivery, retries, taskMessageStorageRefOpt);
                     return;
                 }
                 isPoison = true;
@@ -121,37 +121,29 @@ public class WorkerQueueConsumerImpl implements QueueConsumer
 
         final var inboundMessageId = delivery.getEnvelope().getDeliveryTag();
         try {
-            final Optional<TaskMessage> taskMessage = deserializeTaskMessage(inboundMessageId, delivery.getMessageData(), taskMessageStorageRef);
+            final Optional<TaskMessage> taskMessage = deserializeTaskMessage(inboundMessageId, delivery.getMessageData(), taskMessageStorageRefOpt);
             final var taskMessagePartialRef = String.format("%s/%s", delivery.getEnvelope().getRoutingKey(), taskMessage.get().getTracking().getJobTaskId());
             final RabbitTaskInformation taskInformation = new RabbitTaskInformation(
                 String.valueOf(inboundMessageId),
                 isPoison,
-                taskMessageStorageRef,
+                taskMessageStorageRefOpt,
                 Optional.of(taskMessagePartialRef)
             );
                       
             LOG.debug("Registering new message {}", inboundMessageId);
             callback.registerNewTask(taskInformation, taskMessage.get(), delivery.getHeaders());
         } catch (InvalidTaskException e) {
-            final RabbitTaskInformation taskInformation = new RabbitTaskInformation(
-                String.valueOf(inboundMessageId),
-                isPoison,
-                Optional.empty(),
-                Optional.empty()
-            );
+            final RabbitTaskInformation taskInformation = new RabbitTaskInformation(String.valueOf(inboundMessageId), isPoison);
             LOG.error("Cannot register new message, rejecting {}", taskInformation.getInboundMessageId(), e);
             taskInformation.incrementResponseCount(true);
             final var publishHeaders = new HashMap<String, Object>();
             publishHeaders.put(RabbitHeaders.RABBIT_HEADER_CAF_WORKER_REJECTED, REJECTED_REASON_TASKMESSAGE);
-            publishHeaders.put(RABBIT_HEADER_CAF_DEHYDRATION_ID, taskMessageStorageRef);
+            if (taskMessageStorageRefOpt.isPresent()) {
+                publishHeaders.put(RABBIT_HEADER_CAF_DEHYDRATION_ID, taskMessageStorageRefOpt.get());
+            }
             publisherEventQueue.add(new WorkerPublishQueueEvent(delivery.getMessageData(), retryRoutingKey, taskInformation, publishHeaders));
         } catch (TaskRejectedException e) {
-            final RabbitTaskInformation taskInformation = new RabbitTaskInformation(
-                String.valueOf(inboundMessageId),
-                isPoison,
-                Optional.empty(),
-                Optional.empty()
-            );
+            final RabbitTaskInformation taskInformation = new RabbitTaskInformation(String.valueOf(inboundMessageId), isPoison);
             LOG.warn("Message {} rejected as a task at this time, returning to queue", taskInformation.getInboundMessageId(), e);
             taskInformation.incrementResponseCount(true);
             publisherEventQueue.add(new WorkerPublishQueueEvent(delivery.getMessageData(), delivery.getEnvelope().getRoutingKey(),
@@ -159,15 +151,24 @@ public class WorkerQueueConsumerImpl implements QueueConsumer
         }
     }
 
+    /**
+     * Deserialize the task message from the delivery message data. If the task message is dehydrated, retrieve it from the data store.
+     * 
+     * @param inboundMessageId
+     * @param deliveryMessageData
+     * @param taskMessageStorageRefOpt
+     * @return
+     * @throws InvalidTaskException
+     */
     private Optional<TaskMessage> deserializeTaskMessage(
         final long inboundMessageId,
-        final byte[] taskMessage, 
-        final Optional<String> taskMessageStorageRef
+        final byte[] deliveryMessageData, 
+        final Optional<String> taskMessageStorageRefOpt
     ) throws InvalidTaskException {
         try {
-            if (taskMessageStorageRef.isPresent()) {
+            if (taskMessageStorageRefOpt.isPresent()) {
                 final ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
-                try (final var inputStream = dataStore.retrieve(taskMessageStorageRef.get())) {
+                try (final var inputStream = dataStore.retrieve(taskMessageStorageRefOpt.get())) {
                     final byte[] buffer = new byte[1024];
                     int length;
                     while ((length = inputStream.read(buffer)) != -1) {
@@ -176,7 +177,7 @@ public class WorkerQueueConsumerImpl implements QueueConsumer
                 }
                 return Optional.of(codec.deserialise(outputStream.toByteArray(), TaskMessage.class, DecodeMethod.LENIENT));
             }
-            return Optional.of(codec.deserialise(taskMessage, TaskMessage.class, DecodeMethod.LENIENT));
+            return Optional.of(codec.deserialise(deliveryMessageData, TaskMessage.class, DecodeMethod.LENIENT));
         } catch (final IOException | CodecException | DataStoreException e) {
             throw new InvalidTaskException("Error deserializing inbound message:" + inboundMessageId, e);
         }
@@ -242,10 +243,12 @@ public class WorkerQueueConsumerImpl implements QueueConsumer
 
     /**
      * Republish the delivery to the retry queue with the retry count stamped in the headers.
-     *
-     * @param delivery the redelivered message
+     * 
+     * @param delivery The redelivered message
+     * @param retries
+     * @param taskMessageStorageRefOpt
      */
-    private void republishClassicRedelivery(final Delivery delivery, final int retries, final Optional<String> taskMessageStorageRef) {
+    private void republishClassicRedelivery(final Delivery delivery, final int retries, final Optional<String> taskMessageStorageRefOpt) {
 
         final RabbitTaskInformation taskInformation = 
                 new RabbitTaskInformation(String.valueOf(delivery.getEnvelope().getDeliveryTag()));
@@ -253,8 +256,8 @@ public class WorkerQueueConsumerImpl implements QueueConsumer
                 delivery.getEnvelope().getDeliveryTag(), retryLimit, retries + 1);
         final Map<String, Object> headers = new HashMap<>();
         headers.put(RabbitHeaders.RABBIT_HEADER_CAF_WORKER_RETRY, String.valueOf(retries + 1));
-        if (taskMessageStorageRef.isPresent()) {
-            headers.put(RABBIT_HEADER_CAF_DEHYDRATION_ID, taskMessageStorageRef.get());
+        if (taskMessageStorageRefOpt.isPresent()) {
+            headers.put(RABBIT_HEADER_CAF_DEHYDRATION_ID, taskMessageStorageRefOpt.get());
         }
         taskInformation.incrementResponseCount(true);
         publisherEventQueue.add(new WorkerPublishQueueEvent(delivery.getMessageData(), retryRoutingKey, 
