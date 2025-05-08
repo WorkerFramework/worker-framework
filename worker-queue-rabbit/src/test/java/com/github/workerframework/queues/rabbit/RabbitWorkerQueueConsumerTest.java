@@ -61,7 +61,7 @@ import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.TimeUnit;
 
-import static com.github.workerframework.util.rabbitmq.RabbitHeaders.RABBIT_HEADER_CAF_DEHYDRATION_ID;
+import static com.github.workerframework.util.rabbitmq.RabbitHeaders.RABBIT_HEADER_CAF_MINIMIZATION_ID;
 
 public class RabbitWorkerQueueConsumerTest
 {
@@ -120,23 +120,23 @@ public class RabbitWorkerQueueConsumerTest
     }
 
     @Test
-    public void testConsumerRehydratesTheMessageAsExpected() 
+    public void testConsumerMinimizesTheMessageAsExpected() 
         throws CodecException, DataStoreException, TaskRejectedException, InvalidTaskException, InterruptedException 
     {
-        //  store a message to be rehydrated first
+        //  store a message to be minimized first
         final var trackingInfo = new TrackingInfo("task1", new Date(), 1, "http://hello.com", "pipe", "to");
-        final var dehydratedTaskData = "This is the actual task message was previously stored".getBytes(StandardCharsets.UTF_8);
-        final var dehydratedTaskMessage = new TaskMessage(
+        final var minimizedTaskData = "This is the actual task message was previously stored".getBytes(StandardCharsets.UTF_8);
+        final var minimizedTaskMessage = new TaskMessage(
             "task1",
             "ACTUAL_CLASSIFIER",
             1,
-            dehydratedTaskData,
+            minimizedTaskData,
             TaskStatus.NEW_TASK,
             new HashMap<>(),
             "to",
             trackingInfo);
-        final var dehydratedTaskMessageData = codec.serialise(dehydratedTaskMessage);
-        final var taskMessageStorageRef = dataStore.store(dehydratedTaskMessageData, "testQueue/task1");
+        final var minimizedTaskMessageData = codec.serialise(minimizedTaskMessage);
+        final var taskMessageStorageRef = dataStore.store(minimizedTaskMessageData, "testQueue/task1");
 
         final BlockingQueue<Event<QueueConsumer>> consumerEvents = new LinkedBlockingQueue<>();
         final BlockingQueue<Event<WorkerPublisher>> publisherEvents = new LinkedBlockingQueue<>();
@@ -154,10 +154,10 @@ public class RabbitWorkerQueueConsumerTest
         final Thread t = new Thread(consumer);
         t.start();
         
-        // Now publish a message linked to the previously dehydrated message.
+        // Now publish a message linked to the previously minimized message.
         AMQP.BasicProperties prop = Mockito.mock(AMQP.BasicProperties.class);
         final Map<String, Object> headers = new HashMap<>();
-        headers.put(RABBIT_HEADER_CAF_DEHYDRATION_ID, taskMessageStorageRef);
+        headers.put(RABBIT_HEADER_CAF_MINIMIZATION_ID, taskMessageStorageRef);
         Mockito.when(prop.getHeaders()).thenReturn(headers);
         consumer.handleDelivery("consumer", newEnv, prop, data);
         Assert.assertTrue(latch.await(1000, TimeUnit.MILLISECONDS));
@@ -166,21 +166,21 @@ public class RabbitWorkerQueueConsumerTest
         final ArgumentCaptor<TaskMessage> taskMessageCaptor = ArgumentCaptor.forClass(TaskMessage.class);
         final ArgumentCaptor<Map<String, Object>> headersCaptor = ArgumentCaptor.forClass(Map.class);
 
-        // The registered task should be the dehydrated one saved earlier.
+        // The registered task should be the minimized one saved earlier.
         Mockito.verify(callback).registerNewTask(taskInfoCaptor.capture(), taskMessageCaptor.capture(), headersCaptor.capture());
         final TaskInformation taskInformation = taskInfoCaptor.getValue();
         final TaskMessage taskMessage = taskMessageCaptor.getValue();
         final Map<String, Object> taskHeaders = headersCaptor.getValue();
         
-        Assert.assertTrue(taskHeaders.containsKey(RABBIT_HEADER_CAF_DEHYDRATION_ID), 
-            "Headers should have included " + RABBIT_HEADER_CAF_DEHYDRATION_ID);
-        Assert.assertEquals(taskMessage.getTaskData(), dehydratedTaskData, 
+        Assert.assertTrue(taskHeaders.containsKey(RABBIT_HEADER_CAF_MINIMIZATION_ID), 
+            "Headers should have included " + RABBIT_HEADER_CAF_MINIMIZATION_ID);
+        Assert.assertEquals(taskMessage.getTaskData(), minimizedTaskData, 
             "Task data did not match");
         Assert.assertTrue(taskInformation instanceof RabbitTaskInformation, 
             "RabbitTaskInformation expected");
         final var rabbitTaskInfo = (RabbitTaskInformation) taskInformation;
-        Assert.assertEquals(rabbitTaskInfo.getDehydratedTaskMessageStorageRef().get(), taskMessageStorageRef, 
-            "RabbitTaskInformation should have contained the dehydrated message id");
+        Assert.assertEquals(rabbitTaskInfo.getMinimizedTaskMessageStorageRef().get(), taskMessageStorageRef, 
+            "RabbitTaskInformation should have contained the minimized message id");
         Assert.assertTrue(latch.await(1000, TimeUnit.MILLISECONDS));
         consumer.shutdown();
     }

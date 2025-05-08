@@ -88,15 +88,15 @@ public class RabbitWorkerQueueConfiguration
     private String queueType;
 
     /**
-     * Indicates if message dehydration is enabled.
+     * Indicates if message minimization is enabled.
      */
-    private boolean isDehydrationEnabled = false;
+    private boolean isMinimizationEnabled = false;
 
     /**
-     * The threshold at which messages will be dehydrated before publishing to RabbitMQ.
+     * The threshold at which messages will be minimized before publishing to RabbitMQ.
      */
     @Min(1)
-    private int dehydrationThreshold = 16777216;
+    private int minimizationThreshold = 16777216;
     
     public RabbitWorkerQueueConfiguration()
     {
@@ -193,19 +193,19 @@ public class RabbitWorkerQueueConfiguration
         this.queueType = queueType;
     }
 
-    public boolean getIsDehydrationEnabled() {
-        return isDehydrationEnabled;
+    public boolean getIsMinimizationEnabled() {
+        return isMinimizationEnabled;
     }
 
-    public void setDehydrationEnabled(boolean dehydrationEnabled) {
-        isDehydrationEnabled = dehydrationEnabled;
+    public void setMinimizationEnabled(boolean minimizationEnabled) {
+        isMinimizationEnabled = minimizationEnabled;
     }
 
-    public int getDehydrationThreshold() {
-        return dehydrationThreshold;
+    public int getMinimizationThreshold() {
+        return minimizationThreshold;
     }
 
-    public void setDehydrationThreshold(int dehydrationThreshold) {
-        this.dehydrationThreshold = dehydrationThreshold;
+    public void setMinimizationThreshold(int minimizationThreshold) {
+        this.minimizationThreshold = minimizationThreshold;
     }
 }

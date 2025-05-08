@@ -35,41 +35,44 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.TimeoutException;
 
-import static com.github.workerframework.util.rabbitmq.RabbitHeaders.RABBIT_HEADER_CAF_DEHYDRATION_ID;
+import static com.github.workerframework.util.rabbitmq.RabbitHeaders.RABBIT_HEADER_CAF_MINIMIZATION_ID;
 
-public class DehydratedMessageIT extends TestWorkerTestBase{
+public class MinimizedMessageIT extends TestWorkerTestBase {
     private static final String TEST_WORKER_NAME = "testWorkerIdentifier";
     private static final String WORKER_IN = "worker-in";
     private static final String TESTWORKER_OUT = "testworker-out";
-    private static final Codec codec = new JsonCodec();    
+    private static final Codec codec = new JsonCodec();
 
     @Test
-    public void checkDehydratedMessageIsConsumedAndDeletedOnAck() throws Exception {
-        final String setupDehydratedMessageStorageRef = setupDehydratedMessage(1);        
+    public void checkMinimizedMessageIsConsumedAndDeletedOnAck() throws Exception {
+        final String setupMinimizedMessageStorageRef = setupMinimizedMessage(1);
         try(final Connection connection = connectionFactory.newConnection()) {
             final Channel channel = prepareChannel(connection);
             //  Now we can send a message which expects to find the taskMessageStorageRef.
             final Map<String, Object> headers = new HashMap<>();
-            headers.put(RABBIT_HEADER_CAF_DEHYDRATION_ID, setupDehydratedMessageStorageRef);
-            // this publish will result in a dehydratedMessage being recovered by the consumer.
-            // the body will be ignored as the dehydrated message will be used.
+            headers.put(RABBIT_HEADER_CAF_MINIMIZATION_ID, setupMinimizedMessageStorageRef);
+            // this publish will result in a minimizedMessage being recovered by the consumer.
+            // the body will be ignored as the minimized message will be used.
             publish(channel, new byte[0], headers);
-            
+
             final TestWorkerQueueConsumer consumer = new TestWorkerQueueConsumer();
             consume(channel, consumer);
             final String consumedTaskMessageStorageRef = getTaskMessageStorageRef(consumer);
-            Assert.assertNotEquals(consumedTaskMessageStorageRef, setupDehydratedMessageStorageRef, "Storage refs should have been different");
-          
+            Assert.assertNotEquals(consumedTaskMessageStorageRef, setupMinimizedMessageStorageRef, "Storage refs should have been different");
+
+            final var publishedHeaders = consumer.getHeaders();
+            Assert.assertTrue(publishedHeaders.containsKey(RABBIT_HEADER_CAF_MINIMIZATION_ID), "Should have the minimization header:" + publishedHeaders);
+
             // The previously dehydrated message should now have been deleted by the confirm listener
-            final var storedSetupByteArrayOpt = readFileFromWebDAV(setupDehydratedMessageStorageRef);
+            final var storedSetupByteArrayOpt = readFileFromWebDAV(setupMinimizedMessageStorageRef);
             Assert.assertFalse(storedSetupByteArrayOpt.isEmpty(), "setup message should not have been found");
 
             // The previously published message should be present in the datastore
             final var consumedByteArrayOpt = readFileFromWebDAV(consumedTaskMessageStorageRef);
-            Assert.assertTrue(consumedByteArrayOpt.isPresent(), "Dehydrated message should have been found");
+            Assert.assertTrue(consumedByteArrayOpt.isPresent(), "Minimized message should have been found");
         }
     }
-    
+
     public void consume(
         final Channel channel,
         final TestWorkerQueueConsumer messageConsumer
@@ -88,10 +91,10 @@ public class DehydratedMessageIT extends TestWorkerTestBase{
             throw new RuntimeException(e);
         }
     }
-    
+
     private void publish(
         final Channel channel,
-        final byte[] taskMessage, 
+        final byte[] taskMessage,
         final Map<String, Object> headers
     ) throws IOException {
         final AMQP.BasicProperties properties = new AMQP.BasicProperties.Builder()
@@ -100,11 +103,11 @@ public class DehydratedMessageIT extends TestWorkerTestBase{
             .headers(headers)
             .build();
 
-        channel.basicPublish("", WORKER_IN, properties, taskMessage); 
+        channel.basicPublish("", WORKER_IN, properties, taskMessage);
     }
 
     /**
-     * This method will send a message to the worker-in queue and return the storage ref of the dehydrated message stored 
+     * This method will send a message to the worker-in queue and return the storage ref of the minimized message stored 
      * in the datastore on publish to the worker-out queue.
      * @param taskNumber
      * @return
@@ -112,23 +115,23 @@ public class DehydratedMessageIT extends TestWorkerTestBase{
      * @throws TimeoutException
      * @throws CodecException
      */
-    private String setupDehydratedMessage(final int taskNumber) throws Exception {
+    private String setupMinimizedMessage(final int taskNumber) throws Exception {
         try(final Connection connection = connectionFactory.newConnection()) {
             final Channel channel = prepareChannel(connection);
             publish(channel, buildTaskMessageByteArray(taskNumber), new HashMap<>());
-            
+
             final TestWorkerQueueConsumer consumer = new TestWorkerQueueConsumer();
             consume(channel, consumer);
-            
+
             channel.close();
-            
+
             final String taskMessageStorageRef = getTaskMessageStorageRef(consumer);
             final var storedByteArrayOpt = readFileFromWebDAV(taskMessageStorageRef);
-            Assert.assertTrue(storedByteArrayOpt.isPresent(), "Dehydrated message not found at " + taskMessageStorageRef);
+            Assert.assertTrue(storedByteArrayOpt.isPresent(), "Minimized message not found at " + taskMessageStorageRef);
             return taskMessageStorageRef;
         }
     }
-  
+
     private static byte[] buildTaskMessageByteArray(final int taskNumber) throws CodecException {
         final var trackingInfo = new TrackingInfo("taskName" + taskNumber, new Date(), 1, "http://hello.com", "pipe", "to");
         final TestWorkerTask documentWorkerTask = new TestWorkerTask();
@@ -148,7 +151,7 @@ public class DehydratedMessageIT extends TestWorkerTestBase{
         final Map<String, Object> args = new HashMap<>();
         args.put(QueueCreator.RABBIT_PROP_QUEUE_TYPE, QueueCreator.RABBIT_PROP_QUEUE_TYPE_QUORUM);
         channel.queueDeclare(WORKER_IN, true, false, false, args);
-        channel.queueDeclare(TESTWORKER_OUT, true, false, false, args); 
+        channel.queueDeclare(TESTWORKER_OUT, true, false, false, args);
         return channel;
     }
 }

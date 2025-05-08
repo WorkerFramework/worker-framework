@@ -23,6 +23,6 @@
     retryLimit: getenv("CAF_WORKER_RETRY_LIMIT") || 10,
     maxPriority: getenv("CAF_RABBITMQ_MAX_PRIORITY") || 0,
     queueType: getenv("CAF_RABBITMQ_QUEUE_TYPE") || "quorum",
-    isDehydrationEnabled: getenv("CAF_WORKER_MESSAGE_DEHYDRATION_ENABLED") || false,
-    dehydrationThreshold: getenv("CAF_WORKER_MESSAGE_DEHYDRATION_THRESHOLD_BYTES") || 16777216
+    isMinimizationEnabled: getenv("CAF_WORKER_MESSAGE_MINIMIZATION_ENABLED") || false,
+    minimizationThreshold: getenv("CAF_WORKER_MESSAGE_MINIMIZATION_THRESHOLD_BYTES") || 16777216
 });

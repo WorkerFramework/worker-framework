@@ -41,18 +41,18 @@ The default Rabbit configuration file checks for values as below;
 
 The default RabbitWorkerQueue configuration file checks for values as below;
 
-| Property | Checked Environment Variables | Default               |
-|----------|-------------------------------|-----------------------|
-| prefetchBuffer  |  `CAF_RABBITMQ_PREFETCH_BUFFER` | 1  |
-| inputQueue  |  `CAF_WORKER_INPUT_QUEUE` | worker-in  |
-|             |  `CAF_WORKER_BASE_QUEUE_NAME` with '-in' appended to the value if present    |    |
-|             |  `CAF_WORKER_NAME` with '-in' appended to the value if present        |    |
-| pausedQueue  |  `CAF_WORKER_PAUSED_QUEUE` |   |
-| retryQueue  |  `CAF_WORKER_RETRY_QUEUE` |   |
-| rejectedQueue  |   | worker-rejected  |
-| retryLimit  |  `CAF_WORKER_RETRY_LIMIT` | 10  |
-| isDehydrationEnabled        | `CAF_WORKER_MESSAGE_DEHYDRATION_ENABLED`          | false     |
-| dehydrationThreshold        | `CAF_WORKER_MESSAGE_DEHYDRATION_THRESHOLD_BYTES`  | 16777216  |
+| Property              | Checked Environment Variables                                            | Default         |
+|-----------------------|--------------------------------------------------------------------------|-----------------|
+| prefetchBuffer        | `CAF_RABBITMQ_PREFETCH_BUFFER`                                           | 1               |
+| inputQueue            | `CAF_WORKER_INPUT_QUEUE`                                                 | worker-in       |
+|                       | `CAF_WORKER_BASE_QUEUE_NAME` with '-in' appended to the value if present |                 |
+|                       | `CAF_WORKER_NAME` with '-in' appended to the value if present            |                 |
+| pausedQueue           | `CAF_WORKER_PAUSED_QUEUE`                                                |                 |
+| retryQueue            | `CAF_WORKER_RETRY_QUEUE`                                                 |                 |
+| rejectedQueue         |                                                                          | worker-rejected |
+| retryLimit            | `CAF_WORKER_RETRY_LIMIT`                                                 | 10              |
+| isMinimizationEnabled | `CAF_WORKER_MESSAGE_MINIMIZATION_ENABLED`                                | false           |
+| minimizationThreshold | `CAF_WORKER_MESSAGE_MINIMIZATION_THRESHOLD_BYTES`                        | 16777216        |
 
 ## HealthConfiguration
 
