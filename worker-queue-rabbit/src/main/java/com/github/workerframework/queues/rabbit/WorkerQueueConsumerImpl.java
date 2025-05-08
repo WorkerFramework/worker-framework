@@ -130,13 +130,15 @@ public class WorkerQueueConsumerImpl implements QueueConsumer
                 isPoison,
                 taskMessageStorageRefOpt,
                 Optional.of(taskMessagePartialRef)
-            );
-                      
+            );                      
             LOG.debug("Registering new message {}", inboundMessageId);
             callback.registerNewTask(taskInformation, taskMessage.get(), delivery.getHeaders());
         } catch (InvalidTaskException e) {
-            final RabbitTaskInformation taskInformation = new RabbitTaskInformation(String.valueOf(inboundMessageId), isPoison);
-            LOG.error("Cannot register new message, rejecting {}", taskInformation.getInboundMessageId(), e);
+            final RabbitTaskInformation taskInformation = new RabbitTaskInformation(
+                String.valueOf(inboundMessageId), 
+                isPoison
+            );
+            LOG.error("Cannot register new message, rejecting {}", inboundMessageId, e);
             taskInformation.incrementResponseCount(true);
             final var publishHeaders = new HashMap<String, Object>();
             publishHeaders.put(RabbitHeaders.RABBIT_HEADER_CAF_WORKER_REJECTED, REJECTED_REASON_TASKMESSAGE);
@@ -145,11 +147,13 @@ public class WorkerQueueConsumerImpl implements QueueConsumer
             }
             publisherEventQueue.add(new WorkerPublishQueueEvent(inboundByteArray, retryRoutingKey, taskInformation, publishHeaders));
         } catch (TaskRejectedException e) {
-            final RabbitTaskInformation taskInformation = new RabbitTaskInformation(String.valueOf(inboundMessageId), isPoison);
-            LOG.warn("Message {} rejected as a task at this time, returning to queue", taskInformation.getInboundMessageId(), e);
+            final RabbitTaskInformation taskInformation = new RabbitTaskInformation(
+                String.valueOf(inboundMessageId), 
+                isPoison
+            );
+            LOG.warn("Message {} rejected as a task at this time, returning to queue", inboundMessageId, e);
             taskInformation.incrementResponseCount(true);
-            publisherEventQueue.add(new WorkerPublishQueueEvent(inboundByteArray, routingKey,
-                    taskInformation, delivery.getHeaders()));
+            publisherEventQueue.add(new WorkerPublishQueueEvent(inboundByteArray, routingKey, taskInformation, delivery.getHeaders()));
         }
     }
 
