@@ -31,7 +31,7 @@ public class RabbitTaskInformation implements TaskInformation {
     private final AtomicInteger acknowledgementCount;
     private static final Logger LOG = LoggerFactory.getLogger(RabbitTaskInformation.class);
     private final boolean isPoison;
-    private final Optional<String> dehydratedTaskMessageStorageRef;
+    private final Optional<String> minimizedTaskMessageStorageRef;
     private final Optional<String> taskMessagePartialRef;
 
     public RabbitTaskInformation(final String inboundMessageId) {
@@ -45,7 +45,7 @@ public class RabbitTaskInformation implements TaskInformation {
     public RabbitTaskInformation(
         final String inboundMessageId, 
         final boolean isPoison, 
-        final Optional<String> dehydratedTaskMessageStorageRef,
+        final Optional<String> minimizedTaskMessageStorageRef,
         final Optional<String> taskMessagePartialRef
     ) {
         this(
@@ -56,7 +56,7 @@ public class RabbitTaskInformation implements TaskInformation {
             new AtomicBoolean(false), 
             new AtomicBoolean(false), 
             isPoison,
-            dehydratedTaskMessageStorageRef,
+            minimizedTaskMessageStorageRef,
             taskMessagePartialRef
         );
     }
@@ -69,7 +69,7 @@ public class RabbitTaskInformation implements TaskInformation {
         final AtomicBoolean negativeAckEventSent,
         final AtomicBoolean ackEventSent,
         final boolean isPoison, 
-        final Optional<String> dehydratedTaskMessageStorageRef,
+        final Optional<String> minimizedTaskMessageStorageRef,
         final Optional<String> taskMessagePartialRef
         ) {
         this.inboundMessageId = inboundMessageId;
@@ -79,7 +79,7 @@ public class RabbitTaskInformation implements TaskInformation {
         this.negativeAckEventSent = negativeAckEventSent;
         this.ackEventSent = ackEventSent;
         this.isPoison = isPoison;
-        this.dehydratedTaskMessageStorageRef = dehydratedTaskMessageStorageRef;
+        this.minimizedTaskMessageStorageRef = minimizedTaskMessageStorageRef;
         this.taskMessagePartialRef = taskMessagePartialRef;
     }
 
@@ -180,11 +180,12 @@ public class RabbitTaskInformation implements TaskInformation {
         return isPoison;
     }
 
-    public Optional<String> getDehydratedTaskMessageStorageRef() {
-        return dehydratedTaskMessageStorageRef;
+    public Optional<String> getMinimizedTaskMessageStorageRef() {
+        return minimizedTaskMessageStorageRef;
     }
 
     public Optional<String> getTaskMessagePartialRef() {
         return taskMessagePartialRef;
     }
 }
+

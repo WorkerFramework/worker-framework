@@ -44,7 +44,7 @@ import java.util.Objects;
 import java.util.Optional;
 import java.util.concurrent.BlockingQueue;
 
-import static com.github.workerframework.util.rabbitmq.RabbitHeaders.RABBIT_HEADER_CAF_DEHYDRATION_ID;
+import static com.github.workerframework.util.rabbitmq.RabbitHeaders.RABBIT_HEADER_CAF_MINIMIZATION_ID;
 
 /**
  * QueueConsumer implementation for a WorkerQueue. This QueueConsumer hands off messages to worker-core upon delivery assuming the message
@@ -96,7 +96,7 @@ public class WorkerQueueConsumerImpl implements QueueConsumer
                 .getOrDefault(RabbitHeaders.RABBIT_HEADER_CAF_WORKER_RETRY, "0")));
         
         final Optional<String> taskMessageStorageRefOpt = Optional.ofNullable(
-            delivery.getHeaders().get(RABBIT_HEADER_CAF_DEHYDRATION_ID)
+            delivery.getHeaders().get(RABBIT_HEADER_CAF_MINIMIZATION_ID)
         ).map(Object::toString);
 
         metrics.incrementReceived();
@@ -143,7 +143,7 @@ public class WorkerQueueConsumerImpl implements QueueConsumer
             final var publishHeaders = new HashMap<String, Object>();
             publishHeaders.put(RabbitHeaders.RABBIT_HEADER_CAF_WORKER_REJECTED, REJECTED_REASON_TASKMESSAGE);
             if (taskMessageStorageRefOpt.isPresent()) {
-                publishHeaders.put(RABBIT_HEADER_CAF_DEHYDRATION_ID, taskMessageStorageRefOpt.get());
+                publishHeaders.put(RABBIT_HEADER_CAF_MINIMIZATION_ID, taskMessageStorageRefOpt.get());
             }
             publisherEventQueue.add(new WorkerPublishQueueEvent(inboundByteArray, retryRoutingKey, taskInformation, publishHeaders));
         } catch (TaskRejectedException e) {
@@ -158,7 +158,7 @@ public class WorkerQueueConsumerImpl implements QueueConsumer
     }
 
     /**
-     * Deserialize the task message from the delivery message data. If the task message is dehydrated, retrieve it from the data store.
+     * Deserialize the task message from the delivery message data. If the task message is minimized, retrieve it from the data store.
      * 
      * @param inboundMessageId
      * @param deliveryMessageData
@@ -263,10 +263,11 @@ public class WorkerQueueConsumerImpl implements QueueConsumer
         final Map<String, Object> headers = new HashMap<>();
         headers.put(RabbitHeaders.RABBIT_HEADER_CAF_WORKER_RETRY, String.valueOf(retries + 1));
         if (taskMessageStorageRefOpt.isPresent()) {
-            headers.put(RABBIT_HEADER_CAF_DEHYDRATION_ID, taskMessageStorageRefOpt.get());
+            headers.put(RABBIT_HEADER_CAF_MINIMIZATION_ID, taskMessageStorageRefOpt.get());
         }
         taskInformation.incrementResponseCount(true);
         publisherEventQueue.add(new WorkerPublishQueueEvent(delivery.getMessageData(), retryRoutingKey, 
                 taskInformation, headers));
     }
 }
+

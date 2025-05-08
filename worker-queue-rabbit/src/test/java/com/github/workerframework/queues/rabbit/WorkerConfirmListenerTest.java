@@ -43,11 +43,11 @@ public class WorkerConfirmListenerTest
     }
 
     @Test
-    public void testAckCallsDeleteDehydratedMessage()
+    public void testAckCallsDeleteMinimizedMessage()
         throws IOException, InterruptedException, DataStoreException {
         BlockingQueue<Event<QueueConsumer>> q = new LinkedBlockingQueue<>();
         WorkerConfirmListener conf = new WorkerConfirmListener(q, dataStore);
-        RabbitTaskInformation rabbitTaskInformation = new RabbitTaskInformation("100", false, Optional.of("dehydrated"), Optional.of("partial_ref"));
+        RabbitTaskInformation rabbitTaskInformation = new RabbitTaskInformation("100", false, Optional.of("minimized"), Optional.of("partial_ref"));
         rabbitTaskInformation.incrementResponseCount(true);
         conf.registerResponseSequence(1, rabbitTaskInformation);
         conf.handleAck(1, false);
@@ -55,7 +55,7 @@ public class WorkerConfirmListenerTest
         Assert.assertNotNull(e);
         Assert.assertTrue(e instanceof ConsumerAckEvent);
         Assert.assertEquals(100, ((ConsumerAckEvent) e).getTag());
-        Mockito.verify(dataStore, Mockito.times(1)).delete("dehydrated");
+        Mockito.verify(dataStore, Mockito.times(1)).delete("minimized");
     }
     
     @Test
@@ -376,3 +376,4 @@ public class WorkerConfirmListenerTest
         conf.handleNack(2, false);
     }
 }
+

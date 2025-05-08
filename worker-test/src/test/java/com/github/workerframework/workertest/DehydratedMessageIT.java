@@ -38,9 +38,9 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.TimeoutException;
 
-import static com.github.workerframework.util.rabbitmq.RabbitHeaders.RABBIT_HEADER_CAF_DEHYDRATION_ID;
+import static com.github.workerframework.util.rabbitmq.RabbitHeaders.RABBIT_HEADER_CAF_MINIMIZATION_ID;
 
-public class DehydratedMessageIT extends TestWorkerTestBase{
+public class MinimizedMessageIT extends TestWorkerTestBase {
     private static final String TEST_WORKER_NAME = "testWorkerIdentifier";
     private static final String WORKER_IN = "worker-in";
     private static final String TESTWORKER_OUT = "testworker-out";
@@ -48,33 +48,33 @@ public class DehydratedMessageIT extends TestWorkerTestBase{
     private static final String webdav_url = System.getProperty("webdav_url");
 
     @Test
-    public void checkDehydratedMessageIsConsumedAndDeletedOnAck() throws CodecException, IOException, TimeoutException 
+    public void checkMinimizedMessageIsConsumedAndDeletedOnAck() throws CodecException, IOException, TimeoutException 
     {
-        final String setupDehydratedMessageStorageRef = setupDehydratedMessage(1);        
+        final String setupMinimizedMessageStorageRef = setupMinimizedMessage(1);        
         try(final Connection connection = connectionFactory.newConnection()) {
             final Channel channel = prepareChannel(connection);
             //  Now we can send a message which expects to find the taskMessageStorageRef.
             final Map<String, Object> headers = new HashMap<>();
-            headers.put(RABBIT_HEADER_CAF_DEHYDRATION_ID, setupDehydratedMessageStorageRef);
-            // this publish will result in a dehydratedMessage being recovered by the consumer.
-            // the body will be ignored as the dehydrated message will be used.
+            headers.put(RABBIT_HEADER_CAF_MINIMIZATION_ID, setupMinimizedMessageStorageRef);
+            // this publish will result in a minimizedMessage being recovered by the consumer.
+            // the body will be ignored as the minimized message will be used.
             publish(channel, new byte[0], headers);
             
             final TestWorkerQueueConsumer consumer = new TestWorkerQueueConsumer();
             consume(channel, consumer);
             final String consumedTaskMessageStorageRef = getTaskMessageStorageRef(consumer);
-            Assert.assertNotEquals(consumedTaskMessageStorageRef, setupDehydratedMessageStorageRef, "Storage refs should have been different");
+            Assert.assertNotEquals(consumedTaskMessageStorageRef, setupMinimizedMessageStorageRef, "Storage refs should have been different");
 
             final var publishedHeaders = consumer.getHeaders();
-            Assert.assertTrue(publishedHeaders.containsKey(RABBIT_HEADER_CAF_DEHYDRATION_ID), "Should have the dehydration header:" + publishedHeaders);
+            Assert.assertTrue(publishedHeaders.containsKey(RABBIT_HEADER_CAF_MINIMIZATION_ID), "Should have the minimization header:" + publishedHeaders);
             
-            // The previously dehydrated message should now have been deleted by the confirm listener
-            final String deletedPath = String.format("%s/%s", webdav_url, setupDehydratedMessageStorageRef);
-            Assert.assertFalse(dehydratedMessageExists(deletedPath), "setup message should not have been found");
+            // The previously minimized message should now have been deleted by the confirm listener
+            final String deletedPath = String.format("%s/%s", webdav_url, setupMinimizedMessageStorageRef);
+            Assert.assertFalse(minimizedMessageExists(deletedPath), "setup message should not have been found");
 
             // The previously published message should be present in the datastore
-            final String dehydratedPath = String.format("%s/%s", webdav_url, consumedTaskMessageStorageRef);
-            Assert.assertTrue(dehydratedMessageExists(dehydratedPath), "Dehydrated message should have been found");
+            final String minimizedPath = String.format("%s/%s", webdav_url, consumedTaskMessageStorageRef);
+            Assert.assertTrue(minimizedMessageExists(minimizedPath), "Minimized message should have been found");
         }
     }
     
@@ -112,7 +112,7 @@ public class DehydratedMessageIT extends TestWorkerTestBase{
     }
 
     /**
-     * This method will send a message to the worker-in queue and return the storage ref of the dehydrated message stored 
+     * This method will send a message to the worker-in queue and return the storage ref of the minimized message stored 
      * in the datastore on publish to the worker-out queue.
      * @param taskNumber
      * @return
@@ -120,7 +120,7 @@ public class DehydratedMessageIT extends TestWorkerTestBase{
      * @throws TimeoutException
      * @throws CodecException
      */
-    private String setupDehydratedMessage(final int taskNumber) throws IOException, TimeoutException, CodecException {
+    private String setupMinimizedMessage(final int taskNumber) throws IOException, TimeoutException, CodecException {
         try(final Connection connection = connectionFactory.newConnection()) {
             final Channel channel = prepareChannel(connection);
             publish(channel, buildTaskMessageByteArray(taskNumber), new HashMap<>());
@@ -132,13 +132,13 @@ public class DehydratedMessageIT extends TestWorkerTestBase{
             
             final String taskMessageStorageRef = getTaskMessageStorageRef(consumer);
             final String webdavPath = String.format("%s/%s", webdav_url, taskMessageStorageRef);
-            Assert.assertTrue(dehydratedMessageExists(webdavPath), "Dehydrated message not found at " + webdavPath);
+            Assert.assertTrue(minimizedMessageExists(webdavPath), "Minimized message not found at " + webdavPath);
             return taskMessageStorageRef;
         }
     }
 
     /**
-     * This method will return the storage ref of the dehydrated message stored in the datastore on publish to the 
+     * This method will return the storage ref of the minimized message stored in the datastore on publish to the 
      * worker-out queue.
      * @param messageConsumer
      * @return
@@ -146,10 +146,10 @@ public class DehydratedMessageIT extends TestWorkerTestBase{
     private String getTaskMessageStorageRef(final TestWorkerQueueConsumer messageConsumer)
     {
         final Map<String, Object> outgoingHeaders = messageConsumer.getHeaders();
-        final Optional<String> outgoingTaskMessageStorageRef = outgoingHeaders.containsKey(RABBIT_HEADER_CAF_DEHYDRATION_ID) ?
-            Optional.of(outgoingHeaders.get(RABBIT_HEADER_CAF_DEHYDRATION_ID).toString()) :
+        final Optional<String> outgoingTaskMessageStorageRef = outgoingHeaders.containsKey(RABBIT_HEADER_CAF_MINIMIZATION_ID) ?
+            Optional.of(outgoingHeaders.get(RABBIT_HEADER_CAF_MINIMIZATION_ID).toString()) :
             Optional.empty();
-        Assert.assertTrue(outgoingTaskMessageStorageRef.isPresent(), "The dehydration header was missing");
+        Assert.assertTrue(outgoingTaskMessageStorageRef.isPresent(), "The minimization header was missing");
         return outgoingTaskMessageStorageRef.get();
     }
     
@@ -173,7 +173,7 @@ public class DehydratedMessageIT extends TestWorkerTestBase{
      * @return
      * @throws IOException
      */
-    private static boolean dehydratedMessageExists(final String path) throws IOException 
+    private static boolean minimizedMessageExists(final String path) throws IOException 
     {
         
         URL url = new URL(path);
@@ -192,3 +192,4 @@ public class DehydratedMessageIT extends TestWorkerTestBase{
         return channel;
     }
 }
+

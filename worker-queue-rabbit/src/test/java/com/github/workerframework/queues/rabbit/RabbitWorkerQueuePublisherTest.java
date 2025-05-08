@@ -72,8 +72,8 @@ public class RabbitWorkerQueuePublisherTest
     public static void beforeClass() {
         codec = new JsonCodec();
         config = Mockito.mock(RabbitWorkerQueueConfiguration.class);
-        when(config.getIsDehydrationEnabled()).thenReturn(false);
-        when(config.getDehydrationThreshold()).thenReturn(1);
+        when(config.getIsMinimizationEnabled()).thenReturn(false);
+        when(config.getMinimizationThreshold()).thenReturn(1);
     }
 
     @BeforeMethod
@@ -109,7 +109,7 @@ public class RabbitWorkerQueuePublisherTest
     }
 
     @Test
-    public void testPublisherDehydratesTheOutgoingMessage()
+    public void testPublisherMinimizesTheOutgoingMessage()
         throws InterruptedException, IOException, CodecException
     {
         final var trackingInfo = new TrackingInfo("task1", new Date(), 1, "http://hello.com", "pipe", "to");
@@ -119,9 +119,9 @@ public class RabbitWorkerQueuePublisherTest
         when(taskInformation.getInboundMessageId()).thenReturn("task1");
         when(taskInformation.getTaskMessagePartialRef()).thenReturn(Optional.of(partialRef));
         
-        final RabbitWorkerQueueConfiguration dehydrationEnabledCfg = Mockito.mock(RabbitWorkerQueueConfiguration.class);
-        when(dehydrationEnabledCfg.getIsDehydrationEnabled()).thenReturn(true);
-        when(dehydrationEnabledCfg.getDehydrationThreshold()).thenReturn(1);
+        final RabbitWorkerQueueConfiguration minimizationEnabledCfg = Mockito.mock(RabbitWorkerQueueConfiguration.class);
+        when(minimizationEnabledCfg.getIsMinimizationEnabled()).thenReturn(true);
+        when(minimizationEnabledCfg.getMinimizationThreshold()).thenReturn(1);
 
         final BlockingQueue<Event<QueueConsumer>> consumerEvents = new LinkedBlockingQueue<>();
         final BlockingQueue<Event<WorkerPublisher>> publisherEvents = new LinkedBlockingQueue<>();
@@ -133,7 +133,7 @@ public class RabbitWorkerQueuePublisherTest
         };
         Mockito.doAnswer(a).when(channel).basicPublish(Mockito.any(), Mockito.eq(testQueue), Mockito.any(), Mockito.eq(data));
         final WorkerConfirmListener listener = new WorkerConfirmListener(consumerEvents, dataStore);
-        final WorkerPublisher impl = new WorkerPublisherImpl(channel, metrics, consumerEvents, listener, dataStore, dehydrationEnabledCfg, codec);
+        final WorkerPublisher impl = new WorkerPublisherImpl(channel, metrics, consumerEvents, listener, dataStore, minimizationEnabledCfg, codec);
         final EventPoller<WorkerPublisher> publisher = new EventPoller<>(2, publisherEvents, impl);
         final Thread t = new Thread(publisher);
         t.start();
@@ -155,8 +155,8 @@ public class RabbitWorkerQueuePublisherTest
         publisher.shutdown();
 
         try {
-            final var rehydratedByteArray = dataStore.retrieveStoredByteArray(partialRef);
-            Assert.assertEquals(outboundByteArray, rehydratedByteArray, "The dehydrated message did not match");
+            final var minimizedByteArray = dataStore.retrieveStoredByteArray(partialRef);
+            Assert.assertEquals(outboundByteArray, minimizedByteArray, "The minimized message did not match");
         } catch (final DataStoreException ex){
             fail("Unable to retrieve the stored message", ex);
         }
@@ -251,3 +251,4 @@ public class RabbitWorkerQueuePublisherTest
         }
     }
 }
+
