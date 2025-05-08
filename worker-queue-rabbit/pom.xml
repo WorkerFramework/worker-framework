@@ -61,6 +61,16 @@
             <artifactId>caf-api</artifactId>
         </dependency>
         <dependency>
+            <groupId>com.github.cafapi.common</groupId>
+            <artifactId>codec-json</artifactId>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>com.github.workerframework</groupId>
+            <artifactId>worker-store-fs</artifactId>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
             <groupId>org.testng</groupId>
             <artifactId>testng</artifactId>
             <scope>test</scope>

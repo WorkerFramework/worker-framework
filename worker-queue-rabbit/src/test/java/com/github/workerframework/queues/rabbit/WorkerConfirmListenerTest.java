@@ -47,7 +47,7 @@ public class WorkerConfirmListenerTest
         throws IOException, InterruptedException, DataStoreException {
         BlockingQueue<Event<QueueConsumer>> q = new LinkedBlockingQueue<>();
         WorkerConfirmListener conf = new WorkerConfirmListener(q, dataStore);
-        RabbitTaskInformation rabbitTaskInformation = new RabbitTaskInformation("100", false, Optional.of("dehydrated"));
+        RabbitTaskInformation rabbitTaskInformation = new RabbitTaskInformation("100", false, Optional.of("dehydrated"), Optional.of("partial_ref"));
         rabbitTaskInformation.incrementResponseCount(true);
         conf.registerResponseSequence(1, rabbitTaskInformation);
         conf.handleAck(1, false);
