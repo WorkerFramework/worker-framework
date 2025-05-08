@@ -33,7 +33,7 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 
-import static com.github.workerframework.util.rabbitmq.RabbitHeaders.RABBIT_HEADER_CAF_DEHYDRATION_ID;
+import static com.github.workerframework.util.rabbitmq.RabbitHeaders.RABBIT_HEADER_CAF_MINIMIZATION_ID;
 
 public class TestWorkerTestBase {
     final protected ConnectionFactory connectionFactory;
@@ -66,8 +66,8 @@ public class TestWorkerTestBase {
      */
     public static String getTaskMessageStorageRef(final TestWorkerQueueConsumer messageConsumer) {
         final Map<String, Object> outgoingHeaders = messageConsumer.getHeaders();
-        final Optional<String> outgoingTaskMessageStorageRef = outgoingHeaders.containsKey(RABBIT_HEADER_CAF_DEHYDRATION_ID) ?
-            Optional.of(outgoingHeaders.get(RABBIT_HEADER_CAF_DEHYDRATION_ID).toString()) :
+        final Optional<String> outgoingTaskMessageStorageRef = outgoingHeaders.containsKey(RABBIT_HEADER_CAF_MINIMIZATION_ID) ?
+            Optional.of(outgoingHeaders.get(RABBIT_HEADER_CAF_MINIMIZATION_ID).toString()) :
             Optional.empty();
         Assert.assertTrue(outgoingTaskMessageStorageRef.isPresent(), "The dehydration header was missing");
         return outgoingTaskMessageStorageRef.get();
