@@ -188,4 +188,3 @@ public class RabbitTaskInformation implements TaskInformation {
         return taskMessagePartialRef;
     }
 }
-

@@ -192,4 +192,3 @@ public class MinimizedMessageIT extends TestWorkerTestBase {
         return channel;
     }
 }
-

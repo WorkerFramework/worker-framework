@@ -136,4 +136,3 @@ public class WorkerPublisherImpl implements WorkerPublisher
         return taskMessage;
     }
 }
-
