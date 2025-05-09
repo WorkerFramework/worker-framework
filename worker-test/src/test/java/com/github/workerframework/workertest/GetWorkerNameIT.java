@@ -16,7 +16,6 @@
 package com.github.workerframework.workertest;
 
 import com.github.cafapi.common.api.Codec;
-import com.github.cafapi.common.api.CodecException;
 import com.github.cafapi.common.codecs.json.JsonCodec;
 import com.github.workerframework.api.TrackingInfo;
 import com.github.workerframework.testworker.TestWorkerTask;
@@ -106,7 +105,7 @@ public class GetWorkerNameIT extends TestWorkerTestBase {
             final String taskData = new String(decodedBody.getTaskData(), StandardCharsets.UTF_8);
 
             Assert.assertTrue(taskData.contains(WORKER_FRIENDLY_NAME));
-            Assert.assertTrue(taskData.contains(POISON_ERROR_MESSAGE));
+            Assert.assertFalse(taskData.contains(POISON_ERROR_MESSAGE));
         }
     }
 }

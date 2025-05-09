@@ -27,17 +27,13 @@ import com.rabbitmq.client.Connection;
 import com.rabbitmq.client.Channel;
 import com.rabbitmq.client.AMQP;
 import org.testng.Assert;
-import org.testng.annotations.Ignore;
 import org.testng.annotations.Test;
 
-import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.concurrent.TimeoutException;
 
-@Ignore
 public class PoisonMessageIT  extends TestWorkerTestBase{
     private static final String POISON_ERROR_MESSAGE = "could not process the item.";
     private static final String WORKER_FRIENDLY_NAME = "TestWorker";
@@ -50,9 +46,8 @@ public class PoisonMessageIT  extends TestWorkerTestBase{
     @Test
     public void getWorkerNameInPoisonMessageTest() throws Exception {
 
-        try(final Connection connection = connectionFactory.newConnection()) {
-
-            final Channel channel = connection.createChannel();
+        try(final Connection connection = connectionFactory.newConnection();
+            final Channel channel = connection.createChannel()) {
 
             final Map<String, Object> args = new HashMap<>();
             args.put(QueueCreator.RABBIT_PROP_QUEUE_TYPE, QueueCreator.RABBIT_PROP_QUEUE_TYPE_QUORUM);
@@ -90,7 +85,7 @@ public class PoisonMessageIT  extends TestWorkerTestBase{
 
                     Thread.sleep(100);
 
-                    if (poisonConsumer.getLastDeliveredBody() != null){
+                    if (poisonConsumer.getHeaders() != null){
                         break;
                     }
                 }
