@@ -46,8 +46,9 @@ public class MinimizedMessageIT extends TestWorkerTestBase {
     @Test
     public void checkMinimizedMessageIsConsumedAndDeletedOnAck() throws Exception {
         final String setupMinimizedMessageStorageRef = setupMinimizedMessage(1);
-        try(final Connection connection = connectionFactory.newConnection()) {
-            final Channel channel = prepareChannel(connection);
+        try(final Connection connection = connectionFactory.newConnection(); 
+            final Channel channel = prepareChannel(connection)) {
+
             //  Now we can send a message which expects to find the taskMessageStorageRef.
             final Map<String, Object> headers = new HashMap<>();
             headers.put(RABBIT_HEADER_CAF_MINIMIZATION_ID, setupMinimizedMessageStorageRef);
@@ -113,14 +114,11 @@ public class MinimizedMessageIT extends TestWorkerTestBase {
      * @throws CodecException
      */
     private String setupMinimizedMessage(final int taskNumber) throws Exception {
-        try(final Connection connection = connectionFactory.newConnection()) {
-            final Channel channel = prepareChannel(connection);
+        try(final Connection connection = connectionFactory.newConnection();
+            final Channel channel = prepareChannel(connection);) {            
             publish(channel, buildTaskMessageByteArray(taskNumber), new HashMap<>());
-
             final TestWorkerQueueConsumer consumer = new TestWorkerQueueConsumer();
             consume(channel, consumer);
-
-            channel.close();
 
             final String taskMessageStorageRef = getTaskMessageStorageRef(consumer);
             final var storedByteArrayOpt = readFileFromWebDAV(taskMessageStorageRef);

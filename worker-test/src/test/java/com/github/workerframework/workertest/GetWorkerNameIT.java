@@ -47,26 +47,13 @@ public class GetWorkerNameIT extends TestWorkerTestBase {
     @Test
     public void getWorkerNameInPoisonMessageTest() throws Exception {
 
-        try(final Connection connection = connectionFactory.newConnection()) {
-
-            final Channel channel = connection.createChannel();
+        try(final Connection connection = connectionFactory.newConnection();
+            final Channel channel = connection.createChannel()) {
 
             final Map<String, Object> args = new HashMap<>();
             args.put(QueueCreator.RABBIT_PROP_QUEUE_TYPE, QueueCreator.RABBIT_PROP_QUEUE_TYPE_QUORUM);
-
+            channel.queueDeclare(WORKER_IN, true, false, false, args);
             channel.queueDeclare(TESTWORKER_OUT, true, false, false, args);
-
-            final TestWorkerQueueConsumer poisonConsumer = new TestWorkerQueueConsumer();
-            channel.basicConsume(TESTWORKER_OUT, true, poisonConsumer);
-
-            final Map<String, Object> retryLimitHeaders = new HashMap<>();
-            retryLimitHeaders.put(RabbitHeaders.RABBIT_HEADER_CAF_DELIVERY_COUNT, 2);
-
-            final AMQP.BasicProperties properties = new AMQP.BasicProperties.Builder()
-                    .headers(retryLimitHeaders)
-                    .contentType("application/json")
-                    .deliveryMode(2)
-                    .build();
 
             final TaskMessage requestTaskMessage = new TaskMessage();
 
@@ -83,6 +70,18 @@ public class GetWorkerNameIT extends TestWorkerTestBase {
             final var trackingInfo = new TrackingInfo("GetWorkerNameIT" + TASK_NUMBER, new Date(), 1, null, "pipe", WORKER_IN);
             requestTaskMessage.setTracking(trackingInfo);
 
+            final TestWorkerQueueConsumer poisonConsumer = new TestWorkerQueueConsumer();
+            channel.basicConsume(TESTWORKER_OUT, true, poisonConsumer);
+
+            final Map<String, Object> retryLimitHeaders = new HashMap<>();
+            retryLimitHeaders.put(RabbitHeaders.RABBIT_HEADER_CAF_DELIVERY_COUNT, 2);
+
+            final AMQP.BasicProperties properties = new AMQP.BasicProperties.Builder()
+                .headers(retryLimitHeaders)
+                .contentType("application/json")
+                .deliveryMode(2)
+                .build();
+
             channel.basicPublish("", WORKER_IN, properties, codec.serialise(requestTaskMessage));
 
             try {
@@ -90,7 +89,7 @@ public class GetWorkerNameIT extends TestWorkerTestBase {
 
                     Thread.sleep(100);
 
-                    if (poisonConsumer.getLastDeliveredBody() != null){
+                    if (poisonConsumer.getHeaders() != null){
                         break;
                     }
                 }
