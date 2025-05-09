@@ -96,6 +96,7 @@ public class PoisonMessageIT  extends TestWorkerTestBase{
                 throw new RuntimeException(e);
             }
 
+            // With the minimization update we expect to get the message in the datastore
             final String consumedTaskMessageStorageRef = getTaskMessageStorageRef(poisonConsumer);
             final var consumedByteArrayOpt = readFileFromWebDAV(consumedTaskMessageStorageRef);
             final TaskMessage decodedBody = codec.deserialise(consumedByteArrayOpt.get(), TaskMessage.class);

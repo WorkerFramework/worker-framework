@@ -98,7 +98,7 @@ public class GetWorkerNameIT extends TestWorkerTestBase {
                 throw new RuntimeException(e);
             }
             
-            // With the minimization update I'd expected to get the message in the datastore
+            // With the minimization update we expect to get the message in the datastore
             final String poisonMessageStorageRef = getTaskMessageStorageRef(poisonConsumer);
             final var poisonMessageByteArrayOpt = readFileFromWebDAV(poisonMessageStorageRef);
             Assert.assertTrue(poisonMessageByteArrayOpt.isPresent(), "Minimized message should have been found");
