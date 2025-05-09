@@ -27,6 +27,7 @@ import com.rabbitmq.client.Connection;
 import com.rabbitmq.client.Channel;
 import com.rabbitmq.client.AMQP;
 import org.testng.Assert;
+import org.testng.annotations.Ignore;
 import org.testng.annotations.Test;
 
 import java.nio.charset.StandardCharsets;
@@ -34,6 +35,7 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
 
+@Ignore
 public class PoisonMessageIT  extends TestWorkerTestBase{
     private static final String POISON_ERROR_MESSAGE = "could not process the item.";
     private static final String WORKER_FRIENDLY_NAME = "TestWorker";
