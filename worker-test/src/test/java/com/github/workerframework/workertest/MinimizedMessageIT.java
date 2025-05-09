@@ -30,6 +30,7 @@ import org.testng.Assert;
 import org.testng.annotations.Test;
 
 import java.io.IOException;
+import java.nio.charset.StandardCharsets;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
@@ -43,6 +44,8 @@ public class MinimizedMessageIT extends TestWorkerTestBase {
     private static final String WORKER_IN = "worker-in";
     private static final String TESTWORKER_OUT = "testworker-out";
     private static final Codec codec = new JsonCodec();
+    private static final String POISON_ERROR_MESSAGE = "could not process the item.";
+    private static final String WORKER_FRIENDLY_NAME = "TestWorker";
 
     @Test
     public void checkMinimizedMessageIsConsumedAndDeletedOnAck() throws Exception {
@@ -101,6 +104,12 @@ public class MinimizedMessageIT extends TestWorkerTestBase {
             // The previously published message should be present in the datastore
             final var consumedByteArrayOpt = readFileFromWebDAV(consumedTaskMessageStorageRef);
             Assert.assertTrue(consumedByteArrayOpt.isPresent(), "Minimized message should have been found");
+
+            final TaskMessage decodedBody = codec.deserialise(consumedByteArrayOpt.get(), TaskMessage.class);
+            final String taskData = new String(decodedBody.getTaskData(), StandardCharsets.UTF_8);
+
+            Assert.assertTrue(taskData.contains(WORKER_FRIENDLY_NAME));
+            Assert.assertTrue(taskData.contains(POISON_ERROR_MESSAGE));
         }
     }
 
