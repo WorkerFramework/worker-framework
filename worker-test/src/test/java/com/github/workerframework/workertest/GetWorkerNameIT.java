@@ -30,6 +30,7 @@ import com.rabbitmq.client.AMQP;
 import org.testng.annotations.Test;
 import org.testng.Assert;
 
+import java.nio.charset.StandardCharsets;
 import java.util.Date;
 import java.util.Map;
 import java.util.HashMap;
@@ -102,12 +103,11 @@ public class GetWorkerNameIT extends TestWorkerTestBase {
             final var poisonMessageByteArrayOpt = readFileFromWebDAV(poisonMessageStorageRef);
             Assert.assertTrue(poisonMessageByteArrayOpt.isPresent(), "Minimized message should have been found");
             
-//            Assert.assertNotNull(poisonConsumer.getLastDeliveredBody());
-//            final TaskMessage decodedBody = codec.deserialise(poisonConsumer.getLastDeliveredBody(), TaskMessage.class);
-//            final String taskData = new String(decodedBody.getTaskData(), StandardCharsets.UTF_8);
-//
-//            Assert.assertTrue(taskData.contains(POISON_ERROR_MESSAGE));
-//            Assert.assertTrue(taskData.contains(WORKER_FRIENDLY_NAME));
+            final TaskMessage decodedBody = codec.deserialise(poisonMessageByteArrayOpt.get(), TaskMessage.class);
+            final String taskData = new String(decodedBody.getTaskData(), StandardCharsets.UTF_8);
+
+            Assert.assertTrue(taskData.contains(POISON_ERROR_MESSAGE));
+            Assert.assertTrue(taskData.contains(WORKER_FRIENDLY_NAME));
         }
     }
 }
