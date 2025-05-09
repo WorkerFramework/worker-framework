@@ -28,7 +28,6 @@ import java.io.InputStream;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.util.Map;
-import java.util.Objects;
 import java.util.Optional;
 
 import static com.github.workerframework.util.rabbitmq.RabbitHeaders.RABBIT_HEADER_CAF_MINIMIZATION_ID;
@@ -48,12 +47,6 @@ public class TestWorkerTestBase {
         connectionFactory.setUsername(System.getProperty(CAF_RABBITMQ_USERNAME));
         connectionFactory.setPassword(System.getProperty(CAF_RABBITMQ_PASSWORD));
         connectionFactory.setVirtualHost("/");
-    }
-
-    private static String getEnvOrDefault(final String name, final String defaultValue) {
-        final String value = System.getenv(name);
-
-        return value != null && !Objects.equals(value, "") ? value : defaultValue;
     }
 
     /**
