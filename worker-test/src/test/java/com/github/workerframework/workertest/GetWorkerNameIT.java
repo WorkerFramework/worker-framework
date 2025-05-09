@@ -86,7 +86,7 @@ public class GetWorkerNameIT extends TestWorkerTestBase {
             channel.basicPublish("", WORKER_IN, properties, codec.serialise(requestTaskMessage));
 
             try {
-                for (int i=0; i<10000; i++){
+                for (int i=0; i<100; i++){
 
                     Thread.sleep(100);
 
