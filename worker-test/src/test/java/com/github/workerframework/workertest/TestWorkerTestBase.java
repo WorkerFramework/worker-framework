@@ -15,8 +15,6 @@
  */
 package com.github.workerframework.workertest;
 
-import com.github.workerframework.api.TaskMessage;
-
 import com.rabbitmq.client.AMQP;
 import com.rabbitmq.client.ConnectionFactory;
 import com.rabbitmq.client.Consumer;
@@ -41,14 +39,14 @@ public class TestWorkerTestBase {
     private static final String CAF_RABBITMQ_PORT = "CAF_RABBITMQ_PORT";
     private static final String CAF_RABBITMQ_USERNAME = "CAF_RABBITMQ_USERNAME";
     private static final String CAF_RABBITMQ_PASSWORD = "CAF_RABBITMQ_PASSWORD";
-    public static final String webdav_url = System.getProperty("webdav_url");
+    public static final String WEBDAV_URL = System.getProperty("WEBDAV_URL");
 
     public TestWorkerTestBase() {
         connectionFactory = new ConnectionFactory();
-        connectionFactory.setHost(getEnvOrDefault(CAF_RABBITMQ_HOST, "localhost"));
-        connectionFactory.setPort(Integer.parseInt(getEnvOrDefault(CAF_RABBITMQ_PORT, "25672")));
-        connectionFactory.setUsername(getEnvOrDefault(CAF_RABBITMQ_USERNAME, "guest"));
-        connectionFactory.setPassword(getEnvOrDefault(CAF_RABBITMQ_PASSWORD, "guest"));
+        connectionFactory.setHost(System.getProperty(CAF_RABBITMQ_HOST));
+        connectionFactory.setPort(Integer.parseInt(System.getProperty(CAF_RABBITMQ_PORT)));
+        connectionFactory.setUsername(System.getProperty(CAF_RABBITMQ_USERNAME));
+        connectionFactory.setPassword(System.getProperty(CAF_RABBITMQ_PASSWORD));
         connectionFactory.setVirtualHost("/");
     }
 
@@ -74,7 +72,7 @@ public class TestWorkerTestBase {
     }
     
     public static Optional<byte[]> readFileFromWebDAV(final String messageStorageRef) throws Exception {
-        final String fileUrl = String.format("%s/%s", webdav_url, messageStorageRef);
+        final String fileUrl = String.format("%s/%s", WEBDAV_URL, messageStorageRef);
         URL url = new URL(fileUrl);
         HttpURLConnection conn = (HttpURLConnection) url.openConnection();
         conn.setRequestMethod("GET");

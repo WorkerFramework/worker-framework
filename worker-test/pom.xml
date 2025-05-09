@@ -100,7 +100,11 @@
                         </goals>
                         <configuration>
                             <systemPropertyVariables>
-                                <webdav_url>http://${docker.host.address}:${webdav.port}/webdav</webdav_url>
+                                <WEBDAV_URL>http://${docker.host.address}:${webdav.port}/webdav</WEBDAV_URL>
+                                <CAF_RABBITMQ_HOST>${docker.host.address}</CAF_RABBITMQ_HOST>
+                                <CAF_RABBITMQ_PORT>${rabbitmq.node.port}</CAF_RABBITMQ_PORT>
+                                <CAF_RABBITMQ_USERNAME>guest</CAF_RABBITMQ_USERNAME>
+                                <CAF_RABBITMQ_PASSWORD>guest</CAF_RABBITMQ_PASSWORD>
                             </systemPropertyVariables>
                         </configuration>
                     </execution>

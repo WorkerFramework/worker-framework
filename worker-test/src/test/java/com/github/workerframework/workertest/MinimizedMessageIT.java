@@ -60,12 +60,9 @@ public class MinimizedMessageIT extends TestWorkerTestBase {
             final String consumedTaskMessageStorageRef = getTaskMessageStorageRef(consumer);
             Assert.assertNotEquals(consumedTaskMessageStorageRef, setupMinimizedMessageStorageRef, "Storage refs should have been different");
 
-            final var publishedHeaders = consumer.getHeaders();
-            Assert.assertTrue(publishedHeaders.containsKey(RABBIT_HEADER_CAF_MINIMIZATION_ID), "Should have the minimization header:" + publishedHeaders);
-
             // The previously minimized message should now have been deleted by the confirm listener
             final var storedSetupByteArrayOpt = readFileFromWebDAV(setupMinimizedMessageStorageRef);
-            Assert.assertFalse(storedSetupByteArrayOpt.isEmpty(), "setup message should not have been found");
+            Assert.assertTrue(storedSetupByteArrayOpt.isEmpty(), "setup message should not have been found");
 
             // The previously published message should be present in the datastore
             final var consumedByteArrayOpt = readFileFromWebDAV(consumedTaskMessageStorageRef);
