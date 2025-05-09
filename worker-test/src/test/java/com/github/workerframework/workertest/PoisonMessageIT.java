@@ -46,7 +46,7 @@ public class PoisonMessageIT  extends TestWorkerTestBase{
     private static final Codec codec = new JsonCodec();
 
     @Test
-    public void getWorkerNameInPoisonMessageTest() throws IOException, TimeoutException, CodecException {
+    public void getWorkerNameInPoisonMessageTest() throws Exception {
 
         try(final Connection connection = connectionFactory.newConnection()) {
 
@@ -96,8 +96,9 @@ public class PoisonMessageIT  extends TestWorkerTestBase{
                 throw new RuntimeException(e);
             }
 
-            Assert.assertNotNull(poisonConsumer.getLastDeliveredBody());
-            final TaskMessage decodedBody = codec.deserialise(poisonConsumer.getLastDeliveredBody(), TaskMessage.class);
+            final String consumedTaskMessageStorageRef = getTaskMessageStorageRef(poisonConsumer);
+            final var consumedByteArrayOpt = readFileFromWebDAV(consumedTaskMessageStorageRef);
+            final TaskMessage decodedBody = codec.deserialise(consumedByteArrayOpt.get(), TaskMessage.class);
             final String taskData = new String(decodedBody.getTaskData(), StandardCharsets.UTF_8);
 
             Assert.assertTrue(taskData.contains(POISON_ERROR_MESSAGE));
