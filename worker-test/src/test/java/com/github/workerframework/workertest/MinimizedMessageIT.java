@@ -109,7 +109,8 @@ public class MinimizedMessageIT extends TestWorkerTestBase {
             final String taskData = new String(decodedBody.getTaskData(), StandardCharsets.UTF_8);
 
             Assert.assertTrue(taskData.contains(WORKER_FRIENDLY_NAME));
-            Assert.assertTrue(taskData.contains(POISON_ERROR_MESSAGE), "Got:" + new String(consumedByteArrayOpt.get()));
+            Assert.assertTrue(taskData.contains(POISON_ERROR_MESSAGE), 
+                "Got:" + new String(consumedByteArrayOpt.get()) + " taskdata:" + taskData);
         }
     }
 
