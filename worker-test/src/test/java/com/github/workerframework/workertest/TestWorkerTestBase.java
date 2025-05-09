@@ -33,10 +33,10 @@ public class TestWorkerTestBase {
 
     public TestWorkerTestBase() {
         connectionFactory = new ConnectionFactory();
-        connectionFactory.setHost(getEnvOrDefault(CAF_RABBITMQ_HOST, "localhost"));
-        connectionFactory.setPort(Integer.parseInt(getEnvOrDefault(CAF_RABBITMQ_PORT, "25672")));
-        connectionFactory.setUsername(getEnvOrDefault(CAF_RABBITMQ_USERNAME, "guest"));
-        connectionFactory.setPassword(getEnvOrDefault(CAF_RABBITMQ_PASSWORD, "guest"));
+        connectionFactory.setHost(System.getProperty(CAF_RABBITMQ_HOST));
+        connectionFactory.setPort(Integer.parseInt(System.getProperty(CAF_RABBITMQ_PORT)));
+        connectionFactory.setUsername(System.getProperty(CAF_RABBITMQ_USERNAME));
+        connectionFactory.setPassword(System.getProperty(CAF_RABBITMQ_PASSWORD));
         connectionFactory.setVirtualHost("/");
     }
 
