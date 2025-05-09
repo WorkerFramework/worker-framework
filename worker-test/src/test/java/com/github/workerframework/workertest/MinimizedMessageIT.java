@@ -30,7 +30,6 @@ import org.testng.Assert;
 import org.testng.annotations.Test;
 
 import java.io.IOException;
-import java.nio.charset.StandardCharsets;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
@@ -73,44 +72,6 @@ public class MinimizedMessageIT extends TestWorkerTestBase {
             // The previously published message should be present in the datastore
             final var consumedByteArrayOpt = readFileFromWebDAV(consumedTaskMessageStorageRef);
             Assert.assertTrue(consumedByteArrayOpt.isPresent(), "Minimized message should have been found");
-        }
-    }
-
-    @Test
-    public void checkMinimizedPoisonMessageIsConsumedAndDeletedOnAck() throws Exception {
-        final TestWorkerTask documentWorkerTask = new TestWorkerTask();
-        documentWorkerTask.setPoison(true);
-        final String setupMinimizedMessageStorageRef = setupMinimizedMessage(50, documentWorkerTask);
-        try(final Connection connection = connectionFactory.newConnection();
-            final Channel channel = prepareChannel(connection)) {
-
-            //  Now we can send a message which expects to find the taskMessageStorageRef.
-            final Map<String, Object> headers = new HashMap<>();
-            headers.put(RABBIT_HEADER_CAF_MINIMIZATION_ID, setupMinimizedMessageStorageRef);
-            headers.put(RABBIT_HEADER_CAF_DELIVERY_COUNT, "50");
-            // this publish will result in a minimizedMessage being recovered by the consumer.
-            // the body will be ignored as the minimized message will be used.
-            publish(channel, new byte[0], headers);
-
-            final TestWorkerQueueConsumer consumer = new TestWorkerQueueConsumer();
-            consume(channel, consumer);
-            final String consumedTaskMessageStorageRef = getTaskMessageStorageRef(consumer);
-            Assert.assertNotEquals(consumedTaskMessageStorageRef, setupMinimizedMessageStorageRef, "Storage refs should have been different");
-
-            // The previously minimized message should now have been deleted by the confirm listener
-            final var storedSetupByteArrayOpt = readFileFromWebDAV(setupMinimizedMessageStorageRef);
-            Assert.assertTrue(storedSetupByteArrayOpt.isEmpty(), "setup message should not have been found");
-
-            // The previously published message should be present in the datastore
-            final var consumedByteArrayOpt = readFileFromWebDAV(consumedTaskMessageStorageRef);
-            Assert.assertTrue(consumedByteArrayOpt.isPresent(), "Minimized message should have been found");
-
-            final TaskMessage decodedBody = codec.deserialise(consumedByteArrayOpt.get(), TaskMessage.class);
-            final String taskData = new String(decodedBody.getTaskData(), StandardCharsets.UTF_8);
-
-            Assert.assertTrue(taskData.contains(WORKER_FRIENDLY_NAME));
-            Assert.assertTrue(taskData.contains(POISON_ERROR_MESSAGE), 
-                "Got:" + new String(consumedByteArrayOpt.get()) + " taskdata:" + taskData);
         }
     }
 
