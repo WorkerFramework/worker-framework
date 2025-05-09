@@ -130,7 +130,7 @@ public class MinimizedMessageIT extends TestWorkerTestBase {
     }
 
     private static byte[] buildTaskMessageByteArray(final int taskNumber) throws CodecException {
-        final var trackingInfo = new TrackingInfo("taskName" + taskNumber, new Date(), 1, null, "pipe", "to");
+        final var trackingInfo = new TrackingInfo("MinimizedMessageIT" + taskNumber, new Date(), 1, null, "pipe", "to");
         final TestWorkerTask documentWorkerTask = new TestWorkerTask();
         final TaskMessage requestTaskMessage = new TaskMessage();
         requestTaskMessage.setTaskId(Integer.toString(taskNumber));

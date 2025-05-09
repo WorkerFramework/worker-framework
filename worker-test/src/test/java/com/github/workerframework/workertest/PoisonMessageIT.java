@@ -68,7 +68,7 @@ public class PoisonMessageIT  extends TestWorkerTestBase{
             requestTaskMessage.setTo(WORKER_IN);
 
             //  Needed for minimization update to create the partial ref for the datastore.
-            final var trackingInfo = new TrackingInfo("taskName" + TASK_NUMBER, new Date(), 1, null, "pipe", WORKER_IN);
+            final var trackingInfo = new TrackingInfo("PoisonMessageIT" + TASK_NUMBER, new Date(), 1, null, "pipe", WORKER_IN);
             requestTaskMessage.setTracking(trackingInfo);
 
             final AMQP.BasicProperties properties = new AMQP.BasicProperties.Builder()
