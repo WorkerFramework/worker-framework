@@ -106,8 +106,8 @@ public class GetWorkerNameIT extends TestWorkerTestBase {
             final TaskMessage decodedBody = codec.deserialise(poisonMessageByteArrayOpt.get(), TaskMessage.class);
             final String taskData = new String(decodedBody.getTaskData(), StandardCharsets.UTF_8);
 
-            Assert.assertTrue(taskData.contains(POISON_ERROR_MESSAGE));
             Assert.assertTrue(taskData.contains(WORKER_FRIENDLY_NAME));
+            Assert.assertTrue(taskData.contains(POISON_ERROR_MESSAGE));
         }
     }
 }
