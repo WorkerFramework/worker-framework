@@ -16,7 +16,6 @@
 package com.github.workerframework.workertest;
 
 import com.github.cafapi.common.api.Codec;
-import com.github.cafapi.common.api.CodecException;
 import com.github.cafapi.common.codecs.json.JsonCodec;
 import com.github.workerframework.testworker.TestWorkerTask;
 import com.github.workerframework.api.TaskMessage;
@@ -29,11 +28,9 @@ import org.testng.Assert;
 import org.testng.annotations.Ignore;
 import org.testng.annotations.Test;
 
-import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.concurrent.TimeoutException;
 
 @Ignore
 public class PoisonMessageIT  extends TestWorkerTestBase{
@@ -46,11 +43,10 @@ public class PoisonMessageIT  extends TestWorkerTestBase{
     private static final Codec codec = new JsonCodec();
 
     @Test
-    public void getWorkerNameInPoisonMessageTest() throws IOException, TimeoutException, CodecException {
+    public void getWorkerNameInPoisonMessageTest() throws Exception {
 
-        try(final Connection connection = connectionFactory.newConnection()) {
-
-            final Channel channel = connection.createChannel();
+        try(final Connection connection = connectionFactory.newConnection();
+            final Channel channel = connection.createChannel()) {
 
             final Map<String, Object> args = new HashMap<>();
             args.put(QueueCreator.RABBIT_PROP_QUEUE_TYPE, QueueCreator.RABBIT_PROP_QUEUE_TYPE_QUORUM);
@@ -84,7 +80,7 @@ public class PoisonMessageIT  extends TestWorkerTestBase{
 
                     Thread.sleep(100);
 
-                    if (poisonConsumer.getLastDeliveredBody() != null){
+                    if (poisonConsumer.getHeaders() != null){
                         break;
                     }
                 }
@@ -92,12 +88,14 @@ public class PoisonMessageIT  extends TestWorkerTestBase{
                 throw new RuntimeException(e);
             }
 
-            Assert.assertNotNull(poisonConsumer.getLastDeliveredBody());
-            final TaskMessage decodedBody = codec.deserialise(poisonConsumer.getLastDeliveredBody(), TaskMessage.class);
+            // With the minimization update we expect to get the message in the datastore
+            final String consumedTaskMessageStorageRef = getTaskMessageStorageRef(poisonConsumer);
+            final var consumedByteArrayOpt = readFileFromWebDAV(consumedTaskMessageStorageRef);
+            final TaskMessage decodedBody = codec.deserialise(consumedByteArrayOpt.get(), TaskMessage.class);
             final String taskData = new String(decodedBody.getTaskData(), StandardCharsets.UTF_8);
 
-            Assert.assertTrue(taskData.contains(POISON_ERROR_MESSAGE));
             Assert.assertTrue(taskData.contains(WORKER_FRIENDLY_NAME));
+            Assert.assertTrue(taskData.contains(POISON_ERROR_MESSAGE));
         }
     }
 }

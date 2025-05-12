@@ -123,12 +123,13 @@ public class WorkerQueueConsumerImpl implements QueueConsumer
         final var inboundByteArray = delivery.getMessageData();
         try {
             final TaskMessage taskMessage = deserializeTaskMessage(inboundMessageId, inboundByteArray, taskMessageStorageRefOpt);
-            final var taskMessagePartialRef = String.format("%s/%s", routingKey, taskMessage.getTracking().getJobTaskId());
+            final var trackingInfo = taskMessage.getTracking();
+            final var trackingJobTaskId = trackingInfo != null ? trackingInfo.getJobTaskId() : "untracked";
             final RabbitTaskInformation taskInformation = new RabbitTaskInformation(
                 String.valueOf(inboundMessageId),
                 isPoison,
                 taskMessageStorageRefOpt,
-                Optional.of(taskMessagePartialRef)
+                Optional.of(String.format("%s/%s", routingKey, trackingJobTaskId))
             );                      
             LOG.debug("Registering new message {}", inboundMessageId);
             callback.registerNewTask(taskInformation, taskMessage, delivery.getHeaders());
