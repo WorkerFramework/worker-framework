@@ -49,10 +49,6 @@ final class TestWorker implements Worker
         final TestWorkerTask testWorkerTask;
         try {
             testWorkerTask = codec.deserialise(workerTask.getData(), TestWorkerTask.class);
-            // DDD remove this?
-            if(testWorkerTask.isPoison()){
-                System.exit(1);
-            }
         } catch (final CodecException e) {
             throw new RuntimeException(e);
         }

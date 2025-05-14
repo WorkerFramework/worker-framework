@@ -54,7 +54,6 @@ public class PoisonMessageIT  extends WorkerTestBase {
             final TaskMessage requestTaskMessage = new TaskMessage();
 
             final TestWorkerTask documentWorkerTask = new TestWorkerTask();
-            //documentWorkerTask.setPoison(true);
             requestTaskMessage.setTaskId(Integer.toString(TASK_NUMBER));
             requestTaskMessage.setTaskClassifier(TEST_WORKER_NAME);
             requestTaskMessage.setTaskApiVersion(TASK_NUMBER);
@@ -69,9 +68,6 @@ public class PoisonMessageIT  extends WorkerTestBase {
 
             channel.basicPublish("", WORKER_IN, properties, codec.serialise(requestTaskMessage));
             
-            // Test worker gets killed, the message SHOULD get redelivered, but it is not
-            // so we will consume and nack the message, forcing a redelivery which
-            // will be handled as a poison message.
             nackMessage(channel);
         }
         checkRedeliveredMessage();
@@ -129,6 +125,6 @@ public class PoisonMessageIT  extends WorkerTestBase {
 
             Assert.assertTrue(taskData.contains(WORKER_FRIENDLY_NAME));
             Assert.assertTrue(taskData.contains(POISON_ERROR_MESSAGE));
-        }     
+        }
     }
 }

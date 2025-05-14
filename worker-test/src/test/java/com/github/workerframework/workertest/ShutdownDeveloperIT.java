@@ -77,7 +77,6 @@ public class ShutdownDeveloperIT extends WorkerTestBase {
                 final TaskMessage requestTaskMessage = new TaskMessage();
 
                 final TestWorkerTask documentWorkerTask = new TestWorkerTask();
-                // DDD remove this? documentWorkerTask.setPoison(false);
                 documentWorkerTask.setDelaySeconds(5);
                 requestTaskMessage.setTaskId(Integer.toString(index));
                 requestTaskMessage.setTaskClassifier(TEST_WORKER_NAME);
