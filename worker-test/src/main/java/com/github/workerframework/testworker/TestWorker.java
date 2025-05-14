@@ -44,12 +44,12 @@ final class TestWorker implements Worker
 
     @Nonnull
     @Override
-    public WorkerResponse doWork() throws InterruptedException, TaskRejectedException, InvalidTaskException {
+    public WorkerResponse doWork() throws InterruptedException {
 
-        // Required for PoisonMessageIT. If isPoison is true, the worker will exit to simulate a poison message.
         final TestWorkerTask testWorkerTask;
         try {
             testWorkerTask = codec.deserialise(workerTask.getData(), TestWorkerTask.class);
+            // DDD remove this?
             if(testWorkerTask.isPoison()){
                 System.exit(1);
             }

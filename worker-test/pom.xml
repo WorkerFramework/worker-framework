@@ -90,13 +90,6 @@
         <plugins>
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-surefire-plugin</artifactId>
-                <configuration>
-                    <skip>true</skip>
-                </configuration>
-            </plugin>
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-failsafe-plugin</artifactId>
                 <executions>
                     <execution>
@@ -106,6 +99,9 @@
                             <goal>integration-test</goal>
                         </goals>
                         <configuration>
+                            <suiteXmlFiles>
+                                <suiteXmlFile>src/test/testng.xml</suiteXmlFile>
+                            </suiteXmlFiles>
                             <systemPropertyVariables>
                                 <WEBDAV_URL>http://${docker.host.address}:${webdav.port}/webdav</WEBDAV_URL>
                                 <CAF_RABBITMQ_HOST>${docker.host.address}</CAF_RABBITMQ_HOST>
@@ -357,50 +353,6 @@
                                 <wait>
                                     <http>
                                         <url>http://${docker.host.address}:${worker.adminport}</url>
-                                    </http>
-                                    <time>120000</time>
-                                    <shutdown>500</shutdown>
-                                </wait>
-                            </run>
-                        </image>
-                        <image>
-                            <alias>worker-test-2</alias>
-                            <name>${targetDockerRegistryPath}/worker-test:${project.version}</name>
-                            <run>
-                                <platform>linux/amd64</platform>
-                                <ports>
-                                    <port>${worker.testhttpport2}:8080</port>
-                                    <port>${worker.testadminport2}:8081</port>
-                                    <port>${worker.testdebugport2}:5005</port>
-                                </ports>
-                                <env>
-                                    <CAF_WORKER_DATASTORE_PATH>/srv/common/webdav</CAF_WORKER_DATASTORE_PATH>
-                                    <CAF_WORKER_MESSAGE_MINIMIZATION_ENABLED>true</CAF_WORKER_MESSAGE_MINIMIZATION_ENABLED>
-                                    <CAF_WORKER_MESSAGE_MINIMIZATION_THRESHOLD_BYTES>1</CAF_WORKER_MESSAGE_MINIMIZATION_THRESHOLD_BYTES>
-                                    <CAF_WORKER_JAVA_OPTS>
-                                        -agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=*:5005
-                                    </CAF_WORKER_JAVA_OPTS>
-                                    <CAF_WORKER_RETRY_LIMIT>1</CAF_WORKER_RETRY_LIMIT>
-                                    <CAF_RABBITMQ_PROTOCOL>amqps</CAF_RABBITMQ_PROTOCOL>
-                                    <CAF_RABBITMQ_PORT>5671</CAF_RABBITMQ_PORT>
-                                    <SSL_CA_CRT_DIR>/test-keystore</SSL_CA_CRT_DIR>
-                                    <SSL_CA_CRT>ca_certificate.pem</SSL_CA_CRT>
-                                </env>
-                                <volumes>
-                                    <from>
-                                        <image>webdav</image>
-                                        <image>keystore</image>
-                                    </from>
-                                </volumes>
-                                <links>
-                                    <link>rabbitmq</link>
-                                </links>
-                                <log>
-                                    <enabled>true</enabled>
-                                </log>
-                                <wait>
-                                    <http>
-                                        <url>http://${docker.host.address}:${worker.testadminport2}</url>
                                     </http>
                                     <time>120000</time>
                                     <shutdown>500</shutdown>

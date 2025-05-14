@@ -33,7 +33,7 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.TimeoutException;
 
-public class ShutdownDeveloperTest extends TestWorkerTestBase {
+public class ShutdownDeveloperIT extends WorkerTestBase {
     private static final String TEST_WORKER_NAME = "testWorkerIdentifier";
     private static final String WORKER_IN = "worker-in";
     private static final String TESTWORKER_OUT = "testworker-out";
@@ -77,7 +77,7 @@ public class ShutdownDeveloperTest extends TestWorkerTestBase {
                 final TaskMessage requestTaskMessage = new TaskMessage();
 
                 final TestWorkerTask documentWorkerTask = new TestWorkerTask();
-                documentWorkerTask.setPoison(false);
+                // DDD remove this? documentWorkerTask.setPoison(false);
                 documentWorkerTask.setDelaySeconds(5);
                 requestTaskMessage.setTaskId(Integer.toString(index));
                 requestTaskMessage.setTaskClassifier(TEST_WORKER_NAME);

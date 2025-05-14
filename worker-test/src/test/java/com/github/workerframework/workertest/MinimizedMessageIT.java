@@ -35,16 +35,13 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.TimeoutException;
 
-import static com.github.workerframework.util.rabbitmq.RabbitHeaders.RABBIT_HEADER_CAF_DELIVERY_COUNT;
 import static com.github.workerframework.util.rabbitmq.RabbitHeaders.RABBIT_HEADER_CAF_MINIMIZATION_ID;
 
-public class MinimizedMessageIT extends TestWorkerTestBase {
+public class MinimizedMessageIT extends WorkerTestBase {
     private static final String TEST_WORKER_NAME = "testWorkerIdentifier";
     private static final String WORKER_IN = "worker-in";
     private static final String TESTWORKER_OUT = "testworker-out";
     private static final Codec codec = new JsonCodec();
-    private static final String POISON_ERROR_MESSAGE = "could not process the item.";
-    private static final String WORKER_FRIENDLY_NAME = "TestWorker";
 
     @Test
     public void checkMinimizedMessageIsConsumedAndDeletedOnAck() throws Exception {

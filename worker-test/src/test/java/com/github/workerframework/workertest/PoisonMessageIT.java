@@ -25,15 +25,14 @@ import com.rabbitmq.client.Connection;
 import com.rabbitmq.client.Channel;
 import com.rabbitmq.client.AMQP;
 import org.testng.Assert;
-import org.testng.annotations.Ignore;
 import org.testng.annotations.Test;
 
+import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.util.HashMap;
 import java.util.Map;
 
-@Ignore
-public class PoisonMessageIT  extends TestWorkerTestBase{
+public class PoisonMessageIT  extends WorkerTestBase {
     private static final String POISON_ERROR_MESSAGE = "could not process the item.";
     private static final String WORKER_FRIENDLY_NAME = "TestWorker";
     private static final String TEST_WORKER_NAME = "testWorkerIdentifier";
@@ -55,7 +54,7 @@ public class PoisonMessageIT  extends TestWorkerTestBase{
             final TaskMessage requestTaskMessage = new TaskMessage();
 
             final TestWorkerTask documentWorkerTask = new TestWorkerTask();
-            documentWorkerTask.setPoison(true);
+            //documentWorkerTask.setPoison(true);
             requestTaskMessage.setTaskId(Integer.toString(TASK_NUMBER));
             requestTaskMessage.setTaskClassifier(TEST_WORKER_NAME);
             requestTaskMessage.setTaskApiVersion(TASK_NUMBER);
@@ -69,6 +68,40 @@ public class PoisonMessageIT  extends TestWorkerTestBase{
                     .build();
 
             channel.basicPublish("", WORKER_IN, properties, codec.serialise(requestTaskMessage));
+            
+            // Test worker gets killed, the message SHOULD get redelivered, but it is not
+            // so we will consume and nack the message, forcing a redelivery which
+            // will be handled as a poison message.
+            nackMessage(channel);
+        }
+        checkRedeliveredMessage();
+    }
+    
+    private void nackMessage(final Channel channel) throws IOException {
+        final TestWorkerQueueConsumer consumer = new TestWorkerQueueConsumer();
+        channel.basicConsume(WORKER_IN, false, consumer);
+        try {
+            for (int i=0; i<100; i++){
+
+                Thread.sleep(100);
+
+                if (consumer.getEnvelope() != null){
+                    break;
+                }
+            }
+        } catch (final InterruptedException e) {
+            throw new RuntimeException(e);
+        }
+        final var envelope = consumer.getEnvelope();
+        channel.basicNack(envelope.getDeliveryTag(), false, true);
+    }
+    
+    private void checkRedeliveredMessage() throws Exception {
+        try(final Connection connection = connectionFactory.newConnection();
+            final Channel channel = connection.createChannel()) {
+
+            final Map<String, Object> args = new HashMap<>();
+            args.put(QueueCreator.RABBIT_PROP_QUEUE_TYPE, QueueCreator.RABBIT_PROP_QUEUE_TYPE_QUORUM);
 
             final TestWorkerQueueConsumer poisonConsumer = new TestWorkerQueueConsumer();
             channel.queueDeclare(TESTWORKER_OUT, true, false, false, args);
@@ -96,6 +129,6 @@ public class PoisonMessageIT  extends TestWorkerTestBase{
 
             Assert.assertTrue(taskData.contains(WORKER_FRIENDLY_NAME));
             Assert.assertTrue(taskData.contains(POISON_ERROR_MESSAGE));
-        }
+        }     
     }
 }

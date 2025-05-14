@@ -32,7 +32,7 @@ import java.util.Optional;
 
 import static com.github.workerframework.util.rabbitmq.RabbitHeaders.RABBIT_HEADER_CAF_MINIMIZATION_ID;
 
-public class TestWorkerTestBase {
+public class WorkerTestBase {
     final protected ConnectionFactory connectionFactory;
     private static final String CAF_RABBITMQ_HOST = "CAF_RABBITMQ_HOST";
     private static final String CAF_RABBITMQ_PORT = "CAF_RABBITMQ_PORT";
@@ -40,7 +40,7 @@ public class TestWorkerTestBase {
     private static final String CAF_RABBITMQ_PASSWORD = "CAF_RABBITMQ_PASSWORD";
     public static final String WEBDAV_URL = System.getProperty("WEBDAV_URL");
 
-    public TestWorkerTestBase() {
+    public WorkerTestBase() {
         connectionFactory = new ConnectionFactory();
         connectionFactory.setHost(System.getProperty(CAF_RABBITMQ_HOST));
         connectionFactory.setPort(Integer.parseInt(System.getProperty(CAF_RABBITMQ_PORT)));
@@ -88,6 +88,8 @@ public class TestWorkerTestBase {
     public static class TestWorkerQueueConsumer implements Consumer {
         private byte[] lastDeliveredBody = null;
         private Map<String, Object> headers = null;
+        private Envelope envelope = null;
+        
         @Override
         public void handleConsumeOk(String consumerTag) {
 
@@ -121,9 +123,14 @@ public class TestWorkerTestBase {
             return headers;
         }
 
+        public Envelope getEnvelope() {
+            return envelope;
+        }
+
         @Override
         public void handleDelivery(final String consumerTag, final Envelope envelope, final AMQP.BasicProperties properties,
                                    final byte[] body) throws IOException {
+            this.envelope = envelope;
             lastDeliveredBody = body;
             headers = properties.getHeaders();
         }

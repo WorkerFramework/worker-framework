@@ -36,18 +36,19 @@ import java.util.Map;
 import java.util.HashMap;
 import java.util.concurrent.TimeoutException;
 
+// DDD remove this class, it appears redundant with the PoisonMessageIT class.
 @Ignore
-public class GetWorkerNameIT extends TestWorkerTestBase {
+public class GetWorkerNameIT extends WorkerTestBase {
     private static final String POISON_ERROR_MESSAGE = "could not process the item.";
     private static final String WORKER_FRIENDLY_NAME = "TestWorker";
     private static final String TEST_WORKER_NAME = "testWorkerIdentifier";
     private static final String WORKER_IN = "worker-in";
     private static final String TESTWORKER_OUT = "testworker-out";
-    private static final int TASK_NUMBER = 1;
+    private static final int TASK_NUMBER = 2;
     private static final Codec codec = new JsonCodec();
 
     @Test
-    public void getWorkerNameInPoisonMessageTest() throws IOException, TimeoutException, CodecException {
+    public void getWorkerNameInMessageTest() throws Exception {
 
         try(final Connection connection = connectionFactory.newConnection()) {
 
@@ -58,8 +59,8 @@ public class GetWorkerNameIT extends TestWorkerTestBase {
 
             channel.queueDeclare(TESTWORKER_OUT, true, false, false, args);
 
-            final TestWorkerQueueConsumer poisonConsumer = new TestWorkerQueueConsumer();
-            channel.basicConsume(TESTWORKER_OUT, true, poisonConsumer);
+            final TestWorkerQueueConsumer consumer = new TestWorkerQueueConsumer();
+            channel.basicConsume(TESTWORKER_OUT, true, consumer);
 
             final Map<String, Object> retryLimitHeaders = new HashMap<>();
             retryLimitHeaders.put(RabbitHeaders.RABBIT_HEADER_CAF_DELIVERY_COUNT, 2);
@@ -88,7 +89,7 @@ public class GetWorkerNameIT extends TestWorkerTestBase {
 
                     Thread.sleep(100);
 
-                    if (poisonConsumer.getLastDeliveredBody() != null){
+                    if (consumer.getLastDeliveredBody() != null){
                         break;
                     }
                 }
@@ -96,8 +97,9 @@ public class GetWorkerNameIT extends TestWorkerTestBase {
                 throw new RuntimeException(e);
             }
 
-            Assert.assertNotNull(poisonConsumer.getLastDeliveredBody());
-            final TaskMessage decodedBody = codec.deserialise(poisonConsumer.getLastDeliveredBody(), TaskMessage.class);
+            final String consumedTaskMessageStorageRef = getTaskMessageStorageRef(consumer);
+            final var consumedByteArrayOpt = readFileFromWebDAV(consumedTaskMessageStorageRef);
+            final TaskMessage decodedBody = codec.deserialise(consumedByteArrayOpt.get(), TaskMessage.class);
             final String taskData = new String(decodedBody.getTaskData(), StandardCharsets.UTF_8);
 
             Assert.assertTrue(taskData.contains(POISON_ERROR_MESSAGE));
