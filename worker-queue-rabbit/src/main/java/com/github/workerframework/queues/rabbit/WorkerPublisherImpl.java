@@ -15,6 +15,7 @@
  */
 package com.github.workerframework.queues.rabbit;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.github.workerframework.api.ManagedDataStore;
 import com.github.workerframework.api.QueueException;
 import com.github.workerframework.util.rabbitmq.ConsumerRejectEvent;
@@ -46,6 +47,7 @@ public class WorkerPublisherImpl implements WorkerPublisher
     private final WorkerConfirmListener confirmListener;
     private final ManagedDataStore dataStore;
     private final RabbitWorkerQueueConfiguration config;
+    private static final ObjectMapper OBJECT_MAPPER = new ObjectMapper();
     private static final Logger LOG = LoggerFactory.getLogger(WorkerPublisherImpl.class);
 
     /**
@@ -100,7 +102,9 @@ public class WorkerPublisherImpl implements WorkerPublisher
             builder.deliveryMode(2);
             
             confirmListener.registerResponseSequence(channel.getNextPublishSeqNo(), taskInformation);
-            channel.basicPublish("", routingKey, builder.build(), outboundByteArray);
+            final var amqpBasicProperties = builder.build();
+            LOG.info("Publishing message to {} with headers {}", routingKey, OBJECT_MAPPER.writeValueAsString(amqpBasicProperties.getHeaders()));
+            channel.basicPublish("", routingKey, amqpBasicProperties, outboundByteArray);
             metrics.incrementPublished();
         } catch (final IOException | QueueException e) {
             LOG.error("Failed to publish result of message {} to queue {}, rejecting", taskInformation.getInboundMessageId(), routingKey, e);

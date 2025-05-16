@@ -15,6 +15,8 @@
  */
 package com.github.workerframework.queues.rabbit;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.github.cafapi.common.api.Codec;
 import com.github.cafapi.common.api.CodecException;
 import com.github.cafapi.common.api.DecodeMethod;
@@ -62,6 +64,7 @@ public class WorkerQueueConsumerImpl implements QueueConsumer
     private final int retryLimit;
     private final ManagedDataStore dataStore;
     private final Codec codec;
+    private static final ObjectMapper OBJECT_MAPPER = new ObjectMapper();
     private static final Logger LOG = LoggerFactory.getLogger(WorkerQueueConsumerImpl.class);
 
     public WorkerQueueConsumerImpl(TaskCallback callback, RabbitMetricsReporter metrics, BlockingQueue<Event<QueueConsumer>> queue, Channel ch,
@@ -97,6 +100,12 @@ public class WorkerQueueConsumerImpl implements QueueConsumer
         final Optional<String> taskMessageStorageRefOpt = Optional.ofNullable(
             delivery.getHeaders().get(RABBIT_HEADER_CAF_MINIMIZATION_ID)
         ).map(Object::toString);
+
+        try {
+            LOG.info("Consuming message with headers {}", OBJECT_MAPPER.writeValueAsString(delivery.getHeaders()));
+        } catch (final JsonProcessingException e) {
+            LOG.error("Unable to log headers");
+        }
 
         metrics.incrementReceived();
         final boolean isPoison;
