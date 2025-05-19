@@ -15,8 +15,8 @@
  */
 package com.github.workerframework.queues.rabbit;
 
+import com.github.workerframework.api.DataStoreException;
 import com.github.workerframework.api.ManagedDataStore;
-import com.github.workerframework.api.QueueException;
 import com.github.workerframework.util.rabbitmq.ConsumerRejectEvent;
 import com.github.workerframework.util.rabbitmq.Event;
 import com.github.workerframework.util.rabbitmq.QueueConsumer;
@@ -103,7 +103,7 @@ public class WorkerPublisherImpl implements WorkerPublisher
             confirmListener.registerResponseSequence(channel.getNextPublishSeqNo(), taskInformation);
             channel.basicPublish("", routingKey, builder.build(), outboundByteArray);
             metrics.incrementPublished();
-        } catch (final IOException | QueueException e) {
+        } catch (final IOException | DataStoreException e) {
             LOG.error("Failed to publish result of message {} to queue {}, rejecting", taskInformation.getInboundMessageId(), routingKey, e);
             metrics.incremementErrors();
             consumerEvents.add(new ConsumerRejectEvent(Long.valueOf(taskInformation.getInboundMessageId())));
@@ -119,17 +119,13 @@ public class WorkerPublisherImpl implements WorkerPublisher
         final Optional<String> trackingJobTaskId,
         final String routingKey,
         final Map<String, Object> headers
-    ) throws QueueException {
-        try {
-            if (trackingJobTaskId.isPresent() && shouldStoreTaskMessage(taskMessage.length)) {
-                final var taskMessageStorageRef = dataStore.store(taskMessage, String.format("%s/%s", routingKey, trackingJobTaskId.get()));
-                headers.put(RABBIT_HEADER_CAF_MINIMIZATION_ID, taskMessageStorageRef);
-                //  if the header is set, the consumer will ignore the incoming byte[] and use the minimized message.
-                return new byte[0];
-            }
-            return taskMessage;
-        } catch (final Exception e) {
-            throw new QueueException("Error minimizing task message", e);
+    ) throws DataStoreException {
+        if (trackingJobTaskId.isPresent() && shouldStoreTaskMessage(taskMessage.length)) {
+            final var taskMessageStorageRef = dataStore.store(taskMessage, String.format("%s/%s", routingKey, trackingJobTaskId.get()));
+            headers.put(RABBIT_HEADER_CAF_MINIMIZATION_ID, taskMessageStorageRef);
+            //  if the header is set, the consumer will ignore the incoming byte[] and use the minimized message.
+            return new byte[0];
         }
+        return taskMessage;
     }
 }
