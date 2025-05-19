@@ -61,7 +61,7 @@ import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.TimeUnit;
 
-import static com.github.workerframework.util.rabbitmq.RabbitHeaders.RABBIT_HEADER_CAF_MINIMIZATION_ID;
+import static com.github.workerframework.util.rabbitmq.RabbitHeaders.RABBIT_HEADER_CAF_PAYLOAD_OFFLOADING_STORAGE_REF;
 
 public class RabbitWorkerQueueConsumerTest
 {
@@ -157,7 +157,7 @@ public class RabbitWorkerQueueConsumerTest
         // Now publish a message linked to the previously minimized message.
         AMQP.BasicProperties prop = Mockito.mock(AMQP.BasicProperties.class);
         final Map<String, Object> headers = new HashMap<>();
-        headers.put(RABBIT_HEADER_CAF_MINIMIZATION_ID, taskMessageStorageRef);
+        headers.put(RABBIT_HEADER_CAF_PAYLOAD_OFFLOADING_STORAGE_REF, taskMessageStorageRef);
         Mockito.when(prop.getHeaders()).thenReturn(headers);
         consumer.handleDelivery("consumer", newEnv, prop, data);
         Assert.assertTrue(latch.await(1000, TimeUnit.MILLISECONDS));
@@ -172,8 +172,8 @@ public class RabbitWorkerQueueConsumerTest
         final TaskMessage taskMessage = taskMessageCaptor.getValue();
         final Map<String, Object> taskHeaders = headersCaptor.getValue();
         
-        Assert.assertTrue(taskHeaders.containsKey(RABBIT_HEADER_CAF_MINIMIZATION_ID), 
-            "Headers should have included " + RABBIT_HEADER_CAF_MINIMIZATION_ID);
+        Assert.assertTrue(taskHeaders.containsKey(RABBIT_HEADER_CAF_PAYLOAD_OFFLOADING_STORAGE_REF), 
+            "Headers should have included " + RABBIT_HEADER_CAF_PAYLOAD_OFFLOADING_STORAGE_REF);
         Assert.assertEquals(taskMessage.getTaskData(), minimizedTaskData, 
             "Task data did not match");
         Assert.assertTrue(taskInformation instanceof RabbitTaskInformation, 
