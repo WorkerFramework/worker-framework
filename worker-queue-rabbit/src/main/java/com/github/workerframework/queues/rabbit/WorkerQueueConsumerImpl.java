@@ -87,90 +87,27 @@ public class WorkerQueueConsumerImpl implements QueueConsumer {
      */
     @Override
     public void processDelivery(Delivery delivery) {
-
         final var inboundMessageId = delivery.getEnvelope().getDeliveryTag();
         final var routingKey = delivery.getEnvelope().getRoutingKey();
         final var deliveryHeaders = delivery.getHeaders();
-
         final int retries = deliveryHeaders.containsKey(RabbitHeaders.RABBIT_HEADER_CAF_DELIVERY_COUNT) ?
             Integer.parseInt(String.valueOf(deliveryHeaders.getOrDefault(RabbitHeaders.RABBIT_HEADER_CAF_DELIVERY_COUNT, "0"))) :
             Integer.parseInt(String.valueOf(deliveryHeaders.getOrDefault(RabbitHeaders.RABBIT_HEADER_CAF_WORKER_RETRY, "0")));
-
         final Optional<String> taskMessageStorageRefOpt = Optional.ofNullable(
             deliveryHeaders.get(RABBIT_HEADER_CAF_MINIMIZATION_ID)
         ).map(Object::toString);
-
         metrics.incrementReceived();
 
-        // If the message is minimized, we need to retrieve it from the data store.
-        final byte[] taskMessageData;
-        if (taskMessageStorageRefOpt.isPresent()) {
-            try {
-                taskMessageData = retrieveFromDatastore(taskMessageStorageRefOpt.get());
-            } catch (final IOException | DataStoreException e) {
-                // The message was minimized, but we could not retrieve it from the data store.
-                // we will not mark it for deletion as it does not exist,
-                // if it does exist we add it in the header so can inspect it later.
-                final RabbitTaskInformation taskInformation = new RabbitTaskInformation(
-                    String.valueOf(inboundMessageId),
-                    true,
-                    Optional.empty(), // we dont want to delete anything
-                    Optional.empty() // We dont want to store anything
-                );
-                LOG.error("Cannot register new message, rejecting storageRef:{} inbound messageid: {}",
-                    taskMessageStorageRefOpt.get(), inboundMessageId, e);
-                taskInformation.incrementResponseCount(true);
-                final var publishHeaders = new HashMap<String, Object>();
-                publishHeaders.put(RabbitHeaders.RABBIT_HEADER_CAF_WORKER_REJECTED, REJECTED_REASON_TASKMESSAGE);
-                publishHeaders.put(RabbitHeaders.RABBIT_HEADER_CAF_MINIMIZATION_REJECTED, REJECTED_REASON_MINIMIZED_TASKMESSAGE);
-                publishHeaders.put(RabbitHeaders.RABBIT_HEADER_CAF_MINIMIZATION_REJECTED_ID, taskMessageStorageRefOpt.get());
-                publisherEventQueue.add(new WorkerPublishQueueEvent(delivery.getMessageData(), retryRoutingKey, taskInformation, publishHeaders));
-                return;
-            }
-        } else {
-            taskMessageData = delivery.getMessageData();
-        }
+        final byte[] taskMessageData = retrieveTaskMessageData(delivery, taskMessageStorageRefOpt, inboundMessageId);
+        if (taskMessageData == null) return;
 
-        // Now that we have retrieved it from the data store, we need to deserialize it to a task message.
-        // If we fail to deserialize it, we will not be able to process it, so we will reject it.
-        final TaskMessage taskMessage;
-        try {
-            taskMessage = codec.deserialise(taskMessageData, TaskMessage.class, DecodeMethod.LENIENT);
-        } catch (final CodecException e) {
-            final RabbitTaskInformation errorTaskInformation = new RabbitTaskInformation(
-                String.valueOf(inboundMessageId),
-                true,
-                Optional.empty(), // we dont want to delete anything
-                Optional.empty() // We dont want to store anything
-            );
-            LOG.error("Cannot register new message, rejecting {}", inboundMessageId, e);
-            errorTaskInformation.incrementResponseCount(true);
-            final var publishHeaders = new HashMap<String, Object>();
-            publishHeaders.put(RabbitHeaders.RABBIT_HEADER_CAF_WORKER_REJECTED, REJECTED_REASON_TASKMESSAGE);
-            publishHeaders.put(RabbitHeaders.RABBIT_HEADER_CAF_MINIMIZATION_REJECTED, REJECTED_REASON_MINIMIZED_TASKMESSAGE);
-            publishHeaders.put(RabbitHeaders.RABBIT_HEADER_CAF_MINIMIZATION_REJECTED_ID, taskMessageStorageRefOpt.get());
-            publisherEventQueue.add(new WorkerPublishQueueEvent(taskMessageData, retryRoutingKey, errorTaskInformation, publishHeaders));
+        final TaskMessage taskMessage = deserializeTaskMessage(taskMessageData, inboundMessageId, taskMessageStorageRefOpt);
+        if (taskMessage == null) return;
+
+        final boolean isPoison = isPoisonMessage(delivery, deliveryHeaders, retries);
+        if (isPoison) {
+            handlePoisonMessage(delivery, retries, taskMessageStorageRefOpt, taskMessage.getTracking());
             return;
-        }
-
-        // Now that we have deserialized the message, we need to check if it is a poison message.
-        final boolean isPoison;
-        if (delivery.getEnvelope().isRedeliver()) {
-            if (!deliveryHeaders.containsKey(RabbitHeaders.RABBIT_HEADER_CAF_DELIVERY_COUNT)) {
-                //RABBIT_HEADER_CAF_DELIVERY_COUNT is not available, message was delivered from CLASSIC queue
-                if (retries < retryLimit) {
-                    //Republish the delivery with a header recording the incremented number of retries.
-                    //Classic queues do not record delivery count, so we republish the message with an incremented
-                    //retry count. This allows us to track the number of attempts to process the message.
-                    republishClassicRedelivery(delivery, retries, taskMessageStorageRefOpt, taskMessage.getTracking());
-                    return;
-                }
-                isPoison = true;
-            } else {
-                isPoison = retries > retryLimit;
-            }
-        } else {
-            isPoison = false;
         }
 
         processDelivery(
@@ -182,6 +119,87 @@ public class WorkerQueueConsumerImpl implements QueueConsumer {
             isPoison,
             taskMessageStorageRefOpt
         );
+    }
+
+    /**
+     * Retrieves the task message data, either from the data store or directly from the delivery.
+     * Returns null and handles error if retrieval fails.
+     */
+    private byte[] retrieveTaskMessageData(Delivery delivery, Optional<String> taskMessageStorageRefOpt, long inboundMessageId) {
+        if (taskMessageStorageRefOpt.isPresent()) {
+            try (final var inputStream = dataStore.retrieve(taskMessageStorageRefOpt.get())) {
+                return inputStream.readAllBytes();
+            } catch (final IOException | DataStoreException e) {
+                final RabbitTaskInformation taskInformation = new RabbitTaskInformation(
+                    String.valueOf(inboundMessageId),
+                    true,
+                    Optional.empty(),
+                    Optional.empty()
+                );
+                LOG.error("Cannot register new message, rejecting storageRef:{} inbound messageid: {}",
+                    taskMessageStorageRefOpt.get(), inboundMessageId, e);
+                taskInformation.incrementResponseCount(true);
+                final var publishHeaders = new HashMap<String, Object>();
+                publishHeaders.put(RabbitHeaders.RABBIT_HEADER_CAF_WORKER_REJECTED, REJECTED_REASON_TASKMESSAGE);
+                publishHeaders.put(RabbitHeaders.RABBIT_HEADER_CAF_MINIMIZATION_REJECTED, REJECTED_REASON_MINIMIZED_TASKMESSAGE);
+                publishHeaders.put(RabbitHeaders.RABBIT_HEADER_CAF_MINIMIZATION_REJECTED_ID, taskMessageStorageRefOpt.get());
+                publisherEventQueue.add(new WorkerPublishQueueEvent(delivery.getMessageData(), retryRoutingKey, taskInformation, publishHeaders));
+                return null;
+            }
+        } else {
+            return delivery.getMessageData();
+        }
+    }
+
+    /**
+     * Deserializes the task message. Returns null and handles error if deserialization fails.
+     */
+    private TaskMessage deserializeTaskMessage(byte[] taskMessageData, long inboundMessageId, Optional<String> taskMessageStorageRefOpt) {
+        try {
+            return codec.deserialise(taskMessageData, TaskMessage.class, DecodeMethod.LENIENT);
+        } catch (final CodecException e) {
+            final RabbitTaskInformation errorTaskInformation = new RabbitTaskInformation(
+                String.valueOf(inboundMessageId),
+                true,
+                Optional.empty(),
+                Optional.empty()
+            );
+            LOG.error("Cannot register new message, rejecting {}", inboundMessageId, e);
+            errorTaskInformation.incrementResponseCount(true);
+            final var publishHeaders = new HashMap<String, Object>();
+            publishHeaders.put(RabbitHeaders.RABBIT_HEADER_CAF_WORKER_REJECTED, REJECTED_REASON_TASKMESSAGE);
+            publishHeaders.put(RabbitHeaders.RABBIT_HEADER_CAF_MINIMIZATION_REJECTED, REJECTED_REASON_MINIMIZED_TASKMESSAGE);
+            publishHeaders.put(RabbitHeaders.RABBIT_HEADER_CAF_MINIMIZATION_REJECTED_ID, taskMessageStorageRefOpt.orElse(null));
+            publisherEventQueue.add(new WorkerPublishQueueEvent(taskMessageData, retryRoutingKey, errorTaskInformation, publishHeaders));
+            return null;
+        }
+    }
+
+    /**
+     * Determines if the message is a poison message.
+     */
+    private boolean isPoisonMessage(Delivery delivery, Map<String, Object> deliveryHeaders, int retries) {
+        if (delivery.getEnvelope().isRedeliver()) {
+            if (!deliveryHeaders.containsKey(RabbitHeaders.RABBIT_HEADER_CAF_DELIVERY_COUNT)) {
+                return false; // Classic queue, handled in handlePoisonMessage
+            } else {
+                return retries > retryLimit;
+            }
+        }
+        return false;
+    }
+
+    /**
+     * Handles poison message logic for classic queues.
+     */
+    private void handlePoisonMessage(Delivery delivery, int retries, Optional<String> taskMessageStorageRefOpt, TrackingInfo trackingInfo) {
+        if (!delivery.getHeaders().containsKey(RabbitHeaders.RABBIT_HEADER_CAF_DELIVERY_COUNT)) {
+            if (retries < retryLimit) {
+                republishClassicRedelivery(delivery, retries, taskMessageStorageRefOpt, trackingInfo);
+                return;
+            }
+        }
+        // Poison message handling for other cases can be added here if needed
     }
 
     private void processDelivery(
@@ -217,18 +235,6 @@ public class WorkerQueueConsumerImpl implements QueueConsumer {
             taskInformation.incrementResponseCount(true);
             publisherEventQueue.add(new WorkerPublishQueueEvent(taskMessageByteArray, routingKey, taskInformation, deliveryHeaders));
         }
-    }
-
-    private byte[] retrieveFromDatastore(final String taskMessageStorageRef) throws DataStoreException, IOException {
-        final ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
-        try (final var inputStream = dataStore.retrieve(taskMessageStorageRef)) {
-            final byte[] buffer = new byte[1024];
-            int length;
-            while ((length = inputStream.read(buffer)) != -1) {
-                outputStream.write(buffer, 0, length);
-            }
-        }
-        return outputStream.toByteArray();
     }
 
     @Override
