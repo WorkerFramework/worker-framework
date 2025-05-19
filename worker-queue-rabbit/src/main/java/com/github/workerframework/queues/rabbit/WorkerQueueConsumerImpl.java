@@ -36,7 +36,6 @@ import com.rabbitmq.client.Channel;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
@@ -44,7 +43,7 @@ import java.util.Objects;
 import java.util.Optional;
 import java.util.concurrent.BlockingQueue;
 
-import static com.github.workerframework.util.rabbitmq.RabbitHeaders.RABBIT_HEADER_CAF_MINIMIZATION_ID;
+import static com.github.workerframework.util.rabbitmq.RabbitHeaders.RABBIT_HEADER_CAF_PAYLOAD_OFFLOADING_STORAGE_REF;
 
 /**
  * QueueConsumer implementation for a WorkerQueue. This QueueConsumer hands off messages to worker-core upon delivery assuming the message
@@ -53,7 +52,7 @@ import static com.github.workerframework.util.rabbitmq.RabbitHeaders.RABBIT_HEAD
  */
 public class WorkerQueueConsumerImpl implements QueueConsumer {
     public static final String REJECTED_REASON_TASKMESSAGE = "TASKMESSAGE_INVALID";
-    public static final String REJECTED_REASON_MINIMIZED_TASKMESSAGE = "MINIMIZED_TASKMESSAGE_ID_INVALID";
+    public static final String REJECTED_REASON_PAYLOAD_OFFLOADING_TASKMESSAGE_DATASTORE_ERROR = "TASKMESSAGE_DATASTORE_ERROR";
     private final TaskCallback callback;
     private final RabbitMetricsReporter metrics;
     private final BlockingQueue<Event<QueueConsumer>> consumerEventQueue;
@@ -94,7 +93,7 @@ public class WorkerQueueConsumerImpl implements QueueConsumer {
             Integer.parseInt(String.valueOf(deliveryHeaders.getOrDefault(RabbitHeaders.RABBIT_HEADER_CAF_DELIVERY_COUNT, "0"))) :
             Integer.parseInt(String.valueOf(deliveryHeaders.getOrDefault(RabbitHeaders.RABBIT_HEADER_CAF_WORKER_RETRY, "0")));
         final Optional<String> taskMessageStorageRefOpt = Optional.ofNullable(
-            deliveryHeaders.get(RABBIT_HEADER_CAF_MINIMIZATION_ID)
+            deliveryHeaders.get(RABBIT_HEADER_CAF_PAYLOAD_OFFLOADING_STORAGE_REF)
         ).map(Object::toString);
         metrics.incrementReceived();
 
@@ -140,9 +139,10 @@ public class WorkerQueueConsumerImpl implements QueueConsumer {
                     taskMessageStorageRefOpt.get(), inboundMessageId, e);
                 taskInformation.incrementResponseCount(true);
                 final var publishHeaders = new HashMap<String, Object>();
-                publishHeaders.put(RabbitHeaders.RABBIT_HEADER_CAF_WORKER_REJECTED, REJECTED_REASON_TASKMESSAGE);
-                publishHeaders.put(RabbitHeaders.RABBIT_HEADER_CAF_MINIMIZATION_REJECTED, REJECTED_REASON_MINIMIZED_TASKMESSAGE);
-                publishHeaders.put(RabbitHeaders.RABBIT_HEADER_CAF_MINIMIZATION_REJECTED_ID, taskMessageStorageRefOpt.get());
+                publishHeaders.put(RabbitHeaders.RABBIT_HEADER_CAF_WORKER_REJECTED,
+                        REJECTED_REASON_PAYLOAD_OFFLOADING_TASKMESSAGE_DATASTORE_ERROR);
+                publishHeaders.put(RabbitHeaders.RABBIT_HEADER_CAF_PAYLOAD_OFFLOADING_STORAGE_REF, 
+                        taskMessageStorageRefOpt.get());
                 publisherEventQueue.add(new WorkerPublishQueueEvent(delivery.getMessageData(), retryRoutingKey, taskInformation, publishHeaders));
                 return null;
             }
@@ -168,8 +168,8 @@ public class WorkerQueueConsumerImpl implements QueueConsumer {
             errorTaskInformation.incrementResponseCount(true);
             final var publishHeaders = new HashMap<String, Object>();
             publishHeaders.put(RabbitHeaders.RABBIT_HEADER_CAF_WORKER_REJECTED, REJECTED_REASON_TASKMESSAGE);
-            publishHeaders.put(RabbitHeaders.RABBIT_HEADER_CAF_MINIMIZATION_REJECTED, REJECTED_REASON_MINIMIZED_TASKMESSAGE);
-            publishHeaders.put(RabbitHeaders.RABBIT_HEADER_CAF_MINIMIZATION_REJECTED_ID, taskMessageStorageRefOpt.orElse(null));
+            publishHeaders.put(RabbitHeaders.RABBIT_HEADER_CAF_PAYLOAD_OFFLOADING_STORAGE_REF, 
+                    taskMessageStorageRefOpt.orElse(null));
             publisherEventQueue.add(new WorkerPublishQueueEvent(taskMessageData, retryRoutingKey, errorTaskInformation, publishHeaders));
             return null;
         }

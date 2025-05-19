@@ -30,7 +30,7 @@ import java.net.URL;
 import java.util.Map;
 import java.util.Optional;
 
-import static com.github.workerframework.util.rabbitmq.RabbitHeaders.RABBIT_HEADER_CAF_PAYLOAD_OFFLOAD_ID;
+import static com.github.workerframework.util.rabbitmq.RabbitHeaders.RABBIT_HEADER_CAF_PAYLOAD_OFFLOADING_STORAGE_REF;
 
 public class TestWorkerTestBase {
     final protected ConnectionFactory connectionFactory;
@@ -57,8 +57,8 @@ public class TestWorkerTestBase {
      */
     public static String getTaskMessageStorageRef(final TestWorkerQueueConsumer messageConsumer) {
         final Map<String, Object> outgoingHeaders = messageConsumer.getHeaders();
-        final Optional<String> outgoingTaskMessageStorageRef = outgoingHeaders.containsKey(RABBIT_HEADER_CAF_PAYLOAD_OFFLOAD_ID) ?
-            Optional.of(outgoingHeaders.get(RABBIT_HEADER_CAF_PAYLOAD_OFFLOAD_ID).toString()) :
+        final Optional<String> outgoingTaskMessageStorageRef = outgoingHeaders.containsKey(RABBIT_HEADER_CAF_PAYLOAD_OFFLOADING_STORAGE_REF) ?
+            Optional.of(outgoingHeaders.get(RABBIT_HEADER_CAF_PAYLOAD_OFFLOADING_STORAGE_REF).toString()) :
             Optional.empty();
         Assert.assertTrue(outgoingTaskMessageStorageRef.isPresent(), "The payload offloading header was missing");
         return outgoingTaskMessageStorageRef.get();

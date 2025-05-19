@@ -35,27 +35,24 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.TimeoutException;
 
-import static com.github.workerframework.util.rabbitmq.RabbitHeaders.RABBIT_HEADER_CAF_DELIVERY_COUNT;
-import static com.github.workerframework.util.rabbitmq.RabbitHeaders.RABBIT_HEADER_CAF_PAYLOAD_OFFLOAD_ID;
+import static com.github.workerframework.util.rabbitmq.RabbitHeaders.RABBIT_HEADER_CAF_PAYLOAD_OFFLOADING_STORAGE_REF;
 
 public class PayloadOffloadingIT extends TestWorkerTestBase {
     private static final String TEST_WORKER_NAME = "testWorkerIdentifier";
     private static final String WORKER_IN = "worker-in";
     private static final String TESTWORKER_OUT = "testworker-out";
     private static final Codec codec = new JsonCodec();
-    private static final String POISON_ERROR_MESSAGE = "could not process the item.";
-    private static final String WORKER_FRIENDLY_NAME = "TestWorker";
 
     @Test
     public void checkOffloadedPayloadIsConsumedAndDeletedOnAck() throws Exception {
         final TestWorkerTask documentWorkerTask = new TestWorkerTask();
-        final String setupOffloadedPayloadStorageRef = setupOffloadedPayload(1, documentWorkerTask);
+        final String setupPayloadOffloadStorageRef = setupOffloadedPayload(1, documentWorkerTask);
         try(final Connection connection = connectionFactory.newConnection(); 
             final Channel channel = prepareChannel(connection)) {
 
             //  Now we can send a message which expects to find the taskMessageStorageRef.
             final Map<String, Object> headers = new HashMap<>();
-            headers.put(RABBIT_HEADER_CAF_PAYLOAD_OFFLOAD_ID, setupOffloadedPayloadStorageRef);
+            headers.put(RABBIT_HEADER_CAF_PAYLOAD_OFFLOADING_STORAGE_REF, setupPayloadOffloadStorageRef);
             // this publish will result in an offloaded payload being recovered by the consumer.
             // the body will be ignored as the offloaded payload will be used.
             publish(channel, new byte[0], headers);
@@ -63,10 +60,10 @@ public class PayloadOffloadingIT extends TestWorkerTestBase {
             final TestWorkerQueueConsumer consumer = new TestWorkerQueueConsumer();
             consume(channel, consumer);
             final String consumedTaskMessageStorageRef = getTaskMessageStorageRef(consumer);
-            Assert.assertNotEquals(consumedTaskMessageStorageRef, setupOffloadedPayloadStorageRef, "Storage refs should have been different");
+            Assert.assertNotEquals(consumedTaskMessageStorageRef, setupPayloadOffloadStorageRef, "Storage refs should have been different");
 
             // The previously offloaded payload should now have been deleted by the confirm listener
-            final var storedSetupByteArrayOpt = readFileFromWebDAV(setupOffloadedPayloadStorageRef);
+            final var storedSetupByteArrayOpt = readFileFromWebDAV(setupPayloadOffloadStorageRef);
             Assert.assertTrue(storedSetupByteArrayOpt.isEmpty(), "setup message should not have been found");
 
             // The previously published message should be present in the datastore
