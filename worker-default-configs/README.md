@@ -51,8 +51,8 @@ The default RabbitWorkerQueue configuration file checks for values as below;
 | retryQueue            | `CAF_WORKER_RETRY_QUEUE`                                                 |                 |
 | rejectedQueue         |                                                                          | worker-rejected |
 | retryLimit            | `CAF_WORKER_RETRY_LIMIT`                                                 | 10              |
-| isMinimizationEnabled | `CAF_WORKER_MESSAGE_MINIMIZATION_ENABLED`                                | false           |
-| minimizationThreshold | `CAF_WORKER_MESSAGE_MINIMIZATION_THRESHOLD_BYTES`                        | 16777216        |
+| isPayloadOffloadingEnabled | `CAF_WORKER_PAYLOAD_OFFLOADING_ENABLED`                                | false           |
+| payloadOffloadingThreshold | `CAF_WORKER_PAYLOAD_OFFLOADING_THRESHOLD_BYTES`                        | 16777216        |
 
 ## HealthConfiguration
 

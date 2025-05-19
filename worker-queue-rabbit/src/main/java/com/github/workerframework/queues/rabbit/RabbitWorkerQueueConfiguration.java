@@ -88,15 +88,15 @@ public class RabbitWorkerQueueConfiguration
     private String queueType;
 
     /**
-     * Indicates if message minimization is enabled.
+     * Indicates if payload offloading is enabled.
      */
-    private boolean isMinimizationEnabled = false;
+    private boolean isPayloadOffloadingEnabled = false;
 
     /**
-     * The threshold at which messages will be minimized before publishing to RabbitMQ.
+     * The threshold at which message payloads will be offloaded before publishing to RabbitMQ.
      */
     @Min(1)
-    private int minimizationThreshold = 16777216;
+    private int payloadOffloadingThreshold = 16777216;
     
     public RabbitWorkerQueueConfiguration()
     {
@@ -193,19 +193,19 @@ public class RabbitWorkerQueueConfiguration
         this.queueType = queueType;
     }
 
-    public boolean getIsMinimizationEnabled() {
-        return isMinimizationEnabled;
+    public boolean getIsPayloadOffloadingEnabled() {
+        return isPayloadOffloadingEnabled;
     }
 
-    public void setMinimizationEnabled(boolean minimizationEnabled) {
-        isMinimizationEnabled = minimizationEnabled;
+    public void setPayloadOffloadingEnabled(boolean payloadOffloadingEnabled) {
+        isPayloadOffloadingEnabled = payloadOffloadingEnabled;
     }
 
-    public int getMinimizationThreshold() {
-        return minimizationThreshold;
+    public int getPayloadOffloadingThreshold() {
+        return payloadOffloadingThreshold;
     }
 
-    public void setMinimizationThreshold(int minimizationThreshold) {
-        this.minimizationThreshold = minimizationThreshold;
+    public void setPayloadOffloadingThreshold(int payloadOffloadingThreshold) {
+        this.payloadOffloadingThreshold = payloadOffloadingThreshold;
     }
 }
