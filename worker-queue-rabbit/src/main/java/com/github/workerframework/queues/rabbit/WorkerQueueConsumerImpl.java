@@ -129,8 +129,8 @@ public class WorkerQueueConsumerImpl implements QueueConsumer
                 String.valueOf(inboundMessageId),
                 isPoison,
                 taskMessageStorageRefOpt,
-                Optional.of(String.format("%s/%s", routingKey, trackingJobTaskId))
-            );                      
+                Optional.of(trackingJobTaskId)
+            );
             LOG.debug("Registering new message {}", inboundMessageId);
             callback.registerNewTask(taskInformation, taskMessage, delivery.getHeaders());
         } catch (InvalidTaskException e) {

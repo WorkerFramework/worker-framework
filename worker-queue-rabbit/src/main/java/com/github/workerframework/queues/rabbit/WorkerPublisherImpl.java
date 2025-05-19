@@ -93,7 +93,8 @@ public class WorkerPublisherImpl implements WorkerPublisher
                 // The stored message will be deleted in the confirm listener
                 publishHeaders.remove(RABBIT_HEADER_CAF_MINIMIZATION_ID);
             }
-            final var outboundByteArray = getOutboundByteArray(data, taskInformation.getTaskMessagePartialRef(), publishHeaders);
+
+            final var outboundByteArray = getOutboundByteArray(data, taskInformation.getTrackingJobTaskId(), routingKey, publishHeaders);
             AMQP.BasicProperties.Builder builder = new AMQP.BasicProperties().builder();
             builder.headers(publishHeaders);
             builder.contentType("text/plain");
@@ -115,12 +116,13 @@ public class WorkerPublisherImpl implements WorkerPublisher
 
     private byte[] getOutboundByteArray(
         final byte[] taskMessage,
-        final Optional<String> taskMessagePartialRef,
+        final Optional<String> trackingJobTaskId,
+        final String routingKey,
         final Map<String, Object> headers
     ) throws QueueException {
         try {
-            if (taskMessagePartialRef.isPresent() && shouldStoreTaskMessage(taskMessage.length)) {                
-                final var taskMessageStorageRef = dataStore.store(taskMessage, taskMessagePartialRef.get());
+            if (trackingJobTaskId.isPresent() && shouldStoreTaskMessage(taskMessage.length)) {
+                final var taskMessageStorageRef = dataStore.store(taskMessage, String.format("%s/%s", routingKey, trackingJobTaskId.get()));
                 headers.put(RABBIT_HEADER_CAF_MINIMIZATION_ID, taskMessageStorageRef);
                 //  if the header is set, the consumer will ignore the incoming byte[] and use the minimized message.
                 return new byte[0];
