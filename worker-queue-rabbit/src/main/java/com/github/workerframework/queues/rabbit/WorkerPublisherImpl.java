@@ -83,17 +83,6 @@ public class WorkerPublisherImpl implements WorkerPublisher
         try {
             LOG.debug("Publishing message to {} with ack id {}", routingKey, taskInformation.getInboundMessageId());
             final var publishHeaders = new HashMap<>(headers);
-            // Remove any previous minimization id
-            final Optional<String> inboundTaskMessageStorageRef = Optional.ofNullable(
-                publishHeaders.get(RABBIT_HEADER_CAF_MINIMIZATION_ID)
-            ).map(Object::toString);
-
-            if (inboundTaskMessageStorageRef.isPresent() && taskInformation.getMinimizedTaskMessageStorageRef().isPresent()) {
-                // We have successfully rehydrated this message and the minimized message id is redundant.
-                // The stored message will be deleted in the confirm listener
-                publishHeaders.remove(RABBIT_HEADER_CAF_MINIMIZATION_ID);
-            }
-
             final var outboundByteArray = getOutboundByteArray(data, taskInformation.getTrackingJobTaskId(), routingKey, publishHeaders);
             AMQP.BasicProperties.Builder builder = new AMQP.BasicProperties().builder();
             builder.headers(publishHeaders);
@@ -120,6 +109,7 @@ public class WorkerPublisherImpl implements WorkerPublisher
         final String routingKey,
         final Map<String, Object> headers
     ) throws DataStoreException {
+        headers.remove(RABBIT_HEADER_CAF_MINIMIZATION_ID);
         if (trackingJobTaskId.isPresent() && shouldStoreTaskMessage(taskMessage.length)) {
             final var taskMessageStorageRef = dataStore.store(taskMessage, String.format("%s/%s", routingKey, trackingJobTaskId.get()));
             headers.put(RABBIT_HEADER_CAF_MINIMIZATION_ID, taskMessageStorageRef);

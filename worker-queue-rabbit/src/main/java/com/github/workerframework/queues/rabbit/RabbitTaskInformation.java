@@ -61,7 +61,7 @@ public class RabbitTaskInformation implements TaskInformation {
         );
     }
 
-    public RabbitTaskInformation(
+    private RabbitTaskInformation(
         final String inboundMessageId, 
         final AtomicInteger responseCount,
         final AtomicBoolean isResponseCountFinal,
