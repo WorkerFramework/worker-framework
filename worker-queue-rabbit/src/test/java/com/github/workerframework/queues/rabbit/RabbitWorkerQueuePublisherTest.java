@@ -113,11 +113,9 @@ public class RabbitWorkerQueuePublisherTest
         throws InterruptedException, IOException, CodecException
     {
         final var trackingInfo = new TrackingInfo("task1", new Date(), 1, "http://hello.com", "pipe", "to");
-        final var partialRef = testQueue + "/" + trackingInfo.getJobTaskId();
-        
         final RabbitTaskInformation taskInformation = Mockito.mock(RabbitTaskInformation.class);
         when(taskInformation.getInboundMessageId()).thenReturn("task1");
-        when(taskInformation.getTaskMessagePartialRef()).thenReturn(Optional.of(partialRef));
+        when(taskInformation.getTrackingJobTaskId()).thenReturn(Optional.of(trackingInfo.getJobTaskId()));
         
         final RabbitWorkerQueueConfiguration minimizationEnabledCfg = Mockito.mock(RabbitWorkerQueueConfiguration.class);
         when(minimizationEnabledCfg.getIsMinimizationEnabled()).thenReturn(true);
@@ -155,6 +153,7 @@ public class RabbitWorkerQueuePublisherTest
         publisher.shutdown();
 
         try {
+            final var partialRef = testQueue + "/" + trackingInfo.getJobTaskId();
             final var minimizedByteArray = dataStore.retrieveStoredByteArray(partialRef);
             Assert.assertEquals(outboundByteArray, minimizedByteArray, "The minimized message did not match");
         } catch (final DataStoreException ex){
