@@ -113,7 +113,7 @@ public class WorkerPublisherImpl implements WorkerPublisher
         if (trackingJobTaskId.isPresent() && shouldStoreTaskMessage(taskMessage.length)) {
             final var taskMessageStorageRef = dataStore.store(taskMessage, String.format("%s/%s", routingKey, trackingJobTaskId.get()));
             headers.put(RABBIT_HEADER_CAF_PAYLOAD_OFFLOADING_STORAGE_REF, taskMessageStorageRef);
-            //  if the header is set, the consumer will ignore the incoming byte[] and use the minimized message.
+            //  if the header is set, the consumer will ignore the incoming byte[] and use the offloaded message.
             return new byte[0];
         }
         return taskMessage;
