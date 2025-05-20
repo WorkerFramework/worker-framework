@@ -23,7 +23,5 @@ public class RabbitHeaders
     public static final String RABBIT_HEADER_CAF_WORKER_REJECTED = "x-caf-worker-rejected";
     public static final String RABBIT_HEADER_CAF_WORKER_RETRY = "x-caf-worker-retry";
     public static final String RABBIT_HEADER_CAF_DELIVERY_COUNT = "x-delivery-count";
-    public static final String RABBIT_HEADER_CAF_MINIMIZATION_ID = "x-caf-minimization-id";
-    public static final String RABBIT_HEADER_CAF_MINIMIZATION_REJECTED = "x-caf-minimization-rejected";
-    public static final String RABBIT_HEADER_CAF_MINIMIZATION_REJECTED_ID = "x-caf-minimization-rejected-id";
-}
+    public static final String RABBIT_HEADER_CAF_PAYLOAD_OFFLOADING_STORAGE_REF = "x-caf-payload-offloading-storage-ref";
+    }

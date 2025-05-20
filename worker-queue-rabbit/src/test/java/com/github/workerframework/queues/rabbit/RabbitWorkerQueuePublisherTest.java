@@ -72,8 +72,8 @@ public class RabbitWorkerQueuePublisherTest
     public static void beforeClass() {
         codec = new JsonCodec();
         config = Mockito.mock(RabbitWorkerQueueConfiguration.class);
-        when(config.getIsMinimizationEnabled()).thenReturn(false);
-        when(config.getMinimizationThreshold()).thenReturn(1);
+        when(config.getIsPayloadOffloadingEnabled()).thenReturn(false);
+        when(config.getPayloadOffloadingThreshold()).thenReturn(1);
     }
 
     @BeforeMethod
@@ -109,7 +109,7 @@ public class RabbitWorkerQueuePublisherTest
     }
 
     @Test
-    public void testPublisherMinimizesTheOutgoingMessage()
+    public void testPublisherOffloadsTheOutgoingMessagePayload()
         throws InterruptedException, IOException, CodecException
     {
         final var trackingInfo = new TrackingInfo("task1", new Date(), 1, "http://hello.com", "pipe", "to");
@@ -117,9 +117,9 @@ public class RabbitWorkerQueuePublisherTest
         when(taskInformation.getInboundMessageId()).thenReturn("task1");
         when(taskInformation.getTrackingJobTaskId()).thenReturn(Optional.of(trackingInfo.getJobTaskId()));
         
-        final RabbitWorkerQueueConfiguration minimizationEnabledCfg = Mockito.mock(RabbitWorkerQueueConfiguration.class);
-        when(minimizationEnabledCfg.getIsMinimizationEnabled()).thenReturn(true);
-        when(minimizationEnabledCfg.getMinimizationThreshold()).thenReturn(1);
+        final RabbitWorkerQueueConfiguration offloadingEnabledCfg = Mockito.mock(RabbitWorkerQueueConfiguration.class);
+        when(offloadingEnabledCfg.getIsPayloadOffloadingEnabled()).thenReturn(true);
+        when(offloadingEnabledCfg.getPayloadOffloadingThreshold()).thenReturn(1);
 
         final BlockingQueue<Event<QueueConsumer>> consumerEvents = new LinkedBlockingQueue<>();
         final BlockingQueue<Event<WorkerPublisher>> publisherEvents = new LinkedBlockingQueue<>();
@@ -131,12 +131,12 @@ public class RabbitWorkerQueuePublisherTest
         };
         Mockito.doAnswer(a).when(channel).basicPublish(Mockito.any(), Mockito.eq(testQueue), Mockito.any(), Mockito.eq(data));
         final WorkerConfirmListener listener = new WorkerConfirmListener(consumerEvents, dataStore);
-        final WorkerPublisher impl = new WorkerPublisherImpl(channel, metrics, consumerEvents, listener, dataStore, minimizationEnabledCfg);
+        final WorkerPublisher impl = new WorkerPublisherImpl(channel, metrics, consumerEvents, listener, dataStore, offloadingEnabledCfg);
         final EventPoller<WorkerPublisher> publisher = new EventPoller<>(2, publisherEvents, impl);
         final Thread t = new Thread(publisher);
         t.start();
 
-        final var outboundTaskData = "This is the actual outbound task message that will get stored";
+        final var outboundTaskData = "This is the actual outbound task message that will get offloaded";
         final var outboundTaskMessage = new TaskMessage(
             "task1",
             "ACTUAL_CLASSIFIER",
@@ -154,8 +154,8 @@ public class RabbitWorkerQueuePublisherTest
 
         try {
             final var partialRef = testQueue + "/" + trackingInfo.getJobTaskId();
-            final var minimizedByteArray = dataStore.retrieveStoredByteArray(partialRef);
-            Assert.assertEquals(outboundByteArray, minimizedByteArray, "The minimized message did not match");
+            final var offloadedByteArray = dataStore.retrieveStoredByteArray(partialRef);
+            Assert.assertEquals(outboundByteArray, offloadedByteArray, "The offloaded message did not match");
         } catch (final DataStoreException ex){
             fail("Unable to retrieve the stored message", ex);
         }

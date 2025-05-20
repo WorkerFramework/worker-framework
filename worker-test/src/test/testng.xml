@@ -25,9 +25,9 @@
         </classes>
     </test>
 
-    <test name="Minimize Tests" thread-count="1">
+    <test name="Payload Offloading Tests" thread-count="1">
         <classes>
-            <class name="com.github.workerframework.workertest.MinimizedMessageIT"></class>
+            <class name="com.github.workerframework.workertest.PayloadOffloadingIT"></class>
         </classes>
     </test>
 </suite>

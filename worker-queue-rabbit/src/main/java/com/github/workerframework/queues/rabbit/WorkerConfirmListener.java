@@ -86,9 +86,9 @@ class WorkerConfirmListener implements ConfirmListener
             t.incrementAcknowledgementCount();
             if(t.areAllResponsesAcknowledged() && !t.isAckEventSent()){
                 t.markAckEventAsSent();
-                final var taskMessageStorageRef = t.getMinimizedTaskMessageStorageRef();
+                final var taskMessageStorageRef = t.getPayloadOffloadingStorageRef();
                 if (taskMessageStorageRef.isPresent()) {
-                    deleteMinimizedMessage(taskMessageStorageRef.get());
+                    deleteOffloadedMessage(taskMessageStorageRef.get());
                 }
                 return new ConsumerAckEvent(Long.valueOf(t.getInboundMessageId()));
             }
@@ -132,12 +132,12 @@ class WorkerConfirmListener implements ConfirmListener
         }
     }
 
-    private void deleteMinimizedMessage(final String taskMessageStorageRef)
+    private void deleteOffloadedMessage(final String taskMessageStorageRef)
     {
         try {
             dataStore.delete(taskMessageStorageRef);
         } catch (final DataStoreException e) {
-            LOG.error("Failed to delete a minimized message:{} from the datastore", taskMessageStorageRef, e);
+            LOG.error("Failed to delete an offloaded message:{} from the datastore", taskMessageStorageRef, e);
         }
     }
 }

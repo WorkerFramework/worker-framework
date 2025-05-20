@@ -30,7 +30,7 @@ import java.net.URL;
 import java.util.Map;
 import java.util.Optional;
 
-import static com.github.workerframework.util.rabbitmq.RabbitHeaders.RABBIT_HEADER_CAF_MINIMIZATION_ID;
+import static com.github.workerframework.util.rabbitmq.RabbitHeaders.RABBIT_HEADER_CAF_PAYLOAD_OFFLOADING_STORAGE_REF;
 
 public class WorkerTestBase {
     final protected ConnectionFactory connectionFactory;
@@ -50,17 +50,17 @@ public class WorkerTestBase {
     }
 
     /**
-     * This method will return the storage ref of the minimized message stored in the datastore on publish to the 
+     * This method will return the storage ref of the offloaded payload stored in the datastore on publish to the 
      * worker-out queue.
      * @param messageConsumer
      * @return
      */
     public static String getTaskMessageStorageRef(final TestWorkerQueueConsumer messageConsumer) {
         final Map<String, Object> outgoingHeaders = messageConsumer.getHeaders();
-        final Optional<String> outgoingTaskMessageStorageRef = outgoingHeaders.containsKey(RABBIT_HEADER_CAF_MINIMIZATION_ID) ?
-            Optional.of(outgoingHeaders.get(RABBIT_HEADER_CAF_MINIMIZATION_ID).toString()) :
+        final Optional<String> outgoingTaskMessageStorageRef = outgoingHeaders.containsKey(RABBIT_HEADER_CAF_PAYLOAD_OFFLOADING_STORAGE_REF) ?
+            Optional.of(outgoingHeaders.get(RABBIT_HEADER_CAF_PAYLOAD_OFFLOADING_STORAGE_REF).toString()) :
             Optional.empty();
-        Assert.assertTrue(outgoingTaskMessageStorageRef.isPresent(), "The minimization header was missing");
+        Assert.assertTrue(outgoingTaskMessageStorageRef.isPresent(), "The payload offloading header was missing");
         return outgoingTaskMessageStorageRef.get();
     }
     
