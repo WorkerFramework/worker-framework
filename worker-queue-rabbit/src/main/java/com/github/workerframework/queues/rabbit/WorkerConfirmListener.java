@@ -88,7 +88,8 @@ class WorkerConfirmListener implements ConfirmListener
                 t.markAckEventAsSent();
                 final var taskMessageStorageRef = t.getPayloadOffloadingStorageRef();
                 if (taskMessageStorageRef.isPresent()) {
-                    deleteOffloadedMessage(taskMessageStorageRef.get());
+                    return new ConsumerAckPayloadOffloadingEvent(Long.valueOf(t.getInboundMessageId()), dataStore, 
+                            taskMessageStorageRef.get());
                 }
                 return new ConsumerAckEvent(Long.valueOf(t.getInboundMessageId()));
             }
@@ -129,15 +130,6 @@ class WorkerConfirmListener implements ConfirmListener
                     consumerEvents.add(event);
                 }
             }
-        }
-    }
-
-    private void deleteOffloadedMessage(final String taskMessageStorageRef)
-    {
-        try {
-            dataStore.delete(taskMessageStorageRef);
-        } catch (final DataStoreException e) {
-            LOG.error("Failed to delete an offloaded message:{} from the datastore", taskMessageStorageRef, e);
         }
     }
 }

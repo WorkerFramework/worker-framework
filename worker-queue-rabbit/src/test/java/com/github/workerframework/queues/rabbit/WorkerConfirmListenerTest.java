@@ -32,6 +32,8 @@ import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.TimeUnit;
 
+import static org.mockito.Mockito.mock;
+
 public class WorkerConfirmListenerTest
 {
     private ManagedDataStore dataStore;
@@ -39,7 +41,7 @@ public class WorkerConfirmListenerTest
     @BeforeMethod
     public void beforeMethod()
     {
-        dataStore = Mockito.mock(ManagedDataStore.class);
+        dataStore = mock(ManagedDataStore.class);
     }
 
     @Test
@@ -52,6 +54,8 @@ public class WorkerConfirmListenerTest
         conf.registerResponseSequence(1, rabbitTaskInformation);
         conf.handleAck(1, false);
         Event<QueueConsumer> e = q.poll(1000, TimeUnit.MILLISECONDS);
+        QueueConsumer queueConsumer = mock(QueueConsumer.class);
+        e.handleEvent(queueConsumer);
         Assert.assertNotNull(e);
         Assert.assertTrue(e instanceof ConsumerAckEvent);
         Assert.assertEquals(100, ((ConsumerAckEvent) e).getTag());

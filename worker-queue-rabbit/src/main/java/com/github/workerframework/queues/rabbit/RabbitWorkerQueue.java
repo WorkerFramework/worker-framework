@@ -210,6 +210,14 @@ public final class RabbitWorkerQueue implements ManagedWorkerQueue
     {
         Objects.requireNonNull(taskInformation);
         LOG.debug("Generating acknowledge event for task {}", taskInformation.getInboundMessageId());
+        if(taskInformation instanceof RabbitTaskInformation rabbitTaskInformation) {
+            if(rabbitTaskInformation.getPayloadOffloadingStorageRef().isPresent()) {
+                consumerQueue.add(
+                        new ConsumerAckPayloadOffloadingEvent(Long.parseLong(taskInformation.getInboundMessageId()), 
+                                dataStore,rabbitTaskInformation.getPayloadOffloadingStorageRef().get()));
+                return;
+            }
+        }
         consumerQueue.add(new ConsumerAckEvent(Long.parseLong(taskInformation.getInboundMessageId())));
     }
 
