@@ -105,8 +105,10 @@ public class WorkerQueueConsumerImpl implements QueueConsumer {
 
         final boolean isPoison = isPoisonMessage(delivery, deliveryHeaders, retries);
         if (isPoison) {
-            handlePoisonMessage(delivery, retries, taskMessageStorageRefOpt, taskMessage.getTracking());
-            return;
+            if (retries < retryLimit) {
+                handlePoisonMessage(delivery, retries, taskMessageStorageRefOpt, taskMessage.getTracking());
+                return; // We need to return here to avoid processing the message further.
+            }
         }
 
         processDelivery(
@@ -181,7 +183,7 @@ public class WorkerQueueConsumerImpl implements QueueConsumer {
     private boolean isPoisonMessage(Delivery delivery, Map<String, Object> deliveryHeaders, int retries) {
         if (delivery.getEnvelope().isRedeliver()) {
             if (!deliveryHeaders.containsKey(RabbitHeaders.RABBIT_HEADER_CAF_DELIVERY_COUNT)) {
-                return false; // Classic queue, handled in handlePoisonMessage
+                return true; // Classic queue, handled in handlePoisonMessage if retries < retryLimit
             } else {
                 return retries > retryLimit;
             }
