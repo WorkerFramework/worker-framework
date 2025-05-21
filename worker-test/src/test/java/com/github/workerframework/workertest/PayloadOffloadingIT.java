@@ -15,10 +15,6 @@
  */
 package com.github.workerframework.workertest;
 
-import com.github.cafapi.common.api.Codec;
-import com.github.cafapi.common.api.DecodeMethod;
-import com.github.cafapi.common.codecs.json.JsonCodec;
-import com.github.workerframework.api.TaskMessage;
 import com.github.workerframework.testworker.TestWorkerTask;
 import com.rabbitmq.client.Channel;
 import com.rabbitmq.client.Connection;
@@ -38,8 +34,6 @@ public class PayloadOffloadingIT extends WorkerTestBase {
 
     private static final String TERMINAL_WORKER_IN = "PayloadOffloadingIT-Terminal-in";
     private static final String TERMINAL_WORKER_OUT = "PayloadOffloadingIT-Terminal-out";
-
-    private static final Codec codec = new JsonCodec();
 
     @Test
     public void checkOffloadedPayloadIsConsumedAndDeletedOnAck() throws Exception {
