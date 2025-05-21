@@ -18,6 +18,8 @@ package com.github.workerframework.testworker;
 public class TestWorkerTask {
     private boolean isPoison;
 
+    private boolean isTerminalWorker;
+
     /**
      * Configurable delay in processing a message
      */
@@ -29,6 +31,14 @@ public class TestWorkerTask {
 
     public void setPoison(boolean poison) {
         isPoison = poison;
+    }
+
+    public boolean isTerminalWorker() {
+        return isTerminalWorker;
+    }
+
+    public void setTerminalWorker(boolean terminalWorker) {
+        isTerminalWorker = terminalWorker;
     }
 
     public int getDelaySeconds() {

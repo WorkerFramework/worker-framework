@@ -33,7 +33,7 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.TimeoutException;
 
-public class ShutdownDeveloperTest extends WorkerTestBase {
+public class ShutdownDeveloperIT extends WorkerTestBase {
     private static final String TEST_WORKER_NAME = "testWorkerIdentifier";
     private static final String WORKER_IN = "worker-in";
     private static final String TESTWORKER_OUT = "testworker-out";

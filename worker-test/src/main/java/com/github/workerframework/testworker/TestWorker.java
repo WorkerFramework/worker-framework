@@ -65,7 +65,7 @@ final class TestWorker implements Worker
         }
         
         return new WorkerResponse(
-            outputQueue,
+            testWorkerTask.isTerminalWorker() ? null : outputQueue,
             TaskStatus.RESULT_SUCCESS,
             TEST_WORKER_RESULT,
             "TestWorkerResult",
