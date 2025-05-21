@@ -86,11 +86,6 @@ class WorkerConfirmListener implements ConfirmListener
             t.incrementAcknowledgementCount();
             if(t.areAllResponsesAcknowledged() && !t.isAckEventSent()){
                 t.markAckEventAsSent();
-                final var taskMessageStorageRef = t.getPayloadOffloadingStorageRef();
-                if (taskMessageStorageRef.isPresent()) {
-                    return new ConsumerAckPayloadOffloadingEvent(Long.valueOf(t.getInboundMessageId()), dataStore, 
-                            taskMessageStorageRef.get());
-                }
                 return new ConsumerAckEvent(Long.valueOf(t.getInboundMessageId()));
             }
             return null;

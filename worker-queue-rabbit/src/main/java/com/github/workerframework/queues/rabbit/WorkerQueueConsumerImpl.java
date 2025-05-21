@@ -37,10 +37,13 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.SortedMap;
+import java.util.TreeMap;
 import java.util.concurrent.BlockingQueue;
 
 import static com.github.workerframework.util.rabbitmq.RabbitHeaders.RABBIT_HEADER_CAF_PAYLOAD_OFFLOADING_STORAGE_REF;
@@ -68,7 +71,8 @@ public class WorkerQueueConsumerImpl implements QueueConsumer {
         CLASSIC_AND_REPUBLISHED,
         POISON
     }
-
+    private final SortedMap<Long, String> offloadedPayloads = Collections.synchronizedSortedMap(new TreeMap<>());
+    
     public WorkerQueueConsumerImpl(TaskCallback callback, RabbitMetricsReporter metrics, BlockingQueue<Event<QueueConsumer>> queue, Channel ch,
                                    BlockingQueue<Event<WorkerPublisher>> pubQueue, String retryKey, int retryLimit,
                                    final ManagedDataStore dataStore, final Codec codec) {
@@ -133,6 +137,7 @@ public class WorkerQueueConsumerImpl implements QueueConsumer {
     ) {
         if (taskMessageStorageRefOpt.isPresent()) {
             try (final var inputStream = dataStore.retrieve(taskMessageStorageRefOpt.get())) {
+                offloadedPayloads.put(delivery.getEnvelope().getDeliveryTag(), taskMessageStorageRefOpt.get());
                 return inputStream.readAllBytes();
             } catch (final IOException | DataStoreException e) {
                 final RabbitTaskInformation taskInformation = new RabbitTaskInformation(
@@ -262,6 +267,17 @@ public class WorkerQueueConsumerImpl implements QueueConsumer {
             LOG.warn("Couldn't ack message {}, will retry", tag, e);
             metrics.incremementErrors();
             consumerEventQueue.add(new ConsumerAckEvent(tag));
+        }
+
+        final String datastorePayloadReference = offloadedPayloads.getOrDefault(tag, null);
+        try {
+            if(datastorePayloadReference != null) {
+                dataStore.delete(offloadedPayloads.get(tag));
+            }
+        } catch (final DataStoreException e) {
+            LOG.warn("Couldn't delete offloaded payload '{}' for delivery tag '{}' from datastore message.", 
+                    datastorePayloadReference, tag, e);
+            throw new RuntimeException(e);
         }
     }
 
