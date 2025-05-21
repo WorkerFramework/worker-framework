@@ -67,7 +67,7 @@ public class PoisonMessageIT  extends WorkerTestBase {
                     .build();
 
             channel.basicPublish("", WORKER_IN, properties, codec.serialise(requestTaskMessage));
-            
+
             nackMessage(channel);
         }
         checkRedeliveredMessage();
@@ -88,6 +88,8 @@ public class PoisonMessageIT  extends WorkerTestBase {
         } catch (final InterruptedException e) {
             throw new RuntimeException(e);
         }
+
+        Assert.assertNotNull(consumer.getEnvelope(), "Race condition encountered when trying to force redelivery");
         final var envelope = consumer.getEnvelope();
         channel.basicNack(envelope.getDeliveryTag(), false, true);
     }
