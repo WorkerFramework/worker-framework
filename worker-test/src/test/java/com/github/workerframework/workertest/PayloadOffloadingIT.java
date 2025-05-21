@@ -37,10 +37,10 @@ import java.util.concurrent.TimeoutException;
 
 import static com.github.workerframework.util.rabbitmq.RabbitHeaders.RABBIT_HEADER_CAF_PAYLOAD_OFFLOADING_STORAGE_REF;
 
-public class PayloadOffloadingIT extends TestWorkerTestBase {
+public class PayloadOffloadingIT extends WorkerTestBase {
     private static final String TEST_WORKER_NAME = "testWorkerIdentifier";
-    private static final String WORKER_IN = "worker-in";
-    private static final String TESTWORKER_OUT = "testworker-out";
+    private static final String WORKER_IN = "PayloadOffloadingIT-in";
+    private static final String WORKER_OUT = "PayloadOffloadingIT-out";
     private static final Codec codec = new JsonCodec();
 
     @Test
@@ -76,7 +76,7 @@ public class PayloadOffloadingIT extends TestWorkerTestBase {
         final Channel channel,
         final TestWorkerQueueConsumer messageConsumer
     ) throws IOException {
-        channel.basicConsume(TESTWORKER_OUT, false, messageConsumer);
+        channel.basicConsume(WORKER_OUT, false, messageConsumer);
         try {
             for (int i = 0; i < 1000; i++) {
 
@@ -148,7 +148,7 @@ public class PayloadOffloadingIT extends TestWorkerTestBase {
         final Map<String, Object> args = new HashMap<>();
         args.put(QueueCreator.RABBIT_PROP_QUEUE_TYPE, QueueCreator.RABBIT_PROP_QUEUE_TYPE_QUORUM);
         channel.queueDeclare(WORKER_IN, true, false, false, args);
-        channel.queueDeclare(TESTWORKER_OUT, true, false, false, args);
+        channel.queueDeclare(WORKER_OUT, true, false, false, args);
         return channel;
     }
 }

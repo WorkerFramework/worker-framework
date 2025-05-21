@@ -25,20 +25,18 @@ import com.rabbitmq.client.Connection;
 import com.rabbitmq.client.Channel;
 import com.rabbitmq.client.AMQP;
 import org.testng.Assert;
-import org.testng.annotations.Ignore;
 import org.testng.annotations.Test;
 
 import java.nio.charset.StandardCharsets;
 import java.util.HashMap;
 import java.util.Map;
 
-@Ignore
-public class PoisonMessageIT  extends TestWorkerTestBase{
+public class PoisonMessageIT  extends WorkerTestBase {
     private static final String POISON_ERROR_MESSAGE = "could not process the item.";
     private static final String WORKER_FRIENDLY_NAME = "TestWorker";
     private static final String TEST_WORKER_NAME = "testWorkerIdentifier";
-    private static final String WORKER_IN = "worker-in";
-    private static final String TESTWORKER_OUT = "testworker-out";
+    private static final String WORKER_IN = "PoisonMessageIT-in";
+    private static final String WORKER_OUT = "PoisonMessageIT-out";
     private static final int TASK_NUMBER = 1;
     private static final Codec codec = new JsonCodec();
 
@@ -71,16 +69,16 @@ public class PoisonMessageIT  extends TestWorkerTestBase{
             channel.basicPublish("", WORKER_IN, properties, codec.serialise(requestTaskMessage));
 
             final TestWorkerQueueConsumer poisonConsumer = new TestWorkerQueueConsumer();
-            channel.queueDeclare(TESTWORKER_OUT, true, false, false, args);
+            channel.queueDeclare(WORKER_OUT, true, false, false, args);
 
-            channel.basicConsume(TESTWORKER_OUT, false, poisonConsumer);
+            channel.basicConsume(WORKER_OUT, true, poisonConsumer);
 
             try {
                 for (int i=0; i<10000; i++){
 
                     Thread.sleep(100);
 
-                    if (poisonConsumer.getHeaders() != null){
+                    if (poisonConsumer.getLastDeliveredBody() != null){
                         break;
                     }
                 }
@@ -88,10 +86,9 @@ public class PoisonMessageIT  extends TestWorkerTestBase{
                 throw new RuntimeException(e);
             }
 
-            // With payload offloading enabled we expect to get the message in the datastore
-            final String consumedTaskMessageStorageRef = getTaskMessageStorageRef(poisonConsumer);
-            final var consumedByteArrayOpt = readFileFromWebDAV(consumedTaskMessageStorageRef);
-            final TaskMessage decodedBody = codec.deserialise(consumedByteArrayOpt.get(), TaskMessage.class);
+            Assert.assertNotNull(poisonConsumer.getLastDeliveredBody());
+            final TaskMessage decodedBody = codec.deserialise(poisonConsumer.getLastDeliveredBody(), TaskMessage.class);
+            
             final String taskData = new String(decodedBody.getTaskData(), StandardCharsets.UTF_8);
 
             Assert.assertTrue(taskData.contains(WORKER_FRIENDLY_NAME));

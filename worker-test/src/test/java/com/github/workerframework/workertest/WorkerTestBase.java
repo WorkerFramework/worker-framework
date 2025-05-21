@@ -32,20 +32,20 @@ import java.util.Optional;
 
 import static com.github.workerframework.util.rabbitmq.RabbitHeaders.RABBIT_HEADER_CAF_PAYLOAD_OFFLOADING_STORAGE_REF;
 
-public class TestWorkerTestBase {
+public class WorkerTestBase {
     final protected ConnectionFactory connectionFactory;
     private static final String CAF_RABBITMQ_HOST = "CAF_RABBITMQ_HOST";
     private static final String CAF_RABBITMQ_PORT = "CAF_RABBITMQ_PORT";
     private static final String CAF_RABBITMQ_USERNAME = "CAF_RABBITMQ_USERNAME";
     private static final String CAF_RABBITMQ_PASSWORD = "CAF_RABBITMQ_PASSWORD";
-    public static final String WEBDAV_URL = System.getProperty("WEBDAV_URL");
+    public static final String WEBDAV_URL = System.getProperty("WEBDAV_URL", "http://localhost:9090/webdav");
 
-    public TestWorkerTestBase() {
+    public WorkerTestBase() {
         connectionFactory = new ConnectionFactory();
-        connectionFactory.setHost(System.getProperty(CAF_RABBITMQ_HOST));
-        connectionFactory.setPort(Integer.parseInt(System.getProperty(CAF_RABBITMQ_PORT)));
-        connectionFactory.setUsername(System.getProperty(CAF_RABBITMQ_USERNAME));
-        connectionFactory.setPassword(System.getProperty(CAF_RABBITMQ_PASSWORD));
+        connectionFactory.setHost(System.getProperty(CAF_RABBITMQ_HOST, "localhost"));
+        connectionFactory.setPort(Integer.parseInt(System.getProperty(CAF_RABBITMQ_PORT, "25672")));
+        connectionFactory.setUsername(System.getProperty(CAF_RABBITMQ_USERNAME, "guest"));
+        connectionFactory.setPassword(System.getProperty(CAF_RABBITMQ_PASSWORD, "guest"));
         connectionFactory.setVirtualHost("/");
     }
 

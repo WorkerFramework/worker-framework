@@ -33,7 +33,7 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.TimeoutException;
 
-public class ShutdownDeveloperTest extends TestWorkerTestBase {
+public class ShutdownDeveloperTest extends WorkerTestBase {
     private static final String TEST_WORKER_NAME = "testWorkerIdentifier";
     private static final String WORKER_IN = "worker-in";
     private static final String TESTWORKER_OUT = "testworker-out";
@@ -45,7 +45,8 @@ public class ShutdownDeveloperTest extends TestWorkerTestBase {
     public void shutdownTest() throws IOException, TimeoutException, CodecException {
 
         // Usage instructions
-        // Comment out the iages for test worker 2 and 3 in this module's pom.xml
+        // This test is only to be ran manually by developers never by automation.
+        // Comment out the images for test worker 2 and 3 in this module's pom.xml
         // Use mvn docker:start to start test worker
         // Remove the @Ignore and run the test to create 100 test messages
         // From a terminal execute docker stop -t 300 CONTAINER_ID 
