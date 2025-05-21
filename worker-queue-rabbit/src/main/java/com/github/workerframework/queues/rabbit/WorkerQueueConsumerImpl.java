@@ -136,8 +136,8 @@ public class WorkerQueueConsumerImpl implements QueueConsumer {
         final long inboundMessageId
     ) {
         if (taskMessageStorageRefOpt.isPresent()) {
+            offloadedPayloads.put(delivery.getEnvelope().getDeliveryTag(), taskMessageStorageRefOpt.get());
             try (final var inputStream = dataStore.retrieve(taskMessageStorageRefOpt.get())) {
-                offloadedPayloads.put(delivery.getEnvelope().getDeliveryTag(), taskMessageStorageRefOpt.get());
                 return inputStream.readAllBytes();
             } catch (final IOException | DataStoreException e) {
                 final RabbitTaskInformation taskInformation = new RabbitTaskInformation(
