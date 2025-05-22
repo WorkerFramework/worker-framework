@@ -52,17 +52,17 @@ public class PayloadOffloadingIT extends WorkerTestBase {
             // the body will be ignored as the offloaded payload will be used.
             publish(channel, new byte[0], headers, WORKER_IN);
 
-            final TestWorkerQueueConsumer consumer = new TestWorkerQueueConsumer();
-            consume(channel, consumer, WORKER_OUT);
-            final var consumedTaskMessageStorageRef = getTaskMessageStorageRef(consumer);
+            final TestWorkerQueueConsumer outboundConsumer = new TestWorkerQueueConsumer();
+            consume(channel, outboundConsumer, WORKER_OUT);
+            final var consumedTaskMessageStorageRef = getTaskMessageStorageRef(outboundConsumer);
             Assert.assertTrue(consumedTaskMessageStorageRef.isPresent(), "The payload offloading header was missing");
             Assert.assertNotEquals(consumedTaskMessageStorageRef.get(), setupPayloadOffloadStorageRef, "Storage refs should have been different");
 
-            // The previously offloaded payload should now have been deleted by the confirm listener
+            // The previously offloaded payload should now have been deleted when the inbound message is ack'd
             final var storedSetupByteArrayOpt = readFileFromWebDAV(setupPayloadOffloadStorageRef);
             Assert.assertTrue(storedSetupByteArrayOpt.isEmpty(), "setup message should not have been found");
 
-            // The previously published message should be present in the datastore
+            // The outbound message should be present in the datastore
             final var consumedByteArrayOpt = readFileFromWebDAV(consumedTaskMessageStorageRef.get());
             Assert.assertTrue(consumedByteArrayOpt.isPresent(), "Offloaded payload should have been found");
         }
@@ -90,19 +90,19 @@ public class PayloadOffloadingIT extends WorkerTestBase {
             // this publish will result the worker thinking it a terminal worker.
             publish(channel, new byte[0], headers, TERMINAL_WORKER_IN);
 
-            final TestWorkerQueueConsumer consumer = new TestWorkerQueueConsumer();
-            consume(channel, consumer, TERMINAL_WORKER_OUT);
+            final TestWorkerQueueConsumer outboundConsumer = new TestWorkerQueueConsumer();
+            consume(channel, outboundConsumer, TERMINAL_WORKER_OUT);
             try {
                 for (int i=0; i<100; i++){
                     Thread.sleep(100);
-                    if (consumer.getLastDeliveredBody() != null){
+                    if (outboundConsumer.getLastDeliveredBody() != null){
                         break;
                     }
                 }
             } catch (final InterruptedException e) {
                 throw new RuntimeException(e);
             }
-            Assert.assertNull(consumer.getLastDeliveredBody(), "The message should not have been output to the queue");
+            Assert.assertNull(outboundConsumer.getLastDeliveredBody(), "The message should not have been output to the queue");
 
             final var reReadWebDAVFile = readFileFromWebDAV(storageRef);
             Assert.assertFalse(reReadWebDAVFile.isPresent(), "The file should be gone from the datastore");
