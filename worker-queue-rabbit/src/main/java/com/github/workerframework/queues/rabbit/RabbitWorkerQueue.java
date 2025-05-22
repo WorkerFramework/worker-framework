@@ -111,7 +111,7 @@ public final class RabbitWorkerQueue implements ManagedWorkerQueue
             throw new IllegalStateException("Already started");
         }
         try {
-            WorkerConfirmListener confirmListener = new WorkerConfirmListener(consumerQueue, dataStore);
+            WorkerConfirmListener confirmListener = new WorkerConfirmListener(consumerQueue);
             createConnection(callback, confirmListener);
             outgoingChannel = conn.createChannel();
             incomingChannel = conn.createChannel();

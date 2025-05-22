@@ -15,19 +15,14 @@
  */
 package com.github.workerframework.queues.rabbit;
 
-import com.github.workerframework.api.DataStoreException;
-import com.github.workerframework.api.ManagedDataStore;
 import com.github.workerframework.util.rabbitmq.ConsumerAckEvent;
 import com.github.workerframework.util.rabbitmq.ConsumerRejectEvent;
 import com.github.workerframework.util.rabbitmq.Event;
 import com.github.workerframework.util.rabbitmq.QueueConsumer;
-import org.mockito.Mockito;
 import org.testng.Assert;
-import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 
 import java.io.IOException;
-import java.util.Optional;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.TimeUnit;
@@ -35,35 +30,12 @@ import java.util.concurrent.TimeUnit;
 
 public class WorkerConfirmListenerTest
 {
-    private ManagedDataStore dataStore;
-    
-    @BeforeMethod
-    public void beforeMethod()
-    {
-        dataStore = Mockito.mock(ManagedDataStore.class);
-    }
 
     @Test
-    public void testAckCallsDeleteOffloadedMessage()
-        throws IOException, InterruptedException, DataStoreException {
-        BlockingQueue<Event<QueueConsumer>> q = new LinkedBlockingQueue<>();
-        WorkerConfirmListener conf = new WorkerConfirmListener(q, dataStore);
-        RabbitTaskInformation rabbitTaskInformation = new RabbitTaskInformation("100", false, Optional.of("offloaded"), Optional.of("partial_ref"));
-        rabbitTaskInformation.incrementResponseCount(true);
-        conf.registerResponseSequence(1, rabbitTaskInformation);
-        conf.handleAck(1, false);
-        Event<QueueConsumer> e = q.poll(1000, TimeUnit.MILLISECONDS);
-        Assert.assertNotNull(e);
-        Assert.assertTrue(e instanceof ConsumerAckEvent);
-        Assert.assertEquals(100, ((ConsumerAckEvent) e).getTag());
-        Mockito.verify(dataStore, Mockito.times(1)).delete("offloaded");
-    }
-    
-    @Test
     public void testAckSingle()
-        throws IOException, InterruptedException, DataStoreException {
+        throws IOException, InterruptedException {
         BlockingQueue<Event<QueueConsumer>> q = new LinkedBlockingQueue<>();
-        WorkerConfirmListener conf = new WorkerConfirmListener(q, dataStore);
+        WorkerConfirmListener conf = new WorkerConfirmListener(q);
         RabbitTaskInformation rabbitTaskInformation = new RabbitTaskInformation("100");
         rabbitTaskInformation.incrementResponseCount(true);
         conf.registerResponseSequence(1, rabbitTaskInformation);
@@ -72,7 +44,6 @@ public class WorkerConfirmListenerTest
         Assert.assertNotNull(e);
         Assert.assertTrue(e instanceof ConsumerAckEvent);
         Assert.assertEquals(100, ((ConsumerAckEvent) e).getTag());
-        Mockito.verify(dataStore, Mockito.times(0)).delete(Mockito.anyString());
     }
 
     @Test(expectedExceptions = IllegalStateException.class)
@@ -80,7 +51,7 @@ public class WorkerConfirmListenerTest
         throws IOException, InterruptedException
     {
         BlockingQueue<Event<QueueConsumer>> q = new LinkedBlockingQueue<>();
-        WorkerConfirmListener conf = new WorkerConfirmListener(q, dataStore);
+        WorkerConfirmListener conf = new WorkerConfirmListener(q);
         conf.handleAck(1, false);
     }
 
@@ -89,7 +60,7 @@ public class WorkerConfirmListenerTest
         throws IOException, InterruptedException
     {
         BlockingQueue<Event<QueueConsumer>> q = new LinkedBlockingQueue<>();
-        WorkerConfirmListener conf = new WorkerConfirmListener(q, dataStore);
+        WorkerConfirmListener conf = new WorkerConfirmListener(q);
         RabbitTaskInformation rabbitTaskInformation = new RabbitTaskInformation("100");
         rabbitTaskInformation.incrementResponseCount(true);
         conf.registerResponseSequence(1, rabbitTaskInformation);
@@ -106,7 +77,7 @@ public class WorkerConfirmListenerTest
         throws IOException, InterruptedException
     {
         BlockingQueue<Event<QueueConsumer>> q = new LinkedBlockingQueue<>();
-        WorkerConfirmListener conf = new WorkerConfirmListener(q, dataStore);
+        WorkerConfirmListener conf = new WorkerConfirmListener(q);
         conf.registerResponseSequence(1, new RabbitTaskInformation("100"));
         conf.handleNack(1, false);
         Event<QueueConsumer> e = q.poll(1000, TimeUnit.MILLISECONDS);
@@ -120,7 +91,7 @@ public class WorkerConfirmListenerTest
         throws IOException, InterruptedException
     {
         BlockingQueue<Event<QueueConsumer>> q = new LinkedBlockingQueue<>();
-        WorkerConfirmListener conf = new WorkerConfirmListener(q, dataStore);
+        WorkerConfirmListener conf = new WorkerConfirmListener(q);
         conf.handleNack(1, false);
     }
 
@@ -129,7 +100,7 @@ public class WorkerConfirmListenerTest
         throws IOException, InterruptedException
     {
         BlockingQueue<Event<QueueConsumer>> q = new LinkedBlockingQueue<>();
-        WorkerConfirmListener conf = new WorkerConfirmListener(q, dataStore);
+        WorkerConfirmListener conf = new WorkerConfirmListener(q);
         conf.registerResponseSequence(1, new RabbitTaskInformation("100"));
         conf.handleNack(1, false);
         Event<QueueConsumer> e = q.poll(1000, TimeUnit.MILLISECONDS);
@@ -144,7 +115,7 @@ public class WorkerConfirmListenerTest
         throws IOException, InterruptedException
     {
         BlockingQueue<Event<QueueConsumer>> q = new LinkedBlockingQueue<>();
-        WorkerConfirmListener conf = new WorkerConfirmListener(q, dataStore);
+        WorkerConfirmListener conf = new WorkerConfirmListener(q);
         RabbitTaskInformation rabbitTaskInfo_100 = new RabbitTaskInformation("100");
         RabbitTaskInformation rabbitTaskInfo_500 = new RabbitTaskInformation("500");
         RabbitTaskInformation rabbitTaskInfo_200 = new RabbitTaskInformation("200");
@@ -177,7 +148,7 @@ public class WorkerConfirmListenerTest
         throws IOException, InterruptedException
     {
         BlockingQueue<Event<QueueConsumer>> q = new LinkedBlockingQueue<>();
-        WorkerConfirmListener conf = new WorkerConfirmListener(q, dataStore);
+        WorkerConfirmListener conf = new WorkerConfirmListener(q);
         RabbitTaskInformation rabbitTaskInfo_100 = new RabbitTaskInformation("100");
         RabbitTaskInformation rabbitTaskInfo_500 = new RabbitTaskInformation("500");
         RabbitTaskInformation rabbitTaskInfo_200 = new RabbitTaskInformation("200");
@@ -204,7 +175,7 @@ public class WorkerConfirmListenerTest
         throws IOException, InterruptedException
     {
         BlockingQueue<Event<QueueConsumer>> q = new LinkedBlockingQueue<>();
-        WorkerConfirmListener conf = new WorkerConfirmListener(q, dataStore);
+        WorkerConfirmListener conf = new WorkerConfirmListener(q);
         RabbitTaskInformation rabbitTaskInfo_100 = new RabbitTaskInformation("100");
         RabbitTaskInformation rabbitTaskInfo_500 = new RabbitTaskInformation("500");
         RabbitTaskInformation rabbitTaskInfo_200 = new RabbitTaskInformation("200");
@@ -237,7 +208,7 @@ public class WorkerConfirmListenerTest
         throws IOException, InterruptedException
     {
         BlockingQueue<Event<QueueConsumer>> q = new LinkedBlockingQueue<>();
-        WorkerConfirmListener conf = new WorkerConfirmListener(q, dataStore);
+        WorkerConfirmListener conf = new WorkerConfirmListener(q);
         RabbitTaskInformation rabbitTaskInfo_100 = new RabbitTaskInformation("100");
         RabbitTaskInformation rabbitTaskInfo_500 = new RabbitTaskInformation("500");
         RabbitTaskInformation rabbitTaskInfo_200 = new RabbitTaskInformation("200");
@@ -264,7 +235,7 @@ public class WorkerConfirmListenerTest
         throws IOException, InterruptedException
     {
         BlockingQueue<Event<QueueConsumer>> q = new LinkedBlockingQueue<>();
-        WorkerConfirmListener conf = new WorkerConfirmListener(q, dataStore);
+        WorkerConfirmListener conf = new WorkerConfirmListener(q);
         RabbitTaskInformation rabbitTaskInfo_100 = new RabbitTaskInformation("100");
         RabbitTaskInformation rabbitTaskInfo_200 = new RabbitTaskInformation("200");
         rabbitTaskInfo_100.incrementResponseCount(true);
@@ -285,7 +256,7 @@ public class WorkerConfirmListenerTest
     public void testDuplicateRegister()
     {
         BlockingQueue<Event<QueueConsumer>> q = new LinkedBlockingQueue<>();
-        WorkerConfirmListener conf = new WorkerConfirmListener(q, dataStore);
+        WorkerConfirmListener conf = new WorkerConfirmListener(q);
         conf.registerResponseSequence(1, new RabbitTaskInformation("100"));
         conf.registerResponseSequence(1, new RabbitTaskInformation("100"));
     }
@@ -295,7 +266,7 @@ public class WorkerConfirmListenerTest
         throws IOException, InterruptedException
     {
         BlockingQueue<Event<QueueConsumer>> q = new LinkedBlockingQueue<>();
-        WorkerConfirmListener conf = new WorkerConfirmListener(q, dataStore);
+        WorkerConfirmListener conf = new WorkerConfirmListener(q);
         RabbitTaskInformation rabbitTaskInfo_100 = new RabbitTaskInformation("100");
         rabbitTaskInfo_100.incrementResponseCount(false);
         conf.registerResponseSequence(5, rabbitTaskInfo_100);
@@ -315,7 +286,7 @@ public class WorkerConfirmListenerTest
         throws IOException, InterruptedException
     {
         BlockingQueue<Event<QueueConsumer>> q = new LinkedBlockingQueue<>();
-        WorkerConfirmListener conf = new WorkerConfirmListener(q, dataStore);
+        WorkerConfirmListener conf = new WorkerConfirmListener(q);
         RabbitTaskInformation rabbitTaskInfo_100 = new RabbitTaskInformation("100");
         rabbitTaskInfo_100.incrementResponseCount(false);
         conf.registerResponseSequence(5, rabbitTaskInfo_100);
@@ -340,7 +311,7 @@ public class WorkerConfirmListenerTest
         throws IOException, InterruptedException
     {
         BlockingQueue<Event<QueueConsumer>> q = new LinkedBlockingQueue<>();
-        WorkerConfirmListener conf = new WorkerConfirmListener(q, dataStore);
+        WorkerConfirmListener conf = new WorkerConfirmListener(q);
         RabbitTaskInformation rabbitTaskInfo_100 = new RabbitTaskInformation("100");
         rabbitTaskInfo_100.incrementResponseCount(false);
         conf.registerResponseSequence(5, rabbitTaskInfo_100);
@@ -361,7 +332,7 @@ public class WorkerConfirmListenerTest
         throws IOException, InterruptedException
     {
         BlockingQueue<Event<QueueConsumer>> q = new LinkedBlockingQueue<>();
-        WorkerConfirmListener conf = new WorkerConfirmListener(q, dataStore);
+        WorkerConfirmListener conf = new WorkerConfirmListener(q);
         RabbitTaskInformation rabbitTaskInfo_100 = new RabbitTaskInformation("100");
         rabbitTaskInfo_100.incrementResponseCount(false);
         conf.registerResponseSequence(5, rabbitTaskInfo_100);
