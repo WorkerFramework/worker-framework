@@ -99,9 +99,6 @@
                             <goal>integration-test</goal>
                         </goals>
                         <configuration>
-                            <suiteXmlFiles>
-                                <suiteXmlFile>src/test/testng.xml</suiteXmlFile>
-                            </suiteXmlFiles>
                             <systemPropertyVariables>
                                 <WEBDAV_URL>http://${docker.host.address}:${webdav.port}/webdav</WEBDAV_URL>
                                 <CAF_RABBITMQ_HOST>${docker.host.address}</CAF_RABBITMQ_HOST>
