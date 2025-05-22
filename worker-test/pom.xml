@@ -278,6 +278,46 @@
                         <image>
                             <alias>PayloadOffloadingIT</alias>
                             <name>${targetDockerRegistryPath}/worker-test:${project.version}</name>
+                            <build>
+                                <from>${projectDockerRegistry}/cafapi/opensuse-jre17</from>
+                                <cmd>
+                                    <exec>
+                                        <args>/maven/worker.sh</args>
+                                    </exec>
+                                </cmd>
+                                <healthCheck>
+                                    <cmd>curl -f http://localhost:8080/health-check?type=READY || exit 1</cmd>
+                                </healthCheck>
+                                <assembly>
+                                    <mode>tar</mode>
+                                    <inline>
+                                        <fileSets>
+                                            <fileSet>
+                                                <directory>src/main/config</directory>
+                                                <fileMode>0755</fileMode>
+                                                <includes>
+                                                    <include>worker.sh</include>
+                                                </includes>
+                                                <lineEnding>unix</lineEnding>
+                                                <outputDirectory>.</outputDirectory>
+                                            </fileSet>
+                                            <fileSet>
+                                                <directory>src/main/config</directory>
+                                                <includes>
+                                                    <include>worker.yaml</include>
+                                                </includes>
+                                                <lineEnding>unix</lineEnding>
+                                                <outputDirectory>.</outputDirectory>
+                                            </fileSet>
+                                        </fileSets>
+                                        <dependencySets>
+                                            <dependencySet>
+                                                <scope>runtime</scope>
+                                            </dependencySet>
+                                        </dependencySets>
+                                    </inline>
+                                </assembly>
+                            </build>
                             <run>
                                 <platform>linux/amd64</platform>
                                 <ports>
