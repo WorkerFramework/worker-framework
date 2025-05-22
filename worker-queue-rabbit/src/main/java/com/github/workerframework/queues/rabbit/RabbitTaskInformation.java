@@ -31,7 +31,6 @@ public class RabbitTaskInformation implements TaskInformation {
     private final AtomicInteger acknowledgementCount;
     private static final Logger LOG = LoggerFactory.getLogger(RabbitTaskInformation.class);
     private final boolean isPoison;
-    private final Optional<String> payloadOffloadingStorageRef;
     private final Optional<String> trackingJobTaskId;
 
     public RabbitTaskInformation(final String inboundMessageId) {
@@ -39,13 +38,12 @@ public class RabbitTaskInformation implements TaskInformation {
     }
     
     public RabbitTaskInformation(final String inboundMessageId, final boolean isPoison) {
-        this(inboundMessageId, isPoison, Optional.empty(), Optional.empty());
+        this(inboundMessageId, isPoison, Optional.empty());
     }
 
     public RabbitTaskInformation(
         final String inboundMessageId, 
         final boolean isPoison, 
-        final Optional<String> payloadOffloadingStorageRef,
         final Optional<String> trackingJobTaskId
     ) {
         this(
@@ -56,7 +54,6 @@ public class RabbitTaskInformation implements TaskInformation {
             new AtomicBoolean(false), 
             new AtomicBoolean(false), 
             isPoison,
-            payloadOffloadingStorageRef,
             trackingJobTaskId
         );
     }
@@ -69,7 +66,6 @@ public class RabbitTaskInformation implements TaskInformation {
         final AtomicBoolean negativeAckEventSent,
         final AtomicBoolean ackEventSent,
         final boolean isPoison, 
-        final Optional<String> payloadOffloadingStorageRef,
         final Optional<String> trackingJobTaskId
         ) {
         this.inboundMessageId = inboundMessageId;
@@ -79,7 +75,6 @@ public class RabbitTaskInformation implements TaskInformation {
         this.negativeAckEventSent = negativeAckEventSent;
         this.ackEventSent = ackEventSent;
         this.isPoison = isPoison;
-        this.payloadOffloadingStorageRef = payloadOffloadingStorageRef;
         this.trackingJobTaskId = trackingJobTaskId;
     }
 
@@ -178,10 +173,6 @@ public class RabbitTaskInformation implements TaskInformation {
      */
     public boolean isPoison() {
         return isPoison;
-    }
-
-    public Optional<String> getPayloadOffloadingStorageRef() {
-        return payloadOffloadingStorageRef;
     }
 
     public Optional<String> getTrackingJobTaskId() {

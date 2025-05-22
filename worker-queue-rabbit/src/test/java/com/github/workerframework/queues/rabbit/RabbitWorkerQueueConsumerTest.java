@@ -179,8 +179,6 @@ public class RabbitWorkerQueueConsumerTest
         Assert.assertTrue(taskInformation instanceof RabbitTaskInformation, 
             "RabbitTaskInformation expected");
         final var rabbitTaskInfo = (RabbitTaskInformation) taskInformation;
-        Assert.assertEquals(rabbitTaskInfo.getPayloadOffloadingStorageRef().get(), taskMessageStorageRef,
-            "RabbitTaskInformation should have contained the offloaded message id");
         Assert.assertTrue(latch.await(1000, TimeUnit.MILLISECONDS));
         consumer.shutdown();
     }

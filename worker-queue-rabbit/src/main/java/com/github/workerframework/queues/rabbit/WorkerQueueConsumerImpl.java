@@ -113,7 +113,7 @@ public class WorkerQueueConsumerImpl implements QueueConsumer {
         if (taskMessage == null) return;
 
         final PoisonMessageStatus poisonMessageStatus = getPoisonMessageStatus(
-            delivery, deliveryHeaders, retries, taskMessageStorageRefOpt, taskMessage.getTracking()
+            delivery, deliveryHeaders, retries, taskMessage.getTracking()
         );
         if (poisonMessageStatus == PoisonMessageStatus.CLASSIC_AND_REPUBLISHED) {
             return;
@@ -125,8 +125,7 @@ public class WorkerQueueConsumerImpl implements QueueConsumer {
             deliveryHeaders,
             taskMessage,
             taskMessageData,
-            poisonMessageStatus == PoisonMessageStatus.POISON,
-            taskMessageStorageRefOpt
+            poisonMessageStatus == PoisonMessageStatus.POISON
         );
     }
 
@@ -141,7 +140,7 @@ public class WorkerQueueConsumerImpl implements QueueConsumer {
                 return inputStream.readAllBytes();
             } catch (final IOException | DataStoreException e) {
                 final RabbitTaskInformation taskInformation = new RabbitTaskInformation(
-                    String.valueOf(inboundMessageId), true, Optional.empty(), Optional.empty()
+                    String.valueOf(inboundMessageId), true, Optional.empty()
                 );
                 LOG.error(
                     "Cannot register new message, rejecting storageRef:{} inbound messageid: {}",
@@ -176,7 +175,7 @@ public class WorkerQueueConsumerImpl implements QueueConsumer {
             return codec.deserialise(taskMessageData, TaskMessage.class, DecodeMethod.LENIENT);
         } catch (final CodecException e) {
             final RabbitTaskInformation errorTaskInformation = new RabbitTaskInformation(
-                String.valueOf(inboundMessageId), true, Optional.empty(), Optional.empty()
+                String.valueOf(inboundMessageId), true, Optional.empty()
             );
             LOG.error("Cannot register new message, rejecting {}", inboundMessageId, e);
             errorTaskInformation.incrementResponseCount(true);
@@ -198,7 +197,6 @@ public class WorkerQueueConsumerImpl implements QueueConsumer {
         final Delivery delivery,
         final Map<String, Object> deliveryHeaders,
         final int retries,
-        final Optional<String> taskMessageStorageRefOpt,
         final TrackingInfo trackingInfo
     ) {
         // If the message is being redelivered it is potentially a poison message.
@@ -209,7 +207,7 @@ public class WorkerQueueConsumerImpl implements QueueConsumer {
                 // with a header recording the retry count
                 if (retries < retryLimit) {
                     republishClassicRedelivery(
-                        delivery, retries, taskMessageStorageRefOpt, trackingInfo
+                        delivery, retries, trackingInfo
                     );
                     return PoisonMessageStatus.CLASSIC_AND_REPUBLISHED;
                 }
@@ -227,13 +225,12 @@ public class WorkerQueueConsumerImpl implements QueueConsumer {
         final Map<String, Object> deliveryHeaders,
         final TaskMessage taskMessage,
         final byte[] taskMessageByteArray,
-        final boolean isPoison,
-        final Optional<String> taskMessageStorageRefOpt
+        final boolean isPoison
     ) {
         final var trackingInfo = taskMessage.getTracking();
         final var trackingJobTaskId = trackingInfo != null ? trackingInfo.getJobTaskId() : "untracked";
         final RabbitTaskInformation taskInformation = new RabbitTaskInformation(
-            String.valueOf(inboundMessageId), isPoison, taskMessageStorageRefOpt, Optional.of(trackingJobTaskId)
+            String.valueOf(inboundMessageId), isPoison, Optional.of(trackingJobTaskId)
         );
         try {
             LOG.debug("Registering new message {}", inboundMessageId);
@@ -319,12 +316,11 @@ public class WorkerQueueConsumerImpl implements QueueConsumer {
     private void republishClassicRedelivery(
         final Delivery delivery,
         final int retries,
-        final Optional<String> taskMessageStorageRefOpt,
         final TrackingInfo tracking
     ) {
         final var trackingJobTaskId = tracking != null ? tracking.getJobTaskId() : "untracked";
         final RabbitTaskInformation taskInformation = new RabbitTaskInformation(
-            String.valueOf(delivery.getEnvelope().getDeliveryTag()), false, taskMessageStorageRefOpt, Optional.of(trackingJobTaskId)
+            String.valueOf(delivery.getEnvelope().getDeliveryTag()), false, Optional.of(trackingJobTaskId)
         );
         LOG.debug(
             "Received redelivered message with id {}, retry count {}, retry limit {}, republishing to retry queue",
