@@ -174,7 +174,7 @@ public class WorkerTestBase {
 
         final int responseCode = conn.getResponseCode();
         if (responseCode != HttpURLConnection.HTTP_CREATED && responseCode != HttpURLConnection.HTTP_NO_CONTENT) {
-            throw new RuntimeException("Failed to overwrite file. HTTP response code: " + responseCode);
+            Assert.fail("Failed to write file. HTTP response code: " + responseCode);
         }
     }
 

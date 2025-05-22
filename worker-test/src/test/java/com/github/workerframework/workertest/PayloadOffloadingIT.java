@@ -39,13 +39,16 @@ public class PayloadOffloadingIT extends WorkerTestBase {
     public void checkOffloadedPayloadIsConsumedAndDeletedOnAck() throws Exception {
         final TestWorkerTask documentWorkerTask = new TestWorkerTask();
         documentWorkerTask.setPoison(false);
-        final String setupPayloadOffloadStorageRef = setupOffloadedPayload(
-            TEST_WORKER_NAME, 1, documentWorkerTask, WORKER_IN, WORKER_OUT
-        );
-        try(final Connection connection = connectionFactory.newConnection(); 
+        final var taskByteArray = buildTaskMessageByteArray(TEST_WORKER_NAME, 1, documentWorkerTask, WORKER_IN);
+        final var setupPayloadOffloadStorageRef = UUID.randomUUID().toString();
+        writeFileToWebDav(setupPayloadOffloadStorageRef, taskByteArray);
+        final var readWebDAVFile = readFileFromWebDAV(setupPayloadOffloadStorageRef);
+        Assert.assertTrue(readWebDAVFile.isPresent(), "The file should be present in the datastore");
+
+        try(final Connection connection = connectionFactory.newConnection();
             final Channel channel = prepareChannel(connection, WORKER_IN, WORKER_OUT);) {
 
-            //  Now we can send a message which expects to find the taskMessageStorageRef.
+            //  Now we can send a message which expects to find the setupPayloadOffloadStorageRef.
             final Map<String, Object> headers = new HashMap<>();
             headers.put(RABBIT_HEADER_CAF_PAYLOAD_OFFLOADING_STORAGE_REF, setupPayloadOffloadStorageRef);
             // this publish will result in an offloaded payload being recovered by the consumer.
@@ -106,39 +109,6 @@ public class PayloadOffloadingIT extends WorkerTestBase {
 
             final var reReadWebDAVFile = readFileFromWebDAV(storageRef);
             Assert.assertFalse(reReadWebDAVFile.isPresent(), "The file should be gone from the datastore");
-        }
-    }
-
-    /**
-     * This method will send a message to the worker-in queue and return the storage ref of the offloaded payload stored
-     * in the datastore on publish to the worker-out queue.
-     *
-     * @param testName
-     * @param taskNumber
-     * @param documentWorkerTask
-     * @param workerIn
-     * @param workerOut
-     * @return
-     * @throws Exception
-     */
-    public String setupOffloadedPayload(
-        final String testName,
-        final int taskNumber,
-        final TestWorkerTask documentWorkerTask,
-        final String workerIn,
-        final String workerOut
-    ) throws Exception {
-        try(final Connection connection = connectionFactory.newConnection();
-            final Channel channel = prepareChannel(connection, workerIn, workerOut);) {
-            publish(channel, buildTaskMessageByteArray(testName, taskNumber, documentWorkerTask, workerIn), new HashMap<>(), workerIn);
-            final TestWorkerQueueConsumer consumer = new TestWorkerQueueConsumer();
-            consume(channel, consumer, workerOut);
-
-            final var taskMessageStorageRef = getTaskMessageStorageRef(consumer);
-            Assert.assertTrue(taskMessageStorageRef.isPresent(), "The payload offloading header was missing");
-            final var storedByteArrayOpt = readFileFromWebDAV(taskMessageStorageRef.get());
-            Assert.assertTrue(storedByteArrayOpt.isPresent(), "Offloaded payload not found at " + taskMessageStorageRef.get());
-            return taskMessageStorageRef.get();
         }
     }
 }
