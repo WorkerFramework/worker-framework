@@ -98,6 +98,7 @@ public class WorkerQueueConsumerImpl implements QueueConsumer {
         final var inboundMessageId = delivery.getEnvelope().getDeliveryTag();
         final var routingKey = delivery.getEnvelope().getRoutingKey();
         final var deliveryHeaders = delivery.getHeaders();
+        final var isRedelivered = delivery.getEnvelope().isRedeliver();
         final int retries = deliveryHeaders.containsKey(RabbitHeaders.RABBIT_HEADER_CAF_DELIVERY_COUNT)
             ? Integer.parseInt(String.valueOf(deliveryHeaders.getOrDefault(RabbitHeaders.RABBIT_HEADER_CAF_DELIVERY_COUNT, "0")))
             : Integer.parseInt(String.valueOf(deliveryHeaders.getOrDefault(RabbitHeaders.RABBIT_HEADER_CAF_WORKER_RETRY, "0")));
@@ -113,7 +114,7 @@ public class WorkerQueueConsumerImpl implements QueueConsumer {
         if (taskMessage == null) return;
 
         final PoisonMessageStatus poisonMessageStatus = getPoisonMessageStatus(
-            delivery, deliveryHeaders, retries, taskMessage.getTracking()
+            isRedelivered, inboundMessageId, taskMessageData, deliveryHeaders, retries, taskMessage.getTracking()
         );
         if (poisonMessageStatus == PoisonMessageStatus.CLASSIC_AND_REPUBLISHED) {
             return;
@@ -194,20 +195,22 @@ public class WorkerQueueConsumerImpl implements QueueConsumer {
     }
 
     private PoisonMessageStatus getPoisonMessageStatus(
-        final Delivery delivery,
+        final boolean isRedelivered,
+        final long inboundMessageId,
+        final byte[] taskMessageByteArray,
         final Map<String, Object> deliveryHeaders,
         final int retries,
         final TrackingInfo trackingInfo
     ) {
         // If the message is being redelivered it is potentially a poison message.
-        if (delivery.getEnvelope().isRedeliver()) {
+        if (isRedelivered) {
             // If the headers do not contain the delivery count, then it is a classic queue.
             if (!deliveryHeaders.containsKey(RabbitHeaders.RABBIT_HEADER_CAF_DELIVERY_COUNT)) {
                 // If the retries have not been exceeded, then republish the message
                 // with a header recording the retry count
                 if (retries < retryLimit) {
                     republishClassicRedelivery(
-                        delivery, retries, trackingInfo
+                        inboundMessageId, taskMessageByteArray, retries, trackingInfo
                     );
                     return PoisonMessageStatus.CLASSIC_AND_REPUBLISHED;
                 }
@@ -260,21 +263,21 @@ public class WorkerQueueConsumerImpl implements QueueConsumer {
         try {
             LOG.debug("Acknowledging message {}", tag);
             channel.basicAck(tag, false);
-        } catch (IOException e) {
+        } catch (final IOException e) {
             LOG.warn("Couldn't ack message {}, will retry", tag, e);
             metrics.incremementErrors();
             consumerEventQueue.add(new ConsumerAckEvent(tag));
+            return;
         }
 
-        final String datastorePayloadReference = offloadedPayloads.getOrDefault(tag, null);
+        final String datastorePayloadReference = offloadedPayloads.get(tag);
         try {
             if(datastorePayloadReference != null) {
-                dataStore.delete(offloadedPayloads.get(tag));
+                dataStore.delete(datastorePayloadReference);
             }
         } catch (final DataStoreException e) {
             LOG.warn("Couldn't delete offloaded payload '{}' for delivery tag '{}' from datastore message.", 
                     datastorePayloadReference, tag, e);
-            throw new RuntimeException(e);
         }
     }
 
@@ -314,23 +317,24 @@ public class WorkerQueueConsumerImpl implements QueueConsumer {
     }
 
     private void republishClassicRedelivery(
-        final Delivery delivery,
+        final long inboundMessageId,
+        final byte[] taskMessageByteArray,
         final int retries,
         final TrackingInfo tracking
     ) {
         final var trackingJobTaskId = tracking != null ? tracking.getJobTaskId() : "untracked";
         final RabbitTaskInformation taskInformation = new RabbitTaskInformation(
-            String.valueOf(delivery.getEnvelope().getDeliveryTag()), false, Optional.of(trackingJobTaskId)
+            String.valueOf(inboundMessageId), false, Optional.of(trackingJobTaskId)
         );
         LOG.debug(
             "Received redelivered message with id {}, retry count {}, retry limit {}, republishing to retry queue",
-            delivery.getEnvelope().getDeliveryTag(), retryLimit, retries + 1
+            inboundMessageId, retryLimit, retries + 1
         );
         final Map<String, Object> headers = new HashMap<>();
         headers.put(RabbitHeaders.RABBIT_HEADER_CAF_WORKER_RETRY, String.valueOf(retries + 1));
         taskInformation.incrementResponseCount(true);
         publisherEventQueue.add(
-            new WorkerPublishQueueEvent(delivery.getMessageData(), retryRoutingKey, taskInformation, headers)
+            new WorkerPublishQueueEvent(taskMessageByteArray, retryRoutingKey, taskInformation, headers)
         );
     }
 }
