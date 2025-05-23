@@ -15,8 +15,6 @@
  */
 package com.github.workerframework.queues.rabbit;
 
-import com.github.workerframework.api.DataStoreException;
-import com.github.workerframework.api.ManagedDataStore;
 import com.github.workerframework.util.rabbitmq.ConsumerAckEvent;
 import com.github.workerframework.util.rabbitmq.ConsumerRejectEvent;
 import com.github.workerframework.util.rabbitmq.Event;
@@ -42,13 +40,11 @@ class WorkerConfirmListener implements ConfirmListener
 {
     private final SortedMap<Long, RabbitTaskInformation> confirmMap = Collections.synchronizedSortedMap(new TreeMap<>());
     private final BlockingQueue<Event<QueueConsumer>> consumerEvents;
-    private final ManagedDataStore dataStore;
     private static final Logger LOG = LoggerFactory.getLogger(WorkerConfirmListener.class);
 
-    WorkerConfirmListener(BlockingQueue<Event<QueueConsumer>> events, final ManagedDataStore dataStore)
+    WorkerConfirmListener(BlockingQueue<Event<QueueConsumer>> events)
     {
         this.consumerEvents = Objects.requireNonNull(events);
-        this.dataStore = Objects.requireNonNull(dataStore);
     }
 
     /**
@@ -86,10 +82,6 @@ class WorkerConfirmListener implements ConfirmListener
             t.incrementAcknowledgementCount();
             if(t.areAllResponsesAcknowledged() && !t.isAckEventSent()){
                 t.markAckEventAsSent();
-                final var taskMessageStorageRef = t.getMinimizedTaskMessageStorageRef();
-                if (taskMessageStorageRef.isPresent()) {
-                    deleteMinimizedMessage(taskMessageStorageRef.get());
-                }
                 return new ConsumerAckEvent(Long.valueOf(t.getInboundMessageId()));
             }
             return null;
@@ -129,15 +121,6 @@ class WorkerConfirmListener implements ConfirmListener
                     consumerEvents.add(event);
                 }
             }
-        }
-    }
-
-    private void deleteMinimizedMessage(final String taskMessageStorageRef)
-    {
-        try {
-            dataStore.delete(taskMessageStorageRef);
-        } catch (final DataStoreException e) {
-            LOG.error("Failed to delete a minimized message:{} from the datastore", taskMessageStorageRef, e);
         }
     }
 }

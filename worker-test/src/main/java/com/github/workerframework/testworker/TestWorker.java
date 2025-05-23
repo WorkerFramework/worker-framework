@@ -51,7 +51,7 @@ final class TestWorker implements Worker
         try {
             testWorkerTask = codec.deserialise(workerTask.getData(), TestWorkerTask.class);
             if(testWorkerTask.isPoison()){
-                System.exit(1);
+                Runtime.getRuntime().halt(0);
             }
         } catch (final CodecException e) {
             throw new RuntimeException(e);
@@ -65,7 +65,7 @@ final class TestWorker implements Worker
         }
         
         return new WorkerResponse(
-            outputQueue,
+            testWorkerTask.isTerminalWorker() ? null : outputQueue,
             TaskStatus.RESULT_SUCCESS,
             TEST_WORKER_RESULT,
             "TestWorkerResult",

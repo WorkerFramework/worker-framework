@@ -90,13 +90,6 @@
         <plugins>
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-surefire-plugin</artifactId>
-                <configuration>
-                    <skip>true</skip>
-                </configuration>
-            </plugin>
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-failsafe-plugin</artifactId>
                 <executions>
                     <execution>
@@ -280,7 +273,7 @@
                             </run>
                         </image>
                         <image>
-                            <alias>worker-test</alias>
+                            <alias>PayloadOffloadingIT</alias>
                             <name>${targetDockerRegistryPath}/worker-test:${project.version}</name>
                             <build>
                                 <from>${projectDockerRegistry}/cafapi/opensuse-jre17</from>
@@ -325,14 +318,17 @@
                             <run>
                                 <platform>linux/amd64</platform>
                                 <ports>
-                                    <port>${worker.adminport}:8081</port>
-                                    <port>${worker.debugport}:5005</port>
+                                    <port>${PayloadOffloadingIT.httpport}:8080</port>
+                                    <port>${PayloadOffloadingIT.adminport}:8081</port>
+                                    <port>${PayloadOffloadingIT.debugport}:5005</port>
                                 </ports>
                                 <env>
-                                    <CAF_RABBITMQ_PREFETCH_BUFFER>10</CAF_RABBITMQ_PREFETCH_BUFFER>
+                                    <CAF_WORKER_INPUT_QUEUE>PayloadOffloadingIT-in</CAF_WORKER_INPUT_QUEUE>
+                                    <CAF_WORKER_OUTPUT_QUEUE>PayloadOffloadingIT-out</CAF_WORKER_OUTPUT_QUEUE>
+                                    <CAF_WORKER_REJECT_QUEUE>PayloadOffloadingIT-reject</CAF_WORKER_REJECT_QUEUE>
                                     <CAF_WORKER_DATASTORE_PATH>/srv/common/webdav</CAF_WORKER_DATASTORE_PATH>
-                                    <CAF_WORKER_MESSAGE_MINIMIZATION_ENABLED>true</CAF_WORKER_MESSAGE_MINIMIZATION_ENABLED>
-                                    <CAF_WORKER_MESSAGE_MINIMIZATION_THRESHOLD_BYTES>1</CAF_WORKER_MESSAGE_MINIMIZATION_THRESHOLD_BYTES>
+                                    <CAF_WORKER_PAYLOAD_OFFLOADING_ENABLED>true</CAF_WORKER_PAYLOAD_OFFLOADING_ENABLED>
+                                    <CAF_WORKER_PAYLOAD_OFFLOADING_THRESHOLD_BYTES>1</CAF_WORKER_PAYLOAD_OFFLOADING_THRESHOLD_BYTES>
                                     <CAF_WORKER_JAVA_OPTS>
                                         -agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=*:5005
                                     </CAF_WORKER_JAVA_OPTS>
@@ -356,7 +352,7 @@
                                 </log>
                                 <wait>
                                     <http>
-                                        <url>http://${docker.host.address}:${worker.adminport}</url>
+                                        <url>http://${docker.host.address}:${PayloadOffloadingIT.adminport}</url>
                                     </http>
                                     <time>120000</time>
                                     <shutdown>500</shutdown>
@@ -364,19 +360,20 @@
                             </run>
                         </image>
                         <image>
-                            <alias>worker-test-2</alias>
+                            <alias>PoisonMessageIT-1</alias>
                             <name>${targetDockerRegistryPath}/worker-test:${project.version}</name>
                             <run>
                                 <platform>linux/amd64</platform>
                                 <ports>
-                                    <port>${worker.testhttpport2}:8080</port>
-                                    <port>${worker.testadminport2}:8081</port>
-                                    <port>${worker.testdebugport2}:5005</port>
+                                    <port>${PoisonMessageIT-1.httpport}:8080</port>
+                                    <port>${PoisonMessageIT-1.adminport}:8081</port>
+                                    <port>${PoisonMessageIT-1.debugport}:5005</port>
                                 </ports>
                                 <env>
+                                    <CAF_WORKER_INPUT_QUEUE>PoisonMessageIT-in</CAF_WORKER_INPUT_QUEUE>
+                                    <CAF_WORKER_OUTPUT_QUEUE>PoisonMessageIT-out</CAF_WORKER_OUTPUT_QUEUE>
+                                    <CAF_WORKER_REJECT_QUEUE>PoisonMessageIT-reject</CAF_WORKER_REJECT_QUEUE>
                                     <CAF_WORKER_DATASTORE_PATH>/srv/common/webdav</CAF_WORKER_DATASTORE_PATH>
-                                    <CAF_WORKER_MESSAGE_MINIMIZATION_ENABLED>true</CAF_WORKER_MESSAGE_MINIMIZATION_ENABLED>
-                                    <CAF_WORKER_MESSAGE_MINIMIZATION_THRESHOLD_BYTES>1</CAF_WORKER_MESSAGE_MINIMIZATION_THRESHOLD_BYTES>
                                     <CAF_WORKER_JAVA_OPTS>
                                         -agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=*:5005
                                     </CAF_WORKER_JAVA_OPTS>
@@ -400,13 +397,203 @@
                                 </log>
                                 <wait>
                                     <http>
-                                        <url>http://${docker.host.address}:${worker.testadminport2}</url>
+                                        <url>http://${docker.host.address}:${PoisonMessageIT-1.adminport}</url>
                                     </http>
                                     <time>120000</time>
                                     <shutdown>500</shutdown>
                                 </wait>
                             </run>
                         </image>
+                        <image>
+                            <alias>PoisonMessageIT-2</alias>
+                            <name>${targetDockerRegistryPath}/worker-test:${project.version}</name>
+                            <run>
+                                <platform>linux/amd64</platform>
+                                <ports>
+                                    <port>${PoisonMessageIT-2.httpport}:8080</port>
+                                    <port>${PoisonMessageIT-2.adminport}:8081</port>
+                                    <port>${PoisonMessageIT-2.debugport}:5005</port>
+                                </ports>
+                                <env>
+                                    <CAF_WORKER_INPUT_QUEUE>PoisonMessageIT-in</CAF_WORKER_INPUT_QUEUE>
+                                    <CAF_WORKER_OUTPUT_QUEUE>PoisonMessageIT-out</CAF_WORKER_OUTPUT_QUEUE>
+                                    <CAF_WORKER_REJECT_QUEUE>PoisonMessageIT-reject</CAF_WORKER_REJECT_QUEUE>
+                                    <CAF_WORKER_DATASTORE_PATH>/srv/common/webdav</CAF_WORKER_DATASTORE_PATH>
+                                    <CAF_WORKER_JAVA_OPTS>
+                                        -agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=*:5005
+                                    </CAF_WORKER_JAVA_OPTS>
+                                    <CAF_WORKER_RETRY_LIMIT>1</CAF_WORKER_RETRY_LIMIT>
+                                    <CAF_RABBITMQ_PROTOCOL>amqps</CAF_RABBITMQ_PROTOCOL>
+                                    <CAF_RABBITMQ_PORT>5671</CAF_RABBITMQ_PORT>
+                                    <SSL_CA_CRT_DIR>/test-keystore</SSL_CA_CRT_DIR>
+                                    <SSL_CA_CRT>ca_certificate.pem</SSL_CA_CRT>
+                                </env>
+                                <volumes>
+                                    <from>
+                                        <image>webdav</image>
+                                        <image>keystore</image>
+                                    </from>
+                                </volumes>
+                                <links>
+                                    <link>rabbitmq</link>
+                                </links>
+                                <log>
+                                    <enabled>true</enabled>
+                                </log>
+                                <wait>
+                                    <http>
+                                        <url>http://${docker.host.address}:${PoisonMessageIT-2.adminport}</url>
+                                    </http>
+                                    <time>120000</time>
+                                    <shutdown>500</shutdown>
+                                </wait>
+                            </run>
+                        </image>
+
+                        <!--Workers to test PoisonMessage with ofloading enabled -->
+                        <image>
+                            <alias>PoisonMessageIT-Offloading-1</alias>
+                            <name>${targetDockerRegistryPath}/worker-test:${project.version}</name>
+                            <run>
+                                <platform>linux/amd64</platform>
+                                <ports>
+                                    <port>${PoisonMessageIT-Offloading-1.httpport}:8080</port>
+                                    <port>${PoisonMessageIT-Offloading-1.adminport}:8081</port>
+                                    <port>${PoisonMessageIT-Offloading-1.debugport}:5005</port>
+                                </ports>
+                                <env>
+                                    <CAF_WORKER_INPUT_QUEUE>PoisonMessageIT-Offloading-in</CAF_WORKER_INPUT_QUEUE>
+                                    <CAF_WORKER_OUTPUT_QUEUE>PoisonMessageIT-Offloading-out</CAF_WORKER_OUTPUT_QUEUE>
+                                    <CAF_WORKER_REJECT_QUEUE>PoisonMessageIT-Offloading-reject</CAF_WORKER_REJECT_QUEUE>
+                                    <CAF_WORKER_DATASTORE_PATH>/srv/common/webdav</CAF_WORKER_DATASTORE_PATH>
+                                    <CAF_WORKER_PAYLOAD_OFFLOADING_ENABLED>true</CAF_WORKER_PAYLOAD_OFFLOADING_ENABLED>
+                                    <CAF_WORKER_PAYLOAD_OFFLOADING_THRESHOLD_BYTES>1</CAF_WORKER_PAYLOAD_OFFLOADING_THRESHOLD_BYTES>
+                                    <CAF_WORKER_JAVA_OPTS>
+                                        -agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=*:5005
+                                    </CAF_WORKER_JAVA_OPTS>
+                                    <CAF_WORKER_RETRY_LIMIT>1</CAF_WORKER_RETRY_LIMIT>
+                                    <CAF_RABBITMQ_PROTOCOL>amqps</CAF_RABBITMQ_PROTOCOL>
+                                    <CAF_RABBITMQ_PORT>5671</CAF_RABBITMQ_PORT>
+                                    <SSL_CA_CRT_DIR>/test-keystore</SSL_CA_CRT_DIR>
+                                    <SSL_CA_CRT>ca_certificate.pem</SSL_CA_CRT>
+                                </env>
+                                <volumes>
+                                    <from>
+                                        <image>webdav</image>
+                                        <image>keystore</image>
+                                    </from>
+                                </volumes>
+                                <links>
+                                    <link>rabbitmq</link>
+                                </links>
+                                <log>
+                                    <enabled>true</enabled>
+                                </log>
+                                <wait>
+                                    <http>
+                                        <url>http://${docker.host.address}:${PoisonMessageIT-Offloading-1.adminport}</url>
+                                    </http>
+                                    <time>120000</time>
+                                    <shutdown>500</shutdown>
+                                </wait>
+                            </run>
+                        </image>
+                        <image>
+                            <alias>PoisonMessageIT-Offloading-2</alias>
+                            <name>${targetDockerRegistryPath}/worker-test:${project.version}</name>
+                            <run>
+                                <platform>linux/amd64</platform>
+                                <ports>
+                                    <port>${PoisonMessageIT-Offloading-2.httpport}:8080</port>
+                                    <port>${PoisonMessageIT-Offloading-2.adminport}:8081</port>
+                                    <port>${PoisonMessageIT-Offloading-2.debugport}:5005</port>
+                                </ports>
+                                <env>
+                                    <CAF_WORKER_INPUT_QUEUE>PoisonMessageIT-Offloading-in</CAF_WORKER_INPUT_QUEUE>
+                                    <CAF_WORKER_OUTPUT_QUEUE>PoisonMessageIT-Offloading-out</CAF_WORKER_OUTPUT_QUEUE>
+                                    <CAF_WORKER_REJECT_QUEUE>PoisonMessageIT-Offloading-reject</CAF_WORKER_REJECT_QUEUE>
+                                    <CAF_WORKER_DATASTORE_PATH>/srv/common/webdav</CAF_WORKER_DATASTORE_PATH>
+                                    <CAF_WORKER_PAYLOAD_OFFLOADING_ENABLED>true</CAF_WORKER_PAYLOAD_OFFLOADING_ENABLED>
+                                    <CAF_WORKER_PAYLOAD_OFFLOADING_THRESHOLD_BYTES>1</CAF_WORKER_PAYLOAD_OFFLOADING_THRESHOLD_BYTES>
+                                    <CAF_WORKER_JAVA_OPTS>
+                                        -agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=*:5005
+                                    </CAF_WORKER_JAVA_OPTS>
+                                    <CAF_WORKER_RETRY_LIMIT>1</CAF_WORKER_RETRY_LIMIT>
+                                    <CAF_RABBITMQ_PROTOCOL>amqps</CAF_RABBITMQ_PROTOCOL>
+                                    <CAF_RABBITMQ_PORT>5671</CAF_RABBITMQ_PORT>
+                                    <SSL_CA_CRT_DIR>/test-keystore</SSL_CA_CRT_DIR>
+                                    <SSL_CA_CRT>ca_certificate.pem</SSL_CA_CRT>
+                                </env>
+                                <volumes>
+                                    <from>
+                                        <image>webdav</image>
+                                        <image>keystore</image>
+                                    </from>
+                                </volumes>
+                                <links>
+                                    <link>rabbitmq</link>
+                                </links>
+                                <log>
+                                    <enabled>true</enabled>
+                                </log>
+                                <wait>
+                                    <http>
+                                        <url>http://${docker.host.address}:${PoisonMessageIT-Offloading-2.adminport}</url>
+                                    </http>
+                                    <time>120000</time>
+                                    <shutdown>500</shutdown>
+                                </wait>
+                            </run>
+                        </image>
+
+                        <!--Terminal Worker to test datastore deletion-->
+                        <image>
+                            <alias>PayloadOffloadingIT-Terminal</alias>
+                            <name>${targetDockerRegistryPath}/worker-test:${project.version}</name>
+                            <run>
+                                <platform>linux/amd64</platform>
+                                <ports>
+                                    <port>${PayloadOffloadingIT-Terminal.httpport}:8080</port>
+                                    <port>${PayloadOffloadingIT-Terminal.adminport}:8081</port>
+                                    <port>${PayloadOffloadingIT-Terminal.debugport}:5005</port>
+                                </ports>
+                                <env>
+                                    <CAF_WORKER_INPUT_QUEUE>PayloadOffloadingIT-Terminal-in</CAF_WORKER_INPUT_QUEUE>
+                                    <CAF_WORKER_OUTPUT_QUEUE>PayloadOffloadingIT-Terminal-out</CAF_WORKER_OUTPUT_QUEUE>
+                                    <CAF_WORKER_DATASTORE_PATH>/srv/common/webdav</CAF_WORKER_DATASTORE_PATH>
+                                    <CAF_WORKER_PAYLOAD_OFFLOADING_ENABLED>true</CAF_WORKER_PAYLOAD_OFFLOADING_ENABLED>
+                                    <CAF_WORKER_PAYLOAD_OFFLOADING_THRESHOLD_BYTES>1</CAF_WORKER_PAYLOAD_OFFLOADING_THRESHOLD_BYTES>
+                                    <CAF_WORKER_JAVA_OPTS>
+                                        -agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=*:5005
+                                    </CAF_WORKER_JAVA_OPTS>
+                                    <CAF_WORKER_RETRY_LIMIT>1</CAF_WORKER_RETRY_LIMIT>
+                                    <CAF_RABBITMQ_PROTOCOL>amqps</CAF_RABBITMQ_PROTOCOL>
+                                    <CAF_RABBITMQ_PORT>5671</CAF_RABBITMQ_PORT>
+                                    <SSL_CA_CRT_DIR>/test-keystore</SSL_CA_CRT_DIR>
+                                    <SSL_CA_CRT>ca_certificate.pem</SSL_CA_CRT>
+                                </env>
+                                <volumes>
+                                    <from>
+                                        <image>webdav</image>
+                                        <image>keystore</image>
+                                    </from>
+                                </volumes>
+                                <links>
+                                    <link>rabbitmq</link>
+                                </links>
+                                <log>
+                                    <enabled>true</enabled>
+                                </log>
+                                <wait>
+                                    <http>
+                                        <url>http://${docker.host.address}:${PayloadOffloadingIT-Terminal.adminport}</url>
+                                    </http>
+                                    <time>120000</time>
+                                    <shutdown>500</shutdown>
+                                </wait>
+                            </run>
+                        </image>
+
                         <!--Worker to test SSL certificate trust manager when connecting to RabbitMQ-->
                         <image>
                             <alias>worker-test-no-valid-cert</alias>
@@ -414,9 +601,9 @@
                             <run>
                                 <platform>linux/amd64</platform>
                                 <ports>
-                                    <port>${worker.testhttpport3}:8080</port>
-                                    <port>${worker.testadminport3}:8081</port>
-                                    <port>${worker.testdebugport3}:5005</port>
+                                    <port>${worker-test-no-valid-cert.httpport}:8080</port>
+                                    <port>${worker-test-no-valid-cert.adminport}:8081</port>
+                                    <port>${worker-test-no-valid-cert.debugport}:5005</port>
                                 </ports>
                                 <env>
                                     <CAF_WORKER_DATASTORE_PATH>/srv/common/webdav</CAF_WORKER_DATASTORE_PATH>
@@ -441,7 +628,7 @@
                                 <!--Expect healthcheck to return 503 as trying to use SSL without valid certificate-->
                                 <wait>
                                     <http>
-                                        <url>http://${docker.host.address}:${worker.testhttpport3}/health-check?type=READY</url>
+                                        <url>http://${docker.host.address}:${worker-test-no-valid-cert.httpport}/health-check?type=READY</url>
                                         <status>503</status>
                                     </http>
                                     <time>120000</time>
@@ -462,14 +649,38 @@
                 <rabbitmq.ctrl.port>15672</rabbitmq.ctrl.port>
                 <rabbitmq.node.port>25672</rabbitmq.node.port>
                 <webdav.port>9090</webdav.port>
-                <worker.adminport>8081</worker.adminport>
-                <worker.debugport>5005</worker.debugport>
-                <worker.testhttpport2>8084</worker.testhttpport2>
-                <worker.testadminport2>8082</worker.testadminport2>
-                <worker.testadminport3>8083</worker.testadminport3>
-                <worker.testhttpport3>8085</worker.testhttpport3>
-                <worker.testdebugport2>5006</worker.testdebugport2>
-                <worker.testdebugport3>5007</worker.testdebugport3>
+
+                <GetWorkerNameIT.httpport>8080</GetWorkerNameIT.httpport>
+                <GetWorkerNameIT.adminport>8081</GetWorkerNameIT.adminport>
+                <GetWorkerNameIT.debugport>5010</GetWorkerNameIT.debugport>
+
+                <PayloadOffloadingIT.httpport>8082</PayloadOffloadingIT.httpport>
+                <PayloadOffloadingIT.adminport>8083</PayloadOffloadingIT.adminport>
+                <PayloadOffloadingIT.debugport>5011</PayloadOffloadingIT.debugport>
+
+                <PoisonMessageIT-1.httpport>8084</PoisonMessageIT-1.httpport>
+                <PoisonMessageIT-1.adminport>8085</PoisonMessageIT-1.adminport>
+                <PoisonMessageIT-1.debugport>5012</PoisonMessageIT-1.debugport>
+
+                <PoisonMessageIT-2.httpport>8086</PoisonMessageIT-2.httpport>
+                <PoisonMessageIT-2.adminport>8087</PoisonMessageIT-2.adminport>
+                <PoisonMessageIT-2.debugport>5013</PoisonMessageIT-2.debugport>
+
+                <worker-test-no-valid-cert.adminport>8088</worker-test-no-valid-cert.adminport>
+                <worker-test-no-valid-cert.httpport>8089</worker-test-no-valid-cert.httpport>
+                <worker-test-no-valid-cert.debugport>5014</worker-test-no-valid-cert.debugport>
+
+                <PoisonMessageIT-Offloading-1.httpport>8090</PoisonMessageIT-Offloading-1.httpport>
+                <PoisonMessageIT-Offloading-1.adminport>8091</PoisonMessageIT-Offloading-1.adminport>
+                <PoisonMessageIT-Offloading-1.debugport>5015</PoisonMessageIT-Offloading-1.debugport>
+
+                <PoisonMessageIT-Offloading-2.httpport>8092</PoisonMessageIT-Offloading-2.httpport>
+                <PoisonMessageIT-Offloading-2.adminport>8093</PoisonMessageIT-Offloading-2.adminport>
+                <PoisonMessageIT-Offloading-2.debugport>5016</PoisonMessageIT-Offloading-2.debugport>
+
+                <PayloadOffloadingIT-Terminal.httpport>8094</PayloadOffloadingIT-Terminal.httpport>
+                <PayloadOffloadingIT-Terminal.adminport>8095</PayloadOffloadingIT-Terminal.adminport>
+                <PayloadOffloadingIT-Terminal.debugport>5017</PayloadOffloadingIT-Terminal.debugport>
             </properties>
         </profile>
     </profiles>

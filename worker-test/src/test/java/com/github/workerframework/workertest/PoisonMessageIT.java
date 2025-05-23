@@ -25,20 +25,23 @@ import com.rabbitmq.client.Connection;
 import com.rabbitmq.client.Channel;
 import com.rabbitmq.client.AMQP;
 import org.testng.Assert;
-import org.testng.annotations.Ignore;
 import org.testng.annotations.Test;
 
 import java.nio.charset.StandardCharsets;
 import java.util.HashMap;
 import java.util.Map;
 
-@Ignore
-public class PoisonMessageIT  extends TestWorkerTestBase{
+public class PoisonMessageIT  extends WorkerTestBase {
     private static final String POISON_ERROR_MESSAGE = "could not process the item.";
     private static final String WORKER_FRIENDLY_NAME = "TestWorker";
-    private static final String TEST_WORKER_NAME = "testWorkerIdentifier";
-    private static final String WORKER_IN = "worker-in";
-    private static final String TESTWORKER_OUT = "testworker-out";
+    private static final String TEST_WORKER_NAME = "PoisonMessageIT";
+    private static final String POISON_MESSAGE_IT_IN = "PoisonMessageIT-in";
+    private static final String POISON_MESSAGE_IT_OUT = "PoisonMessageIT-out";
+
+    private static final String POISON_MESSAGE_IT_OFFLOADING_IN = "PoisonMessageIT-Offloading-in";
+    private static final String POISON_MESSAGE_IT_OFFLOADING_OUT = "PoisonMessageIT-Offloading-out";
+    private static final String POISON_MESSAGE_IT_OFFLOADING_REJECT = "PoisonMessageIT-Offloading-reject";
+
     private static final int TASK_NUMBER = 1;
     private static final Codec codec = new JsonCodec();
 
@@ -50,7 +53,7 @@ public class PoisonMessageIT  extends TestWorkerTestBase{
 
             final Map<String, Object> args = new HashMap<>();
             args.put(QueueCreator.RABBIT_PROP_QUEUE_TYPE, QueueCreator.RABBIT_PROP_QUEUE_TYPE_QUORUM);
-            channel.queueDeclare(WORKER_IN, true, false, false, args);
+            channel.queueDeclare(POISON_MESSAGE_IT_IN, true, false, false, args);
 
             final TaskMessage requestTaskMessage = new TaskMessage();
 
@@ -61,26 +64,26 @@ public class PoisonMessageIT  extends TestWorkerTestBase{
             requestTaskMessage.setTaskApiVersion(TASK_NUMBER);
             requestTaskMessage.setTaskStatus(TaskStatus.NEW_TASK);
             requestTaskMessage.setTaskData(codec.serialise(documentWorkerTask));
-            requestTaskMessage.setTo(WORKER_IN);
+            requestTaskMessage.setTo(POISON_MESSAGE_IT_IN);
 
             final AMQP.BasicProperties properties = new AMQP.BasicProperties.Builder()
                     .contentType("application/json")
                     .deliveryMode(2)
                     .build();
 
-            channel.basicPublish("", WORKER_IN, properties, codec.serialise(requestTaskMessage));
+            channel.basicPublish("", POISON_MESSAGE_IT_IN, properties, codec.serialise(requestTaskMessage));
 
             final TestWorkerQueueConsumer poisonConsumer = new TestWorkerQueueConsumer();
-            channel.queueDeclare(TESTWORKER_OUT, true, false, false, args);
+            channel.queueDeclare(POISON_MESSAGE_IT_OUT, true, false, false, args);
 
-            channel.basicConsume(TESTWORKER_OUT, false, poisonConsumer);
+            channel.basicConsume(POISON_MESSAGE_IT_OUT, true, poisonConsumer);
 
             try {
                 for (int i=0; i<10000; i++){
 
                     Thread.sleep(100);
 
-                    if (poisonConsumer.getHeaders() != null){
+                    if (poisonConsumer.getLastDeliveredBody() != null){
                         break;
                     }
                 }
@@ -88,14 +91,39 @@ public class PoisonMessageIT  extends TestWorkerTestBase{
                 throw new RuntimeException(e);
             }
 
-            // With the minimization update we expect to get the message in the datastore
-            final String consumedTaskMessageStorageRef = getTaskMessageStorageRef(poisonConsumer);
-            final var consumedByteArrayOpt = readFileFromWebDAV(consumedTaskMessageStorageRef);
-            final TaskMessage decodedBody = codec.deserialise(consumedByteArrayOpt.get(), TaskMessage.class);
+            Assert.assertNotNull(poisonConsumer.getLastDeliveredBody());
+            final TaskMessage decodedBody = codec.deserialise(poisonConsumer.getLastDeliveredBody(), TaskMessage.class);
+            
             final String taskData = new String(decodedBody.getTaskData(), StandardCharsets.UTF_8);
 
             Assert.assertTrue(taskData.contains(WORKER_FRIENDLY_NAME));
             Assert.assertTrue(taskData.contains(POISON_ERROR_MESSAGE));
+        }
+    }
+
+    @Test
+    public void offloadedPoisonMessageGoesToRejectFolderTest() throws Exception {
+        try(final Connection connection = connectionFactory.newConnection();
+            final Channel channel = prepareChannel(connection, POISON_MESSAGE_IT_OFFLOADING_IN, POISON_MESSAGE_IT_OFFLOADING_REJECT)) {
+            final TestWorkerTask documentWorkerTask = new TestWorkerTask();
+            documentWorkerTask.setPoison(true);
+            // Publish a message to the test worker, the worker should detect this as a poison message
+            // and offload the payload to the datastore and push the outgoing message to the reject queue.
+            publish(
+                channel,
+                buildTaskMessageByteArray(TEST_WORKER_NAME, TASK_NUMBER, documentWorkerTask, POISON_MESSAGE_IT_OFFLOADING_IN),
+                new HashMap<>(),
+                POISON_MESSAGE_IT_OFFLOADING_IN
+            );
+
+            //  Now we can consume the outgoing message from the reject queue.
+            final TestWorkerQueueConsumer consumer = new TestWorkerQueueConsumer();
+            consume(channel, consumer, POISON_MESSAGE_IT_OFFLOADING_REJECT);
+            final var rejectedTaskMessageStorageRef = getTaskMessageStorageRef(consumer);
+            Assert.assertTrue(rejectedTaskMessageStorageRef.isPresent(), "The payload offloading header was missing");
+            // The rejected message should be present in the datastore
+            final var rejectedByteArrayOpt = readFileFromWebDAV(rejectedTaskMessageStorageRef.get());
+            Assert.assertTrue(rejectedByteArrayOpt.isPresent(), "Offloaded payload should have been found");
         }
     }
 }

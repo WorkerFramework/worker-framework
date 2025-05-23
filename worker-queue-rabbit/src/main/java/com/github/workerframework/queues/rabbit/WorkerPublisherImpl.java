@@ -32,7 +32,7 @@ import java.util.Objects;
 import java.util.Optional;
 import java.util.concurrent.BlockingQueue;
 
-import static com.github.workerframework.util.rabbitmq.RabbitHeaders.RABBIT_HEADER_CAF_MINIMIZATION_ID;
+import static com.github.workerframework.util.rabbitmq.RabbitHeaders.RABBIT_HEADER_CAF_PAYLOAD_OFFLOADING_STORAGE_REF;
 
 /**
  * A RabbitMQ publisher that uses a ConfirmListener, sending data as plain text with headers. Messages that cannot be published at all
@@ -100,7 +100,7 @@ public class WorkerPublisherImpl implements WorkerPublisher
     }
 
     private boolean shouldStoreTaskMessage(final int taskMessageSize) {
-        return config.getIsMinimizationEnabled() && taskMessageSize > config.getMinimizationThreshold();
+        return config.getIsPayloadOffloadingEnabled() && taskMessageSize > config.getPayloadOffloadingThreshold();
     }
 
     private byte[] getOutboundByteArray(
@@ -109,11 +109,11 @@ public class WorkerPublisherImpl implements WorkerPublisher
         final String routingKey,
         final Map<String, Object> headers
     ) throws DataStoreException {
-        headers.remove(RABBIT_HEADER_CAF_MINIMIZATION_ID);
+        headers.remove(RABBIT_HEADER_CAF_PAYLOAD_OFFLOADING_STORAGE_REF);
         if (trackingJobTaskId.isPresent() && shouldStoreTaskMessage(taskMessage.length)) {
             final var taskMessageStorageRef = dataStore.store(taskMessage, String.format("%s/%s", routingKey, trackingJobTaskId.get()));
-            headers.put(RABBIT_HEADER_CAF_MINIMIZATION_ID, taskMessageStorageRef);
-            //  if the header is set, the consumer will ignore the incoming byte[] and use the minimized message.
+            headers.put(RABBIT_HEADER_CAF_PAYLOAD_OFFLOADING_STORAGE_REF, taskMessageStorageRef);
+            //  if the header is set, the consumer will ignore the incoming byte[] and use the offloaded message.
             return new byte[0];
         }
         return taskMessage;
