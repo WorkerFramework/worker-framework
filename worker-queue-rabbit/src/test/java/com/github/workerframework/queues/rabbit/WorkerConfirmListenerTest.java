@@ -31,7 +31,7 @@ public class WorkerConfirmListenerTest
 {
     @Test
     public void testAckSingle()
-        throws IOException, InterruptedException 
+        throws IOException, InterruptedException
     {
         BlockingQueue<Event<QueueConsumer>> q = new LinkedBlockingQueue<>();
         WorkerConfirmListener conf = new WorkerConfirmListener(q);
