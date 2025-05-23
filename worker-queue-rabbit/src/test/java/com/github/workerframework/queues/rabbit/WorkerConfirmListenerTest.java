@@ -30,7 +30,6 @@ import java.util.concurrent.TimeUnit;
 
 public class WorkerConfirmListenerTest
 {
-
     @Test
     public void testAckSingle()
         throws IOException, InterruptedException {
