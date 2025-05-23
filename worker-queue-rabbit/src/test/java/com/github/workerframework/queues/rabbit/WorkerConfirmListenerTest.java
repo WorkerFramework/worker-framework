@@ -27,12 +27,12 @@ import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.TimeUnit;
 
-
 public class WorkerConfirmListenerTest
 {
     @Test
     public void testAckSingle()
-        throws IOException, InterruptedException {
+        throws IOException, InterruptedException 
+    {
         BlockingQueue<Event<QueueConsumer>> q = new LinkedBlockingQueue<>();
         WorkerConfirmListener conf = new WorkerConfirmListener(q);
         RabbitTaskInformation rabbitTaskInformation = new RabbitTaskInformation("100");
