@@ -271,13 +271,13 @@ public class WorkerQueueConsumerImpl implements QueueConsumer {
         }
 
         final String datastorePayloadReference = offloadedPayloads.get(tag);
-        try {
-            if(datastorePayloadReference != null) {
+        if(datastorePayloadReference != null) {
+            try {
                 dataStore.delete(datastorePayloadReference);
+            } catch (final DataStoreException e) {
+                LOG.warn("Couldn't delete offloaded payload '{}' for delivery tag '{}' from datastore message.",
+                        datastorePayloadReference, tag, e);
             }
-        } catch (final DataStoreException e) {
-            LOG.warn("Couldn't delete offloaded payload '{}' for delivery tag '{}' from datastore message.", 
-                    datastorePayloadReference, tag, e);
         }
     }
 
@@ -306,9 +306,7 @@ public class WorkerQueueConsumerImpl implements QueueConsumer {
                 metrics.incrementDropped();
             }
         } catch (IOException e) {
-            LOG.warn(
-                "Couldn't reject message {}, will retry", id, e
-            );
+            LOG.warn("Couldn't reject message {}, will retry", id, e);
             metrics.incremementErrors();
             consumerEventQueue.add(
                 requeue ? new ConsumerRejectEvent(id) : new ConsumerDropEvent(id)
