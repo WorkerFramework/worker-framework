@@ -53,9 +53,11 @@ import static com.github.workerframework.util.rabbitmq.RabbitHeaders.RABBIT_HEAD
  * is not marked 'redelivered'. Redelivered messages are republished to the retry queue with an incremented retry count. Redelivered
  * messages that have exceeded the retry count are republished to the rejected queue.
  */
-public class WorkerQueueConsumerImpl implements QueueConsumer {
+public class WorkerQueueConsumerImpl implements QueueConsumer
+{
     public static final String REJECTED_REASON_TASKMESSAGE = "TASKMESSAGE_INVALID";
-    public static final String REJECTED_REASON_PAYLOAD_OFFLOADING_TASKMESSAGE_DATASTORE_ERROR = "TASKMESSAGE_DATASTORE_ERROR";
+    private static final String REJECTED_REASON_PAYLOAD_OFFLOADING_TASKMESSAGE_DATASTORE_ERROR = "TASKMESSAGE_DATASTORE_ERROR";
+
     private final TaskCallback callback;
     private final RabbitMetricsReporter metrics;
     private final BlockingQueue<Event<QueueConsumer>> consumerEventQueue;
@@ -65,14 +67,17 @@ public class WorkerQueueConsumerImpl implements QueueConsumer {
     private final int retryLimit;
     private final ManagedDataStore dataStore;
     private final Codec codec;
+    private final SortedMap<Long, String> offloadedPayloads;
+
     private static final Logger LOG = LoggerFactory.getLogger(WorkerQueueConsumerImpl.class);
-    private enum PoisonMessageStatus {
+
+    private enum PoisonMessageStatus
+    {
         NOT_POISON,
         CLASSIC_AND_REPUBLISHED,
         POISON
     }
-    private final SortedMap<Long, String> offloadedPayloads = Collections.synchronizedSortedMap(new TreeMap<>());
-    
+
     public WorkerQueueConsumerImpl(TaskCallback callback, RabbitMetricsReporter metrics, BlockingQueue<Event<QueueConsumer>> queue, Channel ch,
                                    BlockingQueue<Event<WorkerPublisher>> pubQueue, String retryKey, int retryLimit,
                                    final ManagedDataStore dataStore, final Codec codec) {
@@ -85,6 +90,7 @@ public class WorkerQueueConsumerImpl implements QueueConsumer {
         this.retryLimit = retryLimit;
         this.dataStore = Objects.requireNonNull(dataStore);
         this.codec = Objects.requireNonNull(codec);
+        this.offloadedPayloads = Collections.synchronizedSortedMap(new TreeMap<>());
     }
 
     /**
@@ -94,28 +100,31 @@ public class WorkerQueueConsumerImpl implements QueueConsumer {
      * to worker-core, and potentially republish or reject it depending upon exceptions thrown.
      */
     @Override
-    public void processDelivery(final Delivery delivery) {
-        final var inboundMessageId = delivery.getEnvelope().getDeliveryTag();
-        final var routingKey = delivery.getEnvelope().getRoutingKey();
-        final var deliveryHeaders = delivery.getHeaders();
-        final var isRedelivered = delivery.getEnvelope().isRedeliver();
+    public void processDelivery(Delivery delivery)
+    {
+        final long inboundMessageId = delivery.getEnvelope().getDeliveryTag();
+        final String routingKey = delivery.getEnvelope().getRoutingKey();
+        final Map<String, Object> deliveryHeaders = delivery.getHeaders();
+        final boolean isRedelivered = delivery.getEnvelope().isRedeliver();
         final int retries = deliveryHeaders.containsKey(RabbitHeaders.RABBIT_HEADER_CAF_DELIVERY_COUNT)
             ? Integer.parseInt(String.valueOf(deliveryHeaders.getOrDefault(RabbitHeaders.RABBIT_HEADER_CAF_DELIVERY_COUNT, "0")))
             : Integer.parseInt(String.valueOf(deliveryHeaders.getOrDefault(RabbitHeaders.RABBIT_HEADER_CAF_WORKER_RETRY, "0")));
-        final Optional<String> taskMessageStorageRefOpt = Optional.ofNullable(
-            deliveryHeaders.get(RABBIT_HEADER_CAF_PAYLOAD_OFFLOADING_STORAGE_REF)
-        ).map(Object::toString);
+        final Optional<String> taskMessageStorageRefOpt
+            = Optional.ofNullable(deliveryHeaders.get(RABBIT_HEADER_CAF_PAYLOAD_OFFLOADING_STORAGE_REF)).map(Object::toString);
         metrics.incrementReceived();
 
         final byte[] taskMessageData = retrieveTaskMessageData(delivery, taskMessageStorageRefOpt, inboundMessageId);
-        if (taskMessageData == null) return;
+        if (taskMessageData == null) {
+            return;
+        }
 
         final TaskMessage taskMessage = deserializeTaskMessage(taskMessageData, inboundMessageId, taskMessageStorageRefOpt);
-        if (taskMessage == null) return;
+        if (taskMessage == null) {
+            return;
+        }
 
         final PoisonMessageStatus poisonMessageStatus = getPoisonMessageStatus(
-            isRedelivered, inboundMessageId, taskMessageData, deliveryHeaders, retries, taskMessage.getTracking()
-        );
+            isRedelivered, inboundMessageId, taskMessageData, deliveryHeaders, retries, taskMessage.getTracking());
         if (poisonMessageStatus == PoisonMessageStatus.CLASSIC_AND_REPUBLISHED) {
             return;
         }
@@ -136,30 +145,22 @@ public class WorkerQueueConsumerImpl implements QueueConsumer {
         final long inboundMessageId
     ) {
         if (taskMessageStorageRefOpt.isPresent()) {
-            offloadedPayloads.put(delivery.getEnvelope().getDeliveryTag(), taskMessageStorageRefOpt.get());
-            try (final var inputStream = dataStore.retrieve(taskMessageStorageRefOpt.get())) {
+            final String taskMessageStorageRef = taskMessageStorageRefOpt.get();  
+            offloadedPayloads.put(inboundMessageId, taskMessageStorageRef);
+            try (final var inputStream = dataStore.retrieve(taskMessageStorageRef)) {
                 return inputStream.readAllBytes();
             } catch (final IOException | DataStoreException e) {
-                final RabbitTaskInformation taskInformation = new RabbitTaskInformation(
-                    String.valueOf(inboundMessageId), true, Optional.empty()
-                );
-                LOG.error(
-                    "Cannot register new message, rejecting storageRef:{} inbound messageid: {}",
-                    taskMessageStorageRefOpt.get(), inboundMessageId, e
-                );
+                final RabbitTaskInformation taskInformation = new RabbitTaskInformation(String.valueOf(inboundMessageId), true);
+                LOG.error("Cannot register new message, rejecting storageRef:{} inbound messageid: {}",
+                          taskMessageStorageRef, inboundMessageId, e);
                 taskInformation.incrementResponseCount(true);
                 final var publishHeaders = new HashMap<String, Object>();
-                publishHeaders.put(
-                    RabbitHeaders.RABBIT_HEADER_CAF_WORKER_REJECTED,
-                    REJECTED_REASON_PAYLOAD_OFFLOADING_TASKMESSAGE_DATASTORE_ERROR
-                );
-                publishHeaders.put(
-                    RabbitHeaders.RABBIT_HEADER_CAF_PAYLOAD_OFFLOADING_STORAGE_REF,
-                    taskMessageStorageRefOpt.get()
-                );
+                publishHeaders.put(RabbitHeaders.RABBIT_HEADER_CAF_WORKER_REJECTED,
+                                   REJECTED_REASON_PAYLOAD_OFFLOADING_TASKMESSAGE_DATASTORE_ERROR);
+                publishHeaders.put(RabbitHeaders.RABBIT_HEADER_CAF_PAYLOAD_OFFLOADING_STORAGE_REF,
+                                   taskMessageStorageRef);
                 publisherEventQueue.add(
-                    new WorkerPublishQueueEvent(delivery.getMessageData(), retryRoutingKey, taskInformation, publishHeaders)
-                );
+                    new WorkerPublishQueueEvent(delivery.getMessageData(), retryRoutingKey, taskInformation, publishHeaders));
                 return null;
             }
         } else {
@@ -175,21 +176,13 @@ public class WorkerQueueConsumerImpl implements QueueConsumer {
         try {
             return codec.deserialise(taskMessageData, TaskMessage.class, DecodeMethod.LENIENT);
         } catch (final CodecException e) {
-            final RabbitTaskInformation errorTaskInformation = new RabbitTaskInformation(
-                String.valueOf(inboundMessageId), true, Optional.empty()
-            );
+            final RabbitTaskInformation errorTaskInformation = new RabbitTaskInformation(String.valueOf(inboundMessageId), true);
             LOG.error("Cannot register new message, rejecting {}", inboundMessageId, e);
             errorTaskInformation.incrementResponseCount(true);
             final var publishHeaders = new HashMap<String, Object>();
-            publishHeaders.put(
-                RabbitHeaders.RABBIT_HEADER_CAF_WORKER_REJECTED, REJECTED_REASON_TASKMESSAGE
-            );
-            publishHeaders.put(
-                RabbitHeaders.RABBIT_HEADER_CAF_PAYLOAD_OFFLOADING_STORAGE_REF, taskMessageStorageRefOpt.orElse(null)
-            );
-            publisherEventQueue.add(
-                new WorkerPublishQueueEvent(taskMessageData, retryRoutingKey, errorTaskInformation, publishHeaders)
-            );
+            publishHeaders.put(RabbitHeaders.RABBIT_HEADER_CAF_WORKER_REJECTED, REJECTED_REASON_TASKMESSAGE);
+            publishHeaders.put(RabbitHeaders.RABBIT_HEADER_CAF_PAYLOAD_OFFLOADING_STORAGE_REF, taskMessageStorageRefOpt.orElse(null));
+            publisherEventQueue.add(new WorkerPublishQueueEvent(taskMessageData, retryRoutingKey, errorTaskInformation, publishHeaders));
             return null;
         }
     }
@@ -209,9 +202,7 @@ public class WorkerQueueConsumerImpl implements QueueConsumer {
                 // If the retries have not been exceeded, then republish the message
                 // with a header recording the retry count
                 if (retries < retryLimit) {
-                    republishClassicRedelivery(
-                        inboundMessageId, taskMessageByteArray, retries, trackingInfo
-                    );
+                    republishClassicRedelivery(inboundMessageId, taskMessageByteArray, retries, trackingInfo);
                     return PoisonMessageStatus.CLASSIC_AND_REPUBLISHED;
                 }
             }
@@ -230,8 +221,8 @@ public class WorkerQueueConsumerImpl implements QueueConsumer {
         final byte[] taskMessageByteArray,
         final boolean isPoison
     ) {
-        final var trackingInfo = taskMessage.getTracking();
-        final var trackingJobTaskId = trackingInfo != null ? trackingInfo.getJobTaskId() : "untracked";
+        final TrackingInfo trackingInfo = taskMessage.getTracking();
+        final String trackingJobTaskId = trackingInfo != null ? trackingInfo.getJobTaskId() : "untracked";
         final RabbitTaskInformation taskInformation = new RabbitTaskInformation(
             String.valueOf(inboundMessageId), isPoison, Optional.of(trackingJobTaskId)
         );
@@ -243,27 +234,25 @@ public class WorkerQueueConsumerImpl implements QueueConsumer {
             taskInformation.incrementResponseCount(true);
             final var publishHeaders = new HashMap<String, Object>();
             publishHeaders.put(RabbitHeaders.RABBIT_HEADER_CAF_WORKER_REJECTED, REJECTED_REASON_TASKMESSAGE);
-            publisherEventQueue.add(
-                new WorkerPublishQueueEvent(taskMessageByteArray, retryRoutingKey, taskInformation, publishHeaders)
-            );
+            publisherEventQueue.add(new WorkerPublishQueueEvent(taskMessageByteArray, retryRoutingKey, taskInformation, publishHeaders));
         } catch (final TaskRejectedException e) {
             LOG.warn("Message {} rejected as a task at this time, returning to queue", inboundMessageId, e);
             taskInformation.incrementResponseCount(true);
-            publisherEventQueue.add(
-                new WorkerPublishQueueEvent(taskMessageByteArray, routingKey, taskInformation, deliveryHeaders)
-            );
+            publisherEventQueue.add(new WorkerPublishQueueEvent(taskMessageByteArray, routingKey, taskInformation, deliveryHeaders));
         }
     }
 
     @Override
-    public void processAck(final long tag) {
+    public void processAck(long tag)
+    {
         if (tag == -1) {
             return;
         }
+
         try {
             LOG.debug("Acknowledging message {}", tag);
             channel.basicAck(tag, false);
-        } catch (final IOException e) {
+        } catch (IOException e) {
             LOG.warn("Couldn't ack message {}, will retry", tag, e);
             metrics.incremementErrors();
             consumerEventQueue.add(new ConsumerAckEvent(tag));
@@ -271,31 +260,41 @@ public class WorkerQueueConsumerImpl implements QueueConsumer {
         }
 
         final String datastorePayloadReference = offloadedPayloads.get(tag);
-        if(datastorePayloadReference != null) {
+        if (datastorePayloadReference != null) {
             try {
                 dataStore.delete(datastorePayloadReference);
             } catch (final DataStoreException e) {
                 LOG.warn("Couldn't delete offloaded payload '{}' for delivery tag '{}' from datastore message.",
-                        datastorePayloadReference, tag, e);
+                         datastorePayloadReference, tag, e);
             }
         }
     }
 
     @Override
-    public void processReject(final long tag) {
+    public void processReject(long tag)
+    {
         processReject(tag, true);
     }
 
     @Override
-    public void processDrop(final long tag) {
+    public void processDrop(long tag)
+    {
         processReject(tag, false);
     }
 
-    private void processReject(final long id, final boolean requeue) {
+    /**
+     * Process a REJECT event. Similar to ACK, we will requeue the event if it fails, though the RabbitMQ java client should handle most of our failure cases.
+     *
+     * @param id the id of the message to reject
+     * @param requeue whether to put this message back on the queue or drop it to the dead letters exchange
+     */
+    private void processReject(long id, boolean requeue)
+    {
         if (id == -1) {
             LOG.error("Non-final response has not been acknowledged. This message has been lost!");
             return;
         }
+
         try {
             channel.basicReject(id, requeue);
             if (requeue) {
@@ -308,9 +307,7 @@ public class WorkerQueueConsumerImpl implements QueueConsumer {
         } catch (IOException e) {
             LOG.warn("Couldn't reject message {}, will retry", id, e);
             metrics.incremementErrors();
-            consumerEventQueue.add(
-                requeue ? new ConsumerRejectEvent(id) : new ConsumerDropEvent(id)
-            );
+            consumerEventQueue.add(requeue ? new ConsumerRejectEvent(id) : new ConsumerDropEvent(id));
         }
     }
 
@@ -319,20 +316,16 @@ public class WorkerQueueConsumerImpl implements QueueConsumer {
         final byte[] taskMessageByteArray,
         final int retries,
         final TrackingInfo tracking
-    ) {
-        final var trackingJobTaskId = tracking != null ? tracking.getJobTaskId() : "untracked";
+    )
+    {
+        final String trackingJobTaskId = tracking != null ? tracking.getJobTaskId() : "untracked";
         final RabbitTaskInformation taskInformation = new RabbitTaskInformation(
-            String.valueOf(inboundMessageId), false, Optional.of(trackingJobTaskId)
-        );
-        LOG.debug(
-            "Received redelivered message with id {}, retry count {}, retry limit {}, republishing to retry queue",
-            inboundMessageId, retryLimit, retries + 1
-        );
+            String.valueOf(inboundMessageId), false, Optional.of(trackingJobTaskId));
+        LOG.debug("Received redelivered message with id {}, retry count {}, retry limit {}, republishing to retry queue",
+                  inboundMessageId, retryLimit, retries + 1);
         final Map<String, Object> headers = new HashMap<>();
         headers.put(RabbitHeaders.RABBIT_HEADER_CAF_WORKER_RETRY, String.valueOf(retries + 1));
         taskInformation.incrementResponseCount(true);
-        publisherEventQueue.add(
-            new WorkerPublishQueueEvent(taskMessageByteArray, retryRoutingKey, taskInformation, headers)
-        );
+        publisherEventQueue.add(new WorkerPublishQueueEvent(taskMessageByteArray, retryRoutingKey, taskInformation, headers));
     }
 }

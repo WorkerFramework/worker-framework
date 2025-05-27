@@ -47,6 +47,7 @@ public class WorkerPublisherImpl implements WorkerPublisher
     private final ManagedDataStore dataStore;
     private final RabbitWorkerQueueConfiguration config;
     private static final Logger LOG = LoggerFactory.getLogger(WorkerPublisherImpl.class);
+    private static final byte[] EMPTY_BYTE_ARRAY = new byte[0];
 
     /**
      * Create a WorkerPublisher implementation. The channel will have confirmations turned on and the supplied WorkerConfirmListener will
@@ -56,6 +57,8 @@ public class WorkerPublisherImpl implements WorkerPublisher
      * @param metrics the metrics to report to
      * @param events the event queue of the consumer to ack/reject on
      * @param listener the listener callback that accepts ack/nack publisher confirms from the broker
+     * @param dataStore the data store to use for payload offloading
+     * @param config the module configuration
      * @throws IOException if the channel cannot have confirmations enabled
      */
     public WorkerPublisherImpl(
@@ -99,7 +102,8 @@ public class WorkerPublisherImpl implements WorkerPublisher
         }
     }
 
-    private boolean shouldStoreTaskMessage(final int taskMessageSize) {
+    private boolean shouldStoreTaskMessage(final int taskMessageSize)
+    {
         return config.getIsPayloadOffloadingEnabled() && taskMessageSize > config.getPayloadOffloadingThreshold();
     }
 
@@ -108,14 +112,16 @@ public class WorkerPublisherImpl implements WorkerPublisher
         final Optional<String> trackingJobTaskId,
         final String routingKey,
         final Map<String, Object> headers
-    ) throws DataStoreException {
+    ) throws DataStoreException
+    {
         headers.remove(RABBIT_HEADER_CAF_PAYLOAD_OFFLOADING_STORAGE_REF);
         if (trackingJobTaskId.isPresent() && shouldStoreTaskMessage(taskMessage.length)) {
-            final var taskMessageStorageRef = dataStore.store(taskMessage, String.format("%s/%s", routingKey, trackingJobTaskId.get()));
+            final String taskMessageStorageRef = dataStore.store(taskMessage, routingKey + "/" + trackingJobTaskId.get());
             headers.put(RABBIT_HEADER_CAF_PAYLOAD_OFFLOADING_STORAGE_REF, taskMessageStorageRef);
-            //  if the header is set, the consumer will ignore the incoming byte[] and use the offloaded message.
-            return new byte[0];
+            // If the header is set, the consumer will ignore the incoming byte[] and use the offloaded message.
+            return EMPTY_BYTE_ARRAY;
+        } else {
+            return taskMessage;
         }
-        return taskMessage;
     }
 }

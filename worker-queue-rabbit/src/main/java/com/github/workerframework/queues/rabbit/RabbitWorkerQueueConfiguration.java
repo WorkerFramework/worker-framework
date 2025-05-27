@@ -97,7 +97,7 @@ public class RabbitWorkerQueueConfiguration
      */
     @Min(1)
     private int payloadOffloadingThreshold = 16777216;
-    
+
     public RabbitWorkerQueueConfiguration()
     {
     }
@@ -193,19 +193,23 @@ public class RabbitWorkerQueueConfiguration
         this.queueType = queueType;
     }
 
-    public boolean getIsPayloadOffloadingEnabled() {
+    public boolean getIsPayloadOffloadingEnabled()
+    {
         return isPayloadOffloadingEnabled;
     }
 
-    public void setPayloadOffloadingEnabled(boolean payloadOffloadingEnabled) {
+    public void setPayloadOffloadingEnabled(boolean payloadOffloadingEnabled)
+    {
         isPayloadOffloadingEnabled = payloadOffloadingEnabled;
     }
 
-    public int getPayloadOffloadingThreshold() {
+    public int getPayloadOffloadingThreshold()
+    {
         return payloadOffloadingThreshold;
     }
 
-    public void setPayloadOffloadingThreshold(int payloadOffloadingThreshold) {
+    public void setPayloadOffloadingThreshold(int payloadOffloadingThreshold)
+    {
         this.payloadOffloadingThreshold = payloadOffloadingThreshold;
     }
 }
