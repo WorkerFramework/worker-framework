@@ -261,7 +261,7 @@ public class WorkerQueueConsumerImpl implements QueueConsumer
             return;
         }
 
-        final String datastorePayloadReference = offloadedPayloads.get(tag);
+        final String datastorePayloadReference = offloadedPayloads.remove(tag);
         if (datastorePayloadReference != null) {
             try {
                 dataStore.delete(datastorePayloadReference);
