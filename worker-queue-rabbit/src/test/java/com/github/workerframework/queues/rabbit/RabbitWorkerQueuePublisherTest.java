@@ -112,7 +112,7 @@ public class RabbitWorkerQueuePublisherTest
     public void testPublisherOffloadsTheOutgoingMessagePayload()
         throws InterruptedException, IOException, CodecException
     {
-        final var trackingInfo = new TrackingInfo("task1", new Date(), 1, "http://hello.com", "pipe", "to");
+        final var trackingInfo = new TrackingInfo("tenant-name:task1.1.1.1", new Date(), 1, "http://hello.com", "pipe", "to");
         final RabbitTaskInformation taskInformation = Mockito.mock(RabbitTaskInformation.class);
         when(taskInformation.getInboundMessageId()).thenReturn("task1");
         when(taskInformation.getTrackingJobTaskId()).thenReturn(Optional.of(trackingInfo.getJobTaskId()));
@@ -120,6 +120,7 @@ public class RabbitWorkerQueuePublisherTest
         final RabbitWorkerQueueConfiguration offloadingEnabledCfg = Mockito.mock(RabbitWorkerQueueConfiguration.class);
         when(offloadingEnabledCfg.getIsPayloadOffloadingEnabled()).thenReturn(true);
         when(offloadingEnabledCfg.getPayloadOffloadingThreshold()).thenReturn(1);
+        when(offloadingEnabledCfg.getPayloadOffloadingDirectory()).thenReturn("queues");
 
         final BlockingQueue<Event<QueueConsumer>> consumerEvents = new LinkedBlockingQueue<>();
         final BlockingQueue<Event<WorkerPublisher>> publisherEvents = new LinkedBlockingQueue<>();
@@ -153,7 +154,61 @@ public class RabbitWorkerQueuePublisherTest
         publisher.shutdown();
 
         try {
-            final var partialRef = testQueue + "/" + trackingInfo.getJobTaskId();
+            final var partialRef = "queues/testQueue/tenant-name/task1/1.1.1";
+            final var offloadedByteArray = dataStore.retrieveStoredByteArray(partialRef);
+            Assert.assertEquals(outboundByteArray, offloadedByteArray, "The offloaded message did not match");
+        } catch (final DataStoreException ex){
+            fail("Unable to retrieve the stored message", ex);
+        }
+    }
+
+    @Test
+    public void testDatastoreDirectoryCreatedWithBareMinimumTaskId()
+        throws InterruptedException, IOException, CodecException
+    {
+        final var trackingInfo = new TrackingInfo("task2", new Date(), 1, "http://hello.com", "pipe", "to");
+        final RabbitTaskInformation taskInformation = Mockito.mock(RabbitTaskInformation.class);
+        when(taskInformation.getInboundMessageId()).thenReturn("task2");
+        when(taskInformation.getTrackingJobTaskId()).thenReturn(Optional.of(trackingInfo.getJobTaskId()));
+
+        final RabbitWorkerQueueConfiguration offloadingEnabledCfg = Mockito.mock(RabbitWorkerQueueConfiguration.class);
+        when(offloadingEnabledCfg.getIsPayloadOffloadingEnabled()).thenReturn(true);
+        when(offloadingEnabledCfg.getPayloadOffloadingThreshold()).thenReturn(1);
+        when(offloadingEnabledCfg.getPayloadOffloadingDirectory()).thenReturn("queues");
+
+        final BlockingQueue<Event<QueueConsumer>> consumerEvents = new LinkedBlockingQueue<>();
+        final BlockingQueue<Event<WorkerPublisher>> publisherEvents = new LinkedBlockingQueue<>();
+        final Channel channel = Mockito.mock(Channel.class);
+        final CountDownLatch latch = new CountDownLatch(1);
+        final Answer<Void> a = invocationOnMock -> {
+            latch.countDown();
+            return null;
+        };
+        Mockito.doAnswer(a).when(channel).basicPublish(Mockito.any(), Mockito.eq(testQueue), Mockito.any(), Mockito.eq(data));
+        final WorkerConfirmListener listener = new WorkerConfirmListener(consumerEvents);
+        final WorkerPublisher impl = new WorkerPublisherImpl(channel, metrics, consumerEvents, listener, dataStore, offloadingEnabledCfg);
+        final EventPoller<WorkerPublisher> publisher = new EventPoller<>(2, publisherEvents, impl);
+        final Thread t = new Thread(publisher);
+        t.start();
+
+        final var outboundTaskData = "This is the actual outbound task message that will get offloaded";
+        final var outboundTaskMessage = new TaskMessage(
+            "task1",
+            "ACTUAL_CLASSIFIER",
+            1,
+            outboundTaskData.getBytes(StandardCharsets.UTF_8),
+            TaskStatus.NEW_TASK,
+            new HashMap<>(),
+            "to",
+            trackingInfo);
+
+        final var outboundByteArray = codec.serialise(outboundTaskMessage);
+        publisherEvents.add(new WorkerPublishQueueEvent(outboundByteArray, testQueue, taskInformation));
+        latch.await(5000, TimeUnit.MILLISECONDS);
+        publisher.shutdown();
+
+        try {
+            final var partialRef = "queues/testQueue/task2";
             final var offloadedByteArray = dataStore.retrieveStoredByteArray(partialRef);
             Assert.assertEquals(outboundByteArray, offloadedByteArray, "The offloaded message did not match");
         } catch (final DataStoreException ex){

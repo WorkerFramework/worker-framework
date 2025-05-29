@@ -26,11 +26,15 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.concurrent.BlockingQueue;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+import java.util.stream.Collectors;
 
 import static com.github.workerframework.util.rabbitmq.RabbitHeaders.RABBIT_HEADER_CAF_PAYLOAD_OFFLOADING_STORAGE_REF;
 
@@ -48,6 +52,7 @@ public class WorkerPublisherImpl implements WorkerPublisher
     private final RabbitWorkerQueueConfiguration config;
     private static final Logger LOG = LoggerFactory.getLogger(WorkerPublisherImpl.class);
     private static final byte[] EMPTY_BYTE_ARRAY = new byte[0];
+    private static final Pattern JOB_TASK_ID_PATTERN = Pattern.compile("^([^\\.]*)\\.?(.*)$");
 
     /**
      * Create a WorkerPublisher implementation. The channel will have confirmations turned on and the supplied WorkerConfirmListener will
@@ -116,12 +121,25 @@ public class WorkerPublisherImpl implements WorkerPublisher
     {
         headers.remove(RABBIT_HEADER_CAF_PAYLOAD_OFFLOADING_STORAGE_REF);
         if (trackingJobTaskId.isPresent() && shouldStoreTaskMessage(taskMessage.length)) {
-            final String taskMessageStorageRef = dataStore.store(taskMessage, routingKey + "/" + trackingJobTaskId.get());
+            final String taskMessageStorageRef = dataStore.store(taskMessage, storagePath(routingKey, trackingJobTaskId.get()));
             headers.put(RABBIT_HEADER_CAF_PAYLOAD_OFFLOADING_STORAGE_REF, taskMessageStorageRef);
             // If the header is set, the consumer will ignore the incoming byte[] and use the offloaded message.
             return EMPTY_BYTE_ARRAY;
         } else {
             return taskMessage;
         }
+    }
+
+    private String storagePath(final String routingKey, final String trackingJobTaskId)
+    {
+        final StringBuilder path = new StringBuilder(config.getPayloadOffloadingDirectory() + "/" + routingKey);
+        final Matcher matcher = JOB_TASK_ID_PATTERN.matcher(trackingJobTaskId);
+        if (matcher.find()) {
+            path.append("/" + matcher.group(1).replace(":", "/"));
+            if (matcher.group(2) != null && !matcher.group(2).isEmpty()) {
+                path.append("/" + matcher.group(2));
+            }
+        }
+        return path.toString();
     }
 }
