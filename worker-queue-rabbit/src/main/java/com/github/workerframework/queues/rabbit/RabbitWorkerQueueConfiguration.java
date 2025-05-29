@@ -99,7 +99,7 @@ public class RabbitWorkerQueueConfiguration
     private int payloadOffloadingThreshold = 16777216;
 
     /**
-     * The type of datastore directory to use for offloading payloads.
+     * The datastore directory to use for offloading payloads.
      */
     @NotNull
     private String payloadOffloadingDirectory;
