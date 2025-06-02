@@ -21,6 +21,7 @@ import com.github.cafapi.common.api.DecodeMethod;
 import com.github.workerframework.api.DataStoreException;
 import com.github.workerframework.api.InvalidTaskException;
 import com.github.workerframework.api.ManagedDataStore;
+import com.github.workerframework.api.ReferenceNotFoundException;
 import com.github.workerframework.api.TaskCallback;
 import com.github.workerframework.api.TaskMessage;
 import com.github.workerframework.api.TaskRejectedException;
@@ -146,21 +147,32 @@ public class WorkerQueueConsumerImpl implements QueueConsumer
     ) {
         if (taskMessageStorageRefOpt.isPresent()) {
             final String taskMessageStorageRef = taskMessageStorageRefOpt.get();  
-            offloadedPayloads.put(inboundMessageId, taskMessageStorageRef);
             try (final var inputStream = dataStore.retrieve(taskMessageStorageRef)) {
-                return inputStream.readAllBytes();
-            } catch (final IOException | DataStoreException e) {
+                final var messageData = inputStream.readAllBytes();
+                offloadedPayloads.put(inboundMessageId, taskMessageStorageRef);
+                return messageData;
+            } 
+            catch (final ReferenceNotFoundException ex) {
                 final RabbitTaskInformation taskInformation = new RabbitTaskInformation(String.valueOf(inboundMessageId), true);
                 LOG.error("Cannot register new message, rejecting storageRef:{} inbound messageid: {}",
-                          taskMessageStorageRef, inboundMessageId, e);
+                        taskMessageStorageRef, inboundMessageId, ex);
                 taskInformation.incrementResponseCount(true);
                 final var publishHeaders = new HashMap<String, Object>();
                 publishHeaders.put(RabbitHeaders.RABBIT_HEADER_CAF_WORKER_REJECTED,
-                                   REJECTED_REASON_PAYLOAD_OFFLOADING_TASKMESSAGE_DATASTORE_ERROR);
+                        REJECTED_REASON_PAYLOAD_OFFLOADING_TASKMESSAGE_DATASTORE_ERROR);
                 publishHeaders.put(RabbitHeaders.RABBIT_HEADER_CAF_PAYLOAD_OFFLOADING_STORAGE_REF,
-                                   taskMessageStorageRef);
+                        taskMessageStorageRef);
+
                 publisherEventQueue.add(
-                    new WorkerPublishQueueEvent(delivery.getMessageData(), retryRoutingKey, taskInformation, publishHeaders));
+                        new WorkerPublishQueueEvent(null, retryRoutingKey, taskInformation, publishHeaders));
+                return null;
+            }
+            catch (final IOException | DataStoreException e) {
+                LOG.warn("Message {} re-queued due to transient error.", inboundMessageId, e);
+                final RabbitTaskInformation transientErrorTaskInformation = 
+                        new RabbitTaskInformation(String.valueOf(inboundMessageId), false);
+                publisherEventQueue.add(new WorkerPublishQueueEvent(null, 
+                        delivery.getEnvelope().getRoutingKey(), transientErrorTaskInformation, delivery.getHeaders()));
                 return null;
             }
         } else {
