@@ -68,6 +68,7 @@ public class WorkerQueueConsumerImpl implements QueueConsumer
     private final int retryLimit;
     private final ManagedDataStore dataStore;
     private final Codec codec;
+    private final Runnable disconnectCallback;
     private final SortedMap<Long, String> offloadedPayloads;
 
     private static final Logger LOG = LoggerFactory.getLogger(WorkerQueueConsumerImpl.class);
@@ -81,7 +82,8 @@ public class WorkerQueueConsumerImpl implements QueueConsumer
 
     public WorkerQueueConsumerImpl(TaskCallback callback, RabbitMetricsReporter metrics, BlockingQueue<Event<QueueConsumer>> queue, Channel ch,
                                    BlockingQueue<Event<WorkerPublisher>> pubQueue, String retryKey, int retryLimit,
-                                   final ManagedDataStore dataStore, final Codec codec) {
+                                   final ManagedDataStore dataStore, final Codec codec,
+                                   final Runnable disconnectCallback) {
         this.callback = Objects.requireNonNull(callback);
         this.metrics = Objects.requireNonNull(metrics);
         this.consumerEventQueue = Objects.requireNonNull(queue);
@@ -91,6 +93,7 @@ public class WorkerQueueConsumerImpl implements QueueConsumer
         this.retryLimit = retryLimit;
         this.dataStore = Objects.requireNonNull(dataStore);
         this.codec = Objects.requireNonNull(codec);
+        this.disconnectCallback = disconnectCallback;
         this.offloadedPayloads = Collections.synchronizedSortedMap(new TreeMap<>());
     }
 
@@ -168,11 +171,8 @@ public class WorkerQueueConsumerImpl implements QueueConsumer
                 return null;
             }
             catch (final IOException | DataStoreException e) {
-                LOG.warn("Message {} re-queued due to transient error.", inboundMessageId, e);
-                final RabbitTaskInformation transientErrorTaskInformation = 
-                        new RabbitTaskInformation(String.valueOf(inboundMessageId), false);
-                publisherEventQueue.add(new WorkerPublishQueueEvent(null, 
-                        delivery.getEnvelope().getRoutingKey(), transientErrorTaskInformation, delivery.getHeaders()));
+                LOG.warn("Message {} DataStore transient error, disconnecting.", inboundMessageId, e);
+                disconnectCallback.run();
                 return null;
             }
         } else {
