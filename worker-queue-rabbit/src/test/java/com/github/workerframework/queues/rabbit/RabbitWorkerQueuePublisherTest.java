@@ -47,7 +47,7 @@ public class RabbitWorkerQueuePublisherTest
 
     @Test
     public void testSetup()
-            throws IOException
+        throws IOException
     {
         BlockingQueue<Event<QueueConsumer>> consumerEvents = new LinkedBlockingQueue<>();
         Channel channel = Mockito.mock(Channel.class);
@@ -59,7 +59,7 @@ public class RabbitWorkerQueuePublisherTest
 
     @Test
     public void testHandlePublish()
-            throws IOException, InterruptedException
+        throws IOException, InterruptedException
     {
         BlockingQueue<Event<QueueConsumer>> consumerEvents = new LinkedBlockingQueue<>();
         BlockingQueue<Event<WorkerPublisher>> publisherEvents = new LinkedBlockingQueue<>();
@@ -84,7 +84,7 @@ public class RabbitWorkerQueuePublisherTest
 
     @Test
     public void testHandlePublishFail()
-            throws IOException, InterruptedException
+        throws IOException, InterruptedException
     {
         BlockingQueue<Event<QueueConsumer>> consumerEvents = new LinkedBlockingQueue<>();
         BlockingQueue<Event<WorkerPublisher>> publisherEvents = new LinkedBlockingQueue<>();

@@ -51,7 +51,7 @@ public class WorkerPublisherImpl implements WorkerPublisher
      * @throws IOException if the channel cannot have confirmations enabled
      */
     public WorkerPublisherImpl(Channel ch, RabbitMetricsReporter metrics, BlockingQueue<Event<QueueConsumer>> events, WorkerConfirmListener listener)
-            throws IOException
+        throws IOException
     {
         this.channel = Objects.requireNonNull(ch);
         this.metrics = Objects.requireNonNull(metrics);

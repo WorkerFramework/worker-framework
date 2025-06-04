@@ -531,7 +531,7 @@ final class WorkerCore
                     //TODO - I'm guessing this stat should not be updated for forwarded messages:
                     // stats.getOutputSizes().update(output.length);
                 }
-            } catch (QueueException e) {
+            } catch (final QueueException e) {
                 LOG.error("Cannot publish data for forwarded task {}, rejecting", forwardedMessage.getTaskId(), e);
                 abandon(taskInformation, e);
             }
