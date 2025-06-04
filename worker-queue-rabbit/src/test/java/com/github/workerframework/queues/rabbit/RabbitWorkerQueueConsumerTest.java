@@ -61,8 +61,6 @@ import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.TimeUnit;
 
-import static com.github.workerframework.util.rabbitmq.RabbitHeaders.RABBIT_HEADER_CAF_PAYLOAD_OFFLOADING_STORAGE_REF;
-
 public class RabbitWorkerQueueConsumerTest
 {
     private String testQueue = "testQueue";
@@ -117,70 +115,6 @@ public class RabbitWorkerQueueConsumerTest
         conf.setDataDir(tempDataStore.getAbsolutePath());
         conf.setDataDirHealthcheckTimeoutSeconds(10);
         return conf;
-    }
-
-    @Test
-    public void testConsumerOffloadsTheMessageAsExpected()
-        throws CodecException, DataStoreException, TaskRejectedException, InvalidTaskException, InterruptedException 
-    {
-        //  store a message to be offloaded first
-        final var trackingInfo = new TrackingInfo("task1", new Date(), 1, "http://hello.com", "pipe", "to");
-        final var offloadedTaskData = "This is the actual task message was previously stored".getBytes(StandardCharsets.UTF_8);
-        final var offloadedTaskMessage = new TaskMessage(
-            "task1",
-            "ACTUAL_CLASSIFIER",
-            1,
-            offloadedTaskData,
-            TaskStatus.NEW_TASK,
-            new HashMap<>(),
-            "to",
-            trackingInfo);
-        final var offloadedTaskMessageData = codec.serialise(offloadedTaskMessage);
-        final var taskMessageStorageRef = dataStore.store(offloadedTaskMessageData, "testQueue/task1");
-
-        final BlockingQueue<Event<QueueConsumer>> consumerEvents = new LinkedBlockingQueue<>();
-        final BlockingQueue<Event<WorkerPublisher>> publisherEvents = new LinkedBlockingQueue<>();
-        final Channel channel = Mockito.mock(Channel.class);
-        final CountDownLatch latch = new CountDownLatch(1);
-        final TaskCallback callback = Mockito.mock(TaskCallback.class);
-        Answer<Void> a = invocationOnMock -> {
-            latch.countDown();
-            return null;
-        };
-        Mockito.doAnswer(a).when(callback).registerNewTask(Mockito.any(), Mockito.any(), Mockito.anyMap());
-        final WorkerQueueConsumerImpl impl = new WorkerQueueConsumerImpl(
-            callback, metrics, consumerEvents, channel, publisherEvents, retryKey, 1, dataStore, codec, () -> {});
-        final DefaultRabbitConsumer consumer = new DefaultRabbitConsumer(consumerEvents, impl);
-        final Thread t = new Thread(consumer);
-        t.start();
-        
-        // Now publish a message linked to the previously offloaded message.
-        AMQP.BasicProperties prop = Mockito.mock(AMQP.BasicProperties.class);
-        final Map<String, Object> headers = new HashMap<>();
-        headers.put(RABBIT_HEADER_CAF_PAYLOAD_OFFLOADING_STORAGE_REF, taskMessageStorageRef);
-        Mockito.when(prop.getHeaders()).thenReturn(headers);
-        consumer.handleDelivery("consumer", newEnv, prop, data);
-        Assert.assertTrue(latch.await(1000, TimeUnit.MILLISECONDS));
-
-        final ArgumentCaptor<TaskInformation> taskInfoCaptor = ArgumentCaptor.forClass(TaskInformation.class);
-        final ArgumentCaptor<TaskMessage> taskMessageCaptor = ArgumentCaptor.forClass(TaskMessage.class);
-        final ArgumentCaptor<Map<String, Object>> headersCaptor = ArgumentCaptor.forClass(Map.class);
-
-        // The registered task should be the offloaded one saved earlier.
-        Mockito.verify(callback).registerNewTask(taskInfoCaptor.capture(), taskMessageCaptor.capture(), headersCaptor.capture());
-        final TaskInformation taskInformation = taskInfoCaptor.getValue();
-        final TaskMessage taskMessage = taskMessageCaptor.getValue();
-        final Map<String, Object> taskHeaders = headersCaptor.getValue();
-        
-        Assert.assertTrue(taskHeaders.containsKey(RABBIT_HEADER_CAF_PAYLOAD_OFFLOADING_STORAGE_REF), 
-            "Headers should have included " + RABBIT_HEADER_CAF_PAYLOAD_OFFLOADING_STORAGE_REF);
-        Assert.assertEquals(taskMessage.getTaskData(), offloadedTaskData,
-            "Task data did not match");
-        Assert.assertTrue(taskInformation instanceof RabbitTaskInformation, 
-            "RabbitTaskInformation expected");
-        final var rabbitTaskInfo = (RabbitTaskInformation) taskInformation;
-        Assert.assertTrue(latch.await(1000, TimeUnit.MILLISECONDS));
-        consumer.shutdown();
     }
 
     /**
@@ -279,7 +213,7 @@ public class RabbitWorkerQueueConsumerTest
         pubEvent.handleEvent(publisher);
         Mockito.verify(publisher, Mockito.times(1)).handlePublish(Mockito.eq(data), Mockito.eq(retryKey), Mockito.any(RabbitTaskInformation.class), captor.capture());
         Assert.assertTrue(captor.getValue().containsKey(RabbitHeaders.RABBIT_HEADER_CAF_WORKER_REJECTED));
-        Assert.assertEquals(WorkerQueueConsumerImpl.REJECTED_REASON_TASKMESSAGE,
+        Assert.assertEquals(WorkerQueueConsumerImpl.REJECTED_REASON_TASKMESSAGE_INVALID,
                             captor.getValue().get(RabbitHeaders.RABBIT_HEADER_CAF_WORKER_REJECTED));
         consumer.shutdown();
     }

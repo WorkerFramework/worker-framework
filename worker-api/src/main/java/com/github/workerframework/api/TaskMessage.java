@@ -53,7 +53,6 @@ public final class TaskMessage
     /**
      * The serialised data of the task-specific message.
      */
-    @NotNull
     private byte[] taskData;
 
     /**

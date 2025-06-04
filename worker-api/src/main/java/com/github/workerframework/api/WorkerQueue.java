@@ -32,7 +32,7 @@ public interface WorkerQueue
      * @param isLastMessage the boolean to indicate if current message is final message for the task
      * @throws QueueException if the message cannot be submitted
      */
-    void publish(TaskInformation taskInformation, byte[] taskMessage, String targetQueue, Map<String, Object> headers,
+    void publish(TaskInformation taskInformation, TaskMessage taskMessage, String targetQueue, Map<String, Object> headers,
                  boolean isLastMessage) throws QueueException;
 
     /**
@@ -45,7 +45,7 @@ public interface WorkerQueue
      * @throws QueueException if the message cannot be submitted
      */
 
-    void publish(TaskInformation taskInformation, byte[] taskMessage, String targetQueue, Map<String, Object> headers)
+    void publish(TaskInformation taskInformation, TaskMessage taskMessage, String targetQueue, Map<String, Object> headers)
         throws QueueException;
 
     /**

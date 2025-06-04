@@ -15,222 +15,51 @@
  */
 package com.github.workerframework.queues.rabbit;
 
-import com.github.cafapi.common.api.Codec;
-import com.github.cafapi.common.api.CodecException;
-import com.github.cafapi.common.codecs.json.JsonCodec;
-import com.github.workerframework.api.DataStoreException;
-import com.github.workerframework.api.TaskMessage;
-import com.github.workerframework.api.TaskStatus;
-import com.github.workerframework.api.TrackingInfo;
-import com.github.workerframework.datastores.fs.FileSystemDataStore;
-import com.github.workerframework.datastores.fs.FileSystemDataStoreConfiguration;
 import com.github.workerframework.util.rabbitmq.ConsumerRejectEvent;
 import com.github.workerframework.util.rabbitmq.Event;
 import com.github.workerframework.util.rabbitmq.EventPoller;
 import com.github.workerframework.util.rabbitmq.QueueConsumer;
 import com.rabbitmq.client.Channel;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.testng.Assert;
-import org.testng.annotations.AfterMethod;
-import org.testng.annotations.BeforeClass;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 import org.mockito.Mockito;
 import org.mockito.stubbing.Answer;
 
-import java.io.ByteArrayOutputStream;
-import java.io.File;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Optional;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.TimeUnit;
 
-import static org.mockito.Mockito.when;
-import static org.testng.Assert.fail;
-
 public class RabbitWorkerQueuePublisherTest
 {
-    private static final Logger log = LoggerFactory.getLogger(RabbitWorkerQueuePublisherTest.class);
     private String testQueue = "testQueue";
     private RabbitTaskInformation taskInformation;
     private byte[] data = "test123".getBytes(StandardCharsets.UTF_8);
     private RabbitMetricsReporter metrics = new RabbitMetricsReporter();
 
-    private File tempDataStore;
-    private TestFileSystemDataStore dataStore;
-    private static Codec codec;
-    private static RabbitWorkerQueueConfiguration config;
-
-    @BeforeClass
-    public static void beforeClass() {
-        codec = new JsonCodec();
-        config = Mockito.mock(RabbitWorkerQueueConfiguration.class);
-        when(config.getIsPayloadOffloadingEnabled()).thenReturn(false);
-        when(config.getPayloadOffloadingThreshold()).thenReturn(1);
-    }
-
     @BeforeMethod
-    public void beforeMethod() throws DataStoreException {
+    public void beforeMethod() {
         taskInformation = new RabbitTaskInformation("101");
-        tempDataStore = new File("RabbitWorkerQueuePublisherTest");
-        dataStore = new TestFileSystemDataStore(createConfig());
-    }
-
-    @AfterMethod
-    public void tearDown()
-    {
-        deleteDir(tempDataStore);
-    }
-
-    private void deleteDir(File file)
-    {
-        File[] contents = file.listFiles();
-        if (contents != null) {
-            for (File f : contents) {
-                deleteDir(f);
-            }
-        }
-        file.delete();
-    }
-
-    private FileSystemDataStoreConfiguration createConfig()
-    {
-        final FileSystemDataStoreConfiguration conf = new FileSystemDataStoreConfiguration();
-        conf.setDataDir(tempDataStore.getAbsolutePath());
-        conf.setDataDirHealthcheckTimeoutSeconds(10);
-        return conf;
-    }
-
-    @Test
-    public void testPublisherOffloadsTheOutgoingMessagePayload()
-        throws InterruptedException, IOException, CodecException
-    {
-        final var trackingInfo = new TrackingInfo("tenant-name:task1.1.1.1", new Date(), 1, "http://hello.com", "pipe", "to");
-        final RabbitTaskInformation taskInformation = Mockito.mock(RabbitTaskInformation.class);
-        when(taskInformation.getInboundMessageId()).thenReturn("task1");
-        when(taskInformation.getTrackingJobTaskId()).thenReturn(Optional.of(trackingInfo.getJobTaskId()));
-        
-        final RabbitWorkerQueueConfiguration offloadingEnabledCfg = Mockito.mock(RabbitWorkerQueueConfiguration.class);
-        when(offloadingEnabledCfg.getIsPayloadOffloadingEnabled()).thenReturn(true);
-        when(offloadingEnabledCfg.getPayloadOffloadingThreshold()).thenReturn(1);
-        when(offloadingEnabledCfg.getPayloadOffloadingDirectory()).thenReturn("queues");
-
-        final BlockingQueue<Event<QueueConsumer>> consumerEvents = new LinkedBlockingQueue<>();
-        final BlockingQueue<Event<WorkerPublisher>> publisherEvents = new LinkedBlockingQueue<>();
-        final Channel channel = Mockito.mock(Channel.class);
-        final CountDownLatch latch = new CountDownLatch(1);
-        final Answer<Void> a = invocationOnMock -> {
-            latch.countDown();
-            return null;
-        };
-        Mockito.doAnswer(a).when(channel).basicPublish(Mockito.any(), Mockito.eq(testQueue), Mockito.any(), Mockito.eq(data));
-        final WorkerConfirmListener listener = new WorkerConfirmListener(consumerEvents);
-        final WorkerPublisher impl = new WorkerPublisherImpl(channel, metrics, consumerEvents, listener, dataStore, offloadingEnabledCfg);
-        final EventPoller<WorkerPublisher> publisher = new EventPoller<>(2, publisherEvents, impl);
-        final Thread t = new Thread(publisher);
-        t.start();
-
-        final var outboundTaskData = "This is the actual outbound task message that will get offloaded";
-        final var outboundTaskMessage = new TaskMessage(
-            "task1",
-            "ACTUAL_CLASSIFIER",
-            1,
-            outboundTaskData.getBytes(StandardCharsets.UTF_8),
-            TaskStatus.NEW_TASK,
-            new HashMap<>(),
-            "to",
-            trackingInfo);
-        
-        final var outboundByteArray = codec.serialise(outboundTaskMessage);
-        publisherEvents.add(new WorkerPublishQueueEvent(outboundByteArray, testQueue, taskInformation));
-        latch.await(5000, TimeUnit.MILLISECONDS);
-        publisher.shutdown();
-
-        try {
-            final var partialRef = "queues/testQueue/tenant-name/task1/1.1.1";
-            final var offloadedByteArray = dataStore.retrieveStoredByteArray(partialRef);
-            Assert.assertEquals(outboundByteArray, offloadedByteArray, "The offloaded message did not match");
-        } catch (final DataStoreException ex){
-            fail("Unable to retrieve the stored message", ex);
-        }
-    }
-
-    @Test
-    public void testDatastoreDirectoryCreatedWithBareMinimumTaskId()
-        throws InterruptedException, IOException, CodecException
-    {
-        final var trackingInfo = new TrackingInfo("task2", new Date(), 1, "http://hello.com", "pipe", "to");
-        final RabbitTaskInformation taskInformation = Mockito.mock(RabbitTaskInformation.class);
-        when(taskInformation.getInboundMessageId()).thenReturn("task2");
-        when(taskInformation.getTrackingJobTaskId()).thenReturn(Optional.of(trackingInfo.getJobTaskId()));
-
-        final RabbitWorkerQueueConfiguration offloadingEnabledCfg = Mockito.mock(RabbitWorkerQueueConfiguration.class);
-        when(offloadingEnabledCfg.getIsPayloadOffloadingEnabled()).thenReturn(true);
-        when(offloadingEnabledCfg.getPayloadOffloadingThreshold()).thenReturn(1);
-        when(offloadingEnabledCfg.getPayloadOffloadingDirectory()).thenReturn("queues");
-
-        final BlockingQueue<Event<QueueConsumer>> consumerEvents = new LinkedBlockingQueue<>();
-        final BlockingQueue<Event<WorkerPublisher>> publisherEvents = new LinkedBlockingQueue<>();
-        final Channel channel = Mockito.mock(Channel.class);
-        final CountDownLatch latch = new CountDownLatch(1);
-        final Answer<Void> a = invocationOnMock -> {
-            latch.countDown();
-            return null;
-        };
-        Mockito.doAnswer(a).when(channel).basicPublish(Mockito.any(), Mockito.eq(testQueue), Mockito.any(), Mockito.eq(data));
-        final WorkerConfirmListener listener = new WorkerConfirmListener(consumerEvents);
-        final WorkerPublisher impl = new WorkerPublisherImpl(channel, metrics, consumerEvents, listener, dataStore, offloadingEnabledCfg);
-        final EventPoller<WorkerPublisher> publisher = new EventPoller<>(2, publisherEvents, impl);
-        final Thread t = new Thread(publisher);
-        t.start();
-
-        final var outboundTaskData = "This is the actual outbound task message that will get offloaded";
-        final var outboundTaskMessage = new TaskMessage(
-            "task1",
-            "ACTUAL_CLASSIFIER",
-            1,
-            outboundTaskData.getBytes(StandardCharsets.UTF_8),
-            TaskStatus.NEW_TASK,
-            new HashMap<>(),
-            "to",
-            trackingInfo);
-
-        final var outboundByteArray = codec.serialise(outboundTaskMessage);
-        publisherEvents.add(new WorkerPublishQueueEvent(outboundByteArray, testQueue, taskInformation));
-        latch.await(5000, TimeUnit.MILLISECONDS);
-        publisher.shutdown();
-
-        try {
-            final var partialRef = "queues/testQueue/task2";
-            final var offloadedByteArray = dataStore.retrieveStoredByteArray(partialRef);
-            Assert.assertEquals(outboundByteArray, offloadedByteArray, "The offloaded message did not match");
-        } catch (final DataStoreException ex){
-            fail("Unable to retrieve the stored message", ex);
-        }
     }
 
     @Test
     public void testSetup()
-        throws IOException
+            throws IOException
     {
         BlockingQueue<Event<QueueConsumer>> consumerEvents = new LinkedBlockingQueue<>();
         Channel channel = Mockito.mock(Channel.class);
         WorkerConfirmListener listener = Mockito.mock(WorkerConfirmListener.class);
-        WorkerPublisher impl = new WorkerPublisherImpl(channel, metrics, consumerEvents, listener, dataStore, config);
+        WorkerPublisher impl = new WorkerPublisherImpl(channel, metrics, consumerEvents, listener);
         Mockito.verify(channel, Mockito.times(1)).confirmSelect();
         Mockito.verify(channel, Mockito.times(1)).addConfirmListener(listener);
     }
 
     @Test
     public void testHandlePublish()
-        throws IOException, InterruptedException
+            throws IOException, InterruptedException
     {
         BlockingQueue<Event<QueueConsumer>> consumerEvents = new LinkedBlockingQueue<>();
         BlockingQueue<Event<WorkerPublisher>> publisherEvents = new LinkedBlockingQueue<>();
@@ -242,7 +71,7 @@ public class RabbitWorkerQueuePublisherTest
         };
         Mockito.doAnswer(a).when(channel).basicPublish(Mockito.any(), Mockito.eq(testQueue), Mockito.any(), Mockito.eq(data));
         WorkerConfirmListener listener = Mockito.mock(WorkerConfirmListener.class);
-        WorkerPublisher impl = new WorkerPublisherImpl(channel, metrics, consumerEvents, listener, dataStore, config);
+        WorkerPublisher impl = new WorkerPublisherImpl(channel, metrics, consumerEvents, listener);
         EventPoller<WorkerPublisher> publisher = new EventPoller<>(2, publisherEvents, impl);
         Thread t = new Thread(publisher);
         t.start();
@@ -255,14 +84,14 @@ public class RabbitWorkerQueuePublisherTest
 
     @Test
     public void testHandlePublishFail()
-        throws IOException, InterruptedException
+            throws IOException, InterruptedException
     {
         BlockingQueue<Event<QueueConsumer>> consumerEvents = new LinkedBlockingQueue<>();
         BlockingQueue<Event<WorkerPublisher>> publisherEvents = new LinkedBlockingQueue<>();
         Channel channel = Mockito.mock(Channel.class);
         WorkerConfirmListener listener = Mockito.mock(WorkerConfirmListener.class);
         Mockito.doThrow(IOException.class).when(channel).basicPublish(Mockito.any(), Mockito.eq(testQueue), Mockito.any(), Mockito.eq(data));
-        WorkerPublisher impl = new WorkerPublisherImpl(channel, metrics, consumerEvents, listener, dataStore, config);
+        WorkerPublisher impl = new WorkerPublisherImpl(channel, metrics, consumerEvents, listener);
         EventPoller<WorkerPublisher> publisher = new EventPoller<>(2, publisherEvents, impl);
         Thread t = new Thread(publisher);
         t.start();
@@ -275,33 +104,5 @@ public class RabbitWorkerQueuePublisherTest
         publisher.shutdown();
         Assert.assertEquals(0, publisherEvents.size());
         Assert.assertEquals(0, consumerEvents.size());
-    }
-
-    private static class TestFileSystemDataStore extends FileSystemDataStore
-    {
-        private final Map<String, String> reverseLookupMap = new HashMap<>();
-
-        public TestFileSystemDataStore(final FileSystemDataStoreConfiguration config) throws DataStoreException {
-            super(config);
-        }
-
-        @Override
-        public String store(final byte[] dataStream, final String partialReference) throws DataStoreException {
-            final String storedId = super.store(dataStream, partialReference);
-            reverseLookupMap.put(partialReference, storedId);
-            return storedId;
-        }
-
-        public byte[] retrieveStoredByteArray(final String partialReference) throws DataStoreException, IOException {
-            final ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
-            try (final var inputStream = retrieve(reverseLookupMap.get(partialReference))) {
-                final byte[] buffer = new byte[1024];
-                int length;
-                while ((length = inputStream.read(buffer)) != -1) {
-                    outputStream.write(buffer, 0, length);
-                }
-            }
-            return outputStream.toByteArray();
-        }
     }
 }

@@ -15,12 +15,14 @@
  */
 package com.github.workerframework.workertest;
 
+import com.github.workerframework.api.TaskMessage;
 import com.github.workerframework.testworker.TestWorkerTask;
 import com.rabbitmq.client.Channel;
 import com.rabbitmq.client.Connection;
 import org.testng.Assert;
 import org.testng.annotations.Test;
 
+import java.nio.charset.StandardCharsets;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
@@ -39,27 +41,32 @@ public class PayloadOffloadingIT extends WorkerTestBase {
     public void checkOffloadedPayloadIsConsumedAndDeletedOnAck() throws Exception {
         final TestWorkerTask documentWorkerTask = new TestWorkerTask();
         documentWorkerTask.setPoison(false);
-        final var taskByteArray = buildTaskMessageByteArray(TEST_WORKER_NAME, 1, documentWorkerTask, WORKER_IN);
+        
+        final TaskMessage taskMessage = getTaskMessage(TEST_WORKER_NAME, 1, documentWorkerTask, WORKER_IN);
+        final byte[] taskData = taskMessage.getTaskData();
+        taskMessage.setTaskData(null);
+        
         final var setupPayloadOffloadStorageRef = UUID.randomUUID().toString();
-        writeFileToWebDav(setupPayloadOffloadStorageRef, taskByteArray);
+        writeFileToWebDav(setupPayloadOffloadStorageRef, taskData);
         final var readWebDAVFile = readFileFromWebDAV(setupPayloadOffloadStorageRef);
         Assert.assertTrue(readWebDAVFile.isPresent(), "The file should be present in the datastore");
 
         try(final Connection connection = connectionFactory.newConnection();
-            final Channel channel = prepareChannel(connection, WORKER_IN, WORKER_OUT);) {
+            final Channel channel = prepareChannel(connection, WORKER_IN, WORKER_OUT)) {
 
             //  Now we can send a message which expects to find the setupPayloadOffloadStorageRef.
             final Map<String, Object> headers = new HashMap<>();
             headers.put(RABBIT_HEADER_CAF_PAYLOAD_OFFLOADING_STORAGE_REF, setupPayloadOffloadStorageRef);
             // this publish will result in an offloaded payload being recovered by the consumer.
             // the body will be ignored as the offloaded payload will be used.
-            publish(channel, new byte[0], headers, WORKER_IN);
+            publish(channel, codec.serialise(taskMessage), headers, WORKER_IN);
 
             final TestWorkerQueueConsumer outboundConsumer = new TestWorkerQueueConsumer();
             consume(channel, outboundConsumer, WORKER_OUT);
             final var consumedTaskMessageStorageRef = getTaskMessageStorageRef(outboundConsumer);
             Assert.assertTrue(consumedTaskMessageStorageRef.isPresent(), "The payload offloading header was missing");
             Assert.assertNotEquals(consumedTaskMessageStorageRef.get(), setupPayloadOffloadStorageRef, "Storage refs should have been different");
+            Assert.assertTrue(consumedTaskMessageStorageRef.get().contains(WORKER_OUT), "The storage reference does not contain the output queue name");
 
             // The previously offloaded payload should now have been deleted when the inbound message is ack'd
             final var storedSetupByteArrayOpt = readFileFromWebDAV(setupPayloadOffloadStorageRef);
@@ -68,6 +75,7 @@ public class PayloadOffloadingIT extends WorkerTestBase {
             // The outbound message should be present in the datastore
             final var consumedByteArrayOpt = readFileFromWebDAV(consumedTaskMessageStorageRef.get());
             Assert.assertTrue(consumedByteArrayOpt.isPresent(), "Offloaded payload should have been found");
+            Assert.assertEquals(new String(consumedByteArrayOpt.get(), StandardCharsets.UTF_8), "TestWorkerResultTaskData");
         }
     }
 
@@ -76,22 +84,25 @@ public class PayloadOffloadingIT extends WorkerTestBase {
         // First we need a message stored in the datastore
         final TestWorkerTask terminalDocumentWorkerTask = new TestWorkerTask();
         terminalDocumentWorkerTask.setTerminalWorker(true);
-        final var taskByteArray = buildTaskMessageByteArray(TEST_WORKER_NAME, 2, terminalDocumentWorkerTask, TERMINAL_WORKER_IN);
+
+        final TaskMessage taskMessage = getTaskMessage(TEST_WORKER_NAME, 2, terminalDocumentWorkerTask, TERMINAL_WORKER_IN);
+        final byte[] taskData = taskMessage.getTaskData();
+        taskMessage.setTaskData(null);
 
         final var storageRef = UUID.randomUUID().toString();
-        writeFileToWebDav(storageRef, taskByteArray);
+        writeFileToWebDav(storageRef, taskData);
         final var readWebDAVFile = readFileFromWebDAV(storageRef);
         Assert.assertTrue(readWebDAVFile.isPresent(), "The file should be present in the datastore");
 
         try(final Connection connection = connectionFactory.newConnection();
-            final Channel channel = prepareChannel(connection, TERMINAL_WORKER_IN, TERMINAL_WORKER_OUT);) {
+            final Channel channel = prepareChannel(connection, TERMINAL_WORKER_IN, TERMINAL_WORKER_OUT)) {
 
             //  Now we can send a message which expects to find the taskMessageStorageRef.
             final Map<String, Object> headers = new HashMap<>();
             headers.put(RABBIT_HEADER_CAF_PAYLOAD_OFFLOADING_STORAGE_REF, storageRef);
 
             // this publish will result the worker thinking it a terminal worker.
-            publish(channel, new byte[0], headers, TERMINAL_WORKER_IN);
+            publish(channel,codec.serialise(taskMessage), headers, TERMINAL_WORKER_IN);
 
             final TestWorkerQueueConsumer outboundConsumer = new TestWorkerQueueConsumer();
             consume(channel, outboundConsumer, TERMINAL_WORKER_OUT);
@@ -111,4 +122,5 @@ public class PayloadOffloadingIT extends WorkerTestBase {
             Assert.assertFalse(reReadWebDAVFile.isPresent(), "The file should be gone from the datastore");
         }
     }
+    
 }

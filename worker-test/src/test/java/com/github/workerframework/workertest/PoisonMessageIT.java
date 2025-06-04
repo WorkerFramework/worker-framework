@@ -30,6 +30,9 @@ import org.testng.annotations.Test;
 import java.nio.charset.StandardCharsets;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.UUID;
+
+import static com.github.workerframework.util.rabbitmq.RabbitHeaders.RABBIT_HEADER_CAF_PAYLOAD_OFFLOADING_STORAGE_REF;
 
 public class PoisonMessageIT  extends WorkerTestBase {
     private static final String POISON_ERROR_MESSAGE = "could not process the item.";
@@ -107,12 +110,27 @@ public class PoisonMessageIT  extends WorkerTestBase {
             final Channel channel = prepareChannel(connection, POISON_MESSAGE_IT_OFFLOADING_IN, POISON_MESSAGE_IT_OFFLOADING_REJECT)) {
             final TestWorkerTask documentWorkerTask = new TestWorkerTask();
             documentWorkerTask.setPoison(true);
+            
+            final var taskMessage = getTaskMessage(
+                TEST_WORKER_NAME,
+                TASK_NUMBER,
+                documentWorkerTask,
+                POISON_MESSAGE_IT_OFFLOADING_IN
+            );
+
+            final byte[] taskData = taskMessage.getTaskData();
+            taskMessage.setTaskData(null);
+            final var storageRef = UUID.randomUUID().toString();
+            writeFileToWebDav(storageRef, taskData);
+            final HashMap<String, Object> publishHeaders = new HashMap<>();
+            publishHeaders.put(RABBIT_HEADER_CAF_PAYLOAD_OFFLOADING_STORAGE_REF, storageRef);
+            
             // Publish a message to the test worker, the worker should detect this as a poison message
-            // and offload the payload to the datastore and push the outgoing message to the reject queue.
+            // because the payload is already offloaded it should remain offloaded and the message should be sent to the reject queue.
             publish(
                 channel,
-                buildTaskMessageByteArray(TEST_WORKER_NAME, TASK_NUMBER, documentWorkerTask, POISON_MESSAGE_IT_OFFLOADING_IN),
-                new HashMap<>(),
+                codec.serialise(taskMessage),
+                publishHeaders,
                 POISON_MESSAGE_IT_OFFLOADING_IN
             );
 

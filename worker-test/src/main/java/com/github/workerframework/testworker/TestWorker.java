@@ -28,7 +28,7 @@ import java.nio.charset.StandardCharsets;
 
 final class TestWorker implements Worker
 {
-    private static final byte[] TEST_WORKER_RESULT = "TestWorkerResult".getBytes(StandardCharsets.UTF_8);
+    private static final byte[] TEST_WORKER_RESULT = "TestWorkerResultTaskData".getBytes(StandardCharsets.UTF_8);
 
     private final TestWorkerConfiguration config;
     private final Codec codec;

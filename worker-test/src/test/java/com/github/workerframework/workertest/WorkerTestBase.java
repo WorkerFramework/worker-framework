@@ -51,8 +51,8 @@ public class WorkerTestBase {
     private static final String CAF_RABBITMQ_PORT = "CAF_RABBITMQ_PORT";
     private static final String CAF_RABBITMQ_USERNAME = "CAF_RABBITMQ_USERNAME";
     private static final String CAF_RABBITMQ_PASSWORD = "CAF_RABBITMQ_PASSWORD";
-    public static final String WEBDAV_URL = System.getProperty("WEBDAV_URL", "http://localhost:9090/webdav");
-    private static final Codec codec = new JsonCodec();
+    protected static final String WEBDAV_URL = System.getProperty("WEBDAV_URL", "http://localhost:9090/webdav");
+    protected static final Codec codec = new JsonCodec();
 
     public WorkerTestBase() {
         connectionFactory = new ConnectionFactory();
@@ -98,7 +98,7 @@ public class WorkerTestBase {
         }
     }
 
-    public byte[] buildTaskMessageByteArray(
+    public TaskMessage getTaskMessage(
         final String testWorkerName,
         final int taskNumber,
         final TestWorkerTask documentWorkerTask,
@@ -113,7 +113,7 @@ public class WorkerTestBase {
         requestTaskMessage.setTaskData(codec.serialise(documentWorkerTask));
         requestTaskMessage.setTo(workerIn);
         requestTaskMessage.setTracking(trackingInfo);
-        return codec.serialise(requestTaskMessage);
+        return requestTaskMessage;
     }
 
     public Channel prepareChannel(final Connection connection, final String workerIn, final String workerOut) throws IOException {
