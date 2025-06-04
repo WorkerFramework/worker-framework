@@ -154,6 +154,7 @@ final class WorkerCore
         {
             Objects.requireNonNull(taskInformation);
             stats.incrementTasksReceived();
+            stats.getInputSizes().update(taskMessage.getTaskData().length);
 
             try {
                 registerNewTaskImpl(taskInformation, taskMessage, headers);
