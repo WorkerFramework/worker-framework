@@ -81,6 +81,7 @@ public final class RabbitWorkerQueue implements ManagedWorkerQueue
     private final RabbitMetricsReporter metrics = new RabbitMetricsReporter();
     private final RabbitWorkerQueueConfiguration config;
     private final int maxTasks;
+    private final String invalidQueue;
     private final ManagedDataStore dataStore;
     private final Codec codec;
     private static final Logger LOG = LoggerFactory.getLogger(RabbitWorkerQueue.class);
@@ -92,11 +93,13 @@ public final class RabbitWorkerQueue implements ManagedWorkerQueue
     public RabbitWorkerQueue(
         RabbitWorkerQueueConfiguration config,
         int maxTasks,
+        final String invalidQueue,
         final ManagedDataStore dataStore,
         final Codec codec)
     {
         this.config = Objects.requireNonNull(config);
         this.maxTasks = maxTasks;
+        this.invalidQueue = invalidQueue;
         this.dataStore = Objects.requireNonNull(dataStore);
         this.codec = Objects.requireNonNull(codec);
         LOG.debug("Initialised");
@@ -134,8 +137,10 @@ public final class RabbitWorkerQueue implements ManagedWorkerQueue
                     publisherQueue,
                     config.getRetryQueue(),
                     config.getRetryLimit(),
+                    invalidQueue,
                     dataStore,
-                    codec, rabbitWorkerQueue::disconnectIncoming);
+                    codec, 
+                    rabbitWorkerQueue::disconnectIncoming);
             consumer = new DefaultRabbitConsumer(consumerQueue, consumerImpl);
             WorkerPublisherImpl publisherImpl = new WorkerPublisherImpl(
                 outgoingChannel,

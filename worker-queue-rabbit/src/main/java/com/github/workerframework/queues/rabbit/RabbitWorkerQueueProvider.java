@@ -29,6 +29,7 @@ public class RabbitWorkerQueueProvider implements WorkerQueueProvider
     public ManagedWorkerQueue getWorkerQueue(
         final ConfigurationSource configurationSource,
         final int maxTasks,
+        final String invalidQueue,
         final ManagedDataStore dataStore,
         final Codec codec
     ) throws QueueException
@@ -37,6 +38,7 @@ public class RabbitWorkerQueueProvider implements WorkerQueueProvider
             return new RabbitWorkerQueue(
                 configurationSource.getConfiguration(RabbitWorkerQueueConfiguration.class),
                 maxTasks,
+                invalidQueue,
                 dataStore,
                 codec
             );

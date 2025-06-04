@@ -69,6 +69,7 @@ public class RabbitWorkerQueueConsumerTest
     private Envelope poisonEnv;
     private Envelope redeliveredEnv;
     private String retryKey = "retry";
+    private String invalidKey = "invalid";
     private RabbitMetricsReporter metrics = new RabbitMetricsReporter();
     private TaskCallback mockCallback = Mockito.mock(TaskCallback.class);
     private File tempDataStore;
@@ -135,7 +136,7 @@ public class RabbitWorkerQueueConsumerTest
         };
         Mockito.doAnswer(a).when(callback).registerNewTask(Mockito.any(), Mockito.any(), Mockito.anyMap());
         WorkerQueueConsumerImpl impl = new WorkerQueueConsumerImpl(
-            callback, metrics, consumerEvents, channel, publisherEvents, retryKey, 1, dataStore, codec, () -> {});
+            callback, metrics, consumerEvents, channel, publisherEvents, retryKey, 1, invalidKey, dataStore, codec, () -> {});
         DefaultRabbitConsumer consumer = new DefaultRabbitConsumer(consumerEvents, impl);
         Thread t = new Thread(consumer);
         t.start();
@@ -165,7 +166,7 @@ public class RabbitWorkerQueueConsumerTest
         };
         Mockito.doAnswer(a).when(callback).registerNewTask(Mockito.any(), Mockito.any(), Mockito.anyMap());
         WorkerQueueConsumerImpl impl = new WorkerQueueConsumerImpl(
-            callback, metrics, consumerEvents, channel, publisherEvents, retryKey, 1, dataStore, codec, () -> {});
+            callback, metrics, consumerEvents, channel, publisherEvents, retryKey, 1, invalidKey, dataStore, codec, () -> {});
         DefaultRabbitConsumer consumer = new DefaultRabbitConsumer(consumerEvents, impl);
         Thread t = new Thread(consumer);
         t.start();
@@ -199,7 +200,7 @@ public class RabbitWorkerQueueConsumerTest
         };
         Mockito.doAnswer(a).when(callback).registerNewTask(Mockito.any(), Mockito.any(), Mockito.anyMap());
         WorkerQueueConsumerImpl impl = new WorkerQueueConsumerImpl(
-            callback, metrics, consumerEvents, channel, publisherEvents, retryKey, 1, dataStore, codec, () -> {});
+            callback, metrics, consumerEvents, channel, publisherEvents, retryKey, 1, invalidKey, dataStore, codec, () -> {});
         DefaultRabbitConsumer consumer = new DefaultRabbitConsumer(consumerEvents, impl);
         Thread t = new Thread(consumer);
         t.start();
@@ -211,7 +212,7 @@ public class RabbitWorkerQueueConsumerTest
         WorkerPublisher publisher = Mockito.mock(WorkerPublisher.class);
         ArgumentCaptor<Map<String, Object>> captor = buildStringObjectMapCaptor();
         pubEvent.handleEvent(publisher);
-        Mockito.verify(publisher, Mockito.times(1)).handlePublish(Mockito.eq(data), Mockito.eq(retryKey), Mockito.any(RabbitTaskInformation.class), captor.capture());
+        Mockito.verify(publisher, Mockito.times(1)).handlePublish(Mockito.eq(data), Mockito.eq(invalidKey), Mockito.any(RabbitTaskInformation.class), captor.capture());
         Assert.assertTrue(captor.getValue().containsKey(RabbitHeaders.RABBIT_HEADER_CAF_WORKER_REJECTED));
         Assert.assertEquals(WorkerQueueConsumerImpl.REJECTED_REASON_TASKMESSAGE_INVALID,
                             captor.getValue().get(RabbitHeaders.RABBIT_HEADER_CAF_WORKER_REJECTED));
@@ -235,7 +236,7 @@ public class RabbitWorkerQueueConsumerTest
         };
         Mockito.doAnswer(a).when(callback).registerNewTask(Mockito.any(), Mockito.any(), Mockito.anyMap());
         WorkerQueueConsumerImpl impl = new WorkerQueueConsumerImpl(
-            callback, metrics, consumerEvents, channel, publisherEvents, retryKey, 1, dataStore, codec, () -> {});
+            callback, metrics, consumerEvents, channel, publisherEvents, retryKey, 1, invalidKey, dataStore, codec, () -> {});
         DefaultRabbitConsumer consumer = new DefaultRabbitConsumer(consumerEvents, impl);
         Thread t = new Thread(consumer);
         t.start();
@@ -265,7 +266,7 @@ public class RabbitWorkerQueueConsumerTest
         Channel channel = Mockito.mock(Channel.class);
         TaskCallback callback = Mockito.mock(TaskCallback.class);
         WorkerQueueConsumerImpl impl = new WorkerQueueConsumerImpl(
-            callback, metrics, consumerEvents, channel, publisherEvents, retryKey, 1, dataStore, codec, () -> {});
+            callback, metrics, consumerEvents, channel, publisherEvents, retryKey, 1, invalidKey, dataStore, codec, () -> {});
         DefaultRabbitConsumer consumer = new DefaultRabbitConsumer(consumerEvents, impl);
         Thread t = new Thread(consumer);
         t.start();
@@ -300,7 +301,7 @@ public class RabbitWorkerQueueConsumerTest
         };
         Mockito.doAnswer(a).when(channel).basicAck(Mockito.eq(Long.valueOf(taskInformation.getInboundMessageId())), Mockito.anyBoolean());
         WorkerQueueConsumerImpl impl = new WorkerQueueConsumerImpl(
-            mockCallback, metrics, consumerEvents, channel, publisherEvents, retryKey, 1, dataStore, codec, () -> {});
+            mockCallback, metrics, consumerEvents, channel, publisherEvents, retryKey, 1, invalidKey, dataStore, codec, () -> {});
         DefaultRabbitConsumer consumer = new DefaultRabbitConsumer(consumerEvents, impl);
         Thread t = new Thread(consumer);
         t.start();
@@ -326,7 +327,7 @@ public class RabbitWorkerQueueConsumerTest
         };
         Mockito.doAnswer(a).when(channel).basicReject(Mockito.eq(Long.valueOf(taskInformation.getInboundMessageId())), Mockito.eq(true));
         WorkerQueueConsumerImpl impl = new WorkerQueueConsumerImpl(
-            mockCallback, metrics, consumerEvents, channel, publisherEvents, retryKey, 1, dataStore, codec, () -> {});
+            mockCallback, metrics, consumerEvents, channel, publisherEvents, retryKey, 1, invalidKey, dataStore, codec, () -> {});
         DefaultRabbitConsumer consumer = new DefaultRabbitConsumer(consumerEvents, impl);
         Thread t = new Thread(consumer);
         t.start();
@@ -352,7 +353,7 @@ public class RabbitWorkerQueueConsumerTest
         };
         Mockito.doAnswer(a).when(channel).basicReject(Long.valueOf(taskInformation.getInboundMessageId()), false);
         WorkerQueueConsumerImpl impl = new WorkerQueueConsumerImpl(
-            mockCallback, metrics, consumerEvents, channel, publisherEvents, retryKey, 1, dataStore, codec, () -> {});
+            mockCallback, metrics, consumerEvents, channel, publisherEvents, retryKey, 1, invalidKey, dataStore, codec, () -> {});
         DefaultRabbitConsumer consumer = new DefaultRabbitConsumer(consumerEvents, impl);
         Thread t = new Thread(consumer);
         t.start();

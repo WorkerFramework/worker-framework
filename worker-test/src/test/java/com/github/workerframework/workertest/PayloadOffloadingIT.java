@@ -80,6 +80,29 @@ public class PayloadOffloadingIT extends WorkerTestBase {
     }
 
     @Test
+    public void invalidOffloadedPayload() throws Exception {
+        final TestWorkerTask documentWorkerTask = new TestWorkerTask();
+        documentWorkerTask.setPoison(false);
+
+        final TaskMessage taskMessage = getTaskMessage(TEST_WORKER_NAME, 1, documentWorkerTask, WORKER_IN);
+        taskMessage.setTaskData(null);
+
+
+        try(final Connection connection = connectionFactory.newConnection();
+            final Channel channel = prepareChannel(connection, WORKER_IN, WORKER_OUT)) {
+
+            //  Now we can send a message which expects to find the setupPayloadOffloadStorageRef.
+            final Map<String, Object> headers = new HashMap<>();
+            headers.put(RABBIT_HEADER_CAF_PAYLOAD_OFFLOADING_STORAGE_REF, UUID.randomUUID().toString());
+            publish(channel, codec.serialise(taskMessage), headers, WORKER_IN);
+
+            final TestWorkerQueueConsumer outboundConsumer = new TestWorkerQueueConsumer();
+            consume(channel, outboundConsumer, WORKER_OUT);
+            Assert.assertEquals("", new String(outboundConsumer.getLastDeliveredBody(), StandardCharsets.UTF_8));
+        }
+    }
+
+    @Test
     public void checkOffloadedPayloadIsDeletedOnTerminalWorker() throws Exception {
         // First we need a message stored in the datastore
         final TestWorkerTask terminalDocumentWorkerTask = new TestWorkerTask();

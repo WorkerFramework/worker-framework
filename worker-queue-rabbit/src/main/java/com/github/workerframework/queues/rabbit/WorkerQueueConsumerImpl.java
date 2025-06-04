@@ -67,6 +67,7 @@ public class WorkerQueueConsumerImpl implements QueueConsumer
     private final Channel channel;
     private final String retryRoutingKey;
     private final int retryLimit;
+    private final String invalidRoutingKey;
     private final ManagedDataStore dataStore;
     private final Codec codec;
     private final Runnable disconnectCallback;
@@ -83,6 +84,7 @@ public class WorkerQueueConsumerImpl implements QueueConsumer
 
     public WorkerQueueConsumerImpl(TaskCallback callback, RabbitMetricsReporter metrics, BlockingQueue<Event<QueueConsumer>> queue, Channel ch,
                                    BlockingQueue<Event<WorkerPublisher>> pubQueue, String retryKey, int retryLimit,
+                                   final String invalidKey,
                                    final ManagedDataStore dataStore, final Codec codec,
                                    final Runnable disconnectCallback) {
         this.callback = Objects.requireNonNull(callback);
@@ -92,6 +94,7 @@ public class WorkerQueueConsumerImpl implements QueueConsumer
         this.publisherEventQueue = Objects.requireNonNull(pubQueue);
         this.retryRoutingKey = Objects.requireNonNull(retryKey);
         this.retryLimit = retryLimit;
+        this.invalidRoutingKey = invalidKey;
         this.dataStore = Objects.requireNonNull(dataStore);
         this.codec = Objects.requireNonNull(codec);
         this.disconnectCallback = disconnectCallback;
@@ -153,12 +156,6 @@ public class WorkerQueueConsumerImpl implements QueueConsumer
         catch (final InvalidDeliveryException ex) {
             LOG.error("Invalid delivery for message id {}: {}", ex.getMessageId(), ex.getMessage());
 
-            if (retryRoutingKey.equals(routingKey)) {
-                LOG.error("Dropping Message id {} is being republished to the delivery queue, but it is invalid. This should not happen.", inboundMessageId);
-                processDrop(ex.getMessageId());
-                return;
-            }
-
             final RabbitTaskInformation taskInformation = new RabbitTaskInformation(String.valueOf(inboundMessageId), true);
             taskInformation.incrementResponseCount(true);
             final var publishHeaders = new HashMap<String, Object>();
@@ -170,7 +167,7 @@ public class WorkerQueueConsumerImpl implements QueueConsumer
                 publishHeaders.put(RabbitHeaders.RABBIT_HEADER_CAF_WORKER_REJECTED, REJECTED_REASON_TASKMESSAGE_INVALID);
             }
             taskMessageStorageRefOpt.ifPresent(s -> publishHeaders.put(RABBIT_HEADER_CAF_PAYLOAD_OFFLOADING_STORAGE_REF, s));
-            publisherEventQueue.add(new WorkerPublishQueueEvent(deliveryMessageData, retryRoutingKey, taskInformation, publishHeaders));
+            publisherEventQueue.add(new WorkerPublishQueueEvent(deliveryMessageData, invalidRoutingKey, taskInformation, publishHeaders));
         } catch (final TransientDeliveryException e) {
             LOG.warn("Transient error processing message id {}, disconnecting.", inboundMessageId, e);
             offloadedPayloadsToDelete.remove(inboundMessageId);
@@ -265,7 +262,7 @@ public class WorkerQueueConsumerImpl implements QueueConsumer
             taskInformation.incrementResponseCount(true);
             final var publishHeaders = new HashMap<String, Object>();
             publishHeaders.put(RabbitHeaders.RABBIT_HEADER_CAF_WORKER_REJECTED, REJECTED_REASON_TASKMESSAGE_INVALID);
-            publisherEventQueue.add(new WorkerPublishQueueEvent(taskMessageByteArray, retryRoutingKey, taskInformation, publishHeaders));
+            publisherEventQueue.add(new WorkerPublishQueueEvent(taskMessageByteArray, invalidRoutingKey, taskInformation, publishHeaders));
         } catch (final TaskRejectedException e) {
             LOG.warn("Message {} rejected as a task at this time, returning to queue", inboundMessageId, e);
             taskInformation.incrementResponseCount(true);

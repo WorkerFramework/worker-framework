@@ -33,6 +33,6 @@ public interface WorkerQueueProvider
      * @return a new WorkerQueue instance
      * @throws QueueException if a WorkerQueue could not be created
      */
-    ManagedWorkerQueue getWorkerQueue(ConfigurationSource configurationSource, int maxTasks, ManagedDataStore dataStore, Codec codec)
+    ManagedWorkerQueue getWorkerQueue(ConfigurationSource configurationSource, int maxTasks, String invalidQueue, ManagedDataStore dataStore, Codec codec)
         throws QueueException;
 }

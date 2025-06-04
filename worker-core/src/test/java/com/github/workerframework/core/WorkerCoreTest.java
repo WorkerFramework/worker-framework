@@ -71,6 +71,7 @@ public class WorkerCoreTest
     
     private static final String SUCCESS = "success";
     private static final String FAILURE = "failure";
+    private static final String INVALID = "invalid";
     private static final String WORKER_NAME = "testWorker";
     private static final int WORKER_API_VER = 1;
     private static final String QUEUE_IN = "inQueue";
@@ -559,13 +560,14 @@ public class WorkerCoreTest
         {
             final ManagedDataStore dataStore = Mockito.mock(ManagedDataStore.class);
             final Codec codec = new JsonCodec();
-            return getWorkerQueue(configurationSource, maxTasks, dataStore, codec);
+            return getWorkerQueue(configurationSource, maxTasks, INVALID, dataStore, codec);
         }
 
         @Override
         public final TestWorkerQueue getWorkerQueue(
             final ConfigurationSource configurationSource,
             final int maxTasks,
+            final String invalidQueue,
             final ManagedDataStore dataStore,
             final Codec codec)
         {
@@ -711,13 +713,14 @@ public class WorkerCoreTest
             final ConfigurationSource configurationSource,
             final int maxTasks)
         {
-            return getWorkerQueue(configurationSource, maxTasks, Mockito.mock(ManagedDataStore.class), new JsonCodec());
+            return getWorkerQueue(configurationSource, maxTasks, INVALID, Mockito.mock(ManagedDataStore.class), new JsonCodec());
         }
 
         @Override
         public final TestWorkerQueueWithNullPausedQueue getWorkerQueue(
             final ConfigurationSource configurationSource, 
             final int maxTasks,
+            final String invalidQueue,
             final ManagedDataStore dataStore,
             final Codec codec)
         {
