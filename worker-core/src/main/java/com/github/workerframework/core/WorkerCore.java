@@ -154,7 +154,9 @@ final class WorkerCore
         {
             Objects.requireNonNull(taskInformation);
             stats.incrementTasksReceived();
-            stats.getInputSizes().update(taskMessage.getTaskData().length);
+            if(taskMessage.getTaskData() != null) {
+                stats.getInputSizes().update(taskMessage.getTaskData().length);
+            }
 
             try {
                 registerNewTaskImpl(taskInformation, taskMessage, headers);
@@ -488,7 +490,9 @@ final class WorkerCore
                     // **** Normal Worker ****                    
                     // A worker with an input and output queue.
                     workerQueue.publish(taskInformation, responseMessage, queue, Collections.emptyMap(), true);
-                    stats.getOutputSizes().update(responseMessage.getTaskData().length);
+                    if(responseMessage.getTaskData() != null) {
+                        stats.getOutputSizes().update(responseMessage.getTaskData().length);
+                    }
                 }
                 stats.updatedLastTaskFinishedTime();
                 if (TaskStatus.isSuccessfulResponse(responseMessage.getTaskStatus())) {

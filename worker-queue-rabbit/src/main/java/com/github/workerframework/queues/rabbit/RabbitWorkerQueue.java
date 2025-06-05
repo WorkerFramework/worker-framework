@@ -99,7 +99,7 @@ public final class RabbitWorkerQueue implements ManagedWorkerQueue
     {
         this.config = Objects.requireNonNull(config);
         this.maxTasks = maxTasks;
-        this.invalidQueue = invalidQueue;
+        this.invalidQueue = Objects.requireNonNull(invalidQueue);
         this.dataStore = Objects.requireNonNull(dataStore);
         this.codec = Objects.requireNonNull(codec);
         LOG.debug("Initialised");
@@ -216,9 +216,9 @@ public final class RabbitWorkerQueue implements ManagedWorkerQueue
         final StringBuilder path = new StringBuilder(Paths.get(config.getPayloadOffloadingDirectory(), routingKey).toString());
         final Matcher matcher = JOB_TASK_ID_PATTERN.matcher(trackingJobTaskId);
         if (matcher.find()) {
-            path.append("/" + matcher.group(1).replace(":", "/"));
+            path.append('/').append(matcher.group(1).replace(":", "/"));
             if (matcher.group(2) != null && !matcher.group(2).isEmpty()) {
-                path.append("/" + matcher.group(2));
+                path.append('/').append(matcher.group(2));
             }
         }
         return path.toString();

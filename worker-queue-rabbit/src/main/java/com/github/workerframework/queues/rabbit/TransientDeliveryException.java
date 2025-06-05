@@ -15,21 +15,16 @@
  */
 package com.github.workerframework.queues.rabbit;
 
-public class TransientDeliveryException extends Exception {
+class TransientDeliveryException extends Exception {
     private static final long serialVersionUID = 1L;
     private final long messageId;
-
-    /**
-     * Create a new TransientDeliveryException with the specified message.
-     *
-     * @param message the message to include in the exception
-     */
-    public TransientDeliveryException(final String message, final long messageId, final Throwable cause) {
-        super(message);
+    
+    TransientDeliveryException(final String message, final long messageId, final Throwable cause) {
+        super(message, cause);
         this.messageId = messageId;
     }
 
-    public long getMessageId() {
+    long getMessageId() {
         return messageId;
     }
 }

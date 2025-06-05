@@ -15,26 +15,21 @@
  */
 package com.github.workerframework.queues.rabbit;
 
-public class InvalidDeliveryException extends Exception {
+class InvalidDeliveryException extends Exception {
     private static final long serialVersionUID = 1L;
     private final long messageId;
-
-    /**
-     * Create a new InvalidDeliveryException with the specified message.
-     *
-     * @param message the message to include in the exception
-     */
-    public InvalidDeliveryException(final String message, final long messageId) {
+    
+    InvalidDeliveryException(final String message, final long messageId) {
         super(message);
         this.messageId = messageId;
     }
 
-    public InvalidDeliveryException(final String message, final long messageId, final Throwable cause) {
+    InvalidDeliveryException(final String message, final long messageId, final Throwable cause) {
         super(message, cause);
         this.messageId = messageId;
     }
 
-    public long getMessageId() {
+    long getMessageId() {
         return messageId;
     }
 }

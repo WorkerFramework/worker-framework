@@ -184,8 +184,8 @@ public class RabbitWorkerQueueConsumerTest
     }
 
     /**
-     * Send in a new message and verify that if the task registration throws an InvalidTaskException that a new publish request to the
-     * reject queue is sent.
+     * Send in a new message and verify that if the task registration throws an InvalidTaskException that a new publish 
+     * request to the invalid queue is sent.
      */
     @Test
     public void testHandleDeliveryInvalid()
@@ -213,9 +213,9 @@ public class RabbitWorkerQueueConsumerTest
         ArgumentCaptor<Map<String, Object>> captor = buildStringObjectMapCaptor();
         pubEvent.handleEvent(publisher);
         Mockito.verify(publisher, Mockito.times(1)).handlePublish(Mockito.eq(data), Mockito.eq(invalidKey), Mockito.any(RabbitTaskInformation.class), captor.capture());
-        Assert.assertTrue(captor.getValue().containsKey(RabbitHeaders.RABBIT_HEADER_CAF_WORKER_REJECTED));
-        Assert.assertEquals(WorkerQueueConsumerImpl.REJECTED_REASON_TASKMESSAGE_INVALID,
-                            captor.getValue().get(RabbitHeaders.RABBIT_HEADER_CAF_WORKER_REJECTED));
+        Assert.assertTrue(captor.getValue().containsKey(RabbitHeaders.RABBIT_HEADER_CAF_WORKER_INVALID));
+        Assert.assertEquals(captor.getValue().get(RabbitHeaders.RABBIT_HEADER_CAF_WORKER_INVALID).toString(), 
+                "com.github.workerframework.api.InvalidTaskException: blah");
         consumer.shutdown();
     }
 

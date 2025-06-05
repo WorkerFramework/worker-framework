@@ -43,7 +43,7 @@ public class PoisonMessageIT  extends WorkerTestBase {
 
     private static final String POISON_MESSAGE_IT_OFFLOADING_IN = "PoisonMessageIT-Offloading-in";
     private static final String POISON_MESSAGE_IT_OFFLOADING_OUT = "PoisonMessageIT-Offloading-out";
-    private static final String POISON_MESSAGE_IT_OFFLOADING_REJECT = "PoisonMessageIT-Offloading-reject";
+    private static final String POISON_MESSAGE_IT_OFFLOADING_INVALID = "PoisonMessageIT-Offloading-invalid";
 
     private static final int TASK_NUMBER = 1;
     private static final Codec codec = new JsonCodec();
@@ -107,7 +107,8 @@ public class PoisonMessageIT  extends WorkerTestBase {
     @Test
     public void offloadedPoisonMessageGoesToRejectFolderTest() throws Exception {
         try(final Connection connection = connectionFactory.newConnection();
-            final Channel channel = prepareChannel(connection, POISON_MESSAGE_IT_OFFLOADING_IN, POISON_MESSAGE_IT_OFFLOADING_REJECT)) {
+            final Channel channel = prepareChannel(connection, POISON_MESSAGE_IT_OFFLOADING_IN, 
+                    POISON_MESSAGE_IT_OFFLOADING_OUT, POISON_MESSAGE_IT_OFFLOADING_INVALID)) {
             final TestWorkerTask documentWorkerTask = new TestWorkerTask();
             documentWorkerTask.setPoison(true);
             
@@ -136,7 +137,7 @@ public class PoisonMessageIT  extends WorkerTestBase {
 
             //  Now we can consume the outgoing message from the reject queue.
             final TestWorkerQueueConsumer consumer = new TestWorkerQueueConsumer();
-            consume(channel, consumer, POISON_MESSAGE_IT_OFFLOADING_REJECT);
+            consume(channel, consumer, POISON_MESSAGE_IT_OFFLOADING_INVALID);
             final var rejectedTaskMessageStorageRef = getTaskMessageStorageRef(consumer);
             Assert.assertTrue(rejectedTaskMessageStorageRef.isPresent(), "The payload offloading header was missing");
             // The rejected message should be present in the datastore

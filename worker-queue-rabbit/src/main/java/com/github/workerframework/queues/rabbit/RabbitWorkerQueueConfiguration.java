@@ -101,8 +101,7 @@ public class RabbitWorkerQueueConfiguration
     /**
      * The datastore directory to use for offloading payloads.
      */
-    @NotNull
-    private String payloadOffloadingDirectory;
+    private String payloadOffloadingDirectory = "queues";
 
     public RabbitWorkerQueueConfiguration()
     {

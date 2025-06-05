@@ -51,7 +51,7 @@ public class WorkerTestBase {
     private static final String CAF_RABBITMQ_PORT = "CAF_RABBITMQ_PORT";
     private static final String CAF_RABBITMQ_USERNAME = "CAF_RABBITMQ_USERNAME";
     private static final String CAF_RABBITMQ_PASSWORD = "CAF_RABBITMQ_PASSWORD";
-    protected static final String WEBDAV_URL = System.getProperty("WEBDAV_URL", "http://localhost:9090/webdav");
+    private static final String WEBDAV_URL = System.getProperty("WEBDAV_URL", "http://localhost:9090/webdav");
     protected static final Codec codec = new JsonCodec();
 
     public WorkerTestBase() {
@@ -116,12 +116,15 @@ public class WorkerTestBase {
         return requestTaskMessage;
     }
 
-    public Channel prepareChannel(final Connection connection, final String workerIn, final String workerOut) throws IOException {
+    public Channel prepareChannel(final Connection connection, final String workerIn, final String workerOut, 
+                                  final String workerInvalid) throws IOException 
+    {
         final Channel channel = connection.createChannel();
         final Map<String, Object> args = new HashMap<>();
         args.put(QueueCreator.RABBIT_PROP_QUEUE_TYPE, QueueCreator.RABBIT_PROP_QUEUE_TYPE_QUORUM);
         channel.queueDeclare(workerIn, true, false, false, args);
         channel.queueDeclare(workerOut, true, false, false, args);
+        channel.queueDeclare(workerInvalid, true, false, false, args);
         return channel;
     }
 
