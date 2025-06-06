@@ -185,7 +185,7 @@ public class PayloadOffloadingIT extends WorkerTestBase {
         try(final Connection connection = connectionFactory.newConnection();
             final Channel channel = prepareChannel(connection)) {
             createQueues(channel, TERMINAL_WORKER_IN, TERMINAL_WORKER_OUT);
-            
+
             //  Now we can send a message which expects to find the taskMessageStorageRef.
             final Map<String, Object> headers = new HashMap<>();
             headers.put(RABBIT_HEADER_CAF_PAYLOAD_OFFLOADING_STORAGE_REF, storageRef);
