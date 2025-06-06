@@ -83,9 +83,9 @@ public class WorkerTestBase {
         final TestWorkerQueueConsumer messageConsumer,
         final String workerOut
     ) throws IOException {
-        channel.basicConsume(workerOut, false, messageConsumer);
+        final String consumerTag = channel.basicConsume(workerOut, false, messageConsumer);
         try {
-            for (int i = 0; i < 1000; i++) {
+            for (int i = 0; i < 300; i++) {
 
                 Thread.sleep(100);
 
@@ -96,6 +96,7 @@ public class WorkerTestBase {
         } catch (final InterruptedException e) {
             throw new RuntimeException(e);
         }
+        channel.basicCancel(consumerTag);
     }
 
     public TaskMessage getTaskMessage(
@@ -116,16 +117,19 @@ public class WorkerTestBase {
         return requestTaskMessage;
     }
 
-    public Channel prepareChannel(final Connection connection, final String workerIn, final String workerOut, 
-                                  final String workerInvalid) throws IOException 
+    public Channel prepareChannel(final Connection connection) throws IOException 
     {
         final Channel channel = connection.createChannel();
+        return channel;
+    }
+    
+    void createQueues(final Channel channel, final String... queueNames) throws IOException {
         final Map<String, Object> args = new HashMap<>();
         args.put(QueueCreator.RABBIT_PROP_QUEUE_TYPE, QueueCreator.RABBIT_PROP_QUEUE_TYPE_QUORUM);
-        channel.queueDeclare(workerIn, true, false, false, args);
-        channel.queueDeclare(workerOut, true, false, false, args);
-        channel.queueDeclare(workerInvalid, true, false, false, args);
-        return channel;
+        for(final String queueName : queueNames) {
+            channel.queueDeclare(queueName, true, false, false, args);
+        }
+        
     }
 
     /**

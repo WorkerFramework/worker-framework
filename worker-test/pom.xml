@@ -325,6 +325,7 @@
                                 <env>
                                     <CAF_WORKER_INPUT_QUEUE>PayloadOffloadingIT-in</CAF_WORKER_INPUT_QUEUE>
                                     <CAF_WORKER_OUTPUT_QUEUE>PayloadOffloadingIT-out</CAF_WORKER_OUTPUT_QUEUE>
+                                    <CAF_WORKER_REJECT_QUEUE>PayloadOffloadingIT-reject</CAF_WORKER_REJECT_QUEUE>
                                     <CAF_WORKER_INVALID_QUEUE>PayloadOffloadingIT-invalid</CAF_WORKER_INVALID_QUEUE>
                                     <CAF_WORKER_DATASTORE_PATH>/srv/common/webdav</CAF_WORKER_DATASTORE_PATH>
                                     <CAF_WORKER_PAYLOAD_OFFLOADING_ENABLED>true</CAF_WORKER_PAYLOAD_OFFLOADING_ENABLED>
@@ -373,6 +374,7 @@
                                 <env>
                                     <CAF_WORKER_INPUT_QUEUE>PoisonMessageIT-in</CAF_WORKER_INPUT_QUEUE>
                                     <CAF_WORKER_OUTPUT_QUEUE>PoisonMessageIT-out</CAF_WORKER_OUTPUT_QUEUE>
+                                    <CAF_WORKER_REJECT_QUEUE>PoisonMessageIT-reject</CAF_WORKER_REJECT_QUEUE>
                                     <CAF_WORKER_INVALID_QUEUE>PoisonMessageIT-invalid</CAF_WORKER_INVALID_QUEUE>
                                     <CAF_WORKER_DATASTORE_PATH>/srv/common/webdav</CAF_WORKER_DATASTORE_PATH>
                                     <CAF_WORKER_JAVA_OPTS>
@@ -418,6 +420,7 @@
                                 <env>
                                     <CAF_WORKER_INPUT_QUEUE>PoisonMessageIT-in</CAF_WORKER_INPUT_QUEUE>
                                     <CAF_WORKER_OUTPUT_QUEUE>PoisonMessageIT-out</CAF_WORKER_OUTPUT_QUEUE>
+                                    <CAF_WORKER_REJECT_QUEUE>PoisonMessageIT-reject</CAF_WORKER_REJECT_QUEUE>
                                     <CAF_WORKER_INVALID_QUEUE>PoisonMessageIT-invalid</CAF_WORKER_INVALID_QUEUE>
                                     <CAF_WORKER_DATASTORE_PATH>/srv/common/webdav</CAF_WORKER_DATASTORE_PATH>
                                     <CAF_WORKER_JAVA_OPTS>
@@ -465,6 +468,7 @@
                                 <env>
                                     <CAF_WORKER_INPUT_QUEUE>PoisonMessageIT-Offloading-in</CAF_WORKER_INPUT_QUEUE>
                                     <CAF_WORKER_OUTPUT_QUEUE>PoisonMessageIT-Offloading-out</CAF_WORKER_OUTPUT_QUEUE>
+                                    <CAF_WORKER_REJECT_QUEUE>PoisonMessageIT-Offloading-reject</CAF_WORKER_REJECT_QUEUE>
                                     <CAF_WORKER_INVALID_QUEUE>PoisonMessageIT-Offloading-invalid</CAF_WORKER_INVALID_QUEUE>
                                     <CAF_WORKER_DATASTORE_PATH>/srv/common/webdav</CAF_WORKER_DATASTORE_PATH>
                                     <CAF_WORKER_PAYLOAD_OFFLOADING_ENABLED>true</CAF_WORKER_PAYLOAD_OFFLOADING_ENABLED>
@@ -513,6 +517,7 @@
                                 <env>
                                     <CAF_WORKER_INPUT_QUEUE>PoisonMessageIT-Offloading-in</CAF_WORKER_INPUT_QUEUE>
                                     <CAF_WORKER_OUTPUT_QUEUE>PoisonMessageIT-Offloading-out</CAF_WORKER_OUTPUT_QUEUE>
+                                    <CAF_WORKER_REJECT_QUEUE>PoisonMessageIT-Offloading-reject</CAF_WORKER_REJECT_QUEUE>
                                     <CAF_WORKER_INVALID_QUEUE>PoisonMessageIT-Offloading-invalid</CAF_WORKER_INVALID_QUEUE>
                                     <CAF_WORKER_DATASTORE_PATH>/srv/common/webdav</CAF_WORKER_DATASTORE_PATH>
                                     <CAF_WORKER_PAYLOAD_OFFLOADING_ENABLED>true</CAF_WORKER_PAYLOAD_OFFLOADING_ENABLED>
@@ -563,6 +568,7 @@
                                 <env>
                                     <CAF_WORKER_INPUT_QUEUE>PayloadOffloadingIT-Terminal-in</CAF_WORKER_INPUT_QUEUE>
                                     <CAF_WORKER_OUTPUT_QUEUE>PayloadOffloadingIT-Terminal-out</CAF_WORKER_OUTPUT_QUEUE>
+                                    <CAF_WORKER_OUTPUT_REJECT>PayloadOffloadingIT-Terminal-reject</CAF_WORKER_OUTPUT_REJECT>
                                     <CAF_WORKER_OUTPUT_INVALID>PayloadOffloadingIT-Terminal-invalid</CAF_WORKER_OUTPUT_INVALID>
                                     <CAF_WORKER_DATASTORE_PATH>/srv/common/webdav</CAF_WORKER_DATASTORE_PATH>
                                     <CAF_WORKER_PAYLOAD_OFFLOADING_ENABLED>true</CAF_WORKER_PAYLOAD_OFFLOADING_ENABLED>

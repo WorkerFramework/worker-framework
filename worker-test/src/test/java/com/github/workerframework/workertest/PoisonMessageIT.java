@@ -40,10 +40,11 @@ public class PoisonMessageIT  extends WorkerTestBase {
     private static final String TEST_WORKER_NAME = "PoisonMessageIT";
     private static final String POISON_MESSAGE_IT_IN = "PoisonMessageIT-in";
     private static final String POISON_MESSAGE_IT_OUT = "PoisonMessageIT-out";
+    private static final String POISON_MESSAGE_IT_REJECT = "PoisonMessageIT-reject";
 
     private static final String POISON_MESSAGE_IT_OFFLOADING_IN = "PoisonMessageIT-Offloading-in";
     private static final String POISON_MESSAGE_IT_OFFLOADING_OUT = "PoisonMessageIT-Offloading-out";
-    private static final String POISON_MESSAGE_IT_OFFLOADING_INVALID = "PoisonMessageIT-Offloading-invalid";
+    private static final String POISON_MESSAGE_IT_OFFLOADING_REJECT = "PoisonMessageIT-Offloading-reject";
 
     private static final int TASK_NUMBER = 1;
     private static final Codec codec = new JsonCodec();
@@ -53,20 +54,17 @@ public class PoisonMessageIT  extends WorkerTestBase {
 
         try(final Connection connection = connectionFactory.newConnection();
             final Channel channel = connection.createChannel()) {
-
-            final Map<String, Object> args = new HashMap<>();
-            args.put(QueueCreator.RABBIT_PROP_QUEUE_TYPE, QueueCreator.RABBIT_PROP_QUEUE_TYPE_QUORUM);
-            channel.queueDeclare(POISON_MESSAGE_IT_IN, true, false, false, args);
+            createQueues(channel, POISON_MESSAGE_IT_IN, POISON_MESSAGE_IT_OUT, POISON_MESSAGE_IT_REJECT);
 
             final TaskMessage requestTaskMessage = new TaskMessage();
 
-            final TestWorkerTask documentWorkerTask = new TestWorkerTask();
-            documentWorkerTask.setPoison(true);
+            final TestWorkerTask testWorkerTask = new TestWorkerTask();
+            testWorkerTask.setPoison(true);
             requestTaskMessage.setTaskId(Integer.toString(TASK_NUMBER));
             requestTaskMessage.setTaskClassifier(TEST_WORKER_NAME);
             requestTaskMessage.setTaskApiVersion(TASK_NUMBER);
             requestTaskMessage.setTaskStatus(TaskStatus.NEW_TASK);
-            requestTaskMessage.setTaskData(codec.serialise(documentWorkerTask));
+            requestTaskMessage.setTaskData(codec.serialise(testWorkerTask));
             requestTaskMessage.setTo(POISON_MESSAGE_IT_IN);
 
             final AMQP.BasicProperties properties = new AMQP.BasicProperties.Builder()
@@ -76,46 +74,54 @@ public class PoisonMessageIT  extends WorkerTestBase {
 
             channel.basicPublish("", POISON_MESSAGE_IT_IN, properties, codec.serialise(requestTaskMessage));
 
-            final TestWorkerQueueConsumer poisonConsumer = new TestWorkerQueueConsumer();
-            channel.queueDeclare(POISON_MESSAGE_IT_OUT, true, false, false, args);
-
-            channel.basicConsume(POISON_MESSAGE_IT_OUT, true, poisonConsumer);
-
-            try {
-                for (int i=0; i<10000; i++){
-
-                    Thread.sleep(100);
-
-                    if (poisonConsumer.getLastDeliveredBody() != null){
-                        break;
-                    }
-                }
-            } catch (InterruptedException e) {
-                throw new RuntimeException(e);
-            }
-
-            Assert.assertNotNull(poisonConsumer.getLastDeliveredBody());
-            final TaskMessage decodedBody = codec.deserialise(poisonConsumer.getLastDeliveredBody(), TaskMessage.class);
+            final TestWorkerQueueConsumer rejectConsumer = new TestWorkerQueueConsumer();
             
-            final String taskData = new String(decodedBody.getTaskData(), StandardCharsets.UTF_8);
+            //Verify a copy was placed on the reject queue for later inspection
+            consume(channel, rejectConsumer, POISON_MESSAGE_IT_REJECT);
 
-            Assert.assertTrue(taskData.contains(WORKER_FRIENDLY_NAME));
-            Assert.assertTrue(taskData.contains(POISON_ERROR_MESSAGE));
+            Assert.assertNotNull(rejectConsumer.getLastDeliveredBody(), 
+                    "Message was not delivered to the queue before timeout or not at all.");
+            
+            final TaskMessage rejectTaskMessage = codec.deserialise(rejectConsumer.getLastDeliveredBody(), TaskMessage.class);
+            
+            Assert.assertEquals(rejectTaskMessage.getTaskStatus(), TaskStatus.RESULT_EXCEPTION);
+            
+            final TestWorkerTask copyOfTestWorkerTask = codec.deserialise(rejectTaskMessage.getTaskData(), TestWorkerTask.class);
+            
+            Assert.assertEquals(copyOfTestWorkerTask.isPoison(), testWorkerTask.isPoison());
+
+            final TestWorkerQueueConsumer outConsumer = new TestWorkerQueueConsumer();
+            consume(channel, outConsumer, POISON_MESSAGE_IT_OUT);
+            //Verify a response was placed on the out queue for further processing
+
+            Assert.assertNotNull(outConsumer.getLastDeliveredBody(),
+                    "Message was not delivered to the queue before timeout or not at all.");
+            
+            final TaskMessage outputTaskMessage = codec.deserialise(outConsumer.getLastDeliveredBody(), TaskMessage.class);
+            final String outputTaskData = new String(outputTaskMessage.getTaskData(), StandardCharsets.UTF_8);
+
+            Assert.assertTrue(outputTaskData.contains(WORKER_FRIENDLY_NAME));
+            Assert.assertTrue(outputTaskData.contains(POISON_ERROR_MESSAGE));
+
+            Assert.assertEquals(outputTaskMessage.getTaskStatus(), TaskStatus.RESULT_SUCCESS);
+            
         }
     }
 
     @Test
     public void offloadedPoisonMessageGoesToRejectFolderTest() throws Exception {
         try(final Connection connection = connectionFactory.newConnection();
-            final Channel channel = prepareChannel(connection, POISON_MESSAGE_IT_OFFLOADING_IN, 
-                    POISON_MESSAGE_IT_OFFLOADING_OUT, POISON_MESSAGE_IT_OFFLOADING_INVALID)) {
-            final TestWorkerTask documentWorkerTask = new TestWorkerTask();
-            documentWorkerTask.setPoison(true);
+            final Channel channel = prepareChannel(connection)) {
+            createQueues(channel, 
+                    POISON_MESSAGE_IT_OFFLOADING_IN, POISON_MESSAGE_IT_OFFLOADING_OUT, POISON_MESSAGE_IT_OFFLOADING_REJECT);
+            
+            final TestWorkerTask testWorkerTask = new TestWorkerTask();
+            testWorkerTask.setPoison(true);
             
             final var taskMessage = getTaskMessage(
                 TEST_WORKER_NAME,
                 TASK_NUMBER,
-                documentWorkerTask,
+                testWorkerTask,
                 POISON_MESSAGE_IT_OFFLOADING_IN
             );
 
@@ -127,7 +133,8 @@ public class PoisonMessageIT  extends WorkerTestBase {
             publishHeaders.put(RABBIT_HEADER_CAF_PAYLOAD_OFFLOADING_STORAGE_REF, storageRef);
             
             // Publish a message to the test worker, the worker should detect this as a poison message
-            // because the payload is already offloaded it should remain offloaded and the message should be sent to the reject queue.
+            // because the payload is already offloaded it should remain offloaded and a copy should be placed on 
+            // the reject queue.
             publish(
                 channel,
                 codec.serialise(taskMessage),
@@ -136,13 +143,49 @@ public class PoisonMessageIT  extends WorkerTestBase {
             );
 
             //  Now we can consume the outgoing message from the reject queue.
-            final TestWorkerQueueConsumer consumer = new TestWorkerQueueConsumer();
-            consume(channel, consumer, POISON_MESSAGE_IT_OFFLOADING_INVALID);
-            final var rejectedTaskMessageStorageRef = getTaskMessageStorageRef(consumer);
+            final TestWorkerQueueConsumer rejectConsumer = new TestWorkerQueueConsumer();
+            consume(channel, rejectConsumer, POISON_MESSAGE_IT_OFFLOADING_REJECT);
+
+            final var rejectedTaskMessageStorageRef = getTaskMessageStorageRef(rejectConsumer);
+
             Assert.assertTrue(rejectedTaskMessageStorageRef.isPresent(), "The payload offloading header was missing");
+
             // The rejected message should be present in the datastore
             final var rejectedByteArrayOpt = readFileFromWebDAV(rejectedTaskMessageStorageRef.get());
             Assert.assertTrue(rejectedByteArrayOpt.isPresent(), "Offloaded payload should have been found");
+
+            final TestWorkerTask rejectTestWorkerTask = codec.deserialise(rejectedByteArrayOpt.get(), 
+                    TestWorkerTask.class);
+            
+            Assert.assertEquals(rejectTestWorkerTask.isPoison(), testWorkerTask.isPoison());
+
+            final TestWorkerQueueConsumer outConsumer = new TestWorkerQueueConsumer();
+            consume(channel, outConsumer, POISON_MESSAGE_IT_OFFLOADING_OUT);
+            //Verify a response was placed on the out queue for further processing
+
+            Assert.assertNotNull(outConsumer.getLastDeliveredBody(),
+                    "Message was not delivered to the queue before timeout or not at all.");
+
+            final TaskMessage outputTaskMessage = codec.deserialise(outConsumer.getLastDeliveredBody(), TaskMessage.class);
+            outputTaskMessage.setTaskStatus(TaskStatus.RESULT_SUCCESS);
+
+            final var outputTaskMessageStorageRef = getTaskMessageStorageRef(outConsumer);
+
+            Assert.assertTrue(outputTaskMessageStorageRef.isPresent(), "Offloaded payload should have been found");
+
+            Assert.assertNotEquals(outputTaskMessageStorageRef.get(), rejectedTaskMessageStorageRef.get(),
+                    "The output reference should not match the rejected reference");
+            
+            final var outputOffloadedPayloadBytes = readFileFromWebDAV(outputTaskMessageStorageRef.get());
+            Assert.assertTrue(outputOffloadedPayloadBytes.isPresent(), "Offloaded payload bytes should have been found");
+            
+            final var outputTaskData = new String(outputOffloadedPayloadBytes.get(), StandardCharsets.UTF_8);
+
+            Assert.assertTrue(outputTaskData.contains(WORKER_FRIENDLY_NAME));
+            Assert.assertTrue(outputTaskData.contains(POISON_ERROR_MESSAGE));
+
+            Assert.assertEquals(outputTaskMessage.getTaskStatus(), TaskStatus.RESULT_SUCCESS);
+            
         }
     }
 }

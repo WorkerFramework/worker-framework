@@ -75,7 +75,7 @@ public class WorkerQueueConsumerImpl implements QueueConsumer
     private enum PoisonMessageStatus
     {
         NOT_POISON,
-        CLASSIC_POISON,
+        CLASSIC_POSSIBLY_POISON,
         POISON
     }
 
@@ -129,7 +129,7 @@ public class WorkerQueueConsumerImpl implements QueueConsumer
             handleTaskDataInjection(taskMessage, inboundMessageId, taskMessageStorageRefOpt);
             final PoisonMessageStatus poisonMessageStatus = getPoisonMessageStatus(
                     isRedelivered, deliveryHeaders, retries);
-            if (poisonMessageStatus == PoisonMessageStatus.CLASSIC_POISON) {
+            if (poisonMessageStatus == PoisonMessageStatus.CLASSIC_POSSIBLY_POISON) {
                 republishClassicRedelivery(
                         delivery.getEnvelope().getRoutingKey(),
                         inboundMessageId,
@@ -166,10 +166,11 @@ public class WorkerQueueConsumerImpl implements QueueConsumer
                 publishHeaders.put(RABBIT_HEADER_CAF_WORKER_INVALID, ex);
             }
 
-            publisherEventQueue.add(new WorkerPublishQueueEvent(deliveryMessageData, invalidRoutingKey, taskInformation, deliveryHeaders));
+            publisherEventQueue.add(new WorkerPublishQueueEvent(deliveryMessageData, invalidRoutingKey, taskInformation, publishHeaders));
         } catch (final TransientDeliveryException e) {
             LOG.warn("Transient error processing message id {}, disconnecting.", inboundMessageId, e);
             offloadedPayloadsToDelete.remove(inboundMessageId);
+            //Disconnect the channel to allow for a reconnect when the HealthCheck passes.
             disconnectCallback.run();
         }
     }
@@ -230,7 +231,7 @@ public class WorkerQueueConsumerImpl implements QueueConsumer
                 // If the retries have not been exceeded, then republish the message
                 // with a header recording the retry count
                 if (retries < retryLimit) {
-                    return PoisonMessageStatus.CLASSIC_POISON;
+                    return PoisonMessageStatus.CLASSIC_POSSIBLY_POISON;
                 }
             }
             return (retries >= retryLimit)
@@ -370,6 +371,7 @@ public class WorkerQueueConsumerImpl implements QueueConsumer
                 catch (final DataStoreException e) {
                     LOG.error("Failed to relocate offloaded payload for message id {} from {} to {}",
                             inboundMessageId, deliveryQueue, retryRoutingKey, e);
+                    //Disconnect the channel to allow for a reconnect when the HealthCheck passes.
                     disconnectCallback.run();
                 }
             }

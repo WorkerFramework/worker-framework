@@ -38,7 +38,6 @@ public class PayloadOffloadingIT extends WorkerTestBase {
 
     private static final String TERMINAL_WORKER_IN = "PayloadOffloadingIT-Terminal-in";
     private static final String TERMINAL_WORKER_OUT = "PayloadOffloadingIT-Terminal-out";
-    private static final String TERMINAL_WORKER_INVALID = "PayloadOffloadingIT-Terminal-invalid";
 
     @Test
     public void checkOffloadedPayloadIsConsumedAndDeletedOnAck() throws Exception {
@@ -54,8 +53,10 @@ public class PayloadOffloadingIT extends WorkerTestBase {
         final var readWebDAVFile = readFileFromWebDAV(setupPayloadOffloadStorageRef);
         Assert.assertTrue(readWebDAVFile.isPresent(), "The file should be present in the datastore");
 
+        
         try(final Connection connection = connectionFactory.newConnection();
-            final Channel channel = prepareChannel(connection, WORKER_IN, WORKER_OUT, WORKER_INVALID)) {
+            final Channel channel = prepareChannel(connection)) {
+            createQueues(channel, WORKER_IN, WORKER_OUT);
 
             //  Now we can send a message which expects to find the setupPayloadOffloadStorageRef.
             final Map<String, Object> headers = new HashMap<>();
@@ -90,26 +91,37 @@ public class PayloadOffloadingIT extends WorkerTestBase {
         final TaskMessage taskMessage = getTaskMessage(TEST_WORKER_NAME, 1, documentWorkerTask, WORKER_IN);
         taskMessage.setTaskData(null);
 
-
         try(final Connection connection = connectionFactory.newConnection();
-            final Channel channel = prepareChannel(connection, WORKER_IN, WORKER_OUT, WORKER_INVALID)) {
-
-            //  Now we can send a message which expects to find the setupPayloadOffloadStorageRef.
+            final Channel channel = prepareChannel(connection)) {
+            createQueues(channel, WORKER_IN, WORKER_OUT, WORKER_INVALID);
+            
+            //  Now we can send a message with header that contains an invalid payload offloading reference.
             final Map<String, Object> headers = new HashMap<>();
             final String invalidReference = UUID.randomUUID().toString();
             headers.put(RABBIT_HEADER_CAF_PAYLOAD_OFFLOADING_STORAGE_REF, invalidReference);
             publish(channel, codec.serialise(taskMessage), headers, WORKER_IN);
 
-            final TestWorkerQueueConsumer outboundConsumer = new TestWorkerQueueConsumer();
-            consume(channel, outboundConsumer, WORKER_OUT);
+            final TestWorkerQueueConsumer invalidConsumer = new TestWorkerQueueConsumer();
+            consume(channel, invalidConsumer, WORKER_INVALID);
+            
+            final TaskMessage invalidTaskMessage = codec.deserialise(invalidConsumer.getLastDeliveredBody(), 
+                    TaskMessage.class);
+            
+            Assert.assertEquals(invalidTaskMessage.getTaskId(), taskMessage.getTaskId());
+            
+            Assert.assertNotNull(invalidConsumer.getHeaders().get(RabbitHeaders.RABBIT_HEADER_CAF_WORKER_INVALID), 
+                    "RABBIT_HEADER_CAF_WORKER_INVALID is missing");
+            
             Assert.assertEquals(
-                    outboundConsumer.getHeaders().get(RabbitHeaders.RABBIT_HEADER_CAF_WORKER_INVALID).toString(),
-                    "Reference not found: " + invalidReference);
+                    invalidConsumer.getHeaders().get(RabbitHeaders.RABBIT_HEADER_CAF_WORKER_INVALID).toString(),
+                    "Reference not found: /srv/common/webdav/" + invalidReference);
+
+            Assert.assertNotNull(invalidConsumer.getHeaders().get(RabbitHeaders.RABBIT_HEADER_CAF_PAYLOAD_OFFLOADING_STORAGE_REF),
+                    "RABBIT_HEADER_CAF_PAYLOAD_OFFLOADING_STORAGE_REF is missing");
 
             Assert.assertEquals(
-                    outboundConsumer.getHeaders().get(RabbitHeaders.RABBIT_HEADER_CAF_PAYLOAD_OFFLOADING_STORAGE_REF).toString(),
+                    invalidConsumer.getHeaders().get(RabbitHeaders.RABBIT_HEADER_CAF_PAYLOAD_OFFLOADING_STORAGE_REF).toString(),
                     invalidReference);
-            
         }
     }
 
@@ -118,27 +130,37 @@ public class PayloadOffloadingIT extends WorkerTestBase {
         final TestWorkerTask documentWorkerTask = new TestWorkerTask();
         documentWorkerTask.setPoison(false);
 
-        final TaskMessage taskMessage = getTaskMessage(TEST_WORKER_NAME, 1, documentWorkerTask, WORKER_IN);
+        final TaskMessage taskMessage = getTaskMessage(TEST_WORKER_NAME, 2, documentWorkerTask, WORKER_IN);
         taskMessage.setTaskData(null);
         final var setupPayloadOffloadStorageRef = UUID.randomUUID().toString();
         writeFileToWebDav(setupPayloadOffloadStorageRef, "Junk data not JSON".getBytes(StandardCharsets.UTF_8));
         
         try(final Connection connection = connectionFactory.newConnection();
-            final Channel channel = prepareChannel(connection, WORKER_IN, WORKER_OUT, WORKER_INVALID)) {
-
+            final Channel channel = prepareChannel(connection)) {
+            createQueues(channel, WORKER_IN, WORKER_OUT);
+            
             //  Now we can send a message which expects to find the setupPayloadOffloadStorageRef.
             final Map<String, Object> headers = new HashMap<>();
             headers.put(RABBIT_HEADER_CAF_PAYLOAD_OFFLOADING_STORAGE_REF, setupPayloadOffloadStorageRef);
             publish(channel, codec.serialise(taskMessage), headers, WORKER_IN);
+            
+            final TestWorkerQueueConsumer outConsumer = new TestWorkerQueueConsumer();
+            consume(channel, outConsumer, WORKER_OUT);
+            
+            Assert.assertNotNull(outConsumer.getLastDeliveredBody(), 
+                    "Message was not delivered to the invalid queue before timeout or not at all.");
+            final TaskMessage outTaskMessage = codec.deserialise(outConsumer.getLastDeliveredBody(),
+                    TaskMessage.class);
 
-            final TestWorkerQueueConsumer outboundConsumer = new TestWorkerQueueConsumer();
-            consume(channel, outboundConsumer, WORKER_OUT);
-            Assert.assertEquals(
-                    outboundConsumer.getHeaders().get(RabbitHeaders.RABBIT_HEADER_CAF_WORKER_INVALID).toString(),
-                    "");
+            Assert.assertEquals(outTaskMessage.getTaskClassifier(), "TestWorkerFailureResult");
+            
+            Assert.assertEquals(outTaskMessage.getTaskId(), taskMessage.getTaskId());
 
-            Assert.assertEquals(
-                    outboundConsumer.getHeaders().get(RabbitHeaders.RABBIT_HEADER_CAF_PAYLOAD_OFFLOADING_STORAGE_REF).toString(),
+            Assert.assertNotNull(outConsumer.getHeaders().get(RabbitHeaders.RABBIT_HEADER_CAF_PAYLOAD_OFFLOADING_STORAGE_REF),
+                    "RABBIT_HEADER_CAF_PAYLOAD_OFFLOADING_STORAGE_REF is missing");
+
+            Assert.assertNotEquals(
+                    outConsumer.getHeaders().get(RabbitHeaders.RABBIT_HEADER_CAF_PAYLOAD_OFFLOADING_STORAGE_REF).toString(),
                     setupPayloadOffloadStorageRef);
 
         }
@@ -150,7 +172,7 @@ public class PayloadOffloadingIT extends WorkerTestBase {
         final TestWorkerTask terminalDocumentWorkerTask = new TestWorkerTask();
         terminalDocumentWorkerTask.setTerminalWorker(true);
 
-        final TaskMessage taskMessage = getTaskMessage(TEST_WORKER_NAME, 2, terminalDocumentWorkerTask, 
+        final TaskMessage taskMessage = getTaskMessage(TEST_WORKER_NAME, 3, terminalDocumentWorkerTask, 
                 TERMINAL_WORKER_IN);
         final byte[] taskData = taskMessage.getTaskData();
         taskMessage.setTaskData(null);
@@ -161,9 +183,9 @@ public class PayloadOffloadingIT extends WorkerTestBase {
         Assert.assertTrue(readWebDAVFile.isPresent(), "The file should be present in the datastore");
 
         try(final Connection connection = connectionFactory.newConnection();
-            final Channel channel = prepareChannel(connection, TERMINAL_WORKER_IN, TERMINAL_WORKER_OUT, 
-                    TERMINAL_WORKER_INVALID)) {
-
+            final Channel channel = prepareChannel(connection)) {
+            createQueues(channel, TERMINAL_WORKER_IN, TERMINAL_WORKER_OUT);
+            
             //  Now we can send a message which expects to find the taskMessageStorageRef.
             final Map<String, Object> headers = new HashMap<>();
             headers.put(RABBIT_HEADER_CAF_PAYLOAD_OFFLOADING_STORAGE_REF, storageRef);
@@ -173,16 +195,7 @@ public class PayloadOffloadingIT extends WorkerTestBase {
 
             final TestWorkerQueueConsumer outboundConsumer = new TestWorkerQueueConsumer();
             consume(channel, outboundConsumer, TERMINAL_WORKER_OUT);
-            try {
-                for (int i=0; i<100; i++){
-                    Thread.sleep(100);
-                    if (outboundConsumer.getLastDeliveredBody() != null){
-                        break;
-                    }
-                }
-            } catch (final InterruptedException e) {
-                throw new RuntimeException(e);
-            }
+
             Assert.assertNull(outboundConsumer.getLastDeliveredBody(), "The message should not have been output to the queue");
 
             final var reReadWebDAVFile = readFileFromWebDAV(storageRef);
