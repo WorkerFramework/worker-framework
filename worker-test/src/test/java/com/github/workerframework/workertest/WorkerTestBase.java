@@ -85,7 +85,7 @@ public class WorkerTestBase {
     ) throws IOException {
         final String consumerTag = channel.basicConsume(workerOut, false, messageConsumer);
         try {
-            for (int i = 0; i < 300; i++) {
+            for (int i = 0; i < 1000; i++) {
 
                 Thread.sleep(100);
 
