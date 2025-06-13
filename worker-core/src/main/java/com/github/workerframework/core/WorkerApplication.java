@@ -145,23 +145,11 @@ public final class WorkerApplication extends Application<WorkerConfiguration>
             public void stop() {
                 LOG.info("Worker stop requested, allowing in-progress tasks to complete.");
                 workerQueue.shutdownIncoming();
-                while (!wtp.isIdle()) {
-                    try {
-                        //The grace period will expire and the process killed so no need for time limit here
-                        LOG.trace("Awaiting the Worker Thread Pool to become idle, {} tasks in the backlog.", 
-                                wtp.getBacklogSize());
-                        Thread.sleep(1000);
-                    } catch (final InterruptedException e) {
-                        Thread.currentThread().interrupt();
-                        throw new RuntimeException(e);
-                    }
-                }
-                LOG.trace("Worker Thread Pool is idle.");
                 wtp.shutdown();
                 try {
-                    wtp.awaitTermination(10_000, TimeUnit.MILLISECONDS);
-                } catch (InterruptedException e) {
-                    LOG.warn("Shutdown interrupted", e);
+                    wtp.awaitTermination(5, TimeUnit.MINUTES);
+                } catch (final InterruptedException e) {
+                    LOG.error("Worker stop interrupted, in-progress tasks may not have completed.", e);
                     Thread.currentThread().interrupt();
                 }
                 workerQueue.shutdown();
