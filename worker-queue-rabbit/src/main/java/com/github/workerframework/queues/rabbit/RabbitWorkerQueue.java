@@ -26,6 +26,7 @@ import com.github.workerframework.api.QueueException;
 import com.github.workerframework.api.TaskCallback;
 import com.github.workerframework.api.TaskInformation;
 import com.github.workerframework.api.TaskMessage;
+import com.github.workerframework.api.WorkerCallback;
 import com.github.workerframework.api.WorkerQueueMetricsReporter;
 import com.github.workerframework.util.rabbitmq.ConsumerAckEvent;
 import com.github.workerframework.util.rabbitmq.ConsumerDropEvent;

@@ -25,7 +25,7 @@ public interface ManagedWorkerQueue extends HealthReporter, WorkerQueue
     /**
      * Open queues to start accepting tasks and results.
      *
-     * @param callback the callback to use when registering or aborting tasks
+     * @param callback       the callback to use when registering or aborting tasks
      * @throws QueueException if the queue cannot be started
      */
     void start(TaskCallback callback)

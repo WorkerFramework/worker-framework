@@ -62,9 +62,9 @@ final class WorkerCore
 
     public WorkerCore(final Codec codec, final WorkerThreadPool pool, final ManagedWorkerQueue queue, final WorkerFactory factory, final ServicePath path, final HealthCheckRegistry healthCheckRegistry, final TransientHealthCheck transientHealthCheck)
     {
-        WorkerCallback taskCallback = new CoreWorkerCallback(queue, stats, healthCheckRegistry, transientHealthCheck);
+        WorkerCallback workerCallback = new CoreWorkerCallback(queue, stats, healthCheckRegistry, transientHealthCheck);
         this.threadPool = Objects.requireNonNull(pool);
-        this.callback = new CoreTaskCallback(codec, stats, new WorkerExecutor(path, taskCallback, factory, pool), pool, queue);
+        this.callback = new CoreTaskCallback(codec, stats, new WorkerExecutor(path, workerCallback, factory, pool), pool, queue);
         this.workerQueue = Objects.requireNonNull(queue);
         this.isStarted = false;
     }
@@ -575,7 +575,8 @@ final class WorkerCore
             Objects.requireNonNull(taskInformation);
             Objects.requireNonNull(reportUpdateMessage);
             LOG.debug("Sending report updates to queue {})", reportUpdateMessage.getTo());
-            try {                
+            try {
+                // DDD showing where tracking message is derived
                 workerQueue.publish(taskInformation, reportUpdateMessage, reportUpdateMessage.getTo(), Collections.emptyMap());
             } catch (final QueueException ex) {
                 throw new RuntimeException(ex);

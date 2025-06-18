@@ -26,6 +26,7 @@ import com.github.workerframework.api.TaskCallback;
 import com.github.workerframework.api.TaskMessage;
 import com.github.workerframework.api.TaskRejectedException;
 import com.github.workerframework.api.TrackingInfo;
+import com.github.workerframework.core.TrackingMessageCreator;
 import com.github.workerframework.util.rabbitmq.QueueConsumer;
 import com.github.workerframework.util.rabbitmq.ConsumerAckEvent;
 import com.github.workerframework.util.rabbitmq.Event;
@@ -79,7 +80,8 @@ public class WorkerQueueConsumerImpl implements QueueConsumer
         POISON
     }
 
-    public WorkerQueueConsumerImpl(TaskCallback callback, RabbitMetricsReporter metrics, BlockingQueue<Event<QueueConsumer>> queue, Channel ch,
+    public WorkerQueueConsumerImpl(TaskCallback callback, RabbitMetricsReporter metrics,
+                                   BlockingQueue<Event<QueueConsumer>> queue, Channel ch,
                                    BlockingQueue<Event<WorkerPublisher>> pubQueue, String retryKey, int retryLimit,
                                    final String invalidKey,
                                    final ManagedDataStore dataStore, final Codec codec,
@@ -126,18 +128,28 @@ public class WorkerQueueConsumerImpl implements QueueConsumer
             } catch (final CodecException e) {
                 throw new InvalidDeliveryException("Cannot deserialize delivery messageData to TaskMessage", inboundMessageId, e);
             }
-            handleTaskDataInjection(taskMessage, inboundMessageId, taskMessageStorageRefOpt);
+
+            try {
+                handleTaskDataInjection(taskMessage, inboundMessageId, taskMessageStorageRefOpt);
+            } catch (final ReferenceNotFoundException ex) {
+                handleReferenceNotFound(ex,inboundMessageId, deliveryMessageData, taskMessage, deliveryHeaders);
+                return;
+            }
+
             final PoisonMessageStatus poisonMessageStatus = getPoisonMessageStatus(
-                    isRedelivered, deliveryHeaders, retries);
+                isRedelivered, deliveryHeaders, retries);
+
+            // At this point we already have the task data loaded from the store
             if (poisonMessageStatus == PoisonMessageStatus.CLASSIC_POSSIBLY_POISON) {
                 republishClassicRedelivery(
-                        delivery.getEnvelope().getRoutingKey(),
-                        inboundMessageId,
-                        deliveryMessageData,
-                        deliveryHeaders,
-                        retries,
-                        taskMessage.getTracking(),
-                        taskMessageStorageRefOpt
+                    delivery.getEnvelope().getRoutingKey(),
+                    inboundMessageId,
+                    deliveryMessageData,
+                    taskMessage.getTaskData(),
+                    deliveryHeaders,
+                    retries,
+                    taskMessage.getTracking(),
+                    taskMessageStorageRefOpt
                 );
                 return;
             }
@@ -157,16 +169,9 @@ public class WorkerQueueConsumerImpl implements QueueConsumer
             final RabbitTaskInformation taskInformation = new RabbitTaskInformation(String.valueOf(inboundMessageId), true);
             taskInformation.incrementResponseCount(true);
             final var publishHeaders = new HashMap<>(deliveryHeaders);
+            publishHeaders.put(RABBIT_HEADER_CAF_WORKER_INVALID, ex);
 
-            if(ex.getCause() != null && ex.getCause() instanceof ReferenceNotFoundException) {
-                publishHeaders.put(RABBIT_HEADER_CAF_WORKER_INVALID, 
-                        ex.getCause().getMessage());
-            }
-            else {
-                publishHeaders.put(RABBIT_HEADER_CAF_WORKER_INVALID, ex);
-            }
-
-            publisherEventQueue.add(new WorkerPublishQueueEvent(deliveryMessageData, invalidRoutingKey, taskInformation, publishHeaders));
+            publisherEventQueue.add(new WorkerPublishQueueEvent(deliveryMessageData, routingKey, taskInformation, publishHeaders));
         } catch (final TransientDeliveryException e) {
             LOG.warn("Transient error processing message id {}, disconnecting.", inboundMessageId, e);
             offloadedPayloadsToDelete.remove(inboundMessageId);
@@ -182,7 +187,7 @@ public class WorkerQueueConsumerImpl implements QueueConsumer
      */
     private void handleTaskDataInjection(final TaskMessage taskMessage, final long inboundMessageId, 
                                          final Optional<String> taskMessageStorageRefOpt) 
-        throws InvalidDeliveryException, TransientDeliveryException
+        throws ReferenceNotFoundException, InvalidDeliveryException, TransientDeliveryException
     {
         final byte[] currentTaskData = taskMessage.getTaskData();
         final boolean hasStorageRef = taskMessageStorageRefOpt.isPresent();
@@ -204,18 +209,46 @@ public class WorkerQueueConsumerImpl implements QueueConsumer
     }
 
     private byte[] retrieveTaskDataFromStore(final String taskMessageStorageRef, final long inboundMessageId) 
-            throws InvalidDeliveryException, TransientDeliveryException
+            throws ReferenceNotFoundException, TransientDeliveryException
     {
         try (final var inputStream = dataStore.retrieve(taskMessageStorageRef)) {
             final var taskData = inputStream.readAllBytes();
             offloadedPayloadsToDelete.put(inboundMessageId, taskMessageStorageRef);
             return taskData;
         } catch (final ReferenceNotFoundException ex) {
-            throw new InvalidDeliveryException("TaskMessage's TaskData could not be retrieved from DataStore", 
-                    inboundMessageId, ex);
+            throw ex;
         } catch (final IOException | DataStoreException ex) {
             throw new TransientDeliveryException(
                 "TaskMessage's TaskData could not be retrieved from DataStore", inboundMessageId, ex);
+        }
+    }
+
+    private void handleReferenceNotFound(
+        final ReferenceNotFoundException referenceNotFoundException,
+        final long inboundMessageId,
+        final byte[] deliveryMessageData,
+        final TaskMessage taskMessage,
+        final Map<String, Object> deliveryHeaders
+    ) {
+        final RabbitTaskInformation taskInformation = new RabbitTaskInformation(String.valueOf(inboundMessageId), true);
+        taskInformation.incrementResponseCount(true);
+        final var publishHeaders = new HashMap<>(deliveryHeaders);
+        publishHeaders.put(RABBIT_HEADER_CAF_WORKER_INVALID, referenceNotFoundException.getMessage());
+
+        // Send to the invalid message queue.
+        publisherEventQueue.add(new WorkerPublishQueueEvent(deliveryMessageData, invalidRoutingKey, taskInformation, publishHeaders));
+
+        try {
+            // Update the job.
+            final var trackingMessage = TrackingMessageCreator.createTrackingMessage(Collections.singletonList(taskMessage),
+                taskMessage.getCorrelationId(), publishHeaders, codec);
+            if (trackingMessage != null) {
+                final var serializedTrackingMessage = codec.serialise(trackingMessage);
+                publisherEventQueue.add(new WorkerPublishQueueEvent(serializedTrackingMessage, taskMessage.getTo(), taskInformation, publishHeaders));
+            }
+        } catch (CodecException e) {
+            LOG.error("Failed to serialise report update task data.");
+            throw new RuntimeException(e);
         }
     }
 
@@ -343,12 +376,12 @@ public class WorkerQueueConsumerImpl implements QueueConsumer
         final String deliveryQueue,
         final long inboundMessageId,
         final byte[] serializedTaskMessage,
+        final byte[] serializedTaskData,
         final  Map<String, Object> deliveryHeaders,
         final int retries,
         final TrackingInfo tracking,
         final Optional<String> taskMessageStorageRefOpt
-    ) throws InvalidDeliveryException
-    {
+    ) throws InvalidDeliveryException {
         final String trackingJobTaskId = tracking != null ? tracking.getJobTaskId() : "untracked";
         final RabbitTaskInformation taskInformation = new RabbitTaskInformation(
             String.valueOf(inboundMessageId), false, Optional.of(trackingJobTaskId));
@@ -361,16 +394,13 @@ public class WorkerQueueConsumerImpl implements QueueConsumer
             if (!retryRoutingKey.equals(deliveryQueue)) {
                 try {
                     final String newStorageReference = 
-                            dataStore.store(dataStore.retrieve(taskMessageStorageRefOpt.get()), 
-                                    taskMessageStorageRefOpt.get().replace(deliveryQueue, retryRoutingKey));
+                            dataStore.store(serializedTaskData,
+                                taskMessageStorageRefOpt.get().replace(deliveryQueue, retryRoutingKey));
                     publishHeaders.put(RABBIT_HEADER_CAF_PAYLOAD_OFFLOADING_STORAGE_REF, newStorageReference);
                 } 
-                catch (final ReferenceNotFoundException e) {
-                    throw new InvalidDeliveryException("Original reference not found when relocating TaskData", inboundMessageId, e);
-                }
-                catch (final DataStoreException e) {
+                catch (final DataStoreException ex) {
                     LOG.error("Failed to relocate offloaded payload for message id {} from {} to {}",
-                            inboundMessageId, deliveryQueue, retryRoutingKey, e);
+                            inboundMessageId, deliveryQueue, retryRoutingKey, ex);
                     //Disconnect the channel to allow for a reconnect when the HealthCheck passes.
                     disconnectCallback.run();
                 }

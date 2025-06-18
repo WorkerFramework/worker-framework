@@ -16,7 +16,6 @@
 package com.github.workerframework.core;
 
 import com.github.cafapi.common.api.Codec;
-import com.github.cafapi.common.api.CodecException;
 import com.github.cafapi.common.util.naming.ServicePath;
 import com.github.workerframework.api.InvalidTaskException;
 import com.github.workerframework.api.TaskInformation;
@@ -34,24 +33,15 @@ import com.github.workerframework.api.WorkerTask;
 import com.google.common.base.MoreObjects;
 
 import java.nio.charset.StandardCharsets;
-import java.text.MessageFormat;
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
-import java.util.UUID;
 import java.util.concurrent.Semaphore;
 import java.util.concurrent.atomic.AtomicInteger;
 
-import com.github.workerframework.util.rabbitmq.RabbitHeaders;
-import com.github.workerframework.tracking.report.TrackingReportFailure;
-import com.github.workerframework.tracking.report.TrackingReportStatus;
-import com.github.workerframework.tracking.report.TrackingReportTask;
-import com.github.workerframework.tracking.report.TrackingReportConstants;
-import com.github.workerframework.tracking.report.TrackingReport;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -59,8 +49,6 @@ class WorkerTaskImpl implements WorkerTask
 {
     private static final String WORKER_VERSION_UNKNOWN = "UNKNOWN";
     private static final Logger LOG = LoggerFactory.getLogger(WorkerTaskImpl.class);
-    private static final boolean isZeroProgressReportingEnabled
-        = !Boolean.parseBoolean(System.getenv("CAF_WORKER_DISABLE_ZERO_PROGRESS_REPORTING"));
 
     private final ServicePath servicePath;
     private final WorkerCallback workerCallback;
@@ -477,7 +465,7 @@ class WorkerTaskImpl implements WorkerTask
             addOrFlush(null);
         }
 
-        private void addOrFlush(final TaskMessage taskMessage)
+        private void addOrFlush(final TaskMessage bufferedTaskMessage)
         {
             List<TaskMessage> bufferContentsToPublish = null;
 
@@ -490,20 +478,24 @@ class WorkerTaskImpl implements WorkerTask
 
                 //  If buffering is enabled, then add message to the buffer if it does not already exist.
                 if (isBuffering) {
-                    buffer.add(taskMessage);
+                    buffer.add(bufferedTaskMessage);
                 } else {
                     //  Ensure any subsequent calls to add() when buffering is disabled results in the task being
                     //  immediately published and not lost.
-                    if (taskMessage != null) {
+                    if (bufferedTaskMessage != null) {
                         if(bufferContentsToPublish != null) {
-                            bufferContentsToPublish.add(taskMessage);
+                            bufferContentsToPublish.add(bufferedTaskMessage);
                         }
                     }
                 }
             }
 
             //  Publish the messages currently in the buffer to be published.
-            publishReportUpdates(bufferContentsToPublish);
+            final var reportUpdateMessage = TrackingMessageCreator.createTrackingMessage(bufferContentsToPublish,
+                taskMessage.getCorrelationId(), headers, codec);
+            if (reportUpdateMessage != null) {
+                workerCallback.reportUpdate(taskInformation, reportUpdateMessage);
+            }
         }
     }
 
@@ -596,146 +588,6 @@ class WorkerTaskImpl implements WorkerTask
                 responseMessage.setTracking(trackingInfo);
             }
         }
-    }
-
-    /**
-     * Used to publish progress report update messages onto the tracking pipe.
-     */
-    private void publishReportUpdates(final List<TaskMessage> reportUpdates)
-    {
-        //  If nothing to report then do nothing.
-        if (reportUpdates == null || reportUpdates.isEmpty()) {
-            return;
-        }
-
-        //  Make a note of the tracking pipe where progress report updates are to be sent.
-        final String trackingPipe = getTrackingPipe(reportUpdates);
-
-        //  Build up a TrackingReportTask comprising a list of progress report updates to send.
-        final TrackingReportTask trackingReportTask = createReportUpdatesTask(reportUpdates);
-        if (trackingReportTask.trackingReports.isEmpty()) {
-            return;
-        }
-
-        //  Serialise the list of progress report updates to send.
-        final byte[] reportUpdatesTaskData;
-        try {
-            reportUpdatesTaskData = codec.serialise(trackingReportTask);
-        } catch (final CodecException e) {
-            LOG.error("Failed to serialise report update task data.");
-            throw new RuntimeException(e);
-        }
-
-        //  Create a task message comprising the progress report updates.
-        final TaskMessage reportUpdateMessage = new TaskMessage(
-                UUID.randomUUID().toString(), TrackingReportConstants.TRACKING_REPORT_TASK_NAME,
-                TrackingReportConstants.TRACKING_REPORT_TASK_API_VER, reportUpdatesTaskData, TaskStatus.NEW_TASK,
-                Collections.<String, byte[]>emptyMap(), trackingPipe, null, null, taskMessage.getCorrelationId());
-
-        //  Publish the task message comprising the report updates.
-        workerCallback.reportUpdate(taskInformation, reportUpdateMessage);
-    }
-
-    private static String getTrackingPipe(final List<TaskMessage> taskMessages)
-    {
-        //  Return the first tracking pipe. All task messages are expected to comprise the same
-        //  tracking pipe.
-        return taskMessages.get(0).getTracking().getTrackingPipe();
-    }
-
-    private TrackingReportTask createReportUpdatesTask(final List<TaskMessage> taskMessages) {
-
-        final List<TrackingReport> trackingReports = new ArrayList<>();
-
-        //  Iterate through each task message and generate a progress report update.
-        for (final TaskMessage tm : taskMessages) {
-            //  Create a new instance of TrackingReport to hold the progress report update data.
-            final TrackingReport trackingReport = new TrackingReport();
-
-            //  Set job task identifier.
-            trackingReport.jobTaskId = tm.getTracking().getJobTaskId();
-
-            //  Get task status.
-            final TaskStatus taskStatus = tm.getTaskStatus();
-
-            //  Check task status to determine if task is to be reported as complete or not.
-            if (taskStatus == TaskStatus.NEW_TASK || taskStatus == TaskStatus.RESULT_SUCCESS ||
-                    taskStatus == TaskStatus.RESULT_FAILURE) {
-                final String trackToPipe = tm.getTracking().getTrackTo();
-                final String toPipe = tm.getTo();
-
-                if ((toPipe == null && trackToPipe == null) || (trackToPipe != null &&
-                        trackToPipe.equalsIgnoreCase(toPipe))) {
-                    //  Task should be reported as complete.
-                    trackingReport.status = TrackingReportStatus.Complete;
-                } else if (isZeroProgressReportingEnabled) {
-                    //  Task should be reported as in progress.
-                    trackingReport.status = TrackingReportStatus.Progress;
-                    trackingReport.estimatedPercentageCompleted = 0;
-                } else {
-                    continue;
-                }
-            } else if (taskStatus == TaskStatus.RESULT_EXCEPTION || taskStatus == TaskStatus.INVALID_TASK) {
-                //  Failed to execute job task. Configure failure details to be reported.
-                final TrackingReportFailure failure = new TrackingReportFailure();
-                failure.failureId= taskStatus.toString();
-                failure.failureTime = new Date();
-                failure.failureSource = getWorkerName(tm);
-                final byte[] taskData = tm.getTaskData();
-                if (taskData != null) {
-                    failure.failureMessage = new String(taskData, StandardCharsets.UTF_8);
-                }
-                trackingReport.failure = failure;
-
-                //  Task should be reported as rejected.
-                trackingReport.status = TrackingReportStatus.Failed;
-            } else {
-                //  TODO
-                //  NOTE - this logic has been copied across from JobTrackingWorkerFactory->reportProxiedTask but
-                //  I cannot see how we fall into this code given all TaskStatus enumerations have been evaluated by now
-                //  and TaskStatus appears to be non-nullable given annotation specified in the TaskMessage class.
-
-                //  Check for rejected headers.
-                final boolean rejected =
-                        headers.getOrDefault(RabbitHeaders.RABBIT_HEADER_CAF_WORKER_REJECTED, null) != null;
-                final int retries =
-                        Integer.parseInt(String.valueOf(headers.getOrDefault(
-                                RabbitHeaders.RABBIT_HEADER_CAF_WORKER_RETRY, "0")));
-
-                if (rejected) {
-                    final String rejectedHeader = String.valueOf(headers.get(
-                            RabbitHeaders.RABBIT_HEADER_CAF_WORKER_REJECTED));
-                    final String rejectionDetails =
-                            MessageFormat.format("{0}. Execution of this job task was retried {1} times.",
-                                    rejectedHeader, retries);
-
-                    //  Configure failure details to be reported.
-                    final TrackingReportFailure failure = new TrackingReportFailure();
-                    failure.failureId = RabbitHeaders.RABBIT_HEADER_CAF_WORKER_REJECTED;
-                    failure.failureTime = new Date();
-                    failure.failureSource = getWorkerName(tm);
-                    failure.failureMessage = rejectionDetails;
-                    trackingReport.failure = failure;
-
-                    //  Task should be reported as rejected.
-                    trackingReport.status = TrackingReportStatus.Failed;
-                } else {
-                    trackingReport.retries = retries;
-
-                    //  Task should be reported as retry.
-                    trackingReport.status = TrackingReportStatus.Retry;
-                }
-            }
-
-            //  Add tracking report to list.
-            trackingReports.add(trackingReport);
-        }
-
-        //  Build up TrackingReportTask data to send to tracking pipe.
-        final TrackingReportTask trackingReportTask = new TrackingReportTask();
-        trackingReportTask.trackingReports = trackingReports;
-
-        return trackingReportTask;
     }
 
     /**

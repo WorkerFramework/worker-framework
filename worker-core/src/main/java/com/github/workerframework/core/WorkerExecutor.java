@@ -164,7 +164,7 @@ final class WorkerExecutor
     /**
      * Creates a WorkerTask for the specified message
      */
-    private WorkerTaskImpl createWorkerTask(final TaskInformation taskInformation, final TaskMessage taskMessage, 
+    private WorkerTaskImpl createWorkerTask(final TaskInformation taskInformation, final TaskMessage taskMessage,
                                             final Map<String, Object> headers, final Codec codec)
     {
         return new WorkerTaskImpl(servicePath, callback, factory, taskInformation, taskMessage, headers, codec);
