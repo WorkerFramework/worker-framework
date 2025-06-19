@@ -394,9 +394,9 @@ public class WorkerQueueConsumerImpl implements QueueConsumer
                                 taskMessageStorageRefOpt.get().replace(deliveryQueue, retryRoutingKey));
                     publishHeaders.put(RABBIT_HEADER_CAF_PAYLOAD_OFFLOADING_STORAGE_REF, newStorageReference);
                 } 
-                catch (final DataStoreException ex) {
+                catch (final DataStoreException e) {
                     LOG.error("Failed to relocate offloaded payload for message id {} from {} to {}",
-                            inboundMessageId, deliveryQueue, retryRoutingKey, ex);
+                            inboundMessageId, deliveryQueue, retryRoutingKey, e);
                     //Disconnect the channel to allow for a reconnect when the HealthCheck passes.
                     disconnectCallback.run();
                 }
