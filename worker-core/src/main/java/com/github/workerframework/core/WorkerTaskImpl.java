@@ -601,7 +601,7 @@ class WorkerTaskImpl implements WorkerTask
      * @param taskMessage the task message to be examined
      * @return the name of the worker that created the task message
      */
-    private static String getWorkerName(final TaskMessage taskMessage)
+    public static String getWorkerName(final TaskMessage taskMessage)
     {
         final TaskSourceInfo sourceInfo = taskMessage.getSourceInfo();
         if (sourceInfo == null) {

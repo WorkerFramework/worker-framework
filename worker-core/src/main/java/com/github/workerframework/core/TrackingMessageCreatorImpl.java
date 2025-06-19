@@ -18,7 +18,6 @@ package com.github.workerframework.core;
 import com.github.cafapi.common.api.Codec;
 import com.github.cafapi.common.api.CodecException;
 import com.github.workerframework.api.TaskMessage;
-import com.github.workerframework.api.TaskSourceInfo;
 import com.github.workerframework.api.TaskStatus;
 import com.github.workerframework.api.TrackingMessageCreator;
 import com.github.workerframework.tracking.report.TrackingReport;
@@ -38,6 +37,8 @@ import java.util.Date;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
+
+import static com.github.workerframework.core.WorkerTaskImpl.getWorkerName;
 
 public final class TrackingMessageCreatorImpl implements TrackingMessageCreator {
 
@@ -137,11 +138,6 @@ public final class TrackingMessageCreatorImpl implements TrackingMessageCreator 
                 //  Task should be reported as rejected.
                 trackingReport.status = TrackingReportStatus.Failed;
             } else {
-                //  TODO
-                //  NOTE - this logic has been copied across from JobTrackingWorkerFactory->reportProxiedTask but
-                //  I cannot see how we fall into this code given all TaskStatus enumerations have been evaluated by now
-                //  and TaskStatus appears to be non-nullable given annotation specified in the TaskMessage class.
-
                 //  Check for rejected headers.
                 final boolean rejected =
                     headers.getOrDefault(RabbitHeaders.RABBIT_HEADER_CAF_WORKER_REJECTED, null) != null;
@@ -183,20 +179,5 @@ public final class TrackingMessageCreatorImpl implements TrackingMessageCreator 
         trackingReportTask.trackingReports = trackingReports;
 
         return trackingReportTask;
-    }
-
-    private static String getWorkerName(final TaskMessage taskMessage)
-    {
-        final TaskSourceInfo sourceInfo = taskMessage.getSourceInfo();
-        if (sourceInfo == null) {
-            return "Unknown - no source info";
-        }
-
-        final String workerName = sourceInfo.getName();
-        if (workerName == null) {
-            return "Unknown - worker name not set";
-        }
-
-        return workerName;
     }
 }
