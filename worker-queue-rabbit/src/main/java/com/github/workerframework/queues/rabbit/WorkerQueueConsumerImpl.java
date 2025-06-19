@@ -150,14 +150,14 @@ public class WorkerQueueConsumerImpl implements QueueConsumer
             // At this point we already have the task data loaded from the store
             if (poisonMessageStatus == PoisonMessageStatus.CLASSIC_POSSIBLY_POISON) {
                 republishClassicRedelivery(
-                    delivery.getEnvelope().getRoutingKey(),
-                    inboundMessageId,
-                    deliveryMessageData,
-                    taskMessage.getTaskData(),
-                    deliveryHeaders,
-                    retries,
-                    taskMessage.getTracking(),
-                    taskMessageStorageRefOpt
+                        delivery.getEnvelope().getRoutingKey(),
+                        inboundMessageId,
+                        deliveryMessageData,
+                        taskMessage.getTaskData(),
+                        deliveryHeaders,
+                        retries,
+                        taskMessage.getTracking(),
+                        taskMessageStorageRefOpt
                 );
                 return;
             }
