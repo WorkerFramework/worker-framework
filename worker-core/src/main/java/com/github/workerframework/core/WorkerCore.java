@@ -579,7 +579,6 @@ final class WorkerCore
             Objects.requireNonNull(reportUpdateMessage);
             LOG.debug("Sending report updates to queue {})", reportUpdateMessage.getTo());
             try {
-                // DDD showing where tracking message is derived
                 workerQueue.publish(taskInformation, reportUpdateMessage, reportUpdateMessage.getTo(), Collections.emptyMap());
             } catch (final QueueException ex) {
                 throw new RuntimeException(ex);
