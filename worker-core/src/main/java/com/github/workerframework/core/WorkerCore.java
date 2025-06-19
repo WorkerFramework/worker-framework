@@ -65,9 +65,9 @@ final class WorkerCore
                       final ServicePath path, final HealthCheckRegistry healthCheckRegistry,
                       final TransientHealthCheck transientHealthCheck, final TrackingMessageCreator trackingMessageCreator)
     {
-        WorkerCallback workerCallback = new CoreWorkerCallback(queue, stats, healthCheckRegistry, transientHealthCheck);
+        WorkerCallback taskCallback = new CoreWorkerCallback(queue, stats, healthCheckRegistry, transientHealthCheck);
         this.threadPool = Objects.requireNonNull(pool);
-        this.callback = new CoreTaskCallback(codec, stats, new WorkerExecutor(path, workerCallback, factory, trackingMessageCreator, pool), pool, queue);
+        this.callback = new CoreTaskCallback(codec, stats, new WorkerExecutor(path, taskCallback, factory, trackingMessageCreator, pool), pool, queue);
         this.workerQueue = Objects.requireNonNull(queue);
         this.isStarted = false;
     }
