@@ -376,7 +376,8 @@ public class WorkerQueueConsumerImpl implements QueueConsumer
         final int retries,
         final TrackingInfo tracking,
         final Optional<String> taskMessageStorageRefOpt
-    ) throws InvalidDeliveryException {
+    ) throws InvalidDeliveryException
+    {
         final String trackingJobTaskId = tracking != null ? tracking.getJobTaskId() : "untracked";
         final RabbitTaskInformation taskInformation = new RabbitTaskInformation(
             String.valueOf(inboundMessageId), false, Optional.of(trackingJobTaskId));
