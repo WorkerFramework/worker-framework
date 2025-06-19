@@ -30,6 +30,7 @@ import com.github.workerframework.api.TaskMessage;
 import com.github.workerframework.api.TaskRejectedException;
 import com.github.workerframework.api.TaskStatus;
 import com.github.workerframework.api.TrackingInfo;
+import com.github.workerframework.api.TrackingMessageCreator;
 import com.github.workerframework.api.WorkerCallback;
 import com.github.workerframework.api.WorkerFactory;
 
@@ -60,11 +61,13 @@ final class WorkerCore
            System.getenv("CAF_WORKER_ENABLE_DIVERTED_TASK_CHECKING") == null ? 
                 "True" : System.getenv("CAF_WORKER_ENABLE_DIVERTED_TASK_CHECKING"));
 
-    public WorkerCore(final Codec codec, final WorkerThreadPool pool, final ManagedWorkerQueue queue, final WorkerFactory factory, final ServicePath path, final HealthCheckRegistry healthCheckRegistry, final TransientHealthCheck transientHealthCheck)
+    public WorkerCore(final Codec codec, final WorkerThreadPool pool, final ManagedWorkerQueue queue, final WorkerFactory factory,
+                      final ServicePath path, final HealthCheckRegistry healthCheckRegistry,
+                      final TransientHealthCheck transientHealthCheck, final TrackingMessageCreator trackingMessageCreator)
     {
         WorkerCallback workerCallback = new CoreWorkerCallback(queue, stats, healthCheckRegistry, transientHealthCheck);
         this.threadPool = Objects.requireNonNull(pool);
-        this.callback = new CoreTaskCallback(codec, stats, new WorkerExecutor(path, workerCallback, factory, pool), pool, queue);
+        this.callback = new CoreTaskCallback(codec, stats, new WorkerExecutor(path, workerCallback, factory, trackingMessageCreator, pool), pool, queue);
         this.workerQueue = Objects.requireNonNull(queue);
         this.isStarted = false;
     }

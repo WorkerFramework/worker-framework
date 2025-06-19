@@ -24,6 +24,7 @@ import com.github.workerframework.api.TaskMessage;
 import com.github.workerframework.api.TaskMessageForwardingEvaluator;
 import com.github.workerframework.api.TaskRejectedException;
 import com.github.workerframework.api.TaskStatus;
+import com.github.workerframework.api.TrackingMessageCreator;
 import com.github.workerframework.api.Worker;
 import com.github.workerframework.api.WorkerCallback;
 import com.github.workerframework.api.WorkerFactory;
@@ -44,6 +45,8 @@ import static org.mockito.Mockito.withSettings;
 
 public class WorkerExecutorTest
 {
+    private static final TrackingMessageCreator trackingMessageCreator = new TrackingMessageCreatorImpl();
+
     @Test
     public void testExecuteTask()
         throws InvalidNameException, TaskRejectedException, InvalidTaskException, InterruptedException
@@ -59,7 +62,7 @@ public class WorkerExecutorTest
         WorkerThreadPool pool = WorkerThreadPool.create(5);
         Map<String, Object> headers = new HashMap<>();
 
-        WorkerExecutor executor = new WorkerExecutor(path, callback, factory, pool);
+        WorkerExecutor executor = new WorkerExecutor(path, callback, factory, trackingMessageCreator, pool);
         TaskMessage tm = new TaskMessage("test", "test", 1, "test".getBytes(StandardCharsets.UTF_8), TaskStatus.NEW_TASK, new HashMap<>(), "testTo");
         executor.executeTask(tm, mock(TaskInformation.class), headers, codec);
         Mockito.verify(factory, Mockito.times(1)).getWorker(Mockito.any());
@@ -76,7 +79,7 @@ public class WorkerExecutorTest
         Mockito.when(factory.getWorker(Mockito.any())).thenReturn(worker);
         WorkerThreadPool pool = mock(WorkerThreadPool.class);
 
-        WorkerExecutor executor = new WorkerExecutor(path, callback, factory, pool);
+        WorkerExecutor executor = new WorkerExecutor(path, callback, factory, trackingMessageCreator, pool);
         TaskMessage tm = new TaskMessage("test", "test", 1, "test".getBytes(StandardCharsets.UTF_8), TaskStatus.NEW_TASK, new HashMap<>(), "testTo");
         TaskInformation taskInformation = mock(TaskInformation.class);
         executor.handleDivertedTask(tm, taskInformation, new HashMap<>(), null, null);
@@ -113,7 +116,7 @@ public class WorkerExecutorTest
         Mockito.when(factory.getWorker(Mockito.any())).thenReturn(worker);
         WorkerThreadPool pool = mock(WorkerThreadPool.class);
 
-        WorkerExecutor executor = new WorkerExecutor(path, callback, factory, pool);
+        WorkerExecutor executor = new WorkerExecutor(path, callback, factory, trackingMessageCreator, pool);
         TaskInformation taskInformation =mock(TaskInformation.class);
         executor.handleDivertedTask(tm, taskInformation, new HashMap<>(), null, null);
         Mockito.verify((TaskMessageForwardingEvaluator) factory, Mockito.times(1)).determineForwardingAction(tm, taskInformation, new HashMap<>(), callback);
@@ -133,7 +136,7 @@ public class WorkerExecutorTest
         WorkerThreadPool pool = WorkerThreadPool.create(5);
         Map<String, Object> headers = new HashMap<>();
 
-        WorkerExecutor executor = new WorkerExecutor(path, callback, factory, pool);
+        WorkerExecutor executor = new WorkerExecutor(path, callback, factory, trackingMessageCreator, pool);
         TaskMessage tm = new TaskMessage("test", "test", 1, "test".getBytes(StandardCharsets.UTF_8), TaskStatus.NEW_TASK, new HashMap<>(), "test");
         executor.executeTask(tm, mock(TaskInformation.class), headers, codec);
     }
@@ -170,7 +173,7 @@ public class WorkerExecutorTest
         Map<String, Object> headers = new HashMap<>();
 
         WorkerThreadPool pool = WorkerThreadPool.create(5);
-        WorkerExecutor executor = new WorkerExecutor(path, callback, factory, pool);
+        WorkerExecutor executor = new WorkerExecutor(path, callback, factory, trackingMessageCreator, pool);
 
         TaskMessage tm = new TaskMessage(taskId, classifier, ver, data, TaskStatus.NEW_TASK, new HashMap<>(), "queue");
         executor.executeTask(tm, taskInformation, headers, codec);
@@ -208,7 +211,7 @@ public class WorkerExecutorTest
         Mockito.when(factory.getWorker(Mockito.any())).thenThrow(
             InvalidTaskException.class);
         WorkerThreadPool pool = WorkerThreadPool.create(5);
-        WorkerExecutor executor = new WorkerExecutor(path, callback, factory, pool);
+        WorkerExecutor executor = new WorkerExecutor(path, callback, factory, trackingMessageCreator, pool);
         Map<String, Object> headers = new HashMap<>();
 
         TaskMessage tm = new TaskMessage(taskId, classifier, ver, data, TaskStatus.NEW_TASK, new HashMap<>(), "queue");
@@ -236,7 +239,7 @@ public class WorkerExecutorTest
         Mockito.doThrow(TaskRejectedException.class).when(pool).submitWorkerTask(Mockito.any(WorkerTaskImpl.class));
         Map<String, Object> headers = new HashMap<>();
 
-        WorkerExecutor executor = new WorkerExecutor(path, callback, factory, pool);
+        WorkerExecutor executor = new WorkerExecutor(path, callback, factory, trackingMessageCreator, pool);
         TaskMessage tm = new TaskMessage("test", "test", 1, "test".getBytes(StandardCharsets.UTF_8), TaskStatus.NEW_TASK, new HashMap<>(), "test");
         executor.executeTask(tm, mock(TaskInformation.class), headers, codec);
     }

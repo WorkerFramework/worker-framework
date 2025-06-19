@@ -39,6 +39,7 @@ import com.github.workerframework.api.DataStoreProvider;
 import com.github.workerframework.api.ManagedDataStore;
 import com.github.workerframework.api.ManagedWorkerQueue;
 import com.github.workerframework.api.QueueException;
+import com.github.workerframework.api.TrackingMessageCreator;
 import com.github.workerframework.api.WorkerException;
 import com.github.workerframework.api.WorkerFactory;
 import com.github.workerframework.api.WorkerFactoryProvider;
@@ -125,9 +126,12 @@ public final class WorkerApplication extends Application<WorkerConfiguration>
         WorkerFactory workerFactory = workerProvider.getWorkerFactory(config, store, codec);
         WorkerThreadPool wtp = WorkerThreadPool.create(workerFactory);
         final int nThreads = workerFactory.getWorkerThreads();
-        ManagedWorkerQueue workerQueue = queueProvider.getWorkerQueue(config, nThreads, workerFactory.getInvalidTaskQueue(), store, codec);
+        final TrackingMessageCreator trackingMessageCreator = new TrackingMessageCreatorImpl();
+        ManagedWorkerQueue workerQueue = queueProvider.getWorkerQueue(config, nThreads, workerFactory.getInvalidTaskQueue(), store, codec,
+            trackingMessageCreator);
         TransientHealthCheck transientHealthCheck = new TransientHealthCheck();
-        WorkerCore core = new WorkerCore(codec, wtp, workerQueue, workerFactory, path, environment.healthChecks(), transientHealthCheck);
+        WorkerCore core = new WorkerCore(codec, wtp, workerQueue, workerFactory, path, environment.healthChecks(), transientHealthCheck,
+            trackingMessageCreator);
         HealthConfiguration healthConfiguration = config.getConfiguration(HealthConfiguration.class);
 
         environment.lifecycle().manage(new Managed() {

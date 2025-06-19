@@ -21,6 +21,7 @@ import com.github.cafapi.common.api.ConfigurationSource;
 import com.github.workerframework.api.ManagedDataStore;
 import com.github.workerframework.api.ManagedWorkerQueue;
 import com.github.workerframework.api.QueueException;
+import com.github.workerframework.api.TrackingMessageCreator;
 import com.github.workerframework.api.WorkerQueueProvider;
 
 public class RabbitWorkerQueueProvider implements WorkerQueueProvider
@@ -31,7 +32,8 @@ public class RabbitWorkerQueueProvider implements WorkerQueueProvider
         final int maxTasks,
         final String invalidQueue,
         final ManagedDataStore dataStore,
-        final Codec codec
+        final Codec codec,
+        final TrackingMessageCreator trackingMessageCreator
     ) throws QueueException
     {
         try {
@@ -40,7 +42,8 @@ public class RabbitWorkerQueueProvider implements WorkerQueueProvider
                 maxTasks,
                 invalidQueue,
                 dataStore,
-                codec
+                codec,
+                trackingMessageCreator
             );
         } catch (final ConfigurationException e) {
             throw new QueueException("Cannot create worker queue", e);

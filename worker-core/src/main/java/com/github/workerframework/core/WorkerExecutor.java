@@ -24,6 +24,7 @@ import com.github.workerframework.api.TaskInformation;
 import com.github.workerframework.api.TaskMessage;
 import com.github.workerframework.api.TaskMessageForwardingEvaluator;
 import com.github.workerframework.api.TaskRejectedException;
+import com.github.workerframework.api.TrackingMessageCreator;
 import com.github.workerframework.api.WorkerCallback;
 import com.github.workerframework.api.WorkerFactory;
 import org.slf4j.Logger;
@@ -41,6 +42,7 @@ final class WorkerExecutor
     private final WorkerCallback callback;
     private final WorkerFactory factory;
     private final WorkerThreadPool threadPool;
+    private final TrackingMessageCreator trackingMessageCreator;
     private static final Logger LOG = LoggerFactory.getLogger(WorkerExecutor.class);
 
     /**
@@ -55,12 +57,14 @@ final class WorkerExecutor
         final ServicePath path,
         final WorkerCallback callback,
         final WorkerFactory workerFactory,
+        final TrackingMessageCreator trackingMessageCreator,
         final WorkerThreadPool pool
     )
     {
         this.servicePath = Objects.requireNonNull(path);
         this.callback = Objects.requireNonNull(callback);
         this.factory = Objects.requireNonNull(workerFactory);
+        this.trackingMessageCreator = Objects.requireNonNull(trackingMessageCreator);
         this.threadPool = Objects.requireNonNull(pool);
     }
 
@@ -167,6 +171,7 @@ final class WorkerExecutor
     private WorkerTaskImpl createWorkerTask(final TaskInformation taskInformation, final TaskMessage taskMessage,
                                             final Map<String, Object> headers, final Codec codec)
     {
-        return new WorkerTaskImpl(servicePath, callback, factory, taskInformation, taskMessage, headers, codec);
+        return new WorkerTaskImpl(servicePath, callback, factory, taskInformation, taskMessage, headers, codec,
+            trackingMessageCreator);
     }
 }

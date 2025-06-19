@@ -32,6 +32,7 @@ import com.github.workerframework.api.TaskInformation;
 import com.github.workerframework.api.TaskMessage;
 import com.github.workerframework.api.TaskStatus;
 import com.github.workerframework.api.TrackingInfo;
+import com.github.workerframework.api.TrackingMessageCreator;
 import com.github.workerframework.api.Worker;
 import com.github.workerframework.api.WorkerException;
 import com.github.workerframework.api.WorkerFactory;
@@ -79,6 +80,7 @@ public class WorkerCoreTest
     private static final String QUEUE_PAUSED = "pausedQueue";
     private static final String SERVICE_PATH = "/test/group";
     private TaskInformation taskInformation;
+    private static final TrackingMessageCreator trackingMessageCreator = new TrackingMessageCreatorImpl();
 
     @BeforeMethod
     private void before() {
@@ -102,7 +104,8 @@ public class WorkerCoreTest
         HealthCheckRegistry healthCheckRegistry = Mockito.mock(HealthCheckRegistry.class);
         TransientHealthCheck transientHealthCheck = Mockito.mock(TransientHealthCheck.class);
 
-        WorkerCore core = new WorkerCore(codec, wtp, queue, getWorkerFactory(task, codec), path, healthCheckRegistry, transientHealthCheck);
+        WorkerCore core = new WorkerCore(codec, wtp, queue, getWorkerFactory(task, codec), path, healthCheckRegistry, transientHealthCheck,
+            trackingMessageCreator);
         core.start();
         // at this point, the queue should hand off the task to the app, the app should get a worker from the mocked WorkerFactory,
         // and the Worker itself is a mock wrapped in a WorkerWrapper, which should return success and the appropriate result data
@@ -137,7 +140,8 @@ public class WorkerCoreTest
         final HealthCheckRegistry healthCheckRegistry = Mockito.mock(HealthCheckRegistry.class);
         final TransientHealthCheck transientHealthCheck = Mockito.mock(TransientHealthCheck.class);
 
-        final WorkerCore core = new WorkerCore(codec, wtp, queue, getWorkerFactory(task, codec), path, healthCheckRegistry, transientHealthCheck);
+        final WorkerCore core = new WorkerCore(codec, wtp, queue, getWorkerFactory(task, codec), path, healthCheckRegistry, transientHealthCheck,
+            trackingMessageCreator);
         core.start();
         // at this point, the queue should hand off the task to the app, the app should get a worker from the mocked WorkerFactory,
         // and the Worker itself is a mock wrapped in a WorkerWrapper, which should return success and the appropriate result data
@@ -188,7 +192,8 @@ public class WorkerCoreTest
         HealthCheckRegistry healthCheckRegistry = Mockito.mock(HealthCheckRegistry.class);
         TransientHealthCheck transientHealthCheck = Mockito.mock(TransientHealthCheck.class);
 
-        WorkerCore core = new WorkerCore(codec, wtp, queue, getWorkerFactory(task, codec), path, healthCheckRegistry, transientHealthCheck);
+        WorkerCore core = new WorkerCore(codec, wtp, queue, getWorkerFactory(task, codec), path, healthCheckRegistry, transientHealthCheck,
+            trackingMessageCreator);
         core.start();
         queue.submitTask(taskInformation, new TaskMessage());
     }
@@ -210,7 +215,8 @@ public class WorkerCoreTest
         HealthCheckRegistry healthCheckRegistry = Mockito.mock(HealthCheckRegistry.class);
         TransientHealthCheck transientHealthCheck = Mockito.mock(TransientHealthCheck.class);
 
-        WorkerCore core = new WorkerCore(codec, wtp, queue, getInvalidTaskWorkerFactory(), path, healthCheckRegistry, transientHealthCheck);
+        WorkerCore core = new WorkerCore(codec, wtp, queue, getInvalidTaskWorkerFactory(), path, healthCheckRegistry, transientHealthCheck,
+            trackingMessageCreator);
         core.start();
         TaskMessage tm = getTaskMessage(task, codec, WORKER_NAME);
         tm.setTaskData(codec.serialise("invalid task data"));
@@ -248,7 +254,8 @@ public class WorkerCoreTest
         final HealthCheckRegistry healthCheckRegistry = Mockito.mock(HealthCheckRegistry.class);
         final TransientHealthCheck transientHealthCheck = Mockito.mock(TransientHealthCheck.class);
 
-        final WorkerCore core = new WorkerCore(codec, wtp, queue, getInvalidTaskWorkerFactory(), path, healthCheckRegistry, transientHealthCheck);
+        final WorkerCore core = new WorkerCore(codec, wtp, queue, getInvalidTaskWorkerFactory(), path, healthCheckRegistry, transientHealthCheck,
+            trackingMessageCreator);
         core.start();
 
         final TrackingInfo tracking = new TrackingInfo("J23.1.2", new Date(), 0, "http://thehost:1234/job-service/v1/jobs/23/status", "trackingQueue", "trackTo");
@@ -308,7 +315,8 @@ public class WorkerCoreTest
         HealthCheckRegistry healthCheckRegistry = Mockito.mock(HealthCheckRegistry.class);
         TransientHealthCheck transientHealthCheck = Mockito.mock(TransientHealthCheck.class);
 
-        WorkerCore core = new WorkerCore(codec, wtp, queue, getSlowWorkerFactory(latch, task, codec), path, healthCheckRegistry, transientHealthCheck);
+        WorkerCore core = new WorkerCore(codec, wtp, queue, getSlowWorkerFactory(latch, task, codec), path, healthCheckRegistry, transientHealthCheck,
+            trackingMessageCreator);
         core.start();
         queue.submitTask(getMockTaskInformation("task1"), getTaskMessage(task, codec, UUID.randomUUID().toString()));
         queue.submitTask(getMockTaskInformation("task2"), getTaskMessage(task, codec, UUID.randomUUID().toString()));
@@ -339,7 +347,7 @@ public class WorkerCoreTest
         TransientHealthCheck transientHealthCheck = Mockito.mock(TransientHealthCheck.class);
 
         WorkerCore core = new WorkerCore(codec, wtp, queue, getInterruptedExceptionWorkerFactory(task, codec),
-                                         path, healthCheckRegistry, transientHealthCheck);
+                                         path, healthCheckRegistry, transientHealthCheck, trackingMessageCreator);
         core.start();
 
         final TaskMessage tm = getTaskMessage(task, codec, WORKER_NAME);
@@ -384,7 +392,7 @@ public class WorkerCoreTest
         final TransientHealthCheck transientHealthCheck = Mockito.mock(TransientHealthCheck.class);
 
         final WorkerCore core = new WorkerCore(
-            codec, wtp, queue, getWorkerFactory(task, codec), path, healthCheckRegistry, transientHealthCheck);
+            codec, wtp, queue, getWorkerFactory(task, codec), path, healthCheckRegistry, transientHealthCheck, trackingMessageCreator);
         core.start();
         // at this point, the queue should hand off the task to the app, the app should get a worker from the mocked WorkerFactory,
         // and the Worker itself is a mock wrapped in a WorkerWrapper, which should return success and the appropriate result data
@@ -425,7 +433,7 @@ public class WorkerCoreTest
         final TransientHealthCheck transientHealthCheck = Mockito.mock(TransientHealthCheck.class);
 
         final WorkerCore core = new WorkerCore(
-            codec, wtp, queue, getWorkerFactory(task, codec), path, healthCheckRegistry, transientHealthCheck);
+            codec, wtp, queue, getWorkerFactory(task, codec), path, healthCheckRegistry, transientHealthCheck, trackingMessageCreator);
         core.start();
         // at this point, the queue should hand off the task to the app, the app should get a worker from the mocked WorkerFactory,
         // and the Worker itself is a mock wrapped in a WorkerWrapper, which should return success and the appropriate result data
@@ -560,7 +568,7 @@ public class WorkerCoreTest
         {
             final ManagedDataStore dataStore = Mockito.mock(ManagedDataStore.class);
             final Codec codec = new JsonCodec();
-            return getWorkerQueue(configurationSource, maxTasks, INVALID, dataStore, codec);
+            return getWorkerQueue(configurationSource, maxTasks, INVALID, dataStore, codec, trackingMessageCreator);
         }
 
         @Override
@@ -569,7 +577,8 @@ public class WorkerCoreTest
             final int maxTasks,
             final String invalidQueue,
             final ManagedDataStore dataStore,
-            final Codec codec)
+            final Codec codec,
+            final TrackingMessageCreator trackingMessageCreator)
         {
             return new TestWorkerQueue(this.results);
         }
@@ -713,7 +722,7 @@ public class WorkerCoreTest
             final ConfigurationSource configurationSource,
             final int maxTasks)
         {
-            return getWorkerQueue(configurationSource, maxTasks, INVALID, Mockito.mock(ManagedDataStore.class), new JsonCodec());
+            return getWorkerQueue(configurationSource, maxTasks, INVALID, Mockito.mock(ManagedDataStore.class), new JsonCodec(), trackingMessageCreator);
         }
 
         @Override
@@ -722,7 +731,8 @@ public class WorkerCoreTest
             final int maxTasks,
             final String invalidQueue,
             final ManagedDataStore dataStore,
-            final Codec codec)
+            final Codec codec,
+            final TrackingMessageCreator trackingMessageCreator)
         {
             return new TestWorkerQueueWithNullPausedQueue(this.results);
         }

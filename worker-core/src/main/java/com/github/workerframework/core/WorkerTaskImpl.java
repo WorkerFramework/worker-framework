@@ -24,6 +24,7 @@ import com.github.workerframework.api.TaskRejectedException;
 import com.github.workerframework.api.TaskSourceInfo;
 import com.github.workerframework.api.TaskStatus;
 import com.github.workerframework.api.TrackingInfo;
+import com.github.workerframework.api.TrackingMessageCreator;
 import com.github.workerframework.api.Worker;
 import com.github.workerframework.api.WorkerCallback;
 import com.github.workerframework.api.WorkerConfiguration;
@@ -64,6 +65,7 @@ class WorkerTaskImpl implements WorkerTask
     private final boolean poison;
     private final Codec codec;
     private final Map<String, Object> headers;
+    private final TrackingMessageCreator trackingMessageCreator;
 
     public WorkerTaskImpl(
             final ServicePath servicePath,
@@ -72,7 +74,8 @@ class WorkerTaskImpl implements WorkerTask
             final TaskInformation taskInformation,
             final TaskMessage taskMessage,
             final Map<String, Object> headers,
-            final Codec codec
+            final Codec codec,
+            final TrackingMessageCreator trackingMessageCreator
     )
     {
         this.servicePath = servicePath;
@@ -89,6 +92,7 @@ class WorkerTaskImpl implements WorkerTask
         this.poison = taskInformation.isPoison();
         this.headers = headers;
         this.codec = codec;
+        this.trackingMessageCreator = trackingMessageCreator;
     }
 
     @Override
@@ -491,7 +495,7 @@ class WorkerTaskImpl implements WorkerTask
             }
 
             //  Publish the messages currently in the buffer to be published.
-            final var reportUpdateMessage = TrackingMessageCreator.createTrackingMessage(bufferContentsToPublish,
+            final var reportUpdateMessage = trackingMessageCreator.createTrackingMessage(bufferContentsToPublish,
                 taskMessage.getCorrelationId(), headers, codec);
             if (reportUpdateMessage != null) {
                 workerCallback.reportUpdate(taskInformation, reportUpdateMessage);

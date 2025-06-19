@@ -26,7 +26,7 @@ import com.github.workerframework.api.TaskCallback;
 import com.github.workerframework.api.TaskMessage;
 import com.github.workerframework.api.TaskRejectedException;
 import com.github.workerframework.api.TrackingInfo;
-import com.github.workerframework.core.TrackingMessageCreator;
+import com.github.workerframework.api.TrackingMessageCreator;
 import com.github.workerframework.util.rabbitmq.QueueConsumer;
 import com.github.workerframework.util.rabbitmq.ConsumerAckEvent;
 import com.github.workerframework.util.rabbitmq.Event;
@@ -70,6 +70,7 @@ public class WorkerQueueConsumerImpl implements QueueConsumer
     private final Codec codec;
     private final Runnable disconnectCallback;
     private final SortedMap<Long, String> offloadedPayloadsToDelete;
+    private final TrackingMessageCreator trackingMessageCreator;
 
     private static final Logger LOG = LoggerFactory.getLogger(WorkerQueueConsumerImpl.class);
 
@@ -85,7 +86,8 @@ public class WorkerQueueConsumerImpl implements QueueConsumer
                                    BlockingQueue<Event<WorkerPublisher>> pubQueue, String retryKey, int retryLimit,
                                    final String invalidKey,
                                    final ManagedDataStore dataStore, final Codec codec,
-                                   final Runnable disconnectCallback) {
+                                   final Runnable disconnectCallback, final TrackingMessageCreator trackingMessageCreator)
+    {
         this.callback = Objects.requireNonNull(callback);
         this.metrics = Objects.requireNonNull(metrics);
         this.consumerEventQueue = Objects.requireNonNull(queue);
@@ -98,6 +100,7 @@ public class WorkerQueueConsumerImpl implements QueueConsumer
         this.codec = Objects.requireNonNull(codec);
         this.disconnectCallback = Objects.requireNonNull(disconnectCallback);
         this.offloadedPayloadsToDelete = Collections.synchronizedSortedMap(new TreeMap<>());
+        this.trackingMessageCreator = Objects.requireNonNull(trackingMessageCreator);
     }
 
     /**
@@ -132,7 +135,12 @@ public class WorkerQueueConsumerImpl implements QueueConsumer
             try {
                 handleTaskDataInjection(taskMessage, inboundMessageId, taskMessageStorageRefOpt);
             } catch (final ReferenceNotFoundException ex) {
-                handleReferenceNotFound(ex,inboundMessageId, deliveryMessageData, taskMessage, deliveryHeaders);
+                final RabbitTaskInformation taskInformation = new RabbitTaskInformation(String.valueOf(inboundMessageId), true);
+                taskInformation.incrementResponseCount(true);
+                final var publishHeaders = new HashMap<>(deliveryHeaders);
+                publishHeaders.put(RABBIT_HEADER_CAF_WORKER_INVALID, ex.getMessage());
+                publisherEventQueue.add(new WorkerPublishQueueEvent(deliveryMessageData, invalidRoutingKey, taskInformation, publishHeaders));
+                sendTrackingReport(taskInformation, taskMessage, publishHeaders);
                 return;
             }
 
@@ -215,36 +223,24 @@ public class WorkerQueueConsumerImpl implements QueueConsumer
             final var taskData = inputStream.readAllBytes();
             offloadedPayloadsToDelete.put(inboundMessageId, taskMessageStorageRef);
             return taskData;
-        } catch (final ReferenceNotFoundException ex) {
-            throw ex;
         } catch (final IOException | DataStoreException ex) {
+            if (ex instanceof ReferenceNotFoundException) {
+                throw (ReferenceNotFoundException)ex;
+            }
             throw new TransientDeliveryException(
                 "TaskMessage's TaskData could not be retrieved from DataStore", inboundMessageId, ex);
         }
     }
 
-    private void handleReferenceNotFound(
-        final ReferenceNotFoundException referenceNotFoundException,
-        final long inboundMessageId,
-        final byte[] deliveryMessageData,
-        final TaskMessage taskMessage,
-        final Map<String, Object> deliveryHeaders
-    ) {
-        final RabbitTaskInformation taskInformation = new RabbitTaskInformation(String.valueOf(inboundMessageId), true);
-        taskInformation.incrementResponseCount(true);
-        final var publishHeaders = new HashMap<>(deliveryHeaders);
-        publishHeaders.put(RABBIT_HEADER_CAF_WORKER_INVALID, referenceNotFoundException.getMessage());
-
-        // Send to the invalid message queue.
-        publisherEventQueue.add(new WorkerPublishQueueEvent(deliveryMessageData, invalidRoutingKey, taskInformation, publishHeaders));
-
+    private void sendTrackingReport(final RabbitTaskInformation taskInformation, final TaskMessage taskMessage,
+                                    final Map<String, Object> headers)
+    {
         try {
-            // Update the job.
-            final var trackingMessage = TrackingMessageCreator.createTrackingMessage(Collections.singletonList(taskMessage),
-                taskMessage.getCorrelationId(), publishHeaders, codec);
+            final var trackingMessage = trackingMessageCreator.createTrackingMessage(Collections.singletonList(taskMessage),
+                taskMessage.getCorrelationId(), headers, codec);
             if (trackingMessage != null) {
                 final var serializedTrackingMessage = codec.serialise(trackingMessage);
-                publisherEventQueue.add(new WorkerPublishQueueEvent(serializedTrackingMessage, taskMessage.getTo(), taskInformation, publishHeaders));
+                publisherEventQueue.add(new WorkerPublishQueueEvent(serializedTrackingMessage, taskMessage.getTo(), taskInformation, headers));
             }
         } catch (CodecException e) {
             LOG.error("Failed to serialise report update task data.");

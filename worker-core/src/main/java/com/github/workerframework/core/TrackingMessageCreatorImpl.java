@@ -20,6 +20,7 @@ import com.github.cafapi.common.api.CodecException;
 import com.github.workerframework.api.TaskMessage;
 import com.github.workerframework.api.TaskSourceInfo;
 import com.github.workerframework.api.TaskStatus;
+import com.github.workerframework.api.TrackingMessageCreator;
 import com.github.workerframework.tracking.report.TrackingReport;
 import com.github.workerframework.tracking.report.TrackingReportConstants;
 import com.github.workerframework.tracking.report.TrackingReportFailure;
@@ -38,9 +39,9 @@ import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 
-public final class TrackingMessageCreator {
+public final class TrackingMessageCreatorImpl implements TrackingMessageCreator {
 
-    private static final Logger LOG = LoggerFactory.getLogger(WorkerTaskImpl.class);
+    private static final Logger LOG = LoggerFactory.getLogger(TrackingMessageCreatorImpl.class);
 
     private static final boolean isZeroProgressReportingEnabled
         = !Boolean.parseBoolean(System.getenv("CAF_WORKER_DISABLE_ZERO_PROGRESS_REPORTING"));
@@ -48,7 +49,8 @@ public final class TrackingMessageCreator {
     /**
      * Used to create a task message to publish a progress report update message onto the tracking pipe.
      */
-    public static TaskMessage createTrackingMessage(
+    @Override
+    public TaskMessage createTrackingMessage(
         final List<TaskMessage> reportUpdates,
         final String correlationId,
         final Map<String, Object> headers,
