@@ -213,7 +213,8 @@ public class WorkerQueueConsumerImpl implements QueueConsumer
             try {
                 offloadedTaskData = retrieveTaskDataFromStore(taskMessageStorageRefOpt.get(), inboundMessageId);
             } catch (final ReferenceNotFoundException e) {
-                throw new InvalidDeliveryException("The storage reference is invalid.", inboundMessageId);
+                final var msg = String.format("Reference not found: %s", taskMessageStorageRefOpt.get());
+                throw new InvalidDeliveryException(msg, inboundMessageId);
             }
             taskMessage.setTaskData(offloadedTaskData);
         }
