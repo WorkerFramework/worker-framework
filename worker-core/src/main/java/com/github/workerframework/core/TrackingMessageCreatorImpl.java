@@ -40,12 +40,16 @@ import java.util.UUID;
 
 import static com.github.workerframework.core.WorkerTaskImpl.getWorkerName;
 
-public final class TrackingMessageCreatorImpl implements TrackingMessageCreator {
+public enum TrackingMessageCreatorImpl implements TrackingMessageCreator {
+
+    INSTANCE;
 
     private static final Logger LOG = LoggerFactory.getLogger(TrackingMessageCreatorImpl.class);
 
     private static final boolean isZeroProgressReportingEnabled
         = !Boolean.parseBoolean(System.getenv("CAF_WORKER_DISABLE_ZERO_PROGRESS_REPORTING"));
+
+    TrackingMessageCreatorImpl() {}
 
     /**
      * Used to create a task message to publish a progress report update message onto the tracking pipe.
