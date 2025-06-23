@@ -134,13 +134,13 @@ public class WorkerQueueConsumerImpl implements QueueConsumer
 
             try {
                 handleTaskDataInjection(taskMessage, inboundMessageId, taskMessageStorageRefOpt);
-            } catch (final ReferenceNotFoundException ex) {
+            } catch (final InvalidDeliveryException ex) {
                 final RabbitTaskInformation taskInformation = new RabbitTaskInformation(String.valueOf(inboundMessageId), true);
                 taskInformation.incrementResponseCount(true);
                 final var publishHeaders = new HashMap<>(deliveryHeaders);
                 publishHeaders.put(RABBIT_HEADER_CAF_WORKER_INVALID, ex.getMessage());
                 publisherEventQueue.add(new WorkerPublishQueueEvent(deliveryMessageData, invalidRoutingKey, taskInformation, publishHeaders));
-                sendTrackingReport(taskInformation, taskMessage, publishHeaders);
+                sendFailureTrackingReport(taskInformation, taskMessage, publishHeaders);
                 return;
             }
 
@@ -194,7 +194,7 @@ public class WorkerQueueConsumerImpl implements QueueConsumer
      */
     private void handleTaskDataInjection(final TaskMessage taskMessage, final long inboundMessageId, 
                                          final Optional<String> taskMessageStorageRefOpt) 
-        throws ReferenceNotFoundException, InvalidDeliveryException, TransientDeliveryException
+        throws InvalidDeliveryException, TransientDeliveryException
     {
         final byte[] currentTaskData = taskMessage.getTaskData();
         final boolean hasStorageRef = taskMessageStorageRefOpt.isPresent();
@@ -209,7 +209,12 @@ public class WorkerQueueConsumerImpl implements QueueConsumer
                     "TaskMessage contains neither taskData nor a storage reference. This is invalid.", inboundMessageId);
         }
         if (hasStorageRef) {
-            final byte[] offloadedTaskData = retrieveTaskDataFromStore(taskMessageStorageRefOpt.get(), inboundMessageId);
+            final byte[] offloadedTaskData;
+            try {
+                offloadedTaskData = retrieveTaskDataFromStore(taskMessageStorageRefOpt.get(), inboundMessageId);
+            } catch (final ReferenceNotFoundException e) {
+                throw new InvalidDeliveryException("The storage reference is invalid.", inboundMessageId);
+            }
             taskMessage.setTaskData(offloadedTaskData);
         }
         // If hasTaskData and !hasStorageRef, nothing to do
@@ -231,8 +236,8 @@ public class WorkerQueueConsumerImpl implements QueueConsumer
         }
     }
 
-    private void sendTrackingReport(final RabbitTaskInformation taskInformation, final TaskMessage taskMessage,
-                                    final Map<String, Object> headers)
+    private void sendFailureTrackingReport(final RabbitTaskInformation taskInformation, final TaskMessage taskMessage,
+                                           final Map<String, Object> headers)
     {
         try {
             final var trackingMessage = trackingMessageCreator.createTrackingMessage(Collections.singletonList(taskMessage),
@@ -376,7 +381,7 @@ public class WorkerQueueConsumerImpl implements QueueConsumer
         final int retries,
         final TrackingInfo tracking,
         final Optional<String> taskMessageStorageRefOpt
-    ) throws InvalidDeliveryException
+    )
     {
         final String trackingJobTaskId = tracking != null ? tracking.getJobTaskId() : "untracked";
         final RabbitTaskInformation taskInformation = new RabbitTaskInformation(
