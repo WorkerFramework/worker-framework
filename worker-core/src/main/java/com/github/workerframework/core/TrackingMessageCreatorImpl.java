@@ -66,7 +66,7 @@ public enum TrackingMessageCreatorImpl implements TrackingMessageCreator {
         final var taskClassifier = MoreObjects.firstNonNull(taskMessage.getTaskClassifier(), "");
         final byte[] taskData = message == null ? new byte[]{} : message.getBytes(StandardCharsets.UTF_8);
         if (taskMessage == null) {
-            return createInvalidTaskMessage(taskData, routingKey);
+            return createForTaskMessageDeserializationIssue(taskData, routingKey);
         }
         return new TaskMessage(
             MoreObjects.firstNonNull(taskMessage.getTaskId(), ""),
@@ -81,7 +81,7 @@ public enum TrackingMessageCreatorImpl implements TrackingMessageCreator {
             taskMessage.getCorrelationId());
     }
 
-    private TaskMessage createInvalidTaskMessage(
+    private TaskMessage createForTaskMessageDeserializationIssue(
         byte[] taskData,
         final String routingKey
     ) {
