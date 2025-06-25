@@ -133,18 +133,16 @@ public class WorkerQueueConsumerImpl implements QueueConsumer
             try {
                 taskMessage = codec.deserialise(deliveryMessageData, TaskMessage.class, DecodeMethod.LENIENT);
             } catch (final CodecException e) {
-                throw new InvalidDeliveryException("Cannot deserialize delivery messageData to TaskMessage", inboundMessageId, e);
+                handleInvalidDelivery(inboundMessageId, null, deliveryMessageData, deliveryHeaders,
+                    "Cannot deserialize delivery messageData to TaskMessage");
+                return;
             }
 
             try {
                 handleTaskDataInjection(taskMessage, inboundMessageId, taskMessageStorageRefOpt);
             } catch (final InvalidDeliveryException ex) {
-                final RabbitTaskInformation taskInformation = new RabbitTaskInformation(String.valueOf(inboundMessageId), true);
-                taskInformation.incrementResponseCount(true);
-                final var publishHeaders = new HashMap<>(deliveryHeaders);
-                publishHeaders.put(RABBIT_HEADER_CAF_WORKER_INVALID, ex.getMessage());
-                publisherEventQueue.add(new WorkerPublishQueueEvent(deliveryMessageData, invalidRoutingKey, taskInformation, publishHeaders));
-                sendFailureTrackingReport(taskInformation, taskMessage, publishHeaders, ex);
+                handleInvalidDelivery(inboundMessageId, taskMessage, deliveryMessageData, deliveryHeaders,
+                    ex.getMessage());
                 return;
             }
 
@@ -173,16 +171,6 @@ public class WorkerQueueConsumerImpl implements QueueConsumer
                     deliveryMessageData,
                     poisonMessageStatus == PoisonMessageStatus.POISON
             );
-        }
-        catch (final InvalidDeliveryException ex) {
-            LOG.error("Invalid delivery for message id {}: {}", ex.getMessageId(), ex.getMessage());
-
-            final RabbitTaskInformation taskInformation = new RabbitTaskInformation(String.valueOf(inboundMessageId), true);
-            taskInformation.incrementResponseCount(true);
-            final var publishHeaders = new HashMap<>(deliveryHeaders);
-            publishHeaders.put(RABBIT_HEADER_CAF_WORKER_INVALID, ex);
-
-            publisherEventQueue.add(new WorkerPublishQueueEvent(deliveryMessageData, routingKey, taskInformation, publishHeaders));
         } catch (final TransientDeliveryException e) {
             LOG.warn("Transient error processing message id {}, disconnecting.", inboundMessageId, e);
             offloadedPayloadsToDelete.remove(inboundMessageId);
@@ -241,15 +229,27 @@ public class WorkerQueueConsumerImpl implements QueueConsumer
         }
     }
 
-    private void sendFailureTrackingReport(final RabbitTaskInformation taskInformation, final TaskMessage taskMessage,
-                                           final Map<String, Object> headers, final InvalidDeliveryException ex)
+    private void handleInvalidDelivery(
+        final long inboundMessageId,
+        final TaskMessage taskMessage,
+        final byte[] deliveryMessageData,
+        final Map<String, Object> deliveryHeaders,
+        final String invalidDeliveryExceptionMessage
+    )
     {
         try {
+            final RabbitTaskInformation taskInformation = new RabbitTaskInformation(String.valueOf(inboundMessageId), true);
+            taskInformation.incrementResponseCount(true);
+            final var publishHeaders = new HashMap<>(deliveryHeaders);
+            publishHeaders.put(RABBIT_HEADER_CAF_WORKER_INVALID, invalidDeliveryExceptionMessage);
+
+            publisherEventQueue.add(new WorkerPublishQueueEvent(deliveryMessageData, invalidRoutingKey, taskInformation, publishHeaders));
+
             final var trackingMessage = trackingMessageCreator.createInvalidTaskMessage(
-                taskMessage, ex.getMessage(), invalidRoutingKey, workerConfiguration);
+                taskMessage, invalidDeliveryExceptionMessage, invalidRoutingKey, workerConfiguration);
             final var serializedTrackingMessage = codec.serialise(trackingMessage);
             publisherEventQueue.add(new WorkerPublishQueueEvent(
-                serializedTrackingMessage, taskMessage.getTo(), taskInformation, headers)
+                serializedTrackingMessage, invalidRoutingKey, taskInformation, publishHeaders)
             );
         } catch (CodecException e) {
             LOG.error("Failed to serialise report update task data.");
