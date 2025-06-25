@@ -35,6 +35,7 @@ import com.github.workerframework.api.WorkerResponse;
 import com.github.workerframework.api.WorkerTaskData;
 import com.github.workerframework.caf.AbstractWorker;
 import org.testng.Assert;
+import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;
 import org.mockito.Mockito;
 import org.testng.internal.junit.ArrayAsserts;
@@ -62,7 +63,13 @@ public class StreamingWorkerWrapperTest
     private static final int WORKER_API_VER = 1;
     private static final String TASK_ID = "testTask";
     private static final String SERVICE_NAME = "/test/group";
-    private static final TrackingMessageCreator trackingMessageCreator = new TrackingMessageCreatorImpl();
+    private static TrackingMessageCreator trackingMessageCreator;
+
+    @BeforeClass
+    public static void beforeClass()
+    {
+        trackingMessageCreator = TrackingMessageCreatorImpl.getInstance(Mockito.mock(WorkerFactory.class));
+    }
 
     @Test
     public void testSuccess()

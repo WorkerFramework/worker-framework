@@ -15,16 +15,26 @@
  */
 package com.github.workerframework.api;
 
-import com.github.cafapi.common.api.Codec;
-
-import java.util.List;
 import java.util.Map;
 
 public interface TrackingMessageCreator {
-    TaskMessage createTrackingMessage(
-        List<TaskMessage> reportUpdates,
-        String correlationId,
-        Map<String, Object> headers,
-        Codec codec
+
+    TaskMessage createResponseTaskMessage(
+        final TaskMessage taskMessage,
+        final WorkerResponse response,
+        final Map<String, byte[]> responseContext,
+        final TrackingInfo trackingInfo
+    );
+
+    TaskMessage createReportUpdateMessage(
+        final String correlationId,
+        final byte[] reportUpdatesTaskData,
+        final String routingKey
+    );
+
+    TaskMessage createInvalidTaskMessage(
+        final TaskMessage taskMessage,
+        final String message,
+        final String routingKey
     );
 }

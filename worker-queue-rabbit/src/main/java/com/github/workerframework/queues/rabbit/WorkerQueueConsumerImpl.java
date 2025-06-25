@@ -39,6 +39,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
+import java.nio.charset.StandardCharsets;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
@@ -140,7 +141,7 @@ public class WorkerQueueConsumerImpl implements QueueConsumer
                 final var publishHeaders = new HashMap<>(deliveryHeaders);
                 publishHeaders.put(RABBIT_HEADER_CAF_WORKER_INVALID, ex.getMessage());
                 publisherEventQueue.add(new WorkerPublishQueueEvent(deliveryMessageData, invalidRoutingKey, taskInformation, publishHeaders));
-                sendFailureTrackingReport(taskInformation, taskMessage, publishHeaders);
+                sendFailureTrackingReport(taskInformation, taskMessage, publishHeaders, ex);
                 return;
             }
 
@@ -192,7 +193,7 @@ public class WorkerQueueConsumerImpl implements QueueConsumer
      * Returns true if processing should continue, false if it should stop (e.g. error).
      * If invalid, handles as poison message (publishes to retry queue) and returns false.
      */
-    private void handleTaskDataInjection(final TaskMessage taskMessage, final long inboundMessageId, 
+    private void handleTaskDataInjection(final TaskMessage taskMessage, final long inboundMessageId,
                                          final Optional<String> taskMessageStorageRefOpt) 
         throws InvalidDeliveryException, TransientDeliveryException
     {
@@ -238,15 +239,15 @@ public class WorkerQueueConsumerImpl implements QueueConsumer
     }
 
     private void sendFailureTrackingReport(final RabbitTaskInformation taskInformation, final TaskMessage taskMessage,
-                                           final Map<String, Object> headers)
+                                           final Map<String, Object> headers, final InvalidDeliveryException ex)
     {
         try {
-            final var trackingMessage = trackingMessageCreator.createTrackingMessage(Collections.singletonList(taskMessage),
-                taskMessage.getCorrelationId(), headers, codec);
-            if (trackingMessage != null) {
-                final var serializedTrackingMessage = codec.serialise(trackingMessage);
-                publisherEventQueue.add(new WorkerPublishQueueEvent(serializedTrackingMessage, taskMessage.getTo(), taskInformation, headers));
-            }
+            final var trackingMessage = trackingMessageCreator.createInvalidTaskMessage(
+                taskMessage, ex.getMessage(), invalidRoutingKey);
+            final var serializedTrackingMessage = codec.serialise(trackingMessage);
+            publisherEventQueue.add(new WorkerPublishQueueEvent(
+                serializedTrackingMessage, taskMessage.getTo(), taskInformation, headers)
+            );
         } catch (CodecException e) {
             LOG.error("Failed to serialise report update task data.");
             throw new RuntimeException(e);

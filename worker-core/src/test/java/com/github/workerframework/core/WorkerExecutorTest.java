@@ -30,6 +30,7 @@ import com.github.workerframework.api.WorkerCallback;
 import com.github.workerframework.api.WorkerFactory;
 import com.github.workerframework.api.WorkerResponse;
 import org.testng.Assert;
+import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;
 import org.mockito.Mockito;
 import org.mockito.invocation.InvocationOnMock;
@@ -45,7 +46,13 @@ import static org.mockito.Mockito.withSettings;
 
 public class WorkerExecutorTest
 {
-    private static final TrackingMessageCreator trackingMessageCreator = new TrackingMessageCreatorImpl();
+    private static TrackingMessageCreator trackingMessageCreator;
+
+    @BeforeClass
+    public static void beforeClass()
+    {
+        trackingMessageCreator = TrackingMessageCreatorImpl.getInstance(Mockito.mock(WorkerFactory.class));
+    }
 
     @Test
     public void testExecuteTask()

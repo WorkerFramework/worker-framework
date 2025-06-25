@@ -48,6 +48,7 @@ import com.github.workerframework.tracking.report.TrackingReportConstants;
 import java.io.File;
 import java.net.MalformedURLException;
 import org.testng.Assert;
+import org.testng.annotations.BeforeClass;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 import org.mockito.Mockito;
@@ -80,7 +81,13 @@ public class WorkerCoreTest
     private static final String QUEUE_PAUSED = "pausedQueue";
     private static final String SERVICE_PATH = "/test/group";
     private TaskInformation taskInformation;
-    private static final TrackingMessageCreator trackingMessageCreator = new TrackingMessageCreatorImpl();
+    private static TrackingMessageCreator trackingMessageCreator;
+
+    @BeforeClass
+    public static void beforeClass()
+    {
+        trackingMessageCreator = TrackingMessageCreatorImpl.getInstance(Mockito.mock(WorkerFactory.class));
+    }
 
     @BeforeMethod
     private void before() {
@@ -727,7 +734,7 @@ public class WorkerCoreTest
 
         @Override
         public final TestWorkerQueueWithNullPausedQueue getWorkerQueue(
-            final ConfigurationSource configurationSource, 
+            final ConfigurationSource configurationSource,
             final int maxTasks,
             final String invalidQueue,
             final ManagedDataStore dataStore,
