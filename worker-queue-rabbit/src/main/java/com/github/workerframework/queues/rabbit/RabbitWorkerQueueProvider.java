@@ -22,6 +22,7 @@ import com.github.workerframework.api.ManagedDataStore;
 import com.github.workerframework.api.ManagedWorkerQueue;
 import com.github.workerframework.api.QueueException;
 import com.github.workerframework.api.TrackingMessageCreator;
+import com.github.workerframework.api.WorkerConfiguration;
 import com.github.workerframework.api.WorkerQueueProvider;
 
 public class RabbitWorkerQueueProvider implements WorkerQueueProvider
@@ -33,8 +34,8 @@ public class RabbitWorkerQueueProvider implements WorkerQueueProvider
         final String invalidQueue,
         final ManagedDataStore dataStore,
         final Codec codec,
-        final TrackingMessageCreator trackingMessageCreator
-    ) throws QueueException
+        final TrackingMessageCreator trackingMessageCreator,
+        final WorkerConfiguration workerConfiguration) throws QueueException
     {
         try {
             return new RabbitWorkerQueue(
@@ -43,7 +44,8 @@ public class RabbitWorkerQueueProvider implements WorkerQueueProvider
                 invalidQueue,
                 dataStore,
                 codec,
-                trackingMessageCreator
+                trackingMessageCreator,
+                workerConfiguration
             );
         } catch (final ConfigurationException e) {
             throw new QueueException("Cannot create worker queue", e);

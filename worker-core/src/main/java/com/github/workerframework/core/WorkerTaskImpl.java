@@ -204,7 +204,7 @@ class WorkerTaskImpl implements WorkerTask
         }
 
         final TaskMessage responseMessage = trackingMessageCreator.createResponseTaskMessage(
-            taskMessage, response, responseContext, trackingInfo);
+            taskMessage, response, responseContext, trackingInfo, workerFactory.getWorkerConfiguration());
 
         return responseMessage;
     }
@@ -246,7 +246,11 @@ class WorkerTaskImpl implements WorkerTask
         final String invalidTaskExceptionMessage = invalidTaskException.getMessage();
 
         final TaskMessage invalidResponse = trackingMessageCreator.createInvalidTaskMessage(
-            taskMessage, invalidTaskExceptionMessage, workerFactory.getInvalidTaskQueue());
+            taskMessage,
+            invalidTaskExceptionMessage,
+            workerFactory.getInvalidTaskQueue(),
+            workerFactory.getWorkerConfiguration()
+        );
 
         completeResponse(invalidResponse);
     }

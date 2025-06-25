@@ -23,7 +23,8 @@ public interface TrackingMessageCreator {
         final TaskMessage taskMessage,
         final WorkerResponse response,
         final Map<String, byte[]> responseContext,
-        final TrackingInfo trackingInfo
+        final TrackingInfo trackingInfo,
+        final WorkerConfiguration workerConfiguration
     );
 
     TaskMessage createReportUpdateMessage(
@@ -35,6 +36,7 @@ public interface TrackingMessageCreator {
     TaskMessage createInvalidTaskMessage(
         final TaskMessage taskMessage,
         final String message,
-        final String routingKey
+        final String routingKey,
+        final WorkerConfiguration workerConfiguration
     );
 }

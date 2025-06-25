@@ -30,22 +30,19 @@ import java.util.Collections;
 import java.util.Map;
 import java.util.UUID;
 
-public final class TrackingMessageCreatorImpl implements TrackingMessageCreator {
+public enum TrackingMessageCreatorImpl implements TrackingMessageCreator {
 
-    private final WorkerConfiguration workerConfig;
+    INSTANCE;
 
     private static final String WORKER_VERSION_UNKNOWN = "UNKNOWN";
-
-    public TrackingMessageCreatorImpl(final WorkerConfiguration workerConfig) {
-        this.workerConfig = workerConfig;
-    }
 
     @Override
     public TaskMessage createResponseTaskMessage(
         final TaskMessage taskMessage,
         final WorkerResponse response,
         final Map<String, byte[]> responseContext,
-        final TrackingInfo trackingInfo
+        final TrackingInfo trackingInfo,
+        final WorkerConfiguration workerConfig
     ) {
         return new TaskMessage(
             taskMessage.getTaskId(),
@@ -56,7 +53,7 @@ public final class TrackingMessageCreatorImpl implements TrackingMessageCreator 
             responseContext,
             response.getQueueReference(),
             trackingInfo,
-            new TaskSourceInfo(getWorkerName(response.getMessageType()), getWorkerVersion()),
+            new TaskSourceInfo(getWorkerName(workerConfig, response.getMessageType()), getWorkerVersion(workerConfig)),
             taskMessage.getCorrelationId());
     }
 
@@ -64,8 +61,8 @@ public final class TrackingMessageCreatorImpl implements TrackingMessageCreator 
     public TaskMessage createInvalidTaskMessage(
         final TaskMessage taskMessage,
         final String message,
-        final String routingKey
-    ) {
+        final String routingKey,
+        final WorkerConfiguration workerConfig) {
         final var taskClassifier = MoreObjects.firstNonNull(taskMessage.getTaskClassifier(), "");
         final byte[] taskData = message == null ? new byte[]{} : message.getBytes(StandardCharsets.UTF_8);
         return new TaskMessage(
@@ -77,7 +74,7 @@ public final class TrackingMessageCreatorImpl implements TrackingMessageCreator 
             MoreObjects.firstNonNull(taskMessage.getContext(), Collections.emptyMap()),
             routingKey,
             taskMessage.getTracking(),
-            new TaskSourceInfo(getWorkerName(taskClassifier), getWorkerVersion()),
+            new TaskSourceInfo(getWorkerName(workerConfig, taskClassifier), getWorkerVersion(workerConfig)),
             taskMessage.getCorrelationId());
     }
 
@@ -100,7 +97,7 @@ public final class TrackingMessageCreatorImpl implements TrackingMessageCreator 
             correlationId);
     }
 
-    private String getWorkerName(final String defaultName)
+    private String getWorkerName(final WorkerConfiguration workerConfig, final String defaultName)
     {
         if (workerConfig != null) {
             final String workerName = workerConfig.getWorkerName();
@@ -113,7 +110,7 @@ public final class TrackingMessageCreatorImpl implements TrackingMessageCreator 
         return defaultName;
     }
 
-    private String getWorkerVersion()
+    private String getWorkerVersion(final WorkerConfiguration workerConfig)
     {
         if (workerConfig != null) {
             final String workerVersion = workerConfig.getWorkerVersion();
