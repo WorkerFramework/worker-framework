@@ -78,7 +78,7 @@ public class StreamingWorkerWrapperTest
         ServicePath path = new ServicePath(SERVICE_NAME);
         Map<String, Object> headers = new HashMap<>();
         WorkerTaskImpl workerTask = new WorkerTaskImpl(path, callback, happyWorkerFactory, getMockTaskInformation(queueMsgId), m,
-                headers, codec, TrackingMessageCreatorImpl.INSTANCE);
+                headers, codec);
         StreamingWorkerWrapper wrapper = new StreamingWorkerWrapper(workerTask);
         Thread t = new Thread(wrapper);
         t.start();
@@ -110,7 +110,7 @@ public class StreamingWorkerWrapperTest
         ServicePath path = new ServicePath(SERVICE_NAME);
         Map<String, Object> headers = new HashMap<>();
         WorkerTaskImpl workerTask = new WorkerTaskImpl(path, callback, happyWorkerFactory, getMockTaskInformation(queueMsgId), m,
-                headers, codec, TrackingMessageCreatorImpl.INSTANCE);
+                headers, codec);
         StreamingWorkerWrapper wrapper = new StreamingWorkerWrapper(workerTask);
         Thread t = new Thread(wrapper);
         t.start();
@@ -145,7 +145,7 @@ public class StreamingWorkerWrapperTest
         m.setContext(contextMap);
         Map<String, Object> headers = new HashMap<>();
         WorkerTaskImpl workerTask = new WorkerTaskImpl(path, callback, happyWorkerFactory, getMockTaskInformation(queueMsgId), m,
-                headers, codec, TrackingMessageCreatorImpl.INSTANCE);
+                headers, codec);
         StreamingWorkerWrapper wrapper = new StreamingWorkerWrapper(workerTask);
         Thread t = new Thread(wrapper);
         t.start();
@@ -178,7 +178,7 @@ public class StreamingWorkerWrapperTest
         m.setTaskId(TASK_ID);
         Map<String, Object> headers = new HashMap<>();
         WorkerTaskImpl workerTask = new WorkerTaskImpl(path, callback, happyWorkerFactory, getMockTaskInformation(queueMsgId), m,
-                headers, codec, TrackingMessageCreatorImpl.INSTANCE);
+                headers, codec);
         StreamingWorkerWrapper wrapper = new StreamingWorkerWrapper(workerTask);
         Thread t = new Thread(wrapper);
         t.start();
@@ -205,7 +205,7 @@ public class StreamingWorkerWrapperTest
         m.setTaskId(TASK_ID);
         Map<String, Object> headers = new HashMap<>();
         WorkerTaskImpl workerTask = new WorkerTaskImpl(path, callback, happyWorkerFactory, getMockTaskInformation(queueMsgId), m,
-                headers, codec, TrackingMessageCreatorImpl.INSTANCE);
+                headers, codec);
         StreamingWorkerWrapper wrapper = new StreamingWorkerWrapper(workerTask);
         Thread t = new Thread(wrapper);
         t.start();
@@ -239,7 +239,7 @@ public class StreamingWorkerWrapperTest
         m.setTaskData("Test data".getBytes(StandardCharsets.UTF_8));
         Map<String, Object> headers = new HashMap<>();
         WorkerTaskImpl workerTask = new WorkerTaskImpl(path, callback, happyWorkerFactory, getMockTaskInformationPoisonTrue(queueMsgId), m,
-                headers, codec, TrackingMessageCreatorImpl.INSTANCE);
+                headers, codec);
         StreamingWorkerWrapper wrapper = new StreamingWorkerWrapper(workerTask);
         Thread t = new Thread(wrapper);
         t.start();

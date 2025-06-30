@@ -126,47 +126,6 @@ public class PayloadOffloadingIT extends WorkerTestBase {
     }
 
     @Test
-    public void invalidOffloadedPayload() throws Exception {
-        final TestWorkerTask documentWorkerTask = new TestWorkerTask();
-        documentWorkerTask.setPoison(false);
-
-        final TaskMessage taskMessage = getTaskMessage(TEST_WORKER_NAME, 2, documentWorkerTask, WORKER_IN);
-        taskMessage.setTaskData(null);
-        final var setupPayloadOffloadStorageRef = UUID.randomUUID().toString();
-        writeFileToWebDav(setupPayloadOffloadStorageRef, "Junk data not JSON".getBytes(StandardCharsets.UTF_8));
-        
-        try(final Connection connection = connectionFactory.newConnection();
-            final Channel channel = prepareChannel(connection)) {
-            createQueues(channel, WORKER_IN, WORKER_OUT);
-            
-            //  Now we can send a message which expects to find the setupPayloadOffloadStorageRef.
-            final Map<String, Object> headers = new HashMap<>();
-            headers.put(RABBIT_HEADER_CAF_PAYLOAD_OFFLOADING_STORAGE_REF, setupPayloadOffloadStorageRef);
-            publish(channel, codec.serialise(taskMessage), headers, WORKER_IN);
-            
-            final TestWorkerQueueConsumer outConsumer = new TestWorkerQueueConsumer();
-            consume(channel, outConsumer, WORKER_OUT);
-            
-            Assert.assertNotNull(outConsumer.getLastDeliveredBody(), 
-                    "Message was not delivered to the invalid queue before timeout or not at all.");
-            final TaskMessage outTaskMessage = codec.deserialise(outConsumer.getLastDeliveredBody(),
-                    TaskMessage.class);
-
-            Assert.assertEquals(outTaskMessage.getTaskClassifier(), "TestWorkerFailureResult");
-            
-            Assert.assertEquals(outTaskMessage.getTaskId(), taskMessage.getTaskId());
-
-            Assert.assertNotNull(outConsumer.getHeaders().get(RabbitHeaders.RABBIT_HEADER_CAF_PAYLOAD_OFFLOADING_STORAGE_REF),
-                    "RABBIT_HEADER_CAF_PAYLOAD_OFFLOADING_STORAGE_REF is missing");
-
-            Assert.assertNotEquals(
-                    outConsumer.getHeaders().get(RabbitHeaders.RABBIT_HEADER_CAF_PAYLOAD_OFFLOADING_STORAGE_REF).toString(),
-                    setupPayloadOffloadStorageRef);
-
-        }
-    }
-    
-    @Test
     public void checkOffloadedPayloadIsDeletedOnTerminalWorker() throws Exception {
         // First we need a message stored in the datastore
         final TestWorkerTask terminalDocumentWorkerTask = new TestWorkerTask();

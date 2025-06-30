@@ -25,7 +25,6 @@ import com.github.workerframework.api.TaskRejectedException;
 import com.github.workerframework.api.TaskSourceInfo;
 import com.github.workerframework.api.TaskStatus;
 import com.github.workerframework.api.TrackingInfo;
-import com.github.workerframework.api.TrackingMessageCreator;
 import com.github.workerframework.api.Worker;
 import com.github.workerframework.api.WorkerCallback;
 import com.github.workerframework.api.WorkerFactory;
@@ -71,7 +70,6 @@ class WorkerTaskImpl implements WorkerTask
     private final boolean poison;
     private final Codec codec;
     private final Map<String, Object> headers;
-    private final TrackingMessageCreator trackingMessageCreator;
 
     public WorkerTaskImpl(
             final ServicePath servicePath,
@@ -80,8 +78,7 @@ class WorkerTaskImpl implements WorkerTask
             final TaskInformation taskInformation,
             final TaskMessage taskMessage,
             final Map<String, Object> headers,
-            final Codec codec,
-            final TrackingMessageCreator trackingMessageCreator
+            final Codec codec
     )
     {
         this.servicePath = servicePath;
@@ -98,7 +95,6 @@ class WorkerTaskImpl implements WorkerTask
         this.poison = taskInformation.isPoison();
         this.headers = headers;
         this.codec = codec;
-        this.trackingMessageCreator = trackingMessageCreator;
     }
 
     @Override
@@ -203,7 +199,7 @@ class WorkerTaskImpl implements WorkerTask
             trackingInfo = getTrackingInfoWithChanges(response.getTrackTo());
         }
 
-        final TaskMessage responseMessage = trackingMessageCreator.createResponseTaskMessage(
+        final TaskMessage responseMessage = TrackingMessageCreatorImpl.INSTANCE.createResponseTaskMessage(
             taskMessage, response, responseContext, trackingInfo, workerFactory.getWorkerConfiguration());
 
         return responseMessage;
@@ -245,7 +241,7 @@ class WorkerTaskImpl implements WorkerTask
 
         final String invalidTaskExceptionMessage = invalidTaskException.getMessage();
 
-        final TaskMessage invalidResponse = trackingMessageCreator.createInvalidTaskMessage(
+        final TaskMessage invalidResponse = TrackingMessageCreatorImpl.INSTANCE.createInvalidTaskMessage(
             taskMessage,
             invalidTaskExceptionMessage,
             workerFactory.getInvalidTaskQueue(),
@@ -575,7 +571,7 @@ class WorkerTaskImpl implements WorkerTask
         }
 
         //  Create a task message comprising the progress report updates.
-        final TaskMessage reportUpdateMessage = trackingMessageCreator.createReportUpdateMessage(
+        final TaskMessage reportUpdateMessage = TrackingMessageCreatorImpl.INSTANCE.createReportUpdateMessage(
             taskMessage.getCorrelationId(),
             reportUpdatesTaskData,
             trackingPipe

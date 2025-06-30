@@ -30,7 +30,6 @@ import com.github.workerframework.api.TaskMessage;
 import com.github.workerframework.api.TaskRejectedException;
 import com.github.workerframework.api.TaskStatus;
 import com.github.workerframework.api.TrackingInfo;
-import com.github.workerframework.api.TrackingMessageCreator;
 import com.github.workerframework.api.WorkerCallback;
 import com.github.workerframework.api.WorkerFactory;
 
@@ -63,11 +62,11 @@ final class WorkerCore
 
     public WorkerCore(final Codec codec, final WorkerThreadPool pool, final ManagedWorkerQueue queue, final WorkerFactory factory,
                       final ServicePath path, final HealthCheckRegistry healthCheckRegistry,
-                      final TransientHealthCheck transientHealthCheck, final TrackingMessageCreator trackingMessageCreator)
+                      final TransientHealthCheck transientHealthCheck)
     {
         WorkerCallback taskCallback = new CoreWorkerCallback(queue, stats, healthCheckRegistry, transientHealthCheck);
         this.threadPool = Objects.requireNonNull(pool);
-        this.callback = new CoreTaskCallback(codec, stats, new WorkerExecutor(path, taskCallback, factory, trackingMessageCreator, pool), pool, queue);
+        this.callback = new CoreTaskCallback(codec, stats, new WorkerExecutor(path, taskCallback, factory, pool), pool, queue);
         this.workerQueue = Objects.requireNonNull(queue);
         this.isStarted = false;
     }

@@ -128,8 +128,7 @@ public final class WorkerApplication extends Application<WorkerConfiguration>
         ManagedWorkerQueue workerQueue = queueProvider.getWorkerQueue(config, nThreads, workerFactory.getInvalidTaskQueue(), store, codec,
             TrackingMessageCreatorImpl.INSTANCE, workerFactory.getWorkerConfiguration());
         TransientHealthCheck transientHealthCheck = new TransientHealthCheck();
-        WorkerCore core = new WorkerCore(codec, wtp, workerQueue, workerFactory, path, environment.healthChecks(), transientHealthCheck,
-            TrackingMessageCreatorImpl.INSTANCE);
+        WorkerCore core = new WorkerCore(codec, wtp, workerQueue, workerFactory, path, environment.healthChecks(), transientHealthCheck);
         HealthConfiguration healthConfiguration = config.getConfiguration(HealthConfiguration.class);
 
         environment.lifecycle().manage(new Managed() {
