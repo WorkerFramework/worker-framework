@@ -27,18 +27,22 @@ import com.github.workerframework.api.TaskStatus;
 import com.github.workerframework.api.TrackingInfo;
 import com.github.workerframework.api.Worker;
 import com.github.workerframework.api.WorkerCallback;
+import com.github.workerframework.api.WorkerConfiguration;
 import com.github.workerframework.api.WorkerFactory;
 import com.github.workerframework.api.WorkerResponse;
 import com.github.workerframework.api.WorkerTask;
+import com.google.common.base.MoreObjects;
 
 import java.nio.charset.StandardCharsets;
 import java.text.MessageFormat;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.UUID;
 import java.util.concurrent.Semaphore;
 import java.util.concurrent.atomic.AtomicInteger;
 
@@ -46,12 +50,14 @@ import com.github.workerframework.util.rabbitmq.RabbitHeaders;
 import com.github.workerframework.tracking.report.TrackingReportFailure;
 import com.github.workerframework.tracking.report.TrackingReportStatus;
 import com.github.workerframework.tracking.report.TrackingReportTask;
+import com.github.workerframework.tracking.report.TrackingReportConstants;
 import com.github.workerframework.tracking.report.TrackingReport;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 class WorkerTaskImpl implements WorkerTask
 {
+    private static final String WORKER_VERSION_UNKNOWN = "UNKNOWN";
     private static final Logger LOG = LoggerFactory.getLogger(WorkerTaskImpl.class);
     private static final boolean isZeroProgressReportingEnabled
         = !Boolean.parseBoolean(System.getenv("CAF_WORKER_DISABLE_ZERO_PROGRESS_REPORTING"));
@@ -189,6 +195,8 @@ class WorkerTaskImpl implements WorkerTask
     {
         final Map<String, byte[]> responseContext = createFullResponseContext(includeTaskContext, response.getContext());
 
+        final String responseMessageType = response.getMessageType();
+
         //  Check if a tracking change is required. If empty string then no further changes required.
         final TrackingInfo trackingInfo;
         if ("".equals(response.getTrackTo())) {
@@ -199,8 +207,12 @@ class WorkerTaskImpl implements WorkerTask
             trackingInfo = getTrackingInfoWithChanges(response.getTrackTo());
         }
 
-        final TaskMessage responseMessage = TaskMessageCreatorImpl.INSTANCE.createResponseTaskMessage(
-            taskMessage, response, responseContext, trackingInfo, workerFactory.getWorkerConfiguration());
+        final TaskMessage responseMessage = new TaskMessage(
+            taskMessage.getTaskId(), responseMessageType,
+            response.getApiVersion(), response.getData(),
+            response.getTaskStatus(), responseContext,
+            response.getQueueReference(), trackingInfo,
+            new TaskSourceInfo(getWorkerName(responseMessageType), getWorkerVersion()), taskMessage.getCorrelationId());
 
         return responseMessage;
     }
@@ -239,14 +251,28 @@ class WorkerTaskImpl implements WorkerTask
         LOG.error("Task data is invalid for {}, returning status {}",
                   taskMessage.getTaskId(), TaskStatus.INVALID_TASK, invalidTaskException);
 
-        final String invalidTaskExceptionMessage = invalidTaskException.getMessage();
+        final String taskClassifier = MoreObjects.firstNonNull(taskMessage.getTaskClassifier(), "");
 
-        final TaskMessage invalidResponse = TaskMessageCreatorImpl.INSTANCE.createInvalidTaskMessage(
-            taskMessage,
-            invalidTaskExceptionMessage,
+        final String invalidTaskExceptionMessage = invalidTaskException.getMessage();
+        final byte[] taskData
+            = invalidTaskExceptionMessage == null
+                ? new byte[]{} : invalidTaskExceptionMessage.getBytes(StandardCharsets.UTF_8);
+
+        final Map<String, byte[]> context = MoreObjects.firstNonNull(
+            taskMessage.getContext(),
+            Collections.<String, byte[]>emptyMap());
+
+        final TaskMessage invalidResponse = new TaskMessage(
+            MoreObjects.firstNonNull(taskMessage.getTaskId(), ""),
+            taskClassifier,
+            taskMessage.getTaskApiVersion(),
+            taskData,
+            TaskStatus.INVALID_TASK,
+            context,
             workerFactory.getInvalidTaskQueue(),
-            workerFactory.getWorkerConfiguration()
-        );
+            taskMessage.getTracking(),
+            new TaskSourceInfo(getWorkerName(taskClassifier), getWorkerVersion()),
+            taskMessage.getCorrelationId());
 
         completeResponse(invalidResponse);
     }
@@ -300,6 +326,36 @@ class WorkerTaskImpl implements WorkerTask
     public boolean isPoison()
     {
         return poison;
+    }
+
+    private String getWorkerName(final String defaultName)
+    {
+        final WorkerConfiguration workerConfig = workerFactory.getWorkerConfiguration();
+
+        if (workerConfig != null) {
+            final String workerName = workerConfig.getWorkerName();
+
+            if (workerName != null) {
+                return workerName;
+            }
+        }
+
+        return defaultName;
+    }
+
+    private String getWorkerVersion()
+    {
+        final WorkerConfiguration workerConfig = workerFactory.getWorkerConfiguration();
+
+        if (workerConfig != null) {
+            final String workerVersion = workerConfig.getWorkerVersion();
+
+            if (workerVersion != null) {
+                return workerVersion;
+            }
+        }
+
+        return WORKER_VERSION_UNKNOWN;
     }
 
     /**
@@ -571,11 +627,10 @@ class WorkerTaskImpl implements WorkerTask
         }
 
         //  Create a task message comprising the progress report updates.
-        final TaskMessage reportUpdateMessage = TaskMessageCreatorImpl.INSTANCE.createReportUpdateMessage(
-            taskMessage.getCorrelationId(),
-            reportUpdatesTaskData,
-            trackingPipe
-        );
+        final TaskMessage reportUpdateMessage = new TaskMessage(
+                UUID.randomUUID().toString(), TrackingReportConstants.TRACKING_REPORT_TASK_NAME,
+                TrackingReportConstants.TRACKING_REPORT_TASK_API_VER, reportUpdatesTaskData, TaskStatus.NEW_TASK,
+                Collections.<String, byte[]>emptyMap(), trackingPipe, null, null, taskMessage.getCorrelationId());
 
         //  Publish the task message comprising the report updates.
         workerCallback.reportUpdate(taskInformation, reportUpdateMessage);
@@ -690,7 +745,7 @@ class WorkerTaskImpl implements WorkerTask
      * @param taskMessage the task message to be examined
      * @return the name of the worker that created the task message
      */
-    static String getWorkerName(final TaskMessage taskMessage)
+    private static String getWorkerName(final TaskMessage taskMessage)
     {
         final TaskSourceInfo sourceInfo = taskMessage.getSourceInfo();
         if (sourceInfo == null) {

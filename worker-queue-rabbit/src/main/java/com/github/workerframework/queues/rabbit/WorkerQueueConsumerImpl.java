@@ -25,9 +25,13 @@ import com.github.workerframework.api.ReferenceNotFoundException;
 import com.github.workerframework.api.TaskCallback;
 import com.github.workerframework.api.TaskMessage;
 import com.github.workerframework.api.TaskRejectedException;
+import com.github.workerframework.api.TaskStatus;
 import com.github.workerframework.api.TrackingInfo;
-import com.github.workerframework.api.TaskMessageCreator;
 import com.github.workerframework.api.WorkerConfiguration;
+import com.github.workerframework.tracking.report.TrackingReport;
+import com.github.workerframework.tracking.report.TrackingReportConstants;
+import com.github.workerframework.tracking.report.TrackingReportFailure;
+import com.github.workerframework.tracking.report.TrackingReportStatus;
 import com.github.workerframework.util.rabbitmq.QueueConsumer;
 import com.github.workerframework.util.rabbitmq.ConsumerAckEvent;
 import com.github.workerframework.util.rabbitmq.Event;
@@ -35,18 +39,21 @@ import com.github.workerframework.util.rabbitmq.Delivery;
 import com.github.workerframework.util.rabbitmq.RabbitHeaders;
 import com.github.workerframework.util.rabbitmq.ConsumerRejectEvent;
 import com.github.workerframework.util.rabbitmq.ConsumerDropEvent;
+import com.google.common.base.MoreObjects;
 import com.rabbitmq.client.Channel;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.util.Collections;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.SortedMap;
 import java.util.TreeMap;
+import java.util.UUID;
 import java.util.concurrent.BlockingQueue;
 
 import static com.github.workerframework.util.rabbitmq.RabbitHeaders.RABBIT_HEADER_CAF_PAYLOAD_OFFLOADING_STORAGE_REF;
@@ -71,7 +78,6 @@ public class WorkerQueueConsumerImpl implements QueueConsumer
     private final Codec codec;
     private final Runnable disconnectCallback;
     private final SortedMap<Long, String> offloadedPayloadsToDelete;
-    private final TaskMessageCreator taskMessageCreator;
     private final WorkerConfiguration workerConfiguration;
 
     private static final Logger LOG = LoggerFactory.getLogger(WorkerQueueConsumerImpl.class);
@@ -88,8 +94,7 @@ public class WorkerQueueConsumerImpl implements QueueConsumer
                                    BlockingQueue<Event<WorkerPublisher>> pubQueue, String retryKey, int retryLimit,
                                    final String invalidKey,
                                    final ManagedDataStore dataStore, final Codec codec,
-                                   final Runnable disconnectCallback, final TaskMessageCreator taskMessageCreator,
-                                   final WorkerConfiguration workerConfiguration)
+                                   final Runnable disconnectCallback, final WorkerConfiguration workerConfiguration)
     {
         this.callback = Objects.requireNonNull(callback);
         this.metrics = Objects.requireNonNull(metrics);
@@ -103,7 +108,6 @@ public class WorkerQueueConsumerImpl implements QueueConsumer
         this.codec = Objects.requireNonNull(codec);
         this.disconnectCallback = Objects.requireNonNull(disconnectCallback);
         this.offloadedPayloadsToDelete = Collections.synchronizedSortedMap(new TreeMap<>());
-        this.taskMessageCreator = Objects.requireNonNull(taskMessageCreator);
         this.workerConfiguration = Objects.requireNonNull(workerConfiguration);
     }
 
@@ -133,7 +137,7 @@ public class WorkerQueueConsumerImpl implements QueueConsumer
             try {
                 taskMessage = codec.deserialise(deliveryMessageData, TaskMessage.class, DecodeMethod.LENIENT);
             } catch (final CodecException e) {
-                handleInvalidDelivery(inboundMessageId, null, deliveryMessageData, deliveryHeaders,
+                handleInvalidDelivery(inboundMessageId, Optional.empty(), deliveryMessageData, deliveryHeaders,
                     "Cannot deserialize delivery messageData to TaskMessage");
                 return;
             }
@@ -141,7 +145,7 @@ public class WorkerQueueConsumerImpl implements QueueConsumer
             try {
                 handleTaskDataInjection(taskMessage, inboundMessageId, taskMessageStorageRefOpt);
             } catch (final InvalidDeliveryException ex) {
-                handleInvalidDelivery(inboundMessageId, taskMessage, deliveryMessageData, deliveryHeaders,
+                handleInvalidDelivery(inboundMessageId, Optional.of(taskMessage), deliveryMessageData, deliveryHeaders,
                     ex.getMessage());
                 return;
             }
@@ -230,30 +234,61 @@ public class WorkerQueueConsumerImpl implements QueueConsumer
 
     private void handleInvalidDelivery(
         final long inboundMessageId,
-        final TaskMessage taskMessage,
+        final Optional<TaskMessage> deliveredTaskMessageOpt,
         final byte[] deliveryMessageData,
         final Map<String, Object> deliveryHeaders,
-        final String invalidDeliveryExceptionMessage
+        final String exceptionMesssage
     )
     {
         try {
             final RabbitTaskInformation taskInformation = new RabbitTaskInformation(String.valueOf(inboundMessageId), true);
             taskInformation.incrementResponseCount(true);
             final var publishHeaders = new HashMap<>(deliveryHeaders);
-            publishHeaders.put(RABBIT_HEADER_CAF_WORKER_INVALID, invalidDeliveryExceptionMessage);
+            publishHeaders.put(RABBIT_HEADER_CAF_WORKER_INVALID, exceptionMesssage);
 
             publisherEventQueue.add(new WorkerPublishQueueEvent(deliveryMessageData, invalidRoutingKey, taskInformation, publishHeaders));
 
-            final var trackingMessage = taskMessageCreator.createInvalidTaskMessage(
-                taskMessage, invalidDeliveryExceptionMessage, invalidRoutingKey, workerConfiguration);
-            final var serializedTrackingMessage = codec.serialise(trackingMessage);
-            publisherEventQueue.add(new WorkerPublishQueueEvent(
-                serializedTrackingMessage, invalidRoutingKey, taskInformation, publishHeaders)
-            );
+            if (deliveredTaskMessageOpt.isPresent()) {
+                final var taskMessage = deliveredTaskMessageOpt.get();
+                if(taskMessage.getTracking() != null) {
+                    sendFailureTrackingReport(taskMessage, exceptionMesssage, taskInformation);
+                }
+            }
         } catch (CodecException e) {
             LOG.error("Failed to serialise report update task data.");
             throw new RuntimeException(e);
         }
+    }
+
+    private void sendFailureTrackingReport(
+        final TaskMessage taskMessage,
+        final String invalidDeliveryExceptionMessage,
+        final RabbitTaskInformation rabbitTaskInformation
+    ) throws CodecException {
+        final TrackingReportFailure failure = new TrackingReportFailure();
+        failure.failureId = TaskStatus.INVALID_TASK.toString();
+        failure.failureTime = new Date();
+        failure.failureSource = getWorkerName(taskMessage);
+        failure.failureMessage = invalidDeliveryExceptionMessage;
+
+        final TrackingReport trackingReport = new TrackingReport();
+        trackingReport.failure = failure;
+        trackingReport.status = TrackingReportStatus.Failed;
+
+        final byte[] reportUpdatesTaskData;
+        reportUpdatesTaskData = codec.serialise(trackingReport);
+
+        final TrackingInfo trackingInfo = taskMessage.getTracking();
+
+        final TaskMessage failureReportTaskMessage = new TaskMessage(
+            UUID.randomUUID().toString(), TrackingReportConstants.TRACKING_REPORT_TASK_NAME,
+            TrackingReportConstants.TRACKING_REPORT_TASK_API_VER, reportUpdatesTaskData, TaskStatus.NEW_TASK,
+            Collections.emptyMap(), trackingInfo.getTrackingPipe(), null, null,
+            taskMessage.getCorrelationId());
+
+        failureReportTaskMessage.setTaskData(codec.serialise(trackingReport));
+        publisherEventQueue.add(new WorkerPublishQueueEvent(codec.serialise(failureReportTaskMessage),
+            trackingInfo.getTrackingPipe(), rabbitTaskInformation, Collections.emptyMap()));
     }
 
     private PoisonMessageStatus getPoisonMessageStatus(
@@ -416,5 +451,19 @@ public class WorkerQueueConsumerImpl implements QueueConsumer
             }
         }
         publisherEventQueue.add(new WorkerPublishQueueEvent(serializedTaskMessage, retryRoutingKey, taskInformation, publishHeaders));
+    }
+
+    private String getWorkerName(final TaskMessage taskMessage)
+    {
+        final var taskClassifier = MoreObjects.firstNonNull(taskMessage.getTaskClassifier(), "");
+        if (workerConfiguration != null) {
+            final String workerName = workerConfiguration.getWorkerName();
+
+            if (workerName != null) {
+                return workerName;
+            }
+        }
+
+        return taskClassifier;
     }
 }
