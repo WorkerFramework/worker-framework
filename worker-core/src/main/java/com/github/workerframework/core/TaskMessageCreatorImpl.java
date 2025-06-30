@@ -19,7 +19,7 @@ import com.github.workerframework.api.TaskMessage;
 import com.github.workerframework.api.TaskSourceInfo;
 import com.github.workerframework.api.TaskStatus;
 import com.github.workerframework.api.TrackingInfo;
-import com.github.workerframework.api.TrackingMessageCreator;
+import com.github.workerframework.api.TaskMessageCreator;
 import com.github.workerframework.api.WorkerConfiguration;
 import com.github.workerframework.api.WorkerResponse;
 import com.github.workerframework.tracking.report.TrackingReportConstants;
@@ -30,7 +30,7 @@ import java.util.Collections;
 import java.util.Map;
 import java.util.UUID;
 
-public enum TrackingMessageCreatorImpl implements TrackingMessageCreator {
+public enum TaskMessageCreatorImpl implements TaskMessageCreator {
 
     INSTANCE;
 

@@ -17,7 +17,7 @@ package com.github.workerframework.api;
 
 import java.util.Map;
 
-public interface TrackingMessageCreator {
+public interface TaskMessageCreator {
 
     TaskMessage createResponseTaskMessage(
         final TaskMessage taskMessage,

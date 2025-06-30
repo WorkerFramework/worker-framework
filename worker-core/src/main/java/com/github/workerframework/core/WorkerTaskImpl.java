@@ -199,7 +199,7 @@ class WorkerTaskImpl implements WorkerTask
             trackingInfo = getTrackingInfoWithChanges(response.getTrackTo());
         }
 
-        final TaskMessage responseMessage = TrackingMessageCreatorImpl.INSTANCE.createResponseTaskMessage(
+        final TaskMessage responseMessage = TaskMessageCreatorImpl.INSTANCE.createResponseTaskMessage(
             taskMessage, response, responseContext, trackingInfo, workerFactory.getWorkerConfiguration());
 
         return responseMessage;
@@ -241,7 +241,7 @@ class WorkerTaskImpl implements WorkerTask
 
         final String invalidTaskExceptionMessage = invalidTaskException.getMessage();
 
-        final TaskMessage invalidResponse = TrackingMessageCreatorImpl.INSTANCE.createInvalidTaskMessage(
+        final TaskMessage invalidResponse = TaskMessageCreatorImpl.INSTANCE.createInvalidTaskMessage(
             taskMessage,
             invalidTaskExceptionMessage,
             workerFactory.getInvalidTaskQueue(),
@@ -571,7 +571,7 @@ class WorkerTaskImpl implements WorkerTask
         }
 
         //  Create a task message comprising the progress report updates.
-        final TaskMessage reportUpdateMessage = TrackingMessageCreatorImpl.INSTANCE.createReportUpdateMessage(
+        final TaskMessage reportUpdateMessage = TaskMessageCreatorImpl.INSTANCE.createReportUpdateMessage(
             taskMessage.getCorrelationId(),
             reportUpdatesTaskData,
             trackingPipe

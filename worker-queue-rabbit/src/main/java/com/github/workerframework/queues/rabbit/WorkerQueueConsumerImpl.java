@@ -26,7 +26,7 @@ import com.github.workerframework.api.TaskCallback;
 import com.github.workerframework.api.TaskMessage;
 import com.github.workerframework.api.TaskRejectedException;
 import com.github.workerframework.api.TrackingInfo;
-import com.github.workerframework.api.TrackingMessageCreator;
+import com.github.workerframework.api.TaskMessageCreator;
 import com.github.workerframework.api.WorkerConfiguration;
 import com.github.workerframework.util.rabbitmq.QueueConsumer;
 import com.github.workerframework.util.rabbitmq.ConsumerAckEvent;
@@ -71,7 +71,7 @@ public class WorkerQueueConsumerImpl implements QueueConsumer
     private final Codec codec;
     private final Runnable disconnectCallback;
     private final SortedMap<Long, String> offloadedPayloadsToDelete;
-    private final TrackingMessageCreator trackingMessageCreator;
+    private final TaskMessageCreator taskMessageCreator;
     private final WorkerConfiguration workerConfiguration;
 
     private static final Logger LOG = LoggerFactory.getLogger(WorkerQueueConsumerImpl.class);
@@ -88,7 +88,7 @@ public class WorkerQueueConsumerImpl implements QueueConsumer
                                    BlockingQueue<Event<WorkerPublisher>> pubQueue, String retryKey, int retryLimit,
                                    final String invalidKey,
                                    final ManagedDataStore dataStore, final Codec codec,
-                                   final Runnable disconnectCallback, final TrackingMessageCreator trackingMessageCreator,
+                                   final Runnable disconnectCallback, final TaskMessageCreator taskMessageCreator,
                                    final WorkerConfiguration workerConfiguration)
     {
         this.callback = Objects.requireNonNull(callback);
@@ -103,7 +103,7 @@ public class WorkerQueueConsumerImpl implements QueueConsumer
         this.codec = Objects.requireNonNull(codec);
         this.disconnectCallback = Objects.requireNonNull(disconnectCallback);
         this.offloadedPayloadsToDelete = Collections.synchronizedSortedMap(new TreeMap<>());
-        this.trackingMessageCreator = Objects.requireNonNull(trackingMessageCreator);
+        this.taskMessageCreator = Objects.requireNonNull(taskMessageCreator);
         this.workerConfiguration = Objects.requireNonNull(workerConfiguration);
     }
 
@@ -244,7 +244,7 @@ public class WorkerQueueConsumerImpl implements QueueConsumer
 
             publisherEventQueue.add(new WorkerPublishQueueEvent(deliveryMessageData, invalidRoutingKey, taskInformation, publishHeaders));
 
-            final var trackingMessage = trackingMessageCreator.createInvalidTaskMessage(
+            final var trackingMessage = taskMessageCreator.createInvalidTaskMessage(
                 taskMessage, invalidDeliveryExceptionMessage, invalidRoutingKey, workerConfiguration);
             final var serializedTrackingMessage = codec.serialise(trackingMessage);
             publisherEventQueue.add(new WorkerPublishQueueEvent(

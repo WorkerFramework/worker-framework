@@ -36,7 +36,7 @@ public interface WorkerQueueProvider
      * @throws QueueException if a WorkerQueue could not be created
      */
     ManagedWorkerQueue getWorkerQueue(ConfigurationSource configurationSource, int maxTasks, String invalidQueue,
-                                      ManagedDataStore dataStore, Codec codec, TrackingMessageCreator trackingMessageCreator,
+                                      ManagedDataStore dataStore, Codec codec, TaskMessageCreator taskMessageCreator,
                                       WorkerConfiguration workerConfiguration)
         throws QueueException;
 }
