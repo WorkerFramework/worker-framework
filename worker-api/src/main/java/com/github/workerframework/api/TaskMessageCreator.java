@@ -20,7 +20,7 @@ import java.util.Map;
 public interface TaskMessageCreator {
 
     TaskMessage createResponseTaskMessage(
-        final TaskMessage taskMessage,
+        final TaskMessage deliveredTaskMessage,
         final WorkerResponse response,
         final Map<String, byte[]> responseContext,
         final TrackingInfo trackingInfo,
@@ -34,7 +34,7 @@ public interface TaskMessageCreator {
     );
 
     TaskMessage createInvalidTaskMessage(
-        final TaskMessage taskMessage,
+        final TaskMessage deliveredTaskMessage,
         final String message,
         final String routingKey,
         final WorkerConfiguration workerConfiguration

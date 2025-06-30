@@ -38,14 +38,14 @@ public enum TaskMessageCreatorImpl implements TaskMessageCreator {
 
     @Override
     public TaskMessage createResponseTaskMessage(
-        final TaskMessage taskMessage,
+        final TaskMessage deliveredTaskMessage,
         final WorkerResponse response,
         final Map<String, byte[]> responseContext,
         final TrackingInfo trackingInfo,
         final WorkerConfiguration workerConfig
     ) {
         return new TaskMessage(
-            taskMessage.getTaskId(),
+            deliveredTaskMessage.getTaskId(),
             response.getMessageType(),
             response.getApiVersion(),
             response.getData(),
@@ -54,31 +54,31 @@ public enum TaskMessageCreatorImpl implements TaskMessageCreator {
             response.getQueueReference(),
             trackingInfo,
             new TaskSourceInfo(getWorkerName(workerConfig, response.getMessageType()), getWorkerVersion(workerConfig)),
-            taskMessage.getCorrelationId());
+            deliveredTaskMessage.getCorrelationId());
     }
 
     @Override
     public TaskMessage createInvalidTaskMessage(
-        final TaskMessage taskMessage,
+        final TaskMessage deliveredTaskMessage,
         final String message,
         final String routingKey,
         final WorkerConfiguration workerConfig) {
-        final var taskClassifier = MoreObjects.firstNonNull(taskMessage.getTaskClassifier(), "");
+        final var taskClassifier = MoreObjects.firstNonNull(deliveredTaskMessage.getTaskClassifier(), "");
         final byte[] taskData = message == null ? new byte[]{} : message.getBytes(StandardCharsets.UTF_8);
-        if (taskMessage == null) {
+        if (deliveredTaskMessage == null) {
             return createForTaskMessageDeserializationIssue(taskData, routingKey);
         }
         return new TaskMessage(
-            MoreObjects.firstNonNull(taskMessage.getTaskId(), ""),
+            MoreObjects.firstNonNull(deliveredTaskMessage.getTaskId(), ""),
             taskClassifier,
-            taskMessage.getTaskApiVersion(),
+            deliveredTaskMessage.getTaskApiVersion(),
             taskData,
             TaskStatus.INVALID_TASK,
-            MoreObjects.firstNonNull(taskMessage.getContext(), Collections.emptyMap()),
+            MoreObjects.firstNonNull(deliveredTaskMessage.getContext(), Collections.emptyMap()),
             routingKey,
-            taskMessage.getTracking(),
+            deliveredTaskMessage.getTracking(),
             new TaskSourceInfo(getWorkerName(workerConfig, taskClassifier), getWorkerVersion(workerConfig)),
-            taskMessage.getCorrelationId());
+            deliveredTaskMessage.getCorrelationId());
     }
 
     private TaskMessage createForTaskMessageDeserializationIssue(
