@@ -60,9 +60,7 @@ final class WorkerCore
            System.getenv("CAF_WORKER_ENABLE_DIVERTED_TASK_CHECKING") == null ? 
                 "True" : System.getenv("CAF_WORKER_ENABLE_DIVERTED_TASK_CHECKING"));
 
-    public WorkerCore(final Codec codec, final WorkerThreadPool pool, final ManagedWorkerQueue queue, final WorkerFactory factory,
-                      final ServicePath path, final HealthCheckRegistry healthCheckRegistry,
-                      final TransientHealthCheck transientHealthCheck)
+    public WorkerCore(final Codec codec, final WorkerThreadPool pool, final ManagedWorkerQueue queue, final WorkerFactory factory, final ServicePath path, final HealthCheckRegistry healthCheckRegistry, final TransientHealthCheck transientHealthCheck)
     {
         WorkerCallback taskCallback = new CoreWorkerCallback(queue, stats, healthCheckRegistry, transientHealthCheck);
         this.threadPool = Objects.requireNonNull(pool);
@@ -577,7 +575,7 @@ final class WorkerCore
             Objects.requireNonNull(taskInformation);
             Objects.requireNonNull(reportUpdateMessage);
             LOG.debug("Sending report updates to queue {})", reportUpdateMessage.getTo());
-            try {
+            try {                
                 workerQueue.publish(taskInformation, reportUpdateMessage, reportUpdateMessage.getTo(), Collections.emptyMap());
             } catch (final QueueException ex) {
                 throw new RuntimeException(ex);

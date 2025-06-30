@@ -44,7 +44,6 @@ import static org.mockito.Mockito.withSettings;
 
 public class WorkerExecutorTest
 {
-
     @Test
     public void testExecuteTask()
         throws InvalidNameException, TaskRejectedException, InvalidTaskException, InterruptedException
