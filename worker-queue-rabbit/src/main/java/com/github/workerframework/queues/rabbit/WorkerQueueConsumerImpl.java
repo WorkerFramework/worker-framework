@@ -32,6 +32,7 @@ import com.github.workerframework.tracking.report.TrackingReport;
 import com.github.workerframework.tracking.report.TrackingReportConstants;
 import com.github.workerframework.tracking.report.TrackingReportFailure;
 import com.github.workerframework.tracking.report.TrackingReportStatus;
+import com.github.workerframework.tracking.report.TrackingReportTask;
 import com.github.workerframework.util.rabbitmq.QueueConsumer;
 import com.github.workerframework.util.rabbitmq.ConsumerAckEvent;
 import com.github.workerframework.util.rabbitmq.Event;
@@ -45,9 +46,11 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
@@ -271,18 +274,24 @@ public class WorkerQueueConsumerImpl implements QueueConsumer
         failure.failureSource = getWorkerName(taskMessage);
         failure.failureMessage = invalidDeliveryExceptionMessage;
 
+        final List<TrackingReport> trackingReports = new ArrayList<>();
+
         final TrackingReport trackingReport = new TrackingReport();
         trackingReport.failure = failure;
         trackingReport.status = TrackingReportStatus.Failed;
 
-        final byte[] reportUpdatesTaskData;
-        reportUpdatesTaskData = codec.serialise(trackingReport);
+        trackingReports.add(trackingReport);
+
+        final TrackingReportTask trackingReportTask = new TrackingReportTask();
+        trackingReportTask.trackingReports = trackingReports;
+
+        final byte[] trackingReportTaskTaskData = codec.serialise(trackingReportTask);
 
         final TrackingInfo trackingInfo = taskMessage.getTracking();
 
         final TaskMessage failureReportTaskMessage = new TaskMessage(
             UUID.randomUUID().toString(), TrackingReportConstants.TRACKING_REPORT_TASK_NAME,
-            TrackingReportConstants.TRACKING_REPORT_TASK_API_VER, reportUpdatesTaskData, TaskStatus.NEW_TASK,
+            TrackingReportConstants.TRACKING_REPORT_TASK_API_VER, trackingReportTaskTaskData, TaskStatus.NEW_TASK,
             Collections.emptyMap(), trackingInfo.getTrackingPipe(), null, null,
             taskMessage.getCorrelationId());
 
