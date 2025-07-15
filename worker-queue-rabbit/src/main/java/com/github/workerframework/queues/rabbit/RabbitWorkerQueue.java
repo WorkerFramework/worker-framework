@@ -26,6 +26,7 @@ import com.github.workerframework.api.QueueException;
 import com.github.workerframework.api.TaskCallback;
 import com.github.workerframework.api.TaskInformation;
 import com.github.workerframework.api.TaskMessage;
+import com.github.workerframework.api.WorkerConfiguration;
 import com.github.workerframework.api.WorkerQueueMetricsReporter;
 import com.github.workerframework.util.rabbitmq.ConsumerAckEvent;
 import com.github.workerframework.util.rabbitmq.ConsumerDropEvent;
@@ -84,6 +85,7 @@ public final class RabbitWorkerQueue implements ManagedWorkerQueue
     private final String invalidQueue;
     private final ManagedDataStore dataStore;
     private final Codec codec;
+    private final WorkerConfiguration workerConfiguration;
     private static final Logger LOG = LoggerFactory.getLogger(RabbitWorkerQueue.class);
     private static final Pattern JOB_TASK_ID_PATTERN = Pattern.compile("^([^\\.]*)\\.?(.*)$");
     
@@ -95,13 +97,15 @@ public final class RabbitWorkerQueue implements ManagedWorkerQueue
         int maxTasks,
         final String invalidQueue,
         final ManagedDataStore dataStore,
-        final Codec codec)
+        final Codec codec,
+        final WorkerConfiguration workerConfiguration)
     {
         this.config = Objects.requireNonNull(config);
         this.maxTasks = maxTasks;
         this.invalidQueue = Objects.requireNonNull(invalidQueue);
         this.dataStore = Objects.requireNonNull(dataStore);
         this.codec = Objects.requireNonNull(codec);
+        this.workerConfiguration = Objects.requireNonNull(workerConfiguration);
         LOG.debug("Initialised");
     }
 
@@ -140,7 +144,8 @@ public final class RabbitWorkerQueue implements ManagedWorkerQueue
                     invalidQueue,
                     dataStore,
                     codec, 
-                    rabbitWorkerQueue::disconnectIncoming);
+                    rabbitWorkerQueue::disconnectIncoming,
+                    workerConfiguration);
             consumer = new DefaultRabbitConsumer(consumerQueue, consumerImpl);
             WorkerPublisherImpl publisherImpl = new WorkerPublisherImpl(
                 outgoingChannel,
