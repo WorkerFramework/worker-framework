@@ -277,9 +277,12 @@ public class WorkerQueueConsumerImpl implements QueueConsumer
 
         final List<TrackingReport> trackingReports = new ArrayList<>();
 
+        final TrackingInfo trackingInfo = taskMessage.getTracking();
+
         final TrackingReport trackingReport = new TrackingReport();
+        trackingReport.jobTaskId = trackingInfo.getJobTaskId();
         trackingReport.failure = failure;
-        trackingReport.status = TrackingReportStatus.Failed;
+        trackingReport.estimatedPercentageCompleted = 0;
 
         trackingReports.add(trackingReport);
 
@@ -288,7 +291,7 @@ public class WorkerQueueConsumerImpl implements QueueConsumer
 
         final byte[] trackingReportTaskTaskData = codec.serialise(trackingReportTask);
 
-        final TrackingInfo trackingInfo = taskMessage.getTracking();
+
 
         final TaskMessage failureReportTaskMessage = new TaskMessage(
             UUID.randomUUID().toString(), TrackingReportConstants.TRACKING_REPORT_TASK_NAME,
