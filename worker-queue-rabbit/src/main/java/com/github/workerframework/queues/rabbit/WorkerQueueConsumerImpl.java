@@ -28,6 +28,7 @@ import com.github.workerframework.api.TaskRejectedException;
 import com.github.workerframework.api.TaskStatus;
 import com.github.workerframework.api.TrackingInfo;
 import com.github.workerframework.api.WorkerConfiguration;
+import com.github.workerframework.api.WorkerTaskData;
 import com.github.workerframework.tracking.report.TrackingReport;
 import com.github.workerframework.tracking.report.TrackingReportConstants;
 import com.github.workerframework.tracking.report.TrackingReportFailure;
@@ -295,7 +296,6 @@ public class WorkerQueueConsumerImpl implements QueueConsumer
             Collections.emptyMap(), trackingInfo.getTrackingPipe(), null, null,
             taskMessage.getCorrelationId());
 
-        failureReportTaskMessage.setTaskData(codec.serialise(trackingReport));
         publisherEventQueue.add(new WorkerPublishQueueEvent(codec.serialise(failureReportTaskMessage),
             trackingInfo.getTrackingPipe(), rabbitTaskInformation, Collections.emptyMap()));
     }
