@@ -295,7 +295,6 @@ public class WorkerQueueConsumerImpl implements QueueConsumer
             Collections.emptyMap(), trackingInfo.getTrackingPipe(), null, null,
             taskMessage.getCorrelationId());
 
-        failureReportTaskMessage.setTaskData(codec.serialise(trackingReport));
         publisherEventQueue.add(new WorkerPublishQueueEvent(codec.serialise(failureReportTaskMessage),
             trackingInfo.getTrackingPipe(), rabbitTaskInformation, Collections.emptyMap()));
     }
