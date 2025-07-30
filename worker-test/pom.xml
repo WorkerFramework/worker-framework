@@ -28,6 +28,7 @@
     </parent>
 
     <artifactId>worker-test</artifactId>
+    <name>worker-test</name>
     <properties>
         <targetDockerRegistryPath>devimages</targetDockerRegistryPath>
     </properties>

@@ -23,6 +23,7 @@
 
     <groupId>com.github.workerframework</groupId>
     <artifactId>standard-worker-container</artifactId>
+    <name>standard-worker-container</name>
     <packaging>pom</packaging>
 
     <parent>
