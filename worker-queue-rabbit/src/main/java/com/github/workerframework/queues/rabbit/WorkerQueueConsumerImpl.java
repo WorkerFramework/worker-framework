@@ -292,8 +292,6 @@ public class WorkerQueueConsumerImpl implements QueueConsumer
 
         final byte[] trackingReportTaskTaskData = codec.serialise(trackingReportTask);
 
-
-
         final TaskMessage failureReportTaskMessage = new TaskMessage(
             UUID.randomUUID().toString(), TrackingReportConstants.TRACKING_REPORT_TASK_NAME,
             TrackingReportConstants.TRACKING_REPORT_TASK_API_VER, trackingReportTaskTaskData, TaskStatus.NEW_TASK,
