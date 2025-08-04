@@ -23,6 +23,7 @@
 
     <groupId>com.github.workerframework</groupId>
     <artifactId>worker-framework-docs</artifactId>
+    <name>worker-framework-docs</name>
     <packaging>pom</packaging>
 
     <parent>
