@@ -45,7 +45,7 @@ public class ShutdownDeveloperTest extends TestWorkerTestBase {
     public void shutdownTest() throws IOException, TimeoutException, CodecException {
 
         // Usage instructions
-        // Comment out the iages for test worker 2 and 3 in this module's pom.xml
+        // Comment out the images for worker-test-2 and worker-test-no-valid-cert in this module's pom.xml
         // Use mvn docker:start to start test worker
         // Remove the @Ignore and run the test to create 100 test messages
         // From a terminal execute docker stop -t 300 CONTAINER_ID 
