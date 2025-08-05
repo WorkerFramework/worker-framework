@@ -76,6 +76,11 @@ final class StreamingWorkerThreadPool implements WorkerThreadPool
     {
         return workQueue.size();
     }
+    
+    @Override
+    public int getActiveCount() {
+        return threadPoolExecutor.getActiveCount();
+    }
 
     /**
      * Execute the specified task at some point in the future

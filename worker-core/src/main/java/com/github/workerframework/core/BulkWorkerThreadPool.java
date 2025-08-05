@@ -150,6 +150,11 @@ final class BulkWorkerThreadPool implements WorkerThreadPool
     {
         return workQueue.size() + backupThreadPool.getBacklogSize();
     }
+    
+    @Override 
+    public int getActiveCount() {
+        return backupThreadPool.getActiveCount();
+    }
 
     @Override
     public void submitWorkerTask(final WorkerTaskImpl workerTask)

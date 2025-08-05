@@ -78,6 +78,8 @@ public final class WorkerApplication extends Application<WorkerConfiguration>
 {
     private final long startTime = System.currentTimeMillis();
     private static final Logger LOG = LoggerFactory.getLogger(WorkerApplication.class);
+    private static final long SHUTDOWN_DURATION = 5 * 60 * 1000; // 5 minutes in milliseconds
+    public static final int SHUTDOWN_LOG_INTERVAL = 15_000; // 15 seconds in milliseconds
 
     /**
      * Entry point for the asynchronous micro-service worker framework.
@@ -143,8 +145,22 @@ public final class WorkerApplication extends Application<WorkerConfiguration>
 
             @Override
             public void stop() {
-                LOG.info("Worker stop requested, allowing in-progress tasks to complete.");
+                LOG.info("Worker stop requested.");
+                
                 workerQueue.shutdownIncoming();
+
+                final long startTime = System.currentTimeMillis();
+                
+                while(wtp.getBacklogSize() > 0 && System.currentTimeMillis() - startTime < SHUTDOWN_DURATION) {
+                    try {
+                        LOG.info("Allowing {} backlog tasks to complete, {} currently active.", wtp.getBacklogSize(), wtp.getActiveCount());
+                        Thread.sleep(SHUTDOWN_LOG_INTERVAL); // 15 seconds
+                    } catch (final InterruptedException e) {
+                        Thread.currentThread().interrupt();
+                        System.out.println("Logger thread interrupted, exiting...");
+                        break;
+                    }
+                }
                 wtp.shutdown();
                 try {
                     wtp.awaitTermination(5, TimeUnit.MINUTES);
