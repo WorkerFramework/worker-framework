@@ -25,5 +25,5 @@
     queueType: getenv("CAF_RABBITMQ_QUEUE_TYPE") || "quorum",
     isPayloadOffloadingEnabled: getenv("CAF_WORKER_PAYLOAD_OFFLOADING_ENABLED") || false,
     payloadOffloadingThreshold: getenv("CAF_WORKER_PAYLOAD_OFFLOADING_THRESHOLD_BYTES") || 16777216,
-    payloadOffloadingDirectory: getenv("CAF_WORKER_PAYLOAD_OFFLOADING_DIRECTORY") || 'queues'
+    payloadOffloadingDirectory: getenv("CAF_WORKER_PAYLOAD_OFFLOADING_DIRECTORY") || "queues"
 });
