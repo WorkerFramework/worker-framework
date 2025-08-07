@@ -62,7 +62,7 @@ interface WorkerThreadPool
 
     int getBacklogSize();
     
-    int getActiveCount();
+    int getApproxActiveCount();
 
     /**
      * Execute the specified task at some point in the future

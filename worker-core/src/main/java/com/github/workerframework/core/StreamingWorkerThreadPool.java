@@ -78,7 +78,7 @@ final class StreamingWorkerThreadPool implements WorkerThreadPool
     }
     
     @Override
-    public int getActiveCount() {
+    public int getApproxActiveCount() {
         return threadPoolExecutor.getActiveCount();
     }
 
