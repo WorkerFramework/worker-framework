@@ -43,6 +43,7 @@ import com.github.workerframework.api.WorkerException;
 import com.github.workerframework.api.WorkerFactory;
 import com.github.workerframework.api.WorkerFactoryProvider;
 import com.github.workerframework.api.WorkerQueueProvider;
+import com.github.workerframework.caf.AbstractWorkerFactory;
 import com.github.workerframework.configs.HealthConfiguration;
 
 import ch.qos.logback.classic.util.DefaultJoranConfigurator;
@@ -126,7 +127,7 @@ public final class WorkerApplication extends Application<WorkerConfiguration>
         WorkerThreadPool wtp = WorkerThreadPool.create(workerFactory);
         final int nThreads = workerFactory.getWorkerThreads();
         ManagedWorkerQueue workerQueue = queueProvider.getWorkerQueue(config, nThreads, workerFactory.getInvalidTaskQueue(), store, codec,
-            workerFactory.getWorkerConfiguration());
+                getWorkerName(workerFactory));
         TransientHealthCheck transientHealthCheck = new TransientHealthCheck();
         WorkerCore core = new WorkerCore(codec, wtp, workerQueue, workerFactory, path, environment.healthChecks(), transientHealthCheck);
         HealthConfiguration healthConfiguration = config.getConfiguration(HealthConfiguration.class);
@@ -370,5 +371,12 @@ public final class WorkerApplication extends Application<WorkerConfiguration>
         healthCheckConfiguration.setCritical(true);
 
         return healthCheckConfiguration;
+    }
+
+    private static String getWorkerName(final WorkerFactory workerFactory) {
+        if (workerFactory instanceof AbstractWorkerFactory) {
+            return ((AbstractWorkerFactory)workerFactory).getWorkerName();
+        }
+        return workerFactory.getWorkerConfiguration().getWorkerName();
     }
 }

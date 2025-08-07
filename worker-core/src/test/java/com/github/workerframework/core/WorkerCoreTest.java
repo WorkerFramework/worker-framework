@@ -562,17 +562,17 @@ public class WorkerCoreTest
             final ManagedDataStore dataStore = Mockito.mock(ManagedDataStore.class);
             final Codec codec = new JsonCodec();
             return getWorkerQueue(configurationSource, maxTasks, INVALID, dataStore, codec,
-                Mockito.mock(WorkerConfiguration.class));
+                "testWorker");
         }
 
         @Override
         public final TestWorkerQueue getWorkerQueue(
-            final ConfigurationSource configurationSource,
-            final int maxTasks,
-            final String invalidQueue,
-            final ManagedDataStore dataStore,
-            final Codec codec,
-            WorkerConfiguration workerConfiguration)
+                final ConfigurationSource configurationSource,
+                final int maxTasks,
+                final String invalidQueue,
+                final ManagedDataStore dataStore,
+                final Codec codec,
+                String workerName)
         {
             return new TestWorkerQueue(this.results);
         }
@@ -717,17 +717,17 @@ public class WorkerCoreTest
             final int maxTasks)
         {
             return getWorkerQueue(configurationSource, maxTasks, INVALID, Mockito.mock(ManagedDataStore.class), new JsonCodec(),
-                Mockito.mock(WorkerConfiguration.class));
+                "testWorker");
         }
 
         @Override
         public final TestWorkerQueueWithNullPausedQueue getWorkerQueue(
-            final ConfigurationSource configurationSource,
-            final int maxTasks,
-            final String invalidQueue,
-            final ManagedDataStore dataStore,
-            final Codec codec,
-            WorkerConfiguration workerConfiguration)
+                final ConfigurationSource configurationSource,
+                final int maxTasks,
+                final String invalidQueue,
+                final ManagedDataStore dataStore,
+                final Codec codec,
+                String workerName)
         {
             return new TestWorkerQueueWithNullPausedQueue(this.results);
         }

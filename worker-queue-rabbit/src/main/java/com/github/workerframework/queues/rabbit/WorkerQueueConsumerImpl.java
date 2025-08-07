@@ -27,8 +27,6 @@ import com.github.workerframework.api.TaskMessage;
 import com.github.workerframework.api.TaskRejectedException;
 import com.github.workerframework.api.TaskStatus;
 import com.github.workerframework.api.TrackingInfo;
-import com.github.workerframework.api.WorkerConfiguration;
-import com.github.workerframework.api.WorkerTaskData;
 import com.github.workerframework.tracking.report.TrackingReport;
 import com.github.workerframework.tracking.report.TrackingReportConstants;
 import com.github.workerframework.tracking.report.TrackingReportFailure;
@@ -41,7 +39,6 @@ import com.github.workerframework.util.rabbitmq.Delivery;
 import com.github.workerframework.util.rabbitmq.RabbitHeaders;
 import com.github.workerframework.util.rabbitmq.ConsumerRejectEvent;
 import com.github.workerframework.util.rabbitmq.ConsumerDropEvent;
-import com.google.common.base.MoreObjects;
 import com.rabbitmq.client.Channel;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -82,7 +79,7 @@ public class WorkerQueueConsumerImpl implements QueueConsumer
     private final Codec codec;
     private final Runnable disconnectCallback;
     private final SortedMap<Long, String> offloadedPayloadsToDelete;
-    private final WorkerConfiguration workerConfiguration;
+    private final String workerName;
 
     private static final Logger LOG = LoggerFactory.getLogger(WorkerQueueConsumerImpl.class);
 
@@ -98,7 +95,7 @@ public class WorkerQueueConsumerImpl implements QueueConsumer
                                    BlockingQueue<Event<WorkerPublisher>> pubQueue, String retryKey, int retryLimit,
                                    final String invalidKey,
                                    final ManagedDataStore dataStore, final Codec codec,
-                                   final Runnable disconnectCallback, final WorkerConfiguration workerConfiguration)
+                                   final Runnable disconnectCallback, final String workerName)
     {
         this.callback = Objects.requireNonNull(callback);
         this.metrics = Objects.requireNonNull(metrics);
@@ -112,7 +109,7 @@ public class WorkerQueueConsumerImpl implements QueueConsumer
         this.codec = Objects.requireNonNull(codec);
         this.disconnectCallback = Objects.requireNonNull(disconnectCallback);
         this.offloadedPayloadsToDelete = Collections.synchronizedSortedMap(new TreeMap<>());
-        this.workerConfiguration = Objects.requireNonNull(workerConfiguration);
+        this.workerName = Objects.requireNonNull(workerName);
     }
 
     /**
@@ -272,7 +269,7 @@ public class WorkerQueueConsumerImpl implements QueueConsumer
         final TrackingReportFailure failure = new TrackingReportFailure();
         failure.failureId = TaskStatus.INVALID_TASK.toString();
         failure.failureTime = new Date();
-        failure.failureSource = getWorkerName(taskMessage);
+        failure.failureSource = workerName;
         failure.failureMessage = invalidDeliveryExceptionMessage;
 
         final List<TrackingReport> trackingReports = new ArrayList<>();
@@ -462,19 +459,5 @@ public class WorkerQueueConsumerImpl implements QueueConsumer
             }
         }
         publisherEventQueue.add(new WorkerPublishQueueEvent(serializedTaskMessage, retryRoutingKey, taskInformation, publishHeaders));
-    }
-
-    private String getWorkerName(final TaskMessage taskMessage)
-    {
-        final var taskClassifier = MoreObjects.firstNonNull(taskMessage.getTaskClassifier(), "");
-        if (workerConfiguration != null) {
-            final String workerName = workerConfiguration.getWorkerName();
-
-            if (workerName != null) {
-                return workerName;
-            }
-        }
-
-        return taskClassifier;
     }
 }
