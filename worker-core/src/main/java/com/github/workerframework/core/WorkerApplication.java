@@ -373,10 +373,24 @@ public final class WorkerApplication extends Application<WorkerConfiguration>
         return healthCheckConfiguration;
     }
 
+    /**
+     * Some instances of WorkerFactory are implementations of AbstractWorkerFactory<C,T> where C
+     * sometimes implements WorkerConfiguration.  In those cases we take the workerName from
+     * the WorkerConfiguration, otherwise we take the workerName from AbstractWorkerFactory.
+     *
+     * Note there are occasions where the workerName is defined differently in AbstractWorkerFactory
+     * to that in WorkerConfiguration. e.g. worker-batch.
+     *
+     * @param workerFactory
+     * @return
+     */
     private static String getWorkerName(final WorkerFactory workerFactory) {
-        if (workerFactory instanceof AbstractWorkerFactory) {
+        final var workerCfg = workerFactory.getWorkerConfiguration();
+        if (workerCfg != null) {
+            return workerCfg.getWorkerName();
+        } else if (workerFactory instanceof AbstractWorkerFactory) {
             return ((AbstractWorkerFactory)workerFactory).getWorkerName();
         }
-        return workerFactory.getWorkerConfiguration().getWorkerName();
+        return "worker_name_unknown";
     }
 }
