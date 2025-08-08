@@ -37,7 +37,7 @@ final class BulkWorkerThreadPool implements WorkerThreadPool
     private final StreamingWorkerThreadPool backupThreadPool;
 
     private volatile boolean isActive;
-    private volatile AtomicInteger activeThreads = new AtomicInteger(0);
+    private final AtomicInteger activeThreads = new AtomicInteger(0);
 
     public BulkWorkerThreadPool(
         final WorkerFactory workerFactory,
@@ -88,7 +88,7 @@ final class BulkWorkerThreadPool implements WorkerThreadPool
                 = new BulkWorkerTaskProvider(task, workQueue);
 
             try {
-                activeThreads.addAndGet(1);
+                activeThreads.incrementAndGet();
                 bulkWorker.processTasks(taskProvider);
             } catch (final RuntimeException ex) {
                 LOG.warn("Bulk Worker threw unhandled exception", ex);
