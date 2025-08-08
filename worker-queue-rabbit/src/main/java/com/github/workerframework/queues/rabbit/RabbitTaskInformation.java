@@ -16,6 +16,7 @@
 package com.github.workerframework.queues.rabbit;
 
 import com.github.workerframework.api.TaskInformation;
+import java.util.Optional;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 import org.slf4j.Logger;
@@ -30,12 +31,22 @@ public class RabbitTaskInformation implements TaskInformation {
     private final AtomicInteger acknowledgementCount;
     private static final Logger LOG = LoggerFactory.getLogger(RabbitTaskInformation.class);
     private final boolean isPoison;
+    private final Optional<String> trackingJobTaskId;
 
     public RabbitTaskInformation(final String inboundMessageId) {
         this(inboundMessageId, false);
     }
     
     public RabbitTaskInformation(final String inboundMessageId, final boolean isPoison) {
+        this(inboundMessageId, isPoison, Optional.empty());
+    }
+
+    public RabbitTaskInformation(
+        final String inboundMessageId,
+        final boolean isPoison,
+        final Optional<String> trackingJobTaskId
+    )
+    {
         this.inboundMessageId = inboundMessageId;
         this.responseCount = new AtomicInteger(0);
         this.isResponseCountFinal = new AtomicBoolean(false);
@@ -43,6 +54,7 @@ public class RabbitTaskInformation implements TaskInformation {
         this.negativeAckEventSent = new AtomicBoolean(false);
         this.ackEventSent = new AtomicBoolean(false);
         this.isPoison = isPoison;
+        this.trackingJobTaskId = trackingJobTaskId;
     }
 
     @Override
@@ -140,5 +152,9 @@ public class RabbitTaskInformation implements TaskInformation {
      */
     public boolean isPoison() {
         return isPoison;
+    }
+
+    public Optional<String> getTrackingJobTaskId() {
+        return trackingJobTaskId;
     }
 }

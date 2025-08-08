@@ -23,12 +23,12 @@
 
     <artifactId>worker-core</artifactId>
     <name>worker-core</name>
-    <version>9.1.2-SNAPSHOT</version>
+    <version>10.0.0-SNAPSHOT</version>
 
     <parent>
         <groupId>com.github.workerframework</groupId>
         <artifactId>worker-framework-aggregator</artifactId>
-        <version>9.1.2-SNAPSHOT</version>
+        <version>10.0.0-SNAPSHOT</version>
     </parent>
 
     <dependencies>
@@ -47,6 +47,10 @@
         <dependency>
             <groupId>com.github.workerframework</groupId>
             <artifactId>worker-api</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>com.github.workerframework</groupId>
+            <artifactId>worker-caf</artifactId>
         </dependency>
         <dependency>
             <groupId>com.github.cafapi.common</groupId>
@@ -160,11 +164,6 @@
         <dependency>
             <groupId>com.github.cafapi.common</groupId>
             <artifactId>codec-json</artifactId>
-            <scope>test</scope>
-        </dependency>
-        <dependency>
-            <groupId>com.github.workerframework</groupId>
-            <artifactId>worker-caf</artifactId>
             <scope>test</scope>
         </dependency>
     </dependencies>

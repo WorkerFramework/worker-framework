@@ -23,12 +23,12 @@
 
     <artifactId>worker-queue-rabbit</artifactId>
     <name>worker-queue-rabbit</name>
-    <version>9.1.2-SNAPSHOT</version>
+    <version>10.0.0-SNAPSHOT</version>
 
     <parent>
         <groupId>com.github.workerframework</groupId>
         <artifactId>worker-framework-aggregator</artifactId>
-        <version>9.1.2-SNAPSHOT</version>
+        <version>10.0.0-SNAPSHOT</version>
     </parent>
 
     <dependencies>
@@ -49,6 +49,10 @@
             <artifactId>worker-configs</artifactId>
         </dependency>
         <dependency>
+            <groupId>com.github.workerframework</groupId>
+            <artifactId>worker-tracking-report</artifactId>
+        </dependency>
+        <dependency>
             <groupId>com.rabbitmq</groupId>
             <artifactId>amqp-client</artifactId>
         </dependency>
@@ -60,6 +64,16 @@
         <dependency>
             <groupId>com.github.cafapi.common</groupId>
             <artifactId>caf-api</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>com.github.cafapi.common</groupId>
+            <artifactId>codec-json</artifactId>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>com.github.workerframework</groupId>
+            <artifactId>worker-store-fs</artifactId>
+            <scope>test</scope>
         </dependency>
         <dependency>
             <groupId>org.testng</groupId>

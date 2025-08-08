@@ -22,6 +22,7 @@ import jakarta.validation.constraints.Min;
 final class TestWorkerConfiguration extends WorkerConfiguration
 {
     private String outputQueue;
+    private String invalidQueue;
     private int threads;
 
     public String getOutputQueue()
@@ -44,5 +45,13 @@ final class TestWorkerConfiguration extends WorkerConfiguration
     public void setThreads(final int threads)
     {
         this.threads = threads;
+    }
+
+    public String getInvalidQueue() {
+        return invalidQueue;
+    }
+
+    public void setInvalidQueue(String invalidQueue) {
+        this.invalidQueue = invalidQueue;
     }
 }

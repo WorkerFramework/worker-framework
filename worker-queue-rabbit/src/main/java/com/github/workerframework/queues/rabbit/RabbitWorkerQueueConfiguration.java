@@ -87,6 +87,22 @@ public class RabbitWorkerQueueConfiguration
     @NotNull
     private String queueType;
 
+    /**
+     * Indicates if payload offloading is enabled.
+     */
+    private boolean isPayloadOffloadingEnabled = false;
+
+    /**
+     * The threshold at which message payloads will be offloaded before publishing to RabbitMQ.
+     */
+    @Min(1)
+    private int payloadOffloadingThreshold = 16777216;
+
+    /**
+     * The datastore directory to use for offloading payloads.
+     */
+    private String payloadOffloadingDirectory = "queues";
+
     public RabbitWorkerQueueConfiguration()
     {
     }
@@ -180,5 +196,33 @@ public class RabbitWorkerQueueConfiguration
     public void setQueueType(String queueType)
     {
         this.queueType = queueType;
+    }
+
+    public boolean getIsPayloadOffloadingEnabled()
+    {
+        return isPayloadOffloadingEnabled;
+    }
+
+    public void setPayloadOffloadingEnabled(boolean payloadOffloadingEnabled)
+    {
+        isPayloadOffloadingEnabled = payloadOffloadingEnabled;
+    }
+
+    public int getPayloadOffloadingThreshold()
+    {
+        return payloadOffloadingThreshold;
+    }
+
+    public void setPayloadOffloadingThreshold(int payloadOffloadingThreshold)
+    {
+        this.payloadOffloadingThreshold = payloadOffloadingThreshold;
+    }
+
+    public String getPayloadOffloadingDirectory() {
+        return payloadOffloadingDirectory;
+    }
+
+    public void setPayloadOffloadingDirectory(String payloadOffloadingDirectory) {
+        this.payloadOffloadingDirectory = payloadOffloadingDirectory;
     }
 }

@@ -16,8 +16,6 @@
 package com.github.workerframework.core;
 
 import com.github.cafapi.common.api.Codec;
-import com.github.cafapi.common.api.CodecException;
-import com.github.cafapi.common.api.DecodeMethod;
 import com.github.cafapi.common.util.naming.ServicePath;
 import com.github.workerframework.api.InvalidJobTaskIdException;
 import com.github.workerframework.api.InvalidTaskException;
@@ -64,7 +62,7 @@ final class WorkerCore
 
     public WorkerCore(final Codec codec, final WorkerThreadPool pool, final ManagedWorkerQueue queue, final WorkerFactory factory, final ServicePath path, final HealthCheckRegistry healthCheckRegistry, final TransientHealthCheck transientHealthCheck)
     {
-        WorkerCallback taskCallback = new CoreWorkerCallback(codec, queue, stats, healthCheckRegistry, transientHealthCheck);
+        WorkerCallback taskCallback = new CoreWorkerCallback(queue, stats, healthCheckRegistry, transientHealthCheck);
         this.threadPool = Objects.requireNonNull(pool);
         this.callback = new CoreTaskCallback(codec, stats, new WorkerExecutor(path, taskCallback, factory, pool), pool, queue);
         this.workerQueue = Objects.requireNonNull(queue);
@@ -151,12 +149,14 @@ final class WorkerCore
          * Use the factory to get a new worker to handle the task, wrap this in a handler and hand it off to the thread pool.
          */
         @Override
-        public void registerNewTask(final TaskInformation taskInformation, final byte[] taskMessage, Map<String, Object> headers)
+        public void registerNewTask(final TaskInformation taskInformation, final TaskMessage taskMessage, Map<String, Object> headers)
             throws InvalidTaskException, TaskRejectedException
         {
             Objects.requireNonNull(taskInformation);
             stats.incrementTasksReceived();
-            stats.getInputSizes().update(taskMessage.length);
+            if(taskMessage.getTaskData() != null) {
+                stats.getInputSizes().update(taskMessage.getTaskData().length);
+            }
 
             try {
                 registerNewTaskImpl(taskInformation, taskMessage, headers);
@@ -166,12 +166,10 @@ final class WorkerCore
             }
         }
 
-        private void registerNewTaskImpl(final TaskInformation taskInformation, final byte[] taskMessage, Map<String, Object> headers)
+        private void registerNewTaskImpl(final TaskInformation taskInformation, final TaskMessage tm, Map<String, Object> headers)
             throws InvalidTaskException, TaskRejectedException
         {
             try {
-                final TaskMessage tm = codec.deserialise(taskMessage, TaskMessage.class, DecodeMethod.LENIENT);
-
                 LOG.debug("Received task {} (message id: {})", tm.getTaskId(), taskInformation.getInboundMessageId());
                 validateTaskMessage(tm);
                 final JobStatus jobStatus;
@@ -219,9 +217,7 @@ final class WorkerCore
                             taskInformation.getInboundMessageId());
                         executor.discardTask(tm, taskInformation);
                 }
-            } catch (CodecException e) {
-                throw new InvalidTaskException("Queue data did not deserialise to a TaskMessage", e);
-            } catch (InvalidJobTaskIdException ijte) {
+            } catch (final InvalidJobTaskIdException ijte) {
                 throw new InvalidTaskException("TaskMessage contains an invalid job task identifier", ijte);
             }
         }
@@ -432,15 +428,13 @@ final class WorkerCore
      */
     private static class CoreWorkerCallback implements WorkerCallback
     {
-        private final Codec codec;
         private final ManagedWorkerQueue workerQueue;
         private final WorkerStats stats;
         private final HealthCheckRegistry healthCheckRegistry;
         private final TransientHealthCheck transientHealthCheck;
 
-        public CoreWorkerCallback(final Codec codec, final ManagedWorkerQueue workerQueue, final WorkerStats stats, final HealthCheckRegistry healthCheckRegistry, final TransientHealthCheck transientHealthCheck)
+        public CoreWorkerCallback(final ManagedWorkerQueue workerQueue, final WorkerStats stats, final HealthCheckRegistry healthCheckRegistry, final TransientHealthCheck transientHealthCheck)
         {
-            this.codec = Objects.requireNonNull(codec);
             this.workerQueue = Objects.requireNonNull(workerQueue);
             this.stats = Objects.requireNonNull(stats);
             this.healthCheckRegistry = Objects.requireNonNull(healthCheckRegistry);
@@ -457,15 +451,8 @@ final class WorkerCore
             final String queue = responseMessage.getTo();
             checkForTrackingTermination(taskInformation, queue, responseMessage);
 
-            final byte[] output;
             try {
-                output = codec.serialise(responseMessage);
-            } catch (final CodecException ex) {
-                throw new RuntimeException(ex);
-            }
-
-            try {
-                workerQueue.publish(taskInformation, output, queue, Collections.emptyMap());
+                workerQueue.publish(taskInformation, responseMessage, queue, Collections.emptyMap());
             } catch (final QueueException ex) {
                 throw new RuntimeException(ex);
             }
@@ -502,9 +489,10 @@ final class WorkerCore
                 } else {
                     // **** Normal Worker ****                    
                     // A worker with an input and output queue.
-                    final byte[] output = codec.serialise(responseMessage);
-                    workerQueue.publish(taskInformation, output, queue, Collections.emptyMap(), true);
-                    stats.getOutputSizes().update(output.length);
+                    workerQueue.publish(taskInformation, responseMessage, queue, Collections.emptyMap(), true);
+                    if(responseMessage.getTaskData() != null) {
+                        stats.getOutputSizes().update(responseMessage.getTaskData().length);
+                    }
                 }
                 stats.updatedLastTaskFinishedTime();
                 if (TaskStatus.isSuccessfulResponse(responseMessage.getTaskStatus())) {
@@ -512,7 +500,7 @@ final class WorkerCore
                 } else {
                     stats.incrementTasksFailed();
                 }
-            } catch (CodecException | QueueException e) {
+            } catch (final QueueException e) {
                 LOG.error("Cannot publish data for task {}, rejecting", responseMessage.getTaskId(), e);
                 abandon(taskInformation, e);
             }
@@ -543,13 +531,12 @@ final class WorkerCore
                     workerQueue.acknowledgeTask(taskInformation);
                 } else {
                     // Else forward the task
-                    final byte[] output = codec.serialise(forwardedMessage);
-                    workerQueue.publish(taskInformation, output, queue, headers, true);
+                    workerQueue.publish(taskInformation, forwardedMessage, queue, headers, true);
                     stats.incrementTasksForwarded();
                     //TODO - I'm guessing this stat should not be updated for forwarded messages:
                     // stats.getOutputSizes().update(output.length);
                 }
-            } catch (CodecException | QueueException e) {
+            } catch (final QueueException e) {
                 LOG.error("Cannot publish data for forwarded task {}, rejecting", forwardedMessage.getTaskId(), e);
                 abandon(taskInformation, e);
             }
@@ -565,10 +552,9 @@ final class WorkerCore
             LOG.debug("Task {} (message id: {}) being forwarded to paused queue {}",
                       taskMessage.getTaskId(), taskInformation.getInboundMessageId(), pausedQueue);
             try {
-                final byte[] taskMessageBytes = codec.serialise(taskMessage);
-                workerQueue.publish(taskInformation, taskMessageBytes, pausedQueue, headers, true);
+                workerQueue.publish(taskInformation, taskMessage, pausedQueue, headers, true);
                 stats.incrementTasksPaused();
-            } catch (final CodecException | QueueException e) {
+            } catch (final QueueException e) {
                 LOG.error("Cannot publish data for task: {} to paused queue: {}, rejecting", taskMessage.getTaskId(), pausedQueue, e);
                 abandon(taskInformation, e);
             }
@@ -589,16 +575,8 @@ final class WorkerCore
             Objects.requireNonNull(taskInformation);
             Objects.requireNonNull(reportUpdateMessage);
             LOG.debug("Sending report updates to queue {})", reportUpdateMessage.getTo());
-
-            final byte[] output;
-            try {
-                output = codec.serialise(reportUpdateMessage);
-            } catch (final CodecException ex) {
-                throw new RuntimeException(ex);
-            }
-
             try {                
-                workerQueue.publish(taskInformation, output, reportUpdateMessage.getTo(), Collections.emptyMap());
+                workerQueue.publish(taskInformation, reportUpdateMessage, reportUpdateMessage.getTo(), Collections.emptyMap());
             } catch (final QueueException ex) {
                 throw new RuntimeException(ex);
             }

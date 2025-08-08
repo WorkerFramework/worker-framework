@@ -53,7 +53,6 @@ public final class TaskMessage
     /**
      * The serialised data of the task-specific message.
      */
-    @NotNull
     private byte[] taskData;
 
     /**
@@ -129,7 +128,7 @@ public final class TaskMessage
         this.taskId = Objects.requireNonNull(taskId);
         this.taskClassifier = Objects.requireNonNull(taskClassifier);
         this.taskApiVersion = Objects.requireNonNull(taskApiVersion);
-        this.taskData = Objects.requireNonNull(taskData);
+        this.taskData = taskData;
         this.taskStatus = Objects.requireNonNull(taskStatus);
         this.context = Objects.requireNonNull(context);
         this.to = to;

@@ -17,6 +17,8 @@ package com.github.workerframework.api;
 
 /**
  * Indicates that a task cannot be accepted right now, but that it should be retried at a later time.
+ * This exception does not result in the message being placed on the reject queue.
+ * The reject queue is only used for tasks that cannot be processed at all and have been identified as poisonous.
  */
 public class TaskRejectedException extends WorkerException
 {

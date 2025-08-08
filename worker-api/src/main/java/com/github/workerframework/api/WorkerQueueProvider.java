@@ -15,6 +15,7 @@
  */
 package com.github.workerframework.api;
 
+import com.github.cafapi.common.api.Codec;
 import com.github.cafapi.common.api.ConfigurationSource;
 
 /**
@@ -26,10 +27,15 @@ public interface WorkerQueueProvider
      * Create a new WorkerQueue instance.
      *
      * @param configurationSource used for configuring the WorkerQueue
-     * @param maxTasks the maximum number of tasks the worker can perform at once
+     * @param maxTasks            the maximum number of tasks the worker can perform at once
+     * @param invalidQueue        the queue in which to place tasks that are invalid or cannot be processed
+     * @param dataStore           the managed data store that the worker will use to store data that exceeds a threshold.
+     * @param codec               the codec used for serialization deserialization of data.
+     * @param workerName
      * @return a new WorkerQueue instance
      * @throws QueueException if a WorkerQueue could not be created
      */
-    ManagedWorkerQueue getWorkerQueue(ConfigurationSource configurationSource, int maxTasks)
+    ManagedWorkerQueue getWorkerQueue(ConfigurationSource configurationSource, int maxTasks, String invalidQueue,
+                                      ManagedDataStore dataStore, Codec codec, String workerName)
         throws QueueException;
 }

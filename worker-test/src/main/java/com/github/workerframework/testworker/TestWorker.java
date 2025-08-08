@@ -28,7 +28,7 @@ import java.nio.charset.StandardCharsets;
 
 final class TestWorker implements Worker
 {
-    private static final byte[] TEST_WORKER_RESULT = "TestWorkerResult".getBytes(StandardCharsets.UTF_8);
+    private static final byte[] TEST_WORKER_RESULT = "TestWorkerResultTaskData".getBytes(StandardCharsets.UTF_8);
 
     private final TestWorkerConfiguration config;
     private final Codec codec;
@@ -51,7 +51,7 @@ final class TestWorker implements Worker
         try {
             testWorkerTask = codec.deserialise(workerTask.getData(), TestWorkerTask.class);
             if(testWorkerTask.isPoison()){
-                System.exit(1);
+                Runtime.getRuntime().halt(0);
             }
         } catch (final CodecException e) {
             throw new RuntimeException(e);
@@ -65,7 +65,7 @@ final class TestWorker implements Worker
         }
         
         return new WorkerResponse(
-            outputQueue,
+            testWorkerTask.isTerminalWorker() ? null : outputQueue,
             TaskStatus.RESULT_SUCCESS,
             TEST_WORKER_RESULT,
             "TestWorkerResult",

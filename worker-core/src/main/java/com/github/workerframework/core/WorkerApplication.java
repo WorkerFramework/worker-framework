@@ -43,6 +43,7 @@ import com.github.workerframework.api.WorkerException;
 import com.github.workerframework.api.WorkerFactory;
 import com.github.workerframework.api.WorkerFactoryProvider;
 import com.github.workerframework.api.WorkerQueueProvider;
+import com.github.workerframework.caf.AbstractWorkerFactory;
 import com.github.workerframework.configs.HealthConfiguration;
 
 import ch.qos.logback.classic.util.DefaultJoranConfigurator;
@@ -125,7 +126,8 @@ public final class WorkerApplication extends Application<WorkerConfiguration>
         WorkerFactory workerFactory = workerProvider.getWorkerFactory(config, store, codec);
         WorkerThreadPool wtp = WorkerThreadPool.create(workerFactory);
         final int nThreads = workerFactory.getWorkerThreads();
-        ManagedWorkerQueue workerQueue = queueProvider.getWorkerQueue(config, nThreads);
+        ManagedWorkerQueue workerQueue = queueProvider.getWorkerQueue(config, nThreads, workerFactory.getInvalidTaskQueue(), store, codec,
+                getWorkerName(workerFactory));
         TransientHealthCheck transientHealthCheck = new TransientHealthCheck();
         WorkerCore core = new WorkerCore(codec, wtp, workerQueue, workerFactory, path, environment.healthChecks(), transientHealthCheck);
         HealthConfiguration healthConfiguration = config.getConfiguration(HealthConfiguration.class);
@@ -369,5 +371,26 @@ public final class WorkerApplication extends Application<WorkerConfiguration>
         healthCheckConfiguration.setCritical(true);
 
         return healthCheckConfiguration;
+    }
+
+    /**
+     * Some instances of WorkerFactory are implementations of AbstractWorkerFactory<C,T> where C
+     * sometimes implements WorkerConfiguration.  In those cases we take the workerName from
+     * the WorkerConfiguration, otherwise we take the workerName from AbstractWorkerFactory.
+     *
+     * Note there are occasions where the workerName is defined differently in AbstractWorkerFactory
+     * to that in WorkerConfiguration. e.g. worker-batch.
+     *
+     * @param workerFactory
+     * @return
+     */
+    private static String getWorkerName(final WorkerFactory workerFactory) {
+        final var workerCfg = workerFactory.getWorkerConfiguration();
+        if (workerCfg != null) {
+            return workerCfg.getWorkerName();
+        } else if (workerFactory instanceof AbstractWorkerFactory) {
+            return ((AbstractWorkerFactory)workerFactory).getWorkerName();
+        }
+        return workerFactory.getClass().getSimpleName();
     }
 }

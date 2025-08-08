@@ -69,7 +69,7 @@ final class TestWorkerFactory implements WorkerFactory
     @Override
     public String getInvalidTaskQueue()
     {
-        return config.getOutputQueue();
+        return config.getInvalidQueue();
     }
 
     @Nonnull

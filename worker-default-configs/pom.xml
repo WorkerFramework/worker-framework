@@ -23,12 +23,12 @@
 
     <artifactId>worker-default-configs</artifactId>
     <name>worker-default-configs</name>
-    <version>9.1.2-SNAPSHOT</version>
+    <version>10.0.0-SNAPSHOT</version>
 
     <parent>
         <groupId>com.github.workerframework</groupId>
         <artifactId>worker-framework-aggregator</artifactId>
-        <version>9.1.2-SNAPSHOT</version>
+        <version>10.0.0-SNAPSHOT</version>
     </parent>
 
     <build>

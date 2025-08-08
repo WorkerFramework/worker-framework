@@ -15,12 +15,17 @@
  */
 package com.github.workerframework.queues.rabbit;
 
+import com.github.cafapi.common.api.Codec;
+import com.github.cafapi.common.api.CodecException;
 import com.github.cafapi.common.api.HealthResult;
 import com.github.cafapi.common.api.HealthStatus;
+import com.github.workerframework.api.DataStoreException;
+import com.github.workerframework.api.ManagedDataStore;
 import com.github.workerframework.api.ManagedWorkerQueue;
 import com.github.workerframework.api.QueueException;
 import com.github.workerframework.api.TaskCallback;
 import com.github.workerframework.api.TaskInformation;
+import com.github.workerframework.api.TaskMessage;
 import com.github.workerframework.api.WorkerQueueMetricsReporter;
 import com.github.workerframework.util.rabbitmq.ConsumerAckEvent;
 import com.github.workerframework.util.rabbitmq.ConsumerDropEvent;
@@ -29,6 +34,7 @@ import com.github.workerframework.util.rabbitmq.DefaultRabbitConsumer;
 import com.github.workerframework.util.rabbitmq.Event;
 import com.github.workerframework.util.rabbitmq.EventPoller;
 import com.github.workerframework.util.rabbitmq.QueueConsumer;
+import com.github.workerframework.util.rabbitmq.RabbitHeaders;
 import com.github.workerframework.util.rabbitmq.RabbitUtil;
 import com.rabbitmq.client.Channel;
 import com.rabbitmq.client.Connection;
@@ -38,12 +44,15 @@ import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.net.URISyntaxException;
+import java.nio.file.Paths;
 import java.security.KeyManagementException;
 import java.security.NoSuchAlgorithmException;
 import java.util.*;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.TimeoutException;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 /**
  * This implementation uses a separate thread for a consumer and producer, each with their own Channel. These threads handle operations
@@ -72,15 +81,30 @@ public final class RabbitWorkerQueue implements ManagedWorkerQueue
     private final RabbitMetricsReporter metrics = new RabbitMetricsReporter();
     private final RabbitWorkerQueueConfiguration config;
     private final int maxTasks;
+    private final String invalidQueue;
+    private final ManagedDataStore dataStore;
+    private final Codec codec;
+    private final String workerName;
     private static final Logger LOG = LoggerFactory.getLogger(RabbitWorkerQueue.class);
-
+    private static final Pattern JOB_TASK_ID_PATTERN = Pattern.compile("^([^\\.]*)\\.?(.*)$");
+    
     /**
      * Setup a new RabbitWorkerQueue.
      */
-    public RabbitWorkerQueue(RabbitWorkerQueueConfiguration config, int maxTasks)
+    public RabbitWorkerQueue(
+        RabbitWorkerQueueConfiguration config,
+        int maxTasks,
+        final String invalidQueue,
+        final ManagedDataStore dataStore,
+        final Codec codec,
+        final String workerName)
     {
         this.config = Objects.requireNonNull(config);
         this.maxTasks = maxTasks;
+        this.invalidQueue = Objects.requireNonNull(invalidQueue);
+        this.dataStore = Objects.requireNonNull(dataStore);
+        this.codec = Objects.requireNonNull(codec);
+        this.workerName = Objects.requireNonNull(workerName);
         LOG.debug("Initialised");
     }
 
@@ -107,13 +131,31 @@ public final class RabbitWorkerQueue implements ManagedWorkerQueue
             incomingChannel = conn.createChannel();
             int prefetch = Math.max(1, maxTasks + config.getPrefetchBuffer());
             incomingChannel.basicQos(prefetch);
-            WorkerQueueConsumerImpl consumerImpl = new WorkerQueueConsumerImpl(callback, metrics, consumerQueue, incomingChannel,
-                                                                               publisherQueue, config.getRetryQueue(), config.getRetryLimit());
+            final var rabbitWorkerQueue = this;
+            WorkerQueueConsumerImpl consumerImpl = new WorkerQueueConsumerImpl(
+                    callback,
+                    metrics,
+                    consumerQueue,
+                    incomingChannel,
+                    publisherQueue,
+                    config.getRetryQueue(),
+                    config.getRetryLimit(),
+                    invalidQueue,
+                    dataStore,
+                    codec, 
+                    rabbitWorkerQueue::disconnectIncoming,
+                    workerName);
             consumer = new DefaultRabbitConsumer(consumerQueue, consumerImpl);
-            WorkerPublisherImpl publisherImpl = new WorkerPublisherImpl(outgoingChannel, metrics, consumerQueue, confirmListener);
+            WorkerPublisherImpl publisherImpl = new WorkerPublisherImpl(
+                outgoingChannel,
+                metrics,
+                consumerQueue,
+                confirmListener
+            );
             publisher = new EventPoller<>(2, publisherQueue, publisherImpl);
             declareWorkerQueue(incomingChannel, config.getInputQueue());
             declareWorkerQueue(outgoingChannel, config.getRetryQueue());
+            declareWorkerQueue(outgoingChannel, invalidQueue);
             synchronized (consumerLock) {
                 consumerTag = incomingChannel.basicConsume(config.getInputQueue(), consumer);
             }
@@ -129,7 +171,7 @@ public final class RabbitWorkerQueue implements ManagedWorkerQueue
     }
 
     @Override
-    public void publish(TaskInformation taskInformation, byte[] taskMessage, String targetQueue, Map<String, Object> headers,
+    public void publish(TaskInformation taskInformation, TaskMessage taskMessage, String targetQueue, Map<String, Object> headers,
                         boolean isLastMessage) throws QueueException
     {
         try {
@@ -140,11 +182,54 @@ public final class RabbitWorkerQueue implements ManagedWorkerQueue
         RabbitTaskInformation rabbitTaskInformation = (RabbitTaskInformation)taskInformation;
         //increment the total responseCount (including task, sub task and tracking info)
         rabbitTaskInformation.incrementResponseCount(isLastMessage);
-        publisherQueue.add(new WorkerPublishQueueEvent(taskMessage, targetQueue, rabbitTaskInformation, headers));
+      
+        final HashMap<String, Object> publishHeaders = new HashMap<>(headers);
+        
+        final byte[] serializedTaskMessage;
+        try {
+            if (config.getIsPayloadOffloadingEnabled() && config.getPayloadOffloadingThreshold() < taskMessage.getTaskData().length) {
+                LOG.debug("Offloading TaskMessage's TaskData to DataStore for message id '{}'", rabbitTaskInformation.getInboundMessageId());
+                final byte[] taskData = taskMessage.getTaskData();
+                taskMessage.setTaskData(null);
+                serializedTaskMessage = codec.serialise(taskMessage);
+                final String trackingJobTaskId = rabbitTaskInformation.getTrackingJobTaskId().isPresent() ? 
+                        rabbitTaskInformation.getTrackingJobTaskId().get() : "untracked";
+                final String partialReference = getStoragePath(targetQueue, trackingJobTaskId);
+                final String taskDataStorageRef = dataStore.store(taskData, partialReference);
+                publishHeaders.put(RabbitHeaders.RABBIT_HEADER_CAF_PAYLOAD_OFFLOADING_STORAGE_REF, taskDataStorageRef);
+            } else {
+                LOG.debug("Not offloading task message for task {}", rabbitTaskInformation.getInboundMessageId());
+                serializedTaskMessage = codec.serialise(taskMessage);
+            }
+        } 
+        catch (final CodecException e) {
+            metrics.incremementErrors();
+            LOG.error("Failed to serialize task message for task {}", rabbitTaskInformation.getInboundMessageId(), e);
+            throw new QueueException("Failed to serialize task message", e);
+        }
+        catch (final DataStoreException e) {
+            metrics.incremementErrors();
+            LOG.error("Failed to store task message for task {}", rabbitTaskInformation.getInboundMessageId(), e);
+            throw new QueueException("Failed to store task message", e);
+        }
+
+        publisherQueue.add(new WorkerPublishQueueEvent(serializedTaskMessage, targetQueue, rabbitTaskInformation, publishHeaders));
     }
-    
+
+    private String getStoragePath(final String routingKey, final String trackingJobTaskId)
+    {
+        final StringBuilder path = new StringBuilder(Paths.get(config.getPayloadOffloadingDirectory(), routingKey).toString());
+        final Matcher matcher = JOB_TASK_ID_PATTERN.matcher(trackingJobTaskId);
+        if (matcher.find()) {
+            path.append('/').append(matcher.group(1).replace(":", "/"));
+            if (matcher.group(2) != null && !matcher.group(2).isEmpty()) {
+                path.append('/').append(matcher.group(2));
+            }
+        }
+        return path.toString();
+    }    
     @Override
-    public void publish(TaskInformation taskInformation, byte[] taskMessage, String targetQueue, Map<String, Object> headers) throws QueueException
+    public void publish(TaskInformation taskInformation, TaskMessage taskMessage, String targetQueue, Map<String, Object> headers) throws QueueException
     {
         publish(taskInformation, taskMessage, targetQueue, headers, false);
     }
@@ -282,7 +367,7 @@ public final class RabbitWorkerQueue implements ManagedWorkerQueue
                 try {
                     consumerTag = incomingChannel.basicConsume(config.getInputQueue(), consumer);
                 } catch (IOException ioe) {
-                    LOG.error("Failed to reconnect consumer {}", ioe);
+                    LOG.error("Failed to reconnect consumer {}", consumerTag, ioe);
                 }
             }
         }

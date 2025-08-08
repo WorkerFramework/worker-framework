@@ -266,7 +266,6 @@ the current input queue. Default is True.
   indicated as requeued by the WorkerQueue
  - core.currentIdleTime: the time in milliseconds since the worker was doing
   anything useful.
- - core.inputSizes: histogram of input (task) message sizes in bytes
  - core.outputSize: histogram of output (result) messages sizes in bytes
  - config.lookups: the number of configuration lookups performed by the
   ConfigurationSource.

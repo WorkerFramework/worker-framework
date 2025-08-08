@@ -15,11 +15,22 @@
  */
 package com.github.workerframework.queues.rabbit;
 
+import com.github.cafapi.common.api.Codec;
+import com.github.cafapi.common.api.CodecException;
+import com.github.cafapi.common.codecs.json.JsonCodec;
+import com.github.workerframework.api.DataStoreException;
 import com.github.workerframework.api.InvalidTaskException;
+import com.github.workerframework.api.ManagedDataStore;
 import com.github.workerframework.api.TaskCallback;
 import com.github.workerframework.api.TaskInformation;
+import com.github.workerframework.api.TaskMessage;
 import com.github.workerframework.api.TaskRejectedException;
+import com.github.workerframework.api.TaskStatus;
+import com.github.workerframework.api.TrackingInfo;
+import com.github.workerframework.api.WorkerConfiguration;
 import com.github.workerframework.api.WorkerException;
+import com.github.workerframework.datastores.fs.FileSystemDataStore;
+import com.github.workerframework.datastores.fs.FileSystemDataStoreConfiguration;
 import com.github.workerframework.util.rabbitmq.ConsumerAckEvent;
 import com.github.workerframework.util.rabbitmq.ConsumerDropEvent;
 import com.github.workerframework.util.rabbitmq.ConsumerRejectEvent;
@@ -31,15 +42,19 @@ import com.rabbitmq.client.AMQP;
 import com.rabbitmq.client.Channel;
 import com.rabbitmq.client.Envelope;
 import org.testng.Assert;
+import org.testng.annotations.AfterMethod;
+import org.testng.annotations.BeforeClass;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mockito;
 import org.mockito.stubbing.Answer;
 
+import java.io.File;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.util.Collections;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.BlockingQueue;
@@ -47,24 +62,63 @@ import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.TimeUnit;
 
+import static org.mockito.Mockito.mock;
+
 public class RabbitWorkerQueueConsumerTest
 {
     private String testQueue = "testQueue";
-    private RabbitTaskInformation taskInformation;
-    private byte[] data = "test123".getBytes(StandardCharsets.UTF_8);
+    private RabbitTaskInformation taskInformation;    
     private Envelope newEnv;
     private Envelope poisonEnv;
     private Envelope redeliveredEnv;
     private String retryKey = "retry";
+    private String invalidKey = "invalid";
     private RabbitMetricsReporter metrics = new RabbitMetricsReporter();
-    private TaskCallback mockCallback = Mockito.mock(TaskCallback.class);
+    private TaskCallback mockCallback = mock(TaskCallback.class);
+    private File tempDataStore;
+    private ManagedDataStore dataStore;
+    private static Codec codec;
+    private static byte[] data;
+
+    @BeforeClass
+    public static void beforeClass() throws CodecException {
+        codec = new JsonCodec();
+        data = getNewTaskMessage();
+    }
 
     @BeforeMethod
-    public void beforeMethod() {
+    public void beforeMethod() throws DataStoreException {
         taskInformation = new RabbitTaskInformation("101");
         newEnv = new Envelope(Long.valueOf(taskInformation.getInboundMessageId()), false, "", testQueue);
         poisonEnv = new Envelope(Long.valueOf(taskInformation.getInboundMessageId()), true, "", testQueue);
         redeliveredEnv = new Envelope(Long.valueOf(taskInformation.getInboundMessageId()), true, "", testQueue);
+        tempDataStore = new File("RabbitWorkerQueueConsumerTest");
+        dataStore = new FileSystemDataStore(createConfig());
+    }
+
+    @AfterMethod
+    public void tearDown()
+    {
+        deleteDir(tempDataStore);
+    }
+
+    private void deleteDir(File file)
+    {
+        File[] contents = file.listFiles();
+        if (contents != null) {
+            for (File f : contents) {
+                deleteDir(f);
+            }
+        }
+        file.delete();
+    }
+
+    private FileSystemDataStoreConfiguration createConfig()
+    {
+        final FileSystemDataStoreConfiguration conf = new FileSystemDataStoreConfiguration();
+        conf.setDataDir(tempDataStore.getAbsolutePath());
+        conf.setDataDirHealthcheckTimeoutSeconds(10);
+        return conf;
     }
 
     /**
@@ -76,19 +130,21 @@ public class RabbitWorkerQueueConsumerTest
     {
         BlockingQueue<Event<QueueConsumer>> consumerEvents = new LinkedBlockingQueue<>();
         BlockingQueue<Event<WorkerPublisher>> publisherEvents = new LinkedBlockingQueue<>();
-        Channel channel = Mockito.mock(Channel.class);
+        Channel channel = mock(Channel.class);
         CountDownLatch latch = new CountDownLatch(1);
-        TaskCallback callback = Mockito.mock(TaskCallback.class);
+        TaskCallback callback = mock(TaskCallback.class);
         Answer<Void> a = invocationOnMock -> {
             latch.countDown();
             return null;
         };
         Mockito.doAnswer(a).when(callback).registerNewTask(Mockito.any(), Mockito.any(), Mockito.anyMap());
-        WorkerQueueConsumerImpl impl = new WorkerQueueConsumerImpl(callback, metrics, consumerEvents, channel, publisherEvents, retryKey, 1);
+        WorkerQueueConsumerImpl impl = new WorkerQueueConsumerImpl(
+            callback, metrics, consumerEvents, channel, publisherEvents, retryKey, 1, invalidKey,
+            dataStore, codec, () -> {}, "testWorker");
         DefaultRabbitConsumer consumer = new DefaultRabbitConsumer(consumerEvents, impl);
         Thread t = new Thread(consumer);
         t.start();
-        AMQP.BasicProperties prop = Mockito.mock(AMQP.BasicProperties.class);
+        AMQP.BasicProperties prop = mock(AMQP.BasicProperties.class);
         Mockito.when(prop.getHeaders()).thenReturn(Collections.emptyMap());
         consumer.handleDelivery("consumer", newEnv, prop, data);
         Assert.assertTrue(latch.await(1000, TimeUnit.MILLISECONDS));
@@ -105,19 +161,21 @@ public class RabbitWorkerQueueConsumerTest
     {
         BlockingQueue<Event<QueueConsumer>> consumerEvents = new LinkedBlockingQueue<>();
         BlockingQueue<Event<WorkerPublisher>> publisherEvents = new LinkedBlockingQueue<>();
-        Channel channel = Mockito.mock(Channel.class);
+        Channel channel = mock(Channel.class);
         CountDownLatch latch = new CountDownLatch(1);
-        TaskCallback callback = Mockito.mock(TaskCallback.class);
+        TaskCallback callback = mock(TaskCallback.class);
         Answer<Void> a = invocationOnMock -> {
             latch.countDown();
             return null;
         };
         Mockito.doAnswer(a).when(callback).registerNewTask(Mockito.any(), Mockito.any(), Mockito.anyMap());
-        WorkerQueueConsumerImpl impl = new WorkerQueueConsumerImpl(callback, metrics, consumerEvents, channel, publisherEvents, retryKey, 1);
+        WorkerQueueConsumerImpl impl = new WorkerQueueConsumerImpl(
+            callback, metrics, consumerEvents, channel, publisherEvents, retryKey, 1, invalidKey,
+            dataStore, codec, () -> {}, "testWorker");
         DefaultRabbitConsumer consumer = new DefaultRabbitConsumer(consumerEvents, impl);
         Thread t = new Thread(consumer);
         t.start();
-        AMQP.BasicProperties prop = Mockito.mock(AMQP.BasicProperties.class);
+        AMQP.BasicProperties prop = mock(AMQP.BasicProperties.class);
         Map<String, Object> headers = new HashMap<>();
         headers.put(RabbitHeaders.RABBIT_HEADER_CAF_WORKER_RETRY, "1");
         Mockito.when(prop.getHeaders()).thenReturn(headers);
@@ -131,8 +189,8 @@ public class RabbitWorkerQueueConsumerTest
     }
 
     /**
-     * Send in a new message and verify that if the task registration throws an InvalidTaskException that a new publish request to the
-     * reject queue is sent.
+     * Send in a new message and verify that if the task registration throws an InvalidTaskException that a new publish
+     * request to the invalid queue is sent.
      */
     @Test
     public void testHandleDeliveryInvalid()
@@ -140,28 +198,30 @@ public class RabbitWorkerQueueConsumerTest
     {
         BlockingQueue<Event<QueueConsumer>> consumerEvents = new LinkedBlockingQueue<>();
         BlockingQueue<Event<WorkerPublisher>> publisherEvents = new LinkedBlockingQueue<>();
-        Channel channel = Mockito.mock(Channel.class);
-        TaskCallback callback = Mockito.mock(TaskCallback.class);
+        Channel channel = mock(Channel.class);
+        TaskCallback callback = mock(TaskCallback.class);
         Answer<Void> a = invocationOnMock -> {
             throw new InvalidTaskException("blah");
         };
         Mockito.doAnswer(a).when(callback).registerNewTask(Mockito.any(), Mockito.any(), Mockito.anyMap());
-        WorkerQueueConsumerImpl impl = new WorkerQueueConsumerImpl(callback, metrics, consumerEvents, channel, publisherEvents, retryKey, 1);
+        WorkerQueueConsumerImpl impl = new WorkerQueueConsumerImpl(
+            callback, metrics, consumerEvents, channel, publisherEvents, retryKey, 1, invalidKey,
+            dataStore, codec, () -> {}, "testWorker");
         DefaultRabbitConsumer consumer = new DefaultRabbitConsumer(consumerEvents, impl);
         Thread t = new Thread(consumer);
         t.start();
-        AMQP.BasicProperties prop = Mockito.mock(AMQP.BasicProperties.class);
+        AMQP.BasicProperties prop = mock(AMQP.BasicProperties.class);
         Mockito.when(prop.getHeaders()).thenReturn(Collections.emptyMap());
         consumer.handleDelivery("consumer", newEnv, prop, data);
         Event<WorkerPublisher> pubEvent = publisherEvents.poll(1, TimeUnit.SECONDS);
         Assert.assertNotNull(pubEvent);
-        WorkerPublisher publisher = Mockito.mock(WorkerPublisher.class);
+        WorkerPublisher publisher = mock(WorkerPublisher.class);
         ArgumentCaptor<Map<String, Object>> captor = buildStringObjectMapCaptor();
         pubEvent.handleEvent(publisher);
-        Mockito.verify(publisher, Mockito.times(1)).handlePublish(Mockito.eq(data), Mockito.eq(retryKey), Mockito.any(RabbitTaskInformation.class), captor.capture());
-        Assert.assertTrue(captor.getValue().containsKey(RabbitHeaders.RABBIT_HEADER_CAF_WORKER_REJECTED));
-        Assert.assertEquals(WorkerQueueConsumerImpl.REJECTED_REASON_TASKMESSAGE,
-                            captor.getValue().get(RabbitHeaders.RABBIT_HEADER_CAF_WORKER_REJECTED));
+        Mockito.verify(publisher, Mockito.times(1)).handlePublish(Mockito.eq(data), Mockito.eq(invalidKey), Mockito.any(RabbitTaskInformation.class), captor.capture());
+        Assert.assertTrue(captor.getValue().containsKey(RabbitHeaders.RABBIT_HEADER_CAF_WORKER_INVALID));
+        Assert.assertEquals(captor.getValue().get(RabbitHeaders.RABBIT_HEADER_CAF_WORKER_INVALID).toString(),
+                "com.github.workerframework.api.InvalidTaskException: blah");
         consumer.shutdown();
     }
 
@@ -175,22 +235,24 @@ public class RabbitWorkerQueueConsumerTest
     {
         BlockingQueue<Event<QueueConsumer>> consumerEvents = new LinkedBlockingQueue<>();
         BlockingQueue<Event<WorkerPublisher>> publisherEvents = new LinkedBlockingQueue<>();
-        Channel channel = Mockito.mock(Channel.class);
-        TaskCallback callback = Mockito.mock(TaskCallback.class);
+        Channel channel = mock(Channel.class);
+        TaskCallback callback = mock(TaskCallback.class);
         Answer<Void> a = invocationOnMock -> {
             throw new TaskRejectedException("blah");
         };
         Mockito.doAnswer(a).when(callback).registerNewTask(Mockito.any(), Mockito.any(), Mockito.anyMap());
-        WorkerQueueConsumerImpl impl = new WorkerQueueConsumerImpl(callback, metrics, consumerEvents, channel, publisherEvents, retryKey, 1);
+        WorkerQueueConsumerImpl impl = new WorkerQueueConsumerImpl(
+            callback, metrics, consumerEvents, channel, publisherEvents, retryKey, 1, invalidKey,
+            dataStore, codec, () -> {}, "testWorker");
         DefaultRabbitConsumer consumer = new DefaultRabbitConsumer(consumerEvents, impl);
         Thread t = new Thread(consumer);
         t.start();
-        AMQP.BasicProperties prop = Mockito.mock(AMQP.BasicProperties.class);
+        AMQP.BasicProperties prop = mock(AMQP.BasicProperties.class);
         Mockito.when(prop.getHeaders()).thenReturn(Collections.emptyMap());
         consumer.handleDelivery("consumer", newEnv, prop, data);
         Event<WorkerPublisher> pubEvent = publisherEvents.poll(1, TimeUnit.SECONDS);
         Assert.assertNotNull(pubEvent);
-        WorkerPublisher publisher = Mockito.mock(WorkerPublisher.class);
+        WorkerPublisher publisher = mock(WorkerPublisher.class);
         ArgumentCaptor<Map<String, Object>> captor = buildStringObjectMapCaptor();
         pubEvent.handleEvent(publisher);
         Mockito.verify(publisher, Mockito.times(1)).handlePublish(Mockito.eq(data), Mockito.eq(testQueue), Mockito.any(RabbitTaskInformation.class), captor.capture());
@@ -208,18 +270,20 @@ public class RabbitWorkerQueueConsumerTest
     {
         BlockingQueue<Event<QueueConsumer>> consumerEvents = new LinkedBlockingQueue<>();
         BlockingQueue<Event<WorkerPublisher>> publisherEvents = new LinkedBlockingQueue<>();
-        Channel channel = Mockito.mock(Channel.class);
-        TaskCallback callback = Mockito.mock(TaskCallback.class);
-        WorkerQueueConsumerImpl impl = new WorkerQueueConsumerImpl(callback, metrics, consumerEvents, channel, publisherEvents, retryKey, 1);
+        Channel channel = mock(Channel.class);
+        TaskCallback callback = mock(TaskCallback.class);
+        WorkerQueueConsumerImpl impl = new WorkerQueueConsumerImpl(
+            callback, metrics, consumerEvents, channel, publisherEvents, retryKey, 1, invalidKey,
+            dataStore, codec, () -> {}, "testWorker");
         DefaultRabbitConsumer consumer = new DefaultRabbitConsumer(consumerEvents, impl);
         Thread t = new Thread(consumer);
         t.start();
-        AMQP.BasicProperties prop = Mockito.mock(AMQP.BasicProperties.class);
+        AMQP.BasicProperties prop = mock(AMQP.BasicProperties.class);
         Mockito.when(prop.getHeaders()).thenReturn(Collections.emptyMap());
         consumer.handleDelivery("consumer", redeliveredEnv, prop, data);
         Event<WorkerPublisher> pubEvent = publisherEvents.poll(1, TimeUnit.SECONDS);
         Assert.assertNotNull(pubEvent);
-        WorkerPublisher publisher = Mockito.mock(WorkerPublisher.class);
+        WorkerPublisher publisher = mock(WorkerPublisher.class);
         ArgumentCaptor<Map<String, Object>> captor = buildStringObjectMapCaptor();
         pubEvent.handleEvent(publisher);
         Mockito.verify(publisher, Mockito.times(1)).handlePublish(Mockito.eq(data), Mockito.eq(retryKey), Mockito.any(RabbitTaskInformation.class), captor.capture());
@@ -238,13 +302,15 @@ public class RabbitWorkerQueueConsumerTest
         BlockingQueue<Event<QueueConsumer>> consumerEvents = new LinkedBlockingQueue<>();
         BlockingQueue<Event<WorkerPublisher>> publisherEvents = new LinkedBlockingQueue<>();
         CountDownLatch channelLatch = new CountDownLatch(1);
-        Channel channel = Mockito.mock(Channel.class);
+        Channel channel = mock(Channel.class);
         Answer<Void> a = invocationOnMock -> {
             channelLatch.countDown();
             return null;
         };
         Mockito.doAnswer(a).when(channel).basicAck(Mockito.eq(Long.valueOf(taskInformation.getInboundMessageId())), Mockito.anyBoolean());
-        WorkerQueueConsumerImpl impl = new WorkerQueueConsumerImpl(mockCallback, metrics, consumerEvents, channel, publisherEvents, retryKey, 1);
+        WorkerQueueConsumerImpl impl = new WorkerQueueConsumerImpl(
+            mockCallback, metrics, consumerEvents, channel, publisherEvents, retryKey, 1, invalidKey,
+            dataStore, codec, () -> {}, "testWorker");
         DefaultRabbitConsumer consumer = new DefaultRabbitConsumer(consumerEvents, impl);
         Thread t = new Thread(consumer);
         t.start();
@@ -263,13 +329,15 @@ public class RabbitWorkerQueueConsumerTest
         BlockingQueue<Event<QueueConsumer>> consumerEvents = new LinkedBlockingQueue<>();
         BlockingQueue<Event<WorkerPublisher>> publisherEvents = new LinkedBlockingQueue<>();
         CountDownLatch channelLatch = new CountDownLatch(1);
-        Channel channel = Mockito.mock(Channel.class);
+        Channel channel = mock(Channel.class);
         Answer<Void> a = invocationOnMock -> {
             channelLatch.countDown();
             return null;
         };
         Mockito.doAnswer(a).when(channel).basicReject(Mockito.eq(Long.valueOf(taskInformation.getInboundMessageId())), Mockito.eq(true));
-        WorkerQueueConsumerImpl impl = new WorkerQueueConsumerImpl(mockCallback, metrics, consumerEvents, channel, publisherEvents, retryKey, 1);
+        WorkerQueueConsumerImpl impl = new WorkerQueueConsumerImpl(
+            mockCallback, metrics, consumerEvents, channel, publisherEvents, retryKey, 1, invalidKey,
+            dataStore, codec, () -> {}, "testWorker");
         DefaultRabbitConsumer consumer = new DefaultRabbitConsumer(consumerEvents, impl);
         Thread t = new Thread(consumer);
         t.start();
@@ -288,13 +356,15 @@ public class RabbitWorkerQueueConsumerTest
         BlockingQueue<Event<QueueConsumer>> consumerEvents = new LinkedBlockingQueue<>();
         BlockingQueue<Event<WorkerPublisher>> publisherEvents = new LinkedBlockingQueue<>();
         CountDownLatch channelLatch = new CountDownLatch(1);
-        Channel channel = Mockito.mock(Channel.class);
+        Channel channel = mock(Channel.class);
         Answer<Void> a = invocationOnMock -> {
             channelLatch.countDown();
             return null;
         };
         Mockito.doAnswer(a).when(channel).basicReject(Long.valueOf(taskInformation.getInboundMessageId()), false);
-        WorkerQueueConsumerImpl impl = new WorkerQueueConsumerImpl(mockCallback, metrics, consumerEvents, channel, publisherEvents, retryKey, 1);
+        WorkerQueueConsumerImpl impl = new WorkerQueueConsumerImpl(
+            mockCallback, metrics, consumerEvents, channel, publisherEvents, retryKey, 1, invalidKey,
+            dataStore, codec, () -> {}, "testWorker");
         DefaultRabbitConsumer consumer = new DefaultRabbitConsumer(consumerEvents, impl);
         Thread t = new Thread(consumer);
         t.start();
@@ -307,5 +377,19 @@ public class RabbitWorkerQueueConsumerTest
     private static ArgumentCaptor<Map<String, Object>> buildStringObjectMapCaptor()
     {
         return ArgumentCaptor.forClass(Map.class);
+    }
+    
+    private static byte[] getNewTaskMessage() throws CodecException {
+        final var trackingInfo = new TrackingInfo("task1", new Date(), 1, "http://hello.com", "pipe", "to");
+        return codec.serialise(new TaskMessage(
+            "task1",
+            "ACTUAL_CLASSIFIER",
+            1,
+            "test123".getBytes(StandardCharsets.UTF_8),
+            TaskStatus.NEW_TASK,
+            new HashMap<>(),
+            "to",
+            trackingInfo
+        ));
     }
 }

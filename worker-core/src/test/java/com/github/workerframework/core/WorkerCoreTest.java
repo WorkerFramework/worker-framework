@@ -24,6 +24,7 @@ import com.github.cafapi.common.api.HealthResult;
 import com.github.cafapi.common.codecs.json.JsonCodec;
 import com.github.cafapi.common.util.naming.ServicePath;
 import com.github.workerframework.api.InvalidTaskException;
+import com.github.workerframework.api.ManagedDataStore;
 import com.github.workerframework.api.ManagedWorkerQueue;
 import com.github.workerframework.api.QueueException;
 import com.github.workerframework.api.TaskCallback;
@@ -32,6 +33,7 @@ import com.github.workerframework.api.TaskMessage;
 import com.github.workerframework.api.TaskStatus;
 import com.github.workerframework.api.TrackingInfo;
 import com.github.workerframework.api.Worker;
+import com.github.workerframework.api.WorkerConfiguration;
 import com.github.workerframework.api.WorkerException;
 import com.github.workerframework.api.WorkerFactory;
 import com.github.workerframework.api.WorkerQueueMetricsReporter;
@@ -70,6 +72,7 @@ public class WorkerCoreTest
     
     private static final String SUCCESS = "success";
     private static final String FAILURE = "failure";
+    private static final String INVALID = "invalid";
     private static final String WORKER_NAME = "testWorker";
     private static final int WORKER_API_VER = 1;
     private static final String QUEUE_IN = "inQueue";
@@ -90,7 +93,7 @@ public class WorkerCoreTest
     public void testWorkerCore()
         throws CodecException, InterruptedException, WorkerException, ConfigurationException, QueueException, InvalidNameException
     {
-        BlockingQueue<byte[]> q = new LinkedBlockingQueue<>();
+        BlockingQueue<TaskMessage> q = new LinkedBlockingQueue<>();
         Codec codec = new JsonCodec();
         WorkerThreadPool wtp = WorkerThreadPool.create(5);
         ConfigurationSource config = Mockito.mock(ConfigurationSource.class);
@@ -104,14 +107,11 @@ public class WorkerCoreTest
         core.start();
         // at this point, the queue should hand off the task to the app, the app should get a worker from the mocked WorkerFactory,
         // and the Worker itself is a mock wrapped in a WorkerWrapper, which should return success and the appropriate result data
-        byte[] stuff = codec.serialise(getTaskMessage(task, codec, WORKER_NAME));
-        queue.submitTask(taskInformation, stuff);
+        queue.submitTask(taskInformation, getTaskMessage(task, codec, WORKER_NAME));
         // the worker's task result should eventually be passed back to our dummy WorkerQueue and onto our blocking queue
-        byte[] result = q.poll(5000, TimeUnit.MILLISECONDS);
+        TaskMessage taskMessage = q.poll(5000, TimeUnit.MILLISECONDS);
         // if the result didn't get back to us, then result will be null
-        Assert.assertNotNull(result);
-        // deserialise and verify result data
-        TaskMessage taskMessage = codec.deserialise(result, TaskMessage.class);
+        Assert.assertNotNull(taskMessage);
         Assert.assertEquals(TaskStatus.RESULT_SUCCESS, taskMessage.getTaskStatus());
         Assert.assertEquals(WORKER_NAME, taskMessage.getTaskClassifier());
         Assert.assertEquals(WORKER_API_VER, taskMessage.getTaskApiVersion());
@@ -128,7 +128,7 @@ public class WorkerCoreTest
     public void testWorkerCoreWithTracking()
         throws CodecException, InterruptedException, WorkerException, ConfigurationException, QueueException, InvalidNameException
     {
-        final BlockingQueue<byte[]> q = new LinkedBlockingQueue<>();
+        final BlockingQueue<TaskMessage> q = new LinkedBlockingQueue<>();
         final Codec codec = new JsonCodec();
         final WorkerThreadPool wtp = WorkerThreadPool.create(5);
         final ConfigurationSource config = Mockito.mock(ConfigurationSource.class);
@@ -143,17 +143,15 @@ public class WorkerCoreTest
         // at this point, the queue should hand off the task to the app, the app should get a worker from the mocked WorkerFactory,
         // and the Worker itself is a mock wrapped in a WorkerWrapper, which should return success and the appropriate result data
         final TrackingInfo tracking = new TrackingInfo("J23.1.2", new Date(), 0, "http://thehost:1234/job-service/v1/jobs/23/status", "trackingQueue", "trackTo");
-        final byte[] stuff = codec.serialise(getTaskMessage(task, codec, WORKER_NAME, tracking));
-        queue.submitTask(taskInformation, stuff);
+        queue.submitTask(taskInformation, getTaskMessage(task, codec, WORKER_NAME, tracking));
 
         // Two results expected back. One for the report progress update and another for the message completion.
         //
         // Verify result for the report update call.
-        final byte[] rutResult = q.poll(5000, TimeUnit.MILLISECONDS);
+        final TaskMessage rutTaskMessage = q.poll(5000, TimeUnit.MILLISECONDS);
         // if the result didn't get back to us, then rutResult will be null
-        Assert.assertNotNull(rutResult);
-        // deserialise and verify rutResult data
-        final TaskMessage rutTaskMessage = codec.deserialise(rutResult, TaskMessage.class);
+        Assert.assertNotNull(rutTaskMessage);
+        // verify rutResult data
         Assert.assertEquals(TaskStatus.NEW_TASK, rutTaskMessage.getTaskStatus());
         Assert.assertEquals(TrackingReportConstants.TRACKING_REPORT_TASK_NAME, rutTaskMessage.getTaskClassifier());
         Assert.assertEquals(TrackingReportConstants.TRACKING_REPORT_TASK_API_VER, rutTaskMessage.getTaskApiVersion());
@@ -161,11 +159,10 @@ public class WorkerCoreTest
         Assert.assertEquals("J23.1.2", rutWorkerResult.trackingReports.get(0).jobTaskId);
         Assert.assertEquals(TrackingReportStatus.Progress, rutWorkerResult.trackingReports.get(0).status);
         // Verify result for message completion.
-        final byte[] msgCompletionResult = q.poll(5000, TimeUnit.MILLISECONDS);
+        final TaskMessage msgCompletionTaskMessage = q.poll(5000, TimeUnit.MILLISECONDS);
         // if the result didn't get back to us, then result will be null
-        Assert.assertNotNull(msgCompletionResult);
-        // deserialise and verify msgCompletionResult data
-        final TaskMessage msgCompletionTaskMessage = codec.deserialise(msgCompletionResult, TaskMessage.class);
+        Assert.assertNotNull(msgCompletionTaskMessage);
+        // verify msgCompletionResult data
         Assert.assertEquals(TaskStatus.RESULT_SUCCESS, msgCompletionTaskMessage.getTaskStatus());
         Assert.assertEquals(WORKER_NAME, msgCompletionTaskMessage.getTaskClassifier());
         Assert.assertEquals(WORKER_API_VER, msgCompletionTaskMessage.getTaskApiVersion());
@@ -182,7 +179,7 @@ public class WorkerCoreTest
     public void testInvalidWrapper()
         throws InvalidNameException, WorkerException, QueueException, CodecException
     {
-        BlockingQueue<byte[]> q = new LinkedBlockingQueue<>();
+        BlockingQueue<TaskMessage> q = new LinkedBlockingQueue<>();
         Codec codec = new JsonCodec();
         WorkerThreadPool wtp = WorkerThreadPool.create(5);
         ConfigurationSource config = Mockito.mock(ConfigurationSource.class);
@@ -194,8 +191,7 @@ public class WorkerCoreTest
 
         WorkerCore core = new WorkerCore(codec, wtp, queue, getWorkerFactory(task, codec), path, healthCheckRegistry, transientHealthCheck);
         core.start();
-        byte[] stuff = codec.serialise("nonsense");
-        queue.submitTask(taskInformation, stuff);
+        queue.submitTask(taskInformation, new TaskMessage());
     }
 
     /**
@@ -205,7 +201,7 @@ public class WorkerCoreTest
     public void testInvalidTask()
         throws QueueException, InvalidNameException, WorkerException, CodecException, InterruptedException
     {
-        BlockingQueue<byte[]> q = new LinkedBlockingQueue<>();
+        BlockingQueue<TaskMessage> q = new LinkedBlockingQueue<>();
         Codec codec = new JsonCodec();
         WorkerThreadPool wtp = WorkerThreadPool.create(5);
         ConfigurationSource config = Mockito.mock(ConfigurationSource.class);
@@ -224,11 +220,9 @@ public class WorkerCoreTest
         byte[] testContextData = testContext.getBytes(StandardCharsets.UTF_8);
         context.put(testContext, testContextData);
         tm.setContext(context);
-        byte[] stuff = codec.serialise(tm);
-        queue.submitTask(taskInformation, stuff);
-        byte[] result = q.poll(5000, TimeUnit.MILLISECONDS);
-        Assert.assertNotNull(result);
-        TaskMessage taskMessage = codec.deserialise(result, TaskMessage.class);
+        queue.submitTask(taskInformation, tm);
+        TaskMessage taskMessage = q.poll(5000, TimeUnit.MILLISECONDS);
+        Assert.assertNotNull(taskMessage);
         Assert.assertEquals(TaskStatus.INVALID_TASK, taskMessage.getTaskStatus());
         Assert.assertEquals(WORKER_NAME, taskMessage.getTaskClassifier());
         Assert.assertEquals(WORKER_API_VER, taskMessage.getTaskApiVersion());
@@ -245,7 +239,7 @@ public class WorkerCoreTest
     public void testInvalidTaskWithTracking()
             throws QueueException, InvalidNameException, WorkerException, CodecException, InterruptedException
     {
-        final BlockingQueue<byte[]> q = new LinkedBlockingQueue<>();
+        final BlockingQueue<TaskMessage> q = new LinkedBlockingQueue<>();
         final Codec codec = new JsonCodec();
         final WorkerThreadPool wtp = WorkerThreadPool.create(5);
         final ConfigurationSource config = Mockito.mock(ConfigurationSource.class);
@@ -266,17 +260,15 @@ public class WorkerCoreTest
         final byte[] testContextData = testContext.getBytes(StandardCharsets.UTF_8);
         context.put(testContext, testContextData);
         tm.setContext(context);
-        final byte[] stuff = codec.serialise(tm);
-        queue.submitTask(taskInformation, stuff);
+        queue.submitTask(taskInformation, tm);
 
         // Two results expected back. One for the report progress update and another for the message completion.
         //
         // Verify result for the report update call.
-        final byte[] rutResult = q.poll(5000, TimeUnit.MILLISECONDS);
+        final TaskMessage rutTaskMessage = q.poll(5000, TimeUnit.MILLISECONDS);
         // if the result didn't get back to us, then rutResult will be null
-        Assert.assertNotNull(rutResult);
-        // deserialise and verify rutResult data
-        final TaskMessage rutTaskMessage = codec.deserialise(rutResult, TaskMessage.class);
+        Assert.assertNotNull(rutTaskMessage);
+        // verify rutResult data
         Assert.assertEquals(TaskStatus.NEW_TASK, rutTaskMessage.getTaskStatus());
         Assert.assertEquals(TrackingReportConstants.TRACKING_REPORT_TASK_NAME, rutTaskMessage.getTaskClassifier());
         Assert.assertEquals(TrackingReportConstants.TRACKING_REPORT_TASK_API_VER, rutTaskMessage.getTaskApiVersion());
@@ -286,11 +278,10 @@ public class WorkerCoreTest
         Assert.assertEquals(TaskStatus.INVALID_TASK.name(), rutWorkerResult.trackingReports.get(0).failure.failureId);
         Assert.assertEquals(WORKER_NAME, rutWorkerResult.trackingReports.get(0).failure.failureSource);
         // Verify result for message completion.
-        final byte[] msgCompletionResult = q.poll(5000, TimeUnit.MILLISECONDS);
+        final TaskMessage msgCompletionTaskMessage = q.poll(5000, TimeUnit.MILLISECONDS);
         // if the result didn't get back to us, then result will be null
-        Assert.assertNotNull(msgCompletionResult);
-        // deserialise and verify msgCompletionResult data
-        final TaskMessage msgCompletionTaskMessage = codec.deserialise(msgCompletionResult, TaskMessage.class);
+        Assert.assertNotNull(msgCompletionTaskMessage);
+        // verify msgCompletionResult data
         Assert.assertEquals(TaskStatus.INVALID_TASK, msgCompletionTaskMessage.getTaskStatus());
         Assert.assertEquals(WORKER_NAME, msgCompletionTaskMessage.getTaskClassifier());
         Assert.assertEquals(WORKER_API_VER, msgCompletionTaskMessage.getTaskApiVersion());
@@ -307,7 +298,7 @@ public class WorkerCoreTest
     public void testAbortTasks()
         throws CodecException, InterruptedException, WorkerException, ConfigurationException, QueueException, InvalidNameException
     {
-        BlockingQueue<byte[]> q = new LinkedBlockingQueue<>();
+        BlockingQueue<TaskMessage> q = new LinkedBlockingQueue<>();
         Codec codec = new JsonCodec();
         WorkerThreadPool wtp = WorkerThreadPool.create(2);
         ConfigurationSource config = Mockito.mock(ConfigurationSource.class);
@@ -320,12 +311,9 @@ public class WorkerCoreTest
 
         WorkerCore core = new WorkerCore(codec, wtp, queue, getSlowWorkerFactory(latch, task, codec), path, healthCheckRegistry, transientHealthCheck);
         core.start();
-        byte[] task1 = codec.serialise(getTaskMessage(task, codec, UUID.randomUUID().toString()));
-        byte[] task2 = codec.serialise(getTaskMessage(task, codec, UUID.randomUUID().toString()));
-        byte[] task3 = codec.serialise(getTaskMessage(task, codec, UUID.randomUUID().toString()));
-        queue.submitTask(getMockTaskInformation("task1"), task1);
-        queue.submitTask(getMockTaskInformation("task2"), task2);
-        queue.submitTask(getMockTaskInformation("task3"), task3);   // there are only 2 threads, so this task should not even start
+        queue.submitTask(getMockTaskInformation("task1"), getTaskMessage(task, codec, UUID.randomUUID().toString()));
+        queue.submitTask(getMockTaskInformation("task2"), getTaskMessage(task, codec, UUID.randomUUID().toString()));
+        queue.submitTask(getMockTaskInformation("task3"), getTaskMessage(task, codec, UUID.randomUUID().toString()));   // there are only 2 threads, so this task should not even start
         Thread.sleep(500);  // give the test a little breathing room
         queue.triggerAbort();
         latch.await(1, TimeUnit.SECONDS);
@@ -341,7 +329,7 @@ public class WorkerCoreTest
     public void testInterupptedTask()
         throws CodecException, WorkerException, ConfigurationException, QueueException, InvalidNameException
     {
-        BlockingQueue<byte[]> q = new LinkedBlockingQueue<>();
+        BlockingQueue<TaskMessage> q = new LinkedBlockingQueue<>();
         Codec codec = new JsonCodec();
         WorkerThreadPool wtp = WorkerThreadPool.create(2);
         ConfigurationSource config = Mockito.mock(ConfigurationSource.class);
@@ -358,21 +346,19 @@ public class WorkerCoreTest
         final TaskMessage tm = getTaskMessage(task, codec, WORKER_NAME);
         tm.setTaskData(codec.serialise("invalid task data"));
 
-        final byte[] stuff = codec.serialise(tm);
-        queue.submitTask(taskInformation, stuff);
+        queue.submitTask(taskInformation, tm);
 
-        byte[] msgCompletionTaskMessage = null;
+        TaskMessage rutTaskMessage = null;
         try {
             //give some time for the worker to be pick the task and create a response
             Thread.sleep(10000);
-            msgCompletionTaskMessage = q.poll(10000, TimeUnit.MILLISECONDS);
+            rutTaskMessage = q.poll(10000, TimeUnit.MILLISECONDS);
         } catch (InterruptedException ex) {
             Logger.error("InterruptedException" + ex);
         }
         // if the result didn't get back to us, then rutResult will be null
-        Assert.assertNotNull(msgCompletionTaskMessage);
-        // deserialise and verify rutResult data
-        final TaskMessage rutTaskMessage = codec.deserialise(msgCompletionTaskMessage, TaskMessage.class);
+        Assert.assertNotNull(rutTaskMessage);
+        // verify rutResult data
         //check if the status is NEW_TASK which qualify as a successful response (but not necessarily a successful result)
         Assert.assertEquals(TaskStatus.RESULT_FAILURE, rutTaskMessage.getTaskStatus());
         Assert.assertEquals(WORKER_API_VER, rutTaskMessage.getTaskApiVersion());
@@ -388,7 +374,7 @@ public class WorkerCoreTest
         throws CodecException, InterruptedException, WorkerException, ConfigurationException, QueueException, InvalidNameException,
                MalformedURLException
     {
-        final BlockingQueue<byte[]> q = new LinkedBlockingQueue<>();
+        final BlockingQueue<TaskMessage> q = new LinkedBlockingQueue<>();
         final Codec codec = new JsonCodec();
         final WorkerThreadPool wtp = WorkerThreadPool.create(5);
         final ConfigurationSource config = Mockito.mock(ConfigurationSource.class);
@@ -405,15 +391,13 @@ public class WorkerCoreTest
         // and the Worker itself is a mock wrapped in a WorkerWrapper, which should return success and the appropriate result data
         final TrackingInfo tracking = new TrackingInfo("J23.1.2", new Date(), 0,
             new File("src/test/resources/paused-status-check-url-response.json").toURI().toURL().toString(), "trackingQueue", "trackTo");
-        final byte[] stuff = codec.serialise(getTaskMessage(task, codec, WORKER_NAME, tracking));
-        queue.submitTask(taskInformation, stuff);
+        queue.submitTask(taskInformation, getTaskMessage(task, codec, WORKER_NAME, tracking));
 
         // Verify result for paused message.
-        final byte[] pausedMsgResult = q.poll(5000, TimeUnit.MILLISECONDS);
+        final TaskMessage pausedMsgTaskMessage = q.poll(5000, TimeUnit.MILLISECONDS);
         // if the result didn't get back to us, then result will be null
-        Assert.assertNotNull(pausedMsgResult);
-        // deserialise and verify pausedMsgResult data
-        final TaskMessage pausedMsgTaskMessage = codec.deserialise(pausedMsgResult, TaskMessage.class);
+        Assert.assertNotNull(pausedMsgTaskMessage);
+        // verify pausedMsgResult data
         Assert.assertEquals(pausedMsgTaskMessage.getTaskStatus(), TaskStatus.NEW_TASK);
         Assert.assertEquals(pausedMsgTaskMessage.getTaskClassifier(), WORKER_NAME);
         Assert.assertEquals(pausedMsgTaskMessage.getTaskApiVersion(), WORKER_API_VER);
@@ -431,7 +415,7 @@ public class WorkerCoreTest
         throws CodecException, InterruptedException, WorkerException, ConfigurationException, QueueException, InvalidNameException,
                MalformedURLException
     {
-        final BlockingQueue<byte[]> q = new LinkedBlockingQueue<>();
+        final BlockingQueue<TaskMessage> q = new LinkedBlockingQueue<>();
         final Codec codec = new JsonCodec();
         final WorkerThreadPool wtp = WorkerThreadPool.create(5);
         final ConfigurationSource config = Mockito.mock(ConfigurationSource.class);
@@ -448,18 +432,16 @@ public class WorkerCoreTest
         // and the Worker itself is a mock wrapped in a WorkerWrapper, which should return success and the appropriate result data
         final TrackingInfo tracking = new TrackingInfo("J23.1.2", new Date(), 0,
             new File("src/test/resources/paused-status-check-url-response.json").toURI().toURL().toString(), "trackingQueue", "trackTo");
-        final byte[] stuff = codec.serialise(getTaskMessage(task, codec, WORKER_NAME, tracking));
-        queue.submitTask(taskInformation, stuff);
+        queue.submitTask(taskInformation, getTaskMessage(task, codec, WORKER_NAME, tracking));
 
         // Two results expected back. One for the report progress update and another for the message completion.
         //
         // Verify result for the report update call.
-        final byte[] rutResult = q.poll(5000, TimeUnit.MILLISECONDS);
+        final TaskMessage rutTaskMessage = q.poll(5000, TimeUnit.MILLISECONDS);
         Assert.assertNotEquals(queue.getLastQueue(), QUEUE_PAUSED);
         // if the result didn't get back to us, then rutResult will be null
-        Assert.assertNotNull(rutResult);
-        // deserialise and verify rutResult data
-        final TaskMessage rutTaskMessage = codec.deserialise(rutResult, TaskMessage.class);
+        Assert.assertNotNull(rutTaskMessage);
+        // verify rutResult data
         Assert.assertEquals(TaskStatus.NEW_TASK, rutTaskMessage.getTaskStatus());
         Assert.assertEquals(TrackingReportConstants.TRACKING_REPORT_TASK_NAME, rutTaskMessage.getTaskClassifier());
         Assert.assertEquals(TrackingReportConstants.TRACKING_REPORT_TASK_API_VER, rutTaskMessage.getTaskApiVersion());
@@ -467,12 +449,11 @@ public class WorkerCoreTest
         Assert.assertEquals("J23.1.2", rutWorkerResult.trackingReports.get(0).jobTaskId);
         Assert.assertEquals(TrackingReportStatus.Progress, rutWorkerResult.trackingReports.get(0).status);
         // Verify result for message completion.
-        final byte[] msgCompletionResult = q.poll(5000, TimeUnit.MILLISECONDS);
+        final TaskMessage msgCompletionTaskMessage = q.poll(5000, TimeUnit.MILLISECONDS);
         Assert.assertNotEquals(queue.getLastQueue(), QUEUE_PAUSED);
         // if the result didn't get back to us, then result will be null
-        Assert.assertNotNull(msgCompletionResult);
-        // deserialise and verify msgCompletionResult data
-        final TaskMessage msgCompletionTaskMessage = codec.deserialise(msgCompletionResult, TaskMessage.class);
+        Assert.assertNotNull(msgCompletionTaskMessage);
+        // verify msgCompletionResult data
         Assert.assertEquals(TaskStatus.RESULT_SUCCESS, msgCompletionTaskMessage.getTaskStatus());
         Assert.assertEquals(WORKER_NAME, msgCompletionTaskMessage.getTaskClassifier());
         Assert.assertEquals(WORKER_API_VER, msgCompletionTaskMessage.getTaskApiVersion());
@@ -567,15 +548,31 @@ public class WorkerCoreTest
 
     private class TestWorkerQueueProvider implements WorkerQueueProvider
     {
-        private final BlockingQueue<byte[]> results;
+        private final BlockingQueue<TaskMessage> results;
 
-        public TestWorkerQueueProvider(final BlockingQueue<byte[]> results)
+        public TestWorkerQueueProvider(final BlockingQueue<TaskMessage> results)
         {
             this.results = results;
         }
 
+        public final TestWorkerQueue getWorkerQueue(
+            final ConfigurationSource configurationSource,
+            final int maxTasks)
+        {
+            final ManagedDataStore dataStore = Mockito.mock(ManagedDataStore.class);
+            final Codec codec = new JsonCodec();
+            return getWorkerQueue(configurationSource, maxTasks, INVALID, dataStore, codec,
+                "testWorker");
+        }
+
         @Override
-        public final TestWorkerQueue getWorkerQueue(final ConfigurationSource configurationSource, final int maxTasks)
+        public final TestWorkerQueue getWorkerQueue(
+                final ConfigurationSource configurationSource,
+                final int maxTasks,
+                final String invalidQueue,
+                final ManagedDataStore dataStore,
+                final Codec codec,
+                String workerName)
         {
             return new TestWorkerQueue(this.results);
         }
@@ -584,10 +581,10 @@ public class WorkerCoreTest
     private class TestWorkerQueue implements ManagedWorkerQueue
     {
         private TaskCallback callback;
-        private final BlockingQueue<byte[]> results;
+        private final BlockingQueue<TaskMessage> results;
         private String lastQueue;
 
-        public TestWorkerQueue(final BlockingQueue<byte[]> results)
+        public TestWorkerQueue(final BlockingQueue<TaskMessage> results)
         {
             this.results = results;
         }
@@ -600,7 +597,7 @@ public class WorkerCoreTest
         }
         
         @Override
-        public void publish(TaskInformation taskInformation, byte[] taskMessage, String targetQueue, Map<String, Object> headers, boolean isLastMessage)
+        public void publish(TaskInformation taskInformation, TaskMessage taskMessage, String targetQueue, Map<String, Object> headers, boolean isLastMessage)
             throws QueueException
         {
             this.lastQueue = targetQueue;
@@ -608,7 +605,7 @@ public class WorkerCoreTest
         }
 
         @Override
-        public void publish(TaskInformation taskInformation, byte[] taskMessage, String targetQueue, Map<String, Object> headers)
+        public void publish(TaskInformation taskInformation, TaskMessage taskMessage, String targetQueue, Map<String, Object> headers)
             throws QueueException
         {
             this.lastQueue = targetQueue;
@@ -629,7 +626,7 @@ public class WorkerCoreTest
             tm.setTracking(null);
             try {
                 tm.setTaskData(codec.serialise(taskInformation.getInboundMessageId().getBytes()));
-                results.offer(codec.serialise(tm));
+                results.offer(tm);
             } catch (CodecException ex) {
                 Logger.error("CodecException" + ex);
             }
@@ -689,7 +686,7 @@ public class WorkerCoreTest
             callback.abortTasks();
         }
 
-        public void submitTask(final TaskInformation taskInformation, final byte[] stuff)
+        public void submitTask(final TaskInformation taskInformation, TaskMessage stuff)
             throws WorkerException
         {
             callback.registerNewTask(taskInformation, stuff, new HashMap<>());
@@ -708,15 +705,29 @@ public class WorkerCoreTest
 
     private class TestWorkerQueueWithNullPausedQueueProvider implements WorkerQueueProvider
     {
-        private final BlockingQueue<byte[]> results;
+        private final BlockingQueue<TaskMessage> results;
 
-        public TestWorkerQueueWithNullPausedQueueProvider(final BlockingQueue<byte[]> results)
+        public TestWorkerQueueWithNullPausedQueueProvider(final BlockingQueue<TaskMessage> results)
         {
             this.results = results;
         }
 
+        public final TestWorkerQueueWithNullPausedQueue getWorkerQueue(
+            final ConfigurationSource configurationSource,
+            final int maxTasks)
+        {
+            return getWorkerQueue(configurationSource, maxTasks, INVALID, Mockito.mock(ManagedDataStore.class), new JsonCodec(),
+                "testWorker");
+        }
+
         @Override
-        public final TestWorkerQueueWithNullPausedQueue getWorkerQueue(final ConfigurationSource configurationSource, final int maxTasks)
+        public final TestWorkerQueueWithNullPausedQueue getWorkerQueue(
+                final ConfigurationSource configurationSource,
+                final int maxTasks,
+                final String invalidQueue,
+                final ManagedDataStore dataStore,
+                final Codec codec,
+                String workerName)
         {
             return new TestWorkerQueueWithNullPausedQueue(this.results);
         }
@@ -724,7 +735,7 @@ public class WorkerCoreTest
 
     private class TestWorkerQueueWithNullPausedQueue extends TestWorkerQueue
     {
-        public TestWorkerQueueWithNullPausedQueue(final BlockingQueue<byte[]> results)
+        public TestWorkerQueueWithNullPausedQueue(final BlockingQueue<TaskMessage> results)
         {
             super(results);
         }
