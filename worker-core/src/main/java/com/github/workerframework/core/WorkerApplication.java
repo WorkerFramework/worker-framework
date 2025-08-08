@@ -151,10 +151,12 @@ public final class WorkerApplication extends Application<WorkerConfiguration>
 
                 final long startTime = System.currentTimeMillis();
                 
-                while(wtp.getBacklogSize() > 0 && System.currentTimeMillis() - startTime < SHUTDOWN_DURATION) {
+                int backlogSize = wtp.getBacklogSize();
+                while(backlogSize > 0 && System.currentTimeMillis() - startTime < SHUTDOWN_DURATION) {
                     try {
-                        LOG.info("Allowing {} backlog tasks to complete, {} currently active.", wtp.getBacklogSize(), wtp.getApproxActiveCount());
+                        LOG.debug("Allowing {} backlog tasks to complete, {} currently active.", backlogSize, wtp.getApproxActiveCount());
                         Thread.sleep(SHUTDOWN_LOG_INTERVAL);
+                        backlogSize = wtp.getBacklogSize();
                     } catch (final InterruptedException e) {
                         Thread.currentThread().interrupt();
                         break;
