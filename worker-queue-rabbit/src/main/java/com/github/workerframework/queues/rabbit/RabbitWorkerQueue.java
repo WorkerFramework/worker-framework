@@ -155,6 +155,7 @@ public final class RabbitWorkerQueue implements ManagedWorkerQueue
             publisher = new EventPoller<>(2, publisherQueue, publisherImpl);
             declareWorkerQueue(incomingChannel, config.getInputQueue());
             declareWorkerQueue(outgoingChannel, config.getRetryQueue());
+            declareWorkerQueue(outgoingChannel, invalidQueue);
             synchronized (consumerLock) {
                 consumerTag = incomingChannel.basicConsume(config.getInputQueue(), consumer);
             }

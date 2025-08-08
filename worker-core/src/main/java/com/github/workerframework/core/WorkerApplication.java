@@ -391,6 +391,6 @@ public final class WorkerApplication extends Application<WorkerConfiguration>
         } else if (workerFactory instanceof AbstractWorkerFactory) {
             return ((AbstractWorkerFactory)workerFactory).getWorkerName();
         }
-        return "worker_name_unknown";
+        return workerFactory.getClass().getSimpleName();
     }
 }
