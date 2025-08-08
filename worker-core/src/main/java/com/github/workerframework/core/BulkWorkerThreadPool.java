@@ -22,6 +22,7 @@ import java.util.ArrayList;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicInteger;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -36,6 +37,7 @@ final class BulkWorkerThreadPool implements WorkerThreadPool
     private final StreamingWorkerThreadPool backupThreadPool;
 
     private volatile boolean isActive;
+    private final AtomicInteger activeThreads = new AtomicInteger(0);
 
     public BulkWorkerThreadPool(
         final WorkerFactory workerFactory,
@@ -86,10 +88,12 @@ final class BulkWorkerThreadPool implements WorkerThreadPool
                 = new BulkWorkerTaskProvider(task, workQueue);
 
             try {
+                activeThreads.incrementAndGet();
                 bulkWorker.processTasks(taskProvider);
             } catch (final RuntimeException ex) {
                 LOG.warn("Bulk Worker threw unhandled exception", ex);
             } finally {
+                activeThreads.decrementAndGet();
                 // Re-submit the first task if it has not been consumed
                 // NB: It's really faulty Worker logic to not consume at least
                 // the one task.
@@ -149,6 +153,11 @@ final class BulkWorkerThreadPool implements WorkerThreadPool
     public int getBacklogSize()
     {
         return workQueue.size() + backupThreadPool.getBacklogSize();
+    }
+    
+    @Override 
+    public int getApproxActiveCount() {
+        return activeThreads.get() + backupThreadPool.getApproxActiveCount();
     }
 
     @Override

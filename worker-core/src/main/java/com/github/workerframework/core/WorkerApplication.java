@@ -78,6 +78,8 @@ public final class WorkerApplication extends Application<WorkerConfiguration>
 {
     private final long startTime = System.currentTimeMillis();
     private static final Logger LOG = LoggerFactory.getLogger(WorkerApplication.class);
+    private static final long SHUTDOWN_DURATION = 5 * 60 * 1000; // 5 minutes in milliseconds
+    private static final int SHUTDOWN_LOG_INTERVAL = 15_000; // 15 seconds in milliseconds
 
     /**
      * Entry point for the asynchronous micro-service worker framework.
@@ -143,25 +145,28 @@ public final class WorkerApplication extends Application<WorkerConfiguration>
 
             @Override
             public void stop() {
-                LOG.info("Worker stop requested, allowing in-progress tasks to complete.");
+                LOG.info("Worker stop requested.");
+                
                 workerQueue.shutdownIncoming();
-                while (!wtp.isIdle()) {
+
+                final long startTime = System.currentTimeMillis();
+                
+                int backlogSize = wtp.getBacklogSize();
+                while(backlogSize > 0 && System.currentTimeMillis() - startTime < SHUTDOWN_DURATION) {
                     try {
-                        //The grace period will expire and the process killed so no need for time limit here
-                        LOG.trace("Awaiting the Worker Thread Pool to become idle, {} tasks in the backlog.", 
-                                wtp.getBacklogSize());
-                        Thread.sleep(1000);
+                        LOG.debug("Allowing {} backlog tasks to complete, {} currently active.", backlogSize, wtp.getApproxActiveCount());
+                        Thread.sleep(SHUTDOWN_LOG_INTERVAL);
+                        backlogSize = wtp.getBacklogSize();
                     } catch (final InterruptedException e) {
                         Thread.currentThread().interrupt();
-                        throw new RuntimeException(e);
+                        break;
                     }
                 }
-                LOG.trace("Worker Thread Pool is idle.");
                 wtp.shutdown();
                 try {
-                    wtp.awaitTermination(10_000, TimeUnit.MILLISECONDS);
-                } catch (InterruptedException e) {
-                    LOG.warn("Shutdown interrupted", e);
+                    wtp.awaitTermination(5, TimeUnit.MINUTES);
+                } catch (final InterruptedException e) {
+                    LOG.error("Worker stop interrupted, in-progress tasks may not have completed.", e);
                     Thread.currentThread().interrupt();
                 }
                 workerQueue.shutdown();

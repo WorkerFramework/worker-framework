@@ -73,6 +73,7 @@ public final class RabbitWorkerQueue implements ManagedWorkerQueue
     private final RabbitWorkerQueueConfiguration config;
     private final int maxTasks;
     private static final Logger LOG = LoggerFactory.getLogger(RabbitWorkerQueue.class);
+    private boolean incomingShutdownPermanent = false;
 
     /**
      * Setup a new RabbitWorkerQueue.
@@ -214,6 +215,7 @@ public final class RabbitWorkerQueue implements ManagedWorkerQueue
      * {@inheritDoc}
      *
      * The incoming queues will all be cancelled so the consumer will fall back to idle.
+     * This is permanent, and attempts to reconnectIncoming will fail.
      */
     @Override
     public void shutdownIncoming()
@@ -224,6 +226,7 @@ public final class RabbitWorkerQueue implements ManagedWorkerQueue
                 try {
                     incomingChannel.basicCancel(consumerTag);
                     consumerTag = null;
+                    incomingShutdownPermanent = true;
                 } catch (IOException e) {
                     metrics.incremementErrors();
                     LOG.warn("Failed to cancel consumer {}", consumerTag, e);
@@ -277,6 +280,9 @@ public final class RabbitWorkerQueue implements ManagedWorkerQueue
     public void reconnectIncoming()
     {
         LOG.debug("Reconnecting incoming queues");
+        if(incomingShutdownPermanent) {
+            throw new IllegalStateException("Queue is permanently shutdown");
+        }
         synchronized (consumerLock) {
             if (consumerTag == null && incomingChannel.isOpen()) {
                 try {

@@ -61,6 +61,8 @@ interface WorkerThreadPool
     boolean isIdle();
 
     int getBacklogSize();
+    
+    int getApproxActiveCount();
 
     /**
      * Execute the specified task at some point in the future
