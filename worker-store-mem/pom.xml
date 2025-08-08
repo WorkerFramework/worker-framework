@@ -22,7 +22,7 @@
     <modelVersion>4.0.0</modelVersion>
 
     <artifactId>worker-store-mem</artifactId>
-    <name>worker-configs</name>
+    <name>worker-store-mem</name>
     <version>10.0.0-SNAPSHOT</version>
 
     <parent>
