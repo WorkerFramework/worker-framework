@@ -55,7 +55,7 @@ public class RabbitWorkerQueueConfiguration
      */
     @NotNull
     @Size(min = 1)
-    private String missingPayloadOffloadQueue;
+    private String missingOffloadedPayloadQueue;
     /**
      * The queue to put messages sent to a paused worker on. If this is null, messages sent to a paused worker will be processed as
      * normal (as if the worker was not paused).
@@ -143,12 +143,12 @@ public class RabbitWorkerQueueConfiguration
         this.inputQueue = inputQueue;
     }
 
-    public String getMissingPayloadOffloadQueue() {
-        return missingPayloadOffloadQueue;
+    public String getMissingOffloadedPayloadQueue() {
+        return missingOffloadedPayloadQueue;
     }
 
-    public void setMissingPayloadOffloadQueue(String missingPayloadOffloadQueue) {
-        this.missingPayloadOffloadQueue = missingPayloadOffloadQueue;
+    public void setMissingOffloadedPayloadQueue(String missingOffloadedPayloadQueue) {
+        this.missingOffloadedPayloadQueue = missingOffloadedPayloadQueue;
     }
 
     public String getPausedQueue()

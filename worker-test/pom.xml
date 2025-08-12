@@ -327,7 +327,7 @@
                                     <CAF_WORKER_INPUT_QUEUE>PayloadOffloadingIT-in</CAF_WORKER_INPUT_QUEUE>
                                     <CAF_WORKER_OUTPUT_QUEUE>PayloadOffloadingIT-out</CAF_WORKER_OUTPUT_QUEUE>
                                     <CAF_WORKER_REJECT_QUEUE>PayloadOffloadingIT-reject</CAF_WORKER_REJECT_QUEUE>
-                                    <CAF_WORKER_PAYLOAD_OFFLOADING_QUEUE>PayloadOffloadingIT-missing</CAF_WORKER_PAYLOAD_OFFLOADING_QUEUE>
+                                    <CAF_WORKER_MISSING_OFFLOADED_PAYLOAD_QUEUE>PayloadOffloadingIT-missing</CAF_WORKER_MISSING_OFFLOADED_PAYLOAD_QUEUE>
                                     <CAF_WORKER_DATASTORE_PATH>/srv/common/webdav</CAF_WORKER_DATASTORE_PATH>
                                     <CAF_WORKER_PAYLOAD_OFFLOADING_ENABLED>true</CAF_WORKER_PAYLOAD_OFFLOADING_ENABLED>
                                     <CAF_WORKER_PAYLOAD_OFFLOADING_THRESHOLD_BYTES>1</CAF_WORKER_PAYLOAD_OFFLOADING_THRESHOLD_BYTES>
@@ -376,7 +376,7 @@
                                     <CAF_WORKER_INPUT_QUEUE>PoisonMessageIT-in</CAF_WORKER_INPUT_QUEUE>
                                     <CAF_WORKER_OUTPUT_QUEUE>PoisonMessageIT-out</CAF_WORKER_OUTPUT_QUEUE>
                                     <CAF_WORKER_REJECT_QUEUE>PoisonMessageIT-reject</CAF_WORKER_REJECT_QUEUE>
-                                    <CAF_WORKER_PAYLOAD_OFFLOADING_QUEUE>PoisonMessageIT-missing</CAF_WORKER_PAYLOAD_OFFLOADING_QUEUE>
+                                    <CAF_WORKER_MISSING_OFFLOADED_PAYLOAD_QUEUE>PoisonMessageIT-missing</CAF_WORKER_MISSING_OFFLOADED_PAYLOAD_QUEUE>
                                     <CAF_WORKER_DATASTORE_PATH>/srv/common/webdav</CAF_WORKER_DATASTORE_PATH>
                                     <CAF_WORKER_JAVA_OPTS>
                                         -agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=*:5005
@@ -422,7 +422,7 @@
                                     <CAF_WORKER_INPUT_QUEUE>PoisonMessageIT-in</CAF_WORKER_INPUT_QUEUE>
                                     <CAF_WORKER_OUTPUT_QUEUE>PoisonMessageIT-out</CAF_WORKER_OUTPUT_QUEUE>
                                     <CAF_WORKER_REJECT_QUEUE>PoisonMessageIT-reject</CAF_WORKER_REJECT_QUEUE>
-                                    <CAF_WORKER_PAYLOAD_OFFLOADING_QUEUE>PoisonMessageIT-missing</CAF_WORKER_PAYLOAD_OFFLOADING_QUEUE>
+                                    <CAF_WORKER_MISSING_OFFLOADED_PAYLOAD_QUEUE>PoisonMessageIT-missing</CAF_WORKER_MISSING_OFFLOADED_PAYLOAD_QUEUE>
                                     <CAF_WORKER_DATASTORE_PATH>/srv/common/webdav</CAF_WORKER_DATASTORE_PATH>
                                     <CAF_WORKER_JAVA_OPTS>
                                         -agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=*:5005
@@ -470,7 +470,7 @@
                                     <CAF_WORKER_INPUT_QUEUE>PoisonMessageIT-Offloading-in</CAF_WORKER_INPUT_QUEUE>
                                     <CAF_WORKER_OUTPUT_QUEUE>PoisonMessageIT-Offloading-out</CAF_WORKER_OUTPUT_QUEUE>
                                     <CAF_WORKER_REJECT_QUEUE>PoisonMessageIT-Offloading-reject</CAF_WORKER_REJECT_QUEUE>
-                                    <CAF_WORKER_PAYLOAD_OFFLOADING_QUEUE>PoisonMessageIT-Offloading-missing</CAF_WORKER_PAYLOAD_OFFLOADING_QUEUE>
+                                    <CAF_WORKER_MISSING_OFFLOADED_PAYLOAD_QUEUE>PoisonMessageIT-Offloading-missing</CAF_WORKER_MISSING_OFFLOADED_PAYLOAD_QUEUE>
                                     <CAF_WORKER_DATASTORE_PATH>/srv/common/webdav</CAF_WORKER_DATASTORE_PATH>
                                     <CAF_WORKER_PAYLOAD_OFFLOADING_ENABLED>true</CAF_WORKER_PAYLOAD_OFFLOADING_ENABLED>
                                     <CAF_WORKER_PAYLOAD_OFFLOADING_THRESHOLD_BYTES>1</CAF_WORKER_PAYLOAD_OFFLOADING_THRESHOLD_BYTES>
@@ -519,7 +519,7 @@
                                     <CAF_WORKER_INPUT_QUEUE>PoisonMessageIT-Offloading-in</CAF_WORKER_INPUT_QUEUE>
                                     <CAF_WORKER_OUTPUT_QUEUE>PoisonMessageIT-Offloading-out</CAF_WORKER_OUTPUT_QUEUE>
                                     <CAF_WORKER_REJECT_QUEUE>PoisonMessageIT-Offloading-reject</CAF_WORKER_REJECT_QUEUE>
-                                    <CAF_WORKER_PAYLOAD_OFFLOADING_QUEUE>PoisonMessageIT-Offloading-missing</CAF_WORKER_PAYLOAD_OFFLOADING_QUEUE>
+                                    <CAF_WORKER_MISSING_OFFLOADED_PAYLOAD_QUEUE>PoisonMessageIT-Offloading-missing</CAF_WORKER_MISSING_OFFLOADED_PAYLOAD_QUEUE>
                                     <CAF_WORKER_DATASTORE_PATH>/srv/common/webdav</CAF_WORKER_DATASTORE_PATH>
                                     <CAF_WORKER_PAYLOAD_OFFLOADING_ENABLED>true</CAF_WORKER_PAYLOAD_OFFLOADING_ENABLED>
                                     <CAF_WORKER_PAYLOAD_OFFLOADING_THRESHOLD_BYTES>1</CAF_WORKER_PAYLOAD_OFFLOADING_THRESHOLD_BYTES>
