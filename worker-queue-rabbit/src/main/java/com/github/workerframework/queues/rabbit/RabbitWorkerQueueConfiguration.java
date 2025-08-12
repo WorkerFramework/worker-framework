@@ -51,6 +51,12 @@ public class RabbitWorkerQueueConfiguration
     @Size(min = 1)
     private String inputQueue;
     /**
+     * The queue to send notifications of missing offloaded task data to.
+     */
+    @NotNull
+    @Size(min = 1)
+    private String missingPayloadOffloadQueue;
+    /**
      * The queue to put messages sent to a paused worker on. If this is null, messages sent to a paused worker will be processed as
      * normal (as if the worker was not paused).
      */
@@ -135,6 +141,14 @@ public class RabbitWorkerQueueConfiguration
     public void setInputQueue(String inputQueue)
     {
         this.inputQueue = inputQueue;
+    }
+
+    public String getMissingPayloadOffloadQueue() {
+        return missingPayloadOffloadQueue;
+    }
+
+    public void setMissingPayloadOffloadQueue(String missingPayloadOffloadQueue) {
+        this.missingPayloadOffloadQueue = missingPayloadOffloadQueue;
     }
 
     public String getPausedQueue()

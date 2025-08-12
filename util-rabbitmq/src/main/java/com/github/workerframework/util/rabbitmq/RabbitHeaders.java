@@ -24,5 +24,6 @@ public class RabbitHeaders
     public static final String RABBIT_HEADER_CAF_WORKER_INVALID = "x-caf-worker-invalid";
     public static final String RABBIT_HEADER_CAF_WORKER_RETRY = "x-caf-worker-retry";
     public static final String RABBIT_HEADER_CAF_DELIVERY_COUNT = "x-delivery-count";
+    public static final String RABBIT_HEADER_CAF_PAYLOAD_OFFLOADING_MISSING = "x-caf-payload-offloading-missing";
     public static final String RABBIT_HEADER_CAF_PAYLOAD_OFFLOADING_STORAGE_REF = "x-caf-payload-offloading-storage-ref";
 }

@@ -84,7 +84,6 @@ public final class RabbitWorkerQueue implements ManagedWorkerQueue
     private final String invalidQueue;
     private final ManagedDataStore dataStore;
     private final Codec codec;
-    private final String workerName;
     private static final Logger LOG = LoggerFactory.getLogger(RabbitWorkerQueue.class);
     private static final Pattern JOB_TASK_ID_PATTERN = Pattern.compile("^([^\\.]*)\\.?(.*)$");
     
@@ -96,15 +95,13 @@ public final class RabbitWorkerQueue implements ManagedWorkerQueue
         int maxTasks,
         final String invalidQueue,
         final ManagedDataStore dataStore,
-        final Codec codec,
-        final String workerName)
+        final Codec codec)
     {
         this.config = Objects.requireNonNull(config);
         this.maxTasks = maxTasks;
         this.invalidQueue = Objects.requireNonNull(invalidQueue);
         this.dataStore = Objects.requireNonNull(dataStore);
         this.codec = Objects.requireNonNull(codec);
-        this.workerName = Objects.requireNonNull(workerName);
         LOG.debug("Initialised");
     }
 
@@ -144,7 +141,7 @@ public final class RabbitWorkerQueue implements ManagedWorkerQueue
                     dataStore,
                     codec, 
                     rabbitWorkerQueue::disconnectIncoming,
-                    workerName);
+                    config.getMissingPayloadOffloadQueue());
             consumer = new DefaultRabbitConsumer(consumerQueue, consumerImpl);
             WorkerPublisherImpl publisherImpl = new WorkerPublisherImpl(
                 outgoingChannel,

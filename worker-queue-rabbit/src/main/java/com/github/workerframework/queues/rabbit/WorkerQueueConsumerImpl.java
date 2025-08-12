@@ -57,6 +57,7 @@ import java.util.TreeMap;
 import java.util.UUID;
 import java.util.concurrent.BlockingQueue;
 
+import static com.github.workerframework.util.rabbitmq.RabbitHeaders.RABBIT_HEADER_CAF_PAYLOAD_OFFLOADING_MISSING;
 import static com.github.workerframework.util.rabbitmq.RabbitHeaders.RABBIT_HEADER_CAF_PAYLOAD_OFFLOADING_STORAGE_REF;
 import static com.github.workerframework.util.rabbitmq.RabbitHeaders.RABBIT_HEADER_CAF_WORKER_INVALID;
 
@@ -75,11 +76,11 @@ public class WorkerQueueConsumerImpl implements QueueConsumer
     private final String retryRoutingKey;
     private final int retryLimit;
     private final String invalidRoutingKey;
+    private final String missingOffloadedPayloadQueue;
     private final ManagedDataStore dataStore;
     private final Codec codec;
     private final Runnable disconnectCallback;
     private final SortedMap<Long, String> offloadedPayloadsToDelete;
-    private final String workerName;
 
     private static final Logger LOG = LoggerFactory.getLogger(WorkerQueueConsumerImpl.class);
 
@@ -95,7 +96,8 @@ public class WorkerQueueConsumerImpl implements QueueConsumer
                                    BlockingQueue<Event<WorkerPublisher>> pubQueue, String retryKey, int retryLimit,
                                    final String invalidKey,
                                    final ManagedDataStore dataStore, final Codec codec,
-                                   final Runnable disconnectCallback, final String workerName)
+                                   final Runnable disconnectCallback,
+                                   final String missingOffloadedPayloadQueue)
     {
         this.callback = Objects.requireNonNull(callback);
         this.metrics = Objects.requireNonNull(metrics);
@@ -105,11 +107,11 @@ public class WorkerQueueConsumerImpl implements QueueConsumer
         this.retryRoutingKey = Objects.requireNonNull(retryKey);
         this.retryLimit = retryLimit;
         this.invalidRoutingKey = Objects.requireNonNull(invalidKey);
+        this.missingOffloadedPayloadQueue = Objects.requireNonNull(missingOffloadedPayloadQueue);
         this.dataStore = Objects.requireNonNull(dataStore);
         this.codec = Objects.requireNonNull(codec);
         this.disconnectCallback = Objects.requireNonNull(disconnectCallback);
         this.offloadedPayloadsToDelete = Collections.synchronizedSortedMap(new TreeMap<>());
-        this.workerName = Objects.requireNonNull(workerName);
     }
 
     /**
@@ -138,7 +140,7 @@ public class WorkerQueueConsumerImpl implements QueueConsumer
             try {
                 taskMessage = codec.deserialise(deliveryMessageData, TaskMessage.class, DecodeMethod.LENIENT);
             } catch (final CodecException e) {
-                handleInvalidDelivery(inboundMessageId, Optional.empty(), deliveryMessageData, deliveryHeaders,
+                handleInvalidDelivery(inboundMessageId, deliveryMessageData, deliveryHeaders,
                     "Cannot deserialize delivery messageData to TaskMessage");
                 return;
             }
@@ -146,7 +148,7 @@ public class WorkerQueueConsumerImpl implements QueueConsumer
             try {
                 handleTaskDataInjection(taskMessage, inboundMessageId, taskMessageStorageRefOpt);
             } catch (final InvalidDeliveryException ex) {
-                handleInvalidDelivery(inboundMessageId, Optional.of(taskMessage), deliveryMessageData, deliveryHeaders,
+                handleMisingOffloadedPayload(inboundMessageId, taskMessage, deliveryMessageData, deliveryHeaders,
                     ex.getMessage());
                 return;
             }
@@ -235,25 +237,37 @@ public class WorkerQueueConsumerImpl implements QueueConsumer
 
     private void handleInvalidDelivery(
         final long inboundMessageId,
-        final Optional<TaskMessage> deliveredTaskMessageOpt,
         final byte[] deliveryMessageData,
         final Map<String, Object> deliveryHeaders,
         final String exceptionMesssage
+    )
+    {
+        final RabbitTaskInformation taskInformation = new RabbitTaskInformation(String.valueOf(inboundMessageId), true);
+        taskInformation.incrementResponseCount(true);
+        final var publishHeaders = new HashMap<>(deliveryHeaders);
+        publishHeaders.put(RABBIT_HEADER_CAF_WORKER_INVALID, exceptionMesssage);
+
+        publisherEventQueue.add(new WorkerPublishQueueEvent(deliveryMessageData, invalidRoutingKey, taskInformation, publishHeaders));
+    }
+
+    private void handleMisingOffloadedPayload(
+            final long inboundMessageId,
+            final TaskMessage taskMessage,
+            final byte[] deliveryMessageData,
+            final Map<String, Object> deliveryHeaders,
+            final String exceptionMessage
     )
     {
         try {
             final RabbitTaskInformation taskInformation = new RabbitTaskInformation(String.valueOf(inboundMessageId), true);
             taskInformation.incrementResponseCount(true);
             final var publishHeaders = new HashMap<>(deliveryHeaders);
-            publishHeaders.put(RABBIT_HEADER_CAF_WORKER_INVALID, exceptionMesssage);
+            publishHeaders.put(RABBIT_HEADER_CAF_PAYLOAD_OFFLOADING_MISSING, exceptionMessage);
 
-            publisherEventQueue.add(new WorkerPublishQueueEvent(deliveryMessageData, invalidRoutingKey, taskInformation, publishHeaders));
+            publisherEventQueue.add(new WorkerPublishQueueEvent(deliveryMessageData, missingOffloadedPayloadQueue, taskInformation, publishHeaders));
 
-            if (deliveredTaskMessageOpt.isPresent()) {
-                final var taskMessage = deliveredTaskMessageOpt.get();
-                if(taskMessage.getTracking() != null) {
-                    sendFailureTrackingReport(taskMessage, exceptionMesssage, taskInformation);
-                }
+            if(taskMessage.getTracking() != null) {
+                sendFailureTrackingReport(taskMessage, exceptionMessage, taskInformation);
             }
         } catch (CodecException e) {
             LOG.error("Failed to serialise report update task data.");
@@ -269,7 +283,7 @@ public class WorkerQueueConsumerImpl implements QueueConsumer
         final TrackingReportFailure failure = new TrackingReportFailure();
         failure.failureId = TaskStatus.INVALID_TASK.toString();
         failure.failureTime = new Date();
-        failure.failureSource = workerName;
+        failure.failureSource = taskMessage.getTo(); // queue name
         failure.failureMessage = invalidDeliveryExceptionMessage;
 
         final List<TrackingReport> trackingReports = new ArrayList<>();
