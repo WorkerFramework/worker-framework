@@ -64,8 +64,7 @@ Transient errors arise as a result of a failure beyond the control of the Worker
 7. If the transient error is resolved, the original message is then acknowledged.
  
 ## InvalidTaskException
-An InvalidTaskException is thrown when the input message is not parsable. This exception type does not cause the Worker to crash. 
-The message is never re-tried. Instead, an `INVALID_TASK` response with error details is placed on the messaging output queue `worker-output-queue` by the worker framework.
+An InvalidTaskException is thrown when the input message is not parsable. This exception type does not cause the Worker to crash. The message is never re-tried. Instead, an `INVALID_TASK` response with error details is placed on the messaging output queue `worker-output-queue` by the worker framework.
 
 ## RuntimeException
 A RuntimeException can be detected by the Worker as a result of some fault in the Worker logic (e.g. NullPointerException). The Worker will not crash as a result of this kind of error but the original message will never be retried.
