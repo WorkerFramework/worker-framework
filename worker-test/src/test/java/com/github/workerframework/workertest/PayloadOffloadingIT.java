@@ -34,7 +34,7 @@ public class PayloadOffloadingIT extends WorkerTestBase {
     private static final String TEST_WORKER_NAME = "PayloadOffloadingIT";
     private static final String WORKER_IN = "PayloadOffloadingIT-in";
     private static final String WORKER_OUT = "PayloadOffloadingIT-out";
-    private static final String WORKER_INVALID = "PayloadOffloadingIT-invalid";
+    private static final String PAYLOAD_MISSING = "PayloadOffloadingIT-missing";
 
     private static final String TERMINAL_WORKER_IN = "PayloadOffloadingIT-Terminal-in";
     private static final String TERMINAL_WORKER_OUT = "PayloadOffloadingIT-Terminal-out";
@@ -84,7 +84,7 @@ public class PayloadOffloadingIT extends WorkerTestBase {
     }
 
     @Test
-    public void invalidOffloadedPayloadReference() throws Exception {
+    public void missingOffloadedPayload() throws Exception {
         final TestWorkerTask documentWorkerTask = new TestWorkerTask();
         documentWorkerTask.setPoison(false);
 
@@ -93,35 +93,35 @@ public class PayloadOffloadingIT extends WorkerTestBase {
 
         try(final Connection connection = connectionFactory.newConnection();
             final Channel channel = prepareChannel(connection)) {
-            createQueues(channel, WORKER_IN, WORKER_OUT, WORKER_INVALID);
+            createQueues(channel, WORKER_IN, WORKER_OUT, PAYLOAD_MISSING);
             
             //  Now we can send a message with header that contains an invalid payload offloading reference.
             final Map<String, Object> headers = new HashMap<>();
-            final String invalidReference = UUID.randomUUID().toString();
-            headers.put(RABBIT_HEADER_CAF_PAYLOAD_OFFLOADING_STORAGE_REF, invalidReference);
+            final String missingPayloadReference = UUID.randomUUID().toString();
+            headers.put(RABBIT_HEADER_CAF_PAYLOAD_OFFLOADING_STORAGE_REF, missingPayloadReference);
             publish(channel, codec.serialise(taskMessage), headers, WORKER_IN);
 
             final TestWorkerQueueConsumer invalidConsumer = new TestWorkerQueueConsumer();
-            consume(channel, invalidConsumer, WORKER_INVALID);
+            consume(channel, invalidConsumer, PAYLOAD_MISSING);
             
             final TaskMessage invalidTaskMessage = codec.deserialise(invalidConsumer.getLastDeliveredBody(), 
                     TaskMessage.class);
             
             Assert.assertEquals(invalidTaskMessage.getTaskId(), taskMessage.getTaskId());
             
-            Assert.assertNotNull(invalidConsumer.getHeaders().get(RabbitHeaders.RABBIT_HEADER_CAF_WORKER_INVALID), 
-                    "RABBIT_HEADER_CAF_WORKER_INVALID is missing");
+            Assert.assertNotNull(invalidConsumer.getHeaders().get(RabbitHeaders.RABBIT_HEADER_CAF_PAYLOAD_OFFLOADING_MISSING),
+                    "header RABBIT_HEADER_CAF_PAYLOAD_OFFLOADING_MISSING is missing");
             
             Assert.assertEquals(
-                    invalidConsumer.getHeaders().get(RabbitHeaders.RABBIT_HEADER_CAF_WORKER_INVALID).toString(),
-                    "Reference not found: /srv/common/webdav/" + invalidReference);
+                    invalidConsumer.getHeaders().get(RabbitHeaders.RABBIT_HEADER_CAF_PAYLOAD_OFFLOADING_MISSING).toString(),
+                    "Reference not found: /srv/common/webdav/" + missingPayloadReference);
 
             Assert.assertNotNull(invalidConsumer.getHeaders().get(RabbitHeaders.RABBIT_HEADER_CAF_PAYLOAD_OFFLOADING_STORAGE_REF),
                     "RABBIT_HEADER_CAF_PAYLOAD_OFFLOADING_STORAGE_REF is missing");
 
             Assert.assertEquals(
                     invalidConsumer.getHeaders().get(RabbitHeaders.RABBIT_HEADER_CAF_PAYLOAD_OFFLOADING_STORAGE_REF).toString(),
-                    invalidReference);
+                    missingPayloadReference);
         }
     }
 
