@@ -49,10 +49,6 @@
             <artifactId>worker-api</artifactId>
         </dependency>
         <dependency>
-            <groupId>com.github.workerframework</groupId>
-            <artifactId>worker-caf</artifactId>
-        </dependency>
-        <dependency>
             <groupId>com.github.cafapi.common</groupId>
             <artifactId>cipher-null</artifactId>
         </dependency>
@@ -164,6 +160,11 @@
         <dependency>
             <groupId>com.github.cafapi.common</groupId>
             <artifactId>codec-json</artifactId>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>com.github.workerframework</groupId>
+            <artifactId>worker-caf</artifactId>
             <scope>test</scope>
         </dependency>
     </dependencies>
