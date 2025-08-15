@@ -226,10 +226,9 @@ public class WorkerQueueConsumerImpl implements QueueConsumer
             final var taskData = inputStream.readAllBytes();
             offloadedPayloadsToDelete.put(inboundMessageId, taskMessageStorageRef);
             return taskData;
+        } catch (final ReferenceNotFoundException ex) {
+            throw ex;
         } catch (final IOException | DataStoreException ex) {
-            if (ex instanceof ReferenceNotFoundException) {
-                throw (ReferenceNotFoundException)ex;
-            }
             throw new TransientDeliveryException(
                 "TaskMessage's TaskData could not be retrieved from DataStore", inboundMessageId, ex);
         }
@@ -269,7 +268,7 @@ public class WorkerQueueConsumerImpl implements QueueConsumer
             if(taskMessage.getTracking() != null) {
                 sendFailureTrackingReport(taskMessage, exceptionMessage, taskInformation);
             }
-        } catch (CodecException e) {
+        } catch (final CodecException e) {
             LOG.error("Failed to serialise report update task data.");
             throw new RuntimeException(e);
         }
