@@ -11,10 +11,13 @@
 
 - prefetchBuffer: the number of additional messages (tasks) to request from the RabbitMQ server beyond the number of tasks the worker can simultaneously handle. Minimum 0, Maximum 100000.
 - inputQueue: the routing key for a direct exchange (ie. queue name) to receive input tasks from, this must be set
+- missingOffloadedPayloadQueue: the routing key to use to send notifications of missing offloaded task data to, and will default to `missing-offloaded-payloads`
 - pausedQueue: the routing key to use to send messages to when a job is paused, this is optional, and if not set, messages sent to a worker when a job is paused will be processed as normal (as if the job was not paused)
 - retryQueue: the routing key to use for sending messages to retry to, this may be the same as the inputQueue, and will default to this if unset application, and messages that exceed the retryLimit, this must be set
 - retryLimit: the maximum number of retries before sending the messages to the rejectedQueue, must be at least 1
-
+- isPayloadOffloadingEnabled: Used to determine if payload offloading is configured, defaults to false
+- payloadOffloadingThreshold: the threshold in bytes, after which a payload will be offloaded to a file, defaults to 16777216 bytes
+- payloadOffloadingDirectory: the datastore directory to use for offloadeing payloads, defaults to `queues`
  Note this module expects a valid `RabbitConfiguration` file to be present.
  See the `worker-configs` module for more details on this.
 
@@ -75,8 +78,10 @@
  - `x-caf-worker-retry-lmit`: a numerical representation of the number of retries allowed before a message will be deemed poisoned and moved to the worker's output queue  
  - `x-caf-worker-rejected`: present for all messages published to the
   rejected queue, possible values are `TASKMESSAGE_INVALID` and
-  `RETRIES_EXCEEDED`   
-
+  `RETRIES_EXCEEDED` 
+ - `x-caf-payload-offloading-missing`: present for messages that have been offloaded, but where the payload is missing from the datastore
+ - `x-caf-payload-offloading-storage-ref`: present for messages that have been offloaded, and contains a reference to the offloaded payload in the datastore
+ - `x-caf-worker-invalid`: present for messages that are invalid, and will contain a string representation of the error that caused the message to be invalid
 
 ## Failure modes
 
