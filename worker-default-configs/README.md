@@ -41,22 +41,22 @@ The default Rabbit configuration file checks for values as below;
 
 The default RabbitWorkerQueue configuration file checks for values as below;
 
-| Property                       | Checked Environment Variables                                                                    | Default                            |
-|--------------------------------|--------------------------------------------------------------------------------------------------|------------------------------------|
-| prefetchBuffer                 | `CAF_RABBITMQ_PREFETCH_BUFFER`                                                                   | 1                                  |
-| inputQueue                     | `CAF_WORKER_INPUT_QUEUE`                                                                         | worker-in                          |
-|                                | `CAF_WORKER_BASE_QUEUE_NAME` with '-in' appended to the value if present                         |                                    |
-|                                | `CAF_WORKER_NAME` with '-in' appended to the value if present                                    |                                    |
-| missingOffloadedPayloadQueue   | `CAF_WORKER_MISSING_OFFLOADED_PAYLOAD_QUEUE`                                                     | worker--missing-offloaded-payloads |
-|                                | `CAF_WORKER_BASE_QUEUE_NAME` with '-missing-offloaded-payloads' appended to the value if present |                                    |
-|                                | `CAF_WORKER_NAME` with '-missing-offloaded-payloads' appended to the value if present            |                                    |
-| pausedQueue                    | `CAF_WORKER_PAUSED_QUEUE`                                                                        |                                    |
-| retryQueue                     | `CAF_WORKER_RETRY_QUEUE`                                                                         |                                    |
-| rejectedQueue                  |                                                                                                  | worker-rejected                    |
-| retryLimit                     | `CAF_WORKER_RETRY_LIMIT`                                                                         | 10                                 |
-| isPayloadOffloadingEnabled     | `CAF_WORKER_PAYLOAD_OFFLOADING_ENABLED`                                                          | false                              |
-| payloadOffloadingThreshold     | `CAF_WORKER_PAYLOAD_OFFLOADING_THRESHOLD_BYTES`                                                  | 16777216                           |
-| payloadOffloadingDirectory     | `CAF_WORKER_PAYLOAD_OFFLOADING_DIRECTORY`                                                        | queues                             |
+| Property                       | Checked Environment Variables                                               | Default         |
+|--------------------------------|-----------------------------------------------------------------------------|-----------------|
+| prefetchBuffer                 | `CAF_RABBITMQ_PREFETCH_BUFFER`                                              | 1               |
+| inputQueue                     | `CAF_WORKER_INPUT_QUEUE`                                                    | worker-in       |
+|                                | `CAF_WORKER_BASE_QUEUE_NAME` with '-in' appended to the value if present    |                 |
+|                                | `CAF_WORKER_NAME` with '-in' appended to the value if present               |                 |
+| missingOffloadedPayloadQueue   | `CAF_WORKER_MISSING_OFFLOADED_PAYLOAD_QUEUE`                                | worker-mop      |
+|                                | `CAF_WORKER_BASE_QUEUE_NAME` with '-mop' appended to the value if present   |                 |
+|                                | `CAF_WORKER_NAME` with '-mop' appended to the value if present              |                 |
+| pausedQueue                    | `CAF_WORKER_PAUSED_QUEUE`                                                   |                 |
+| retryQueue                     | `CAF_WORKER_RETRY_QUEUE`                                                    |                 |
+| rejectedQueue                  |                                                                             | worker-rejected |
+| retryLimit                     | `CAF_WORKER_RETRY_LIMIT`                                                    | 10              |
+| isPayloadOffloadingEnabled     | `CAF_WORKER_PAYLOAD_OFFLOADING_ENABLED`                                     | false           |
+| payloadOffloadingThreshold     | `CAF_WORKER_PAYLOAD_OFFLOADING_THRESHOLD_BYTES`                             | 16777216        |
+| payloadOffloadingDirectory     | `CAF_WORKER_PAYLOAD_OFFLOADING_DIRECTORY`                                   | queues          |
 
 ## HealthConfiguration
 
