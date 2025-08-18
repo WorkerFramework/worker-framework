@@ -31,11 +31,10 @@ public interface WorkerQueueProvider
      * @param invalidQueue        the queue in which to place tasks that are invalid or cannot be processed
      * @param dataStore           the managed data store that the worker will use to store data that exceeds a threshold.
      * @param codec               the codec used for serialization deserialization of data.
-     * @param workerName
      * @return a new WorkerQueue instance
      * @throws QueueException if a WorkerQueue could not be created
      */
     ManagedWorkerQueue getWorkerQueue(ConfigurationSource configurationSource, int maxTasks, String invalidQueue,
-                                      ManagedDataStore dataStore, Codec codec, String workerName)
+                                      ManagedDataStore dataStore, Codec codec)
         throws QueueException;
 }

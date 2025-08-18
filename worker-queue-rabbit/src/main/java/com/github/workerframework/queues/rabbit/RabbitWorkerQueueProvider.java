@@ -31,8 +31,7 @@ public class RabbitWorkerQueueProvider implements WorkerQueueProvider
         final int maxTasks,
         final String invalidQueue,
         final ManagedDataStore dataStore,
-        final Codec codec,
-        final String workerName) throws QueueException
+        final Codec codec) throws QueueException
     {
         try {
             return new RabbitWorkerQueue(
@@ -40,8 +39,7 @@ public class RabbitWorkerQueueProvider implements WorkerQueueProvider
                 maxTasks,
                 invalidQueue,
                 dataStore,
-                codec,
-                workerName
+                codec
             );
         } catch (final ConfigurationException e) {
             throw new QueueException("Cannot create worker queue", e);
