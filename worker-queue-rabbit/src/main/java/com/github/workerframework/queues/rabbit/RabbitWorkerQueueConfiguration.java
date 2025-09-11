@@ -54,7 +54,7 @@ public class RabbitWorkerQueueConfiguration
      * The queue to send notifications of missing offloaded task data to.
      */
     @Size(min = 1)
-    private String missingOffloadedPayloadQueue = "worker-missing-offloaded-payloads";
+    private String missingOffloadedPayloadQueue = "worker-mop";
     /**
      * The queue to put messages sent to a paused worker on. If this is null, messages sent to a paused worker will be processed as
      * normal (as if the worker was not paused).
