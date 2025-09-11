@@ -6,6 +6,7 @@ ${version-number}
   - The TaskCallback interface has been updated to expect a TaskMessage in place of a byte array.
   - The WorkerQueueProvider interface has been updated to expect a ManagedDataStore for storing large messages
     and a Codec for serialization/deserialization of messages prior to storage/retrieval from the datastore.
+  - RabbitWorkerQueueConfiguration includes new fields as defined [here](worker-queue-rabbit/readme.md) 
 
 #### New Features
 - None    
