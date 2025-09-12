@@ -19,7 +19,7 @@ import com.github.cafapi.common.api.Codec;
 import com.github.cafapi.common.api.CodecException;
 import com.github.cafapi.common.codecs.json.JsonCodec;
 import com.github.workerframework.api.DataStoreException;
-import com.github.workerframework.api.DirectoryManager;
+import com.github.workerframework.api.OffloadedDirectoryManager;
 import com.github.workerframework.api.FilePathProvider;
 import com.github.workerframework.api.InvalidTaskException;
 import com.github.workerframework.api.ManagedDataStore;
@@ -67,7 +67,6 @@ import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.TimeUnit;
 
 import static org.mockito.Mockito.mock;
-import static org.testng.Assert.fail;
 
 public class RabbitWorkerQueueConsumerTest
 {
@@ -81,6 +80,7 @@ public class RabbitWorkerQueueConsumerTest
     private RabbitMetricsReporter metrics = new RabbitMetricsReporter();
     private TaskCallback mockCallback = mock(TaskCallback.class);
     private File tempDataStore;
+    private File queuesDirectory;
     private ManagedDataStore dataStore;
     private static Codec codec;
     private static byte[] data;
@@ -97,7 +97,8 @@ public class RabbitWorkerQueueConsumerTest
         newEnv = new Envelope(Long.valueOf(taskInformation.getInboundMessageId()), false, "", testQueue);
         poisonEnv = new Envelope(Long.valueOf(taskInformation.getInboundMessageId()), true, "", testQueue);
         redeliveredEnv = new Envelope(Long.valueOf(taskInformation.getInboundMessageId()), true, "", testQueue);
-        tempDataStore = new File("RabbitWorkerQueueConsumerTest");
+        tempDataStore = new File("datastore");
+        queuesDirectory = new File("datastore/queues/");
         dataStore = new FileSystemDataStore(createConfig());
     }
 
@@ -128,76 +129,33 @@ public class RabbitWorkerQueueConsumerTest
 
     @Test
     public void testOffloadedEmptyDirectoriesDeleted() throws DataStoreException {
-        final String trackingJobTaskId = "job-tracking-id-1";
-        final String queueStorageDirectory = "queue-storage-directory/";
-        final String partialRef = queueStorageDirectory + trackingJobTaskId;
+        final String trackingJobTaskId = "job/tracking/id/1";
+        final String partialRef = "queues/" + trackingJobTaskId;
         final String message = UUID.randomUUID().toString();
         final String taskMessageStorageRef = dataStore.store(message.getBytes(), partialRef);
-        final String recoveredQueueStorageDirectory = taskMessageStorageRef.substring(0, taskMessageStorageRef.lastIndexOf(trackingJobTaskId));
-        Assert.assertEquals(recoveredQueueStorageDirectory, queueStorageDirectory);
         final FilePathProvider filePathProvider = (FilePathProvider) dataStore;
         final Path path = filePathProvider.getFilePath(taskMessageStorageRef);
-        try {
-            dataStore.delete(taskMessageStorageRef);
-            dataStore.retrieve(taskMessageStorageRef);
-            fail("Expected DataStoreException to be thrown when reference does not exist");
-        } catch (final DataStoreException e) {
-            final DirectoryManager directoryManager = (DirectoryManager) dataStore;
-            final Path parentDirectory = path.getParent();
-            directoryManager.deleteDirectory(parentDirectory);
-            Assert.assertTrue(Files.exists(parentDirectory.getParent()));
-            Assert.assertFalse(Files.exists(parentDirectory));
-        }
+        final OffloadedDirectoryManager offloadedDirectoryManager = (OffloadedDirectoryManager) dataStore;
+        offloadedDirectoryManager.deleteOffloadingTree(path);
+        Assert.assertTrue(Files.exists(tempDataStore.toPath()));
+        Assert.assertFalse(Files.exists(queuesDirectory.toPath()));
     }
 
     @Test
-    public void testDataStoreCannotBeDeleted() throws DataStoreException {
-        final String partialRef = "";
+    public void testOffloadedNonEmptyOffloadedDirectoriesNotDeleted() throws DataStoreException {
+        final String trackingJobTaskId = "job/tracking/id/1";
+        final String partialRef = "queues/" + trackingJobTaskId;
+        final String undeletedPartialRef = "queues/";
         final String message = UUID.randomUUID().toString();
         final String taskMessageStorageRef = dataStore.store(message.getBytes(), partialRef);
+        dataStore.store(message.getBytes(), undeletedPartialRef);
         final FilePathProvider filePathProvider = (FilePathProvider) dataStore;
         final Path path = filePathProvider.getFilePath(taskMessageStorageRef);
-        try {
-            dataStore.delete(taskMessageStorageRef);
-            dataStore.retrieve(taskMessageStorageRef);
-            fail("Expected DataStoreException to be thrown when reference does not exist");
-        } catch (final DataStoreException e) {
-            final DirectoryManager directoryManager = (DirectoryManager) dataStore;
-            final Path parentDirectory = path.getParent();
-            directoryManager.deleteDirectory(parentDirectory);
-            Assert.assertTrue(Files.exists(parentDirectory));
-        }
-    }
-
-    @Test(expectedExceptions = DataStoreException.class)
-    public void testNonEmptyOffloadedDirectoryThrowsDataStoreException() throws DataStoreException {
-        final String trackingJobTaskId = "job-tracking-id-3";
-        final String queueStorageDirectory = "queue-storage-directory/";
-        final String partialRef = queueStorageDirectory + trackingJobTaskId;
-        final String message = UUID.randomUUID().toString();
-        final String taskMessageStorageRef = dataStore.store(message.getBytes(), partialRef);
-        final String recoveredQueueStorageDirectory = taskMessageStorageRef.substring(0, taskMessageStorageRef.lastIndexOf(trackingJobTaskId));
-        Assert.assertEquals(recoveredQueueStorageDirectory, queueStorageDirectory);
-        final FilePathProvider filePathProvider = (FilePathProvider) dataStore;
-        final Path path = filePathProvider.getFilePath(taskMessageStorageRef);
-        final DirectoryManager directoryManager = (DirectoryManager) dataStore;
-        final Path parentDirectory = path.getParent();
-        directoryManager.deleteDirectory(parentDirectory);
-    }
-
-    @Test(expectedExceptions = DataStoreException.class)
-    public void testAttemptToDeleteRegularFilePathThrowsDataStoreException() throws DataStoreException {
-        final String trackingJobTaskId = "job-tracking-id-4";
-        final String queueStorageDirectory = "queue-storage-directory/";
-        final String partialRef = queueStorageDirectory + trackingJobTaskId;
-        final String message = UUID.randomUUID().toString();
-        final String taskMessageStorageRef = dataStore.store(message.getBytes(), partialRef);
-        final String recoveredQueueStorageDirectory = taskMessageStorageRef.substring(0, taskMessageStorageRef.lastIndexOf(trackingJobTaskId));
-        Assert.assertEquals(recoveredQueueStorageDirectory, queueStorageDirectory);
-        final FilePathProvider filePathProvider = (FilePathProvider) dataStore;
-        final Path path = filePathProvider.getFilePath(taskMessageStorageRef);
-        final DirectoryManager directoryManager = (DirectoryManager) dataStore;
-        directoryManager.deleteDirectory(path);
+        final OffloadedDirectoryManager offloadedDirectoryManager = (OffloadedDirectoryManager) dataStore;
+        offloadedDirectoryManager.deleteOffloadingTree(path);
+        Assert.assertTrue(Files.exists(tempDataStore.toPath()));
+        // queues directory will not be deleted since it's not empty.
+        Assert.assertTrue(Files.exists(queuesDirectory.toPath()));
     }
 
     /**

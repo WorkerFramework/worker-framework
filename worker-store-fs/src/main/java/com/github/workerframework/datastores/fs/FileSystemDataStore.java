@@ -49,7 +49,7 @@ import java.util.function.Consumer;
  * This is a simple DataStore that reads and writes files to and from a directory upon the file system. The store directory must be an
  * absolute path.
  */
-public class FileSystemDataStore implements ManagedDataStore, FilePathProvider, DataStoreOutputStreamSupport, DirectoryManager
+public class FileSystemDataStore implements ManagedDataStore, FilePathProvider, DataStoreOutputStreamSupport, OffloadedDirectoryManager
 {
     private Path dataStorePath;
     private final int outputBufferSize;
@@ -114,32 +114,28 @@ public class FileSystemDataStore implements ManagedDataStore, FilePathProvider, 
     }
 
     /**
-     * Delete a Directory.
+     * Delete a Directory tree from leaf node up, unit a non-empty directory is encountered.
      *
      * @param path the directory to be deleted.
      * @throws DataStoreException if the directory cannot be accessed or deleted
      */
     @Override
-    public void deleteDirectory(final Path path) throws DataStoreException
+    public void deleteOffloadingTree(final Path path) throws DataStoreException
     {
         Objects.requireNonNull(path);
-        try {
-            if (path.equals(dataStorePath)) {
-               return;
+        Path leafNode = path;
+        while (!leafNode.equals(dataStorePath)) {
+            try {
+                LOG.debug("Deleting {}", leafNode);
+                Files.delete(leafNode);
+                leafNode = leafNode.getParent();
+            } catch (final DirectoryNotEmptyException e) {
+                LOG.debug("{} is not empty", leafNode);
+                break;
+            } catch (final IOException | SecurityException | InvalidPathException e) {
+                errors.incrementAndGet();
+                throw new DataStoreException("Error deleting directory " + leafNode, e);
             }
-
-            if (!Files.isDirectory(path)) {
-                throw new DataStoreException("Path is not a directory:" + path.toAbsolutePath());
-            }
-
-            LOG.debug("Deleting {}", path.toAbsolutePath());
-            Files.delete(path);
-        } catch (final DirectoryNotEmptyException e) {
-            errors.incrementAndGet();
-            throw new DataStoreException("Directory not empty", e);
-        } catch (final IOException | SecurityException | InvalidPathException e) {
-            errors.incrementAndGet();
-            throw new DataStoreException("Failed to delete directory", e);
         }
     }
 

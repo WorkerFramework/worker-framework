@@ -376,18 +376,18 @@ public class WorkerQueueConsumerImpl implements QueueConsumer
         final String datastorePayloadReference = offloadedPayloadsToDelete.remove(tag);
         if (datastorePayloadReference != null) {
             final Path referenceFilePath = getReferenceFilePath(datastorePayloadReference, tag);
-            try {
-                dataStore.delete(datastorePayloadReference);
-            } catch (final DataStoreException e) {
-                LOG.warn("Couldn't delete offloaded payload '{}' for delivery tag '{}' from datastore message.",
-                         datastorePayloadReference, tag, e);
-            }
-            if (referenceFilePath != null && dataStore instanceof DirectoryManager) {
-                final var directoryManager = (DirectoryManager) dataStore;
+            if (referenceFilePath != null && dataStore instanceof OffloadedDirectoryManager) {
+                final var directoryManager = (OffloadedDirectoryManager) dataStore;
                 try {
-                    directoryManager.deleteDirectory(referenceFilePath.getParent());
+                    directoryManager.deleteOffloadingTree(referenceFilePath);
                 } catch (final DataStoreException e) {
-                    LOG.warn("Couldn't delete offloaded payload directory'{}' for delivery tag '{}' from datastore message.",
+                    LOG.warn(e.getMessage());
+                }
+            } else {
+                try {
+                    dataStore.delete(datastorePayloadReference);
+                } catch (final DataStoreException e) {
+                    LOG.warn("Couldn't delete offloaded payload '{}' for delivery tag '{}' from datastore message.",
                             datastorePayloadReference, tag, e);
                 }
             }

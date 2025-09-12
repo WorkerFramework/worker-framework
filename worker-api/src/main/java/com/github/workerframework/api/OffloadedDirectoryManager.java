@@ -21,14 +21,14 @@ import java.nio.file.Path;
  * An interface intended to be implemented by FileSystemDataStores that support the concept of a
  * unique filepath to each stored asset.
  */
-public interface DirectoryManager
+public interface OffloadedDirectoryManager
 {
     /**
-     * Delete a directory identified by a Path
+     * Delete an offloaded assert and its containing directory tree.
      *
      * @param path a path to be interpreted by the DataStore implementation
      * @throws DataStoreException if data store cannot service the request
      */
-    void deleteDirectory(final Path path)
+    void deleteOffloadingTree(final Path path)
         throws DataStoreException;
 }
