@@ -129,7 +129,7 @@ public class RabbitWorkerQueueConsumerTest
     @Test
     public void testOffloadedEmptyDirectoriesDeleted() throws DataStoreException {
         final String trackingJobTaskId = "job-tracking-id-1";
-        final String queueStorageDirectory = "queue/storage/directory/";
+        final String queueStorageDirectory = "queue-storage-directory/";
         final String partialRef = queueStorageDirectory + trackingJobTaskId;
         final String message = UUID.randomUUID().toString();
         final String taskMessageStorageRef = dataStore.store(message.getBytes(), partialRef);
@@ -169,10 +169,10 @@ public class RabbitWorkerQueueConsumerTest
         }
     }
 
-    @Test(expectedExceptions =  DataStoreException.class)
+    @Test(expectedExceptions = DataStoreException.class)
     public void testNonEmptyOffloadedDirectoryThrowsDataStoreException() throws DataStoreException {
         final String trackingJobTaskId = "job-tracking-id-3";
-        final String queueStorageDirectory = "queue/storage/directory/";
+        final String queueStorageDirectory = "queue-storage-directory/";
         final String partialRef = queueStorageDirectory + trackingJobTaskId;
         final String message = UUID.randomUUID().toString();
         final String taskMessageStorageRef = dataStore.store(message.getBytes(), partialRef);
@@ -185,10 +185,10 @@ public class RabbitWorkerQueueConsumerTest
         directoryManager.deleteDirectory(parentDirectory);
     }
 
-    @Test(expectedExceptions =  DataStoreException.class)
+    @Test(expectedExceptions = DataStoreException.class)
     public void testAttemptToDeleteRegularFilePathThrowsDataStoreException() throws DataStoreException {
         final String trackingJobTaskId = "job-tracking-id-4";
-        final String queueStorageDirectory = "queue/storage/directory/";
+        final String queueStorageDirectory = "queue-storage-directory/";
         final String partialRef = queueStorageDirectory + trackingJobTaskId;
         final String message = UUID.randomUUID().toString();
         final String taskMessageStorageRef = dataStore.store(message.getBytes(), partialRef);
