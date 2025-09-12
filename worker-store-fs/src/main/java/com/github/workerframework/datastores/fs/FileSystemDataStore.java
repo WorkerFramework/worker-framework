@@ -17,12 +17,7 @@ package com.github.workerframework.datastores.fs;
 
 import com.github.cafapi.common.api.HealthResult;
 import com.github.cafapi.common.api.HealthStatus;
-import com.github.workerframework.api.DataStoreException;
-import com.github.workerframework.api.DataStoreMetricsReporter;
-import com.github.workerframework.api.DataStoreOutputStreamSupport;
-import com.github.workerframework.api.FilePathProvider;
-import com.github.workerframework.api.ManagedDataStore;
-import com.github.workerframework.api.ReferenceNotFoundException;
+import com.github.workerframework.api.*;
 import org.apache.commons.io.output.ProxyOutputStream;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -49,7 +44,7 @@ import java.util.function.Consumer;
  * This is a simple DataStore that reads and writes files to and from a directory upon the file system. The store directory must be an
  * absolute path.
  */
-public class FileSystemDataStore implements ManagedDataStore, FilePathProvider, DataStoreOutputStreamSupport
+public class FileSystemDataStore implements ManagedDataStore, FilePathProvider, DataStoreOutputStreamSupport, DirectoryManager
 {
     private Path dataStorePath;
     private final int outputBufferSize;
@@ -110,6 +105,36 @@ public class FileSystemDataStore implements ManagedDataStore, FilePathProvider, 
         } catch (IOException | SecurityException | InvalidPathException e) {
             errors.incrementAndGet();
             throw new DataStoreException("Failed to delete reference", e);
+        }
+    }
+
+    /**
+     * Delete a Directory.
+     *
+     * @param path the directory to be deleted.
+     * @throws DataStoreException if the directory cannot be accessed or deleted
+     */
+    @Override
+    public void deleteDirectory(final Path path) throws DataStoreException
+    {
+        Objects.requireNonNull(path);
+        try {
+            if (path.equals(dataStorePath)) {
+               return;
+            }
+
+            if (!Files.isDirectory(path)) {
+                throw new DataStoreException("Path is not a directory:" + path.toAbsolutePath());
+            }
+
+            LOG.debug("Deleting {}", path.toAbsolutePath());
+            Files.delete(path);
+        } catch (final DirectoryNotEmptyException e) {
+            errors.incrementAndGet();
+            throw new DataStoreException("Directory not empty", e);
+        } catch (final IOException | SecurityException | InvalidPathException e) {
+            errors.incrementAndGet();
+            throw new DataStoreException("Failed to delete directory", e);
         }
     }
 

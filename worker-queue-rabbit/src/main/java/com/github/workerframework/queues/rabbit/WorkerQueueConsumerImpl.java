@@ -18,15 +18,7 @@ package com.github.workerframework.queues.rabbit;
 import com.github.cafapi.common.api.Codec;
 import com.github.cafapi.common.api.CodecException;
 import com.github.cafapi.common.api.DecodeMethod;
-import com.github.workerframework.api.DataStoreException;
-import com.github.workerframework.api.InvalidTaskException;
-import com.github.workerframework.api.ManagedDataStore;
-import com.github.workerframework.api.ReferenceNotFoundException;
-import com.github.workerframework.api.TaskCallback;
-import com.github.workerframework.api.TaskMessage;
-import com.github.workerframework.api.TaskRejectedException;
-import com.github.workerframework.api.TaskStatus;
-import com.github.workerframework.api.TrackingInfo;
+import com.github.workerframework.api.*;
 import com.github.workerframework.tracking.report.TrackingReport;
 import com.github.workerframework.tracking.report.TrackingReportConstants;
 import com.github.workerframework.tracking.report.TrackingReportFailure;
@@ -44,6 +36,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
+import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Date;
@@ -382,11 +375,21 @@ public class WorkerQueueConsumerImpl implements QueueConsumer
 
         final String datastorePayloadReference = offloadedPayloadsToDelete.remove(tag);
         if (datastorePayloadReference != null) {
+            final Path referenceFilePath = getReferenceFilePath(datastorePayloadReference, tag);
             try {
                 dataStore.delete(datastorePayloadReference);
             } catch (final DataStoreException e) {
                 LOG.warn("Couldn't delete offloaded payload '{}' for delivery tag '{}' from datastore message.",
                          datastorePayloadReference, tag, e);
+            }
+            if (referenceFilePath != null && dataStore instanceof DirectoryManager) {
+                final var directoryManager = (DirectoryManager) dataStore;
+                try {
+                    directoryManager.deleteDirectory(referenceFilePath.getParent());
+                } catch (final DataStoreException e) {
+                    LOG.warn("Couldn't delete offloaded payload directory'{}' for delivery tag '{}' from datastore message.",
+                            datastorePayloadReference, tag, e);
+                }
             }
         }
     }
@@ -472,5 +475,18 @@ public class WorkerQueueConsumerImpl implements QueueConsumer
             }
         }
         publisherEventQueue.add(new WorkerPublishQueueEvent(serializedTaskMessage, retryRoutingKey, taskInformation, publishHeaders));
+    }
+
+    private Path getReferenceFilePath(final String datastorePayloadReference, final long tag) {
+        if (dataStore instanceof FilePathProvider) {
+            final FilePathProvider filePathProvider = (FilePathProvider) dataStore;
+            try {
+                return filePathProvider.getFilePath(datastorePayloadReference);
+            } catch (final DataStoreException e) {
+                LOG.warn("Couldn't recover offloaded payload filepath '{}' for delivery tag '{}' from datastore message.",
+                        datastorePayloadReference, tag, e);
+            }
+        }
+        return null;
     }
 }
