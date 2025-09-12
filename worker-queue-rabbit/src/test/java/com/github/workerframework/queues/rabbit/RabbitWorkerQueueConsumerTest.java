@@ -137,8 +137,10 @@ public class RabbitWorkerQueueConsumerTest
         final Path path = filePathProvider.getFilePath(taskMessageStorageRef);
         final OffloadedDirectoryManager offloadedDirectoryManager = (OffloadedDirectoryManager) dataStore;
         offloadedDirectoryManager.deleteOffloadingTree(path);
-        Assert.assertTrue(Files.exists(tempDataStore.toPath()));
-        Assert.assertFalse(Files.exists(queuesDirectory.toPath()));
+        Assert.assertTrue(Files.exists(tempDataStore.toPath()),
+                "Should not have deleted datastore directory");
+        Assert.assertFalse(Files.exists(queuesDirectory.toPath()),
+                "Should have deleted queues directory and children");
     }
 
     @Test
@@ -153,9 +155,11 @@ public class RabbitWorkerQueueConsumerTest
         final Path path = filePathProvider.getFilePath(taskMessageStorageRef);
         final OffloadedDirectoryManager offloadedDirectoryManager = (OffloadedDirectoryManager) dataStore;
         offloadedDirectoryManager.deleteOffloadingTree(path);
-        Assert.assertTrue(Files.exists(tempDataStore.toPath()));
+        Assert.assertTrue(Files.exists(tempDataStore.toPath()),
+                "Should not have deleted datastore directory");
         // queues directory will not be deleted since it's not empty.
-        Assert.assertTrue(Files.exists(queuesDirectory.toPath()));
+        Assert.assertTrue(Files.exists(queuesDirectory.toPath()),
+                "Should have deleted queues directory children, but not queues directory");
     }
 
     /**
