@@ -116,22 +116,21 @@ public class FileSystemDataStore implements ManagedDataStore, FilePathProvider, 
     /**
      * Delete a Directory tree from leaf node up, unit a non-empty directory is encountered.
      *
-     * @param reference the file to be deleted, along with non-empty parent directories in the tree.
+     * @param reference the file to be deleted, along with non-empty parent directories in the files directory tree.
      * @throws DataStoreException if the directory cannot be accessed or deleted
      */
     @Override
     public void deleteTree(final String reference) throws DataStoreException
     {
         Objects.requireNonNull(reference);
+        LOG.debug("Deleting tree {}", reference);
         Path leafNode = getFilePath(reference);
         while (!leafNode.equals(dataStorePath)) {
             try {
-                LOG.debug("Deleting {}", leafNode);
                 Files.delete(leafNode);
                 leafNode = leafNode.getParent();
                 if (leafNode == null) return;
             } catch (final DirectoryNotEmptyException e) {
-                LOG.debug("{} is not empty", leafNode);
                 break;
             } catch (final IOException | SecurityException | InvalidPathException e) {
                 errors.incrementAndGet();
