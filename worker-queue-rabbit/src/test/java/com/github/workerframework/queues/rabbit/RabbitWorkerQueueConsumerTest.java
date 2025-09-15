@@ -19,8 +19,6 @@ import com.github.cafapi.common.api.Codec;
 import com.github.cafapi.common.api.CodecException;
 import com.github.cafapi.common.codecs.json.JsonCodec;
 import com.github.workerframework.api.DataStoreException;
-import com.github.workerframework.api.OffloadedDirectoryManager;
-import com.github.workerframework.api.FilePathProvider;
 import com.github.workerframework.api.InvalidTaskException;
 import com.github.workerframework.api.ManagedDataStore;
 import com.github.workerframework.api.TaskCallback;
@@ -55,7 +53,6 @@ import java.io.File;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
-import java.nio.file.Path;
 import java.util.Collections;
 import java.util.Date;
 import java.util.HashMap;
@@ -133,10 +130,7 @@ public class RabbitWorkerQueueConsumerTest
         final String partialRef = "queues/" + trackingJobTaskId;
         final String message = UUID.randomUUID().toString();
         final String taskMessageStorageRef = dataStore.store(message.getBytes(), partialRef);
-        final FilePathProvider filePathProvider = (FilePathProvider) dataStore;
-        final Path path = filePathProvider.getFilePath(taskMessageStorageRef);
-        final OffloadedDirectoryManager offloadedDirectoryManager = (OffloadedDirectoryManager) dataStore;
-        offloadedDirectoryManager.deleteOffloadingTree(path);
+        dataStore.deleteTree(taskMessageStorageRef);
         Assert.assertTrue(Files.exists(tempDataStore.toPath()),
                 "Should not have deleted datastore directory");
         Assert.assertFalse(Files.exists(queuesDirectory.toPath()),
@@ -151,10 +145,7 @@ public class RabbitWorkerQueueConsumerTest
         final String message = UUID.randomUUID().toString();
         final String taskMessageStorageRef = dataStore.store(message.getBytes(), partialRef);
         dataStore.store(message.getBytes(), undeletedPartialRef);
-        final FilePathProvider filePathProvider = (FilePathProvider) dataStore;
-        final Path path = filePathProvider.getFilePath(taskMessageStorageRef);
-        final OffloadedDirectoryManager offloadedDirectoryManager = (OffloadedDirectoryManager) dataStore;
-        offloadedDirectoryManager.deleteOffloadingTree(path);
+        dataStore.deleteTree(taskMessageStorageRef);
         Assert.assertTrue(Files.exists(tempDataStore.toPath()),
                 "Should not have deleted datastore directory");
         // queues directory will not be deleted since it's not empty.

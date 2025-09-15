@@ -24,11 +24,11 @@ import java.nio.file.Path;
 public interface OffloadedDirectoryManager
 {
     /**
-     * Delete an offloaded assert and its containing directory tree.
+     * Delete asset identified by reference
      *
-     * @param path a path to be interpreted by the DataStore implementation
+     * @param reference a complete reference to be interpreted by the OffloadedDirectoryManager implementation
      * @throws DataStoreException if data store cannot service the request
      */
-    void deleteOffloadingTree(final Path path)
+    void deleteTree(final String reference)
         throws DataStoreException;
 }

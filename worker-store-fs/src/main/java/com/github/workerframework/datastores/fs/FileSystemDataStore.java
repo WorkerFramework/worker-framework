@@ -17,7 +17,12 @@ package com.github.workerframework.datastores.fs;
 
 import com.github.cafapi.common.api.HealthResult;
 import com.github.cafapi.common.api.HealthStatus;
-import com.github.workerframework.api.*;
+import com.github.workerframework.api.DataStoreException;
+import com.github.workerframework.api.DataStoreMetricsReporter;
+import com.github.workerframework.api.DataStoreOutputStreamSupport;
+import com.github.workerframework.api.FilePathProvider;
+import com.github.workerframework.api.ManagedDataStore;
+import com.github.workerframework.api.ReferenceNotFoundException;
 import org.apache.commons.io.output.ProxyOutputStream;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -26,12 +31,7 @@ import java.io.BufferedOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
-import java.nio.file.DirectoryNotEmptyException;
-import java.nio.file.FileSystems;
-import java.nio.file.Files;
-import java.nio.file.InvalidPathException;
-import java.nio.file.NoSuchFileException;
-import java.nio.file.Path;
+import java.nio.file.*;
 import java.time.Duration;
 import java.util.Objects;
 import java.util.UUID;
@@ -49,7 +49,7 @@ import java.util.function.Consumer;
  * This is a simple DataStore that reads and writes files to and from a directory upon the file system. The store directory must be an
  * absolute path.
  */
-public class FileSystemDataStore implements ManagedDataStore, FilePathProvider, DataStoreOutputStreamSupport, OffloadedDirectoryManager
+public class FileSystemDataStore implements ManagedDataStore, FilePathProvider, DataStoreOutputStreamSupport
 {
     private Path dataStorePath;
     private final int outputBufferSize;
@@ -116,14 +116,14 @@ public class FileSystemDataStore implements ManagedDataStore, FilePathProvider, 
     /**
      * Delete a Directory tree from leaf node up, unit a non-empty directory is encountered.
      *
-     * @param path the directory to be deleted.
+     * @param reference the file to be deleted, along with non-empty parent directories in the tree.
      * @throws DataStoreException if the directory cannot be accessed or deleted
      */
     @Override
-    public void deleteOffloadingTree(final Path path) throws DataStoreException
+    public void deleteTree(final String reference) throws DataStoreException
     {
-        Objects.requireNonNull(path);
-        Path leafNode = path;
+        Objects.requireNonNull(reference);
+        Path leafNode = getReferenceFilePath(reference);
         while (!leafNode.equals(dataStorePath)) {
             try {
                 LOG.debug("Deleting {}", leafNode);
@@ -137,6 +137,10 @@ public class FileSystemDataStore implements ManagedDataStore, FilePathProvider, 
                 throw new DataStoreException("Error deleting directory " + leafNode, e);
             }
         }
+    }
+
+    private Path getReferenceFilePath(final String reference) throws DataStoreException {
+        return getFilePath(reference);
     }
 
     /**
