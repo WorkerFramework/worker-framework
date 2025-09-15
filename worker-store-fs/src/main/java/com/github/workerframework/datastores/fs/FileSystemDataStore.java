@@ -129,6 +129,7 @@ public class FileSystemDataStore implements ManagedDataStore, FilePathProvider, 
                 LOG.debug("Deleting {}", leafNode);
                 Files.delete(leafNode);
                 leafNode = leafNode.getParent();
+                if (leafNode == null) return;
             } catch (final DirectoryNotEmptyException e) {
                 LOG.debug("{} is not empty", leafNode);
                 break;
