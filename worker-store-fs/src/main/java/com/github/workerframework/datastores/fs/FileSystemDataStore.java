@@ -123,7 +123,7 @@ public class FileSystemDataStore implements ManagedDataStore, FilePathProvider, 
     public void deleteTree(final String reference) throws DataStoreException
     {
         Objects.requireNonNull(reference);
-        Path leafNode = getReferenceFilePath(reference);
+        Path leafNode = getFilePath(reference);
         while (!leafNode.equals(dataStorePath)) {
             try {
                 LOG.debug("Deleting {}", leafNode);
@@ -137,10 +137,6 @@ public class FileSystemDataStore implements ManagedDataStore, FilePathProvider, 
                 throw new DataStoreException("Error deleting directory " + leafNode, e);
             }
         }
-    }
-
-    private Path getReferenceFilePath(final String reference) throws DataStoreException {
-        return getFilePath(reference);
     }
 
     /**
