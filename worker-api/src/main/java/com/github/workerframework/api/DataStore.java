@@ -33,6 +33,18 @@ public interface DataStore
         throws DataStoreException;
 
     /**
+     *
+     * @param reference
+     * @param cleanPartialReference The behaviour of the cleanPartialReference param is defined by the implementation of
+     * the DataStore, the default implementation only deletes the data represented by the reference.
+     * @throws DataStoreException
+     */
+    default void delete(final String reference, boolean cleanPartialReference) throws DataStoreException
+    {
+        delete(reference);
+    }
+
+    /**
      * Provide a stream to get data by reference
      *
      * @param reference a complete reference to be interpreted by the DataStore implementation

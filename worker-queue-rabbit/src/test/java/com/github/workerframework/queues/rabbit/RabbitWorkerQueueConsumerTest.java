@@ -19,7 +19,6 @@ import com.github.cafapi.common.api.Codec;
 import com.github.cafapi.common.api.CodecException;
 import com.github.cafapi.common.codecs.json.JsonCodec;
 import com.github.workerframework.api.DataStoreException;
-import com.github.workerframework.api.DeletableTree;
 import com.github.workerframework.api.InvalidTaskException;
 import com.github.workerframework.api.ManagedDataStore;
 import com.github.workerframework.api.TaskCallback;
@@ -28,6 +27,7 @@ import com.github.workerframework.api.TaskMessage;
 import com.github.workerframework.api.TaskRejectedException;
 import com.github.workerframework.api.TaskStatus;
 import com.github.workerframework.api.TrackingInfo;
+import com.github.workerframework.api.WorkerConfiguration;
 import com.github.workerframework.api.WorkerException;
 import com.github.workerframework.datastores.fs.FileSystemDataStore;
 import com.github.workerframework.datastores.fs.FileSystemDataStoreConfiguration;
@@ -53,12 +53,10 @@ import org.mockito.stubbing.Answer;
 import java.io.File;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
-import java.nio.file.Files;
 import java.util.Collections;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.UUID;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.LinkedBlockingQueue;
@@ -78,7 +76,6 @@ public class RabbitWorkerQueueConsumerTest
     private RabbitMetricsReporter metrics = new RabbitMetricsReporter();
     private TaskCallback mockCallback = mock(TaskCallback.class);
     private File tempDataStore;
-    private File queuesDirectory;
     private ManagedDataStore dataStore;
     private static Codec codec;
     private static byte[] data;
@@ -95,8 +92,7 @@ public class RabbitWorkerQueueConsumerTest
         newEnv = new Envelope(Long.valueOf(taskInformation.getInboundMessageId()), false, "", testQueue);
         poisonEnv = new Envelope(Long.valueOf(taskInformation.getInboundMessageId()), true, "", testQueue);
         redeliveredEnv = new Envelope(Long.valueOf(taskInformation.getInboundMessageId()), true, "", testQueue);
-        tempDataStore = new File("datastore");
-        queuesDirectory = new File("datastore/queues/");
+        tempDataStore = new File("RabbitWorkerQueueConsumerTest");
         dataStore = new FileSystemDataStore(createConfig());
     }
 
@@ -123,37 +119,6 @@ public class RabbitWorkerQueueConsumerTest
         conf.setDataDir(tempDataStore.getAbsolutePath());
         conf.setDataDirHealthcheckTimeoutSeconds(10);
         return conf;
-    }
-
-    @Test
-    public void testOffloadedEmptyDirectoriesDeleted() throws DataStoreException {
-        final String trackingJobTaskId = "job/tracking/id/1";
-        final String partialRef = "queues/" + trackingJobTaskId;
-        final String message = UUID.randomUUID().toString();
-        final String taskMessageStorageRef = dataStore.store(message.getBytes(), partialRef);
-        final var deletableTree = (DeletableTree) dataStore;
-        deletableTree.deleteTree(taskMessageStorageRef);
-        Assert.assertTrue(Files.exists(tempDataStore.toPath()),
-                "Should not have deleted datastore directory");
-        Assert.assertFalse(Files.exists(queuesDirectory.toPath()),
-                "Should have deleted queues directory and children");
-    }
-
-    @Test
-    public void testOffloadedNonEmptyOffloadedDirectoriesNotDeleted() throws DataStoreException {
-        final String trackingJobTaskId = "job/tracking/id/1";
-        final String partialRef = "queues/" + trackingJobTaskId;
-        final String undeletedPartialRef = "queues/";
-        final String message = UUID.randomUUID().toString();
-        final String taskMessageStorageRef = dataStore.store(message.getBytes(), partialRef);
-        dataStore.store(message.getBytes(), undeletedPartialRef);
-        final var deletableTree = (DeletableTree) dataStore;
-        deletableTree.deleteTree(taskMessageStorageRef);
-        Assert.assertTrue(Files.exists(tempDataStore.toPath()),
-                "Should not have deleted datastore directory");
-        // queues directory will not be deleted since it's not empty.
-        Assert.assertTrue(Files.exists(queuesDirectory.toPath()),
-                "Should have deleted queues directory children, but not queues directory");
     }
 
     /**

@@ -50,7 +50,7 @@ import java.util.function.Consumer;
  * This is a simple DataStore that reads and writes files to and from a directory upon the file system. The store directory must be an
  * absolute path.
  */
-public class FileSystemDataStore implements ManagedDataStore, FilePathProvider, DataStoreOutputStreamSupport, DeletableTree
+public class FileSystemDataStore implements ManagedDataStore, FilePathProvider, DataStoreOutputStreamSupport
 {
     private Path dataStorePath;
     private final int outputBufferSize;
@@ -102,16 +102,7 @@ public class FileSystemDataStore implements ManagedDataStore, FilePathProvider, 
     public void delete(String reference)
         throws DataStoreException
     {
-        Objects.requireNonNull(reference);
-        try {
-            numDx.incrementAndGet();
-            LOG.debug("Deleting {}", reference);
-            Path path = FileSystems.getDefault().getPath(dataStorePath.toString(), reference);
-            Files.delete(path);
-        } catch (IOException | SecurityException | InvalidPathException e) {
-            errors.incrementAndGet();
-            throw new DataStoreException("Failed to delete reference", e);
-        }
+        delete(reference, false);
     }
 
     /**
@@ -121,21 +112,21 @@ public class FileSystemDataStore implements ManagedDataStore, FilePathProvider, 
      * @throws DataStoreException if the directory cannot be accessed or deleted
      */
     @Override
-    public void deleteTree(final String reference) throws DataStoreException
+    public void delete(final String reference, final boolean cleanPartialReference) throws DataStoreException
     {
         Objects.requireNonNull(reference);
         LOG.debug("Deleting tree {}", reference);
-        Path leafNode = getFilePath(reference);
-        while (!leafNode.equals(dataStorePath)) {
+        Path partialReference = getFilePath(reference);
+        while (!partialReference.equals(dataStorePath)) {
             try {
-                Files.delete(leafNode);
-                leafNode = leafNode.getParent();
-                if (leafNode == null) return;
+                Files.delete(partialReference);
+                partialReference = partialReference.getParent();
+                if (!cleanPartialReference || partialReference == null) return;
             } catch (final DirectoryNotEmptyException e) {
                 break;
             } catch (final IOException | SecurityException | InvalidPathException e) {
                 errors.incrementAndGet();
-                throw new DataStoreException("Error deleting directory " + leafNode, e);
+                throw new DataStoreException("Error deleting directory " + partialReference, e);
             }
         }
     }

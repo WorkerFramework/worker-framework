@@ -19,7 +19,6 @@ import com.github.cafapi.common.api.Codec;
 import com.github.cafapi.common.api.CodecException;
 import com.github.cafapi.common.api.DecodeMethod;
 import com.github.workerframework.api.DataStoreException;
-import com.github.workerframework.api.DeletableTree;
 import com.github.workerframework.api.InvalidTaskException;
 import com.github.workerframework.api.ManagedDataStore;
 import com.github.workerframework.api.ReferenceNotFoundException;
@@ -384,12 +383,7 @@ public class WorkerQueueConsumerImpl implements QueueConsumer
         final String datastorePayloadReference = offloadedPayloadsToDelete.remove(tag);
         if (datastorePayloadReference != null) {
             try {
-                if (dataStore instanceof DeletableTree) {
-                    final var deletableTree = (DeletableTree) dataStore;
-                    deletableTree.deleteTree(datastorePayloadReference);
-                } else {
-                    dataStore.delete(datastorePayloadReference);
-                }
+                dataStore.delete(datastorePayloadReference, true);
             } catch (final DataStoreException e) {
                 LOG.warn("Couldn't delete offloaded payload '{}' for delivery tag '{}' from datastore message.",
                          datastorePayloadReference, tag, e);
