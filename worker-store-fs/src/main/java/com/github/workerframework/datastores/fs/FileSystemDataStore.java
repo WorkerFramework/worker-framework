@@ -105,7 +105,8 @@ public class FileSystemDataStore implements ManagedDataStore, FilePathProvider, 
     }
 
     /**
-     * Delete a Directory tree from leaf node up, unit a non-empty directory is encountered.
+     * Delete a Directory tree from leaf node up if cleanPartialReference is true until a non-empty directory is encountered.
+     * If cleanPartialReference is false only the referenced file is deleted.
      *
      * @param reference the file to be deleted, along with non-empty parent directories in the files directory tree.
      * @throws DataStoreException if the directory cannot be accessed or deleted
