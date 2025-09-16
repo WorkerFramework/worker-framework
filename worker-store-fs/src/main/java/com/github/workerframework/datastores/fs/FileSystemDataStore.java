@@ -20,7 +20,6 @@ import com.github.cafapi.common.api.HealthStatus;
 import com.github.workerframework.api.DataStoreException;
 import com.github.workerframework.api.DataStoreMetricsReporter;
 import com.github.workerframework.api.DataStoreOutputStreamSupport;
-import com.github.workerframework.api.DeletableTree;
 import com.github.workerframework.api.FilePathProvider;
 import com.github.workerframework.api.ManagedDataStore;
 import com.github.workerframework.api.ReferenceNotFoundException;
@@ -121,7 +120,7 @@ public class FileSystemDataStore implements ManagedDataStore, FilePathProvider, 
             try {
                 Files.delete(partialReference);
                 partialReference = partialReference.getParent();
-                if (!cleanPartialReference || partialReference == null) return;
+                if (!cleanPartialReference || partialReference == null) break;
             } catch (final DirectoryNotEmptyException e) {
                 break;
             } catch (final IOException | SecurityException | InvalidPathException e) {
