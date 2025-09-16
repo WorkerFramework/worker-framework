@@ -18,16 +18,7 @@ package com.github.workerframework.queues.rabbit;
 import com.github.cafapi.common.api.Codec;
 import com.github.cafapi.common.api.CodecException;
 import com.github.cafapi.common.codecs.json.JsonCodec;
-import com.github.workerframework.api.DataStoreException;
-import com.github.workerframework.api.InvalidTaskException;
-import com.github.workerframework.api.ManagedDataStore;
-import com.github.workerframework.api.TaskCallback;
-import com.github.workerframework.api.TaskInformation;
-import com.github.workerframework.api.TaskMessage;
-import com.github.workerframework.api.TaskRejectedException;
-import com.github.workerframework.api.TaskStatus;
-import com.github.workerframework.api.TrackingInfo;
-import com.github.workerframework.api.WorkerException;
+import com.github.workerframework.api.*;
 import com.github.workerframework.datastores.fs.FileSystemDataStore;
 import com.github.workerframework.datastores.fs.FileSystemDataStoreConfiguration;
 import com.github.workerframework.util.rabbitmq.ConsumerAckEvent;
@@ -130,7 +121,8 @@ public class RabbitWorkerQueueConsumerTest
         final String partialRef = "queues/" + trackingJobTaskId;
         final String message = UUID.randomUUID().toString();
         final String taskMessageStorageRef = dataStore.store(message.getBytes(), partialRef);
-        dataStore.deleteTree(taskMessageStorageRef);
+        final var deletableTree = (DeletableTree) dataStore;
+        deletableTree.deleteTree(taskMessageStorageRef);
         Assert.assertTrue(Files.exists(tempDataStore.toPath()),
                 "Should not have deleted datastore directory");
         Assert.assertFalse(Files.exists(queuesDirectory.toPath()),
@@ -145,7 +137,8 @@ public class RabbitWorkerQueueConsumerTest
         final String message = UUID.randomUUID().toString();
         final String taskMessageStorageRef = dataStore.store(message.getBytes(), partialRef);
         dataStore.store(message.getBytes(), undeletedPartialRef);
-        dataStore.deleteTree(taskMessageStorageRef);
+        final var deletableTree = (DeletableTree) dataStore;
+        deletableTree.deleteTree(taskMessageStorageRef);
         Assert.assertTrue(Files.exists(tempDataStore.toPath()),
                 "Should not have deleted datastore directory");
         // queues directory will not be deleted since it's not empty.

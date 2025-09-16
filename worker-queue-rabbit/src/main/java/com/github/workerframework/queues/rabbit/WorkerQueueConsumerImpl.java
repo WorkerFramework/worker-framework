@@ -18,15 +18,7 @@ package com.github.workerframework.queues.rabbit;
 import com.github.cafapi.common.api.Codec;
 import com.github.cafapi.common.api.CodecException;
 import com.github.cafapi.common.api.DecodeMethod;
-import com.github.workerframework.api.DataStoreException;
-import com.github.workerframework.api.InvalidTaskException;
-import com.github.workerframework.api.ManagedDataStore;
-import com.github.workerframework.api.ReferenceNotFoundException;
-import com.github.workerframework.api.TaskCallback;
-import com.github.workerframework.api.TaskMessage;
-import com.github.workerframework.api.TaskRejectedException;
-import com.github.workerframework.api.TaskStatus;
-import com.github.workerframework.api.TrackingInfo;
+import com.github.workerframework.api.*;
 import com.github.workerframework.tracking.report.TrackingReport;
 import com.github.workerframework.tracking.report.TrackingReportConstants;
 import com.github.workerframework.tracking.report.TrackingReportFailure;
@@ -383,7 +375,12 @@ public class WorkerQueueConsumerImpl implements QueueConsumer
         final String datastorePayloadReference = offloadedPayloadsToDelete.remove(tag);
         if (datastorePayloadReference != null) {
             try {
-                dataStore.deleteTree(datastorePayloadReference);
+                if (dataStore instanceof DeletableTree) {
+                    final var deletableTree = (DeletableTree) dataStore;
+                    deletableTree.deleteTree(datastorePayloadReference);
+                } else {
+                    dataStore.delete(datastorePayloadReference);
+                }
             } catch (final DataStoreException e) {
                 LOG.warn("Couldn't delete offloaded payload '{}' for delivery tag '{}' from datastore message.",
                          datastorePayloadReference, tag, e);

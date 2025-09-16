@@ -33,18 +33,6 @@ public interface DataStore
         throws DataStoreException;
 
     /**
-     * Delete asset identified by reference
-     *
-     * @param reference a complete reference to be interpreted by the DataStore implementation
-     * @throws DataStoreException if data store cannot service the request
-     */
-    default void deleteTree(final String reference)
-            throws DataStoreException
-    {
-        delete(reference);
-    }
-
-    /**
      * Provide a stream to get data by reference
      *
      * @param reference a complete reference to be interpreted by the DataStore implementation
