@@ -33,13 +33,16 @@ public interface DataStore
         throws DataStoreException;
 
     /**
+     * Delete asset identified by reference, and optionally perform additional cleanup of partial reference area.
+     * <p>
+     * The behaviour of the {@code cleanPartialReference} parameter is defined by the implementation of the DataStore. The default
+     * implementation does not perform any additional cleanup.
      *
-     * @param reference
-     * @param cleanPartialReference The behaviour of the cleanPartialReference param is defined by the implementation of
-     * the DataStore, the default implementation only deletes the data represented by the reference.
-     * @throws DataStoreException
+     * @param reference a complete reference to be interpreted by the DataStore implementation
+     * @param cleanPartialReference whether the partial reference area should be cleared out completely
+     * @throws DataStoreException if data store cannot service the request
      */
-    default void delete(final String reference, boolean cleanPartialReference) throws DataStoreException
+    default void delete(final String reference, final boolean cleanPartialReference) throws DataStoreException
     {
         delete(reference);
     }

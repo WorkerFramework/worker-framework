@@ -53,7 +53,8 @@ public class FileSystemDataStoreTest
     private File queuesDirectory;
 
     @BeforeMethod
-    public void setUp() throws DataStoreException {
+    public void setUp() throws DataStoreException
+    {
         temp = new File("temp");
         queuesDirectory = new File("temp/queues/");
     }
@@ -76,7 +77,8 @@ public class FileSystemDataStoreTest
     }
 
     @Test
-    public void testOffloadedEmptyDirectoriesDeleted() throws DataStoreException {
+    public void testOffloadedEmptyDirectoriesDeleted() throws DataStoreException
+    {
         final ManagedDataStore dataStore = new FileSystemDataStore(createConfig());
         final String trackingJobTaskId = "job/tracking/id/1";
         final String partialRef = "queues/" + trackingJobTaskId;
@@ -84,13 +86,14 @@ public class FileSystemDataStoreTest
         final String taskMessageStorageRef = dataStore.store(message.getBytes(), partialRef);
         dataStore.delete(taskMessageStorageRef, true);
         Assert.assertTrue(Files.exists(temp.toPath()),
-                "Should not have deleted the temp datastore directory");
+                          "Should not have deleted the temp datastore directory");
         Assert.assertFalse(Files.exists(queuesDirectory.toPath()),
-                "Should have deleted queues directory and children");
+                           "Should have deleted queues directory and children");
     }
 
     @Test
-    public void testOffloadedNonEmptyOffloadedDirectoriesNotDeleted() throws DataStoreException {
+    public void testOffloadedNonEmptyOffloadedDirectoriesNotDeleted() throws DataStoreException
+    {
         final ManagedDataStore dataStore = new FileSystemDataStore(createConfig());
         final String trackingJobTaskId = "job/tracking/id/2";
         final String partialRef = "queues/" + trackingJobTaskId;
@@ -100,14 +103,15 @@ public class FileSystemDataStoreTest
         dataStore.store(message.getBytes(), undeletedPartialRef);
         dataStore.delete(taskMessageStorageRef, true);
         Assert.assertTrue(Files.exists(temp.toPath()),
-                "Should not have deleted the temp datastore directory");
+                          "Should not have deleted the temp datastore directory");
         // queues directory will not be deleted since it's not empty.
         Assert.assertTrue(Files.exists(queuesDirectory.toPath()),
-                "Should have deleted queues directory children, but not queues directory");
+                          "Should have deleted queues directory children, but not queues directory");
     }
 
     @Test
-    public void testShouldNotDeleteThePartialRef() throws DataStoreException {
+    public void testShouldNotDeleteThePartialRef() throws DataStoreException
+    {
         final ManagedDataStore dataStore = new FileSystemDataStore(createConfig());
         final String trackingJobTaskId = "job/tracking/id/3";
         final String partialRef = "queues/" + trackingJobTaskId;
@@ -115,10 +119,10 @@ public class FileSystemDataStoreTest
         final String taskMessageStorageRef = dataStore.store(message.getBytes(), partialRef);
         dataStore.delete(taskMessageStorageRef, false);
         Assert.assertTrue(Files.exists(temp.toPath()),
-                "Should not have deleted the temp datastore directory");
+                          "Should not have deleted the temp datastore directory");
         final var partialRefDirectory = new File("temp/queues/job/tracking/id/3");
         Assert.assertTrue(Files.exists(partialRefDirectory.toPath()),
-                "Should only have deleted the offloaded file, leaving the directories intact");
+                          "Should only have deleted the offloaded file, leaving the directories intact");
     }
 
     @Test

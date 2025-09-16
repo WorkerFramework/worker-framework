@@ -105,8 +105,8 @@ public class FileSystemDataStore implements ManagedDataStore, FilePathProvider, 
     }
 
     /**
-     * Delete a Directory tree from leaf node up if cleanPartialReference is true until a non-empty directory is encountered.
-     * If cleanPartialReference is false only the referenced file is deleted.
+     * Delete a Directory tree from leaf node up if cleanPartialReference is true until a non-empty directory is encountered. If
+     * cleanPartialReference is false only the referenced file is deleted.
      *
      * @param reference the file to be deleted, along with non-empty parent directories in the files directory tree.
      * @throws DataStoreException if the directory cannot be accessed or deleted
@@ -121,7 +121,9 @@ public class FileSystemDataStore implements ManagedDataStore, FilePathProvider, 
             try {
                 Files.delete(partialReference);
                 partialReference = partialReference.getParent();
-                if (!cleanPartialReference || partialReference == null) break;
+                if (!cleanPartialReference || partialReference == null) {
+                    break;
+                }
             } catch (final DirectoryNotEmptyException e) {
                 break;
             } catch (final IOException | SecurityException | InvalidPathException e) {
