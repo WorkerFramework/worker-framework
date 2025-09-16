@@ -126,7 +126,7 @@ public class FileSystemDataStore implements ManagedDataStore, FilePathProvider, 
                 break;
             } catch (final IOException | SecurityException | InvalidPathException e) {
                 errors.incrementAndGet();
-                throw new DataStoreException("Error deleting directory " + partialReference, e);
+                throw new DataStoreException("Error deleting reference " + partialReference, e);
             }
         }
     }
