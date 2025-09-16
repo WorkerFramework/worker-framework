@@ -114,7 +114,7 @@ public class FileSystemDataStore implements ManagedDataStore, FilePathProvider, 
     public void delete(final String reference, final boolean cleanPartialReference) throws DataStoreException
     {
         Objects.requireNonNull(reference);
-        LOG.debug("Deleting tree {}", reference);
+        LOG.debug("Deleting {}", reference);
         Path partialReference = getFilePath(reference);
         while (!partialReference.equals(dataStorePath)) {
             try {
