@@ -101,15 +101,35 @@ public class FileSystemDataStore implements ManagedDataStore, FilePathProvider, 
     public void delete(String reference)
         throws DataStoreException
     {
+        delete(reference, false);
+    }
+
+    /**
+     * Delete a Directory tree from leaf node up if cleanPartialReference is true until a non-empty directory is encountered. If
+     * cleanPartialReference is false only the referenced file is deleted.
+     *
+     * @param reference the file to be deleted, along with non-empty parent directories in the files directory tree.
+     * @throws DataStoreException if the directory cannot be accessed or deleted
+     */
+    @Override
+    public void delete(final String reference, final boolean cleanPartialReference) throws DataStoreException
+    {
         Objects.requireNonNull(reference);
-        try {
-            numDx.incrementAndGet();
-            LOG.debug("Deleting {}", reference);
-            Path path = FileSystems.getDefault().getPath(dataStorePath.toString(), reference);
-            Files.delete(path);
-        } catch (IOException | SecurityException | InvalidPathException e) {
-            errors.incrementAndGet();
-            throw new DataStoreException("Failed to delete reference", e);
+        LOG.debug("Deleting {}", reference);
+        Path partialReference = getFilePath(reference);
+        while (!partialReference.equals(dataStorePath)) {
+            try {
+                Files.delete(partialReference);
+                partialReference = partialReference.getParent();
+                if (!cleanPartialReference || partialReference == null) {
+                    break;
+                }
+            } catch (final DirectoryNotEmptyException e) {
+                break;
+            } catch (final IOException | SecurityException | InvalidPathException e) {
+                errors.incrementAndGet();
+                throw new DataStoreException("Error deleting reference " + partialReference, e);
+            }
         }
     }
 

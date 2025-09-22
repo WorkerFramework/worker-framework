@@ -383,7 +383,7 @@ public class WorkerQueueConsumerImpl implements QueueConsumer
         final String datastorePayloadReference = offloadedPayloadsToDelete.remove(tag);
         if (datastorePayloadReference != null) {
             try {
-                dataStore.delete(datastorePayloadReference);
+                dataStore.delete(datastorePayloadReference, true);
             } catch (final DataStoreException e) {
                 LOG.warn("Couldn't delete offloaded payload '{}' for delivery tag '{}' from datastore message.",
                          datastorePayloadReference, tag, e);
