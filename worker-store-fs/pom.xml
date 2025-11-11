@@ -23,12 +23,12 @@
 
     <artifactId>worker-store-fs</artifactId>
     <name>worker-store-fs</name>
-    <version>10.1.0-SNAPSHOT</version>
+    <version>10.0.1-SNAPSHOT</version>
 
     <parent>
         <groupId>com.github.workerframework</groupId>
         <artifactId>worker-framework-aggregator</artifactId>
-        <version>10.1.0-SNAPSHOT</version>
+        <version>10.0.1-SNAPSHOT</version>
     </parent>
 
     <dependencies>
