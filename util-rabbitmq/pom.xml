@@ -23,12 +23,12 @@
 
     <artifactId>util-rabbitmq</artifactId>
     <name>util-rabbitmq</name>
-    <version>10.0.0-SNAPSHOT</version>
+    <version>10.1.0-SNAPSHOT</version>
 
     <parent>
         <groupId>com.github.workerframework</groupId>
         <artifactId>worker-framework-aggregator</artifactId>
-        <version>10.0.0-SNAPSHOT</version>
+        <version>10.1.0-SNAPSHOT</version>
     </parent>
 
     <dependencies>
