@@ -23,12 +23,12 @@
 
     <artifactId>worker-core</artifactId>
     <name>worker-core</name>
-    <version>10.0.1-SNAPSHOT</version>
+    <version>10.0.2-SNAPSHOT</version>
 
     <parent>
         <groupId>com.github.workerframework</groupId>
         <artifactId>worker-framework-aggregator</artifactId>
-        <version>10.0.1-SNAPSHOT</version>
+        <version>10.0.2-SNAPSHOT</version>
     </parent>
 
     <dependencies>
