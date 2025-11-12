@@ -99,10 +99,25 @@ public final class RabbitWorkerQueue implements ManagedWorkerQueue
     {
         this.config = Objects.requireNonNull(config);
         this.maxTasks = maxTasks;
-        this.invalidQueue = Objects.requireNonNull(invalidQueue);
+        this.invalidQueue = getInvalidQueueName(config, invalidQueue);
         this.dataStore = Objects.requireNonNull(dataStore);
         this.codec = Objects.requireNonNull(codec);
         LOG.debug("Initialised");
+    }
+
+    private static String getInvalidQueueName(final RabbitWorkerQueueConfiguration config, final String invalidQueue)
+    {
+        if (invalidQueue != null) {
+            return invalidQueue;
+        }
+
+        final String inputQueue = config.getInputQueue();
+
+        final String invalidQueuePrefix = inputQueue.endsWith("-in")
+            ? inputQueue.substring(0, inputQueue.length() - 3)
+            : inputQueue;
+
+        return invalidQueuePrefix + "-invalid";
     }
 
     /**
