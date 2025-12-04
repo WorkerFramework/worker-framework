@@ -71,6 +71,7 @@ class StreamingWorkerWrapper implements Runnable
                 sendCopyToReject();
             }
             else {
+                LOG.info("workerTask.isPoison() == false");
                 Timer.Context t = TIMER.time();
                 MDC.put(CORRELATION_ID, workerTask.getCorrelationId());
                 response = worker.doWork();
