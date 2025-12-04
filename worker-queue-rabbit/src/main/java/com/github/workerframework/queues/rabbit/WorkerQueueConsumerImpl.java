@@ -130,7 +130,9 @@ public class WorkerQueueConsumerImpl implements QueueConsumer
 
         // Determine retry count - log which header is being used
         final boolean hasDeliveryCountHeader = deliveryHeaders.containsKey(RabbitHeaders.RABBIT_HEADER_CAF_DELIVERY_COUNT);
+        LOG.info("hasDeliveryCountHeader=" + hasDeliveryCountHeader);
         final boolean hasWorkerRetryHeader = deliveryHeaders.containsKey(RabbitHeaders.RABBIT_HEADER_CAF_WORKER_RETRY);
+        LOG.info("hasWorkerRetryHeader=" + hasWorkerRetryHeader);
         final Object deliveryCountValue = deliveryHeaders.get(RabbitHeaders.RABBIT_HEADER_CAF_DELIVERY_COUNT);
         final Object workerRetryValue = deliveryHeaders.get(RabbitHeaders.RABBIT_HEADER_CAF_WORKER_RETRY);
 
