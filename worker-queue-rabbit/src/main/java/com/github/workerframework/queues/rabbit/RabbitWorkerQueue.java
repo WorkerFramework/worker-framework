@@ -199,7 +199,7 @@ public final class RabbitWorkerQueue implements ManagedWorkerQueue
         final byte[] serializedTaskMessage;
         try {
             if (config.getIsPayloadOffloadingEnabled() && config.getPayloadOffloadingThreshold() < taskMessage.getTaskData().length) {
-                LOG.debug("Offloading TaskMessage's TaskData to DataStore for message id '{}'", rabbitTaskInformation.getInboundMessageId());
+                LOG.info("Offloading TaskMessage's TaskData to DataStore for message id '{}'", rabbitTaskInformation.getInboundMessageId());
                 final byte[] taskData = taskMessage.getTaskData();
                 taskMessage.setTaskData(null);
                 serializedTaskMessage = codec.serialise(taskMessage);
@@ -209,7 +209,7 @@ public final class RabbitWorkerQueue implements ManagedWorkerQueue
                 final String taskDataStorageRef = dataStore.store(taskData, partialReference);
                 publishHeaders.put(RabbitHeaders.RABBIT_HEADER_CAF_PAYLOAD_OFFLOADING_STORAGE_REF, taskDataStorageRef);
             } else {
-                LOG.debug("Not offloading task message for task {}", rabbitTaskInformation.getInboundMessageId());
+                LOG.info("Not offloading task message for task {}", rabbitTaskInformation.getInboundMessageId());
                 serializedTaskMessage = codec.serialise(taskMessage);
             }
         } 

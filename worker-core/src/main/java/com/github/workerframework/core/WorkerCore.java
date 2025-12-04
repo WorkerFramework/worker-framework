@@ -446,7 +446,7 @@ final class WorkerCore
         {
             Objects.requireNonNull(taskInformation);
             Objects.requireNonNull(responseMessage);
-            LOG.debug("Sending task {} complete (message id: {})", responseMessage.getTaskId(), taskInformation.getInboundMessageId());
+            LOG.info("Sending task {} complete (message id: {})", responseMessage.getTaskId(), taskInformation.getInboundMessageId());
 
             final String queue = responseMessage.getTo();
             checkForTrackingTermination(taskInformation, queue, responseMessage);
