@@ -28,8 +28,10 @@ import org.slf4j.LoggerFactory;
 final class BulkWorkerThreadPool implements WorkerThreadPool
 {
     private static final Logger LOG = LoggerFactory.getLogger(BulkWorkerThreadPool.class);
+    private static final String CAF_WORKER_FRIENDLY_NAME = System.getenv("CAF_WORKER_FRIENDLY_NAME");
 
     private final BulkWorker bulkWorker;
+    private final String bulkWorkerFriendlyName;
     private final BlockingQueue<WorkerTaskImpl> workQueue;
     private final BulkWorkerThread[] bulkWorkerThreads;
     private final Runnable throwableHandler;
@@ -45,6 +47,8 @@ final class BulkWorkerThreadPool implements WorkerThreadPool
         final int nThreads = workerFactory.getWorkerThreads();
 
         this.bulkWorker = (BulkWorker) workerFactory;
+        this.bulkWorkerFriendlyName = CAF_WORKER_FRIENDLY_NAME != null
+            ? CAF_WORKER_FRIENDLY_NAME : bulkWorker.getClass().getSimpleName();
         this.workQueue = new LinkedBlockingQueue<>();
         this.bulkWorkerThreads = new BulkWorkerThread[nThreads];
         this.throwableHandler = handler;
@@ -83,7 +87,7 @@ final class BulkWorkerThreadPool implements WorkerThreadPool
         {
             final WorkerTaskImpl task = workQueue.take();
             final BulkWorkerTaskProvider taskProvider
-                = new BulkWorkerTaskProvider(task, workQueue);
+                = new BulkWorkerTaskProvider(task, workQueue, bulkWorker, bulkWorkerFriendlyName);
 
             try {
                 bulkWorker.processTasks(taskProvider);
