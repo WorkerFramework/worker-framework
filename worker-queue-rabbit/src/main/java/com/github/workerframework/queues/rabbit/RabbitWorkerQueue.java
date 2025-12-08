@@ -102,7 +102,7 @@ public final class RabbitWorkerQueue implements ManagedWorkerQueue
         this.invalidQueue = getInvalidQueueName(config, invalidQueue);
         this.dataStore = Objects.requireNonNull(dataStore);
         this.codec = Objects.requireNonNull(codec);
-        LOG.info("Initialised");
+        LOG.debug("Initialised");
     }
 
     private static String getInvalidQueueName(final RabbitWorkerQueueConfiguration config, final String invalidQueue)
@@ -199,7 +199,7 @@ public final class RabbitWorkerQueue implements ManagedWorkerQueue
         final byte[] serializedTaskMessage;
         try {
             if (config.getIsPayloadOffloadingEnabled() && config.getPayloadOffloadingThreshold() < taskMessage.getTaskData().length) {
-                LOG.info("Offloading TaskMessage's TaskData to DataStore for message id '{}'", rabbitTaskInformation.getInboundMessageId());
+                LOG.debug("Offloading TaskMessage's TaskData to DataStore for message id '{}'", rabbitTaskInformation.getInboundMessageId());
                 final byte[] taskData = taskMessage.getTaskData();
                 taskMessage.setTaskData(null);
                 serializedTaskMessage = codec.serialise(taskMessage);
@@ -209,7 +209,7 @@ public final class RabbitWorkerQueue implements ManagedWorkerQueue
                 final String taskDataStorageRef = dataStore.store(taskData, partialReference);
                 publishHeaders.put(RabbitHeaders.RABBIT_HEADER_CAF_PAYLOAD_OFFLOADING_STORAGE_REF, taskDataStorageRef);
             } else {
-                LOG.info("Not offloading task message for task {}", rabbitTaskInformation.getInboundMessageId());
+                LOG.debug("Not offloading task message for task {}", rabbitTaskInformation.getInboundMessageId());
                 serializedTaskMessage = codec.serialise(taskMessage);
             }
         } 
@@ -254,7 +254,7 @@ public final class RabbitWorkerQueue implements ManagedWorkerQueue
     public void rejectTask(TaskInformation taskInformation)
     {
         Objects.requireNonNull(taskInformation);
-        LOG.info("Generating reject event for task {}", taskInformation.getInboundMessageId());
+        LOG.debug("Generating reject event for task {}", taskInformation.getInboundMessageId());
         consumerQueue.add(new ConsumerRejectEvent(Long.parseLong(taskInformation.getInboundMessageId())));
     }
 
@@ -267,7 +267,7 @@ public final class RabbitWorkerQueue implements ManagedWorkerQueue
     public void discardTask(TaskInformation taskInformation)
     {
         Objects.requireNonNull(taskInformation);
-        LOG.info("Generating drop event for task {}", taskInformation.getInboundMessageId());
+        LOG.debug("Generating drop event for task {}", taskInformation.getInboundMessageId());
         consumerQueue.add(new ConsumerDropEvent(Long.parseLong(taskInformation.getInboundMessageId())));
     }
 
@@ -280,7 +280,7 @@ public final class RabbitWorkerQueue implements ManagedWorkerQueue
     public void acknowledgeTask(TaskInformation taskInformation)
     {
         Objects.requireNonNull(taskInformation);
-        LOG.info("Generating acknowledge event for task {}", taskInformation.getInboundMessageId());
+        LOG.debug("Generating acknowledge event for task {}", taskInformation.getInboundMessageId());
         consumerQueue.add(new ConsumerAckEvent(Long.parseLong(taskInformation.getInboundMessageId())));
     }
 
@@ -314,7 +314,7 @@ public final class RabbitWorkerQueue implements ManagedWorkerQueue
     @Override
     public void shutdownIncoming()
     {
-        LOG.info("Closing incoming queues");
+        LOG.debug("Closing incoming queues");
         synchronized (consumerLock) {
             if (consumerTag != null) {
                 try {
@@ -343,7 +343,7 @@ public final class RabbitWorkerQueue implements ManagedWorkerQueue
     @Override
     public void disconnectIncoming()
     {
-        LOG.info("Disconnecting incoming queues");
+        LOG.debug("Disconnecting incoming queues");
         synchronized (consumerLock) {
             if (consumerTag != null && incomingChannel.isOpen()) {
                 try {
@@ -372,7 +372,7 @@ public final class RabbitWorkerQueue implements ManagedWorkerQueue
     @Override
     public void reconnectIncoming()
     {
-        LOG.info("Reconnecting incoming queues");
+        LOG.debug("Reconnecting incoming queues");
         synchronized (consumerLock) {
             if (consumerTag == null && incomingChannel.isOpen()) {
                 try {
@@ -387,7 +387,7 @@ public final class RabbitWorkerQueue implements ManagedWorkerQueue
     @Override
     public void shutdown()
     {
-        LOG.info("Shutting down");
+        LOG.debug("Shutting down");
         try {
             if (consumer != null) {
                 consumer.shutdown();

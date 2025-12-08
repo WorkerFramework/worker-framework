@@ -87,7 +87,7 @@ final class BulkWorkerThreadPool implements WorkerThreadPool
         {
             final WorkerTaskImpl task = workQueue.take();
             final BulkWorkerTaskProvider taskProvider
-                = new BulkWorkerTaskProvider(task, workQueue, bulkWorker, bulkWorkerFriendlyName);
+                = new BulkWorkerTaskProvider(task, workQueue, bulkWorkerFriendlyName);
 
             try {
                 bulkWorker.processTasks(taskProvider);

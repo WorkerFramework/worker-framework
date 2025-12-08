@@ -170,7 +170,7 @@ final class WorkerCore
             throws InvalidTaskException, TaskRejectedException
         {
             try {
-                LOG.info("Received task {} (message id: {})", tm.getTaskId(), taskInformation.getInboundMessageId());
+                LOG.debug("Received task {} (message id: {})", tm.getTaskId(), taskInformation.getInboundMessageId());
                 validateTaskMessage(tm);
                 final JobStatus jobStatus;
                 try {
@@ -446,7 +446,7 @@ final class WorkerCore
         {
             Objects.requireNonNull(taskInformation);
             Objects.requireNonNull(responseMessage);
-            LOG.info("Sending task {} complete (message id: {})", responseMessage.getTaskId(), taskInformation.getInboundMessageId());
+            LOG.debug("Sending task {} complete (message id: {})", responseMessage.getTaskId(), taskInformation.getInboundMessageId());
 
             final String queue = responseMessage.getTo();
             checkForTrackingTermination(taskInformation, queue, responseMessage);
@@ -470,8 +470,8 @@ final class WorkerCore
             Objects.requireNonNull(taskInformation);
             Objects.requireNonNull(responseMessage);
             // queue can be null for a dead end worker
-            LOG.info("Task {} complete (message id: {})", responseMessage.getTaskId(), taskInformation.getInboundMessageId());
-            LOG.info("Setting destination {} in task {} (message id: {})", queue, responseMessage.getTaskId(), taskInformation.getInboundMessageId());
+            LOG.debug("Task {} complete (message id: {})", responseMessage.getTaskId(), taskInformation.getInboundMessageId());
+            LOG.debug("Setting destination {} in task {} (message id: {})", queue, responseMessage.getTaskId(), taskInformation.getInboundMessageId());
             responseMessage.setTo(queue);
             checkForTrackingTermination(taskInformation, queue, responseMessage);
             try {
@@ -509,7 +509,7 @@ final class WorkerCore
         @Override
         public void abandon(final TaskInformation taskInformation, final Exception e)
         {
-            LOG.info("Rejecting message id {}", taskInformation.getInboundMessageId());
+            LOG.debug("Rejecting message id {}", taskInformation.getInboundMessageId());
             workerQueue.rejectTask(taskInformation);
             stats.incrementTasksRejected();
             workerQueue.disconnectIncoming();

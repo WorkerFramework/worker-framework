@@ -35,7 +35,6 @@ public class RabbitTaskInformation implements TaskInformation {
 
     public RabbitTaskInformation(final String inboundMessageId) {
         this(inboundMessageId, false);
-        LOG.info("RabbitTaskInformation(final String inboundMessageId) = isPoison=false");
     }
     
     public RabbitTaskInformation(final String inboundMessageId, final boolean isPoison) {
@@ -48,7 +47,6 @@ public class RabbitTaskInformation implements TaskInformation {
         final Optional<String> trackingJobTaskId
     )
     {
-        LOG.info("RabbitTaskInformation called with isPoison={}", isPoison);
         this.inboundMessageId = inboundMessageId;
         this.responseCount = new AtomicInteger(0);
         this.isResponseCountFinal = new AtomicBoolean(false);

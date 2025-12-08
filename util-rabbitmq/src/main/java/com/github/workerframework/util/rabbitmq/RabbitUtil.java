@@ -220,8 +220,6 @@ public final class RabbitUtil
         Objects.requireNonNull(act);
         Objects.requireNonNull(queueProps);
         try {
-            LOG.info("Declaring queue: {} with durability: {}, exclusivity: {}, auto-remove: {}, properties: {}",
-                queueName, dur, excl, act, queueProps);
             channel.queueDeclare(queueName, dur == Durability.DURABLE, excl == Exclusivity.EXCLUSIVE, act == EmptyAction.AUTO_REMOVE, queueProps);
         } catch (IOException e) {
             LOG.warn("IO Exception encountered during queueDeclare. Will try do declare passively.", e);

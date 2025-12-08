@@ -66,15 +66,10 @@ class StreamingWorkerWrapper implements Runnable
 
             final WorkerResponse response;
             if(workerTask.isPoison()) {
-                LOG.info("Received poison message, generating poison response for worker: {}", workerFriendlyName);
                 response = worker.getPoisonMessageResult(workerFriendlyName);
-                LOG.info("response.getQueueReference()  {}", response.getQueueReference());
-                LOG.info("response.getMessageType()  {}", response.getMessageType());
-                LOG.info("response.getApiVersion()  {}", response.getApiVersion());
                 sendCopyToReject();
             }
             else {
-                LOG.info("workerTask.isPoison() == false");
                 Timer.Context t = TIMER.time();
                 MDC.put(CORRELATION_ID, workerTask.getCorrelationId());
                 response = worker.doWork();
@@ -117,9 +112,6 @@ class StreamingWorkerWrapper implements Runnable
                 workerTask.getTrackingInfo(),
                 workerTask.getSourceInfo(),
                 workerTask.getCorrelationId());
-
-        LOG.info("Sending poison message to: {}",  workerTask.getRejectQueue());
-
         workerTask.sendMessage(poisonMessage);
     }
 

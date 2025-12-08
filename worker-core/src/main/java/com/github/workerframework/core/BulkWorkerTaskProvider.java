@@ -15,13 +15,11 @@
  */
 package com.github.workerframework.core;
 
-import com.github.workerframework.api.BulkWorker;
 import com.github.workerframework.api.BulkWorkerRuntime;
 import com.github.workerframework.api.InvalidTaskException;
 import com.github.workerframework.api.TaskMessage;
 import com.github.workerframework.api.TaskRejectedException;
 import com.github.workerframework.api.TaskStatus;
-import com.github.workerframework.api.WorkerFactory;
 import com.github.workerframework.api.WorkerResponse;
 import com.github.workerframework.api.WorkerTask;
 import com.google.common.base.MoreObjects;
@@ -40,18 +38,15 @@ final class BulkWorkerTaskProvider implements BulkWorkerRuntime
     private WorkerTaskImpl firstTask;
     private final BlockingQueue<WorkerTaskImpl> workQueue;
     private final ArrayList<WorkerTaskImpl> consumedTasks;
-    private final BulkWorker bulkWorker;
     private final String bulkWorkerFriendlyName;
 
     public BulkWorkerTaskProvider(
         final WorkerTaskImpl firstTask,
         final BlockingQueue<WorkerTaskImpl> workQueue,
-        final BulkWorker bulkWorker,
         final String bulkWorkerFriendlyName)
     {
         this.firstTask = Objects.requireNonNull(firstTask);
         this.workQueue = Objects.requireNonNull(workQueue);
-        this.bulkWorker = Objects.requireNonNull(bulkWorker);
         this.bulkWorkerFriendlyName = Objects.requireNonNull(bulkWorkerFriendlyName);
         this.consumedTasks = new ArrayList<>();
     }
@@ -78,24 +73,23 @@ final class BulkWorkerTaskProvider implements BulkWorkerRuntime
         final WorkerTaskImpl workerTask = registerTaskConsumed(
             millis == null ? getNextWorkerTaskImpl() : getNextWorkerTaskImpl(millis)
         );
-        // workerTask = workerTaskImpl
-        // bulkWorker == BulkDocumentWorkerAdapter
-        // ((BulkDocumentWorkerAdapter) bulkWorker).getWorker(workerTask).getGeneralFailureResult()
-        //((WorkerFactory) bulkWorker).getWorker(workerTask).getGeneralFailureResult(new RuntimeException("test"))
+
         if (workerTask != null && workerTask.isPoison()) {
-            LOG.info("Received poison message, generating poison response for worker: {}", bulkWorkerFriendlyName);
+            LOG.warn("Received poison message, generating poison response for worker: {}. " +
+                         "A copy of the poison message will also be sent to the reject queue: {}",
+                     bulkWorkerFriendlyName,
+                     workerTask.getRejectQueue());
+
             sendCopyToReject(workerTask);
+
             final WorkerResponse response;
             try {
                 response = workerTask.createWorker().getPoisonMessageResult(bulkWorkerFriendlyName);
-            } catch (TaskRejectedException | InvalidTaskException e) {
+            } catch (final TaskRejectedException | InvalidTaskException e) {
                 throw new RuntimeException(
                     "Failed to create poison message response for bulk worker", e);
             }
             workerTask.setResponse(response);
-            LOG.info("response.getQueueReference()  {}", response.getQueueReference());
-            LOG.info("response.getMessageType()  {}", response.getMessageType());
-            LOG.info("response.getApiVersion()  {}", response.getApiVersion());
 
             return getNextWorkerTaskInternal(millis);
         }
@@ -156,8 +150,6 @@ final class BulkWorkerTaskProvider implements BulkWorkerRuntime
             workerTask.getTrackingInfo(),
             workerTask.getSourceInfo(),
             workerTask.getCorrelationId());
-
-        LOG.info("Sending poison message to: {}",  workerTask.getRejectQueue());
 
         workerTask.sendMessage(poisonMessage);
     }

@@ -15,8 +15,6 @@
  */
 package com.github.workerframework.api;
 
-import java.nio.charset.StandardCharsets;
-
 /**
  * This interface should be implemented by CAF Workers which are able to process multiple tasks together.
  *
@@ -33,34 +31,4 @@ public interface BulkWorker
      */
     void processTasks(BulkWorkerRuntime runtime)
         throws InterruptedException;
-
-    /**
-     * If a message has been identified as a poison message, prepare a WorkerResponse that includes the friendly name
-     * of the worker.
-     * For compatibility with existing Worker implementations a default implementation has been provided.
-     *
-     * @param workerFriendlyName the worker's friendly name
-     * @return a response containing details of the worker that encountered a poison message
-     */
-    default WorkerResponse getPoisonMessageResult(String workerFriendlyName, final WorkerTask workerTask) {
-        final String strData = workerFriendlyName + " could not process the item.";
-        final byte[] byteArrayData = strData.getBytes(StandardCharsets.UTF_8);
-
-        // TODO
-        // In Abstract Worker we have:
-        // return new WorkerResponse(getResultQueue(), TaskStatus.RESULT_EXCEPTION, getExceptionData(t), getWorkerIdentifier(), getWorkerApiVersion(), null);
-        //
-        // I don't know what the equivalent of getResultQueue(), getWorkerIdentifier() and getWorkerApiVersion() are here,
-        // or where we could ge them from in the BulkWorker?
-        //
-        // in a document worker (SMTP worker), these values are:
-        //response.getQueueReference()  worker-smtp-err
-        //c.g.w.c.StreamingWorkerWrapper: response.getMessageType()  DocumentWorkerException
-        //c.g.w.c.StreamingWorkerWrapper: response.getApiVersion()  1
-
-        //  workerTask.getTo() is not correct - its using input queuedataprocessing-elasticindex-in»/rorywin1/add-target-references-job
-        // not failure queue
-        return new WorkerResponse(
-            workerTask.getTo(), TaskStatus.RESULT_EXCEPTION, byteArrayData, "BulkWorkerException", workerTask.getVersion(), null);
-    }
 }
