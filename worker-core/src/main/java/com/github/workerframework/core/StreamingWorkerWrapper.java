@@ -68,6 +68,9 @@ class StreamingWorkerWrapper implements Runnable
             if(workerTask.isPoison()) {
                 LOG.info("Received poison message, generating poison response for worker: {}", workerFriendlyName);
                 response = worker.getPoisonMessageResult(workerFriendlyName);
+                LOG.info("response.getQueueReference()  {}", response.getQueueReference());
+                LOG.info("response.getMessageType()  {}", response.getMessageType());
+                LOG.info("response.getApiVersion()  {}", response.getApiVersion());
                 sendCopyToReject();
             }
             else {

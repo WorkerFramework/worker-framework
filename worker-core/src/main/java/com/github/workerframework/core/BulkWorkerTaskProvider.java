@@ -19,6 +19,7 @@ import com.github.workerframework.api.BulkWorker;
 import com.github.workerframework.api.BulkWorkerRuntime;
 import com.github.workerframework.api.TaskMessage;
 import com.github.workerframework.api.TaskStatus;
+import com.github.workerframework.api.WorkerResponse;
 import com.github.workerframework.api.WorkerTask;
 import com.google.common.base.MoreObjects;
 import java.util.ArrayList;
@@ -77,7 +78,11 @@ final class BulkWorkerTaskProvider implements BulkWorkerRuntime
 
         if (workerTask != null && workerTask.isPoison()) {
             LOG.info("Received poison message, generating poison response for worker: {}", bulkWorkerFriendlyName);
-            workerTask.setResponse(bulkWorker.getPoisonMessageResult(bulkWorkerFriendlyName, workerTask));
+            final WorkerResponse response = bulkWorker.getPoisonMessageResult(bulkWorkerFriendlyName, workerTask);
+            workerTask.setResponse(response);
+            LOG.info("response.getQueueReference()  {}", response.getQueueReference());
+            LOG.info("response.getMessageType()  {}", response.getMessageType());
+            LOG.info("response.getApiVersion()  {}", response.getApiVersion());
             sendCopyToReject(workerTask);
             return getNextWorkerTaskInternal(millis);
         }
