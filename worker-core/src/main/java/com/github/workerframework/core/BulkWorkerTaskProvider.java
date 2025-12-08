@@ -38,16 +38,16 @@ final class BulkWorkerTaskProvider implements BulkWorkerRuntime
     private WorkerTaskImpl firstTask;
     private final BlockingQueue<WorkerTaskImpl> workQueue;
     private final ArrayList<WorkerTaskImpl> consumedTasks;
-    private final String bulkWorkerFriendlyName;
+    private final String workerFriendlyName;
 
     public BulkWorkerTaskProvider(
         final WorkerTaskImpl firstTask,
         final BlockingQueue<WorkerTaskImpl> workQueue,
-        final String bulkWorkerFriendlyName)
+        final String workerFriendlyName)
     {
         this.firstTask = Objects.requireNonNull(firstTask);
         this.workQueue = Objects.requireNonNull(workQueue);
-        this.bulkWorkerFriendlyName = Objects.requireNonNull(bulkWorkerFriendlyName);
+        this.workerFriendlyName = Objects.requireNonNull(workerFriendlyName);
         this.consumedTasks = new ArrayList<>();
     }
 
@@ -77,14 +77,14 @@ final class BulkWorkerTaskProvider implements BulkWorkerRuntime
         if (workerTask != null && workerTask.isPoison()) {
             LOG.warn("Received poison message, generating poison response for worker: {}. " +
                          "A copy of the poison message will also be sent to the reject queue: {}",
-                     bulkWorkerFriendlyName,
+                     workerFriendlyName,
                      workerTask.getRejectQueue());
 
             sendCopyToReject(workerTask);
 
             final WorkerResponse response;
             try {
-                response = workerTask.createWorker().getPoisonMessageResult(bulkWorkerFriendlyName);
+                response = workerTask.createWorker().getPoisonMessageResult(workerFriendlyName);
             } catch (final TaskRejectedException | InvalidTaskException e) {
                 throw new RuntimeException(
                     "Failed to create poison message response for bulk worker", e);
