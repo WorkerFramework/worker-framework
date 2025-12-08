@@ -17,8 +17,11 @@ package com.github.workerframework.core;
 
 import com.github.workerframework.api.BulkWorker;
 import com.github.workerframework.api.BulkWorkerRuntime;
+import com.github.workerframework.api.InvalidTaskException;
 import com.github.workerframework.api.TaskMessage;
+import com.github.workerframework.api.TaskRejectedException;
 import com.github.workerframework.api.TaskStatus;
+import com.github.workerframework.api.WorkerFactory;
 import com.github.workerframework.api.WorkerResponse;
 import com.github.workerframework.api.WorkerTask;
 import com.google.common.base.MoreObjects;
@@ -75,15 +78,25 @@ final class BulkWorkerTaskProvider implements BulkWorkerRuntime
         final WorkerTaskImpl workerTask = registerTaskConsumed(
             millis == null ? getNextWorkerTaskImpl() : getNextWorkerTaskImpl(millis)
         );
-
+        // workerTask = workerTaskImpl
+        // bulkWorker == BulkDocumentWorkerAdapter
+        // ((BulkDocumentWorkerAdapter) bulkWorker).getWorker(workerTask).getGeneralFailureResult()
+        //((WorkerFactory) bulkWorker).getWorker(workerTask).getGeneralFailureResult(new RuntimeException("test"))
         if (workerTask != null && workerTask.isPoison()) {
             LOG.info("Received poison message, generating poison response for worker: {}", bulkWorkerFriendlyName);
-            final WorkerResponse response = bulkWorker.getPoisonMessageResult(bulkWorkerFriendlyName, workerTask);
+            sendCopyToReject(workerTask);
+            final WorkerResponse response;
+            try {
+                response = ((WorkerFactory) bulkWorker).getWorker(workerTask).getPoisonMessageResult(bulkWorkerFriendlyName);
+            } catch (TaskRejectedException | InvalidTaskException e) {
+                throw new RuntimeException(
+                    "Failed to create poison message response for bulk worker", e);
+            }
             workerTask.setResponse(response);
             LOG.info("response.getQueueReference()  {}", response.getQueueReference());
             LOG.info("response.getMessageType()  {}", response.getMessageType());
             LOG.info("response.getApiVersion()  {}", response.getApiVersion());
-            sendCopyToReject(workerTask);
+
             return getNextWorkerTaskInternal(millis);
         }
 
