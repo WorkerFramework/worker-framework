@@ -87,7 +87,7 @@ final class BulkWorkerTaskProvider implements BulkWorkerRuntime
             sendCopyToReject(workerTask);
             final WorkerResponse response;
             try {
-                response = ((WorkerFactory) bulkWorker).getWorker(workerTask).getPoisonMessageResult(bulkWorkerFriendlyName);
+                response = workerTask.createWorker().getPoisonMessageResult(bulkWorkerFriendlyName);
             } catch (TaskRejectedException | InvalidTaskException e) {
                 throw new RuntimeException(
                     "Failed to create poison message response for bulk worker", e);
