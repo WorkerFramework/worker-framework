@@ -77,10 +77,14 @@ final class BulkWorkerTaskProvider implements BulkWorkerRuntime
     @Override
     public WorkerTask getNextWorkerTask(long millis) throws InterruptedException
     {
+        final long beforeTimeMillis = System.currentTimeMillis();
         final WorkerTaskImpl workerTask = registerTaskConsumed(getNextWorkerTaskImpl(millis));
         if (workerTask != null && workerTask.isPoison()) {
             processPoisonMessage(workerTask);
-            return getNextWorkerTask(millis);
+            final long remainingTimeMillis = System.currentTimeMillis() - beforeTimeMillis;
+            return remainingTimeMillis > 0
+                ? getNextWorkerTask(remainingTimeMillis)
+                : getNextWorkerTask();
         }
 
         return workerTask;
