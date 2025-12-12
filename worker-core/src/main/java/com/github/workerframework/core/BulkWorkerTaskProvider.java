@@ -54,44 +54,10 @@ final class BulkWorkerTaskProvider implements BulkWorkerRuntime
     @Override
     public WorkerTask getNextWorkerTask()
     {
-        try {
-            return getNextWorkerTaskInternal(null);
-        } catch (final InterruptedException e) {
-            // Should never happen - no-arg version doesn't block
-            throw new RuntimeException(e);
-        }
-    }
-
-    @Override
-    public WorkerTask getNextWorkerTask(long millis) throws InterruptedException
-    {
-        return getNextWorkerTaskInternal(millis);
-    }
-
-    private WorkerTask getNextWorkerTaskInternal(final Long millis) throws InterruptedException
-    {
-        final WorkerTaskImpl workerTask = registerTaskConsumed(
-            millis == null ? getNextWorkerTaskImpl() : getNextWorkerTaskImpl(millis)
-        );
-
+        final WorkerTaskImpl workerTask = registerTaskConsumed(getNextWorkerTaskImpl());
         if (workerTask != null && workerTask.isPoison()) {
-            LOG.warn("Received poison message, generating poison response for worker: {}. " +
-                         "A copy of the poison message will also be sent to the reject queue: {}",
-                     workerFriendlyName,
-                     workerTask.getRejectQueue());
-
-            sendCopyToReject(workerTask);
-
-            final WorkerResponse response;
-            try {
-                response = workerTask.createWorker().getPoisonMessageResult(workerFriendlyName);
-            } catch (final TaskRejectedException | InvalidTaskException e) {
-                throw new RuntimeException(
-                    "Failed to create poison message response for bulk worker", e);
-            }
-            workerTask.setResponse(response);
-
-            return getNextWorkerTaskInternal(millis);
+            processPoisonMessage(workerTask);
+            return getNextWorkerTask();
         }
 
         return workerTask;
@@ -106,6 +72,18 @@ final class BulkWorkerTaskProvider implements BulkWorkerRuntime
             firstTask = null;
             return task;
         }
+    }
+
+    @Override
+    public WorkerTask getNextWorkerTask(long millis) throws InterruptedException
+    {
+        final WorkerTaskImpl workerTask = registerTaskConsumed(getNextWorkerTaskImpl(millis));
+        if (workerTask != null && workerTask.isPoison()) {
+            processPoisonMessage(workerTask);
+            return getNextWorkerTask(millis);
+        }
+
+        return workerTask;
     }
 
     private WorkerTaskImpl getNextWorkerTaskImpl(long millis)
@@ -138,7 +116,28 @@ final class BulkWorkerTaskProvider implements BulkWorkerRuntime
         return workerTask;
     }
 
-    private void sendCopyToReject(final WorkerTaskImpl workerTask) {
+    private void processPoisonMessage(final WorkerTaskImpl workerTask)
+    {
+        LOG.warn("Received poison message, generating poison response for worker: {}. "
+            + "A copy of the poison message will also be sent to the reject queue: {}",
+                 workerFriendlyName,
+                 workerTask.getRejectQueue());
+
+        sendCopyToReject(workerTask);
+
+        final WorkerResponse response;
+        try {
+            response = workerTask.createWorker().getPoisonMessageResult(workerFriendlyName);
+        } catch (final TaskRejectedException | InvalidTaskException e) {
+            throw new RuntimeException(
+                "Failed to create poison message response for bulk worker", e);
+        }
+
+        workerTask.setResponse(response);
+    }
+
+    private static void sendCopyToReject(final WorkerTaskImpl workerTask)
+    {
         final TaskMessage poisonMessage = new TaskMessage(
             UUID.randomUUID().toString(),
             MoreObjects.firstNonNull(workerTask.getClassifier(), ""),
