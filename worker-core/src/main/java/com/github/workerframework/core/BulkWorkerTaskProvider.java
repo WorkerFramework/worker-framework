@@ -16,33 +16,51 @@
 package com.github.workerframework.core;
 
 import com.github.workerframework.api.BulkWorkerRuntime;
+import com.github.workerframework.api.InvalidTaskException;
+import com.github.workerframework.api.TaskMessage;
+import com.github.workerframework.api.TaskRejectedException;
+import com.github.workerframework.api.TaskStatus;
+import com.github.workerframework.api.WorkerResponse;
 import com.github.workerframework.api.WorkerTask;
+import com.google.common.base.MoreObjects;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Objects;
+import java.util.UUID;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.TimeUnit;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 final class BulkWorkerTaskProvider implements BulkWorkerRuntime
 {
+    private static final Logger LOG = LoggerFactory.getLogger(BulkWorkerTaskProvider.class);
     private WorkerTaskImpl firstTask;
     private final BlockingQueue<WorkerTaskImpl> workQueue;
     private final ArrayList<WorkerTaskImpl> consumedTasks;
+    private final String workerFriendlyName;
 
     public BulkWorkerTaskProvider(
         final WorkerTaskImpl firstTask,
-        final BlockingQueue<WorkerTaskImpl> workQueue
-    )
+        final BlockingQueue<WorkerTaskImpl> workQueue,
+        final String workerFriendlyName)
     {
         this.firstTask = Objects.requireNonNull(firstTask);
         this.workQueue = Objects.requireNonNull(workQueue);
+        this.workerFriendlyName = Objects.requireNonNull(workerFriendlyName);
         this.consumedTasks = new ArrayList<>();
     }
 
     @Override
     public WorkerTask getNextWorkerTask()
     {
-        return registerTaskConsumed(getNextWorkerTaskImpl());
+        final WorkerTaskImpl workerTask = registerTaskConsumed(getNextWorkerTaskImpl());
+        if (workerTask != null && workerTask.isPoison()) {
+            processPoisonMessage(workerTask);
+            return getNextWorkerTask();
+        }
+
+        return workerTask;
     }
 
     private WorkerTaskImpl getNextWorkerTaskImpl()
@@ -59,7 +77,17 @@ final class BulkWorkerTaskProvider implements BulkWorkerRuntime
     @Override
     public WorkerTask getNextWorkerTask(long millis) throws InterruptedException
     {
-        return registerTaskConsumed(getNextWorkerTaskImpl(millis));
+        final long beforeTimeMillis = System.currentTimeMillis();
+        final WorkerTaskImpl workerTask = registerTaskConsumed(getNextWorkerTaskImpl(millis));
+        if (workerTask != null && workerTask.isPoison()) {
+            processPoisonMessage(workerTask);
+            final long remainingTimeMillis = System.currentTimeMillis() - beforeTimeMillis;
+            return remainingTimeMillis > 0
+                ? getNextWorkerTask(remainingTimeMillis)
+                : getNextWorkerTask();
+        }
+
+        return workerTask;
     }
 
     private WorkerTaskImpl getNextWorkerTaskImpl(long millis)
@@ -90,5 +118,42 @@ final class BulkWorkerTaskProvider implements BulkWorkerRuntime
             consumedTasks.add(workerTask);
         }
         return workerTask;
+    }
+
+    private void processPoisonMessage(final WorkerTaskImpl workerTask)
+    {
+        LOG.warn("Received poison message, generating poison response for worker: {}. "
+            + "A copy of the poison message will also be sent to the reject queue: {}",
+                 workerFriendlyName,
+                 workerTask.getRejectQueue());
+
+        sendCopyToReject(workerTask);
+
+        final WorkerResponse response;
+        try {
+            response = workerTask.createWorker().getPoisonMessageResult(workerFriendlyName);
+        } catch (final TaskRejectedException | InvalidTaskException e) {
+            throw new RuntimeException(
+                "Failed to create poison message response for bulk worker", e);
+        }
+
+        workerTask.setResponse(response);
+    }
+
+    private static void sendCopyToReject(final WorkerTaskImpl workerTask)
+    {
+        final TaskMessage poisonMessage = new TaskMessage(
+            UUID.randomUUID().toString(),
+            MoreObjects.firstNonNull(workerTask.getClassifier(), ""),
+            workerTask.getVersion(),
+            workerTask.getData(),
+            TaskStatus.RESULT_EXCEPTION,
+            Collections.emptyMap(),
+            workerTask.getRejectQueue(),
+            workerTask.getTrackingInfo(),
+            workerTask.getSourceInfo(),
+            workerTask.getCorrelationId());
+
+        workerTask.sendMessage(poisonMessage);
     }
 }
