@@ -23,12 +23,12 @@
 
     <artifactId>worker-store-mem</artifactId>
     <name>worker-store-mem</name>
-    <version>10.0.2-SNAPSHOT</version>
+    <version>10.0.3-SNAPSHOT</version>
 
     <parent>
         <groupId>com.github.workerframework</groupId>
         <artifactId>worker-framework-aggregator</artifactId>
-        <version>10.0.2-SNAPSHOT</version>
+        <version>10.0.3-SNAPSHOT</version>
     </parent>
 
     <dependencies>
