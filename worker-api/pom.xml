@@ -23,12 +23,12 @@
 
     <artifactId>worker-api</artifactId>
     <name>worker-api</name>
-    <version>10.0.2-SNAPSHOT</version>
+    <version>10.0.2-1395</version>
 
     <parent>
         <groupId>com.github.workerframework</groupId>
         <artifactId>worker-framework-aggregator</artifactId>
-        <version>10.0.2-SNAPSHOT</version>
+        <version>10.0.2-1395</version>
     </parent>
 
     <dependencies>
