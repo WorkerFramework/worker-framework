@@ -81,7 +81,6 @@ public class FileSystemDataStoreTest
     public void testOffloadedEmptyDirectoriesDeleted() throws DataStoreException
     {
         final ManagedDataStore dataStore = new FileSystemDataStore(createConfig());
-
         final String trackingJobTaskId = "job/tracking/id/1";
         final String partialRef = "queues/" + trackingJobTaskId;
         final String message = UUID.randomUUID().toString();
@@ -90,7 +89,7 @@ public class FileSystemDataStoreTest
         Assert.assertTrue(Files.exists(temp.toPath()),
                           "Should not have deleted the temp datastore directory");
         Assert.assertFalse(Files.exists(queuesDirectory.toPath().resolve("job")),
-                           "Should have deleted job directory and children");
+                           "Should have deleted job directory and child directories");
         Assert.assertTrue(Files.exists(queuesDirectory.toPath()),
                 "Should not have deleted the queues directory");
     }
@@ -99,18 +98,18 @@ public class FileSystemDataStoreTest
     public void testOffloadedNonEmptyOffloadedDirectoriesNotDeleted() throws DataStoreException
     {
         final ManagedDataStore dataStore = new FileSystemDataStore(createConfig());
-        final String trackingJobTaskId = "job/tracking/id/2";
-        final String partialRef = "queues/" + trackingJobTaskId;
-        final String undeletedPartialRef = "queues/";
+        final String trackingJobTaskId = "tracking/id/2";
+        final String partialRef = "queues/job" + trackingJobTaskId;
+        final String undeletedPartialRef = "queues/job";
         final String message = UUID.randomUUID().toString();
         final String taskMessageStorageRef = dataStore.store(message.getBytes(), partialRef);
         dataStore.store(message.getBytes(), undeletedPartialRef);
         dataStore.delete(taskMessageStorageRef, true);
-        Assert.assertTrue(Files.exists(temp.toPath()),
-                          "Should not have deleted the temp datastore directory");
+        Assert.assertTrue(Files.exists(queuesDirectory.toPath().resolve("job")),
+                          "Should not have deleted the non empty directory temp/queues/job");
 
-        Assert.assertFalse(Files.exists(queuesDirectory.toPath().resolve(trackingJobTaskId)),
-                "Should have deleted queues directory children, but not not empty queues directory");
+        Assert.assertFalse(Files.exists(queuesDirectory.toPath().resolve("job/tracking")),
+                "Should have deleted temp/queues/job/tracking directory and child directories");
     }
 
     @Test
