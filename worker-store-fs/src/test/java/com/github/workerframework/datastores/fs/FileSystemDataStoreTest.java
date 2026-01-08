@@ -42,6 +42,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
+import java.util.List;
 import java.util.UUID;
 import java.util.concurrent.Callable;
 
@@ -80,6 +81,7 @@ public class FileSystemDataStoreTest
     public void testOffloadedEmptyDirectoriesDeleted() throws DataStoreException
     {
         final ManagedDataStore dataStore = new FileSystemDataStore(createConfig());
+
         final String trackingJobTaskId = "job/tracking/id/1";
         final String partialRef = "queues/" + trackingJobTaskId;
         final String message = UUID.randomUUID().toString();
@@ -87,8 +89,10 @@ public class FileSystemDataStoreTest
         dataStore.delete(taskMessageStorageRef, true);
         Assert.assertTrue(Files.exists(temp.toPath()),
                           "Should not have deleted the temp datastore directory");
-        Assert.assertFalse(Files.exists(queuesDirectory.toPath()),
-                           "Should have deleted queues directory and children");
+        Assert.assertFalse(Files.exists(queuesDirectory.toPath().resolve("job")),
+                           "Should have deleted job directory and children");
+        Assert.assertTrue(Files.exists(queuesDirectory.toPath()),
+                "Should not have deleted the queues directory");
     }
 
     @Test
@@ -104,9 +108,9 @@ public class FileSystemDataStoreTest
         dataStore.delete(taskMessageStorageRef, true);
         Assert.assertTrue(Files.exists(temp.toPath()),
                           "Should not have deleted the temp datastore directory");
-        // queues directory will not be deleted since it's not empty.
-        Assert.assertTrue(Files.exists(queuesDirectory.toPath()),
-                          "Should have deleted queues directory children, but not queues directory");
+
+        Assert.assertFalse(Files.exists(queuesDirectory.toPath().resolve(trackingJobTaskId)),
+                "Should have deleted queues directory children, but not not empty queues directory");
     }
 
     @Test
@@ -328,6 +332,7 @@ public class FileSystemDataStoreTest
     {
         FileSystemDataStoreConfiguration conf = new FileSystemDataStoreConfiguration();
         conf.setDataDir(temp.getAbsolutePath());
+        conf.setNoDeleteDirs(List.of("queues"));
         conf.setDataDirHealthcheckTimeoutSeconds(HEALTHCHECK_TIMEOUT_SECONDS);
         return conf;
     }

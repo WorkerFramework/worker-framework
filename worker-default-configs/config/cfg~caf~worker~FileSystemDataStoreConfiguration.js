@@ -15,6 +15,7 @@
  */
 ({
     dataDir: getenv("CAF_WORKER_DATASTORE_PATH") || "/mnt/caf-datastore-root",
+    noDeleteDirs: JSON.parse(getenv("CAF_WORKER_DATASTORE_NO_DELETE_DIRS") || '["queues"]'),
     dataDirHealthcheckTimeoutSeconds: getenv("CAF_WORKER_DATASTORE_HEALTHCHECK_TIMEOUT_SECONDS") || undefined,
     outputBufferSize: getenv("CAF_WORKER_DATASTORE_OUTPUT_BUFFER_SIZE")
             || getenv("CAF_WORKER_DATASTORE_BUFFER_SIZE") || undefined

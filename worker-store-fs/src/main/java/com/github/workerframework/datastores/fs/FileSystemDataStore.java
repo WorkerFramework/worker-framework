@@ -33,6 +33,7 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.nio.file.*;
 import java.time.Duration;
+import java.util.List;
 import java.util.Objects;
 import java.util.UUID;
 import java.util.concurrent.Callable;
@@ -44,6 +45,7 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Consumer;
+import java.util.stream.Collectors;
 
 /**
  * This is a simple DataStore that reads and writes files to and from a directory upon the file system. The store directory must be an
@@ -52,6 +54,7 @@ import java.util.function.Consumer;
 public class FileSystemDataStore implements ManagedDataStore, FilePathProvider, DataStoreOutputStreamSupport
 {
     private Path dataStorePath;
+    private List<Path> noDeletePaths;
     private final int outputBufferSize;
     private final AtomicInteger errors = new AtomicInteger(0);
     private final AtomicInteger numRx = new AtomicInteger(0);
@@ -70,6 +73,11 @@ public class FileSystemDataStore implements ManagedDataStore, FilePathProvider, 
         throws DataStoreException
     {
         dataStorePath = FileSystems.getDefault().getPath(config.getDataDir());
+        noDeletePaths = config.getNoDeleteDirs().stream()
+                .filter(dir -> dir != null && !dir.isBlank() && !dir.isEmpty())
+                .map(dir -> dataStorePath.resolve(dir.replace('\\', '/')))
+                .collect(Collectors.toList());
+        noDeletePaths.add(dataStorePath);
         if (!doesPathExist(dataStorePath)) {
             try {
                 Files.createDirectory(dataStorePath);
@@ -117,7 +125,7 @@ public class FileSystemDataStore implements ManagedDataStore, FilePathProvider, 
         Objects.requireNonNull(reference);
         LOG.debug("Deleting {}", reference);
         Path partialReference = getFilePath(reference);
-        while (!partialReference.equals(dataStorePath)) {
+        while (!noDeletePaths.contains(partialReference)) {
             try {
                 Files.delete(partialReference);
                 partialReference = partialReference.getParent();

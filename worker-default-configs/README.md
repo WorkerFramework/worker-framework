@@ -6,10 +6,11 @@ This project contains a set of default JavaScript configuration files that can b
 
 The default FileSystemDataStore configuration file checks for values as below;
 
-| Property | Checked Environment Variables | Default               |
-|----------|-------------------------------|-----------------------|
-| dataDir  |  `CAF_WORKER_DATASTORE_PATH` | /mnt/caf-datastore-root  |
-| dataDirHealthcheckTimeoutSeconds  |  `CAF_WORKER_DATASTORE_HEALTHCHECK_TIMEOUT_SECONDS` | 10  |
+| Property | Checked Environment Variables | Default                 |
+|----------|-------------------------------|-------------------------|
+| dataDir  |  `CAF_WORKER_DATASTORE_PATH` | /mnt/caf-datastore-root |
+| dataDirHealthcheckTimeoutSeconds  |  `CAF_WORKER_DATASTORE_HEALTHCHECK_TIMEOUT_SECONDS` | 10                      |
+| noDeleteDirs  |  `CAF_WORKER_DATASTORE_NO_DELETE_DIRS` | '["queues"]'             |
 
 ## HttpDataStoreConfiguration
 
