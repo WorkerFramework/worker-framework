@@ -4,6 +4,6 @@
 ${version-number}
 
 #### New Feature
-- US1055357: No delete directories added to FileSystemDataStore.
+- US1055357: Support for directories that should not be deleted added to FileSystemDataStoreConfiguration.
 
 #### Known Issues
