@@ -77,6 +77,7 @@ public class WorkerQueueConsumerImpl implements QueueConsumer
     private final int retryLimit;
     private final String invalidRoutingKey;
     private final String missingOffloadedPayloadQueue;
+    private final String payloadOffloadingDirectory;
     private final ManagedDataStore dataStore;
     private final Codec codec;
     private final Runnable disconnectCallback;
@@ -97,7 +98,8 @@ public class WorkerQueueConsumerImpl implements QueueConsumer
                                    final String invalidKey,
                                    final ManagedDataStore dataStore, final Codec codec,
                                    final Runnable disconnectCallback,
-                                   final String missingOffloadedPayloadQueue)
+                                   final String missingOffloadedPayloadQueue,
+                                   final String payloadOffloadingDirectory)
     {
         this.callback = Objects.requireNonNull(callback);
         this.metrics = Objects.requireNonNull(metrics);
@@ -108,6 +110,7 @@ public class WorkerQueueConsumerImpl implements QueueConsumer
         this.retryLimit = retryLimit;
         this.invalidRoutingKey = Objects.requireNonNull(invalidKey);
         this.missingOffloadedPayloadQueue = Objects.requireNonNull(missingOffloadedPayloadQueue);
+        this.payloadOffloadingDirectory =  Objects.requireNonNull(payloadOffloadingDirectory);
         this.dataStore = Objects.requireNonNull(dataStore);
         this.codec = Objects.requireNonNull(codec);
         this.disconnectCallback = Objects.requireNonNull(disconnectCallback);
@@ -383,7 +386,7 @@ public class WorkerQueueConsumerImpl implements QueueConsumer
         final String datastorePayloadReference = offloadedPayloadsToDelete.remove(tag);
         if (datastorePayloadReference != null) {
             try {
-                dataStore.delete(datastorePayloadReference, true);
+                dataStore.delete(datastorePayloadReference, true, payloadOffloadingDirectory);
             } catch (final DataStoreException e) {
                 LOG.warn("Couldn't delete offloaded payload '{}' for delivery tag '{}' from datastore message.",
                          datastorePayloadReference, tag, e);

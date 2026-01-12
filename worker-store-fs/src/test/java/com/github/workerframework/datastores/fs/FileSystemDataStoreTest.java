@@ -42,7 +42,6 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
-import java.util.List;
 import java.util.UUID;
 import java.util.concurrent.Callable;
 
@@ -81,15 +80,14 @@ public class FileSystemDataStoreTest
     public void testOffloadedEmptyDirectoriesDeleted() throws DataStoreException
     {
         final ManagedDataStore dataStore = new FileSystemDataStore(createConfig());
-        final String trackingJobTaskId = "job/tracking/id/1";
-        final String partialRef = "queues/" + trackingJobTaskId;
+        final String trackingJobTaskId = "queues/job/tracking/id/1";
         final String message = UUID.randomUUID().toString();
-        final String taskMessageStorageRef = dataStore.store(message.getBytes(), partialRef);
-        dataStore.delete(taskMessageStorageRef, true);
+        final String taskMessageStorageRef = dataStore.store(message.getBytes(), trackingJobTaskId);
+        dataStore.delete(taskMessageStorageRef, true, "queues");
         Assert.assertTrue(Files.exists(temp.toPath()),
-                          "Should not have deleted the temp datastore directory");
+                "Should not have deleted the temp datastore directory");
         Assert.assertFalse(Files.exists(queuesDirectory.toPath().resolve("job")),
-                           "Should have deleted job directory and child directories");
+                "Should have deleted job directory and child directories");
         Assert.assertTrue(Files.exists(queuesDirectory.toPath()),
                 "Should not have deleted the queues directory");
     }
@@ -106,7 +104,7 @@ public class FileSystemDataStoreTest
         dataStore.store(message.getBytes(), undeletedPartialRef);
         dataStore.delete(taskMessageStorageRef, true);
         Assert.assertTrue(Files.exists(queuesDirectory.toPath().resolve("job")),
-                          "Should not have deleted the non empty directory temp/queues/job");
+                "Should not have deleted the non empty directory temp/queues/job");
 
         Assert.assertFalse(Files.exists(queuesDirectory.toPath().resolve("job/tracking")),
                 "Should have deleted temp/queues/job/tracking directory and child directories");
@@ -122,15 +120,15 @@ public class FileSystemDataStoreTest
         final String taskMessageStorageRef = dataStore.store(message.getBytes(), partialRef);
         dataStore.delete(taskMessageStorageRef, false);
         Assert.assertTrue(Files.exists(temp.toPath()),
-                          "Should not have deleted the temp datastore directory");
+                "Should not have deleted the temp datastore directory");
         final var partialRefDirectory = new File("temp/queues/job/tracking/id/3");
         Assert.assertTrue(Files.exists(partialRefDirectory.toPath()),
-                          "Should only have deleted the offloaded file, leaving the directories intact");
+                "Should only have deleted the offloaded file, leaving the directories intact");
     }
 
     @Test
     public void testDataStoreStream()
-        throws ConfigurationException, DataStoreException, IOException
+            throws ConfigurationException, DataStoreException, IOException
     {
         FileSystemDataStoreConfiguration conf = createConfig();
         DataStore store = new FileSystemDataStore(conf);
@@ -142,7 +140,7 @@ public class FileSystemDataStoreTest
 
     @Test
     public void testDataStoreBytes()
-        throws ConfigurationException, DataStoreException, IOException
+            throws ConfigurationException, DataStoreException, IOException
     {
         FileSystemDataStoreConfiguration conf = createConfig();
         DataStore store = new FileSystemDataStore(conf);
@@ -154,7 +152,7 @@ public class FileSystemDataStoreTest
 
     @Test
     public void testDataStorePath()
-        throws ConfigurationException, DataStoreException, IOException
+            throws ConfigurationException, DataStoreException, IOException
     {
         FileSystemDataStoreConfiguration conf = createConfig();
         DataStore store = new FileSystemDataStore(conf);
@@ -168,7 +166,7 @@ public class FileSystemDataStoreTest
 
     @Test
     public void testDataStoreFilePathRetrieval()
-        throws ConfigurationException, DataStoreException, IOException
+            throws ConfigurationException, DataStoreException, IOException
     {
         FileSystemDataStoreConfiguration conf = createConfig();
         DataStore store = new FileSystemDataStore(conf);
@@ -186,7 +184,7 @@ public class FileSystemDataStoreTest
 
     @Test
     public void testDataStoreOutputStream()
-        throws ConfigurationException, DataStoreException, IOException
+            throws ConfigurationException, DataStoreException, IOException
     {
         final FileSystemDataStoreConfiguration conf = createConfig();
         final FileSystemDataStore store = new FileSystemDataStore(conf);
@@ -203,7 +201,7 @@ public class FileSystemDataStoreTest
 
     @Test(expectedExceptions = DataStoreException.class)
     public void testInvalidReference()
-        throws DataStoreException, IOException
+            throws DataStoreException, IOException
     {
         FileSystemDataStoreConfiguration conf = createConfig();
         DataStore store = new FileSystemDataStore(conf);
@@ -216,7 +214,7 @@ public class FileSystemDataStoreTest
 
     @Test(expectedExceptions = DataStoreException.class)
     public void testInvalidReferenceFilePathRetrieval()
-        throws DataStoreException, IOException
+            throws DataStoreException, IOException
     {
         FileSystemDataStoreConfiguration conf = createConfig();
         DataStore store = new FileSystemDataStore(conf);
@@ -229,7 +227,7 @@ public class FileSystemDataStoreTest
 
     @Test(expectedExceptions = ReferenceNotFoundException.class)
     public void testMissingRef()
-        throws DataStoreException
+            throws DataStoreException
     {
         FileSystemDataStoreConfiguration conf = createConfig();
         DataStore store = new FileSystemDataStore(conf);
@@ -238,7 +236,7 @@ public class FileSystemDataStoreTest
 
     @Test(expectedExceptions = ReferenceNotFoundException.class)
     public void testMissingRefFilePathRetrieval()
-        throws DataStoreException
+            throws DataStoreException
     {
         FileSystemDataStoreConfiguration conf = createConfig();
         DataStore store = new FileSystemDataStore(conf);
@@ -247,7 +245,7 @@ public class FileSystemDataStoreTest
 
     @Test
     public void testDeleteWithValidReference()
-        throws DataStoreException, IOException
+            throws DataStoreException, IOException
     {
         FileSystemDataStoreConfiguration conf = createConfig();
         DataStore store = new FileSystemDataStore(conf);
@@ -263,7 +261,7 @@ public class FileSystemDataStoreTest
 
     @Test(expectedExceptions = DataStoreException.class)
     public void testDeleteWithInvalidReference()
-        throws DataStoreException
+            throws DataStoreException
     {
         FileSystemDataStoreConfiguration conf = createConfig();
         DataStore store = new FileSystemDataStore(conf);
@@ -272,7 +270,7 @@ public class FileSystemDataStoreTest
 
     @Test
     public void testHealthcheckSuccess()
-        throws ConfigurationException, DataStoreException, IOException
+            throws ConfigurationException, DataStoreException, IOException
     {
         FileSystemDataStoreConfiguration conf = createConfig();
         FileSystemDataStore store = new FileSystemDataStore(conf);
@@ -281,8 +279,8 @@ public class FileSystemDataStoreTest
 
     @Test
     public void testHealthcheckImmediateFailure()
-        throws ConfigurationException, DataStoreException, IOException, NoSuchFieldException, IllegalArgumentException,
-                                                                                              IllegalAccessException
+            throws ConfigurationException, DataStoreException, IOException, NoSuchFieldException, IllegalArgumentException,
+            IllegalAccessException
     {
         FileSystemDataStoreConfiguration conf = createConfig();
         FileSystemDataStore store = new FileSystemDataStore(conf);
@@ -300,13 +298,13 @@ public class FileSystemDataStoreTest
         HealthResult healthResult = store.healthCheck();
         Assert.assertEquals(healthResult.getStatus(), HealthStatus.UNHEALTHY, "Healthcheck status should be UNHEALTHY");
         Assert.assertEquals(healthResult.getMessage(), "Exception thrown trying to access data store directory non-existing-dir",
-                                                       "Healthcheck message is incorrect");
+                "Healthcheck message is incorrect");
     }
 
     @Test
     public void testHealthcheckTimeoutFailure()
-        throws ConfigurationException, DataStoreException, IOException, NoSuchFieldException, IllegalArgumentException,
-               IllegalAccessException
+            throws ConfigurationException, DataStoreException, IOException, NoSuchFieldException, IllegalArgumentException,
+            IllegalAccessException
     {
         FileSystemDataStoreConfiguration conf = new FileSystemDataStoreConfiguration();
         conf.setDataDir(temp.getAbsolutePath());
@@ -323,21 +321,20 @@ public class FileSystemDataStoreTest
         HealthResult healthResult = store.healthCheck();
         Assert.assertEquals(healthResult.getStatus(), HealthStatus.UNHEALTHY, "Healthcheck status should be UNHEALTHY");
         Assert.assertEquals(healthResult.getMessage(),
-                            "Timeout after 2 seconds trying to access data store directory " + temp.getAbsolutePath(),
-                            "Healthcheck message is incorrect");
+                "Timeout after 2 seconds trying to access data store directory " + temp.getAbsolutePath(),
+                "Healthcheck message is incorrect");
     }
 
     private FileSystemDataStoreConfiguration createConfig()
     {
         FileSystemDataStoreConfiguration conf = new FileSystemDataStoreConfiguration();
         conf.setDataDir(temp.getAbsolutePath());
-        conf.setNoDeleteDirs(List.of("queues"));
         conf.setDataDirHealthcheckTimeoutSeconds(HEALTHCHECK_TIMEOUT_SECONDS);
         return conf;
     }
 
     private static void verifyStoredData(final DataStore dataStore, final byte[] expectedData, final String actualReference)
-        throws IOException, DataStoreException
+            throws IOException, DataStoreException
     {
         try (InputStream inStr = dataStore.retrieve(actualReference)) {
             verifyData(expectedData, inStr);
@@ -345,7 +342,7 @@ public class FileSystemDataStoreTest
     }
 
     private static void verifyData(final byte[] expected, final InputStream actual)
-        throws IOException
+            throws IOException
     {
         try (final ByteArrayOutputStream bos = new ByteArrayOutputStream()) {
             int nRead;

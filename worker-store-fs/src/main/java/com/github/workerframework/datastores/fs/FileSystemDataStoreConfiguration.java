@@ -20,9 +20,6 @@ import com.github.cafapi.common.api.Configuration;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
 
-import java.util.Collection;
-import java.util.Collections;
-
 @Configuration
 public class FileSystemDataStoreConfiguration
 {
@@ -32,8 +29,6 @@ public class FileSystemDataStoreConfiguration
     @NotNull
     @Size(min = 1)
     private String dataDir = "datastore";
-
-    private Collection<String> noDeleteDirs = Collections.emptyList();
 
     /**
      * The data directory healthcheck timeout in seconds.
@@ -55,16 +50,6 @@ public class FileSystemDataStoreConfiguration
     public void setDataDir(final String dataDir)
     {
         this.dataDir = dataDir;
-    }
-
-    public Collection<String> getNoDeleteDirs()
-    {
-        return noDeleteDirs;
-    }
-
-    public void setNoDeleteDirs(final Collection<String> noDeleteDirs)
-    {
-        this.noDeleteDirs = noDeleteDirs;
     }
 
     public Integer getDataDirHealthcheckTimeoutSeconds()

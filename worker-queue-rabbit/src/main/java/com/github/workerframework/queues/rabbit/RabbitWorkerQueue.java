@@ -156,7 +156,8 @@ public final class RabbitWorkerQueue implements ManagedWorkerQueue
                     dataStore,
                     codec, 
                     rabbitWorkerQueue::disconnectIncoming,
-                    config.getMissingOffloadedPayloadQueue());
+                    config.getMissingOffloadedPayloadQueue(),
+                    config.getPayloadOffloadingDirectory());
             consumer = new DefaultRabbitConsumer(consumerQueue, consumerImpl);
             WorkerPublisherImpl publisherImpl = new WorkerPublisherImpl(
                 outgoingChannel,

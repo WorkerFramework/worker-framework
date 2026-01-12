@@ -10,7 +10,6 @@ The default FileSystemDataStore configuration file checks for values as below;
 |----------------------------------|------------------------------------------------------|-------------------------|
 | dataDir                          | `CAF_WORKER_DATASTORE_PATH`                          | /mnt/caf-datastore-root |
 | dataDirHealthcheckTimeoutSeconds | `CAF_WORKER_DATASTORE_HEALTHCHECK_TIMEOUT_SECONDS`   | 10                      |
-| noDeleteDirs                     | `CAF_WORKER_DATASTORE_NO_DELETE_DIRS`                | '["queues"]'            |
 
 ## HttpDataStoreConfiguration
 

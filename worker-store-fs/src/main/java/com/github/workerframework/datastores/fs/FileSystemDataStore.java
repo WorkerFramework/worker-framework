@@ -33,6 +33,7 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.nio.file.*;
 import java.time.Duration;
+import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
 import java.util.UUID;
@@ -54,7 +55,6 @@ import java.util.stream.Collectors;
 public class FileSystemDataStore implements ManagedDataStore, FilePathProvider, DataStoreOutputStreamSupport
 {
     private Path dataStorePath;
-    private List<Path> noDeletePaths;
     private final int outputBufferSize;
     private final AtomicInteger errors = new AtomicInteger(0);
     private final AtomicInteger numRx = new AtomicInteger(0);
@@ -73,11 +73,6 @@ public class FileSystemDataStore implements ManagedDataStore, FilePathProvider, 
         throws DataStoreException
     {
         dataStorePath = FileSystems.getDefault().getPath(config.getDataDir());
-        noDeletePaths = config.getNoDeleteDirs().stream()
-                .filter(dir -> dir != null && !dir.isBlank() && !dir.isEmpty())
-                .map(dir -> dataStorePath.resolve(dir.replace('\\', '/')))
-                .collect(Collectors.toList());
-        noDeletePaths.add(dataStorePath);
         if (!doesPathExist(dataStorePath)) {
             try {
                 Files.createDirectory(dataStorePath);
@@ -109,7 +104,7 @@ public class FileSystemDataStore implements ManagedDataStore, FilePathProvider, 
     public void delete(String reference)
         throws DataStoreException
     {
-        delete(reference, false);
+        delete(reference, false, List.of(dataStorePath));
     }
 
     /**
@@ -117,10 +112,33 @@ public class FileSystemDataStore implements ManagedDataStore, FilePathProvider, 
      * cleanPartialReference is false only the referenced file is deleted.
      *
      * @param reference the file to be deleted, along with non-empty parent directories in the files directory tree.
+     * @param cleanPartialReference whether the partial reference area should be cleared out completely
      * @throws DataStoreException if the directory cannot be accessed or deleted
      */
     @Override
-    public void delete(final String reference, final boolean cleanPartialReference) throws DataStoreException
+    public void delete(final String reference, final boolean cleanPartialReference) throws DataStoreException {
+        delete(reference, cleanPartialReference, List.of(dataStorePath));
+    }
+
+    /**
+     * Delete a Directory tree from leaf node up if cleanPartialReference is true until a non-empty directory is encountered. If
+     * cleanPartialReference is false only the referenced file is deleted.
+     *
+     * @param reference the file to be deleted, along with non-empty parent directories in the files directory tree.
+     * @param cleanPartialReference whether the partial reference area should be cleared out
+     * @param noDeleteDirectory a directory in the reference where the cleanup should stop
+     * @throws DataStoreException if the directory cannot be accessed or deleted
+     */
+    @Override
+    public void delete(final String reference, final boolean cleanPartialReference, final String noDeleteDirectory) throws DataStoreException
+    {
+        Objects.requireNonNull(reference);
+        LOG.debug("Deleting {}", reference);
+        final List<Path> noDeletePaths = List.of(dataStorePath, dataStorePath.resolve(noDeleteDirectory));
+        delete(reference, cleanPartialReference, noDeletePaths);
+    }
+
+    private void delete(final String reference, final boolean cleanPartialReference, final List<Path> noDeletePaths) throws DataStoreException
     {
         Objects.requireNonNull(reference);
         LOG.debug("Deleting {}", reference);
