@@ -131,7 +131,6 @@ public class FileSystemDataStore implements ManagedDataStore, FilePathProvider, 
     public void delete(final String reference, final boolean cleanPartialReference, final String noDeleteDirectory) throws DataStoreException
     {
         Objects.requireNonNull(reference);
-        LOG.debug("Deleting {}", reference);
         final List<Path> noDeletePaths = List.of(dataStorePath, dataStorePath.resolve(noDeleteDirectory));
         delete(reference, cleanPartialReference, noDeletePaths);
     }
@@ -139,7 +138,7 @@ public class FileSystemDataStore implements ManagedDataStore, FilePathProvider, 
     private void delete(final String reference, final boolean cleanPartialReference, final List<Path> noDeletePaths) throws DataStoreException
     {
         Objects.requireNonNull(reference);
-        LOG.debug("Deleting {}", reference);
+        LOG.debug("Deleting {} not deleting", reference, noDeletePaths);
         Path partialReference = getFilePath(reference);
         while (!noDeletePaths.contains(partialReference)) {
             try {
