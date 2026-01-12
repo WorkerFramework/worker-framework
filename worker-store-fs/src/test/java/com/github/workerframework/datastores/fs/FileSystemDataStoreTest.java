@@ -80,15 +80,16 @@ public class FileSystemDataStoreTest
     public void testOffloadedEmptyDirectoriesDeleted() throws DataStoreException
     {
         final ManagedDataStore dataStore = new FileSystemDataStore(createConfig());
-        final String trackingJobTaskId = "job/tracking/id/1";
-        final String partialRef = "queues/" + trackingJobTaskId;
+        final String trackingJobTaskId = "queues/job/tracking/id/1";
         final String message = UUID.randomUUID().toString();
-        final String taskMessageStorageRef = dataStore.store(message.getBytes(), partialRef);
-        dataStore.delete(taskMessageStorageRef, true);
+        final String taskMessageStorageRef = dataStore.store(message.getBytes(), trackingJobTaskId);
+        dataStore.delete(taskMessageStorageRef, true, "queues");
         Assert.assertTrue(Files.exists(temp.toPath()),
                           "Should not have deleted the temp datastore directory");
-        Assert.assertFalse(Files.exists(queuesDirectory.toPath()),
-                           "Should have deleted queues directory and children");
+        Assert.assertTrue(Files.exists(queuesDirectory.toPath()),
+                           "Should not have deleted queues directory");
+        Assert.assertFalse(Files.exists(queuesDirectory.toPath().resolve("job")),
+                "Should have deleted job directory and children");
     }
 
     @Test
