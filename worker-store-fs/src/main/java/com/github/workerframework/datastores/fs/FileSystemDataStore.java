@@ -33,7 +33,6 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.nio.file.*;
 import java.time.Duration;
-import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
 import java.util.UUID;
@@ -46,7 +45,6 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Consumer;
-import java.util.stream.Collectors;
 
 /**
  * This is a simple DataStore that reads and writes files to and from a directory upon the file system. The store directory must be an
