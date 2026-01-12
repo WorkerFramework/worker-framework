@@ -102,7 +102,7 @@ public class FileSystemDataStoreTest
         final String message = UUID.randomUUID().toString();
         final String taskMessageStorageRef = dataStore.store(message.getBytes(), partialRef);
         dataStore.store(message.getBytes(), undeletedPartialRef);
-        dataStore.delete(taskMessageStorageRef, true, "queues");
+        dataStore.delete(taskMessageStorageRef, true);
         Assert.assertTrue(Files.exists(temp.toPath()),
                           "Should not have deleted the temp datastore directory");
         // queues directory will not be deleted since it's not empty.
