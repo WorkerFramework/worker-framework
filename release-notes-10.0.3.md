@@ -4,5 +4,6 @@
 ${version-number}
 
 #### New Features
+- US1055357: Support for directories that should not be deleted on datastore cleanup.
 
 #### Known Issues
