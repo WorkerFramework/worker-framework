@@ -136,7 +136,8 @@ public class FileSystemDataStore implements ManagedDataStore, FilePathProvider, 
         delete(reference, cleanPartialReference, noDeletePaths);
     }
 
-    private void delete(final String reference, final boolean cleanPartialReference, final List<Path> noDeletePaths) throws DataStoreException
+    private void delete(final String reference, final boolean cleanPartialReference, final List<Path> noDeletePaths)
+        throws DataStoreException
     {
         Objects.requireNonNull(reference);
         LOG.debug("Deleting {} not deleting", reference, noDeletePaths);
