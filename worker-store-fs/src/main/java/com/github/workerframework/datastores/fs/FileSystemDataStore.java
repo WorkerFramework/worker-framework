@@ -128,7 +128,8 @@ public class FileSystemDataStore implements ManagedDataStore, FilePathProvider, 
      * @throws DataStoreException if the directory cannot be accessed or deleted
      */
     @Override
-    public void delete(final String reference, final boolean cleanPartialReference, final String noDeleteDirectory) throws DataStoreException
+    public void delete(final String reference, final boolean cleanPartialReference, final String noDeleteDirectory)
+        throws DataStoreException
     {
         Objects.requireNonNull(reference);
         final List<Path> noDeletePaths = List.of(dataStorePath, dataStorePath.resolve(noDeleteDirectory));
